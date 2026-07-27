@@ -97,6 +97,17 @@ def _scorer_report(config: dict, maia: dict, samples: dict) -> str:
         smoke_rows.append(
             f"| {band} | {values['n']:,} | {_pct(values['top1_move_match_accuracy'])} |"
         )
+    smoke_accuracy = maia.get(
+        "overall_top1_move_match_accuracy",
+        sum(
+            row["n"] * row["top1_move_match_accuracy"]
+            for row in maia["move_match_by_band"].values()
+        )
+        / max(1, smoke_positions),
+    )
+    smoke_rows.append(
+        f"| **Overall** | **{smoke_positions:,}** | **{_pct(smoke_accuracy)}** |"
+    )
     candidate_rows = [
         "| Game | Ply | Move | Objective cost | Punishing reply | At band | At +200 |",
         "|---|---:|---|---:|---|---:|---:|",
@@ -131,6 +142,7 @@ def _scorer_report(config: dict, maia: dict, samples: dict) -> str:
             "\n".join(smoke_rows),
             "",
             f"These {smoke_positions:,} positions come only from held-out games in a capped, band-balanced MPS smoke test. It is not a training-independent benchmark because April 2019 may overlap Maia2 training data.",
+            f"The nominal ≥50% smoke expectation is **{'met' if smoke_accuracy >= 0.5 else 'not met'}** overall; band non-monotonicity is retained rather than smoothed away.",
             "",
             "## Three sample games",
             "",

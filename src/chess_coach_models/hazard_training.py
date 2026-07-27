@@ -160,7 +160,11 @@ def train_hazard(
     version = "v1_maia" if include_maia else ("v0_matched" if matched_subset else "v0")
     metrics = {
         "version": version,
-        "source_path": str(source_path),
+        "source_path": str(
+            source_path.relative_to(Path(config["_project_root"]))
+            if source_path.is_relative_to(Path(config["_project_root"]))
+            else source_path
+        ),
         "features": feature_names,
         "positions": int(len(frame)),
         "games": int(frame["game_id"].nunique()),

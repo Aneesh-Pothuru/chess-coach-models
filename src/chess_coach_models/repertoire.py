@@ -273,20 +273,21 @@ def build_repertoire(
     slug_by_band = {"<1100": "lt1100", "1100-1400": "1100-1400"}
     for band in ("<1100", "1100-1400"):
         elo = representative_elo(band, config["rating_bands"])
+        candidate_pool = int(cfg["recommend_top_n"]) * 5
         sections = {
             "white_systems": _rank_candidates(
                 records,
                 perspective="white",
                 band=band,
                 minimum_n=int(cfg["minimum_node_games"]),
-                top_n=int(cfg["recommend_top_n"]),
+                top_n=candidate_pool,
             ),
             "black_vs_e4": _rank_candidates(
                 records,
                 perspective="black",
                 band=band,
                 minimum_n=int(cfg["minimum_node_games"]),
-                top_n=int(cfg["recommend_top_n"]),
+                top_n=candidate_pool,
                 context_first_move="e2e4",
             ),
             "black_vs_d4": _rank_candidates(
@@ -294,11 +295,11 @@ def build_repertoire(
                 perspective="black",
                 band=band,
                 minimum_n=int(cfg["minimum_node_games"]),
-                top_n=int(cfg["recommend_top_n"]),
+                top_n=candidate_pool,
                 context_first_move="d2d4",
             ),
         }
-        for rows in sections.values():
+        for section_name, rows in sections.items():
             for row in rows:
                 row["maia_findability"] = _findability(
                     row["prefix_uci"], row["perspective"], elo, provider
@@ -311,6 +312,7 @@ def build_repertoire(
                 ),
                 reverse=True,
             )
+            sections[section_name] = rows[: int(cfg["recommend_top_n"])]
         output["bands"][band] = sections
 
         report = [

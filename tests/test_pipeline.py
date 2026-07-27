@@ -1,7 +1,11 @@
 from pathlib import Path
+import io
+
+import chess.pgn
+import pytest
 
 from chess_coach_models.config import load_config
-from chess_coach_models.pipeline import process_stream
+from chess_coach_models.pipeline import game_to_records, process_stream
 
 
 FIXTURE = Path(__file__).parent / "fixtures" / "tiny_annotated.pgn"
@@ -40,3 +44,40 @@ def test_opening_move_counts_are_capped() -> None:
     assert openings["plies_captured"][0] == 4
     assert len(openings["moves_uci"][0].split()) == 4
 
+
+def test_cli_mode_rejects_truncated_stream_before_caps() -> None:
+    config = load_config()
+    config["data"]["max_eval_positions"] = 10_000
+    config["data"]["max_opening_games"] = 10_000
+    with FIXTURE.open(encoding="utf-8") as handle, pytest.raises(
+        RuntimeError, match="before configured caps"
+    ):
+        process_stream(handle, config, write_outputs=False, require_caps=True)
+
+
+def test_eval_gaps_do_not_create_multi_move_labels() -> None:
+    game = chess.pgn.read_game(
+        io.StringIO(
+            """
+[Event "Rated Rapid game"]
+[Site "https://lichess.org/gaptest1"]
+[Result "*"]
+[WhiteElo "1200"]
+[BlackElo "1200"]
+[TimeControl "600+0"]
+
+1. e4 { [%eval 0.00] } e5 2. Nf3 { [%eval 5.00] } *
+"""
+        )
+    )
+    assert game is not None
+    config = load_config()
+    _, positions = game_to_records(
+        game,
+        1,
+        config["rating_bands"],
+        opening_plies=12,
+        trap_max_ply=15,
+        blunder_threshold=20,
+    )
+    assert positions == []

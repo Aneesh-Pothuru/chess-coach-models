@@ -119,13 +119,17 @@ def add_maia_features(
                 (group["maia_top1_move"] == group["move_uci"]).mean()
             ),
         }
+    overall_accuracy = float(
+        (smoke_frame["maia_top1_move"] == smoke_frame["move_uci"]).mean()
+    )
     metadata = {
-        "source": str(source),
-        "output": str(target),
+        "source": str(source.relative_to(Path(config["_project_root"]))),
+        "output": str(target.relative_to(Path(config["_project_root"]))),
         "positions": int(len(frame)),
         "smoke_positions": int(len(smoke_frame)),
         "device": str(next(provider.model.parameters()).device),
         "move_match_by_band": smoke,
+        "overall_top1_move_match_accuracy": overall_accuracy,
     }
     report_path = project_path(config, "reports/maia_smoke_metrics.json")
     report_path.write_text(json.dumps(metadata, indent=2) + "\n")

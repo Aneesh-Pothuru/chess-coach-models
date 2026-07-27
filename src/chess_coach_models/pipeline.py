@@ -146,8 +146,9 @@ def game_to_records(
                     "early_ply": int(ply <= trap_max_ply),
                 }
             )
-        if current_cp_white is not None:
-            previous_cp_white = current_cp_white
+        # Labels require adjacent annotations. Never bridge an eval gap across
+        # two or more human moves.
+        previous_cp_white = current_cp_white
         board.push(move)
         history_uci.append(uci)
 
@@ -187,6 +188,7 @@ def process_stream(
     config: dict[str, Any],
     *,
     write_outputs: bool = True,
+    require_caps: bool = False,
 ) -> tuple[pl.DataFrame, pl.DataFrame, PipelineStats]:
     data_cfg = config["data"]
     bands = config["rating_bands"]
@@ -244,6 +246,15 @@ def process_stream(
                 file=sys.stderr,
             )
 
+    if require_caps and (
+        len(eval_rows) < max_eval or len(opening_rows) < max_openings
+    ):
+        raise RuntimeError(
+            "Input ended before configured caps were reached: "
+            f"openings={len(opening_rows)}/{max_openings}, "
+            f"eval_positions={len(eval_rows)}/{max_eval}"
+        )
+
     openings_df = pl.DataFrame(opening_rows, infer_schema_length=None)
     eval_df = pl.DataFrame(eval_rows, infer_schema_length=None)
     if write_outputs:
@@ -274,10 +285,10 @@ def main(argv: list[str] | None = None) -> None:
     config = load_config(args.config)
     if args.input:
         with Path(args.input).open("r", encoding="utf-8", errors="replace") as handle:
-            _, _, stats = process_stream(handle, config)
+            _, _, stats = process_stream(handle, config, require_caps=True)
     else:
         stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8", errors="replace")
-        _, _, stats = process_stream(stdin, config)
+        _, _, stats = process_stream(stdin, config, require_caps=True)
     print(json.dumps(stats.__dict__, indent=2))
 
 

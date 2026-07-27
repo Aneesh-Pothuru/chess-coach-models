@@ -95,8 +95,11 @@ def main() -> None:
     summary["repertoire"] = build_repertoire(
         config, use_maia=not args.skip_maia
     )
-    sample_path = project_path(config, "tests/fixtures/sample_games.pgn")
-    scorer = score_pgn(sample_path, config, use_maia=not args.skip_maia)
+    scorer = score_pgn(
+        "tests/fixtures/sample_games.pgn",
+        config,
+        use_maia=not args.skip_maia,
+    )
     scorer_path = project_path(config, "reports/scorer_samples.json")
     scorer_path.write_text(json.dumps(scorer, indent=2) + "\n")
     summary["gambit_sanity"] = gambit_sanity(config)
