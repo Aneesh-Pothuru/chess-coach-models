@@ -11,6 +11,7 @@ import polars as pl
 
 from .config import project_path
 from .engine import open_stockfish
+from .hazard_training import group_stratified_split
 from .maia import MaiaPolicy, policy_summary
 
 
@@ -44,10 +45,33 @@ def add_maia_features(
 ) -> dict[str, Any]:
     source = project_path(config, config["data"]["eval_positions_path"])
     frame = pl.read_parquet(source).to_pandas()
-    frame = _balanced_sample(
+    seed = int(config["seed"])
+    split = group_stratified_split(
         frame,
-        int(config["maia2"]["max_feature_positions"]),
-        int(config["seed"]),
+        seed=seed,
+        test_fraction=float(config["hazard"]["test_fraction"]),
+        validation_fraction=float(config["hazard"]["validation_fraction"]),
+    )
+    frame["_split"] = split
+    smoke_per_band = int(config["maia2"]["smoke_moves_per_band"])
+    held_out_parts = [
+        group.sample(min(len(group), smoke_per_band), random_state=seed)
+        for _, group in frame.loc[frame["_split"] == "test"].groupby(
+            "rating_band", sort=False
+        )
+    ]
+    held_out = pd.concat(held_out_parts)
+    cap = int(config["maia2"]["max_feature_positions"])
+    remainder_cap = max(0, cap - len(held_out))
+    remainder = _balanced_sample(
+        frame.loc[frame["_split"] != "test"],
+        remainder_cap,
+        seed,
+    )
+    frame = (
+        pd.concat([held_out, remainder])
+        .sample(frac=1, random_state=seed)
+        .reset_index(drop=True)
     )
     best_moves: list[str | None] = []
     time_limit = float(config["maia2"]["stockfish_time_seconds"])
@@ -87,7 +111,8 @@ def add_maia_features(
     pl.from_pandas(frame).write_parquet(target, compression="zstd")
 
     smoke = {}
-    for band, group in frame.groupby("rating_band"):
+    smoke_frame = frame.loc[frame["_split"] == "test"]
+    for band, group in smoke_frame.groupby("rating_band"):
         smoke[str(band)] = {
             "n": int(len(group)),
             "top1_move_match_accuracy": float(
@@ -98,10 +123,10 @@ def add_maia_features(
         "source": str(source),
         "output": str(target),
         "positions": int(len(frame)),
+        "smoke_positions": int(len(smoke_frame)),
         "device": str(next(provider.model.parameters()).device),
         "move_match_by_band": smoke,
     }
     report_path = project_path(config, "reports/maia_smoke_metrics.json")
     report_path.write_text(json.dumps(metadata, indent=2) + "\n")
     return metadata
-

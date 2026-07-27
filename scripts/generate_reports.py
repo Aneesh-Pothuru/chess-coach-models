@@ -31,7 +31,7 @@ def _metric_table(metrics: dict, model_names: list[str]) -> str:
     labels = {
         "lightgbm": "LightGBM",
         "constant_base_rate": "Constant",
-        "abs_eval": "|eval| baseline",
+        "abs_eval": "Absolute-eval baseline",
     }
     for band in order:
         if band not in metrics:
@@ -56,7 +56,7 @@ def _plot_calibration(v0: dict, output: Path) -> None:
     }
     labels = {
         "lightgbm": "LightGBM",
-        "abs_eval": "|eval| baseline",
+        "abs_eval": "Absolute-eval baseline",
         "constant_base_rate": "Constant",
     }
     for name, values in v0["calibration"].items():
@@ -88,6 +88,7 @@ def _plot_importance(csv_path: Path, output: Path) -> None:
 
 
 def _scorer_report(config: dict, maia: dict, samples: dict) -> str:
+    smoke_positions = maia.get("smoke_positions", maia["positions"])
     smoke_rows = [
         "| Band | N | Top-1 move match |",
         "|---|---:|---:|",
@@ -102,6 +103,11 @@ def _scorer_report(config: dict, maia: dict, samples: dict) -> str:
     ]
     for game in samples["games"]:
         label = f"{game.get('white')}–{game.get('black')}"
+        if not game["candidates"]:
+            candidate_rows.append(
+                f"| {label} | — | _No >10 Win% move_ | — | — | — | — |"
+            )
+            continue
         for candidate in game["candidates"]:
             at_band = candidate["punishment_probability_at_band"]
             stronger = candidate["punishment_probability_plus_200"]
@@ -124,7 +130,7 @@ def _scorer_report(config: dict, maia: dict, samples: dict) -> str:
             "",
             "\n".join(smoke_rows),
             "",
-            f"These {maia['positions']:,} positions are a capped, band-balanced MPS smoke test, not a training-independent benchmark. April 2019 may overlap Maia2 training data.",
+            f"These {smoke_positions:,} positions come only from held-out games in a capped, band-balanced MPS smoke test. It is not a training-independent benchmark because April 2019 may overlap Maia2 training data.",
             "",
             "## Three sample games",
             "",
@@ -145,6 +151,7 @@ def _hazard_report(
     v0: dict, v1: dict | None, v0_matched: dict | None
 ) -> str:
     overall = v0["metrics"]["overall"]
+    smoke_positions = maia.get("smoke_positions", maia["positions"])
     success = overall["lightgbm"]["pr_auc"] > overall["abs_eval"]["pr_auc"]
     parts = [
         "# Model 2: Blunder-hazard classifier",
@@ -192,7 +199,8 @@ def _hazard_report(
             "## Feature definition and limitations",
             "",
             "- The hanging-piece count is a fast static-exchange proxy: attacked pieces whose cheapest attacker costs less, or which are undefended.",
-            "- The local run caps labels at 25,000 and Maia2 features at 3,000 positions.",
+            f"- The local run caps labels at {v0['positions']:,} and Maia2 features at "
+            f"{v1['positions'] if v1 is not None else 0:,} positions.",
             "- Lichess analysis availability is not random; results characterize the sampled annotated games.",
             "- The absolute-eval baseline is calibrated on training games, while its ranking signal remains |eval| alone.",
         ]
@@ -216,9 +224,24 @@ def _summary_report(
     surprises = []
     for band, rows in gambits.items():
         if rows:
-            top = rows[0]
+            top = next(
+                (
+                    row
+                    for row in rows
+                    if row["score_lift_pct"] > 0
+                    and row["engine_eval_cp_white_after_8_plies"] is not None
+                    and row["engine_eval_cp_white_after_8_plies"] < 0
+                ),
+                rows[0],
+            )
+            engine_value = top["engine_eval_cp_white_after_8_plies"]
+            engine_text = (
+                f"{engine_value:+.0f} cp for White"
+                if engine_value is not None
+                else "unavailable"
+            )
             surprises.append(
-                f"- In {band}, **{top['opening']}** scored {top['score_lift_pct']:+.1f} points above the band average across N={top['n']:,}; its short-line engine eval was {top['engine_eval_cp_white_after_8_plies']:+.0f} cp for White."
+                f"- In {band}, **{top['opening']}** scored {top['score_lift_pct']:+.1f} points above the band average across N={top['n']:,}; its short-line engine eval was {engine_text}."
             )
     if not surprises:
         surprises.append("- No gambit family cleared the N=50 sanity threshold in this capped stream.")
@@ -230,8 +253,8 @@ def _summary_report(
             "",
             "| Model | Primary result | Status |",
             "|---|---|---|",
-            f"| Graded-opponent scorer | Maia smoke: {maia['positions']:,} positions on {maia['device']} | Runnable |",
-            f"| Blunder hazard v0 | PR-AUC {overall['lightgbm']['pr_auc']:.3f} vs |eval| {overall['abs_eval']['pr_auc']:.3f} | {'Pass' if overall['lightgbm']['pr_auc'] > overall['abs_eval']['pr_auc'] else 'Below success bar'} |",
+            f"| Graded-opponent scorer | Maia smoke: {smoke_positions:,} held-out positions on {maia['device']} | Runnable |",
+            f"| Blunder hazard v0 | PR-AUC {overall['lightgbm']['pr_auc']:.3f} vs absolute-eval {overall['abs_eval']['pr_auc']:.3f} | {'Pass' if overall['lightgbm']['pr_auc'] > overall['abs_eval']['pr_auc'] else 'Below success bar'} |",
             f"| Repertoire optimizer | Strict-N recommendations: {counts.get('<1100', 0)} / {counts.get('1100-1400', 0)} | Runnable |",
             "",
             "## Notable findings",
@@ -251,6 +274,7 @@ def _summary_report(
 def _update_readme(readme: Path, v0: dict, maia: dict, repertoire: dict) -> None:
     text = readme.read_text(encoding="utf-8")
     overall = v0["metrics"]["overall"]
+    smoke_positions = maia.get("smoke_positions", maia["positions"])
     counts = {
         band: sum(len(section) for section in sections.values())
         for band, sections in repertoire["bands"].items()
@@ -260,8 +284,8 @@ def _update_readme(readme: Path, v0: dict, maia: dict, repertoire: dict) -> None
             "<!-- RESULTS_START -->",
             "| Model | Result |",
             "|---|---|",
-            f"| Graded-opponent scorer | Maia2 smoke on {maia['positions']:,} positions; sample PGN annotation complete |",
-            f"| Blunder hazard v0 | PR-AUC {overall['lightgbm']['pr_auc']:.3f} vs |eval| baseline {overall['abs_eval']['pr_auc']:.3f}; Brier {overall['lightgbm']['brier_score']:.3f} |",
+            f"| Graded-opponent scorer | Maia2 smoke on {smoke_positions:,} held-out positions; sample PGN annotation complete |",
+            f"| Blunder hazard v0 | PR-AUC {overall['lightgbm']['pr_auc']:.3f} vs absolute-eval baseline {overall['abs_eval']['pr_auc']:.3f}; Brier {overall['lightgbm']['brier_score']:.3f} |",
             f"| Repertoire optimizer | {counts.get('<1100', 0)} strict-N rows below 1100; {counts.get('1100-1400', 0)} at 1100–1400 |",
             "<!-- RESULTS_END -->",
         ]
@@ -273,6 +297,56 @@ def _update_readme(readme: Path, v0: dict, maia: dict, repertoire: dict) -> None
     else:
         text += "\n## Results\n\n" + block + "\n"
     readme.write_text(text, encoding="utf-8")
+
+
+def _append_repertoire_findings(
+    reports: Path, repertoire: dict, gambits: dict
+) -> None:
+    slugs = {"<1100": "lt1100", "1100-1400": "1100-1400"}
+    for band, sections in repertoire["bands"].items():
+        path = reports / f"repertoire_{slugs[band]}.md"
+        total = sum(len(rows) for rows in sections.values())
+        all_rows = [row for rows in sections.values() for row in rows]
+        best = max(all_rows, key=lambda row: row["score_pct"]) if all_rows else None
+        gambit_rows = gambits.get(band, [])
+        practical = next(
+            (
+                row
+                for row in gambit_rows
+                if row["score_lift_pct"] > 0
+                and row["engine_eval_cp_white_after_8_plies"] is not None
+                and row["engine_eval_cp_white_after_8_plies"] < 0
+            ),
+            gambit_rows[0] if gambit_rows else None,
+        )
+        findings = [
+            "<!-- FINDINGS_START -->",
+            "",
+            "## Sanity checks and surprises",
+            "",
+            f"- {total} lines clear the strict N≥2,000 threshold across the three sections; no sub-threshold line is promoted.",
+        ]
+        if best is not None:
+            findings.append(
+                f"- The highest-scoring eligible line is **{best['line_san']}** at {best['score_pct']:.1f}% "
+                f"(N={best['n']:,}, 95% CI {best['wilson_low_pct']:.1f}–{best['wilson_high_pct']:.1f}%)."
+            )
+        if practical is not None:
+            engine_value = practical["engine_eval_cp_white_after_8_plies"]
+            engine_text = (
+                f"{engine_value:+.0f} cp"
+                if engine_value is not None
+                else "not available"
+            )
+            findings.append(
+                f"- Gambit check: **{practical['opening']}** scores {practical['score_lift_pct']:+.1f} points "
+                f"above the band average (N={practical['n']:,}) while its representative eight-ply line evaluates at {engine_text} for White."
+            )
+        findings.append("<!-- FINDINGS_END -->")
+        current = path.read_text(encoding="utf-8")
+        if "<!-- FINDINGS_START -->" in current:
+            current = current.split("<!-- FINDINGS_START -->", 1)[0].rstrip() + "\n\n"
+        path.write_text(current + "\n".join(findings) + "\n", encoding="utf-8")
 
 
 def main() -> None:
@@ -306,6 +380,7 @@ def main() -> None:
         _summary_report(config, v0, v1, maia, repertoire, gambits),
         encoding="utf-8",
     )
+    _append_repertoire_findings(reports, repertoire, gambits)
     _update_readme(project_path(config, "README.md"), v0, maia, repertoire)
     print("Generated reports and README results table.")
 

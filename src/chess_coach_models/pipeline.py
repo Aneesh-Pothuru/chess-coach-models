@@ -46,7 +46,7 @@ def _int_header(headers: chess.pgn.Headers, key: str) -> int | None:
 def _is_standard_rated(headers: chess.pgn.Headers) -> bool:
     variant = headers.get("Variant", "Standard")
     event = headers.get("Event", "")
-    return variant in {"Standard", "From Position"} and event.startswith("Rated")
+    return variant in {"", "Standard"} and event.startswith("Rated")
 
 
 def _game_id(game: chess.pgn.Game, index: int) -> str:
@@ -153,6 +153,11 @@ def game_to_records(
 
     if pending:
         eval_records = pending
+    early_trap_plies = [
+        int(record["ply"])
+        for record in eval_records
+        if record["is_blunder"] and record["early_ply"]
+    ]
 
     opening_record = {
         "game_id": game_id,
@@ -170,6 +175,9 @@ def game_to_records(
         "moves_san": " ".join(moves_san),
         "plies_captured": len(moves_uci),
         "has_evals": bool(eval_records),
+        "eval_position_count": len(eval_records),
+        "has_early_trap": bool(early_trap_plies),
+        "early_trap_plies": " ".join(map(str, early_trap_plies)),
     }
     return opening_record, eval_records
 

@@ -1,11 +1,12 @@
 PYTHON ?= .venv/bin/python
 PIP ?= .venv/bin/pip
 CONFIG ?= configs/config.yaml
+PYTHON_BOOTSTRAP ?= $(shell command -v python3.12 2>/dev/null || command -v python3)
 
 .PHONY: setup data train eval reports test all
 
 setup:
-	test -d .venv || /opt/homebrew/bin/python3.12 -m venv .venv
+	test -d .venv || $(PYTHON_BOOTSTRAP) -m venv .venv
 	$(PIP) install --upgrade pip setuptools wheel
 	$(PIP) install -r requirements.txt
 

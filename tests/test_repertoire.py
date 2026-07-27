@@ -34,5 +34,5 @@ def test_opening_tree_counts_fixture_games() -> None:
     assert len(root_e4) == 1
     assert root_e4[0]["n"] == 1
     assert root_e4[0]["score_pct"] == 100
+    assert root_e4[0]["trap_annotated_games"] == 1
     assert isinstance(pl.DataFrame(tree), pl.DataFrame)
-

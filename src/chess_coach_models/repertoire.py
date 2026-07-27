@@ -3,12 +3,13 @@ from __future__ import annotations
 import argparse
 import json
 import math
-from collections import Counter, defaultdict
+from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 import chess
+import chess.pgn
 import polars as pl
 
 from .bands import representative_elo
@@ -21,6 +22,7 @@ class NodeAggregate:
     n: int = 0
     score_sum: float = 0.0
     traps: int = 0
+    trap_eligible_games: int = 0
     continuations: Counter[str] = field(default_factory=Counter)
     openings: Counter[str] = field(default_factory=Counter)
     ecos: Counter[str] = field(default_factory=Counter)
@@ -44,18 +46,6 @@ def wilson_interval(
     return max(0.0, center - margin), min(1.0, center + margin)
 
 
-def _trap_plies(eval_frame: pl.DataFrame) -> dict[str, list[int]]:
-    if eval_frame.is_empty():
-        return {}
-    rows = eval_frame.filter(
-        (pl.col("is_blunder") == 1) & (pl.col("early_ply") == 1)
-    ).select("game_id", "ply")
-    result: dict[str, list[int]] = defaultdict(list)
-    for game_id, ply in rows.iter_rows():
-        result[str(game_id)].append(int(ply))
-    return result
-
-
 def aggregate_opening_tree(
     openings: pl.DataFrame,
     eval_positions: pl.DataFrame,
@@ -63,7 +53,9 @@ def aggregate_opening_tree(
     max_plies: int,
     z: float = 1.96,
 ) -> list[dict[str, Any]]:
-    traps_by_game = _trap_plies(eval_positions)
+    # Exact trap metadata is computed before position reservoir sampling and
+    # stored on each opening game. Retain this argument for API compatibility.
+    _ = eval_positions
     aggregates: dict[tuple[str, str, str], NodeAggregate] = {}
     totals: Counter[tuple[str, str]] = Counter()
 
@@ -71,7 +63,11 @@ def aggregate_opening_tree(
         moves = str(row["moves_uci"]).split()[:max_plies]
         if not moves:
             continue
-        game_traps = traps_by_game.get(str(row["game_id"]), [])
+        game_traps = [
+            int(value)
+            for value in str(row.get("early_trap_plies") or "").split()
+        ]
+        trap_eligible = bool(row.get("has_evals"))
         perspectives = (
             ("white", str(row["white_band"]), float(row["white_score"])),
             ("black", str(row["black_band"]), float(row["black_score"])),
@@ -84,7 +80,10 @@ def aggregate_opening_tree(
                 aggregate = aggregates.setdefault(key, NodeAggregate())
                 aggregate.n += 1
                 aggregate.score_sum += score
-                aggregate.traps += int(any(depth < ply <= 15 for ply in game_traps))
+                aggregate.trap_eligible_games += int(trap_eligible)
+                aggregate.traps += int(
+                    trap_eligible and any(depth < ply <= 15 for ply in game_traps)
+                )
                 if depth < len(moves):
                     aggregate.continuations[moves[depth]] += 1
                 opening = str(row.get("opening") or "")
@@ -112,7 +111,12 @@ def aggregate_opening_tree(
                 "wilson_low_pct": 100.0 * lower,
                 "wilson_high_pct": 100.0 * upper,
                 "popularity": aggregate.n / totals[(perspective, band)],
-                "trap_density": aggregate.traps / aggregate.n,
+                "trap_density": (
+                    aggregate.traps / aggregate.trap_eligible_games
+                    if aggregate.trap_eligible_games
+                    else 0.0
+                ),
+                "trap_annotated_games": aggregate.trap_eligible_games,
                 "main_continuations": top_continuations,
                 "opening": (
                     aggregate.openings.most_common(1)[0][0]
@@ -327,7 +331,7 @@ def build_repertoire(
             "",
             _format_table(sections["black_vs_d4"]),
             "",
-            "Trap density is the fraction of games with a >20 Win% swing after the node and by ply 15.",
+            "Trap density is the fraction of eval-annotated games with a >20 Win% swing after the node and by ply 15.",
         ]
         report_path = project_path(
             config, f"reports/repertoire_{slug_by_band[band]}.md"
@@ -339,17 +343,68 @@ def build_repertoire(
     return output
 
 
+def lookup_pgn(
+    pgn_path: str | Path,
+    config: dict[str, Any],
+    *,
+    band: str,
+    perspective: str,
+) -> dict[str, Any]:
+    tree_path = project_path(config, "data/processed/opening_tree.parquet")
+    if not tree_path.exists():
+        raise FileNotFoundError(f"Opening tree not found: {tree_path}. Run `make train`.")
+    with Path(pgn_path).open(encoding="utf-8", errors="replace") as handle:
+        game = chess.pgn.read_game(handle)
+    if game is None:
+        raise ValueError(f"No PGN game found in {pgn_path}")
+    moves = [move.uci() for move in game.mainline_moves()][
+        : int(config["data"]["opening_plies"])
+    ]
+    tree = pl.read_parquet(tree_path).filter(
+        (pl.col("rating_band") == band) & (pl.col("perspective") == perspective)
+    )
+    for depth in range(len(moves), 0, -1):
+        prefix = " ".join(moves[:depth])
+        match = tree.filter(pl.col("prefix_uci") == prefix)
+        if match.height:
+            result = match.row(0, named=True)
+            result["line_san"] = _line_san(prefix)
+            return result
+    return {
+        "rating_band": band,
+        "perspective": perspective,
+        "matched": False,
+        "message": "No sampled node matched this PGN prefix.",
+    }
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Build Elo-conditioned repertoire data.")
     parser.add_argument("--config", default="configs/config.yaml")
     parser.add_argument("--no-maia", action="store_true")
+    parser.add_argument("--query-pgn")
+    parser.add_argument("--band", default="1100-1400")
+    parser.add_argument("--perspective", choices=["white", "black"], default="white")
     args = parser.parse_args(argv)
+    config = load_config(args.config)
+    if args.query_pgn:
+        print(
+            json.dumps(
+                lookup_pgn(
+                    args.query_pgn,
+                    config,
+                    band=args.band,
+                    perspective=args.perspective,
+                ),
+                indent=2,
+            )
+        )
+        return
     output = build_repertoire(
-        load_config(args.config), use_maia=not args.no_maia
+        config, use_maia=not args.no_maia
     )
     print(json.dumps({"bands": list(output["bands"])}, indent=2))
 
 
 if __name__ == "__main__":
     main()
-
