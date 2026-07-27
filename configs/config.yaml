@@ -37,6 +37,8 @@ stockfish:
 maia2:
   enabled: true
   device: "auto"
+  model_type: "rapid"
+  weights_dir: "artifacts/maia2"
   max_feature_positions: 3000
   batch_size: 128
   smoke_moves_per_band: 1000
@@ -52,6 +54,6 @@ hazard:
 repertoire:
   minimum_node_games: 2000
   recommend_top_n: 5
+  recommendation_plies: 4
   wilson_z: 1.96
   critical_line_count: 3
-

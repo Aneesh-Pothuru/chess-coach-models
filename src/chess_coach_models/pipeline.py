@@ -97,6 +97,7 @@ def game_to_records(
     eval_records: list[dict[str, Any]] = []
     previous_cp_white: float | None = None
     pending: list[dict[str, Any]] = []
+    history_uci: list[str] = []
 
     for ply, node in enumerate(game.mainline(), start=1):
         move = node.move
@@ -123,6 +124,7 @@ def game_to_records(
                     "game_id": game_id,
                     "ply": ply,
                     "fen": fen_before,
+                    "history_uci": " ".join(history_uci),
                     "move_uci": uci,
                     "move_san": san,
                     "mover": "white" if mover == chess.WHITE else "black",
@@ -145,6 +147,7 @@ def game_to_records(
         if current_cp_white is not None:
             previous_cp_white = current_cp_white
         board.push(move)
+        history_uci.append(uci)
 
     if pending:
         eval_records = pending
@@ -262,4 +265,3 @@ def main(argv: list[str] | None = None) -> None:
 
 if __name__ == "__main__":
     main()
-
