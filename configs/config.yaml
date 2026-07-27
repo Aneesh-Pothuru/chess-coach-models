@@ -36,7 +36,9 @@ stockfish:
 
 maia2:
   enabled: true
-  device: "auto"
+  # MPS is fast for single-position scoring but segfaulted in the 5k batch on
+  # the reference Mac. CPU is slower and reproducible for committed evals.
+  device: "cpu"
   model_type: "rapid"
   weights_dir: "artifacts/maia2"
   max_feature_positions: 5000

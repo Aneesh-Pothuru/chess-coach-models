@@ -141,7 +141,7 @@ def _scorer_report(config: dict, maia: dict, samples: dict) -> str:
             "",
             "\n".join(smoke_rows),
             "",
-            f"These {smoke_positions:,} positions come only from held-out games in a capped, band-balanced MPS smoke test. It is not a training-independent benchmark because April 2019 may overlap Maia2 training data.",
+            f"These {smoke_positions:,} positions come only from held-out games in a capped, band-balanced smoke test on {maia['device']}. It is not a training-independent benchmark because April 2019 may overlap Maia2 training data.",
             f"The nominal ≥50% smoke expectation is **{'met' if smoke_accuracy >= 0.5 else 'not met'}** overall; band non-monotonicity is retained rather than smoothed away.",
             "",
             "## Three sample games",
@@ -163,7 +163,6 @@ def _hazard_report(
     v0: dict, v1: dict | None, v0_matched: dict | None
 ) -> str:
     overall = v0["metrics"]["overall"]
-    smoke_positions = maia.get("smoke_positions", maia["positions"])
     success = overall["lightgbm"]["pr_auc"] > overall["abs_eval"]["pr_auc"]
     parts = [
         "# Model 2: Blunder-hazard classifier",
@@ -189,7 +188,7 @@ def _hazard_report(
         if v0_matched is not None:
             matched_pr = v0_matched["metrics"]["overall"]["lightgbm"]["pr_auc"]
             matched_text = (
-                f" The matched hand-feature model scores {matched_pr:.3f}, "
+                f"The matched hand-feature model scores {matched_pr:.3f}, "
                 f"for a Maia-feature delta of {v1_overall['lightgbm']['pr_auc'] - matched_pr:+.3f}."
             )
         parts.extend(
@@ -229,6 +228,7 @@ def _summary_report(
     gambits: dict,
 ) -> str:
     overall = v0["metrics"]["overall"]
+    smoke_positions = maia.get("smoke_positions", maia["positions"])
     counts = {
         band: sum(len(section) for section in sections.values())
         for band, sections in repertoire["bands"].items()

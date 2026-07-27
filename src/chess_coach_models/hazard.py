@@ -15,6 +15,13 @@ from .engine import analyse, open_stockfish, score_cp_white
 from .features import board_features
 
 
+def _header_elo(headers: chess.pgn.Headers, key: str, default: int = 1500) -> int:
+    try:
+        return int(headers.get(key, default))
+    except (TypeError, ValueError):
+        return default
+
+
 class HazardPredictor:
     def __init__(self, config: dict[str, Any], model_path: str | Path | None = None):
         self.config = config
@@ -88,10 +95,9 @@ def mine_pgn(
             board = game.board()
             for ply, move in enumerate(game.mainline_moves(), start=1):
                 mover = board.turn
-                elo = int(
-                    game.headers.get(
-                        "WhiteElo" if mover == chess.WHITE else "BlackElo", 1500
-                    )
+                elo = _header_elo(
+                    game.headers,
+                    "WhiteElo" if mover == chess.WHITE else "BlackElo",
                 )
                 info = analyse(engine, board, config, multipv=1)[0]
                 cp = score_cp_white(

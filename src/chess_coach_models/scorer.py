@@ -20,6 +20,13 @@ class PolicyProvider(Protocol):
     def policy(self, fen: str, elo_self: int, elo_oppo: int) -> dict[str, float]: ...
 
 
+def _header_elo(headers: chess.pgn.Headers, key: str, default: int = 1500) -> int:
+    try:
+        return int(headers.get(key, default))
+    except (TypeError, ValueError):
+        return default
+
+
 def punishment_probability(
     policy_provider: PolicyProvider | None,
     fen_after: str,
@@ -49,18 +56,22 @@ def score_game(
 
     for ply, move in enumerate(game.mainline_moves(), start=1):
         mover = board.turn
-        player_elo = int(
-            headers.get("WhiteElo" if mover == chess.WHITE else "BlackElo", 1500)
+        player_elo = _header_elo(
+            headers, "WhiteElo" if mover == chess.WHITE else "BlackElo"
         )
-        opponent_header_elo = int(
-            headers.get("BlackElo" if mover == chess.WHITE else "WhiteElo", player_elo)
+        opponent_header_elo = _header_elo(
+            headers,
+            "BlackElo" if mover == chess.WHITE else "WhiteElo",
+            player_elo,
         )
         band = rating_band(player_elo, config["rating_bands"]) or "1400-1700"
         base_elo = representative_elo(band, config["rating_bands"])
         san = board.san(move)
         fen_before = board.fen()
         board.push(move)
-        after_infos = analyse(engine, board, config, multipv=int(config["stockfish"]["multipv"]))
+        after_infos = analyse(
+            engine, board, config, multipv=int(config["stockfish"]["multipv"])
+        )
         cp_after = score_cp_white(after_infos[0]["score"], mate_cp)
         loss = mover_loss_win_percent(cp_before, cp_after, mover)
 
@@ -144,4 +155,3 @@ def main(argv: list[str] | None = None) -> None:
 
 if __name__ == "__main__":
     main()
-

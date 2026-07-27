@@ -11,8 +11,8 @@ import polars as pl
 
 from .config import project_path
 from .engine import open_stockfish
-from .hazard_training import group_stratified_split
 from .maia import MaiaPolicy, policy_summary
+from .splitting import group_stratified_split
 
 
 def _balanced_sample(frame: pd.DataFrame, cap: int, seed: int) -> pd.DataFrame:

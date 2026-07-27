@@ -19,7 +19,11 @@ use Lichess data only.
 ## Results
 
 <!-- RESULTS_START -->
-_Run `make eval reports` to populate this table._
+| Model | Result |
+|---|---|
+| Graded-opponent scorer | Maia2 smoke on 2,500 held-out positions; sample PGN annotation complete |
+| Blunder hazard v0 | PR-AUC 0.197 vs absolute-eval baseline 0.055; Brier 0.049 |
+| Repertoire optimizer | 7 strict-N rows below 1100; 12 at 1100–1400 |
 <!-- RESULTS_END -->
 
 See [reports/SUMMARY.md](reports/SUMMARY.md) for the complete findings and the
@@ -29,7 +33,11 @@ repertoire tables.
 ## Reproduce from a fresh clone
 
 Prerequisites: macOS or Linux, Python 3.11–3.13, `zstd`, and Stockfish. Apple
-Silicon is the reference environment; Maia2 automatically selects MPS.
+Silicon is the reference environment. The committed batch eval pins Maia2 to
+CPU: MPS worked for interactive inference but segfaulted on the 5,000-position
+batch. Evaluation stages also run in isolated Python processes because mixing
+LightGBM's OpenMP pool and subsequent Torch inference in one process can stall
+on macOS. Both workarounds preserve the configured sample size.
 
 ```bash
 brew install zstd stockfish gh
@@ -79,7 +87,8 @@ One decompressed stream feeds two collections:
 The parser retains ratings, bands, time control, result, ECO/opening, UCI/SAN
 move prefixes, `[%eval]`, and `[%clk]`. Train/validation/test assignment hashes
 whole game IDs within band strata; a game can never leak positions across
-splits.
+splits. April 2019 is intentionally after Lichess clock tags began in April
+2017 and is far smaller than recent 30+ GB months.
 
 Rating bands are `<1100`, `1100–1400`, `1400–1700`, `1700–2000`, and `2000+`.
 Lichess ratings are Glicko-2 and are often roughly 200–400 points higher than
@@ -120,7 +129,7 @@ current-eval features. Class-balanced training improves ranking; a Platt model
 fit only on validation games converts raw scores into usable probabilities.
 
 The v1 experiment adds Maia2 policy entropy, top-1 probability, and
-`P(Stockfish best move | Maia2)` on a capped MPS subset. A matched hand-feature
+`P(Stockfish best move | Maia2)` on a capped CPU subset. A matched hand-feature
 model is trained on that same subset, so any claimed delta is apples-to-apples.
 The product API remains:
 

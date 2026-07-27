@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 import chess
@@ -11,9 +13,6 @@ import polars as pl
 
 from chess_coach_models.config import load_config, project_path
 from chess_coach_models.engine import open_stockfish, score_cp_white
-from chess_coach_models.hazard_training import train_hazard
-from chess_coach_models.maia_features import add_maia_features
-from chess_coach_models.repertoire import build_repertoire
 from chess_coach_models.scorer import score_pgn
 
 
@@ -72,51 +71,108 @@ def gambit_sanity(config: dict) -> dict:
     return results
 
 
+def run_stage(label: str, *arguments: str) -> None:
+    """Isolate LightGBM and Torch to avoid an Apple OpenMP/MPS barrier."""
+    print(f"[eval] {label}", flush=True)
+    subprocess.run(
+        [sys.executable, *arguments],
+        check=True,
+        stdout=subprocess.DEVNULL,
+    )
+
+
+def maia_features_current(config: dict) -> bool:
+    source = project_path(config, config["data"]["eval_positions_path"])
+    features = project_path(config, "data/processed/eval_positions_maia.parquet")
+    smoke = project_path(config, "reports/maia_smoke_metrics.json")
+    if not features.exists() or not smoke.exists():
+        return False
+    if features.stat().st_mtime < source.stat().st_mtime:
+        return False
+    try:
+        metadata = json.loads(smoke.read_text(encoding="utf-8"))
+        return (
+            int(metadata["positions"])
+            == int(config["maia2"]["max_feature_positions"])
+            and pl.scan_parquet(features).select(pl.len()).collect().item()
+            == int(config["maia2"]["max_feature_positions"])
+        )
+    except (KeyError, ValueError, json.JSONDecodeError):
+        return False
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="configs/config.yaml")
     parser.add_argument("--skip-maia", action="store_true")
     args = parser.parse_args()
     config = load_config(args.config)
+    has_maia = not args.skip_maia and bool(config["maia2"]["enabled"])
 
-    summary = {"hazard_v0": train_hazard(config)}
-    if not args.skip_maia and config["maia2"]["enabled"]:
-        summary["maia_smoke"] = add_maia_features(config)
-        summary["hazard_v0_matched"] = train_hazard(
-            config,
-            include_maia=False,
-            input_path="data/processed/eval_positions_maia.parquet",
+    run_stage(
+        "train hazard v0",
+        "scripts/train_hazard.py",
+        "--config",
+        args.config,
+    )
+    if has_maia:
+        if maia_features_current(config):
+            print("[eval] reuse current Maia2 feature cache", flush=True)
+        else:
+            run_stage(
+                "add Maia2 features and smoke eval",
+                "scripts/add_maia_features.py",
+                "--config",
+                args.config,
+            )
+        run_stage(
+            "train matched hand-feature model",
+            "scripts/train_hazard.py",
+            "--config",
+            args.config,
+            "--input",
+            "data/processed/eval_positions_maia.parquet",
         )
-        summary["hazard_v1_maia"] = train_hazard(
-            config,
-            include_maia=True,
-            input_path="data/processed/eval_positions_maia.parquet",
+        run_stage(
+            "train Maia2-feature v1",
+            "scripts/train_hazard.py",
+            "--config",
+            args.config,
+            "--with-maia",
         )
-    summary["repertoire"] = build_repertoire(
-        config, use_maia=not args.skip_maia
+    repertoire_arguments = [
+        "scripts/build_repertoire.py",
+        "--config",
+        args.config,
+    ]
+    if not has_maia:
+        repertoire_arguments.append("--no-maia")
+    run_stage(
+        "build repertoire tree and recommendations",
+        *repertoire_arguments,
     )
     scorer = score_pgn(
         "tests/fixtures/sample_games.pgn",
         config,
-        use_maia=not args.skip_maia,
+        use_maia=has_maia,
     )
     scorer_path = project_path(config, "reports/scorer_samples.json")
     scorer_path.write_text(json.dumps(scorer, indent=2) + "\n")
-    summary["gambit_sanity"] = gambit_sanity(config)
+    gambits = gambit_sanity(config)
     gambit_path = project_path(config, "reports/gambit_sanity.json")
-    gambit_path.write_text(json.dumps(summary["gambit_sanity"], indent=2) + "\n")
+    gambit_path.write_text(json.dumps(gambits, indent=2) + "\n")
 
     manifest = {
         "source_month": config["data"]["month"],
         "v0_metrics": "reports/hazard_metrics.json",
         "v1_metrics": (
             "reports/hazard_metrics_v1_maia.json"
-            if "hazard_v1_maia" in summary
+            if has_maia
             else None
         ),
         "v0_matched_metrics": (
             "reports/hazard_metrics_v0_matched.json"
-            if "hazard_v0_matched" in summary
+            if has_maia
             else None
         ),
         "scorer_samples": "reports/scorer_samples.json",

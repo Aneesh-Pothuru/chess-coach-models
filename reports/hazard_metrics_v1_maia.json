@@ -1,0 +1,257 @@
+{
+  "version": "v1_maia",
+  "source_path": "data/processed/eval_positions_maia.parquet",
+  "features": [
+    "side_to_move_white",
+    "mover_elo",
+    "rating_band_index",
+    "material_count",
+    "material_imbalance",
+    "phase_piece_count",
+    "in_check",
+    "legal_move_count",
+    "hanging_piece_count",
+    "passed_pawns_mover",
+    "passed_pawns_opponent",
+    "attackers_near_own_king",
+    "castling_kingside",
+    "castling_queenside",
+    "current_win_pct",
+    "abs_eval_cp",
+    "maia_entropy",
+    "maia_top1_probability",
+    "maia_stockfish_best_probability"
+  ],
+  "positions": 5000,
+  "games": 3740,
+  "split_positions": {
+    "train": 2180,
+    "validation": 456,
+    "test": 2364
+  },
+  "split_games": {
+    "train": 1919,
+    "validation": 390,
+    "test": 1431
+  },
+  "metrics": {
+    "overall": {
+      "lightgbm": {
+        "n": 2364,
+        "positives": 143,
+        "base_rate": 0.06049069373942471,
+        "roc_auc": 0.8094114350305255,
+        "pr_auc": 0.2242506728249388,
+        "brier_score": 0.052111459063195385
+      },
+      "constant_base_rate": {
+        "n": 2364,
+        "positives": 143,
+        "base_rate": 0.06049069373942471,
+        "roc_auc": 0.5,
+        "pr_auc": 0.06049069373942471,
+        "brier_score": 0.056961715024813904
+      },
+      "abs_eval": {
+        "n": 2364,
+        "positives": 143,
+        "base_rate": 0.06049069373942471,
+        "roc_auc": 0.48362263580633685,
+        "pr_auc": 0.055605147284189485,
+        "brier_score": 0.056802397027690535
+      }
+    },
+    "1100-1400": {
+      "lightgbm": {
+        "n": 489,
+        "positives": 31,
+        "base_rate": 0.06339468302658487,
+        "roc_auc": 0.7564445696576982,
+        "pr_auc": 0.2111005646314323,
+        "brier_score": 0.05697206429950148
+      },
+      "constant_base_rate": {
+        "n": 489,
+        "positives": 31,
+        "base_rate": 0.06339468302658487,
+        "roc_auc": 0.5,
+        "pr_auc": 0.06339468302658487,
+        "brier_score": 0.059580633803968434
+      },
+      "abs_eval": {
+        "n": 489,
+        "positives": 31,
+        "base_rate": 0.06339468302658487,
+        "roc_auc": 0.566136075503592,
+        "pr_auc": 0.07016359784075143,
+        "brier_score": 0.05931419367792401
+      }
+    },
+    "1400-1700": {
+      "lightgbm": {
+        "n": 468,
+        "positives": 27,
+        "base_rate": 0.057692307692307696,
+        "roc_auc": 0.8215335516922818,
+        "pr_auc": 0.18452206667512355,
+        "brier_score": 0.05053034915341061
+      },
+      "constant_base_rate": {
+        "n": 468,
+        "positives": 27,
+        "base_rate": 0.057692307692307696,
+        "roc_auc": 0.5,
+        "pr_auc": 0.057692307692307696,
+        "brier_score": 0.05443803292911113
+      },
+      "abs_eval": {
+        "n": 468,
+        "positives": 27,
+        "base_rate": 0.057692307692307696,
+        "roc_auc": 0.41450407323423194,
+        "pr_auc": 0.04718337126212854,
+        "brier_score": 0.05427440104692162
+      }
+    },
+    "1700-2000": {
+      "lightgbm": {
+        "n": 478,
+        "positives": 19,
+        "base_rate": 0.0397489539748954,
+        "roc_auc": 0.7788097695218438,
+        "pr_auc": 0.14117689691036783,
+        "brier_score": 0.03671315806366705
+      },
+      "constant_base_rate": {
+        "n": 478,
+        "positives": 19,
+        "base_rate": 0.0397489539748954,
+        "roc_auc": 0.5,
+        "pr_auc": 0.0397489539748954,
+        "brier_score": 0.038256090998637464
+      },
+      "abs_eval": {
+        "n": 478,
+        "positives": 19,
+        "base_rate": 0.0397489539748954,
+        "roc_auc": 0.42214195619768374,
+        "pr_auc": 0.03490354206577746,
+        "brier_score": 0.03817224471748128
+      }
+    },
+    "2000+": {
+      "lightgbm": {
+        "n": 454,
+        "positives": 15,
+        "base_rate": 0.03303964757709251,
+        "roc_auc": 0.8264996203492786,
+        "pr_auc": 0.09657719950927682,
+        "brier_score": 0.031041940675534403
+      },
+      "constant_base_rate": {
+        "n": 454,
+        "positives": 15,
+        "base_rate": 0.03303964757709251,
+        "roc_auc": 0.5,
+        "pr_auc": 0.03303964757709251,
+        "brier_score": 0.03220540458667395
+      },
+      "abs_eval": {
+        "n": 454,
+        "positives": 15,
+        "base_rate": 0.03303964757709251,
+        "roc_auc": 0.6025816249050873,
+        "pr_auc": 0.05624220778511955,
+        "brier_score": 0.032139492948514654
+      }
+    },
+    "<1100": {
+      "lightgbm": {
+        "n": 475,
+        "positives": 51,
+        "base_rate": 0.10736842105263159,
+        "roc_auc": 0.8059100998890122,
+        "pr_auc": 0.34086415492988,
+        "brier_score": 0.08429898054319163
+      },
+      "constant_base_rate": {
+        "n": 475,
+        "positives": 51,
+        "base_rate": 0.10736842105263159,
+        "roc_auc": 0.5,
+        "pr_auc": 0.10736842105263159,
+        "brier_score": 0.09923768378525645
+      },
+      "abs_eval": {
+        "n": 475,
+        "positives": 51,
+        "base_rate": 0.10736842105263159,
+        "roc_auc": 0.5308916019237884,
+        "pr_auc": 0.11443048232269001,
+        "brier_score": 0.09902767031876752
+      }
+    }
+  },
+  "calibration": {
+    "lightgbm": {
+      "mean_predicted": [
+        0.012873907847722367,
+        0.014152958712370304,
+        0.015131322635709583,
+        0.016495396793116304,
+        0.02033923620719888,
+        0.03045220637140235,
+        0.05093468045888898,
+        0.08902375737887017,
+        0.1379422228982844,
+        0.24346654654259048
+      ],
+      "observed_fraction": [
+        0.004201680672268907,
+        0.00423728813559322,
+        0.0,
+        0.008438818565400843,
+        0.01702127659574468,
+        0.07203389830508475,
+        0.06751054852320675,
+        0.08898305084745763,
+        0.1271186440677966,
+        0.21518987341772153
+      ]
+    },
+    "constant_base_rate": {
+      "mean_predicted": [
+        0.04908256880733869
+      ],
+      "observed_fraction": [
+        0.06049069373942471
+      ]
+    },
+    "abs_eval": {
+      "mean_predicted": [
+        0.03177077797719309,
+        0.048036538869138216,
+        0.04981820712896607,
+        0.05059226921527837,
+        0.051082770036071534,
+        0.05137333897650944,
+        0.05153559082048368,
+        0.051635923723497026,
+        0.051698378483017185,
+        0.051739698174886564
+      ],
+      "observed_fraction": [
+        0.012658227848101266,
+        0.03389830508474576,
+        0.07203389830508475,
+        0.09282700421940929,
+        0.1483050847457627,
+        0.09243697478991597,
+        0.059574468085106386,
+        0.037815126050420166,
+        0.014814814814814815,
+        0.04477611940298507
+      ]
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "source": "data/processed/eval_positions.parquet",
+  "output": "data/processed/eval_positions_maia.parquet",
+  "positions": 5000,
+  "smoke_positions": 2500,
+  "device": "cpu",
+  "move_match_by_band": {
+    "1100-1400": {
+      "n": 500,
+      "top1_move_match_accuracy": 0.47
+    },
+    "1400-1700": {
+      "n": 500,
+      "top1_move_match_accuracy": 0.446
+    },
+    "1700-2000": {
+      "n": 500,
+      "top1_move_match_accuracy": 0.496
+    },
+    "2000+": {
+      "n": 500,
+      "top1_move_match_accuracy": 0.514
+    },
+    "<1100": {
+      "n": 500,
+      "top1_move_match_accuracy": 0.47
+    }
+  },
+  "overall_top1_move_match_accuracy": 0.4792
+}
