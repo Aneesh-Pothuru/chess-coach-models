@@ -14,6 +14,8 @@ data:
 
 train:
 	$(PYTHON) scripts/train_hazard.py --config $(CONFIG)
+	$(PYTHON) scripts/add_maia_features.py --config $(CONFIG)
+	$(PYTHON) scripts/train_hazard.py --config $(CONFIG) --with-maia
 	$(PYTHON) scripts/build_repertoire.py --config $(CONFIG)
 
 eval:
@@ -25,5 +27,4 @@ reports:
 test:
 	$(PYTHON) -m pytest
 
-all: setup data train eval reports
-
+all: setup data eval reports

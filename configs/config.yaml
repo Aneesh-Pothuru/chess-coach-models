@@ -7,8 +7,8 @@ data:
   opening_games_path: "data/processed/opening_games.parquet"
   metadata_path: "data/processed/pipeline_metadata.json"
   # Honest laptop defaults. Scale these without changing code on a larger box.
-  max_eval_positions: 25000
-  max_opening_games: 100000
+  max_eval_positions: 50000
+  max_opening_games: 300000
   opening_plies: 12
   trap_max_ply: 15
   progress_every_games: 10000
@@ -42,6 +42,7 @@ maia2:
   max_feature_positions: 3000
   batch_size: 128
   smoke_moves_per_band: 1000
+  stockfish_time_seconds: 0.03
 
 hazard:
   test_fraction: 0.15
@@ -50,6 +51,9 @@ hazard:
   early_stopping_rounds: 30
   class_weight: "balanced"
   min_test_games_per_band: 10
+  model_path: "artifacts/models/hazard_v0.joblib"
+  metrics_path: "reports/hazard_metrics.json"
+  feature_importance_path: "reports/hazard_feature_importance.csv"
 
 repertoire:
   minimum_node_games: 2000

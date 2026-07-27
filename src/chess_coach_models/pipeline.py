@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import io
 import json
+import random
 import sys
 import time
 from dataclasses import dataclass
@@ -31,6 +32,7 @@ class PipelineStats:
     games_kept_openings: int = 0
     games_with_evals: int = 0
     eval_positions: int = 0
+    eval_positions_seen: int = 0
     parse_errors: int = 0
 
 
@@ -186,6 +188,7 @@ def process_stream(
     stats = PipelineStats()
     opening_rows: list[dict[str, Any]] = []
     eval_rows: list[dict[str, Any]] = []
+    rng = random.Random(int(config["seed"]))
     started = time.monotonic()
 
     while len(eval_rows) < max_eval or len(opening_rows) < max_openings:
@@ -213,9 +216,16 @@ def process_stream(
             stats.games_kept_openings += 1
         if positions:
             stats.games_with_evals += 1
-            remaining = max_eval - len(eval_rows)
-            if remaining > 0:
-                eval_rows.extend(positions[:remaining])
+            # A seeded reservoir prevents the cap from selecting only the first
+            # few hundred fully analysed games in the month.
+            for position in positions:
+                stats.eval_positions_seen += 1
+                if len(eval_rows) < max_eval:
+                    eval_rows.append(position)
+                    continue
+                replacement = rng.randrange(stats.eval_positions_seen)
+                if replacement < max_eval:
+                    eval_rows[replacement] = position
         stats.eval_positions = len(eval_rows)
 
         if progress_every and stats.games_read % progress_every == 0:
