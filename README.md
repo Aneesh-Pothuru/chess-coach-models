@@ -1,0 +1,68 @@
+# Chess Coach Models
+
+Three specialized models for a chess coaching platform:
+
+1. **Graded-opponent scorer** — distinguishes objective mistakes from mistakes a
+   human at the player's level is likely to punish.
+2. **Blunder-hazard classifier** — predicts whether the next human move will
+   lose more than 20 percentage points of win probability.
+3. **Elo-conditioned repertoire optimizer** — finds openings that score well,
+   contain practical traps, and remain findable for the target rating band.
+
+The runtime platform can consume chess.com Published-Data API PGNs, which have
+different clock formatting and no engine annotations. Training and evaluation
+here use the Lichess Open Database.
+
+## Status
+
+The data parser and correctness tests are implemented. Model and evaluation
+results are populated by the remaining pipeline targets.
+
+## Quick start
+
+Requirements: macOS or Linux, Python 3.11–3.13, `zstd`, and Stockfish.
+
+```bash
+brew install zstd stockfish gh
+make setup
+make test
+make data
+make train
+make eval
+make reports
+```
+
+`make data` streams the configured Lichess month and stops when both sample caps
+are reached; it does not keep the full dump. All tunable values, including the
+month, rating bands, thresholds, engine budget, and sample caps, live in
+[`configs/config.yaml`](configs/config.yaml).
+
+## Data provenance and licenses
+
+- Lichess database exports are released under **CC0**. The configured source is
+  April 2019 standard rated games. Lichess evals are White-perspective, and this
+  project flips them for Black before computing move-quality labels.
+- `maia2` is MIT-licensed. It supplies Elo-conditioned move probabilities.
+- Original Maia weights are GPL; they are not bundled or used here.
+- This repository's code is MIT-licensed.
+
+Lichess ratings are Glicko-2 and are often roughly 200–400 points higher than
+chess.com ratings at the low end. The project deliberately uses Lichess bands
+without claiming a solved cross-site conversion.
+
+## Win probability and labels
+
+The published Lichess conversion is used with centipawns clamped to ±1000:
+
+```text
+Win% = 50 + 50 * (2 / (1 + exp(-0.00368208 * cp)) - 1)
+```
+
+Mate scores map to ±10000 cp before saturation. Move loss is Win% before minus
+Win% after from the mover's perspective. A blunder loses more than 20 Win%.
+
+## Repository hygiene
+
+Real PGNs, Parquet files, downloaded weights, and trained binaries are ignored.
+Only tiny test fixtures and lightweight reports are committed.
+

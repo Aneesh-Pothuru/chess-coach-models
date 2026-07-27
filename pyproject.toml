@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chess-coach-models"
+version = "0.1.0"
+description = "Danger, difficulty, and punishment models for chess coaching"
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+license = {text = "MIT"}
+dependencies = [
+  "joblib>=1.4",
+  "lightgbm>=4.3",
+  "maia2>=0.1",
+  "matplotlib>=3.8",
+  "numpy>=1.26",
+  "pandas>=2.2",
+  "polars>=1.0",
+  "pyarrow>=16",
+  "python-chess>=1.999",
+  "PyYAML>=6.0",
+  "scikit-learn>=1.4",
+  "torch>=2.2",
+  "zstandard>=0.22",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.2",
+  "pytest-cov>=5.0",
+]
+
+[project.scripts]
+chess-coach-filter = "chess_coach_models.pipeline:main"
+chess-coach-score = "chess_coach_models.scorer:main"
+chess-coach-hazard = "chess_coach_models.hazard:main"
+chess-coach-repertoire = "chess_coach_models.repertoire:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+

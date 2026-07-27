@@ -1,0 +1,57 @@
+seed: 42
+
+data:
+  month: "2019-04"
+  url: "https://database.lichess.org/standard/lichess_db_standard_rated_2019-04.pgn.zst"
+  eval_positions_path: "data/processed/eval_positions.parquet"
+  opening_games_path: "data/processed/opening_games.parquet"
+  metadata_path: "data/processed/pipeline_metadata.json"
+  # Honest laptop defaults. Scale these without changing code on a larger box.
+  max_eval_positions: 25000
+  max_opening_games: 100000
+  opening_plies: 12
+  trap_max_ply: 15
+  progress_every_games: 10000
+
+rating_bands:
+  - {name: "<1100", min: 0, max: 1099, representative_elo: 1000}
+  - {name: "1100-1400", min: 1100, max: 1399, representative_elo: 1250}
+  - {name: "1400-1700", min: 1400, max: 1699, representative_elo: 1550}
+  - {name: "1700-2000", min: 1700, max: 1999, representative_elo: 1850}
+  - {name: "2000+", min: 2000, max: 4000, representative_elo: 2150}
+
+thresholds:
+  candidate_loss_win_pct: 10.0
+  blunder_loss_win_pct: 20.0
+  cp_clamp: 1000
+  mate_cp: 10000
+
+stockfish:
+  path: "auto"
+  depth: 12
+  multipv: 3
+  time_limit_seconds: 0.12
+  threads: 2
+  hash_mb: 256
+
+maia2:
+  enabled: true
+  device: "auto"
+  max_feature_positions: 3000
+  batch_size: 128
+  smoke_moves_per_band: 1000
+
+hazard:
+  test_fraction: 0.15
+  validation_fraction: 0.15
+  num_boost_round: 250
+  early_stopping_rounds: 30
+  class_weight: "balanced"
+  min_test_games_per_band: 10
+
+repertoire:
+  minimum_node_games: 2000
+  recommend_top_n: 5
+  wilson_z: 1.96
+  critical_line_count: 3
+
