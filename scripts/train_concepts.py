@@ -56,7 +56,13 @@ def main() -> None:
             encoding="utf-8"
         )
     )
-    vocabulary = sampling["vocabulary"]
+    # Apply the exclusion list here too, so a dataset sampled under an older
+    # exclusion list still trains on the current concept vocabulary.
+    vocabulary = [
+        theme
+        for theme in sampling["vocabulary"]
+        if theme not in set(cfg["exclude_themes"])
+    ]
     labels = labels_matrix(frame["themes"], vocabulary)
     embeddings = load_embeddings(config, frame)
 

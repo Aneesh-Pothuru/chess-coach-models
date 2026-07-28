@@ -90,9 +90,12 @@ concepts:
   metrics_path: "reports/concept_metrics.json"
   max_puzzles: 100000
   min_plays: 200
-  # Length buckets, phase tags, and eval-derived outcome tags are not
-  # concepts; mateIn1-5 are outcome countdowns while named mate patterns stay.
+  # Length buckets, phase tags, eval-derived outcome tags, and source-game
+  # tags (master, masterVsMaster) are not concepts; mateIn1-5 are outcome
+  # countdowns while named mate patterns stay.
   exclude_themes:
+    - master
+    - masterVsMaster
     - oneMove
     - short
     - long
