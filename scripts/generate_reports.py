@@ -273,8 +273,7 @@ def _benchmark_report(config: dict, benchmark: dict, smoke: dict) -> str:
     if all(a <= b for a, b in zip(confidences, confidences[1:])):
         dip_sentences.append(
             "Maia2's mean top-1 confidence rises monotonically with band "
-            f"({confidences[0]:.3f} → {confidences[-1]:.3f}), so the flat stretch in "
-            "measured accuracy between the middle bands is not a confidence artifact."
+            f"({confidences[0]:.3f} → {confidences[-1]:.3f})."
         )
     trend_paragraph = " ".join(
         [f"The band trend is {trend_text}.", separation_text, *dip_sentences]
