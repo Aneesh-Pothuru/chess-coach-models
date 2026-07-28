@@ -6,7 +6,7 @@ an opponent at a given rating will find the punishment, how likely the player
 was to blunder *before* they moved, and which openings actually score for
 humans at that level. This repository builds three Elo-conditioned models on
 top of Stockfish and Maia2 and evaluates them with committed, reproducible
-metrics. It makes three claims, each with its evidence in a section below:
+metrics. It makes four claims, each with its evidence in a section below:
 
 1. **The human model transfers.** Maia2's Elo-conditioned move prediction
    holds up on a month of games it provably never trained on (§2).
@@ -15,6 +15,9 @@ metrics. It makes three claims, each with its evidence in a section below:
    predictability (§3).
 3. **Opening value is population-dependent.** Lines the engine dislikes win
    at low ratings, and honest sample-size gates matter more than breadth (§4).
+4. **Human concept vocabulary is decodable from the human model.** A small
+   head on frozen Maia2 activations names tactical motifs far above chance
+   (§5).
 
 ## Headline results
 
@@ -167,7 +170,7 @@ preferences describe sub-1400 outcomes. Full tables:
 [reports/repertoire_lt1100.md](reports/repertoire_lt1100.md),
 [reports/repertoire_1100-1400.md](reports/repertoire_1100-1400.md).
 
-## 5. Is this usable in a product today?
+## 6. Is this usable in a product today?
 
 | Model | Verdict | What it needs before full deployment |
 |---|---|---|
@@ -188,7 +191,7 @@ rating mapping: every model is conditioned on Lichess Glicko-2, and the
 200–400 point low-end offset is documented but unvalidated until
 [#2](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/2) is done.
 
-## 6. Reproduce from a fresh clone
+## 7. Reproduce from a fresh clone
 
 Prerequisites: macOS or Linux, Python 3.11–3.13, `zstd`, and Stockfish. Apple
 Silicon is the reference environment; the pipeline also runs on commodity

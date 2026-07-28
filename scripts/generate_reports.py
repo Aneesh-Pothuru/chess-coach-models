@@ -170,6 +170,105 @@ def _plot_benchmark(config: dict, benchmark: dict, smoke: dict, output: Path) ->
     plt.close(fig)
 
 
+def _plot_concepts(concept: dict, output: Path) -> None:
+    per_theme = concept["test"]["per_theme"]
+    prevalence = [values["prevalence"] for values in per_theme.values()]
+    ap = [values["average_precision"] for values in per_theme.values()]
+    fig, ax = plt.subplots(figsize=(7.2, 5.2))
+    span = [min(prevalence) * 0.8, max(prevalence) * 1.3]
+    ax.plot(span, span, "--", color="#777777", linewidth=1.5, label="AP = prevalence (chance)")
+    ax.scatter(prevalence, ap, s=64, color="#1f77b4", zorder=3, label="Theme")
+    highlights = sorted(
+        per_theme.items(), key=lambda item: -item[1]["average_precision"]
+    )[:6]
+    for theme, values in highlights:
+        ax.annotate(
+            theme,
+            (values["prevalence"], values["average_precision"]),
+            textcoords="offset points",
+            xytext=(8, 4),
+            fontsize=8,
+            color="#333333",
+        )
+    ax.set_xscale("log")
+    ax.set(
+        xlabel="Theme prevalence in held-out games (log scale)",
+        ylabel="Average precision",
+        title="Concept tagger: per-theme AP vs chance",
+    )
+    ax.legend(loc="upper left")
+    ax.grid(alpha=0.2)
+    fig.tight_layout()
+    fig.savefig(output, dpi=160)
+    plt.close(fig)
+
+
+def _concept_report(concept: dict) -> str:
+    protocol = concept["protocol"]
+    test = concept["test"]
+    sampling = concept["sampling"]
+    rows = [
+        "| Theme | Positives | Prevalence | AP | Lift |",
+        "|---|---:|---:|---:|---:|",
+    ]
+    ordered = sorted(
+        test["per_theme"].items(), key=lambda item: -item[1]["prevalence"]
+    )
+    for theme, values in ordered:
+        rows.append(
+            f"| {theme} | {values['n_positive']:,} | {_pct(values['prevalence'])} | "
+            f"{values['average_precision']:.3f} | {values['lift']:.1f}× |"
+        )
+    beats_chance = sum(
+        1
+        for values in test["per_theme"].values()
+        if values["average_precision"] >= 2 * values["prevalence"]
+    )
+    return "\n".join(
+        [
+            "# Model 6: Concept tagger",
+            "",
+            f"A multi-label head ({protocol['embedding_dim']}→{protocol['hidden_dim']}→"
+            f"{test['n_themes']}) on frozen `{protocol['encoder']}` activations, "
+            f"supervised by Lichess puzzle themes. Trained on "
+            f"{sampling['rows_sampled']:,} puzzles sampled uniformly from "
+            f"{sampling['rows_eligible']:,} eligible rows "
+            f"(≥{protocol['min_plays']} plays); splits are grouped by source game.",
+            "",
+            "## Held-out results",
+            "",
+            f"- Macro average precision **{test['macro_average_precision']:.3f}** vs "
+            f"prevalence baseline {test['macro_prevalence_baseline']:.3f}.",
+            f"- Micro average precision **{test['micro_average_precision']:.3f}** vs "
+            f"baseline {test['micro_prevalence_baseline']:.3f}.",
+            f"- {beats_chance} of {test['n_themes']} themes score at least 2× their "
+            f"prevalence on {test['n_positions']:,} held-out positions from "
+            f"{concept['test_games']:,} games.",
+            "",
+            "![Per-theme AP](concept_ap_vs_prevalence.png)",
+            "",
+            "## Per-theme detail",
+            "",
+            "\n".join(rows),
+            "",
+            "## Protocol notes and limitations",
+            "",
+            f"- The tagged position is the puzzle FEN with the setup move applied — "
+            "the position the solver actually faces.",
+            f"- Embeddings are Maia2 `last_ln` activations conditioned at a fixed "
+            f"{protocol['conditioning_elo']} Elo, so tags are rating-independent.",
+            f"- Excluded meta-themes (length, phase, eval-derived outcome): "
+            f"{', '.join(protocol['excluded_themes'])}.",
+            "- Puzzle themes cover tactical vocabulary; positional concepts "
+            "(outposts, bad bishops, pawn breaks) are not represented in this "
+            "supervision and need the probe-reuse path (CSSLab maia2 repo, 172 "
+            "formal concepts) or extra annotation.",
+            "- Puzzle positions are tactics-dense by construction; deployment on "
+            "quiet game positions extrapolates beyond this distribution.",
+        ]
+    ) + "\n"
+
+
 def _scorer_report(
     config: dict, maia: dict, samples: dict, benchmark: dict | None
 ) -> str:
@@ -541,6 +640,7 @@ def _summary_report(
     repertoire: dict,
     gambits: dict,
     benchmark: dict | None,
+    concept: dict | None,
 ) -> str:
     overall = v0["metrics"]["overall"]
     smoke_positions = maia.get("smoke_positions", maia["positions"])
@@ -592,6 +692,14 @@ def _summary_report(
             ),
             f"| Blunder hazard v0 | PR-AUC {overall['lightgbm']['pr_auc']:.3f} vs absolute-eval {overall['abs_eval']['pr_auc']:.3f} | {'Pass' if overall['lightgbm']['pr_auc'] > overall['abs_eval']['pr_auc'] else 'Below success bar'} |",
             f"| Repertoire optimizer | Strict-N recommendations: {counts.get('<1100', 0)} / {counts.get('1100-1400', 0)} | Runnable |",
+            *(
+                [
+                    f"| Concept tagger | Macro-AP {concept['test']['macro_average_precision']:.3f} vs prevalence "
+                    f"{concept['test']['macro_prevalence_baseline']:.3f} over {concept['test']['n_themes']} themes | Runnable |"
+                ]
+                if concept is not None
+                else []
+            ),
             "",
             "## Notable findings",
             "",
@@ -608,7 +716,12 @@ def _summary_report(
 
 
 def _update_readme(
-    readme: Path, v0: dict, maia: dict, repertoire: dict, benchmark: dict | None
+    readme: Path,
+    v0: dict,
+    maia: dict,
+    repertoire: dict,
+    benchmark: dict | None,
+    concept: dict | None,
 ) -> None:
     text = readme.read_text(encoding="utf-8")
     overall = v0["metrics"]["overall"]
@@ -635,6 +748,14 @@ def _update_readme(
             *benchmark_rows,
             f"| Blunder hazard v0 | PR-AUC {overall['lightgbm']['pr_auc']:.3f} vs absolute-eval baseline {overall['abs_eval']['pr_auc']:.3f}; Brier {overall['lightgbm']['brier_score']:.3f} |",
             f"| Repertoire optimizer | {counts.get('<1100', 0)} strict-N rows below 1100; {counts.get('1100-1400', 0)} at 1100–1400 |",
+            *(
+                [
+                    f"| Concept tagger | Macro-AP {concept['test']['macro_average_precision']:.3f} vs prevalence baseline "
+                    f"{concept['test']['macro_prevalence_baseline']:.3f} across {concept['test']['n_themes']} puzzle themes |"
+                ]
+                if concept is not None
+                else []
+            ),
             "<!-- RESULTS_END -->",
         ]
     )
@@ -714,6 +835,8 @@ def main() -> None:
     gambits = _read_json(reports / "gambit_sanity.json")
     benchmark_path = project_path(config, config["maia_benchmark"]["metrics_path"])
     benchmark = _read_json(benchmark_path) if benchmark_path.exists() else None
+    concept_path = project_path(config, config["concepts"]["metrics_path"])
+    concept = _read_json(concept_path) if concept_path.exists() else None
 
     _plot_calibration(v0, reports / "hazard_calibration.png")
     _plot_importance(
@@ -733,13 +856,20 @@ def main() -> None:
         (reports / "maia_benchmark.md").write_text(
             _benchmark_report(config, benchmark, maia), encoding="utf-8"
         )
+    if concept is not None:
+        _plot_concepts(concept, reports / "concept_ap_vs_prevalence.png")
+        (reports / "concept_tagger.md").write_text(
+            _concept_report(concept), encoding="utf-8"
+        )
     (reports / "SUMMARY.md").write_text(
-        _summary_report(config, v0, v1, maia, repertoire, gambits, benchmark),
+        _summary_report(
+            config, v0, v1, maia, repertoire, gambits, benchmark, concept
+        ),
         encoding="utf-8",
     )
     _append_repertoire_findings(reports, repertoire, gambits)
     _update_readme(
-        project_path(config, "README.md"), v0, maia, repertoire, benchmark
+        project_path(config, "README.md"), v0, maia, repertoire, benchmark, concept
     )
     print("Generated reports and README results table.")
 

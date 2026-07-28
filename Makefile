@@ -3,7 +3,7 @@ PIP ?= .venv/bin/pip
 CONFIG ?= configs/config.yaml
 PYTHON_BOOTSTRAP ?= $(shell command -v python3.12 2>/dev/null || command -v python3)
 
-.PHONY: setup data train eval reports test all benchmark
+.PHONY: setup data train eval reports test all benchmark concepts
 
 setup:
 	test -d .venv || $(PYTHON_BOOTSTRAP) -m venv .venv
@@ -25,6 +25,10 @@ eval:
 benchmark:
 	bash scripts/stream_benchmark.sh $(CONFIG)
 	$(PYTHON) scripts/benchmark_maia.py --config $(CONFIG) --stage infer
+
+concepts:
+	bash scripts/stream_puzzles.sh $(CONFIG)
+	$(PYTHON) scripts/train_concepts.py --config $(CONFIG)
 
 reports:
 	$(PYTHON) scripts/generate_reports.py --config $(CONFIG)

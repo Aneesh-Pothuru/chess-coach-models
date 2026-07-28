@@ -79,6 +79,47 @@ hazard:
   metrics_path: "reports/hazard_metrics.json"
   feature_importance_path: "reports/hazard_feature_importance.csv"
 
+concepts:
+  # Model 6: multi-label concept tagger on frozen Maia2 embeddings,
+  # supervised by Lichess puzzle themes (tactical vocabulary).
+  puzzle_url: "https://database.lichess.org/lichess_db_puzzle.csv.zst"
+  dataset_path: "data/processed/concept_puzzles.parquet"
+  sampling_metadata_path: "data/processed/concept_sampling.json"
+  embeddings_path: "data/processed/concept_embeddings.npy"
+  model_path: "artifacts/models/concept_tagger.pt"
+  metrics_path: "reports/concept_metrics.json"
+  max_puzzles: 100000
+  min_plays: 200
+  # Length buckets, phase tags, and eval-derived outcome tags are not
+  # concepts; mateIn1-5 are outcome countdowns while named mate patterns stay.
+  exclude_themes:
+    - oneMove
+    - short
+    - long
+    - veryLong
+    - opening
+    - middlegame
+    - endgame
+    - crushing
+    - advantage
+    - equality
+    - mateIn1
+    - mateIn2
+    - mateIn3
+    - mateIn4
+    - mateIn5
+  min_theme_count: 500
+  conditioning_elo: 1500
+  test_fraction: 0.15
+  validation_fraction: 0.15
+  hidden_dim: 256
+  batch_size: 512
+  epochs: 30
+  learning_rate: 0.001
+  early_stopping_patience: 4
+  embed_batch_size: 128
+  device: "cpu"
+
 repertoire:
   minimum_node_games: 2000
   recommend_top_n: 5
