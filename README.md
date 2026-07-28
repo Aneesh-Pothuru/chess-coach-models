@@ -70,6 +70,10 @@ Useful individual commands:
 
 # Train only the models
 make train
+
+# Independent Maia2 benchmark: stream the configured post-training month and
+# score ~5,000 moves per band (see reports/maia_benchmark.md)
+make benchmark
 ```
 
 Downloaded PGNs, Parquet datasets, Maia2 weights, and trained model binaries are
@@ -161,7 +165,10 @@ support five honest recommendations.
 - Eval-annotated Lichess games are not a random sample of all play.
 - The committed run is intentionally laptop-sized; config can scale unchanged on
   a larger CPU/GPU box.
-- Maia2 smoke accuracy on April 2019 is not training-independent.
+- Maia2 smoke accuracy on April 2019 is not training-independent; the committed
+  independent benchmark ([reports/maia_benchmark.md](reports/maia_benchmark.md))
+  uses June 2025 rated rapid games, which postdate the released Maia2 training
+  window (May 2018 – November 2023).
 - The hanging-piece feature is a fast SEE proxy, not a full exchange search.
 - Recalibration should be repeated on chess.com runtime traffic because labels,
   clocks, and rating populations differ.

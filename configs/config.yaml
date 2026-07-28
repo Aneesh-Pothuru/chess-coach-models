@@ -46,6 +46,28 @@ maia2:
   smoke_moves_per_band: 500
   stockfish_time_seconds: 0.03
 
+maia_benchmark:
+  # Independent move-match benchmark (issue #1). The month must postdate the
+  # released Maia2 training window; see reports/maia_benchmark.md for the
+  # provenance argument.
+  month: "2025-06"
+  url: "https://database.lichess.org/standard/lichess_db_standard_rated_2025-06.pgn.zst"
+  positions_path: "data/processed/maia_benchmark_moves.parquet"
+  metadata_path: "data/processed/maia_benchmark_sampling.json"
+  metrics_path: "reports/maia_benchmark_metrics.json"
+  speed: "rapid"
+  moves_per_band: 5000
+  # Published Maia protocol: skip the first 10 plies and sub-30s clock moves.
+  min_ply: 11
+  min_clock_seconds: 30.0
+  max_moves_per_game: 8
+  min_eligible_per_band: 25000
+  max_games: 400000
+  progress_every_games: 20000
+  bootstrap_resamples: 2000
+  device: "cpu"
+  batch_size: 128
+
 hazard:
   test_fraction: 0.15
   validation_fraction: 0.15

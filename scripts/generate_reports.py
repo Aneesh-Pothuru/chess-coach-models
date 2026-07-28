@@ -87,7 +87,9 @@ def _plot_importance(csv_path: Path, output: Path) -> None:
     plt.close(fig)
 
 
-def _scorer_report(config: dict, maia: dict, samples: dict) -> str:
+def _scorer_report(
+    config: dict, maia: dict, samples: dict, benchmark: dict | None
+) -> str:
     smoke_positions = maia.get("smoke_positions", maia["positions"])
     smoke_rows = [
         "| Band | N | Top-1 move match |",
@@ -141,7 +143,12 @@ def _scorer_report(config: dict, maia: dict, samples: dict) -> str:
             "",
             "\n".join(smoke_rows),
             "",
-            f"These {smoke_positions:,} positions come only from held-out games in a capped, band-balanced smoke test on {maia['device']}. It is not a training-independent benchmark because April 2019 may overlap Maia2 training data.",
+            f"These {smoke_positions:,} positions come only from held-out games in a capped, band-balanced smoke test on {maia['device']}. It is not a training-independent benchmark: April 2019 lies inside the released Maia2 training window (May 2018 – November 2023)."
+            + (
+                " See [maia_benchmark.md](maia_benchmark.md) for the training-independent benchmark."
+                if benchmark is not None
+                else ""
+            ),
             f"The nominal ≥50% smoke expectation is **{'met' if smoke_accuracy >= 0.5 else 'not met'}** overall; band non-monotonicity is retained rather than smoothed away.",
             "",
             "## Three sample games",
@@ -155,6 +162,181 @@ def _scorer_report(config: dict, maia: dict, samples: dict) -> str:
             "- The punishing reply is Stockfish's top reply at the configured short time budget.",
             "- Maia2 ratings are Lichess Glicko-2; no chess.com conversion is claimed.",
             "- Tactical mate positions can saturate the win-probability formula.",
+        ]
+    ) + "\n"
+
+
+def _band_ci_text(block: dict) -> str:
+    return (
+        f"{_pct(block['top1_move_match_accuracy'])} "
+        f"({_pct(block['wilson95_low'])}–{_pct(block['wilson95_high'])})"
+    )
+
+
+def _benchmark_report(config: dict, benchmark: dict, smoke: dict) -> str:
+    protocol = benchmark["protocol"]
+    sampling = benchmark.get("sampling", {})
+    band_order = [str(band["name"]) for band in config["rating_bands"]]
+    bands = benchmark["move_match_by_band"]
+    overall = benchmark["overall"]
+
+    result_rows = [
+        "| Band | Moves | Games | Top-1 accuracy (Wilson 95% CI) | Cluster-bootstrap 95% CI | Mean top-1 prob |",
+        "|---|---:|---:|---|---|---:|",
+    ]
+    for name in band_order:
+        block = bands[name]
+        result_rows.append(
+            f"| {name} | {block['n']:,} | {block['games']:,} | "
+            f"{_band_ci_text(block)} | "
+            f"{_pct(block['cluster_bootstrap95_low'])}–{_pct(block['cluster_bootstrap95_high'])} | "
+            f"{block['mean_maia_top1_probability']:.3f} |"
+        )
+    result_rows.append(
+        f"| **Overall** | **{overall['n']:,}** | | **{_band_ci_text(overall)}** | | "
+        f"{overall['mean_maia_top1_probability']:.3f} |"
+    )
+
+    smoke_rows = [
+        "| Band | Independent benchmark | 2019-04 smoke | Difference |",
+        "|---|---:|---:|---:|",
+    ]
+    for name in band_order:
+        smoke_block = smoke["move_match_by_band"].get(name)
+        if smoke_block is None:
+            continue
+        delta = (
+            bands[name]["top1_move_match_accuracy"]
+            - smoke_block["top1_move_match_accuracy"]
+        )
+        smoke_rows.append(
+            f"| {name} | {_pct(bands[name]['top1_move_match_accuracy'])} | "
+            f"{_pct(smoke_block['top1_move_match_accuracy'])} | {100 * delta:+.1f} pp |"
+        )
+
+    accuracies = [bands[name]["top1_move_match_accuracy"] for name in band_order]
+    monotonic = all(a <= b for a, b in zip(accuracies, accuracies[1:]))
+    separated = []
+    for left, right in zip(band_order, band_order[1:]):
+        if bands[left]["wilson95_high"] < bands[right]["wilson95_low"]:
+            separated.append(f"{left} < {right}")
+        elif bands[right]["wilson95_high"] < bands[left]["wilson95_low"]:
+            separated.append(f"{left} > {right}")
+    trend_text = (
+        "monotonically increasing with rating"
+        if monotonic
+        else "not monotonically increasing with rating"
+    )
+    separation_text = (
+        "Adjacent bands whose Wilson intervals do not overlap: "
+        + "; ".join(separated)
+        + "."
+        if separated
+        else "No adjacent band pair is separated at the 95% level."
+    )
+
+    bucket_rows = [
+        "| Band | Plies 11–20 | Plies 21–40 | Plies 41+ | ≤10 pieces | 11–20 pieces | 21–32 pieces |",
+        "|---|---:|---:|---:|---:|---:|---:|",
+    ]
+    for name in band_order:
+        block = bands[name]
+        ply = block["by_ply_bucket"]
+        pieces = block["by_piece_bucket"]
+        bucket_rows.append(
+            f"| {name} | "
+            + " | ".join(
+                _pct(ply[bucket]["top1_move_match_accuracy"])
+                for bucket in ("11-20", "21-40", "41+")
+            )
+            + " | "
+            + " | ".join(
+                _pct(pieces[bucket]["top1_move_match_accuracy"])
+                for bucket in ("<=10", "11-20", "21-32")
+            )
+            + " |"
+        )
+
+    paper_reference = {"<1600": 51.72, "1600-2000": 54.15, ">2000": 53.87}
+    paper_rows = [
+        "| Skill group | This benchmark | Maia2 paper (Dec 2023 Cross-skill) |",
+        "|---|---|---:|",
+    ]
+    for group, published in paper_reference.items():
+        block = benchmark.get("paper_skill_groups", {}).get(group)
+        if block is None or block["n"] == 0:
+            continue
+        paper_rows.append(
+            f"| {group} | {_band_ci_text(block)} (n={block['n']:,}) | {published:.2f}% |"
+        )
+
+    return "\n".join(
+        [
+            "# Independent Maia2 move-match benchmark",
+            "",
+            f"Maia2 (`{protocol['model_type']}` weights, {protocol['device']}) was evaluated on "
+            f"{overall['n']:,} moves sampled from Lichess {protocol['month']} rated "
+            f"{protocol['speed']} games. The released Maia2 weights were trained on "
+            "Lichess rapid games from May 2018 through November 2023, excluding "
+            "December 2019 (Tang et al., NeurIPS 2024; CSSLab/maia2 training configs), "
+            "and were published in October 2024 without subsequent retraining. "
+            f"Lichess {protocol['month']} therefore cannot overlap the training data — "
+            "unlike the committed 2019-04 smoke test, whose month sits inside the "
+            "training window.",
+            "",
+            "## Protocol",
+            "",
+            f"- Only rated standard {protocol['speed']} games with two banded ratings qualify.",
+            f"- The first {protocol['min_ply'] - 1} plies of each game are excluded, and so are moves "
+            f"with under {protocol['min_clock_seconds']:.0f} seconds on the mover's clock, following the "
+            "published Maia evaluation filters.",
+            f"- Each player contributes at most {protocol['max_moves_per_game']} moves per game; a seeded "
+            f"per-band reservoir (seed {protocol['seed']}) samples "
+            f"{protocol['moves_per_band_target']:,} moves per band from "
+            f"{sampling.get('games_seen', 0):,} streamed games.",
+            "- Maia2 is conditioned on the actual ratings of both players, not band midpoints.",
+            "",
+            "## Results",
+            "",
+            "\n".join(result_rows),
+            "",
+            f"The band trend is {trend_text}. {separation_text}",
+            "",
+            "## Comparison with the published Maia2 figures",
+            "",
+            "\n".join(paper_rows),
+            "",
+            "The paper's Cross-skill Testset uses December 2023 games with its own "
+            "sampling, and its natural rating mix differs from this band-balanced "
+            "sample (each band contributes equally here, which overweights low "
+            "ratings inside the <1600 group). The comparison is directional, not "
+            "exact.",
+            "",
+            "## Comparison with the 2019-04 smoke test",
+            "",
+            "\n".join(smoke_rows),
+            "",
+            "The smoke test drew from eval-annotated games only (analysis-requested "
+            "selection bias), included plies 2–10, applied no clock filter, and mixed "
+            "all time controls. Differences between the columns therefore reflect "
+            "protocol as well as data-overlap effects; the independent benchmark is "
+            "the number to quote.",
+            "",
+            "## Accuracy by game phase",
+            "",
+            "\n".join(bucket_rows),
+            "",
+            "## Limitations",
+            "",
+            "- Wilson intervals treat moves as independent; moves from one game are "
+            "correlated, which is why the game-clustered bootstrap interval is also "
+            "reported.",
+            "- The sample covers the leading portion of the month's chronological "
+            "dump (the first hours after 00:00 UTC on the 1st), matching the main "
+            "pipeline's streaming protocol; time zones active at that hour are "
+            "over-represented.",
+            "- Games involving BOT-titled accounts are excluded.",
+            "- Lichess ratings are Glicko-2; no chess.com mapping is claimed (issue #2).",
         ]
     ) + "\n"
 
@@ -226,6 +408,7 @@ def _summary_report(
     maia: dict,
     repertoire: dict,
     gambits: dict,
+    benchmark: dict | None,
 ) -> str:
     overall = v0["metrics"]["overall"]
     smoke_positions = maia.get("smoke_positions", maia["positions"])
@@ -266,6 +449,15 @@ def _summary_report(
             "| Model | Primary result | Status |",
             "|---|---|---|",
             f"| Graded-opponent scorer | Maia smoke: {smoke_positions:,} held-out positions on {maia['device']} | Runnable |",
+            *(
+                [
+                    f"| Maia2 independent benchmark | Top-1 {100 * benchmark['overall']['top1_move_match_accuracy']:.1f}% "
+                    f"on {benchmark['overall']['n']:,} moves from {benchmark['protocol']['month']} rated "
+                    f"{benchmark['protocol']['speed']} | Training-independent |"
+                ]
+                if benchmark is not None
+                else []
+            ),
             f"| Blunder hazard v0 | PR-AUC {overall['lightgbm']['pr_auc']:.3f} vs absolute-eval {overall['abs_eval']['pr_auc']:.3f} | {'Pass' if overall['lightgbm']['pr_auc'] > overall['abs_eval']['pr_auc'] else 'Below success bar'} |",
             f"| Repertoire optimizer | Strict-N recommendations: {counts.get('<1100', 0)} / {counts.get('1100-1400', 0)} | Runnable |",
             "",
@@ -283,7 +475,9 @@ def _summary_report(
     ) + "\n"
 
 
-def _update_readme(readme: Path, v0: dict, maia: dict, repertoire: dict) -> None:
+def _update_readme(
+    readme: Path, v0: dict, maia: dict, repertoire: dict, benchmark: dict | None
+) -> None:
     text = readme.read_text(encoding="utf-8")
     overall = v0["metrics"]["overall"]
     smoke_positions = maia.get("smoke_positions", maia["positions"])
@@ -291,12 +485,22 @@ def _update_readme(readme: Path, v0: dict, maia: dict, repertoire: dict) -> None
         band: sum(len(section) for section in sections.values())
         for band, sections in repertoire["bands"].items()
     }
+    benchmark_rows = []
+    if benchmark is not None:
+        bench_overall = benchmark["overall"]
+        benchmark_rows.append(
+            f"| Maia2 independent benchmark | Top-1 {100 * bench_overall['top1_move_match_accuracy']:.1f}% "
+            f"(95% CI {100 * bench_overall['wilson95_low']:.1f}–{100 * bench_overall['wilson95_high']:.1f}%) "
+            f"on {bench_overall['n']:,} {benchmark['protocol']['month']} rated "
+            f"{benchmark['protocol']['speed']} moves |"
+        )
     block = "\n".join(
         [
             "<!-- RESULTS_START -->",
             "| Model | Result |",
             "|---|---|",
             f"| Graded-opponent scorer | Maia2 smoke on {smoke_positions:,} held-out positions; sample PGN annotation complete |",
+            *benchmark_rows,
             f"| Blunder hazard v0 | PR-AUC {overall['lightgbm']['pr_auc']:.3f} vs absolute-eval baseline {overall['abs_eval']['pr_auc']:.3f}; Brier {overall['lightgbm']['brier_score']:.3f} |",
             f"| Repertoire optimizer | {counts.get('<1100', 0)} strict-N rows below 1100; {counts.get('1100-1400', 0)} at 1100–1400 |",
             "<!-- RESULTS_END -->",
@@ -376,6 +580,8 @@ def main() -> None:
     samples = _read_json(reports / "scorer_samples.json")
     repertoire = _read_json(reports / "repertoire.json")
     gambits = _read_json(reports / "gambit_sanity.json")
+    benchmark_path = project_path(config, config["maia_benchmark"]["metrics_path"])
+    benchmark = _read_json(benchmark_path) if benchmark_path.exists() else None
 
     _plot_calibration(v0, reports / "hazard_calibration.png")
     _plot_importance(
@@ -383,17 +589,23 @@ def main() -> None:
         reports / "hazard_feature_importance.png",
     )
     (reports / "graded_opponent.md").write_text(
-        _scorer_report(config, maia, samples), encoding="utf-8"
+        _scorer_report(config, maia, samples, benchmark), encoding="utf-8"
     )
     (reports / "blunder_hazard.md").write_text(
         _hazard_report(v0, v1, v0_matched), encoding="utf-8"
     )
+    if benchmark is not None:
+        (reports / "maia_benchmark.md").write_text(
+            _benchmark_report(config, benchmark, maia), encoding="utf-8"
+        )
     (reports / "SUMMARY.md").write_text(
-        _summary_report(config, v0, v1, maia, repertoire, gambits),
+        _summary_report(config, v0, v1, maia, repertoire, gambits, benchmark),
         encoding="utf-8",
     )
     _append_repertoire_findings(reports, repertoire, gambits)
-    _update_readme(project_path(config, "README.md"), v0, maia, repertoire)
+    _update_readme(
+        project_path(config, "README.md"), v0, maia, repertoire, benchmark
+    )
     print("Generated reports and README results table.")
 
 
