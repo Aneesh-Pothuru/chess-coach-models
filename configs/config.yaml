@@ -7,7 +7,7 @@ data:
   opening_games_path: "data/processed/opening_games.parquet"
   metadata_path: "data/processed/pipeline_metadata.json"
   # Honest laptop defaults. Scale these without changing code on a larger box.
-  max_eval_positions: 50000
+  max_eval_positions: 150000
   max_opening_games: 300000
   opening_plies: 12
   trap_max_ply: 15
@@ -88,7 +88,7 @@ concepts:
   embeddings_path: "data/processed/concept_embeddings.npy"
   model_path: "artifacts/models/concept_tagger.pt"
   metrics_path: "reports/concept_metrics.json"
-  max_puzzles: 100000
+  max_puzzles: 300000
   min_plays: 200
   # Length buckets, phase tags, eval-derived outcome tags, and source-game
   # tags (master, masterVsMaster) are not concepts; mateIn1-5 are outcome
@@ -111,7 +111,9 @@ concepts:
     - mateIn3
     - mateIn4
     - mateIn5
-  min_theme_count: 500
+  # Scaled with max_puzzles so the vocabulary threshold stays at the same
+  # prevalence (0.5%) across dataset sizes.
+  min_theme_count: 1500
   conditioning_elo: 1500
   test_fraction: 0.15
   validation_fraction: 0.15
