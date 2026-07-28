@@ -108,7 +108,7 @@ def sample_puzzles(
         try:
             plays = int(row["NbPlays"])
             rating = int(row["Rating"])
-        except (KeyError, ValueError):
+        except (KeyError, TypeError, ValueError):
             stats.rows_malformed += 1
             continue
         themes = [
@@ -116,7 +116,9 @@ def sample_puzzles(
         ]
         if plays < min_plays or not themes:
             continue
-        position = puzzle_position(row.get("FEN", ""), row.get("Moves", ""))
+        # csv.DictReader fills missing trailing fields with None on short
+        # (truncated) rows, so "or" guards every string field.
+        position = puzzle_position(row.get("FEN") or "", row.get("Moves") or "")
         if position is None:
             stats.rows_malformed += 1
             continue
@@ -130,7 +132,7 @@ def sample_puzzles(
             "popularity": int(row.get("Popularity") or 0),
             "nb_plays": plays,
             "themes": " ".join(themes),
-            "game_id": game_id_from_url(row.get("GameUrl", "")),
+            "game_id": game_id_from_url(row.get("GameUrl") or ""),
         }
         if len(reservoir) < max_puzzles:
             reservoir.append(record)

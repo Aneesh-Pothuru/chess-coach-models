@@ -85,6 +85,19 @@ def test_sampling_filters_and_reservoir_are_deterministic() -> None:
     assert stats_a.theme_counts.get("short") is None
 
 
+def test_truncated_csv_row_counts_as_malformed() -> None:
+    config = load_config()
+    config["concepts"]["min_plays"] = 100
+    # A short row: DictReader maps its missing trailing fields to None.
+    truncated = ROW_TEMPLATE.format(
+        pid="ok", rating=1400, plays=500, themes="fork", game="gameZ"
+    ) + "cut," + SCHOLARS_FEN + "\n"
+    sampled, stats = sample_puzzles(_csv([truncated]), config)
+    assert stats.rows_read == 2
+    assert stats.rows_malformed == 1
+    assert len(sampled) == 1
+
+
 def test_theme_vocabulary_threshold() -> None:
     assert theme_vocabulary({"fork": 10, "pin": 3}, 5) == ["fork"]
 
