@@ -23,6 +23,8 @@ Maia2 (`rapid` weights, cpu) was evaluated on 25,000 moves sampled from Lichess 
 
 The band trend is not monotonically increasing with rating. Adjacent bands whose Wilson intervals do not overlap: <1100 < 1100-1400. The smoke test's 2.4 pp local minimum at 1400-1700 does not reproduce here. Maia2's mean top-1 confidence rises monotonically with band (0.499 → 0.576).
 
+![Benchmark accuracy by band](maia_benchmark_accuracy.png)
+
 ## Comparison with the published Maia2 figures
 
 | Skill group | This benchmark | Maia2 paper (Dec 2023 Cross-skill) |

@@ -87,6 +87,89 @@ def _plot_importance(csv_path: Path, output: Path) -> None:
     plt.close(fig)
 
 
+def _plot_benchmark(config: dict, benchmark: dict, smoke: dict, output: Path) -> None:
+    band_order = [str(band["name"]) for band in config["rating_bands"]]
+    bands = benchmark["move_match_by_band"]
+    positions = list(range(len(band_order)))
+    accuracy = [100 * bands[name]["top1_move_match_accuracy"] for name in band_order]
+    lower_err = [
+        accuracy[i] - 100 * bands[name]["wilson95_low"]
+        for i, name in enumerate(band_order)
+    ]
+    upper_err = [
+        100 * bands[name]["wilson95_high"] - accuracy[i]
+        for i, name in enumerate(band_order)
+    ]
+    smoke_bands = smoke.get("move_match_by_band", {})
+    smoke_accuracy = [
+        100 * smoke_bands[name]["top1_move_match_accuracy"]
+        if name in smoke_bands
+        else None
+        for name in band_order
+    ]
+
+    fig, ax = plt.subplots(figsize=(7.2, 4.8))
+    ax.errorbar(
+        positions,
+        accuracy,
+        yerr=[lower_err, upper_err],
+        fmt="o-",
+        color="#1f77b4",
+        linewidth=2,
+        markersize=8,
+        capsize=4,
+        label="2025-06 independent (Wilson 95% CI)",
+    )
+    for x, y in zip(positions, accuracy):
+        ax.annotate(
+            f"{y:.1f}",
+            (x, y),
+            textcoords="offset points",
+            xytext=(10, 6),
+            fontsize=9,
+            color="#333333",
+        )
+    if all(value is not None for value in smoke_accuracy):
+        ax.plot(
+            positions,
+            smoke_accuracy,
+            "s--",
+            color="#ff7f0e",
+            linewidth=2,
+            markersize=8,
+            markerfacecolor="white",
+            label="2019-04 smoke (n=500/band, in-training month)",
+        )
+        for x, y in zip(positions, smoke_accuracy):
+            ax.annotate(
+                f"{y:.1f}",
+                (x, y),
+                textcoords="offset points",
+                xytext=(10, -12),
+                fontsize=9,
+                color="#333333",
+            )
+    ax.set_xticks(positions, band_order)
+    ax.set(
+        xlabel="Rating band (mover, Lichess Glicko-2)",
+        ylabel="Top-1 move-match accuracy (%)",
+        title="Maia2 rapid: independent benchmark vs smoke test",
+    )
+    low_values = [accuracy[i] - lower_err[i] for i in positions] + [
+        value for value in smoke_accuracy if value is not None
+    ]
+    high_values = [accuracy[i] + upper_err[i] for i in positions] + [
+        value for value in smoke_accuracy if value is not None
+    ]
+    ax.set_ylim(min(low_values) - 1.6, max(high_values) + 1.2)
+    ax.margins(x=0.09)
+    ax.legend(loc="upper left")
+    ax.grid(alpha=0.2)
+    fig.tight_layout()
+    fig.savefig(output, dpi=160)
+    plt.close(fig)
+
+
 def _scorer_report(
     config: dict, maia: dict, samples: dict, benchmark: dict | None
 ) -> str:
@@ -348,6 +431,8 @@ def _benchmark_report(config: dict, benchmark: dict, smoke: dict) -> str:
             "\n".join(result_rows),
             "",
             trend_paragraph,
+            "",
+            "![Benchmark accuracy by band](maia_benchmark_accuracy.png)",
             "",
             "## Comparison with the published Maia2 figures",
             "",
@@ -642,6 +727,9 @@ def main() -> None:
         _hazard_report(v0, v1, v0_matched), encoding="utf-8"
     )
     if benchmark is not None:
+        _plot_benchmark(
+            config, benchmark, maia, reports / "maia_benchmark_accuracy.png"
+        )
         (reports / "maia_benchmark.md").write_text(
             _benchmark_report(config, benchmark, maia), encoding="utf-8"
         )
