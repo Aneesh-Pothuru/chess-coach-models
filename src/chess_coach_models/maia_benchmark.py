@@ -208,6 +208,14 @@ def sample_stream(
         if all(count >= min_eligible for count in seen.values()):
             break
         stats.games_seen += 1
+        if progress_every and stats.games_seen % progress_every == 0:
+            elapsed = max(time.monotonic() - started, 0.001)
+            filled = {name: len(reservoirs[name]) for name in band_names}
+            print(
+                f"seen={stats.games_seen:,} rate={stats.games_seen / elapsed:,.0f} games/s "
+                f"eligible={seen} sampled={filled}",
+                file=sys.stderr,
+            )
         if "Event" not in headers:
             stats.frame_anomalies += 1
             continue
@@ -250,15 +258,6 @@ def sample_stream(
                 replacement = rng.randrange(seen[band])
                 if replacement < target:
                     reservoir[replacement] = record
-
-        if progress_every and stats.games_seen % progress_every == 0:
-            elapsed = max(time.monotonic() - started, 0.001)
-            filled = {name: len(reservoirs[name]) for name in band_names}
-            print(
-                f"seen={stats.games_seen:,} rate={stats.games_seen / elapsed:,.0f} games/s "
-                f"eligible={seen} sampled={filled}",
-                file=sys.stderr,
-            )
 
     stats.eligible_by_band = dict(seen)
     stats.sampled_by_band = {name: len(reservoirs[name]) for name in band_names}

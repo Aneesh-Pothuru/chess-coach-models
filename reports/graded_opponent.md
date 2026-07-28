@@ -13,7 +13,7 @@ The scorer uses Stockfish MultiPV for objective cost and Maia2 for the probabili
 | <1100 | 500 | 47.0% |
 | **Overall** | **2,500** | **47.9%** |
 
-These 2,500 positions come only from held-out games in a capped, band-balanced smoke test on cpu. It is not a training-independent benchmark: April 2019 lies inside the released Maia2 training window (May 2018 – November 2023).
+These 2,500 positions come only from held-out games in a capped, band-balanced smoke test on cpu. It is not a training-independent benchmark: April 2019 lies inside the released Maia2 training window (May 2018 – November 2023). See [maia_benchmark.md](maia_benchmark.md) for the training-independent benchmark.
 The nominal ≥50% smoke expectation is **not met** overall; band non-monotonicity is retained rather than smoothed away.
 
 ## Three sample games

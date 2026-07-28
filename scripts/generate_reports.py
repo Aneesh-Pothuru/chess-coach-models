@@ -234,6 +234,51 @@ def _benchmark_report(config: dict, benchmark: dict, smoke: dict) -> str:
         if separated
         else "No adjacent band pair is separated at the 95% level."
     )
+    smoke_acc = {
+        name: smoke["move_match_by_band"][name]["top1_move_match_accuracy"]
+        for name in band_order
+        if name in smoke.get("move_match_by_band", {})
+    }
+    dip_sentences = []
+    for index, name in enumerate(band_order[1:-1], start=1):
+        left, right = band_order[index - 1], band_order[index + 1]
+        if not {name, left, right} <= smoke_acc.keys():
+            continue
+        smoke_depth = min(smoke_acc[left], smoke_acc[right]) - smoke_acc[name]
+        if smoke_depth <= 0:
+            continue
+        bench_depth = min(accuracies[index - 1], accuracies[index + 1]) - accuracies[index]
+        neighbors_overlap = (
+            bands[name]["wilson95_high"] >= bands[left]["wilson95_low"]
+            and bands[name]["wilson95_high"] >= bands[right]["wilson95_low"]
+        )
+        if bench_depth <= 0:
+            dip_sentences.append(
+                f"The smoke test's {100 * smoke_depth:.1f} pp local minimum at {name} "
+                "does not reproduce here."
+            )
+        elif neighbors_overlap:
+            dip_sentences.append(
+                f"The smoke test's {100 * smoke_depth:.1f} pp local minimum at {name} "
+                f"shrinks to a statistically insignificant {100 * bench_depth:.1f} pp."
+            )
+        else:
+            dip_sentences.append(
+                f"The smoke test's local minimum at {name} persists "
+                f"({100 * bench_depth:.1f} pp below its neighbors)."
+            )
+    confidences = [
+        bands[name]["mean_maia_top1_probability"] for name in band_order
+    ]
+    if all(a <= b for a, b in zip(confidences, confidences[1:])):
+        dip_sentences.append(
+            "Maia2's mean top-1 confidence rises monotonically with band "
+            f"({confidences[0]:.3f} → {confidences[-1]:.3f}), so the flat stretch in "
+            "measured accuracy between the middle bands is not a confidence artifact."
+        )
+    trend_paragraph = " ".join(
+        [f"The band trend is {trend_text}.", separation_text, *dip_sentences]
+    )
 
     bucket_rows = [
         "| Band | Plies 11–20 | Plies 21–40 | Plies 41+ | ≤10 pieces | 11–20 pieces | 21–32 pieces |",
@@ -287,20 +332,23 @@ def _benchmark_report(config: dict, benchmark: dict, smoke: dict) -> str:
             "## Protocol",
             "",
             f"- Only rated standard {protocol['speed']} games with two banded ratings qualify.",
-            f"- The first {protocol['min_ply'] - 1} plies of each game are excluded, and so are moves "
-            f"with under {protocol['min_clock_seconds']:.0f} seconds on the mover's clock, following the "
-            "published Maia evaluation filters.",
+            f"- The first {protocol['min_ply'] - 1} plies of each game are excluded, and so is any "
+            f"position where either player has under {protocol['min_clock_seconds']:.0f} seconds on "
+            "the clock, following the published Maia2 evaluation filters.",
             f"- Each player contributes at most {protocol['max_moves_per_game']} moves per game; a seeded "
             f"per-band reservoir (seed {protocol['seed']}) samples "
             f"{protocol['moves_per_band_target']:,} moves per band from "
             f"{sampling.get('games_seen', 0):,} streamed games.",
             "- Maia2 is conditioned on the actual ratings of both players, not band midpoints.",
+            "- The evaluated checkpoint is the October 2024 `rapid_model.pt` release "
+            "(SHA-256 `65aae8465eed…e267e997`, matching the CSSLab/maia2 integrity pin), "
+            "which has never been retrained.",
             "",
             "## Results",
             "",
             "\n".join(result_rows),
             "",
-            f"The band trend is {trend_text}. {separation_text}",
+            trend_paragraph,
             "",
             "## Comparison with the published Maia2 figures",
             "",

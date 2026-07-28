@@ -5,6 +5,7 @@ All results use a seeded stream from Lichess 2019-04 on Apple Silicon. Real data
 | Model | Primary result | Status |
 |---|---|---|
 | Graded-opponent scorer | Maia smoke: 2,500 held-out positions on cpu | Runnable |
+| Maia2 independent benchmark | Top-1 52.4% on 25,000 moves from 2025-06 rated rapid | Training-independent |
 | Blunder hazard v0 | PR-AUC 0.197 vs absolute-eval 0.055 | Pass |
 | Repertoire optimizer | Strict-N recommendations: 7 / 12 | Runnable |
 

@@ -22,6 +22,7 @@ use Lichess data only.
 | Model | Result |
 |---|---|
 | Graded-opponent scorer | Maia2 smoke on 2,500 held-out positions; sample PGN annotation complete |
+| Maia2 independent benchmark | Top-1 52.4% (95% CI 51.8–53.0%) on 25,000 2025-06 rated rapid moves |
 | Blunder hazard v0 | PR-AUC 0.197 vs absolute-eval baseline 0.055; Brier 0.049 |
 | Repertoire optimizer | 7 strict-N rows below 1100; 12 at 1100–1400 |
 <!-- RESULTS_END -->
