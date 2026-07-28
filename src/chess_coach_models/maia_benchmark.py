@@ -122,8 +122,11 @@ def game_eligible_moves(
     """Benchmark-eligible moves following the published Maia2 protocol.
 
     The first ``min_ply - 1`` plies are excluded, and so is any position where
-    *either* player's last ``[%clk]`` annotation (remaining time after their
-    latest move) is missing or under ``min_clock_seconds``.
+    either player has under ``min_clock_seconds`` remaining *at the position*.
+    Because ``[%clk]`` records time remaining after a move, each player's time
+    at the position is the annotation on their previous move — never the clock
+    of the move being predicted, which would condition eligibility on that
+    move's own think time.
     """
     headers = game.headers
     try:
@@ -149,11 +152,11 @@ def game_eligible_moves(
             board.push(move)
         except (ValueError, AssertionError):
             break
+        clock_seconds = clocks[mover]
+        opponent_clock = clocks[not mover]
         clocks[mover] = parse_clock_comment(node.comment)
         if ply < min_ply:
             continue
-        clock_seconds = clocks[mover]
-        opponent_clock = clocks[not mover]
         if clock_seconds is None or clock_seconds < min_clock_seconds:
             continue
         if opponent_clock is None or opponent_clock < min_clock_seconds:
@@ -178,14 +181,16 @@ def game_eligible_moves(
 
 
 def sample_stream(
-    handle: TextIO, config: dict[str, Any]
+    handle: TextIO, config: dict[str, Any], *, require_caps: bool = False
 ) -> tuple[list[dict[str, Any]], SamplingStats]:
     """Per-band seeded reservoir sample of eligible moves from a PGN stream.
 
     Each (game, color) contributes at most ``max_moves_per_game`` moves so no
     single player-game dominates a band. The stream stops once every band has
     seen ``min_eligible_per_band`` eligible moves (reservoirs well mixed) or
-    after ``max_games`` games.
+    after ``max_games`` games. With ``require_caps`` a stream that ends before
+    either stop condition (a truncated download) raises instead of silently
+    producing a partial benchmark.
     """
     cfg = config["maia_benchmark"]
     bands = config["rating_bands"]
@@ -261,6 +266,15 @@ def sample_stream(
 
     stats.eligible_by_band = dict(seen)
     stats.sampled_by_band = {name: len(reservoirs[name]) for name in band_names}
+    if require_caps and stats.games_seen < max_games and not all(
+        count >= min_eligible for count in seen.values()
+    ):
+        raise RuntimeError(
+            "Stream ended before configured caps were reached: "
+            f"games_seen={stats.games_seen}/{max_games}, "
+            f"eligible_by_band={stats.eligible_by_band} "
+            f"(min_eligible_per_band={min_eligible})"
+        )
     sampled = [record for name in band_names for record in reservoirs[name]]
     return sampled, stats
 

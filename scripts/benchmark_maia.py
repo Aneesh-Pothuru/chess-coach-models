@@ -33,7 +33,7 @@ def run_sample(config: dict, input_path: str | None) -> None:
     else:
         handle = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8", errors="replace")
     with handle:
-        sampled, stats = sample_stream(handle, config)
+        sampled, stats = sample_stream(handle, config, require_caps=True)
     cfg = config["maia_benchmark"]
     frame = pl.DataFrame(sampled, infer_schema_length=None)
     positions_path = project_path(config, cfg["positions_path"])

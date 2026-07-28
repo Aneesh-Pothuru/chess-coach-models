@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from chess_coach_models.config import load_config
 from chess_coach_models.maia_benchmark import (
     classify_speed,
@@ -59,12 +61,13 @@ def test_sampling_applies_protocol_filters() -> None:
     assert stats.games_seen == 6
     assert stats.games_used == 1
     assert stats.parse_errors == 0
-    # Plies 11-19 survive. Black's ply-20 move fails the 30-second clock rule,
-    # and White's ply-21 move is excluded because the *opponent* is under 30s.
+    # Plies 11-20 survive: at ply 20 Black still had 9:36 *at the position*
+    # (the clock filter must never read the predicted move's own think time).
+    # White's ply-21 move is excluded because the opponent is under 30s.
     assert stats.sampled_by_band == {
         "<1100": 0,
         "1100-1400": 5,
-        "1400-1700": 4,
+        "1400-1700": 5,
         "1700-2000": 0,
         "2000+": 0,
     }
@@ -73,13 +76,22 @@ def test_sampling_applies_protocol_filters() -> None:
         assert record["clock_seconds"] >= 30
         assert record["opponent_clock_seconds"] >= 30
         assert record["game_id"] == "bench001"
-    assert max(record["ply"] for record in sampled) == 19
+    assert max(record["ply"] for record in sampled) == 20
+    ply_20 = next(record for record in sampled if record["ply"] == 20)
+    assert ply_20["clock_seconds"] == 9 * 60 + 36
     white_moves = [row for row in sampled if row["mover"] == "white"]
     assert all(row["mover_elo"] == 1250 for row in white_moves)
     first = min(sampled, key=lambda row: row["ply"])
     assert first["ply"] == 11
     assert first["fen"].split()[1] == "w"
     assert first["fen"].split()[5] == "6"
+
+
+def test_truncated_stream_raises_with_require_caps() -> None:
+    config = _benchmark_config()
+    with FIXTURE.open(encoding="utf-8") as handle:
+        with pytest.raises(RuntimeError, match="before configured caps"):
+            sample_stream(handle, config, require_caps=True)
 
 
 def test_sampling_is_deterministic_and_capped_per_game() -> None:
@@ -98,6 +110,8 @@ def test_sampling_is_deterministic_and_capped_per_game() -> None:
     for row in capped:
         per_band[row["rating_band"]] = per_band.get(row["rating_band"], 0) + 1
     assert per_band == {"1100-1400": 2, "1400-1700": 2}
+    for row in capped:
+        assert row["mover"] == ("white" if row["rating_band"] == "1100-1400" else "black")
 
 
 def test_summary_reports_wilson_and_cluster_intervals() -> None:
