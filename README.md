@@ -28,6 +28,7 @@ metrics. It makes four claims, each with its evidence in a section below:
 | Maia2 independent benchmark | Top-1 51.5% (95% CI 50.9–52.1%) on 25,000 2025-06 rated rapid moves |
 | Blunder hazard v0 | PR-AUC 0.197 vs absolute-eval baseline 0.055; Brier 0.049 |
 | Repertoire optimizer | 7 strict-N rows below 1100; 12 at 1100–1400 |
+| Concept tagger | Macro-AP 0.469 vs prevalence baseline 0.047 across 35 puzzle themes |
 <!-- RESULTS_END -->
 
 Every number in this document is read from a committed artifact under
@@ -170,6 +171,37 @@ preferences describe sub-1400 outcomes. Full tables:
 [reports/repertoire_lt1100.md](reports/repertoire_lt1100.md),
 [reports/repertoire_1100-1400.md](reports/repertoire_1100-1400.md).
 
+## 5. Claim 4 — concepts are decodable from the human model
+
+Coaching needs names: "you missed a *fork*" travels, a centipawn delta does
+not. The concept tagger is a 1024→256→35 multi-label head on frozen Maia2
+`last_ln` activations, supervised by Lichess puzzle themes: 100,000 puzzles
+sampled uniformly from 3.3M eligible rows (≥200 plays), with the setup move
+applied so the tagged position is the one the solver actually faces, and
+splits grouped by source game.
+
+![Concept tagger AP vs prevalence](reports/concept_ap_vs_prevalence.png)
+
+On 14,881 held-out positions, macro average precision is **0.469** against a
+prevalence baseline of 0.047 — a 10× lift — and micro-AP is **0.638**. All 35
+themes score at least twice their prevalence.
+
+**Analysis.** What the head finds easy and hard is itself evidence about the
+encoder. Endgame types are nearly solved (pawnEndgame AP 0.995, rookEndgame
+0.931) — material signatures are trivially present in the representation.
+Named mate patterns decode strongly despite rarity (backRankMate 0.773,
+smotheredMate 0.769 at 0.6% prevalence — a 126× lift), and `mate` itself
+reaches 0.897: the human model's representation knows when a king hunt is on.
+The hardest themes are the relational ones — deflection (0.174), clearance
+(0.070), capturingDefender (0.121) — motifs defined by *why* a move works
+rather than by what the board looks like. That gradient matches the spec's
+caveat: puzzle themes carry tactical vocabulary well, and positional concepts
+will need the probe-reuse path (the CSSLab maia2 repo ships Elo-conditioned
+linear probes over 172 formal concepts) or new annotation. Product surface:
+`concepts(fen)` plus `scripts/tag_concepts.py`; on the position before
+Scholar's mate, the tagger returns `mate` 1.00 and `attackingF2F7` 0.99.
+Full per-theme table: [reports/concept_tagger.md](reports/concept_tagger.md).
+
 ## 6. Is this usable in a product today?
 
 | Model | Verdict | What it needs before full deployment |
@@ -177,6 +209,7 @@ preferences describe sub-1400 outcomes. Full tables:
 | Blunder hazard v0 | **Yes**, behind a Lichess-rating interface | chess.com recalibration and rating mapping ([#2](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/2)) |
 | Graded-opponent scorer | **Yes**, for offline/batch annotation | Maia2 probability calibration for absolute numbers ([#7](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/7)) |
 | Repertoire optimizer | **Partially** — `<1100` and `1100–1400` only | Production-scale sample for upper bands and deeper lines ([#3](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/3)) |
+| Concept tagger | **Yes**, for tactical vocabulary | Positional concepts via probe reuse or annotation; quiet-position validation |
 
 The hazard model is the closest to product-ready: it is a small joblib
 artifact with no Torch dependency, its ranking quality clearly beats the
@@ -186,6 +219,10 @@ lookups per candidate move, CPU-viable); its punishment probabilities are now
 independently validated but should be consumed as rankings until #7 lands.
 The repertoire optimizer is trustworthy precisely where it has data — it
 refuses to recommend beyond its sample, so upper bands need the scaled run.
+The concept tagger can label tactical moments in user games today (its worst
+theme still doubles chance), but it was trained on tactics-dense puzzle
+positions, so its behavior on quiet positions is extrapolation until
+validated — and positional vocabulary is not in its label set at all.
 The one assumption that gates *all three* for the chess.com deployment is the
 rating mapping: every model is conditioned on Lichess Glicko-2, and the
 200–400 point low-end offset is documented but unvalidated until
@@ -209,6 +246,7 @@ make data        # stream Lichess 2019-04, stop at configured caps
 make eval        # train + evaluate all three models
 make reports     # regenerate reports/ and this README's results table
 make benchmark   # independent Maia2 benchmark on the configured 2025-06 month
+make concepts    # stream the puzzle DB, train and evaluate the concept tagger
 ```
 
 All tunables live in [`configs/config.yaml`](configs/config.yaml): source
@@ -225,9 +263,10 @@ choices. Useful direct commands:
 
 Downloaded PGNs, Parquet datasets, Maia2 weights, and trained binaries are
 gitignored; reports, plots, metrics JSON, code, config, and tiny PGN fixtures
-are committed. 22 pytest tests cover mate parsing, Black-side flips, clocks,
-labels, splits, features, Wilson intervals, opening-tree counts, and the
-benchmark's protocol filters.
+are committed. 29 pytest tests cover mate parsing, Black-side flips, clocks,
+labels, splits, features, Wilson intervals, opening-tree counts, the
+benchmark's protocol filters, and the puzzle semantics and head training of
+the concept tagger.
 
 ## Data and software licenses
 

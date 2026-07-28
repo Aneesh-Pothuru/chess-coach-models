@@ -171,11 +171,17 @@ def _plot_benchmark(config: dict, benchmark: dict, smoke: dict, output: Path) ->
 
 
 def _plot_concepts(concept: dict, output: Path) -> None:
+    import numpy as np
+
     per_theme = concept["test"]["per_theme"]
     prevalence = [values["prevalence"] for values in per_theme.values()]
     ap = [values["average_precision"] for values in per_theme.values()]
     fig, ax = plt.subplots(figsize=(7.2, 5.2))
-    span = [min(prevalence) * 0.8, max(prevalence) * 1.3]
+    # Many vertices: a two-point y=x segment renders as a straight screen
+    # line on a log axis, overstating chance across the middle of the range.
+    span = np.logspace(
+        np.log10(min(prevalence) * 0.8), np.log10(max(prevalence) * 1.3), 200
+    )
     ax.plot(span, span, "--", color="#777777", linewidth=1.5, label="AP = prevalence (chance)")
     ax.scatter(prevalence, ap, s=64, color="#1f77b4", zorder=3, label="Theme")
     highlights = sorted(
@@ -196,7 +202,7 @@ def _plot_concepts(concept: dict, output: Path) -> None:
         ylabel="Average precision",
         title="Concept tagger: per-theme AP vs chance",
     )
-    ax.legend(loc="upper left")
+    ax.legend(loc="lower right")
     ax.grid(alpha=0.2)
     fig.tight_layout()
     fig.savefig(output, dpi=160)

@@ -8,6 +8,7 @@ All results use a seeded stream from Lichess 2019-04 on Apple Silicon. Real data
 | Maia2 independent benchmark | Top-1 51.5% on 25,000 moves from 2025-06 rated rapid | Training-independent |
 | Blunder hazard v0 | PR-AUC 0.197 vs absolute-eval 0.055 | Pass |
 | Repertoire optimizer | Strict-N recommendations: 7 / 12 | Runnable |
+| Concept tagger | Macro-AP 0.469 vs prevalence 0.047 over 35 themes | Runnable |
 
 ## Notable findings
 

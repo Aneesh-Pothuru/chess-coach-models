@@ -1,0 +1,418 @@
+{
+  "protocol": {
+    "encoder": "maia2-rapid last_ln (frozen)",
+    "embedding_dim": 1024,
+    "hidden_dim": 256,
+    "conditioning_elo": 1500,
+    "min_plays": 200,
+    "min_theme_count": 500,
+    "excluded_themes": [
+      "master",
+      "masterVsMaster",
+      "oneMove",
+      "short",
+      "long",
+      "veryLong",
+      "opening",
+      "middlegame",
+      "endgame",
+      "crushing",
+      "advantage",
+      "equality",
+      "mateIn1",
+      "mateIn2",
+      "mateIn3",
+      "mateIn4",
+      "mateIn5"
+    ],
+    "seed": 42
+  },
+  "sampling": {
+    "rows_read": 6057356,
+    "rows_eligible": 3302205,
+    "rows_sampled": 100000,
+    "rows_malformed": 0,
+    "vocabulary_size": 37,
+    "vocabulary": [
+      "advancedPawn",
+      "attackingF2F7",
+      "attraction",
+      "backRankMate",
+      "bishopEndgame",
+      "capturingDefender",
+      "clearance",
+      "defensiveMove",
+      "deflection",
+      "discoveredAttack",
+      "discoveredCheck",
+      "doubleCheck",
+      "epauletteMate",
+      "exposedKing",
+      "fork",
+      "hangingPiece",
+      "intermezzo",
+      "kingsideAttack",
+      "knightEndgame",
+      "master",
+      "masterVsMaster",
+      "mate",
+      "operaMate",
+      "pawnEndgame",
+      "pillsburysMate",
+      "pin",
+      "promotion",
+      "queenEndgame",
+      "queenRookEndgame",
+      "queensideAttack",
+      "quietMove",
+      "rookEndgame",
+      "sacrifice",
+      "skewer",
+      "smotheredMate",
+      "trappedPiece",
+      "zugzwang"
+    ],
+    "elapsed_seconds": 465.849
+  },
+  "split_sizes": {
+    "train": 70039,
+    "validation": 15080,
+    "test": 14881
+  },
+  "test_games": 14881,
+  "training": {
+    "best_val_macro_ap": 0.4882102089577936,
+    "history": [
+      {
+        "epoch": 0,
+        "train_loss": 0.16967621069164227,
+        "val_macro_ap": 0.2915778839844435
+      },
+      {
+        "epoch": 1,
+        "train_loss": 0.10787266495790288,
+        "val_macro_ap": 0.37597946542536403
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.1005570182135867,
+        "val_macro_ap": 0.4113776113483481
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.09634212796501604,
+        "val_macro_ap": 0.4320165813390258
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.09333383296374433,
+        "val_macro_ap": 0.44722692460163616
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.09084985886597226,
+        "val_macro_ap": 0.4566910939331933
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.08877016484505919,
+        "val_macro_ap": 0.4645677144762008
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.08684072603009858,
+        "val_macro_ap": 0.47129766026290004
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.08496706744111819,
+        "val_macro_ap": 0.47612678414922477
+      },
+      {
+        "epoch": 9,
+        "train_loss": 0.08316201827411171,
+        "val_macro_ap": 0.4807376516273826
+      },
+      {
+        "epoch": 10,
+        "train_loss": 0.08145083727542955,
+        "val_macro_ap": 0.4828955932868104
+      },
+      {
+        "epoch": 11,
+        "train_loss": 0.07970650821996972,
+        "val_macro_ap": 0.4851738111227287
+      },
+      {
+        "epoch": 12,
+        "train_loss": 0.07812565354130563,
+        "val_macro_ap": 0.48756208879038143
+      },
+      {
+        "epoch": 13,
+        "train_loss": 0.07655949397329996,
+        "val_macro_ap": 0.4866141499883223
+      },
+      {
+        "epoch": 14,
+        "train_loss": 0.07499516931269755,
+        "val_macro_ap": 0.48732351646179434
+      },
+      {
+        "epoch": 15,
+        "train_loss": 0.07348182515212177,
+        "val_macro_ap": 0.48788617267699175
+      },
+      {
+        "epoch": 16,
+        "train_loss": 0.07204994024772507,
+        "val_macro_ap": 0.48733595833757803
+      },
+      {
+        "epoch": 17,
+        "train_loss": 0.07066134471258466,
+        "val_macro_ap": 0.4882102089577936
+      },
+      {
+        "epoch": 18,
+        "train_loss": 0.06927964445729846,
+        "val_macro_ap": 0.48559708056075984
+      },
+      {
+        "epoch": 19,
+        "train_loss": 0.0680279617747744,
+        "val_macro_ap": 0.4875247037157476
+      },
+      {
+        "epoch": 20,
+        "train_loss": 0.06676650610316322,
+        "val_macro_ap": 0.48515208053766545
+      },
+      {
+        "epoch": 21,
+        "train_loss": 0.06559054514383078,
+        "val_macro_ap": 0.48407880881805365
+      }
+    ]
+  },
+  "test": {
+    "n_positions": 14881,
+    "n_themes": 35,
+    "macro_average_precision": 0.4692,
+    "macro_prevalence_baseline": 0.0468,
+    "micro_average_precision": 0.6375,
+    "micro_prevalence_baseline": 0.0468,
+    "per_theme": {
+      "advancedPawn": {
+        "n_positive": 1159,
+        "prevalence": 0.0779,
+        "average_precision": 0.6936,
+        "lift": 8.91
+      },
+      "attackingF2F7": {
+        "n_positive": 148,
+        "prevalence": 0.0099,
+        "average_precision": 0.8873,
+        "lift": 89.22
+      },
+      "attraction": {
+        "n_positive": 722,
+        "prevalence": 0.0485,
+        "average_precision": 0.306,
+        "lift": 6.31
+      },
+      "backRankMate": {
+        "n_positive": 515,
+        "prevalence": 0.0346,
+        "average_precision": 0.7731,
+        "lift": 22.34
+      },
+      "bishopEndgame": {
+        "n_positive": 247,
+        "prevalence": 0.0166,
+        "average_precision": 0.7712,
+        "lift": 46.46
+      },
+      "capturingDefender": {
+        "n_positive": 115,
+        "prevalence": 0.0077,
+        "average_precision": 0.1208,
+        "lift": 15.64
+      },
+      "clearance": {
+        "n_positive": 244,
+        "prevalence": 0.0164,
+        "average_precision": 0.0695,
+        "lift": 4.24
+      },
+      "defensiveMove": {
+        "n_positive": 994,
+        "prevalence": 0.0668,
+        "average_precision": 0.4131,
+        "lift": 6.18
+      },
+      "deflection": {
+        "n_positive": 835,
+        "prevalence": 0.0561,
+        "average_precision": 0.1742,
+        "lift": 3.1
+      },
+      "discoveredAttack": {
+        "n_positive": 979,
+        "prevalence": 0.0658,
+        "average_precision": 0.4332,
+        "lift": 6.58
+      },
+      "discoveredCheck": {
+        "n_positive": 369,
+        "prevalence": 0.0248,
+        "average_precision": 0.3606,
+        "lift": 14.54
+      },
+      "doubleCheck": {
+        "n_positive": 98,
+        "prevalence": 0.0066,
+        "average_precision": 0.3119,
+        "lift": 47.36
+      },
+      "epauletteMate": {
+        "n_positive": 72,
+        "prevalence": 0.0048,
+        "average_precision": 0.0335,
+        "lift": 6.92
+      },
+      "exposedKing": {
+        "n_positive": 572,
+        "prevalence": 0.0384,
+        "average_precision": 0.1977,
+        "lift": 5.14
+      },
+      "fork": {
+        "n_positive": 2392,
+        "prevalence": 0.1607,
+        "average_precision": 0.5503,
+        "lift": 3.42
+      },
+      "hangingPiece": {
+        "n_positive": 619,
+        "prevalence": 0.0416,
+        "average_precision": 0.5618,
+        "lift": 13.51
+      },
+      "intermezzo": {
+        "n_positive": 223,
+        "prevalence": 0.015,
+        "average_precision": 0.2092,
+        "lift": 13.96
+      },
+      "kingsideAttack": {
+        "n_positive": 1454,
+        "prevalence": 0.0977,
+        "average_precision": 0.711,
+        "lift": 7.28
+      },
+      "knightEndgame": {
+        "n_positive": 130,
+        "prevalence": 0.0087,
+        "average_precision": 0.5328,
+        "lift": 60.99
+      },
+      "mate": {
+        "n_positive": 5410,
+        "prevalence": 0.3636,
+        "average_precision": 0.8967,
+        "lift": 2.47
+      },
+      "operaMate": {
+        "n_positive": 197,
+        "prevalence": 0.0132,
+        "average_precision": 0.2633,
+        "lift": 19.89
+      },
+      "pawnEndgame": {
+        "n_positive": 623,
+        "prevalence": 0.0419,
+        "average_precision": 0.9947,
+        "lift": 23.76
+      },
+      "pillsburysMate": {
+        "n_positive": 178,
+        "prevalence": 0.012,
+        "average_precision": 0.2979,
+        "lift": 24.9
+      },
+      "pin": {
+        "n_positive": 1059,
+        "prevalence": 0.0712,
+        "average_precision": 0.2822,
+        "lift": 3.97
+      },
+      "promotion": {
+        "n_positive": 447,
+        "prevalence": 0.03,
+        "average_precision": 0.5383,
+        "lift": 17.92
+      },
+      "queenEndgame": {
+        "n_positive": 211,
+        "prevalence": 0.0142,
+        "average_precision": 0.7868,
+        "lift": 55.49
+      },
+      "queenRookEndgame": {
+        "n_positive": 130,
+        "prevalence": 0.0087,
+        "average_precision": 0.2235,
+        "lift": 25.58
+      },
+      "queensideAttack": {
+        "n_positive": 295,
+        "prevalence": 0.0198,
+        "average_precision": 0.5292,
+        "lift": 26.7
+      },
+      "quietMove": {
+        "n_positive": 650,
+        "prevalence": 0.0437,
+        "average_precision": 0.3462,
+        "lift": 7.93
+      },
+      "rookEndgame": {
+        "n_positive": 957,
+        "prevalence": 0.0643,
+        "average_precision": 0.9308,
+        "lift": 14.47
+      },
+      "sacrifice": {
+        "n_positive": 1442,
+        "prevalence": 0.0969,
+        "average_precision": 0.4895,
+        "lift": 5.05
+      },
+      "skewer": {
+        "n_positive": 430,
+        "prevalence": 0.0289,
+        "average_precision": 0.2275,
+        "lift": 7.87
+      },
+      "smotheredMate": {
+        "n_positive": 91,
+        "prevalence": 0.0061,
+        "average_precision": 0.7688,
+        "lift": 125.72
+      },
+      "trappedPiece": {
+        "n_positive": 192,
+        "prevalence": 0.0129,
+        "average_precision": 0.3255,
+        "lift": 25.23
+      },
+      "zugzwang": {
+        "n_positive": 155,
+        "prevalence": 0.0104,
+        "average_precision": 0.4106,
+        "lift": 39.42
+      }
+    }
+  }
+}
