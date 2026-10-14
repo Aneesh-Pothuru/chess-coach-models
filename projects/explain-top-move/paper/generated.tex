@@ -49,8 +49,8 @@
 \newcommand{\KeptTrainConcreteVsBase}{+6.8 [3.2, 10.6]}
 \newcommand{\KeptTrainTextsChanged}{87}
 \newcommand{\KeptVariant}{v8}
-\newcommand{\RoundCount}{twelve}
-\newcommand{\RoundCountCap}{Twelve}
+\newcommand{\RoundCount}{13}
+\newcommand{\RoundCountCap}{13}
 \newcommand{\KeptRoundCount}{ten}
 \newcommand{\UnjudgedKept}{1, 2 and 11}
 \newcommand{\RoundsTable}{%
@@ -71,9 +71,10 @@ v7 & Say what a capture the better line declines would cost (\emph{replaced by v
 v7b & Say what a capture wins, not the balance it leaves & 100.0 & 82.9 & 99.4 & 84.7 & 65, 77 & 51--0 / 41--0 \\
 v8 & Say when the played move is right but too early & 100.0 & 82.9 & 99.4 & 84.7 & 70, 87 & 50--0 / 20--0 \\
 v9 & Answer the natural capture, and skip what a pawn plainly guards (\emph{not kept}) & 100.0 & 82.2 & 98.9 & 85.9 & 142, 166 & 1--35 / 0--12 \\
-v10 & Say the natural capture that only trades as the trade it is & \multicolumn{5}{c}{\emph{graded on documents rebuilt for the round (Table~\ref{tab:rebuilt})}} & 18--2 / 12--0 \\
-v11 & Five text defects, fixed where the texts are written & \multicolumn{5}{c}{\emph{graded on documents rebuilt for the round (Table~\ref{tab:rebuilt})}} &  \\
-v12 & Say what the natural defense to the better move costs & \multicolumn{5}{c}{\emph{graded on documents rebuilt for the round (Table~\ref{tab:rebuilt})}} & 19--9 / 22--12 \\
+v10 & Say the natural capture that only trades as the trade it is & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 18--2 / 12--0 \\
+v11 & Five text defects, fixed where the texts are written & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} &  \\
+v12 & Say what the natural defense to the better move costs & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 19--9 / 22--12 \\
+v13 & Leave out the moves the defense sentence does not need (\emph{not kept}) & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 0--16 / 4--24 \\
 \bottomrule
 \end{tabularx}
 }
@@ -93,6 +94,7 @@ round & judged & train new--old (same) & test new--old (same) & the rule says \\
 9 & round 9 & 1--35 (0) & 0--12 (0) & do not keep \\
 10 & round 10 & 18--2 (0) & 12--0 (0) & keep \\
 12 & round 12 & 19--9 (0) & 22--12 (0) & keep \\
+13 & round 13 & 0--16 (0) & 4--24 (0) & do not keep \\
 \bottomrule
 \end{tabular}
 }
@@ -107,6 +109,8 @@ v11 & test & 152 & 152 & 126 / 127 & 143 & 151 & 35 \\
 v11 & train & 177 & 176 & 148 / 149 & 163 & 176 & 42 \\
 v12 & test & 152 & 152 & 127 & 143 & 151 & 17 \\
 v12 & train & 177 & 176 & 149 & 163 & 176 & 14 \\
+v13 & test & 153 & 153 & 127 & 144 & 152 & 14 \\
+v13 & train & 180 & 179 & 149 & 166 & 179 & 8 \\
 \bottomrule
 \end{tabular}
 }
@@ -143,6 +147,24 @@ a lost piece worth more than the amount named & 6 & 0 \\
 \newcommand{\RoundTwelveShortOld}{5}
 \newcommand{\RoundTwelveLongNew}{16}
 \newcommand{\RoundTwelveLongOld}{16}
+\newcommand{\RoundThirteenChangedTest}{14}
+\newcommand{\RoundThirteenChangedTrain}{8}
+\newcommand{\RoundThirteenTrainNew}{0}
+\newcommand{\RoundThirteenTrainOld}{16}
+\newcommand{\RoundThirteenTestNew}{4}
+\newcommand{\RoundThirteenTestOld}{24}
+\newcommand{\RoundThirteenCut}{4}
+\newcommand{\RoundThirteenPointerNew}{1}
+\newcommand{\RoundThirteenPointerOld}{21}
+\newcommand{\RoundThirteenLongNew}{3}
+\newcommand{\RoundThirteenLongOld}{19}
+\newcommand{\RoundThirteenPointerCases}{11}
+\newcommand{\RoundThirteenPastLine}{4}
+\newcommand{\RoundThirteenMedianCut}{14}
+\newcommand{\RoundThirteenGrew}{7}
+\newcommand{\RoundThirteenJudged}{22}
+\newcommand{\RoundThirteenQuotePointer}{if they move the bishop (Bb2), as in the engine's line, you have won a pawn by move 14}
+\newcommand{\RoundThirteenQuoteLong}{if they move the queen (Qxd5), you have won about 6 pawns of material by move 19}
 \newcommand{\LongerPicked}{305}
 \newcommand{\LongerDecided}{326}
 \newcommand{\LongerRounds}{3, 4, 5, 7, 7b, 8 and 9}
@@ -157,6 +179,10 @@ a lost piece worth more than the amount named & 6 & 0 \\
 \newcommand{\PadTenN}{20}
 \newcommand{\PadTwelveDecoy}{0}
 \newcommand{\PadTwelveN}{20}
+\newcommand{\TrimThirteenDecoy}{1}
+\newcommand{\TrimThirteenN}{20}
+\newcommand{\TrimThirteenUnchanged}{16}
+\newcommand{\TrimThirteenSame}{3}
 \newcommand{\ControlsTable}{%
 \begin{tabularx}{\textwidth}{L l l}
 \toprule
@@ -169,6 +195,7 @@ J3, round 8: the longer text against a decoy of its length & train 50 of 50, tes
 J3, round 9: the longer text against a decoy of its length & train 36 of 36, test 12 of 12 & survives \\
 padding control, round 10: the decoy preferred & 0 of 20 (20 the shorter text, 0 same) & no drift \\
 padding control, round 12: the decoy preferred & 0 of 20 (20 the shorter text, 0 same) & no drift \\
+trim control, round 13: the decoy preferred & 1 of 20 (16 the full text, 3 same) & no drift \\
 \bottomrule
 \end{tabularx}
 }
@@ -199,11 +226,14 @@ padding control, round 12: the decoy preferred & 0 of 20 (20 the shorter text, 0
 \newcommand{\ExampleGRound}{12}
 \newcommand{\ExampleGCaption}{Round 12: the judge preferred the new text in both runs. The move played is the red arrow, the engine's best move the green one.}
 \newcommand{\ExampleG}{\input{example-g}}
-\newcommand{\ExampleCount}{7}
+\newcommand{\ExampleHRound}{13}
+\newcommand{\ExampleHCaption}{Round 13: the judge preferred the old text in both runs. The move played is the red arrow, the engine's best move the green one.}
+\newcommand{\ExampleH}{\input{example-h}}
+\newcommand{\ExampleCount}{8}
 \newcommand{\ReproLinesMatched}{27}
 \newcommand{\ReproLines}{27}
 \newcommand{\AppCommit}{\texttt{3a6c099}}
-\newcommand{\RecordsCommit}{\texttt{9330de9}}
+\newcommand{\RecordsCommit}{\texttt{b2e487f}}
 \newcommand{\RerunSearches}{the capture searches on it (88 kept) and the defense searches (51 kept)}
 \newcommand{\RerunEvidence}{review-evidence/6}
 \newcommand{\AppKeptThrough}{12}

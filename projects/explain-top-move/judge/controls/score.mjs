@@ -6,9 +6,11 @@
 // judge per batch. J1 asks whether the judge answers "same" to the same text on
 // both sides; J2 whether filler as long as a round's change, added to the
 // shorter text, beats the shorter text; J3 whether each round's longer text
-// beats that decoy. Every round after the check deals a padding control into
-// its own batches (controls/round<N>/): moments the round does not change, set
-// against themselves with filler as long as the round's change.
+// beats that decoy. Every round after the check deals a control into its own
+// batches (controls/round<N>/): moments the round does not change, set against
+// themselves with a decoy. A padding control's decoy is the text with filler
+// as long as the round's change; a round that shortens its texts deals a trim
+// control instead, whose decoy is the text with a point cut (trim.json).
 //
 //   node projects/explain-top-move/judge/controls/score.mjs
 //
@@ -23,7 +25,7 @@ import { score } from '../pairwise.mjs';
 const J = p => JSON.parse(readFileSync(p, 'utf8'));
 const pct = (a, b) => (b === 0 ? null : Math.round((1000 * a) / b) / 10);
 
-export const DRIFT_RULE = 'the judge has drifted toward length if the decoy is preferred in at least 25% of the control\'s comparisons and in more than half of the decided ones.';
+export const DRIFT_RULE = 'the judge has drifted if the decoy (the text with filler, or with a point cut) is preferred in at least 25% of the control\'s comparisons and in more than half of the decided ones.';
 const lengthBiased = (decoy, n, decided) => n > 0 && decoy / n >= 0.25 && decided > 0 && decoy / decided > 0.5;
 
 /**
@@ -94,19 +96,21 @@ export function lengthCheck(dir) {
 }
 
 /**
- * A round's padding control (pairwise.mjs's layout, the padded moments as the
- * "new" version): the decoy's share of the comparisons, pooled over both runs
- * and both splits, and whether the judge drifted by DRIFT_RULE.
+ * A round's control (pairwise.mjs's layout, the decoys as the "new" version):
+ * its kind (a trim control keeps trim.json beside its answers), the decoy's
+ * share of the comparisons, pooled over both runs and both splits, and whether
+ * the judge drifted by DRIFT_RULE.
  */
-export function paddingControl(dir) {
+export function roundControl(dir) {
   const { tally } = score([dir]);
-  const decoy = tally.train.new + tally.test.new, short = tally.train.old + tally.test.old, same = tally.train.same + tally.test.same;
-  const n = decoy + short + same;
+  const decoy = tally.train.new + tally.test.new, unchanged = tally.train.old + tally.test.old, same = tally.train.same + tally.test.same;
+  const n = decoy + unchanged + same;
   return {
-    comparisons: n, decoy, short, same,
+    kind: existsSync(join(dir, 'trim.json')) ? 'trim' : 'padding',
+    comparisons: n, decoy, unchanged, same,
     decoyShareOfAll: pct(decoy, n),
-    decoyShareOfDecided: pct(decoy, decoy + short),
-    drifted: lengthBiased(decoy, n, decoy + short),
+    decoyShareOfDecided: pct(decoy, decoy + unchanged),
+    drifted: lengthBiased(decoy, n, decoy + unchanged),
   };
 }
 
@@ -138,6 +142,6 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const judgeDir = join(records(), 'evals', 'explain-top-move', 'judge');
   const controls = join(judgeDir, 'controls');
   const { J1, J2, J3, ...counts } = lengthCheck(join(controls, 'run1'));
-  const padding = Object.fromEntries(readdirSync(controls).filter(d => /^round\d+[a-z]?$/.test(d)).map(d => [d, paddingControl(join(controls, d))]));
-  console.log(JSON.stringify({ length: { ...counts, J1, J2, J3 }, padding, rule: DRIFT_RULE }, null, 1));
+  const perRound = Object.fromEntries(readdirSync(controls).filter(d => /^round\d+[a-z]?$/.test(d)).map(d => [d, roundControl(join(controls, d))]));
+  console.log(JSON.stringify({ length: { ...counts, J1, J2, J3 }, perRound, rule: DRIFT_RULE }, null, 1));
 }

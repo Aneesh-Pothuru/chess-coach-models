@@ -33,7 +33,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { CHESS_DIR, LAB_DIR, privateDir, projectDir, records, resultsDir } from '../../bridge/lib/chess.mjs';
-import { DRIFT_RULE, lengthCheck, longerPicked, paddingControl } from './judge/controls/score.mjs';
+import { DRIFT_RULE, lengthCheck, longerPicked, roundControl } from './judge/controls/score.mjs';
 import { score } from './judge/pairwise.mjs';
 import { rates, summarize } from './summarize.mjs';
 
@@ -54,6 +54,7 @@ const ROUNDS = [
   { round: '9', dirs: ['round9'] },
   { round: '10', dirs: ['round10'] },
   { round: '12', dirs: ['round12'] },
+  { round: '13', dirs: ['round13'] },
 ];
 // The rounds judged before the length check, whose streak of longer texts it tested.
 const BEFORE_CHECK = ['3', '4', '5', '7', '7b', '8', '9'];
@@ -146,12 +147,12 @@ function main() {
   const length = lengthCheck(join(controlsDir, 'run1'));
   const recordedLength = JSON.parse(readFileSync(join(controlsDir, 'run1', 'score.json'), 'utf8'));
   const lengthMatches = ['items', 'answered', 'missing', 'J1', 'J2', 'J3'].every(k => canonical(length[k]) === canonical(recordedLength[k]));
-  const padding = readdirSync(controlsDir).filter(d => /^round\d+[a-z]?$/.test(d)).sort(roundOrder)
-    .map(d => ({ round: d.slice('round'.length), ...paddingControl(join(controlsDir, d)) }));
+  const perRound = readdirSync(controlsDir).filter(d => /^round\d+[a-z]?$/.test(d)).sort(roundOrder)
+    .map(d => ({ round: d.slice('round'.length), ...roundControl(join(controlsDir, d)) }));
   const controls = {
     longer: { rounds: BEFORE_CHECK, ...longerPicked(BEFORE_CHECK.map(r => join(judgeDir, `round${r}`))) },
     length: { ...length, matchesRecorded: lengthMatches },
-    padding,
+    perRound,
     driftRule: DRIFT_RULE,
   };
 
@@ -254,11 +255,11 @@ function renderControls(c) {
     `| J2, the shorter text against itself with filler: the decoy preferred | ${L.J2.decoy} of ${L.J2.n} (${L.J2.short} the shorter text, ${L.J2.same} same) | ${L.J2.lengthBiased ? 'length-biased' : 'not length-biased'} |`,
     ...rounds.map(r => `| J3, round ${r.replace(/^round/, '')}: the longer text against a decoy of its length | train ${L.J3[r].train.long} of ${decided(L.J3[r].train)}, test ${L.J3[r].test.long} of ${decided(L.J3[r].test)} | ${L.J3[r].survives ? 'survives' : 'does not survive'} |`),
     '',
-    `Each later round's padding control, pooled over its two runs. The rule: ${c.driftRule}`,
+    `Each later round's control, pooled over its two runs: a padding control's decoy is the text with filler, a trim control's the text with a point cut. The rule: ${c.driftRule}`,
     '',
-    '| round | comparisons | decoy | shorter text | same | the rule says |',
-    '|---|---|---|---|---|---|',
-    ...c.padding.map(p => `| ${p.round} | ${p.comparisons} | ${p.decoy} | ${p.short} | ${p.same} | ${p.drifted ? 'drifted toward length' : 'no drift'} |`),
+    '| round | control | comparisons | decoy | the text as it is | same | the rule says |',
+    '|---|---|---|---|---|---|---|',
+    ...c.perRound.map(p => `| ${p.round} | ${p.kind} | ${p.comparisons} | ${p.decoy} | ${p.unchanged} | ${p.same} | ${p.drifted ? `drifted toward ${p.kind === 'trim' ? 'shortness' : 'length'}` : 'no drift'} |`),
     '',
   ];
 }

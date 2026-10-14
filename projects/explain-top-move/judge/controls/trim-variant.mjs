@@ -6,7 +6,7 @@
 // rewards shortness itself. It writes a variant whose cases differ from the
 // old variant's only in those moments, so pairwise.mjs makes the control's
 // items exactly as it makes the round's, and mix.mjs deals both into the same
-// judges' batches; score.mjs's paddingControl scores it, the trimmed text
+// judges' batches; score.mjs's roundControl scores it, the trimmed text
 // being the decoy.
 //
 //   node projects/explain-top-move/judge/controls/trim-variant.mjs --old DIR --round ROUND_DIR --out DIR [--moments 10] [--seed N]
@@ -14,7 +14,9 @@
 // Its files name moments, so DIR belongs under private/explain-top-move/.
 //
 // DIR/cases.json is the old variant's cases with the points removed;
-// DIR/trim.json lists the chosen moments and the point each lost.
+// DIR/trim.json lists the chosen moments and the point each lost. The records
+// keep trim.json beside the control's answers (judge/controls/round<N>/), which
+// is how score.mjs tells a trim control from a padding control.
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'

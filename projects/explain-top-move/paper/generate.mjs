@@ -97,13 +97,15 @@ const verdictOf = r => judgeOf.get(r.variant === 'v7b' ? '7 and 7b' : String(r.r
 const unjudged = state.rounds.filter(r => !verdictOf(r)).map(r => r.round);
 claim(unjudged.join() === '1,2,11', 'the judge read every kept round but rounds 1, 2 and 11');
 claim(state.rounds.filter(verdictOf).every(r => verdictOf(r).keepByRule), 'every kept round the judge read was preferred on both halves');
-claim(!judgeOf.get('5').keepByRule && !judgeOf.get('9').keepByRule, 'the judge did not prefer rounds 5 and 9');
+claim(['5', '9', '13'].every(r => !judgeOf.get(r).keepByRule), 'the judge did not prefer rounds 5, 9 and 13');
+const newShare = j => (j.tally.train.new + j.tally.test.new) / (j.tally.train.new + j.tally.train.old + j.tally.test.new + j.tally.test.old);
+claim(['9', '13'].every(r => newShare(judgeOf.get(r)) < 0.1), 'rounds 9 and 13 were rejected nearly unanimously');
 g.def('UnjudgedKept', listed(unjudged.map(String)));
 // A round graded on documents rebuilt for it has no rates on the rounds' documents: its row points to its own table.
 const rebuilt = new Map(repro.rebuilt.map(r => [r.variant, r]));
 for (const v of [...kept.keys(), ...notKept.keys()].filter(v => rebuilt.has(v) && !variants.includes(v))) {
   const judge = judgeOf.get(String(kept.get(v) ?? notKept.get(v)));
-  roundRows.push(`${v} & ${esc(changeLine(v) ?? '')}${kept.has(v) ? '' : ' (\\emph{not kept})'} & \\multicolumn{5}{c}{\\emph{graded on documents rebuilt for the round (Table~\\ref{tab:rebuilt})}} & ${tally(judge)} \\\\`);
+  roundRows.push(`${v} & ${esc(changeLine(v) ?? '')}${kept.has(v) ? '' : ' (\\emph{not kept})'} & \\multicolumn{5}{c}{\\emph{graded on rebuilt documents (Table~\\ref{tab:rebuilt})}} & ${tally(judge)} \\\\`);
 }
 g.block('RoundsTable', [
   '\\begin{tabularx}{\\textwidth}{l L rrrr r r}', '\\toprule',
@@ -199,31 +201,96 @@ const DEFENSE = /if (?:they|you) (?:move the \w+ \([^)]+\)|block with [^,]+), (?
     .def('RoundTwelveLongNew', String(tallies.long.new)).def('RoundTwelveLongOld', String(tallies.long.old));
 }
 
+// ---- round 13: the defense sentence without its moves, on the reproduction's documents at the pinned app
+const thirteen = rebuilt.get('v13');
+claim(thirteen?.sameMoments && thirteen.gradesEqual, "round 13's grades equal its base's on the documents it was graded on");
+const thirteenSplit = s => thirteen.splits.find(x => x.split === s);
+const thirteenBase = new Map(jsonl(join(flow, 'v13', 'rebuilt', 'base.results.jsonl')).map(m => [m.id, m]));
+const thirteenChanged = jsonl(join(flow, 'v13', 'rebuilt', 'v13.results.jsonl')).filter(m => m.textHash !== thirteenBase.get(m.id)?.textHash);
+claim(thirteenChanged.length > 0 && thirteenChanged.every(m => m.faithful === 1 && m.faithfulAll === 1), 'every moment round 13 changes is graded faithful');
+const r13 = judgeOf.get('13');
+const cut = readFileSync(join(flow, 'v13', 'change.patch'), 'utf8').match(/^\+const DEFENSE_MOVES_SHOWN = (\d+)$/m);
+claim(cut, "round 13's patch names how many moves the sentence still shows");
+g.def('RoundThirteenChangedTest', String(thirteenSplit('test').textsChanged)).def('RoundThirteenChangedTrain', String(thirteenSplit('train').textsChanged))
+  .def('RoundThirteenTrainNew', String(r13.tally.train.new)).def('RoundThirteenTrainOld', String(r13.tally.train.old))
+  .def('RoundThirteenTestNew', String(r13.tally.test.new)).def('RoundThirteenTestOld', String(r13.tally.test.old))
+  .def('RoundThirteenCut', cut[1]);
+// Its two cases, the characters it cut, and how often the line it points to
+// ends before the gain: the sentence stops at the ply after its last move, and
+// the lesson prints the better line beside it.
+{
+  const dir = join(judgeDir, 'round13');
+  const keys = ['r1', 'r2'].map(r => read(join(dir, `key-${r}.json`)));
+  const answers = ['r1', 'r2'].map(r => new Map(read(join(dir, `out-${r}.judge.json`)).answers.map(a => [a.id, a.choice])));
+  const POINTER = "as in the engine's line";
+  const cases = { pointer: { new: 0, old: 0, n: 0, past: 0 }, long: { new: 0, old: 0, n: 0 } };
+  const cuts = [], quote = {};
+  const text = v => v.map(x => x.text).join(' ');
+  for (const item of read(join(dir, 'items-r1.json')).items) {
+    const newIsX = keys[0][item.id].X === 'new';
+    const [after, before] = newIsX ? [item.versionX, item.versionY] : [item.versionY, item.versionX];
+    const sentence = text(after).match(/if (?:they|you) (?:move the|block with)[^;·]*/)?.[0].trim();
+    if (!sentence) throw new Error('round 13: a judged moment without its defense sentence');
+    const kind = sentence.includes(POINTER) ? 'pointer' : 'long';
+    const t = cases[kind];
+    t.n += 1;
+    quote[kind] ??= sentence;
+    for (const i of [0, 1]) {
+      const c = answers[i].get(item.id);
+      if (c === 'X' || c === 'Y') t[keys[i][item.id][c]] += 1;
+    }
+    cuts.push(text(before).length - text(after).length);
+    if (kind === 'pointer') {
+      const section = before.find(x => / does instead$/.test(x.heading));
+      const m = section?.text.match(DEFENSE);
+      if (!m?.[1]) throw new Error("round 13: a pointed-to line without round 12's moves");
+      const shown = m[1].trim().split(/\s+/).length;
+      const printed = section.text.split(' · ').at(-1).trim().split(/\s+/).length;
+      if (shown + 2 > printed) t.past += 1;
+    }
+  }
+  claim(cases.pointer.old > cases.pointer.new && cases.long.old > cases.long.new, 'the judge preferred round 12\'s sentence in both of round 13\'s cases');
+  claim(cases.pointer.past > 0, 'some sentences point to a gain after the moves the lesson prints');
+  cuts.sort((a, b) => a - b);
+  const median = (cuts[(cuts.length - 1) >> 1] + cuts[cuts.length >> 1]) / 2;
+  claim(median > 0, 'round 13 shortened its texts');
+  g.def('RoundThirteenPointerNew', String(cases.pointer.new)).def('RoundThirteenPointerOld', String(cases.pointer.old))
+    .def('RoundThirteenLongNew', String(cases.long.new)).def('RoundThirteenLongOld', String(cases.long.old))
+    .def('RoundThirteenPointerCases', String(cases.pointer.n)).def('RoundThirteenPastLine', String(cases.pointer.past))
+    .def('RoundThirteenMedianCut', String(Math.round(median))).def('RoundThirteenGrew', String(cuts.filter(x => x < 0).length))
+    .def('RoundThirteenJudged', String(cuts.length))
+    .def('RoundThirteenQuotePointer', esc(quote.pointer)).def('RoundThirteenQuoteLong', esc(quote.long));
+}
+
 // ---- the judge's controls, as reproduce.mjs recomputed them
 const c = repro.controls;
 claim(c.length.matchesRecorded, 'the length check recomputed from its answers matches the score the records keep');
 claim(!c.length.J1.inventsDifferences, 'the judge answers "same" to the same text on both sides');
 claim(!c.length.J2.lengthBiased, 'the judge is not length-biased');
 claim(Object.values(c.length.J3).every(r => r.survives), "every round's longer text survives a decoy of its own length");
-claim(c.padding.every(p => !p.drifted), 'no round\'s padding control found the judge drifting toward length');
+claim(c.perRound.every(p => !p.drifted), 'no round\'s control found the judge drifting toward length or shortness');
 g.def('LongerPicked', String(c.longer.longer)).def('LongerDecided', String(c.longer.decided)).def('LongerRounds', esc(listed(c.longer.rounds)))
   .def('LengthItems', String(c.length.items)).def('LengthBatches', String(c.length.batches))
   .def('LengthRounds', esc(listed(Object.keys(c.length.J3).map(r => r.replace(/^round/, '')))))
   .def('LengthIdentitySame', String(c.length.J1.same)).def('LengthIdentityN', String(c.length.J1.n))
   .def('LengthPaddingDecoy', String(c.length.J2.decoy)).def('LengthPaddingN', String(c.length.J2.n));
-const pad10 = c.padding.find(p => p.round === '10');
-claim(pad10, 'round 10 carried a padding control');
+const pad10 = c.perRound.find(p => p.round === '10');
+claim(pad10?.kind === 'padding', 'round 10 carried a padding control');
 g.def('PadTenDecoy', String(pad10.decoy)).def('PadTenN', String(pad10.comparisons));
-const pad12 = c.padding.find(p => p.round === '12');
-claim(pad12, 'round 12 carried a padding control');
+const pad12 = c.perRound.find(p => p.round === '12');
+claim(pad12?.kind === 'padding', 'round 12 carried a padding control');
 g.def('PadTwelveDecoy', String(pad12.decoy)).def('PadTwelveN', String(pad12.comparisons));
+const trim13 = c.perRound.find(p => p.round === '13');
+claim(trim13?.kind === 'trim', 'round 13 carried a trim control');
+g.def('TrimThirteenDecoy', String(trim13.decoy)).def('TrimThirteenN', String(trim13.comparisons))
+  .def('TrimThirteenUnchanged', String(trim13.unchanged)).def('TrimThirteenSame', String(trim13.same));
 const won = t => `${t.long} of ${t.long + t.decoy}`;
 g.block('ControlsTable', [
   '\\begin{tabularx}{\\textwidth}{L l l}', '\\toprule', 'check & result & verdict \\\\', '\\midrule',
   `J1, the same text on both sides: answered \`\`same'' & ${c.length.J1.same} of ${c.length.J1.n} & ${c.length.J1.inventsDifferences ? 'invents differences' : "uses ``same''"} \\\\`,
   `J2, the shorter text against itself with filler: the decoy preferred & ${c.length.J2.decoy} of ${c.length.J2.n} (${c.length.J2.short} the shorter text, ${c.length.J2.same} same) & ${c.length.J2.lengthBiased ? 'length-biased' : 'not length-biased'} \\\\`,
   ...Object.entries(c.length.J3).map(([r, j]) => `J3, round ${esc(r.replace(/^round/, ''))}: the longer text against a decoy of its length & train ${won(j.train)}, test ${won(j.test)} & ${j.survives ? 'survives' : 'does not survive'} \\\\`),
-  ...c.padding.map(p => `padding control, round ${esc(p.round)}: the decoy preferred & ${p.decoy} of ${p.comparisons} (${p.short} the shorter text, ${p.same} same) & ${p.drifted ? 'drifted toward length' : 'no drift'} \\\\`),
+  ...c.perRound.map(p => `${p.kind} control, round ${esc(p.round)}: the decoy preferred & ${p.decoy} of ${p.comparisons} (${p.unchanged} the ${p.kind === 'trim' ? 'full' : 'shorter'} text, ${p.same} same) & ${p.drifted ? `drifted toward ${p.kind === 'trim' ? 'shortness' : 'length'}` : 'no drift'} \\\\`),
   '\\bottomrule', '\\end{tabularx}',
 ].join('\n'));
 
@@ -242,6 +309,7 @@ const EXAMPLES = [
   { round: 'round9', want: 'old' },
   { round: 'round10', want: 'new', has: 'an even trade' },
   { round: 'round12', want: 'new', has: 'if they move the' },
+  { round: 'round13', want: 'old', has: ' by move ' },
 ];
 const newer = key => (Object.values(key).some(k => k.X === 'new') ? 'new' : [...new Set(Object.values(key).flatMap(k => [k.X, k.Y]))].sort().at(-1));
 const sideName = fen => (fen.split(' ')[1] === 'w' ? 'White' : 'Black');

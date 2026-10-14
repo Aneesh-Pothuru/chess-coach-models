@@ -98,7 +98,8 @@ that the judge's notes named, so the judge decides them. Round 11 fixes five def
 10's texts that the player's calibration answers and the judge's notes flagged; each can be read
 off the text and the board, so the round counts them rather than asking the judge. Round 12
 answers the question the player's second set of calibration answers kept asking, what happens
-when the opponent simply saves the attacked piece, so the judge decides it.
+when the opponent simply saves the attacked piece, so the judge decides it. Round 13 shortens round
+12's sentence where the judge's notes said it ran long, so the judge decides it too.
 
 \begin{table}[!htbp]
 \centering\footnotesize
@@ -154,6 +155,11 @@ itself when it is the engine's reply there, otherwise a search at the routine's 
 capture of the attacker is left to the capture answers, and the sentence appears only when the
 line wins material after the defense or mates. The round was graded on documents rebuilt for it
 (Section~\ref{sec:results}).
+\item[Round 13 (not kept): the defense sentence, shorter.] Where the defense is the engine's own
+reply, the sentence points to the engine's line instead of printing its moves again
+(``\RoundThirteenQuotePointer''); where the line would show more than \RoundThirteenCut{} moves, it
+says only when the gain is in (``\RoundThirteenQuoteLong''). The judge wanted the moves back
+(Figure~\ref{fig:exh}).
 \end{description}
 
 \begin{table}[!htbp]
@@ -186,7 +192,11 @@ From round 10 on, each round's batches also carry a padding control: moments the
 change, set against themselves with filler as long as the round's change. If the decoy wins at
 least a quarter of those comparisons and more than half of the decided ones, the judge has drifted
 toward length and the round is not kept on its word. In round 10 the decoy won \PadTenDecoy{} of
-\PadTenN, and in round 12 \PadTwelveDecoy{} of \PadTwelveN.
+\PadTenN, and in round 12 \PadTwelveDecoy{} of \PadTwelveN. Round 13 set out to shorten its texts, so
+its batches carry the mirror, a trim control: moments the round does not change, set against themselves
+with the last point of the better move's section cut. A judge drifting toward short texts would
+prefer the cut one, under the same rule; it did in \TrimThirteenDecoy{} of \TrimThirteenN{}
+comparisons (\TrimThirteenUnchanged{} the full text, \TrimThirteenSame{} same).
 
 \begin{table}[!htbp]
 \centering\footnotesize
@@ -209,6 +219,7 @@ the judge agreed. The tables show only the sections whose text the round changed
 \begin{figure}[!htbp]\ExampleE\caption{\ExampleECaption}\label{fig:exe}\end{figure}
 \begin{figure}[!htbp]\ExampleF\caption{\ExampleFCaption}\label{fig:exf}\end{figure}
 \begin{figure}[!htbp]\ExampleG\caption{\ExampleGCaption}\label{fig:exg}\end{figure}
+\begin{figure}[!htbp]\ExampleH\caption{\ExampleHCaption}\label{fig:exh}\end{figure}
 
 \section{Results}
 \label{sec:results}
@@ -229,8 +240,8 @@ On train the same changes read \BaseTrainFaithful\% to \KeptTrainFaithful\% (fai
 \KeptTrainFaithfulVsBase) and \BaseTrainConcrete\% to \KeptTrainConcrete\% (concrete,
 \KeptTrainConcreteVsBase). The kept variant changes the visible texts of \KeptTestTextsChanged{}
 test and \KeptTrainTextsChanged{} train moments. Every kept round the judge read (all but rounds
-\UnjudgedKept, which fix errors) was preferred on both halves; round 5 was not, and round 9 was
-rejected nearly unanimously.
+\UnjudgedKept, which fix errors) was preferred on both halves; round 5 was not, and rounds 9 and 13
+were rejected nearly unanimously.
 
 Round 10's sentence makes no claim the grades check. Its round was graded on the \RoundTenMoments{}
 moments of documents rebuilt for it, against its own base on the same documents, and the two
@@ -255,11 +266,28 @@ reasons against the new texts were mostly their length: pooling both halves, the
 or fewer, and \RoundTwelveLongNew--\RoundTwelveLongOld{} where it shows \RoundTwelveLongMin{} or
 more. A round that shortens the line has seen that tally, so it fixes its cut on train.
 
+Round 13 did, and was graded on the documents the reproduction rebuilt at the pinned app
+(Section~\ref{sec:repro}), against the pinned app's texts on them, after the grader learned its two
+new forms and graded the base exactly as before. It changes the texts of
+\RoundThirteenChangedTest{} test and \RoundThirteenChangedTrain{} train moments, each graded
+faithful, and no grade moves (Table~\ref{tab:rebuilt}). It barely shortened them: by a median of
+\RoundThirteenMedianCut{} characters, and \RoundThirteenGrew{} of the \RoundThirteenJudged{} grew,
+where the pointer is longer than the short line it replaced. The judge preferred the old texts,
+\RoundThirteenTrainNew--\RoundThirteenTrainOld{} on train and
+\RoundThirteenTestNew--\RoundThirteenTestOld{} on test: \RoundThirteenPointerNew--\RoundThirteenPointerOld{}
+where the sentence points to the engine's line, and \RoundThirteenLongNew--\RoundThirteenLongOld{}
+where it leaves out a long line. Its reasons name the moves: they show how the material falls, and
+a move number gives the player nothing to follow or check. The pointer was also worse than it
+looked: in \RoundThirteenPastLine{} of the \RoundThirteenPointerCases{} sentences that point to the
+engine's line, the gain comes after the moves the lesson prints beside it, and a searched defense's
+line is not on the card at all. Round 12's long lines had split the judge evenly; set against the
+same sentence without its moves, it wanted the moves.
+
 \begin{table}[!htbp]
 \centering\footnotesize
 \RebuiltTable
-\caption{A round graded on documents rebuilt for it: moments graded 1, with one number where the
-round and its base agree.}
+\caption{A round graded on rebuilt documents, beside its base on the same documents: moments graded
+1, with one number where the round and its base agree.}
 \label{tab:rebuilt}
 \end{table}
 
@@ -272,6 +300,7 @@ round and its base agree.}
 \end{table}
 
 \section{Reproduction in the lab}
+\label{sec:repro}
 
 \paragraph{Recomputed.} The lab recomputes every variant's aggregates from the per-moment grades
 the records keep (\texttt{summarize.mjs}): \ReproLinesMatched{} of the \ReproLines{} lines of the
