@@ -72,7 +72,8 @@ const SQ = String.raw`([a-h][1-8])`
 // The pieces that changed hands, when the lesson names them: "a knight for two pawns", "three pawns".
 const PIECE_UNIT = String.raw`(?:a|two|three|four|five|six|seven|eight) (?:queen|rook|bishop|knight|pawn)s?`
 const PIECE_LIST = String.raw`${PIECE_UNIT}(?:, ${PIECE_UNIT})*(?: and ${PIECE_UNIT})?`
-const AMT = String.raw`(a pawn|two pawns' worth of material|a piece and a pawn|a piece and \d+ pawns|a piece|a rook|a queen|about \d+ pawns of material|nothing|a pawn's worth of material|(?:three|four|five) pawns' worth of material|${PIECE_LIST}(?: for ${PIECE_LIST})?)`
+// A longer phrase comes before any phrase it starts with ("a rook for a pawn" before "a rook"), since an amount can end a template.
+const AMT = String.raw`(${PIECE_UNIT}(?:(?:, | and )${PIECE_UNIT})+(?: for ${PIECE_LIST})?|${PIECE_UNIT} for ${PIECE_LIST}|a pawn's worth of material|a pawn|two pawns' worth of material|a piece and a pawn|a piece and \d+ pawns|a piece|a rook|a queen|about \d+ pawns of material|nothing|(?:three|four|five) pawns' worth of material|${PIECE_UNIT})`
 const WHO = String.raw`(you|they)`
 const ATTACK_ITEM = String.raw`(?:(?:their|your|the) )?(?:pawn|knight|bishop|rook|queen|king) on [a-h][1-8](?: \(undefended\))?`
 
