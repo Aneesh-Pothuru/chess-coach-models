@@ -19,10 +19,12 @@ app's explanation code. The numbers are in the paper,
 | `build-cases.mjs` | Every key moment of the accuracy project's games, re-read from the kept phone evidence under the code of the checkout `CHESS_DIR` names, with the app's own texts for it. No engine runs here. |
 | `probes.mjs` | The searches behind the texts' answers to "what if they take it": each capture the better line declines, searched as the routine searches it. |
 | `grade.mjs` | Three grades for each moment, checked with chess.js against the board and the stored engine evidence: `faithful` (no false checkable claim), `concrete` (the better move's consequence is named), `named_deep` (every move named as best rests on a deep search). |
+| `defects.mjs` | The text defects round 11 fixes, counted in a variant's texts. Its `--out` file names the moments behind each count, so it stays under `private/` or in the records. |
 | `results.mjs` | A variant's per-moment record: its grades and a hash of the texts the player reads. |
 | `summarize.mjs` | The rates every keep or revert decision rests on, with bootstrap intervals over games and paired differences from the baseline. |
 | `judge/pairwise.mjs` | A round's blind comparison by a judge model, and the rule that scores it. A new round's judgments name moments, so they go under `private/explain-top-move/`. |
-| `reproduce.mjs` | Recomputes every variant's aggregates and every judge round from the records, then rebuilds the pinned app's texts end to end on the lab's evidence and grades them. |
+| `judge/controls/` | The judge's controls. `score.mjs` recomputes them from their answers: the length check (the same text on both sides; the shorter text against itself with filler as long as the round's change; the longer text against that filler) and each later round's padding control, with the rule that says whether the judge drifted toward length. `pad-variant.mjs` makes a round's padding control, `filler.mjs` the filler, and `mix.mjs` deals the control into the round's own batches and splits the answers back. |
+| `reproduce.mjs` | Recomputes every variant's aggregates, every judge round and the judge's controls from the records, sets a round graded on documents rebuilt for it beside its base on those documents (with the text defects it fixes, where the records count them), then rebuilds the pinned app's texts end to end on the lab's evidence and grades them. |
 | `paper/` | The paper. |
 
 ## Running it

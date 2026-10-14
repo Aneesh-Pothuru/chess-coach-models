@@ -2,7 +2,7 @@
   "eval": "explain-top-move reproduction",
   "chess": {
     "pinned_commit": "d8b771238c11c84d0c4b2a8010bb75f5f756b8d9",
-    "records_commit": "b3b827d454e19454dd06f71414ee37ebf8ffd8bc"
+    "records_commit": "c90428c4f8acc3f00c8f3ec8136aebda29c2b869"
   },
   "recomputed": {
     "publishedLines": 27,
@@ -198,6 +198,302 @@
       },
       "keepByRule": false,
       "recordedReason": "skipping capture answers a pawn plainly guards, and stopping at an unanswered natural capture: train 1 new vs 35 old, test 0 vs 12; the judges prefer an answer to 'can it just be taken?' even when the guard is a pawn"
+    },
+    {
+      "round": "10",
+      "judged": "round10",
+      "moments": null,
+      "tally": {
+        "train": {
+          "new": 18,
+          "old": 2,
+          "same": 0
+        },
+        "test": {
+          "new": 12,
+          "old": 0,
+          "same": 0
+        }
+      },
+      "keepByRule": true,
+      "recordedReason": "the natural capture that only trades, said as the trade it is ('if they take it with axb5, axb5 takes back: an even trade'); judge model, pairwise and blind, two runs with the order reversed: the new text preferred 18 to 2 on train and 12 to 0 on test, with a 10-moment padding control in the same batches whose decoy was preferred in none of its 20 comparisons; graded on the 60 games' rebuilt phone documents against their own base (v10/change.md), grades equal"
+    }
+  ],
+  "controls": {
+    "longer": {
+      "rounds": [
+        "3",
+        "4",
+        "5",
+        "7",
+        "7b",
+        "8",
+        "9"
+      ],
+      "longer": 305,
+      "decided": 326,
+      "ties": 0
+    },
+    "length": {
+      "items": 585,
+      "answered": 585,
+      "missing": 0,
+      "batches": 20,
+      "J1": {
+        "same": 117,
+        "X": 0,
+        "Y": 0,
+        "n": 117,
+        "sameShare": 100,
+        "inventsDifferences": false
+      },
+      "J2": {
+        "decoy": 0,
+        "short": 232,
+        "same": 2,
+        "n": 234,
+        "decoyShareOfAll": 0,
+        "decoyShareOfDecided": 0,
+        "lengthBiased": false,
+        "byRound": {
+          "round7": {
+            "decoy": 0,
+            "short": 116,
+            "same": 0,
+            "n": 116
+          },
+          "round8": {
+            "decoy": 0,
+            "short": 68,
+            "same": 2,
+            "n": 70
+          },
+          "round9": {
+            "decoy": 0,
+            "short": 48,
+            "same": 0,
+            "n": 48
+          }
+        },
+        "byKind": {
+          "restate": {
+            "decoy": 0,
+            "short": 114,
+            "same": 2,
+            "n": 116
+          },
+          "generic": {
+            "decoy": 0,
+            "short": 118,
+            "same": 0,
+            "n": 118
+          }
+        }
+      },
+      "J3": {
+        "round7": {
+          "train": {
+            "long": 66,
+            "decoy": 0,
+            "same": 0,
+            "n": 66
+          },
+          "test": {
+            "long": 50,
+            "decoy": 0,
+            "same": 0,
+            "n": 50
+          },
+          "byKind": {
+            "restate": {
+              "long": 58,
+              "decoy": 0,
+              "same": 0,
+              "n": 58
+            },
+            "generic": {
+              "long": 58,
+              "decoy": 0,
+              "same": 0,
+              "n": 58
+            }
+          },
+          "survives": true
+        },
+        "round8": {
+          "train": {
+            "long": 50,
+            "decoy": 0,
+            "same": 0,
+            "n": 50
+          },
+          "test": {
+            "long": 20,
+            "decoy": 0,
+            "same": 0,
+            "n": 20
+          },
+          "byKind": {
+            "restate": {
+              "long": 34,
+              "decoy": 0,
+              "same": 0,
+              "n": 34
+            },
+            "generic": {
+              "long": 36,
+              "decoy": 0,
+              "same": 0,
+              "n": 36
+            }
+          },
+          "survives": true
+        },
+        "round9": {
+          "train": {
+            "long": 36,
+            "decoy": 0,
+            "same": 0,
+            "n": 36
+          },
+          "test": {
+            "long": 12,
+            "decoy": 0,
+            "same": 0,
+            "n": 12
+          },
+          "byKind": {
+            "restate": {
+              "long": 24,
+              "decoy": 0,
+              "same": 0,
+              "n": 24
+            },
+            "generic": {
+              "long": 24,
+              "decoy": 0,
+              "same": 0,
+              "n": 24
+            }
+          },
+          "survives": true
+        }
+      },
+      "matchesRecorded": true
+    },
+    "padding": [
+      {
+        "round": "10",
+        "comparisons": 20,
+        "decoy": 0,
+        "short": 20,
+        "same": 0,
+        "decoyShareOfAll": 0,
+        "decoyShareOfDecided": 0,
+        "drifted": false
+      }
+    ],
+    "driftRule": "the judge has drifted toward length if the decoy is preferred in at least 25% of the control's comparisons and in more than half of the decided ones."
+  },
+  "rebuilt": [
+    {
+      "variant": "v10",
+      "sameMoments": true,
+      "splits": [
+        {
+          "split": "test",
+          "moments": 152,
+          "base": {
+            "faithful": 152,
+            "concrete": 126,
+            "named_deep": 143,
+            "faithfulAll": 151
+          },
+          "variant": {
+            "faithful": 152,
+            "concrete": 126,
+            "named_deep": 143,
+            "faithfulAll": 151
+          },
+          "textsChanged": 6
+        },
+        {
+          "split": "train",
+          "moments": 177,
+          "base": {
+            "faithful": 176,
+            "concrete": 148,
+            "named_deep": 163,
+            "faithfulAll": 176
+          },
+          "variant": {
+            "faithful": 176,
+            "concrete": 148,
+            "named_deep": 163,
+            "faithfulAll": 176
+          },
+          "textsChanged": 10
+        }
+      ],
+      "gradesEqual": true,
+      "defects": null
+    },
+    {
+      "variant": "v11",
+      "sameMoments": true,
+      "splits": [
+        {
+          "split": "test",
+          "moments": 152,
+          "base": {
+            "faithful": 152,
+            "concrete": 126,
+            "named_deep": 143,
+            "faithfulAll": 151
+          },
+          "variant": {
+            "faithful": 152,
+            "concrete": 127,
+            "named_deep": 143,
+            "faithfulAll": 151
+          },
+          "textsChanged": 35
+        },
+        {
+          "split": "train",
+          "moments": 177,
+          "base": {
+            "faithful": 176,
+            "concrete": 148,
+            "named_deep": 163,
+            "faithfulAll": 176
+          },
+          "variant": {
+            "faithful": 176,
+            "concrete": 149,
+            "named_deep": 163,
+            "faithfulAll": 176
+          },
+          "textsChanged": 42
+        }
+      ],
+      "gradesEqual": false,
+      "defects": {
+        "base": {
+          "lowercaseReveal": 29,
+          "recaptureOutright": 15,
+          "quietForcing": 6,
+          "unsettledVsOutright": 3,
+          "pieceOverAmount": 6
+        },
+        "variant": {
+          "lowercaseReveal": 0,
+          "recaptureOutright": 0,
+          "quietForcing": 0,
+          "unsettledVsOutright": 0,
+          "pieceOverAmount": 0
+        }
+      }
     }
   ],
   "kept": "v8",

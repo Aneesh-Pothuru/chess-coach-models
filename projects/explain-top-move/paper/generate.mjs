@@ -2,7 +2,8 @@
 // Writes paper/generated.tex for the explain-top-move paper: every number,
 // table and example it prints, from the records (each variant's per-moment
 // grades, the judge rounds, the hill-climb's state) and from
-// results/reproduction.json (reproduce.mjs).
+// results/reproduction.json (reproduce.mjs). It refuses to write when a
+// claim the paper's text makes about them no longer holds.
 //
 //   bridge/run.sh projects/explain-top-move/paper/generate.mjs
 
@@ -28,6 +29,12 @@ const pct = x => fixed(100 * x, 1);
 const ci = x => `${pct(x.est)} [${pct(x.lo)}, ${pct(x.hi)}]`;
 const delta = x => `${x.est >= 0 ? '+' : ''}${pct(x.est)} [${pct(x.lo)}, ${pct(x.hi)}]`;
 const Name = s => s.replace(/(^|[^A-Za-z])([a-z])/g, (_, __, c) => c.toUpperCase()).replace(/[^A-Za-z]/g, '');
+const Cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const DIMS = ['faithful', 'concrete', 'named_deep', 'faithfulAll'];
+/** A list as prose writes it: "3, 4 and 5". */
+const listed = xs => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs.at(-1)}`);
+/** The paper's text says this; stop if the numbers no longer do. */
+const claim = (holds, what) => { if (!holds) throw new Error(`the paper says ${what}, and the numbers no longer do`); };
 
 // ---- the data
 const base = { test: row('test', 'baseline'), train: row('train', 'baseline') };
@@ -73,7 +80,8 @@ const changeLine = v => {
 };
 const kept = new Map(state.rounds.map(r => [r.variant, r.round]));
 const notKept = new Map(state.rounds_not_kept.map(r => [`v${r.round}`, r.round]));
-g.def('RoundCount', word(kept.size + notKept.size)).def('KeptRoundCount', word(kept.size));
+g.def('RoundCount', word(kept.size + notKept.size)).def('RoundCountCap', Cap(word(kept.size + notKept.size)))
+  .def('KeptRoundCount', word(kept.size));
 const judgeOf = new Map(repro.judge.map(j => [j.round, j]));
 const variants = [...new Set(rows.map(r => r.variant))];
 const tally = j => (j ? `${j.tally.train.new}--${j.tally.train.old} / ${j.tally.test.new}--${j.tally.test.old}` : '');
@@ -84,6 +92,19 @@ const roundRows = variants.map(v => {
   const judge = judgeOf.get(round === 0 ? '' : v === 'v7b' ? '7 and 7b' : String(round));
   return `${v} & ${esc(changeLine(v) ?? (v === 'baseline' ? 'the app before the rounds' : ''))}${decision && decision !== 'kept' ? ` (\\emph{${decision}})` : ''} & ${pct(t.faithful.est)} & ${pct(t.concrete.est)} & ${pct(tr.faithful.est)} & ${pct(tr.concrete.est)} & ${t.textsChanged ?? ''}${tr.textsChanged != null ? `, ${tr.textsChanged}` : ''} & ${tally(judge)} \\\\`;
 });
+// The judge read every kept round but those that fix errors, and preferred each one on both halves.
+const verdictOf = r => judgeOf.get(r.variant === 'v7b' ? '7 and 7b' : String(r.round));
+const unjudged = state.rounds.filter(r => !verdictOf(r)).map(r => r.round);
+claim(unjudged.join() === '1,2,11', 'the judge read every kept round but rounds 1, 2 and 11');
+claim(state.rounds.filter(verdictOf).every(r => verdictOf(r).keepByRule), 'every kept round the judge read was preferred on both halves');
+claim(!judgeOf.get('5').keepByRule && !judgeOf.get('9').keepByRule, 'the judge did not prefer rounds 5 and 9');
+g.def('UnjudgedKept', listed(unjudged.map(String)));
+// A round graded on documents rebuilt for it has no rates on the rounds' documents: its row points to its own table.
+const rebuilt = new Map(repro.rebuilt.map(r => [r.variant, r]));
+for (const v of [...kept.keys(), ...notKept.keys()].filter(v => rebuilt.has(v) && !variants.includes(v))) {
+  const judge = judgeOf.get(String(kept.get(v) ?? notKept.get(v)));
+  roundRows.push(`${v} & ${esc(changeLine(v) ?? '')}${kept.has(v) ? '' : ' (\\emph{not kept})'} & \\multicolumn{5}{c}{\\emph{graded on documents rebuilt for the round (Table~\\ref{tab:rebuilt})}} & ${tally(judge)} \\\\`);
+}
 g.block('RoundsTable', [
   '\\begin{tabularx}{\\textwidth}{l L rrrr r r}', '\\toprule',
   ' & & \\multicolumn{2}{c}{test (\\%)} & \\multicolumn{2}{c}{train (\\%)} & texts & judge \\\\',
@@ -98,6 +119,72 @@ g.block('JudgeTable', [
   ...repro.judge.map(j => `${esc(j.round)} & ${esc(j.judged.replace(/round/g, 'round '))}${j.moments != null ? ` (${j.moments} moments)` : ''} & ${j.tally.train.new}--${j.tally.train.old} (${j.tally.train.same}) & ${j.tally.test.new}--${j.tally.test.old} (${j.tally.test.same}) & ${j.keepByRule ? 'keep' : 'do not keep'} \\\\`),
   '\\bottomrule', '\\end{tabular}',
 ].join('\n'));
+// ---- a round graded on documents rebuilt for it, beside its base on the same documents
+const both = (s, d) => (s.base[d] === s.variant[d] ? String(s.variant[d]) : `${s.base[d]} / ${s.variant[d]}`);
+g.block('RebuiltTable', [
+  '\\begin{tabular}{ll r rrrr r}', '\\toprule',
+  'variant & split & moments & faithful & concrete & named\\_deep & faithfulAll & texts changed \\\\', '\\midrule',
+  ...repro.rebuilt.flatMap(r => r.splits.map(s => `${r.variant} & ${s.split} & ${s.moments} & ${DIMS.map(d => both(s, d)).join(' & ')} & ${s.textsChanged} \\\\`)),
+  '\\bottomrule', '\\end{tabular}',
+].join('\n'));
+const ten = rebuilt.get('v10');
+claim(ten?.sameMoments && ten.gradesEqual, "round 10's grades equal its base's on the documents rebuilt for it");
+const tenSplit = s => ten.splits.find(x => x.split === s);
+g.def('RoundTenMoments', String(ten.splits.reduce((n, s) => n + s.moments, 0)))
+  .def('RoundTenChangedTest', String(tenSplit('test').textsChanged)).def('RoundTenChangedTrain', String(tenSplit('train').textsChanged));
+
+// ---- round 11: five text defects, on round 10's rebuilt documents
+const eleven = rebuilt.get('v11');
+claim(eleven?.sameMoments, 'round 11 was graded on the same moments as its base');
+claim(eleven.splits.every(s => DIMS.every(d => s.variant[d] >= s.base[d])), 'no grade falls in round 11');
+claim(eleven.splits.every(s => s.variant.concrete > s.base.concrete), 'round 11 raises concrete on both halves');
+const elevenSplit = s => eleven.splits.find(x => x.split === s);
+const rise = (s, d) => `${elevenSplit(s).base[d]} to ${elevenSplit(s).variant[d]}`;
+g.def('RoundElevenConcreteTest', rise('test', 'concrete')).def('RoundElevenConcreteTrain', rise('train', 'concrete'))
+  .def('RoundElevenChangedTest', String(elevenSplit('test').textsChanged)).def('RoundElevenChangedTrain', String(elevenSplit('train').textsChanged));
+const DEFECT_LABEL = {
+  lowercaseReveal: 'a later sentence of the retry reveal in lower case',
+  recaptureOutright: "a recapture called a win ``outright''",
+  quietForcing: "a capture or a check called ``a quiet improvement''",
+  unsettledVsOutright: "``too short or unsettled'' beside a capture the card calls outright",
+  pieceOverAmount: 'a lost piece worth more than the amount named',
+};
+const D = eleven.defects;
+claim(D && Object.keys(D.base).every(d => DEFECT_LABEL[d]), 'round 11 counts the five defects the paper names');
+const total = counts => Object.values(counts).reduce((n, x) => n + x, 0);
+claim(total(D.base) > 0 && total(D.variant) === 0, 'round 11 removes every defect it counts');
+g.def('RoundElevenDefects', String(total(D.base)));
+g.block('DefectsTable', [
+  '\\begin{tabular}{l rr}', '\\toprule', 'defect & v10 & v11 \\\\', '\\midrule',
+  ...Object.keys(D.base).map(d => `${DEFECT_LABEL[d]} & ${D.base[d]} & ${D.variant[d]} \\\\`),
+  '\\bottomrule', '\\end{tabular}',
+].join('\n'));
+
+// ---- the judge's controls, as reproduce.mjs recomputed them
+const c = repro.controls;
+claim(c.length.matchesRecorded, 'the length check recomputed from its answers matches the score the records keep');
+claim(!c.length.J1.inventsDifferences, 'the judge answers "same" to the same text on both sides');
+claim(!c.length.J2.lengthBiased, 'the judge is not length-biased');
+claim(Object.values(c.length.J3).every(r => r.survives), "every round's longer text survives a decoy of its own length");
+claim(c.padding.every(p => !p.drifted), 'no round\'s padding control found the judge drifting toward length');
+g.def('LongerPicked', String(c.longer.longer)).def('LongerDecided', String(c.longer.decided)).def('LongerRounds', esc(listed(c.longer.rounds)))
+  .def('LengthItems', String(c.length.items)).def('LengthBatches', String(c.length.batches))
+  .def('LengthRounds', esc(listed(Object.keys(c.length.J3).map(r => r.replace(/^round/, '')))))
+  .def('LengthIdentitySame', String(c.length.J1.same)).def('LengthIdentityN', String(c.length.J1.n))
+  .def('LengthPaddingDecoy', String(c.length.J2.decoy)).def('LengthPaddingN', String(c.length.J2.n));
+const pad10 = c.padding.find(p => p.round === '10');
+claim(pad10, 'round 10 carried a padding control');
+g.def('PadTenDecoy', String(pad10.decoy)).def('PadTenN', String(pad10.comparisons));
+const won = t => `${t.long} of ${t.long + t.decoy}`;
+g.block('ControlsTable', [
+  '\\begin{tabularx}{\\textwidth}{L l l}', '\\toprule', 'check & result & verdict \\\\', '\\midrule',
+  `J1, the same text on both sides: answered \`\`same'' & ${c.length.J1.same} of ${c.length.J1.n} & ${c.length.J1.inventsDifferences ? 'invents differences' : "uses ``same''"} \\\\`,
+  `J2, the shorter text against itself with filler: the decoy preferred & ${c.length.J2.decoy} of ${c.length.J2.n} (${c.length.J2.short} the shorter text, ${c.length.J2.same} same) & ${c.length.J2.lengthBiased ? 'length-biased' : 'not length-biased'} \\\\`,
+  ...Object.entries(c.length.J3).map(([r, j]) => `J3, round ${esc(r.replace(/^round/, ''))}: the longer text against a decoy of its length & train ${won(j.train)}, test ${won(j.test)} & ${j.survives ? 'survives' : 'does not survive'} \\\\`),
+  ...c.padding.map(p => `padding control, round ${esc(p.round)}: the decoy preferred & ${p.decoy} of ${p.comparisons} (${p.short} the shorter text, ${p.same} same) & ${p.drifted ? 'drifted toward length' : 'no drift'} \\\\`),
+  '\\bottomrule', '\\end{tabularx}',
+].join('\n'));
+
 const r5 = judgeOf.get('5');
 g.def('RoundFiveTrainNew', String(r5.tally.train.new)).def('RoundFiveTrainOld', String(r5.tally.train.old))
   .def('RoundFiveTestNew', String(r5.tally.test.new)).def('RoundFiveTestOld', String(r5.tally.test.old))
@@ -111,6 +198,7 @@ const EXAMPLES = [
   { round: 'round7', want: 'new', has: 'if they take it with' },
   { round: 'round8', want: 'new' },
   { round: 'round9', want: 'old' },
+  { round: 'round10', want: 'new', has: 'an even trade' },
 ];
 const newer = key => (Object.values(key).some(k => k.X === 'new') ? 'new' : [...new Set(Object.values(key).flatMap(k => [k.X, k.Y]))].sort().at(-1));
 const sideName = fen => (fen.split(' ')[1] === 'w' ? 'White' : 'Black');

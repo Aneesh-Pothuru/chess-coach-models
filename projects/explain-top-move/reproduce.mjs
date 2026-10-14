@@ -17,11 +17,20 @@
 // --no-rerun reads the rerun already in private/explain-top-move/reproduce/app/.
 // The rerun's moments stay there; results/reproduction.{md,json} hold
 // aggregates only.
+//
+// It also recomputes the judge's controls from their answers
+// (judge/controls/score.mjs), and the grades of a round graded on documents rebuilt
+// for it (<variant>/rebuilt/ in the records) beside its base's on the same
+// documents. A round that fixes text defects keeps their counts in the records
+// (<variant>/defects.json, written by defects.mjs over both variants' texts when
+// the round ran); the report carries them, checked against the moments behind
+// each count.
 
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { CHESS_DIR, LAB_DIR, privateDir, projectDir, records, resultsDir } from '../../bridge/lib/chess.mjs';
+import { DRIFT_RULE, lengthCheck, longerPicked, paddingControl } from './judge/controls/score.mjs';
 import { score } from './judge/pairwise.mjs';
 import { rates, summarize } from './summarize.mjs';
 
@@ -40,13 +49,20 @@ const ROUNDS = [
   { round: '7 and 7b', dirs: ['round7', 'round7b'] },
   { round: '8', dirs: ['round8'] },
   { round: '9', dirs: ['round9'] },
+  { round: '10', dirs: ['round10'] },
 ];
+// The rounds judged before the length check, whose streak of longer texts it tested.
+const BEFORE_CHECK = ['3', '4', '5', '7', '7b', '8', '9'];
 
 const git = (dir, ...args) => execFileSync('git', ['-C', dir, ...args], { encoding: 'utf8' }).trim();
 const run = (script, ...args) => execFileSync(join(LAB_DIR, 'bridge', 'run.sh'), [join(projectDir(FLOW), script), ...args], {
   cwd: LAB_DIR, stdio: ['ignore', 'ignore', 'inherit'],
 });
 const jsonl = path => readFileSync(path, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l));
+const gameOf = id => id.slice(0, id.lastIndexOf('-'));
+const roundOrder = (a, b) => parseInt(a.replace(/^\D+/, ''), 10) - parseInt(b.replace(/^\D+/, ''), 10) || a.localeCompare(b);
+/** JSON with every object's keys sorted, to compare two reports whatever order they were written in. */
+const canonical = o => JSON.stringify(o, (k, v) => (v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => a.localeCompare(b))) : v));
 
 function rerun(dir) {
   rmSync(dir, { recursive: true, force: true });
@@ -99,6 +115,51 @@ function main() {
     return { round, judged: dirs.join(' then '), moments: only?.size ?? null, tally, keepByRule: keep, recordedReason: reasons.get(round.split(' ')[0]) ?? null };
   });
 
+  // The judge's controls, recomputed from their answers; the length check's
+  // also against the score the records keep.
+  const controlsDir = join(judgeDir, 'controls');
+  const length = lengthCheck(join(controlsDir, 'run1'));
+  const recordedLength = JSON.parse(readFileSync(join(controlsDir, 'run1', 'score.json'), 'utf8'));
+  const lengthMatches = ['items', 'answered', 'missing', 'J1', 'J2', 'J3'].every(k => canonical(length[k]) === canonical(recordedLength[k]));
+  const padding = readdirSync(controlsDir).filter(d => /^round\d+[a-z]?$/.test(d)).sort(roundOrder)
+    .map(d => ({ round: d.slice('round'.length), ...paddingControl(join(controlsDir, d)) }));
+  const controls = {
+    longer: { rounds: BEFORE_CHECK, ...longerPicked(BEFORE_CHECK.map(r => join(judgeDir, `round${r}`))) },
+    length: { ...length, matchesRecorded: lengthMatches },
+    padding,
+    driftRule: DRIFT_RULE,
+  };
+
+  // A round graded on documents rebuilt for it: its grades beside its base's on those documents.
+  const rebuilt = readdirSync(recorded).filter(v => existsSync(join(recorded, v, 'rebuilt'))).sort(roundOrder).map((v) => {
+    const grades = f => new Map(jsonl(join(recorded, v, 'rebuilt', f)).map(m => [m.id, m]));
+    const before = grades('base.results.jsonl'), after = grades(`${v}.results.jsonl`);
+    const splits = ['test', 'train'].map((which) => {
+      const ids = [...after.keys()].filter(id => split.get(gameOf(id)) === which);
+      const count = m => Object.fromEntries(DIMS.map(d => [d, ids.filter(id => Number(m.get(id)?.[d]) === 1).length]));
+      return { split: which, moments: ids.length, base: count(before), variant: count(after), textsChanged: ids.filter(id => after.get(id).textHash !== before.get(id)?.textHash).length };
+    });
+    const defectsFile = join(recorded, v, 'defects.json');
+    let defects = null;
+    if (existsSync(defectsFile)) {
+      const recordedDefects = JSON.parse(readFileSync(defectsFile, 'utf8'));
+      const side = (k) => {
+        const { counts, moments } = recordedDefects[k];
+        if (Object.keys(counts).some(d => counts[d] !== moments[d]?.length)) throw new Error(`${v}/defects.json: a ${k} count does not match its moments`);
+        if (Object.values(moments).flat().some(id => !after.has(id))) throw new Error(`${v}/defects.json: a ${k} moment is not one of the round's moments`);
+        return counts;
+      };
+      defects = { base: side('base'), variant: side(v) };
+    }
+    return {
+      variant: v,
+      sameMoments: before.size === after.size && [...after.keys()].every(id => before.has(id)),
+      splits,
+      gradesEqual: splits.every(s => DIMS.every(d => s.base[d] === s.variant[d])),
+      defects,
+    };
+  });
+
   // Rerun on the pinned app.
   const dir = join(privateDir(FLOW), 'reproduce', 'app');
   if (!process.argv.includes('--no-rerun')) rerun(dir);
@@ -106,7 +167,6 @@ function main() {
   const app = new Map(jsonl(join(dir, 'results.jsonl')).map(m => [m.id, m]));
   const kept = new Map(jsonl(join(recorded, KEPT, 'results.jsonl')).map(m => [m.id, m]));
   const probes = JSON.parse(readFileSync(join(dir, 'probes.json'), 'utf8'));
-  const gameOf = id => id.slice(0, id.lastIndexOf('-'));
 
   const rows = [];
   for (const which of ['test', 'train']) {
@@ -139,12 +199,65 @@ function main() {
       evidence: { documents: provenance.length, versions: [...new Set(provenance.map(p => p.evidenceVersion))], builds: [...new Set(provenance.map(p => p.build))] },
     },
     judge,
+    controls,
+    rebuilt,
     kept: KEPT,
     rows,
   };
   writeFileSync(join(resultsDir(FLOW), 'reproduction.json'), JSON.stringify(report, null, 2) + '\n');
   writeFileSync(join(resultsDir(FLOW), 'reproduction.md'), render(report));
   console.log(render(report));
+}
+
+function renderControls(c) {
+  const L = c.length, decided = t => t.long + t.decoy;
+  const rounds = Object.keys(L.J3);
+  const listed = xs => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs.at(-1)}`);
+  return [
+    '## The judge\'s controls, recomputed from the records',
+    '',
+    `Before the length check, the judge's decided answers in rounds ${listed(c.longer.rounds)} picked the longer of the two versions ${c.longer.longer} times in ${c.longer.decided}${c.longer.ties ? ` (${c.longer.ties} of equal length)` : ''}.`,
+    '',
+    `The length check: ${L.items} items in ${L.batches} batches, ${L.answered} answered. Recomputed from the judges' answers, it ${L.matchesRecorded ? 'matches' : 'does not match'} the score the records keep.`,
+    '',
+    '| check | result | verdict |',
+    '|---|---|---|',
+    `| J1, the same text on both sides: answered "same" | ${L.J1.same} of ${L.J1.n} | ${L.J1.inventsDifferences ? 'invents differences' : 'uses "same"'} |`,
+    `| J2, the shorter text against itself with filler: the decoy preferred | ${L.J2.decoy} of ${L.J2.n} (${L.J2.short} the shorter text, ${L.J2.same} same) | ${L.J2.lengthBiased ? 'length-biased' : 'not length-biased'} |`,
+    ...rounds.map(r => `| J3, round ${r.replace(/^round/, '')}: the longer text against a decoy of its length | train ${L.J3[r].train.long} of ${decided(L.J3[r].train)}, test ${L.J3[r].test.long} of ${decided(L.J3[r].test)} | ${L.J3[r].survives ? 'survives' : 'does not survive'} |`),
+    '',
+    `Each later round's padding control, pooled over its two runs. The rule: ${c.driftRule}`,
+    '',
+    '| round | comparisons | decoy | shorter text | same | the rule says |',
+    '|---|---|---|---|---|---|',
+    ...c.padding.map(p => `| ${p.round} | ${p.comparisons} | ${p.decoy} | ${p.short} | ${p.same} | ${p.drifted ? 'drifted toward length' : 'no drift'} |`),
+    '',
+  ];
+}
+
+function renderRebuilt(rebuilt) {
+  if (!rebuilt.length) return [];
+  const cell = (s, d) => (s.base[d] === s.variant[d] ? `${s.variant[d]}` : `${s.base[d]} to ${s.variant[d]}`);
+  return [
+    '## Rounds graded on rebuilt documents',
+    '',
+    'A round graded on documents rebuilt for it, beside its base on the same documents: moments graded 1, with one number where the two agree.',
+    '',
+    '| variant | split | moments | faithful | concrete | named_deep | faithfulAll | texts changed |',
+    '|---|---|---|---|---|---|---|---|',
+    ...rebuilt.flatMap(r => r.splits.map(s => `| ${r.variant} | ${s.split} | ${s.moments} | ${DIMS.map(d => cell(s, d)).join(' | ')} | ${s.textsChanged} |`)),
+    '',
+    ...rebuilt.map(r => `${r.variant}: ${r.sameMoments ? 'the same moments as its base' : 'not the same moments as its base'}; its grades ${r.gradesEqual ? 'equal' : 'differ from'} the base's.`),
+    '',
+    ...rebuilt.filter(r => r.defects).flatMap(r => [
+      `The text defects ${r.variant} fixes, as \`defects.mjs\` counted them in each variant's texts (the records' \`${r.variant}/defects.json\`):`,
+      '',
+      `| defect | base | ${r.variant} |`,
+      '|---|---|---|',
+      ...Object.keys(r.defects.base).map(d => `| ${d} | ${r.defects.base[d]} | ${r.defects.variant[d]} |`),
+      '',
+    ]),
+  ];
 }
 
 function render(report) {
@@ -170,6 +283,8 @@ function render(report) {
     '',
     ...[...new Map(report.judge.filter(j => j.recordedReason).map(j => [j.round.split(' ')[0], j.recordedReason])).entries()].map(([r, why]) => `- Round ${r}: ${why}`),
     '',
+    ...renderControls(report.controls),
+    ...renderRebuilt(report.rebuilt),
     '## Rerun on the pinned app',
     '',
     `The pinned app's explanations, rebuilt from engine evidence the lab rebuilt (${report.rerun.evidence.documents} games, ${report.rerun.evidence.versions.join(', ')}, ${report.rerun.evidence.builds.join(', ')}), with the capture searches redone on that evidence (${report.rerun.probes.kept} kept). ${report.rerun.moments} key moments.`,

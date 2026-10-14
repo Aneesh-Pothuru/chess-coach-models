@@ -3,7 +3,7 @@
 \input{generated}
 
 \title{Explaining the better move\\[0.3em]
-\large Nine rounds of hill-climbing a game review's lessons, graded on the board and by a blind judge}
+\large \RoundCountCap{} rounds of hill-climbing a game review's lessons, graded on the board and by a blind judge}
 \author{Chess Coach research lab}
 \date{}
 
@@ -15,13 +15,16 @@ At each key moment of a game review, the coaching app explains what the move pla
 what the engine's better move does instead, and the difference between them. We measured
 those explanations on the \Moments{} key moments of \Games{} of the player's games, with three
 grades checked against the board, and changed the code that writes them one idea per round,
-keeping a round only when no grade fell on either half of the games. Where a change wrote
+keeping a round only when no grade fell on either half of the games (the last round fixed five
+text defects at once). Where a change wrote
 something the grades cannot check, a judge model compared the old and new texts blind, twice,
 with the order reversed. Over \RoundCount{} rounds (\KeptRoundCount{} kept), the share of held-out moments whose
 texts make no false checkable claim rose from \BaseTestFaithful\% to \KeptTestFaithful\%, and
 the share that names a concrete consequence of the better move from \BaseTestConcrete\% to
-\KeptTestConcrete\%. The judge preferred every kept round's texts in nearly every comparison
-it decided. The kept code is the app's. The lab recomputes every published number from the
+\KeptTestConcrete\%. The judge preferred the texts of every kept round it read in nearly every
+comparison it decided, and a length control showed that was not for their length: filler as long as a
+round's change won \LengthPaddingDecoy{} of \LengthPaddingN{} comparisons against the same text
+without it. The kept code is the app's. The lab recomputes every published number from the
 records, and the app rerun on fresh engine evidence scores \RerunTestFaithful\% and
 \RerunTestConcrete\% on the same two measures.
 \end{abstract}
@@ -89,8 +92,10 @@ test.
 
 Table~\ref{tab:rounds} lists every variant. Rounds 1 and 2 fix false claims the baseline's
 templates made, found by the grader over all moments before the split was used to design
-anything. Rounds 3 to 9 add something the player asked for on the app's Coach Calibration page or
-that the judge's notes named, so the judge decides them.
+anything. Rounds 3 to 10 add something the player asked for on the app's Coach Calibration page or
+that the judge's notes named, so the judge decides them. Round 11 fixes five defects in round
+10's texts that the player's calibration answers and the judge's notes flagged; each can be read
+off the text and the board, so the round counts them rather than asking the judge.
 
 \begin{table}[!htbp]
 \centering\footnotesize
@@ -126,6 +131,18 @@ the mover's next or second turn, the difference and the takeaway say so, with th
 \item[Round 9 (not kept): fewer capture answers.] Skipping an answer when a pawn plainly guards
 the square, and stopping at the first capture with no answer. The judge wanted every answer back
 (Figure~\ref{fig:exe}).
+\item[Round 10: the natural capture that only trades.] The cheapest capture of the better move's
+piece is said as the trade it is when its search takes back at once on the same square, nothing
+takes there again, and the material ends where it began: ``if they take it with axb5, axb5 takes
+back: an even trade'' (Figure~\ref{fig:exf}). The round was graded on documents rebuilt for it
+(Section~\ref{sec:results}).
+\item[Round 11: five text defects.] Five errors in round 10's texts, fixed together because each
+is a mistake to correct, not an idea to test: the retry's answer opened its later sentences in
+lower case; a reply that only takes back what the move captured was called a win ``outright'';
+a capture or a check was called ``a quiet improvement''; the difference called the lines ``too
+short or unsettled'' to compare beside a capture the same card calls outright; and a line's net
+gain was glossed with a piece worth more than it, as in ``they win a piece and a pawn (your rook
+on d7)''. The round was graded on round 10's rebuilt documents (Section~\ref{sec:results}).
 \end{description}
 
 \begin{table}[!htbp]
@@ -135,6 +152,38 @@ the square, and stopping at the first capture with no answer. The judge wanted e
 parentheses. Round 6 made no run of its own: it reads round 5's judgments on the moments whose
 texts round 6 changes.}
 \label{tab:judge}
+\end{table}
+
+\section{Is the judge rewarding length?}
+\label{sec:length}
+
+Before round 10, the judge picked the longer of its two versions in \LongerPicked{} of the
+\LongerDecided{} comparisons it decided in rounds \LongerRounds. A judge that simply prefers
+longer text would have voted the same way, so a length check, fixed before any of its answers,
+tested that on the moments of rounds \LengthRounds. Each moment gave three comparisons: the
+longer text against itself; a \emph{decoy}, the shorter text with filler about as long as the
+round's change, against the shorter text; and the longer text against the decoy. The filler
+either restates what the card already shows (its line, or that the move is the engine's first
+choice) or is advice that fits any move. The last two comparisons were shown in both orders, and
+the \LengthItems{} items were dealt into \LengthBatches{} batches under opaque ids, each read by
+a fresh judge with the rounds' instructions, so no judge could tell a control from a round.
+
+The judge answered ``same'' to \LengthIdentitySame{} of \LengthIdentityN{} identical pairs, and
+preferred the decoy in \LengthPaddingDecoy{} of \LengthPaddingN{} comparisons with the shorter
+text (Table~\ref{tab:controls}). The rounds that added words won on what the words said.
+From round 10 on, each round's batches also carry a padding control: moments the round does not
+change, set against themselves with filler as long as the round's change. If the decoy wins at
+least a quarter of those comparisons and more than half of the decided ones, the judge has drifted
+toward length and the round is not kept on its word. In round 10 the decoy won \PadTenDecoy{} of
+\PadTenN.
+
+\begin{table}[!htbp]
+\centering\footnotesize
+\ControlsTable
+\caption{The judge's controls, recomputed from their answers (\texttt{judge/controls/score.mjs}). In
+round 9 the longer text is the old one, so its surviving the decoy means round 9's rejection
+holds.}
+\label{tab:controls}
 \end{table}
 
 \section{Examples}
@@ -147,10 +196,13 @@ the judge agreed. The tables show only the sections whose text the round changed
 \begin{figure}[!htbp]\ExampleC\caption{\ExampleCCaption}\label{fig:exc}\end{figure}
 \begin{figure}[!htbp]\ExampleD\caption{\ExampleDCaption}\label{fig:exd}\end{figure}
 \begin{figure}[!htbp]\ExampleE\caption{\ExampleECaption}\label{fig:exe}\end{figure}
+\begin{figure}[!htbp]\ExampleF\caption{\ExampleFCaption}\label{fig:exf}\end{figure}
 
 \section{Results}
+\label{sec:results}
 
-From the baseline to the kept variant (\KeptVariant), on the held-out games:
+From the baseline to the kept variant (\KeptVariant), the last one graded on the rounds' own
+documents, on the held-out games:
 
 \begin{itemize}[nosep]
 \item faithful: \BaseTestFaithfulCI\% to \KeptTestFaithfulCI\%, a paired change of
@@ -164,8 +216,37 @@ From the baseline to the kept variant (\KeptVariant), on the held-out games:
 On train the same changes read \BaseTrainFaithful\% to \KeptTrainFaithful\% (faithful,
 \KeptTrainFaithfulVsBase) and \BaseTrainConcrete\% to \KeptTrainConcrete\% (concrete,
 \KeptTrainConcreteVsBase). The kept variant changes the visible texts of \KeptTestTextsChanged{}
-test and \KeptTrainTextsChanged{} train moments. Every kept round past the second was preferred
-by the judge on both halves; round 5 was not, and round 9 was rejected nearly unanimously.
+test and \KeptTrainTextsChanged{} train moments. Every kept round the judge read (all but rounds
+\UnjudgedKept, which fix errors) was preferred on both halves; round 5 was not, and round 9 was
+rejected nearly unanimously.
+
+Round 10's sentence makes no claim the grades check. Its round was graded on the \RoundTenMoments{}
+moments of documents rebuilt for it, against its own base on the same documents, and the two
+agree on every grade (Table~\ref{tab:rebuilt}); its texts differ from the base's on
+\RoundTenChangedTest{} test and \RoundTenChangedTrain{} train moments. So the rates above stop at
+\KeptVariant.
+
+Round 11 was graded the same way, on round 10's rebuilt documents against round 10's texts. It
+changes the texts of \RoundElevenChangedTest{} test and \RoundElevenChangedTrain{} train moments;
+no grade falls, and the moments graded concrete rise from \RoundElevenConcreteTest{} on test and
+from \RoundElevenConcreteTrain{} on train (Table~\ref{tab:rebuilt}). Of the \RoundElevenDefects{}
+defects \texttt{defects.mjs} counts in round 10's texts, none is left (Table~\ref{tab:defects}).
+
+\begin{table}[!htbp]
+\centering\footnotesize
+\RebuiltTable
+\caption{A round graded on documents rebuilt for it: moments graded 1, with one number where the
+round and its base agree.}
+\label{tab:rebuilt}
+\end{table}
+
+\begin{table}[!htbp]
+\centering\footnotesize
+\DefectsTable
+\caption{The text defects round 11 fixes, counted in each variant's texts on every moment of round
+10's rebuilt documents (\texttt{defects.mjs}).}
+\label{tab:defects}
+\end{table}
 
 \section{Reproduction in the lab}
 
@@ -199,6 +280,9 @@ are read at \RecordsCommit.
 \item The grades check what can be checked: a true and concrete text can still fail to teach.
 That question goes to the player on the Calibration page, and to the judge, whose agreement with
 the player is itself only partly measured.
+\item The length check shows that the judge does not reward words that say nothing. It does not
+show that the judge can tell a point that helps from a true point that does not, at the same
+length; a decoy built from true but beside-the-point facts about the position would test that.
 \item The judge is a model reading on the player's behalf. It is a good finder of what is
 missing and a poorer judge of how much it matters, which is why the rounds use its pairwise
 preferences and its notes, not its ratings.

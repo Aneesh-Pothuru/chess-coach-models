@@ -205,7 +205,15 @@ function windowRead(fen, ucis, side) {
   }
   // The visible end is quiet when the last move neither captured nor gave check.
   const endQuiet = !!last && !last.captured && !g.inCheck()
-  return { net: balance(g, side) - start, state, plies: read, captures, endQuiet }
+  // Settled: nothing is pending at the window's end (no check, no recapture on
+  // the last capture's square, no capture next in the line).
+  const pendingRecapture = !!last?.captured && g.moves({ verbose: true }).some((m) => m.captured && m.to === last.to)
+  const next = ucis[read]
+  const probe2 = next && !g.isGameOver() ? load(g.fen()) : null
+  const nextMove = probe2 ? playUci(probe2, next) : null
+  const pendingContinuation = !!next && !g.isGameOver() && (!nextMove || !!nextMove.captured)
+  const settled = state !== 'illegal' && read > 0 && (g.isGameOver() || (!g.inCheck() && !pendingRecapture && !pendingContinuation))
+  return { net: balance(g, side) - start, state, plies: read, captures, endQuiet, settled }
 }
 
 /** The mate a UCI line delivers from `fen`: who gives it, and how many of `side`'s moves it takes. */
@@ -1011,12 +1019,16 @@ function findMentions(text, M) {
   const re = /[^\s,:()]+/g
   let m
   let prev = ''
+  let prev2 = ''
   while ((m = re.exec(text))) {
     const tok = m[0].replace(/\.+$/, '')
-    if (tok && !NOT_A_MOVE_BEFORE.has(prev.toLowerCase())) {
+    // "A concrete feature of Nd5: it ..." names the move its clause is about.
+    const featureOf = prev.toLowerCase() === 'of' && prev2.toLowerCase() === 'feature'
+    if (tok && (featureOf || !NOT_A_MOVE_BEFORE.has(prev.toLowerCase()))) {
       const att = attForToken(tok, M)
       if (att) out.push({ idx: m.index, att })
     }
+    prev2 = prev
     prev = tok
   }
   return out
@@ -1061,6 +1073,7 @@ function applyTemplates(text, templates, M, surface, shown) {
     playedNoGain: (span) => playedNoGain(M, span, surface, shown),
     diff: (phrase, sign, span) => lineDiffClaim(M, phrase, sign, span, surface, shown),
     diffBelow: (span) => lineDiffClaim(M, null, -1, span, surface, shown),
+    diffAbove: (span) => lineGainClaim(M, span, surface, shown),
   }
   for (const t of templates) {
     rest = rest.replace(t.re, (whole, ...tail) => {
@@ -1089,6 +1102,58 @@ function lineDiffClaim(M, phrase, sign, span, surface, shown) {
   return amount >= want.min && amount <= want.max
     ? claim('material', surface, shown, span, T(`best minus played: ${diff}`))
     : claim('material', surface, shown, span, F(`best minus played is ${diff}, the text says ${phrase}`))
+}
+
+/** "the threat wins more material than X": the best line's material change exceeds the played line's by a point or more. */
+function lineGainClaim(M, span, surface, shown) {
+  if (!M.bestRead || M.playedNetStored === null) return claim('material', surface, shown, span, U('no best line or no stored played net'))
+  const diff = M.bestRead.net - M.playedNetStored
+  return diff >= 1
+    ? claim('material', surface, shown, span, T(`best minus played: +${diff}`))
+    : claim('material', surface, shown, span, F(`best minus played is ${diff}, not a gain`))
+}
+
+/** "A capture with check", "A capture", "A check": what the played move is. */
+function checkForcing(att, kind, span, shown, surface) {
+  const mv = att?.mv
+  if (!mv) return claim('forcing', surface, shown, span, F('the move does not replay'))
+  const is = mv.captured ? (mv.board.inCheck() ? 'A capture with check' : 'A capture') : mv.board.inCheck() ? 'A check' : 'a quiet move'
+  return is === kind ? claim('forcing', surface, shown, span, T(`${mv.san} is ${kind.toLowerCase()}`)) : claim('forcing', surface, shown, span, F(`${mv.san} is ${is.toLowerCase()}, not ${kind.toLowerCase()}`))
+}
+
+/**
+ * "The material is not compared: the engine's line after X is too short, and
+ * the engine's line after Y stops in the middle of a forcing sequence". A short
+ * line has fewer than two plies; an open one is not settled at its window's
+ * end. The played line beyond the plies the case shows is not in the case.
+ */
+function notComparedClaims(body, e) {
+  const out = []
+  const part = new RegExp(String.raw`the engine's lines? after ${TOKR}(?: and ${TOKR})? (?:is|are) (too short)|the engine's lines? after ${TOKR}(?: and ${TOKR})? stops? in the middle of a (forcing sequence)`, 'g')
+  let m
+  while ((m = part.exec(body))) {
+    const short = !!m[3]
+    const toks = short ? [m[1], m[2]] : [m[4], m[5]]
+    for (const tok of toks.filter(Boolean)) {
+      const isPlayed = tok === e.M.san
+      const isBest = tok === e.M.bestSan
+      if (!isPlayed && !isBest) {
+        out.push(claim('line_state', e.surface, e.shown, m[0], F(`${tok} is neither the played move nor the better move`)))
+        continue
+      }
+      out.push(e.san(tok, e.M.F0, isPlayed ? e.M.playedUci : e.M.bestUci))
+      if (short) {
+        const n = isPlayed ? e.M.lineUcis.length : e.M.bestPv.length
+        out.push(claim('line_state', e.surface, e.shown, m[0], n < 2 ? T(`the line after ${tok} has ${n} plies`) : F(`the line after ${tok} has ${n} plies, not too short`)))
+      } else if (isBest) {
+        const r = e.M.bestRead
+        out.push(claim('line_state', e.surface, e.shown, m[0], !r ? U('no best line to read') : !r.settled ? T(`the best line is not settled after ${r.plies} plies`) : F(`the best line is settled after ${r.plies} plies`)))
+      } else {
+        out.push(claim('line_state', e.surface, e.shown, m[0], U('the played line beyond the plies shown is not in the case')))
+      }
+    }
+  }
+  return out
 }
 
 /** A material amount on the best line: the lesson's read of the full engine line, exact. */
@@ -1473,6 +1538,20 @@ const LESSON_TEMPLATES = [
       paren ? walkField(paren, e.M, e.surface, e.shown, e.M.attPlayed).claims : [],
     ],
   },
+  {
+    re: new RegExp(String.raw`\b(A capture with check|A capture|A check) is not always the strongest move\. ${TOKR} attacks a piece that has no comfortable square, and the threat wins more material than ${TOKR} in the engine's lines`, 'g'),
+    run: ([kind, y, x], e) => [
+      e.san(y, e.M.F0, e.M.bestUci),
+      e.M.attBest ? checkThreatens(e.M.attBest, e.whole, e.shown, e.surface) : null,
+      e.diffAbove(e.whole),
+      e.san(x, e.M.F0, e.M.playedUci),
+      checkForcing(e.M.attPlayed, kind, e.whole, e.shown, e.surface),
+    ],
+  },
+  {
+    re: /\bThe material is not compared: ([^.]*)\./g,
+    run: ([body], e) => notComparedClaims(body, e),
+  },
   // Generic principles state no fact of the position.
   { re: /\bBefore you move, (?:ask what|look at every check|look at the forcing)[^.]*\./g, run: () => [] },
   { re: /\bTake what is offered first\. A capture that wins material comes before any improving move\./g, run: () => [] },
@@ -1628,7 +1707,11 @@ function retryClaims(t, M, shown) {
   if (t.answer) claims.push(checkSan(t.answer.san, M.F0, shown, 'retry.answer', t.answer.uci))
   for (const [field, text] of [['retry.hint', t.hint], ['retry.reason', t.reason]]) {
     if (!text) continue
-    const r = walkField(text, M, field, shown, M.attBest)
+    // The reason's later sentences open with a capital ("The rook takes the
+    // open e-file"); the clause readers read the words in lower case. A move
+    // (Be4, Qxd4, O-O) is never a plain word, and "If" reads either way.
+    const read = field === 'retry.reason' ? text.replace(/([.!?] )(?!If\b)([A-Z])([a-z]+)\b/g, (_m, stop, c, rest) => stop + c.toLowerCase() + rest) : text
+    const r = walkField(read, M, field, shown, M.attBest)
     claims.push(...r.claims)
     unparsed.push(...r.unparsed)
   }

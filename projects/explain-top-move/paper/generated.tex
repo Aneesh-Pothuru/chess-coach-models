@@ -49,8 +49,10 @@
 \newcommand{\KeptTrainConcreteVsBase}{+6.8 [3.2, 10.6]}
 \newcommand{\KeptTrainTextsChanged}{87}
 \newcommand{\KeptVariant}{v8}
-\newcommand{\RoundCount}{nine}
-\newcommand{\KeptRoundCount}{seven}
+\newcommand{\RoundCount}{eleven}
+\newcommand{\RoundCountCap}{Eleven}
+\newcommand{\KeptRoundCount}{nine}
+\newcommand{\UnjudgedKept}{1, 2 and 11}
 \newcommand{\RoundsTable}{%
 \begin{tabularx}{\textwidth}{l L rrrr r r}
 \toprule
@@ -69,6 +71,8 @@ v7 & Say what a capture the better line declines would cost (\emph{replaced by v
 v7b & Say what a capture wins, not the balance it leaves & 100.0 & 82.9 & 99.4 & 84.7 & 65, 77 & 51--0 / 41--0 \\
 v8 & Say when the played move is right but too early & 100.0 & 82.9 & 99.4 & 84.7 & 70, 87 & 50--0 / 20--0 \\
 v9 & Answer the natural capture, and skip what a pawn plainly guards (\emph{not kept}) & 100.0 & 82.2 & 98.9 & 85.9 & 142, 166 & 1--35 / 0--12 \\
+v10 & Say the natural capture that only trades as the trade it is & \multicolumn{5}{c}{\emph{graded on documents rebuilt for the round (Table~\ref{tab:rebuilt})}} & 18--2 / 12--0 \\
+v11 & Five text defects, fixed where the texts are written & \multicolumn{5}{c}{\emph{graded on documents rebuilt for the round (Table~\ref{tab:rebuilt})}} &  \\
 \bottomrule
 \end{tabularx}
 }
@@ -86,8 +90,68 @@ round & judged & train new--old (same) & test new--old (same) & the rule says \\
 7 and 7b & round 7 then round 7b & 51--0 (15) & 41--0 (9) & keep \\
 8 & round 8 & 50--0 (0) & 20--0 (0) & keep \\
 9 & round 9 & 1--35 (0) & 0--12 (0) & do not keep \\
+10 & round 10 & 18--2 (0) & 12--0 (0) & keep \\
 \bottomrule
 \end{tabular}
+}
+\newcommand{\RebuiltTable}{%
+\begin{tabular}{ll r rrrr r}
+\toprule
+variant & split & moments & faithful & concrete & named\_deep & faithfulAll & texts changed \\
+\midrule
+v10 & test & 152 & 152 & 126 & 143 & 151 & 6 \\
+v10 & train & 177 & 176 & 148 & 163 & 176 & 10 \\
+v11 & test & 152 & 152 & 126 / 127 & 143 & 151 & 35 \\
+v11 & train & 177 & 176 & 148 / 149 & 163 & 176 & 42 \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\RoundTenMoments}{329}
+\newcommand{\RoundTenChangedTest}{6}
+\newcommand{\RoundTenChangedTrain}{10}
+\newcommand{\RoundElevenConcreteTest}{126 to 127}
+\newcommand{\RoundElevenConcreteTrain}{148 to 149}
+\newcommand{\RoundElevenChangedTest}{35}
+\newcommand{\RoundElevenChangedTrain}{42}
+\newcommand{\RoundElevenDefects}{59}
+\newcommand{\DefectsTable}{%
+\begin{tabular}{l rr}
+\toprule
+defect & v10 & v11 \\
+\midrule
+a later sentence of the retry reveal in lower case & 29 & 0 \\
+a recapture called a win ``outright'' & 15 & 0 \\
+a capture or a check called ``a quiet improvement'' & 6 & 0 \\
+``too short or unsettled'' beside a capture the card calls outright & 3 & 0 \\
+a lost piece worth more than the amount named & 6 & 0 \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\LongerPicked}{305}
+\newcommand{\LongerDecided}{326}
+\newcommand{\LongerRounds}{3, 4, 5, 7, 7b, 8 and 9}
+\newcommand{\LengthItems}{585}
+\newcommand{\LengthBatches}{20}
+\newcommand{\LengthRounds}{7, 8 and 9}
+\newcommand{\LengthIdentitySame}{117}
+\newcommand{\LengthIdentityN}{117}
+\newcommand{\LengthPaddingDecoy}{0}
+\newcommand{\LengthPaddingN}{234}
+\newcommand{\PadTenDecoy}{0}
+\newcommand{\PadTenN}{20}
+\newcommand{\ControlsTable}{%
+\begin{tabularx}{\textwidth}{L l l}
+\toprule
+check & result & verdict \\
+\midrule
+J1, the same text on both sides: answered ``same'' & 117 of 117 & uses ``same'' \\
+J2, the shorter text against itself with filler: the decoy preferred & 0 of 234 (232 the shorter text, 2 same) & not length-biased \\
+J3, round 7: the longer text against a decoy of its length & train 66 of 66, test 50 of 50 & survives \\
+J3, round 8: the longer text against a decoy of its length & train 50 of 50, test 20 of 20 & survives \\
+J3, round 9: the longer text against a decoy of its length & train 36 of 36, test 12 of 12 & survives \\
+padding control, round 10: the decoy preferred & 0 of 20 (20 the shorter text, 0 same) & no drift \\
+\bottomrule
+\end{tabularx}
 }
 \newcommand{\RoundFiveTrainNew}{6}
 \newcommand{\RoundFiveTrainOld}{6}
@@ -109,11 +173,14 @@ round & judged & train new--old (same) & test new--old (same) & the rule says \\
 \newcommand{\ExampleERound}{9}
 \newcommand{\ExampleECaption}{Round 9: the judge preferred the old text in both runs. The move played is the red arrow, the engine's best move the green one.}
 \newcommand{\ExampleE}{\input{example-e}}
-\newcommand{\ExampleCount}{5}
+\newcommand{\ExampleFRound}{10}
+\newcommand{\ExampleFCaption}{Round 10: the judge preferred the new text in both runs. The move played is the red arrow, the engine's best move the green one.}
+\newcommand{\ExampleF}{\input{example-f}}
+\newcommand{\ExampleCount}{6}
 \newcommand{\ReproLinesMatched}{27}
 \newcommand{\ReproLines}{27}
 \newcommand{\AppCommit}{\texttt{d8b7712}}
-\newcommand{\RecordsCommit}{\texttt{b3b827d}}
+\newcommand{\RecordsCommit}{\texttt{c90428c}}
 \newcommand{\RerunProbes}{88}
 \newcommand{\RerunEvidence}{review-evidence/5}
 \newcommand{\RerunTestMoments}{152}

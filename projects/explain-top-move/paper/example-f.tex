@@ -1,0 +1,22 @@
+% Written by projects/explain-top-move/paper/generate.mjs; do not edit by hand.
+\begin{minipage}[t]{0.4\textwidth}\vspace{0pt}
+\chessboard[setfen={4r1k1/p2r2p1/5p1p/1R6/8/1P6/P2n1BPP/5RK1 w - - 1 29}, boardfontsize=13pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={f1-d1}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={f1-e1}]
+\end{minipage}\hfill
+\begin{minipage}[t]{0.56\textwidth}\vspace{0pt}\small
+\textbf{Played:} 29.~\symrook{}d1, White to move; the app's verdict: Blunder.\par
+\textbf{Engine:} +0.2 with the best move, $-$4.6 after yours.\par
+\textbf{Best line:} 29.~\symrook{}e1 \symknight{}e4 30.~\symrook{}a5 \symrook{}ee7 31.~b4 \symknight{}xf2\par
+\textbf{UCI:} \uci{f1d1}; best line \uci{f1e1 d2e4 b5a5 e8e7 b3b4 e4f2}\par
+\textbf{FEN:} \fen{4r1k1/p2r2p1/5p1p/1R6/8/1P6/P2n1BPP/5RK1 w - - 1 29}
+\end{minipage}
+
+\smallskip\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.17\textwidth} L L}
+\toprule
+section & before & after \\
+\midrule
+What Re1 does instead & it attacks the rook on e8 (undefended); the rook takes the open e-file \textperiodcentered{} 29.Re1 Ne4 30.Ra5 Ree7 31.b4 Nxf2 32.Rxe7 Nh3+ & it attacks the rook on e8 (undefended); the rook takes the open e-file; if they take it with Rxe1+, Bxe1 takes back: an even trade \textperiodcentered{} 29.Re1 Ne4 30.Ra5 Ree7 31.b4 Nxf2 32.Rxe7 Nh3+ \\
+\bottomrule
+\end{tabularx}
+
+\textbf{The judge (run 1, where the new text was X):} ``X adds the true point that if Black trades with Rxe1+, Bxe1 recaptures for an even trade, which shows why Re1 is safe.''
