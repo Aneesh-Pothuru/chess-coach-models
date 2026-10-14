@@ -2175,7 +2175,7 @@ function retryClaims(t, M, shown) {
 
 /** Phrases that name a consequence for the better move (positive), as the rule's list. */
 const CONCRETE_POSITIVE = [
-  { name: 'material won or saved', re: /\bwins? (?:the |a |an |two |\d+ )?(?:pawn|knight|bishop|rook|queen|piece|pawns|material)|\bwins? material\b|\btakes the (?:pawn|knight|bishop|rook|queen) (?:back|outright)|\bstay (?:a|two|about) .*? up\b|\bsaves\b/i },
+  { name: 'material won or saved', re: /\bwins? (?:the |a |an |two |three |four |five |six |seven |eight |\d+ )?(?:pawn|knight|bishop|rook|queen|piece|pawns|material)|\bwins? material\b|\btakes the (?:pawn|knight|bishop|rook|queen) (?:back|outright)|\bstay (?:a|two|about) .*? up\b|\bsaves\b/i },
   { name: 'mate', re: /\bmates? (?:in|too)\b|\bforced mate\b|\bcheckmate\b|\bis mate\b|\bmate in \d|\bfast finish\b/i },
   { name: 'check that wins something', re: /\bwith check\b[^.]*\bwins?\b|\bwins?\b[^.]*\bwith check\b|\bforks?\b[^.]*\bcheck\b/i },
   { name: 'named threat', re: /\battacks (?:the |their |your )?(?:king|queen|rook|bishop|knight|pawn) on [a-h][1-8]|\bthreatens?\b|\bforks?\b|\bpins? the\b|\bskewers\b/i },
