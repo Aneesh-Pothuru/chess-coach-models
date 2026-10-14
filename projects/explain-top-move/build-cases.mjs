@@ -175,6 +175,46 @@ function diagnoseLesson(doc, index, r, s) {
   }
 }
 
+/**
+ * The opponent's line lessonFor hands teachMove (review/lessons.ts), mirrored:
+ * the selection is private to lessonFor and only picks an argument. momentOf
+ * checks it by calling teachMove with it and comparing the lesson with
+ * lessonFor's.
+ */
+function replyPvOf(doc, index) {
+  const r = doc.records[index];
+  const fen = doc.fens[index];
+  const next = doc.records[index + 1];
+  const deep = doc.positions?.[index]?.deep;
+  const playedPv = r.evidence === 'verified' && deep?.complete && deep.played ? (deep.playedPv ?? deep.lines.find((line) => line.move === r.uci)?.pv) : undefined;
+  const after = doc.positions?.[index + 1];
+  if (playedPv?.[0] === r.uci && playedPv.length > 1 && uciLineToSan(fen, playedPv).length === playedPv.length) return playedPv.slice(1);
+  if (next?.bestPv.length) return next.bestPv;
+  if (after?.deep?.complete && after.deep.lines[0]) return after.deep.lines[0].pv;
+  return after?.pv ?? [];
+}
+
+/** teachMove with lessonFor's arguments and `replyPv`: equal to lessonFor's lesson when `replyPv` is the line it read. */
+function lessonWith(doc, index, replyPv, s) {
+  const r = doc.records[index];
+  const probes = (doc.ext?.captures ?? []).filter((p) => p.ply === index && p.best === r.bestUci && p.pv.length > 0);
+  const defense = (doc.ext?.defenses ?? []).find((d) => d.ply === index && d.best === r.bestUci && d.pv[0] === d.defense);
+  return s.teachMove({
+    ...(probes.length ? { bestCaptures: probes.map((p) => p.pv) } : {}),
+    ...(defense ? { bestDefense: defense.pv } : {}),
+    fenBefore: doc.fens[index],
+    uci: r.uci,
+    bestUci: r.bestUci,
+    bestPv: r.bestPv.length && r.bestPv[0] === r.bestUci ? r.bestPv : [r.bestUci],
+    replyPv,
+    cls: r.cls,
+    lossPct: r.lossPct,
+    bestScore: r.before,
+    playedScore: r.after,
+    playerMove: r.mover === doc.playerColor,
+  });
+}
+
 /** Every non-finite number or undefined in a value, by path: JSON would turn them into null without a word. */
 function badLeaves(value, path = '') {
   if (value === undefined) return [path || '(root)'];
@@ -232,6 +272,10 @@ function momentOf(c, doc, kept, index, s) {
   }
   const retryTeaching = attempt('retryTeaching', () => s.retryTeaching(doc, index));
   const cardShows = lessonFor !== null && s.ERROR_CLASS.has(r.cls) ? 'lesson' : 'comment';
+  const replyPvUci = lessonFor ? replyPvOf(doc, index) : null;
+  if (lessonFor && JSON.stringify(attempt('replyPv', () => lessonWith(doc, index, replyPvUci, s))) !== JSON.stringify(lessonFor)) {
+    fail('replyPv', 'teachMove with the mirrored reply line writes a different lesson from lessonFor');
+  }
 
   const moment = {
     id,
@@ -265,6 +309,8 @@ function momentOf(c, doc, kept, index, s) {
     bestSan,
     bestPv,
     bestPvUci: pvUci,
+    // The opponent's line after the move that the lesson reads (UCI), when there is a lesson.
+    replyPvUci,
     // The searched captures of the best move (ext.captures), each line from the position after it.
     probes: (doc.ext?.captures ?? []).filter((p) => p.ply === index).map((p) => ({ capture: p.capture, pv: p.pv })),
     // The natural defense to the best move's threat (ext.defenses), its line from the position after it.

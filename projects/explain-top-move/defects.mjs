@@ -1,7 +1,9 @@
 #!/usr/bin/env node
-// The five text defects round 11 fixes, counted in a variant's cases. The
-// player's calibration answers and the judges' notes flagged them; each is
-// read off the texts the player sees.
+// The text defects the correctness rounds fix, counted in a variant's cases:
+// round 11's five, which the player's calibration answers and the judges'
+// notes flagged, and round 14's two, the pieces an amount names. Each is read
+// off the texts the player sees; round 14's through the grader, which knows
+// the line each amount is counted on.
 //
 //   lowercaseReveal      a sentence of the retry reveal after the first opens
 //                        in lower case (one opening on a pawn's move or a
@@ -13,6 +15,12 @@
 //                        lesson calls outright
 //   pieceOverAmount      "(your rook on d7)" naming a piece worth more than
 //                        the amount it says was lost
+//   amountNamesUnwon     an amount said as pieces ("a rook", "a piece and a
+//                        pawn") that are not the pieces that changed hands on
+//                        its line ("a rook" for a bishop and two pawns), or a
+//                        "won for given" phrase that names the wrong ones
+//   fallenGivenBack      "the knight on c3 falls" beside an amount, where the
+//                        line gives that piece back
 //
 //   bridge/run.sh projects/explain-top-move/defects.mjs <cases.json> [--out defects.json]
 //
@@ -23,7 +31,7 @@ import { Chess } from 'chess.js'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { VALUE } from './grade.mjs'
+import { VALUE, gradeMoment } from './grade.mjs'
 
 const WORTH = { pawn: 1, knight: 3, bishop: 3, rook: 5, queen: 9 }
 
@@ -41,7 +49,7 @@ function amount(s) {
   return about ? Number(about[1]) : null
 }
 
-export const DEFECTS = ['lowercaseReveal', 'recaptureOutright', 'quietForcing', 'unsettledVsOutright', 'pieceOverAmount']
+export const DEFECTS = ['lowercaseReveal', 'recaptureOutright', 'quietForcing', 'unsettledVsOutright', 'pieceOverAmount', 'amountNamesUnwon', 'fallenGivenBack']
 
 /** The moments showing each defect, by moment id. */
 export function defects(cases) {
@@ -70,6 +78,9 @@ export function defects(cases) {
       const m = /, (?:they|you) win (.+?) \((?:your|their) (pawn|knight|bishop|rook|queen) on [a-h][1-8]\) in the engine's line/.exec(d)
       if (m && amount(m[1]) !== null && WORTH[m[2]] > amount(m[1])) out.pieceOverAmount.push(id)
     }
+    const claims = gradeMoment(c).claims
+    if (claims.some((x) => x.named?.plain === false || /^the pieces that changed hands are /.test(x.reason))) out.amountNamesUnwon.push(id)
+    if (claims.some((x) => x.fallen && !x.fallen.kept)) out.fallenGivenBack.push(id)
   }
   return out
 }

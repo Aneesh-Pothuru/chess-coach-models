@@ -26,6 +26,15 @@
 // the move by which the gain is in instead of its moves is checked at that
 // move.
 //
+// A true amount that names pieces ("a rook", "a piece and a pawn") carries
+// `named`: the pieces that changed hands on its line, from before the move to
+// where the amount is counted, with trades set off, and whether the phrase
+// names them. A count phrase that misnames them is recorded, not failed
+// (defects.mjs counts it); a "won for given" phrase ("a knight for two
+// pawns") names them outright, so one that names the wrong pieces is false.
+// The played line is read on the case's `replyPvUci`, the line the lesson
+// read.
+//
 //   bridge/run.sh projects/explain-top-move/grade.mjs [cases.json] [--out grades.json]
 //
 // cases.json defaults to private/explain-top-move/cases.json, --out to
@@ -60,7 +69,10 @@ const WHO2 = String.raw`(You|They|you|they)`
 const RESTRAINT = String.raw`(?::\s*it cannot (?:move|advance|leave the line))?`
 const PIECE = String.raw`(pawn|knight|bishop|rook|queen|king)`
 const SQ = String.raw`([a-h][1-8])`
-const AMT = String.raw`(a pawn|two pawns' worth of material|a piece and a pawn|a piece and \d+ pawns|a piece|a rook|a queen|about \d+ pawns of material|nothing)`
+// The pieces that changed hands, when the lesson names them: "a knight for two pawns", "three pawns".
+const PIECE_UNIT = String.raw`(?:a|two|three|four|five|six|seven|eight) (?:queen|rook|bishop|knight|pawn)s?`
+const PIECE_LIST = String.raw`${PIECE_UNIT}(?:, ${PIECE_UNIT})*(?: and ${PIECE_UNIT})?`
+const AMT = String.raw`(a pawn|two pawns' worth of material|a piece and a pawn|a piece and \d+ pawns|a piece|a rook|a queen|about \d+ pawns of material|nothing|a pawn's worth of material|(?:three|four|five) pawns' worth of material|${PIECE_LIST}(?: for ${PIECE_LIST})?)`
 const WHO = String.raw`(you|they)`
 const ATTACK_ITEM = String.raw`(?:(?:their|your|the) )?(?:pawn|knight|bishop|rook|queen|king) on [a-h][1-8](?: \(undefended\))?`
 
@@ -217,7 +229,7 @@ function windowRead(fen, ucis, side) {
   const nextMove = probe2 ? playUci(probe2, next) : null
   const pendingContinuation = !!next && !g.isGameOver() && (!nextMove || !!nextMove.captured)
   const settled = state !== 'illegal' && read > 0 && (g.isGameOver() || (!g.inCheck() && !pendingRecapture && !pendingContinuation))
-  return { net: balance(g, side) - start, state, plies: read, captures, endQuiet, settled }
+  return { net: balance(g, side) - start, state, plies: read, captures, endQuiet, settled, fen, side, end: g.fen() }
 }
 
 /** The mate a UCI line delivers from `fen`: who gives it, and how many of `side`'s moves it takes. */
@@ -276,7 +288,146 @@ function parseMaterialPhrase(s) {
   if (m) return { min: 3 + +m[1], max: 3 + +m[1] }
   m = t.match(/^about (\d+) pawns of material$/)
   if (m) return { min: +m[1], max: +m[1] }
+  if (t === "a pawn's worth of material") return { min: 1, max: 1 }
+  m = t.match(/^(three|four|five) pawns' worth of material$/)
+  if (m) return { min: COUNT_OF_WORD[m[1]], max: COUNT_OF_WORD[m[1]] }
+  const trade = pieceTrade(t)
+  if (trade) {
+    const n = worthOf(trade.won) - worthOf(trade.gave)
+    return n >= 1 ? { min: n, max: n } : null
+  }
   return null
+}
+
+// ---------------------------------------------------------------- the pieces behind an amount
+
+const KINDS = ['q', 'r', 'b', 'n', 'p']
+const COUNT_OF_WORD = { a: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8 }
+const KIND_OF_WORD = { queen: 'q', rook: 'r', bishop: 'b', knight: 'n', pawn: 'p' }
+
+/** One side's pieces on a board by kind, the king left out. */
+function kindCounts(g, color) {
+  const n = { q: 0, r: 0, b: 0, n: 0, p: 0 }
+  for (const row of g.board()) for (const cell of row) if (cell && cell.color === color && cell.type !== 'k') n[cell.type]++
+  return n
+}
+
+/** Pieces won and given with the trades taken out: a piece set against one of its kind, then a knight against a bishop, which is worth the same. */
+function setOff(plus, minus) {
+  const won = { ...plus }
+  const gave = { ...minus }
+  for (const k of KINDS) {
+    const t = Math.min(won[k], gave[k])
+    won[k] -= t
+    gave[k] -= t
+  }
+  for (const [x, y] of [['n', 'b'], ['b', 'n']]) {
+    const t = Math.min(won[x], gave[y])
+    won[x] -= t
+    gave[y] -= t
+  }
+  return { won, gave }
+}
+
+/**
+ * The pieces behind a change of material from `fenBefore` to `fenAfter`, for
+ * `side`: what it won (the other side's pieces gone, and what its pawns
+ * promoted to) and what it gave (its own pieces gone, its promoted pawns
+ * among them; the other side's promotions count the same way).
+ */
+export function piecesBehind(fenBefore, fenAfter, side) {
+  const g0 = load(fenBefore)
+  const g1 = load(fenAfter)
+  if (!g0 || !g1) return null
+  const s0 = kindCounts(g0, side), s1 = kindCounts(g1, side)
+  const o0 = kindCounts(g0, other(side)), o1 = kindCounts(g1, other(side))
+  const plus = {}
+  const minus = {}
+  for (const k of KINDS) {
+    plus[k] = Math.max(0, o0[k] - o1[k]) + Math.max(0, s1[k] - s0[k])
+    minus[k] = Math.max(0, s0[k] - s1[k]) + Math.max(0, o1[k] - o0[k])
+  }
+  return setOff(plus, minus)
+}
+
+/** The pieces `side` is up on a board: its pieces beyond the other side's. */
+export function piecesUp(fen, side) {
+  const g = load(fen)
+  if (!g) return null
+  return setOff(kindCounts(g, side), kindCounts(g, other(side)))
+}
+
+/** "a knight and two pawns": pieces by kind; null when the words are no such list. */
+function parsePieceList(t) {
+  const n = { q: 0, r: 0, b: 0, n: 0, p: 0 }
+  const parts = t.split(/, | and /)
+  for (const part of parts) {
+    const m = part.match(/^(a|two|three|four|five|six|seven|eight) (queen|rook|bishop|knight|pawn)(s?)$/)
+    if (!m || (m[1] === 'a') === (m[3] === 's')) return null
+    n[KIND_OF_WORD[m[2]]] += COUNT_OF_WORD[m[1]]
+  }
+  return n
+}
+
+/** The pieces a "won for given" phrase names ("a knight for two pawns", "three pawns"), by kind; null for any other phrase. */
+function pieceTrade(phrase) {
+  const [w, g, ...rest] = phrase.trim().split(' for ')
+  if (rest.length) return null
+  const won = parsePieceList(w)
+  const gave = g === undefined ? { q: 0, r: 0, b: 0, n: 0, p: 0 } : parsePieceList(g)
+  return won && gave ? { won, gave } : null
+}
+
+const worthOf = (n) => KINDS.reduce((a, k) => a + n[k] * VALUE[k], 0)
+
+/** The pieces a material phrase names: kinds, with `m` for "a piece" (a knight or a bishop); null for one that names only an amount. */
+function piecesNamed(phrase) {
+  const t = phrase.trim()
+  if (t === 'a pawn') return { won: { p: 1 } }
+  if (t === 'a piece') return { won: { m: 1 } }
+  if (t === 'a rook') return { won: { r: 1 } }
+  if (t === 'a queen') return { won: { q: 1 }, atLeast: true }
+  if (t === 'a piece and a pawn') return { won: { m: 1, p: 1 } }
+  const m = t.match(/^a piece and (\d+) pawns$/)
+  if (m) return { won: { m: 1, p: +m[1] } }
+  const trade = pieceTrade(t)
+  return trade ? { ...trade, exact: true } : null
+}
+
+/** Pieces by kind as words, the most valuable first: ["rook", "pawn", "pawn"]. */
+function kindWords(counts) {
+  return KINDS.flatMap((k) => Array(counts[k] ?? 0).fill(WORD_OF_TYPE[k]))
+}
+
+/**
+ * Whether a phrase that names pieces names the ones that changed hands. A
+ * count phrase ("a rook", "a piece and a pawn") holds when the side it is
+ * said of gave nothing back and won those pieces ("a piece" a knight or a
+ * bishop; "a queen" a queen at least, as it stands for 9 or more); a "won for
+ * given" phrase when both lists are the pieces, kind by kind. Null for a
+ * phrase that names only an amount.
+ */
+export function namesPieces(phrase, pieces) {
+  const named = piecesNamed(phrase)
+  if (!named) return null
+  if (!pieces) return { phrase, plain: null, note: 'no boards to compare' }
+  const out = { phrase, won: kindWords(pieces.won), gave: kindWords(pieces.gave) }
+  if (named.exact) return { ...out, plain: KINDS.every((k) => pieces.won[k] === named.won[k] && pieces.gave[k] === named.gave[k]) }
+  const gave = KINDS.some((k) => pieces.gave[k] > 0)
+  const w = named.won
+  const covered = (pieces.won.q >= (w.q ?? 0)) && pieces.won.r >= (w.r ?? 0) && pieces.won.p >= (w.p ?? 0) && pieces.won.n + pieces.won.b >= (w.m ?? 0)
+  const exactly = named.atLeast || worthOf(pieces.won) === (w.q ?? 0) * 9 + (w.r ?? 0) * 5 + (w.m ?? 0) * 3 + (w.p ?? 0)
+  return { ...out, plain: !gave && covered && exactly }
+}
+
+/**
+ * A "won for given" phrase claims the pieces outright, so one that names the
+ * wrong pieces is false; a count phrase that misnames them is recorded in
+ * `named` and counted, not failed.
+ */
+function tradeFalse(phrase, named) {
+  if (named?.plain !== false || !piecesNamed(phrase)?.exact) return null
+  return `the pieces that changed hands are ${named.won.join(', ') || 'none'}${named.gave.length ? ` for ${named.gave.join(', ')}` : ''}, the text says ${phrase}`
 }
 
 // ---------------------------------------------------------------- the claim record
@@ -346,6 +497,27 @@ function checkTrade(att, pieceType, span, shown, surface) {
   if (!recaptured(mv)) return claim('trades', surface, shown, span, F(`${mv.san} is not recaptured: nothing is traded`))
   if (VALUE[mv.piece] !== VALUE[pieceType]) return claim('trades', surface, shown, span, F(`a ${WORD_OF_TYPE[mv.piece]} for a ${WORD_OF_TYPE[pieceType]} is not an even trade`))
   return claim('trades', surface, shown, span, T(`${mv.san} takes a ${WORD_OF_TYPE[pieceType]} and is recaptured`))
+}
+
+/** "guards your P on S": after the move, that piece of the mover's stands on S and the moved piece covers S. */
+function checkGuards(att, pieceType, sq, span, shown, surface) {
+  const mv = att?.mv
+  if (!mv) return claim('guards', surface, shown, span, F('the move does not replay'))
+  const cell = mv.board.get(sq)
+  if (!cell || cell.color !== mv.color || cell.type !== pieceType) return claim('guards', surface, shown, span, F(`after ${mv.san} there is no ${WORD_OF_TYPE[pieceType]} of ${SIDE_NAME[mv.color]}'s on ${sq}`))
+  return mv.board.attackers(sq, mv.color).includes(mv.to)
+    ? claim('guards', surface, shown, span, T(`after ${mv.san} the piece on ${mv.to} covers ${sq}`))
+    : claim('guards', surface, shown, span, F(`after ${mv.san} the piece on ${mv.to} does not cover ${sq}`))
+}
+
+/** "moves your P on S away, where it had no defender": the move takes that piece off S, and nothing of its side defended S before. */
+function checkMovesAway(att, pieceType, sq, span, shown, surface) {
+  const mv = att?.mv
+  if (!mv) return claim('moves_away', surface, shown, span, F('the move does not replay'))
+  if (mv.from !== sq || mv.piece !== pieceType) return claim('moves_away', surface, shown, span, F(`${mv.san} does not move the ${WORD_OF_TYPE[pieceType]} on ${sq}`))
+  return legalDefenders(load(att.fen), sq, mv.color).length
+    ? claim('moves_away', surface, shown, span, F(`${sq} was defended before ${mv.san}`))
+    : claim('moves_away', surface, shown, span, T(`nothing defended ${sq} before ${mv.san}`))
 }
 
 /** "takes the P, and nothing takes back": the capture, with no legal recapture. */
@@ -809,12 +981,14 @@ function checkLater(M, when, sans, e) {
  * of it) or the reply moved (the played line). The text's moves must be the
  * engine line's moves, from X on, and the claim at Y must hold on the board: a
  * mate; a piece taken on a square; a recapture that wins the taker's piece for
- * the one it took, with no recapture after it; or the material once the
+ * the one it took, with no recapture after it; the material once the
  * exchange is over: "have won N" counted from before the move, "are N up" the
- * balance on the board, for the side named.
+ * balance on the board, for the side named; or "Y takes back: an even
+ * trade": Y retakes on that square, the material is what it was before the
+ * move, and the line's next move does not take there again.
  */
 function checkTakeAnswer(g, e) {
-  const [who, x, lead, y, isMate, backWho, backVerb, backAmt, winP, forQ, takesP, takesSq, afterWho, z, upWho, upVerb, upAmt] = g
+  const [who, x, lead, y, isMate, backWho, backVerb, backAmt, winP, forQ, takesP, takesSq, afterWho, z, upWho, upVerb, upAmt, even] = g
   const { M, surface, shown, whole } = e
   void who
   const contexts = []
@@ -839,11 +1013,16 @@ function checkTakeAnswer(g, e) {
       const nextUci = line[r.ucis.length] ?? null
       const next = nextUci ? moveAt(afterY, nextUci) : null
       const sideOf = (word) => (word === 'you' ? M.pov : other(M.pov))
+      let named = null
       const upBy = (word, verb, amt, g2) => {
         const want = parseMaterialPhrase(amt)
         const side = sideOf(word)
         const got = verb === 'are' ? balance(g2, side) : balance(g2, side) - balance(load(M.F0), side)
-        return want && got >= want.min && got <= want.max ? null : verb === 'are' ? `${SIDE_NAME[side]} is ${got} up on the board there, not ${amt}` : `${SIDE_NAME[side]} has won ${got} there, not ${amt}`
+        if (want && got >= want.min && got <= want.max) {
+          named = namesPieces(amt, verb === 'are' ? piecesUp(g2.fen(), side) : piecesBehind(M.F0, g2.fen(), side))
+          return tradeFalse(amt, named)
+        }
+        return verb === 'are' ? `${SIDE_NAME[side]} is ${got} up on the board there, not ${amt}` : `${SIDE_NAME[side]} has won ${got} there, not ${amt}`
       }
       let bad = null
       if (isMate) bad = game.isCheckmate() ? null : `${y} is not mate`
@@ -861,8 +1040,12 @@ function checkTakeAnswer(g, e) {
           else if (z && next.san !== z) bad = `the line takes back with ${next.san}, not ${z}`
           else bad = upBy(upWho, upVerb, upAmt, next.board)
         } else if (upAmt) bad = upBy(upWho, upVerb, upAmt, game)
+      } else if (even) {
+        if (at.to !== take.to || !at.captured) bad = `${y} does not take back on ${take.to}`
+        else if (balance(game, M.pov) !== balance(load(M.F0), M.pov)) bad = `the material after ${y} is ${balance(game, M.pov) - balance(load(M.F0), M.pov)} from before the move, not even`
+        else if (next && next.captured && next.to === take.to) bad = `${next.san} takes again on ${take.to}`
       }
-      return [claim('take_answer', surface, shown, whole, bad ? F(bad) : T(`${sans.join(' ')} is the engine line, and it holds`))]
+      return [claim('take_answer', surface, shown, whole, bad ? F(bad) : T(`${sans.join(' ')} is the engine line, and it holds`), !bad && named ? { named } : {})]
     }
   }
   return [claim('take_answer', surface, shown, whole, F(reason))]
@@ -933,6 +1116,7 @@ function checkDefenseAnswer(g, e) {
   const game = load(defense.afterFen)
   for (const u of r.ucis) playUci(game, u)
   let bad = null
+  let named = null
   if (mateY) bad = game.isCheckmate() ? null : `${mateY} is not mate`
   else {
     const want = parseMaterialPhrase(amt)
@@ -942,8 +1126,12 @@ function checkDefenseAnswer(g, e) {
     const next = nextUci ? moveAt(game.fen(), nextUci) : null
     if (!want || got < want.min || got > want.max) bad = `${SIDE_NAME[side]} has won ${got} there, not ${amt}`
     else if (next?.captured) bad = `the line goes on with ${next.san}, a capture`
+    else {
+      named = namesPieces(amt, piecesBehind(M.F0, game.fen(), side))
+      bad = tradeFalse(amt, named)
+    }
   }
-  return [claim('defense_answer', surface, shown, whole, bad ? F(bad) : T(`${token} ${sans.join(' ')} is the engine line, and it holds`))]
+  return [claim('defense_answer', surface, shown, whole, bad ? F(bad) : T(`${token} ${sans.join(' ')} is the engine line, and it holds`), named ? { named } : {})]
 }
 
 /**
@@ -988,7 +1176,10 @@ function checkDefenseByMove(g, e) {
       const next = l[i + 1] ? moveAt(game.fen(), l[i + 1]) : null
       const got = balance(game, side) - base
       if (i >= 1 && number === +moveNo && !next?.captured && got >= want.min && got <= want.max) {
-        return [claim('defense_answer', surface, shown, whole, T(`after ${token}, the engine line has ${SIDE_NAME[side]} ${got} ahead of before ${best.san} on move ${moveNo}, with no capture next`))]
+        const named = namesPieces(amt, piecesBehind(M.F0, game.fen(), side))
+        const wrong = tradeFalse(amt, named)
+        if (wrong) return no(wrong)
+        return [claim('defense_answer', surface, shown, whole, T(`after ${token}, the engine line has ${SIDE_NAME[side]} ${got} ahead of before ${best.san} on move ${moveNo}, with no capture next`), named ? { named } : {})]
       }
     }
   }
@@ -1060,7 +1251,10 @@ function clauseClaims(text, attOf, surface, shown) {
   take(/\bthe rook lands on the seventh rank, hitting the pawns? on ((?:[a-h][1-8] ?)+?)(?: and boxing the king in)?(?=[.,;:]|$)/g, ([sqs], whole, att) => checkSeventh(att, sqs.trim().split(/\s+/), whole, shown, surface))
   take(/\bthe rook lands on the seventh rank and boxes the king in on its back rank\b/g, (_g, whole, att) => checkSeventh(att, [], whole, shown, surface))
   take(new RegExp(String.raw`\bthe (knight|bishop) settles on ${SQ}: a pawn-guarded outpost, and no enemy pawn is placed to attack it\b`, 'g'), ([p, sq], whole, att) => checkOutpost(att, TYPE_OF_WORD[p], sq, whole, shown, surface))
-  take(new RegExp(String.raw`\ba pawn break: the ([a-h])-pawn strikes at ${SQ}\b[^.]*`, 'g'), ([f, sq], whole, att) => checkPawnBreak(att, f, sq, whole, shown, surface))
+  take(new RegExp(String.raw`\b[Aa] pawn break: the ([a-h])-pawn strikes at ${SQ}\b[^.]*`, 'g'), ([f, sq], whole, att) => checkPawnBreak(att, f, sq, whole, shown, surface))
+  // What the better move does for the piece the played line takes.
+  take(new RegExp(String.raw`\b(?:it )?guards (?:your|their) ${PIECE} on ${SQ}\b`, 'g'), ([p, sq], whole, att) => checkGuards(att, TYPE_OF_WORD[p], sq, whole, shown, surface))
+  take(new RegExp(String.raw`\b(?:it )?moves (?:your|their) ${PIECE} on ${SQ} away, where it had no defender\b`, 'g'), ([p, sq], whole, att) => checkMovesAway(att, TYPE_OF_WORD[p], sq, whole, shown, surface))
   take(new RegExp(String.raw`\bthe ${PIECE} is not safe on ${SQ}: the capture there wins it\b`, 'g'), ([p, sq], whole, att) => checkHangs(att, TYPE_OF_WORD[p], sq, whole, shown, surface))
   take(new RegExp(String.raw`\bthe ${PIECE} is not safe on ${SQ}: the exchanges there come out \d+ ahead for them\b`, 'g'), (_g, whole) => claim('exchange', surface, shown, whole, U('exchange count after the capture: not checked')))
   take(new RegExp(String.raw`\bthis leaves the ${PIECE} on ${SQ} standing to be taken\b`, 'g'), ([p, sq], whole, att) => checkHangs(att, TYPE_OF_WORD[p], sq, whole, shown, surface))
@@ -1120,6 +1314,8 @@ function momentContext(c) {
     attBest,
     attReply,
     playedRead: playedLine.ucis.length ? windowRead(F0, playedLine.ucis, mover) : null,
+    // The played move and the reply line the lesson read (the case's replyPvUci), read as the lesson reads it.
+    playedFullRead: playedUci && Array.isArray(c.replyPvUci) ? windowRead(F0, [playedUci, ...c.replyPvUci], mover) : null,
     bestRead: bestPv.length ? windowRead(F0, bestPv, mover) : null,
     // The engine line's material over the lesson's window, as the app read it: the played line
     // beyond the 7 plies the lesson shows, and the best line (checked against the replay below).
@@ -1290,16 +1486,21 @@ function notComparedClaims(body, e) {
   return out
 }
 
-/** A material amount on the best line: the lesson's read of the full engine line, exact. */
+/**
+ * A material amount on the best line: the lesson's read of the full engine
+ * line, exact. A true amount carries `named`: whether the pieces its phrase
+ * names are the ones that changed hands over the read.
+ */
 function materialAmount(phrase, sign, span, read, surface, shown) {
   if (!read) return claim('material', surface, shown, span, U('no engine line to read'))
   const want = parseMaterialPhrase(phrase)
   if (!want) return claim('material', surface, shown, span, U(`amount "${phrase}" not recognised`))
   const amount = read.net * sign
   const label = `best line (${read.plies} plies, ${read.state})`
-  return amount >= want.min && amount <= want.max
-    ? claim('material', surface, shown, span, T(`${label}: net ${read.net >= 0 ? '+' : ''}${read.net}`))
-    : claim('material', surface, shown, span, F(`${label}: net ${read.net >= 0 ? '+' : ''}${read.net}, the text says ${phrase}`))
+  if (amount < want.min || amount > want.max) return claim('material', surface, shown, span, F(`${label}: net ${read.net >= 0 ? '+' : ''}${read.net}, the text says ${phrase}`))
+  const named = namesPieces(phrase, piecesBehind(read.fen, read.end, sign > 0 ? read.side : other(read.side)))
+  const wrong = tradeFalse(phrase, named)
+  return claim('material', surface, shown, span, wrong ? F(wrong) : T(`${label}: net ${read.net >= 0 ? '+' : ''}${read.net}`), named ? { named } : {})
 }
 
 /**
@@ -1314,9 +1515,23 @@ function playedMaterial(M, phrase, sign, span, surface, shown) {
   if (!want) return claim('material', surface, shown, span, U(`amount "${phrase}" not recognised`))
   const amount = M.playedNetStored * sign
   const net = `${M.playedNetStored >= 0 ? '+' : ''}${M.playedNetStored}`
-  return amount >= want.min && amount <= want.max
-    ? claim('material', surface, shown, span, T(`the played line's stored net is ${net}`))
-    : claim('material', surface, shown, span, F(`the played line's stored net is ${net}, the text says ${phrase}`))
+  if (amount < want.min || amount > want.max) return claim('material', surface, shown, span, F(`the played line's stored net is ${net}, the text says ${phrase}`))
+  const named = playedNamed(M, phrase, sign)
+  const wrong = tradeFalse(phrase, named.named)
+  return claim('material', surface, shown, span, wrong ? F(wrong) : T(`the played line's stored net is ${net}`), named)
+}
+
+/**
+ * `named` for a true amount on the played line: read on the case's reply line
+ * (the lesson's own, `replyPvUci`), when that read nets what the lesson
+ * stored.
+ */
+function playedNamed(M, phrase, sign) {
+  if (!piecesNamed(phrase)) return {}
+  const read = M.playedFullRead
+  if (!read) return { named: { phrase, plain: null, note: 'the case has no reply line' } }
+  if (read.net !== M.playedNetStored) return { named: { phrase, plain: null, note: `the reply line nets ${read.net}, the lesson stored ${M.playedNetStored}` } }
+  return { named: namesPieces(phrase, piecesBehind(read.fen, read.end, sign > 0 ? read.side : other(read.side))) }
 }
 
 /** "no material is won" on the played line: the stored net gives the mover nothing. */
@@ -1365,7 +1580,7 @@ const LESSON_TEMPLATES = [
   // "Why not take it?": the capture of the move's piece and what follows, on the engine line.
   {
     re: new RegExp(
-      String.raw`\b[Ii]f ${WHO} take it with ${TOKR}, (?:([^,.:()]+?), then )?${TOKR} (?:(is mate)|takes back, and ${WHO} (are|have won) ${AMT}(?: up)?|wins (?:their|your) ${PIECE} for (?:your|their) ${PIECE}|takes (?:their|your) ${PIECE} on ${SQ}(?:, and (?:after ${WHO} take back(?: with ${TOKR})? )?${WHO} (are|have won) ${AMT}(?: up)?)?)`,
+      String.raw`\b[Ii]f ${WHO} take it with ${TOKR}, (?:([^,.:()]+?), then )?${TOKR} (?:(is mate)|takes back, and ${WHO} (are|have won) ${AMT}(?: up)?|wins (?:their|your) ${PIECE} for (?:your|their) ${PIECE}|takes (?:their|your) ${PIECE} on ${SQ}(?:, and (?:after ${WHO} take back(?: with ${TOKR})? )?${WHO} (are|have won) ${AMT}(?: up)?)?|takes back: (an even trade))`,
       'g',
     ),
     run: (g, e) => checkTakeAnswer(g, e),
@@ -1596,7 +1811,9 @@ const LESSON_TEMPLATES = [
   {
     re: new RegExp(String.raw`\bAfter ${TOKR}, ${WHO} win ${AMT}(?: \((?:your|their) ${PIECE} on ${SQ}\))? in the engine's line(?:\. ${TOKR} keeps it)?`, 'g'),
     run: ([x, who, phrase, p, sq, y], e) => {
-      const out = [e.san(x, e.M.F0, e.M.playedUci), e.played(phrase, who === 'they' ? -1 : 1, e.whole)]
+      const amount = e.played(phrase, who === 'they' ? -1 : 1, e.whole)
+      if (p && amount.verdict === 'true' && e.M.playedFullRead?.net === e.M.playedNetStored) amount.fallen = pieceKept(e.M.playedFullRead, p, other(e.M.mover))
+      const out = [e.san(x, e.M.F0, e.M.playedUci), amount]
       if (p) out.push(e.presence(e.M.F0, e.M.lineUcis, p, sq, other(e.M.mover), e.whole))
       if (y) out.push(e.san(y, e.M.F0, e.M.bestUci))
       return out
@@ -1654,7 +1871,7 @@ const LESSON_TEMPLATES = [
   },
   // The better move's shape: "Y was better: FACT, even though it gives up material."
   {
-    re: new RegExp(String.raw`\b${TOKR} was better(?::\s*([^.]*?))?(, even though it gives up material)?(?=\.|$)`, 'g'),
+    re: new RegExp(String.raw`\b${TOKR} was better(?::\s*([^.]*?))?(, even though it gives up material|, despite finishing with less material than the played line)?(?=\.|$)`, 'g'),
     run: ([x, fact, giveUp], e) => {
       const out = [e.san(x, e.M.F0, e.M.bestUci)]
       if (fact) out.push(e.clauses(fact, e.M.attBest))
@@ -1717,7 +1934,93 @@ const LESSON_TEMPLATES = [
       return [e.san(tok, e.M.F0, named.uci)]
     },
   },
+  // The difference's material sentences: each line's amount said as it is.
+  {
+    re: new RegExp(String.raw`\bAfter ${TOKR}(?: the ${PIECE} on ${SQ} falls, and)? ${WHO} gain ${AMT} over the engine's line`, 'g'),
+    run: ([x, p, sq, who, phrase], e) => {
+      const amount = e.amount(phrase, signOf(e.M, who), e.whole, e.M.bestRead)
+      if (p && amount.verdict === 'true') amount.fallen = pieceKept(e.M.bestRead, p, e.M.mover)
+      return [e.san(x, e.M.F0, e.M.bestUci), p ? e.presence(e.M.F0, e.M.bestPv, p, sq, e.M.mover, e.whole) : [], amount]
+    },
+  },
+  {
+    re: new RegExp(String.raw`\bAfter ${TOKR}, (?:the line (gains|loses) ${AMT}|no material is won)(?: \(${WHO} plays? ${TOKR} first\))?`, 'g'),
+    run: ([x, dir, phrase, _who, y], e) => [
+      e.san(x, e.M.F0, e.M.playedUci),
+      dir ? e.played(phrase, dir === 'gains' ? 1 : -1, e.whole) : levelClaim(e.M.playedNetStored, "the played line's stored net", e),
+      y ? e.san(y, e.M.F1, e.M.replyUci) : [],
+    ],
+  },
+  {
+    re: new RegExp(String.raw`\b${TOKR} limits the loss to ${AMT}`, 'g'),
+    run: ([x, phrase], e) => [e.san(x, e.M.F0, e.M.bestUci), e.amount(phrase, -1, e.whole, e.M.bestRead)],
+  },
+  {
+    re: new RegExp(String.raw`\b${TOKR} avoids that material loss in the line shown`, 'g'),
+    run: ([x], e) => [
+      e.san(x, e.M.F0, e.M.bestUci),
+      claim('material', e.surface, e.shown, e.whole, !e.M.bestRead ? U('no engine line to read') : e.M.bestRead.net >= 0 ? T(`the best line nets ${e.M.bestRead.net}`) : F(`the best line nets ${e.M.bestRead.net}: a loss`)),
+    ],
+  },
+  {
+    re: new RegExp(String.raw`\b${TOKR}'s line finishes with ${AMT} less material than ${TOKR}'s line, yet the engine prefers it\.(?: The lines alone do not establish why that compensation is enough\.)?`, 'g'),
+    run: ([x, phrase, y], e) => [e.san(x, e.M.F0, e.M.bestUci), e.san(y, e.M.F0, e.M.playedUci), e.diff(phrase, -1, e.whole)],
+  },
+  {
+    re: new RegExp(String.raw`\b(You|They) win ${AMT} in the next \d+ moves either way\.(?: The difference is in what follows:)?`, 'g'),
+    run: ([who, phrase], e) => [e.amount(phrase, signOf(e.M, who), e.whole, e.M.bestRead), e.played(phrase, signOf(e.M, who), e.whole)],
+  },
+  {
+    re: new RegExp(String.raw`\bAfter ${TOKR}, (?:${WHO} win ${AMT}|the material stays level) in the next \d+ moves\. After ${TOKR}, (?:${WHO} win ${AMT}|the material stays level)`, 'g'),
+    run: ([b, bWho, bPhrase, p, pWho, pPhrase], e) => [
+      e.san(b, e.M.F0, e.M.bestUci),
+      bWho ? e.amount(bPhrase, signOf(e.M, bWho), e.whole, e.M.bestRead) : levelClaim(e.M.bestRead?.net ?? null, 'the best line', e),
+      e.san(p, e.M.F0, e.M.playedUci),
+      pWho ? e.played(pPhrase, signOf(e.M, pWho), e.whole) : levelClaim(e.M.playedNetStored, "the played line's stored net", e),
+    ],
+  },
+  {
+    re: /\bThe lines shown do not establish a material advantage for either continuation\./g,
+    run: (_g, e) => [levelClaim(e.M.bestRead?.net ?? null, 'the best line', e), levelClaim(e.M.playedNetStored, "the played line's stored net", e)],
+  },
+  // The frames around a fact: each names a move, and the fact is the clauses'.
+  { re: new RegExp(String.raw`\bA concrete feature of ${TOKR}:`, 'g'), run: ([x], e) => [e.san(x, e.M.F0, e.M.bestUci)] },
+  { re: /\bThe concrete reason for the engine's preference is not established\./g, run: () => [] },
+  { re: new RegExp(String.raw`\bConsider ${TOKR}(?: first)?:`, 'g'), run: ([x], e) => [e.san(x, e.M.F0, e.M.bestUci)] },
+  { re: /\bCheck the opponent's reply before choosing your plan\./g, run: () => [] },
+  { re: new RegExp(String.raw`\b${TOKR} was the answer to ${TOKR}:`, 'g'), run: ([y, x], e) => [e.san(y, e.M.F1, e.M.replyUci), e.san(x, e.M.F0, e.M.playedUci)] },
+  // The picture of a mate and the takeaway built on it: not checked.
+  { re: new RegExp(String.raw`\b(?:It|the mate) ends with ${TOKR}: [^.]*`, 'g'), run: (_g, e) => [claim('mate_picture', e.surface, e.shown, e.whole, U('the picture of the mate: not checked'))] },
+  { re: /\bYou don't need to see all \d+ moves at once\. Find where the mate can happen first \([^)]*\), then the forcing moves that bring a piece there\./g, run: (_g, e) => [claim('mate_picture', e.surface, e.shown, e.whole, U('where the mate happens: not checked'))] },
+  {
+    // "After X, FACT" with the fact a whole clause, as the lower-case form above.
+    re: new RegExp(String.raw`\bAfter ${TOKR}, ([^.]*)`, 'g'),
+    run: ([x, fact], e) => {
+      const r = resolveSan(e.M.F0, x)
+      if (!r.ok) return [claim('san', e.surface, e.shown, x, F(r.reason))]
+      return [e.san(x, e.M.F0, r.uci), e.clauses(fact, e.M.attFor(e.M.F0, r.uci))]
+    },
+  },
 ]
+
+/** Whether a piece a sentence says fell ("the knight on c3 falls", "(your rook on d7)") is among what `side` keeps over the read. */
+function pieceKept(read, pieceWord, side) {
+  const pieces = piecesBehind(read.fen, read.end, side)
+  const k = TYPE_OF_WORD[pieceWord]
+  return { piece: pieceWord, kept: !!pieces && (k === 'n' || k === 'b' ? pieces.won.n + pieces.won.b : pieces.won[k]) > 0 }
+}
+
+/** +1 when the side a pronoun names is the mover, -1 when it is the mover's opponent: the sign of a mover-POV net. */
+function signOf(M, who) {
+  const side = who.toLowerCase() === 'you' ? M.pov : other(M.pov)
+  return side === M.mover ? 1 : -1
+}
+
+/** "the material stays level" and "no material is won": a net of nothing. */
+function levelClaim(net, label, e) {
+  if (net === null) return claim('material', e.surface, e.shown, e.whole, U(`no net for ${label}`))
+  return claim('material', e.surface, e.shown, e.whole, net === 0 ? T(`${label} nets 0`) : F(`${label} nets ${net >= 0 ? '+' : ''}${net}, not level`))
+}
 
 // Comment templates: the sentences prose.ts writes when the card shows the comment.
 const COMMENT_TEMPLATES = [
@@ -2005,7 +2308,7 @@ export function gradeMoment(c) {
     concrete: concrete.value,
     named_deep: deep.value,
     checkable: decided.length > 0,
-    claims: flat.map((x) => ({ type: x.type, surface: x.surface, shown: x.shown, text: x.text, verdict: x.verdict, reason: x.reason })),
+    claims: flat.map((x) => ({ type: x.type, surface: x.surface, shown: x.shown, text: x.text, verdict: x.verdict, reason: x.reason, ...(x.named ? { named: x.named } : {}), ...(x.fallen ? { fallen: x.fallen } : {}) })),
     claimCounts: {
       total: flat.length,
       checkable: decided.length,
@@ -2079,7 +2382,7 @@ function runCorruption(cases) {
   if (sq) {
     const copy = structuredClone(sq)
     copy.texts.lessonFor.better.points = copy.texts.lessonFor.better.points.map((p) => p.replace(/attacks the knight on ([a-h])([1-8])/, (_w, f, r) => `attacks the knight on ${f}${r === '8' ? '7' : +r + 1}`))
-    results.push(corruptionRow('"attacks the knight on X" -> one rank up', sq, copy, /attacks the knight on/))
+    results.push(corruptionRow('"attacks the knight on X" -> one rank up', sq, copy, /\bknight on [a-h][1-8]/))
   }
   const tk = cases.find((c) => c.texts?.lessonFor?.better?.points?.some((p) => /wins their queen for your rook\b/.test(p)))
   if (tk) {
@@ -2126,7 +2429,43 @@ function runCorruption(cases) {
     copy.texts.lessonFor.better.points = copy.texts.lessonFor.better.points.map((p) => (byMove.test(p) ? p.replace(byMove, (_, ask, rest, n) => `${ask}as in the engine's line, ${rest} by move ${n}`) : p))
     results.push(corruptionRow('a searched defense said "as in the engine\'s line"', bs, copy, /as in the engine's line/))
   }
+  // The difference's amounts, as the lesson now words them.
+  const swapIn = (c, from, to) => {
+    const copy = structuredClone(c)
+    copy.texts.lessonFor.difference = copy.texts.lessonFor.difference.map((d) => d.replace(from, to))
+    return copy
+  }
+  const gain = cases.find((c) => c.texts?.lessonFor?.difference?.some((d) => /you gain a pawn over the engine's line/.test(d)))
+  if (gain) results.push(corruptionRow('"you gain a pawn over the engine\'s line" -> "you gain a piece ..."', gain, swapIn(gain, 'you gain a pawn', 'you gain a piece'), /you gain a piece/))
+  const loses = cases.find((c) => c.texts?.lessonFor?.difference?.some((d) => /the line loses a pawn\b/.test(d)))
+  if (loses) results.push(corruptionRow('"the line loses a pawn" -> "the line loses a rook"', loses, swapIn(loses, 'the line loses a pawn', 'the line loses a rook'), /loses a rook/))
+  const limits = cases.find((c) => c.texts?.lessonFor?.difference?.some((d) => /limits the loss to a pawn\b/.test(d)))
+  if (limits) results.push(corruptionRow('"limits the loss to a pawn" -> "... to a piece"', limits, swapIn(limits, 'limits the loss to a pawn', 'limits the loss to a piece'), /limits the loss to a piece/))
+  // A "won for given" phrase: "they win a pawn" that is a minor piece for two pawns, said as that trade, holds;
+  // said with the other minor piece, it is caught.
+  const minorForTwo = (x) => x.named?.plain === false && x.named.gave.join() === 'pawn,pawn' && x.named.won.length === 1 && ['knight', 'bishop'].includes(x.named.won[0])
+  const traded = cases.find((c) => c.texts?.lessonFor?.difference?.some((d) => /, they win a pawn in the engine's line/.test(d)) && gradeMoment(c).claims.some((x) => /they win a pawn in the engine's line/.test(x.text) && minorForTwo(x)))
+  if (traded) {
+    const minor = gradeMoment(traded).claims.find((x) => /they win a pawn in the engine's line/.test(x.text) && minorForTwo(x)).named.won[0]
+    const wrong = minor === 'knight' ? 'bishop' : 'knight'
+    results.push(heldRow(`a minor piece for two pawns said "they win a pawn", reworded "they win a ${minor} for two pawns" (must hold)`, traded, swapIn(traded, 'they win a pawn in', `they win a ${minor} for two pawns in`)))
+    results.push(corruptionRow(`... reworded with the other piece, "they win a ${wrong} for two pawns"`, traded, swapIn(traded, 'they win a pawn in', `they win a ${wrong} for two pawns in`), new RegExp(`a ${wrong} for two pawns`)))
+  }
   return results
+}
+
+/** A rewording that states the board's facts: the grader must still find the moment faithful. */
+function heldRow(label, original, copy) {
+  const before = gradeMoment(original)
+  const after = gradeMoment(copy)
+  return {
+    label,
+    id: original.id,
+    baselineFaithful: before.faithful,
+    corruptedFaithful: after.faithful,
+    caught: after.faithful === 1,
+    caughtClaim: after.faithful === 1 ? 'holds' : after.failures.filter((f) => f.dimension === 'faithful').map((f) => `${f.type}: ${f.reason}`).join('; '),
+  }
 }
 
 function corruptionRow(label, original, copy, pattern) {
