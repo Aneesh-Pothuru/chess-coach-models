@@ -59,6 +59,8 @@ checkmate is given by the score passed in, so its row is not a test.
 |---|---|
 | `sample.py` | Draws the held-out set from the database (`zstdcat data/raw/lichess_db_puzzle.csv.zst \| python3 projects/detector-themes/sample.py`, with `CHESS_DIR` set). |
 | `score.mts` | Scores the three labellers on a set; writes `results/score-<set>.json` (counts) and the per-puzzle labels to `data/processed/`. |
+| `compare.mjs` | Compares a candidate's labels with the pinned app's by the rule under Candidates; writes `results/compare-<candidate>.json`. |
+| `candidates/` | Each candidate's replacement files. |
 | `paper/` | The paper. |
 
 ## Running it
@@ -73,6 +75,18 @@ bridge/run.sh projects/detector-themes/score.mts heldout
 bridge/run.sh projects/detector-themes/paper/generate.mjs
 ```
 
-A candidate labeller is scored by pointing `CHESS_DIR` at a candidate
-(`bridge/candidate.sh`) and setting `CANDIDATE=<name>`: it must gain on the
-app's pool and hold on the held-out set.
+## Candidates
+
+A candidate changes one labeller and is scored by pointing `CHESS_DIR` at it
+(`bridge/candidate.sh`) with `CANDIDATE=<name>` set, then compared with the
+pinned app by `compare.mjs`. The rule, fixed before the first candidate ran:
+per puzzle, a labeller *agrees* when one of its words names a concept the
+puzzle is tagged with, and *disagrees* when one names a concept the puzzle is
+not tagged with. A candidate is kept when, on the app's pool and on the
+held-out set alike, its agreement rises with the 95% interval of the paired
+difference (2,000 bootstrap draws of puzzles) above zero, and its
+disagreement does not rise (the interval's upper end at or below one point).
+
+| Candidate | Labeller | The change |
+|---|---|---|
+| `describe-first` | `best` | Before the defensive fallback, name a skewer, a discovered attack or a pin when the move describer finds one for the mover. |

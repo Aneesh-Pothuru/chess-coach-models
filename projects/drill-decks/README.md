@@ -66,11 +66,46 @@ or a check, and *material* when it leads the next option by 200 centipawns or
 more. A quiz asks a plan question with one right answer when exactly one
 option is right and the best option is neither forcing nor material.
 
+## The threat search: rules fixed before it ran
+
+The stored lines cannot tell a miss where he had to answer a threat from one
+where nothing was threatened, and about a third of the positions show no
+material change either way. So every scored position of the misses deck is searched twice by the
+app's engine at its `best` budget (the routine's punish search): as he faced
+it, and with the move passed to his opponent (the knowledge service's
+`flipTurn`; a position where he is in check cannot be passed and is counted
+apart).
+
+- *threatened*: the opponent's line after the pass ends in mate, or its
+  evaluation is a mate score against him, or it wins the opponent at least 2
+  points of material, counted the way the census counts a gain (the lower of
+  the last two balances when the line ends on a capture);
+- *the pass's cost*: his win% (the app's curve) in the passed position against
+  the position as he faced it, from the two searches. Reported, not a rule;
+- *the gate fires*: the live coach's instant threat reader (`readThreatGate`)
+  fires for him in the position as he faced it: something of his can be taken,
+  the f7/f2 strike is loaded, or the opponent has a mate in one.
+
+Reported for each census cell (best by played) and each theme word: the share
+threatened, the share the gate fires on, and the gate's precision and recall
+against the search. A miss that was threatened is a defensive miss whatever
+its stored lines show; a clear defensive miss (the best move holds, his move
+lost material or allowed mate) that was not threatened is self-inflicted: his
+move made the loss, and no threat was on the board to answer.
+
+A quiet miss is one in the no-change cell that was not threatened. It would
+make a plan question by the census's quiz rule when, of the deck's top three
+options for it (by its stored evaluations), exactly one is within the quiz's
+margin of the best, and the best is neither a capture nor a check nor 200
+centipawns ahead of the second.
+
 ## Files
 
 | File | What it does |
 |---|---|
-| `census.mts` | Classifies every item of both decks by the rules above and writes `results/census.json` (counts only). |
+| `lib.mts` | The board code both scripts share: walking a stored line and a deck item's cell. |
+| `census.mts` | Classifies every item of both decks by the rules above and writes `results/census.json` (counts only). With `RETHEME=1` it files each position again with the checkout's own labeller (a candidate's, under `CHESS_DIR`) and writes `results/census-<CANDIDATE>.json`. |
+| `threats.mts` | The threat search. Writes `results/threats.json` (counts only). |
 | `paper/` | The paper. |
 
 ## Running it
@@ -78,4 +113,8 @@ option is right and the best option is neither forcing nor material.
 ```bash
 make chess
 bridge/run.sh projects/drill-decks/census.mts
+bridge/run.sh projects/drill-decks/threats.mts --pool 4
 ```
+
+The threat search runs two searches of 600,000 nodes for each of about 1,300
+positions; with four engine processes it takes a few minutes.

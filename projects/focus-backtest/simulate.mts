@@ -164,6 +164,8 @@ const q = (xs: number[], p: number) => {
   const s = xs.filter((x) => Number.isFinite(x)).sort((a, b) => a - b)
   return s.length ? s[Math.min(s.length - 1, Math.floor(p * s.length))] : null
 }
+/** How many grades ended in each state (a candidate grade may add states the app's lacks). */
+const tally = (xs: string[]) => xs.reduce((t: Record<string, number>, x) => ({ ...t, [x]: (t[x] ?? 0) + 1 }), {})
 const summary: any = { byCell: {}, causes: {}, controls: {} }
 for (const r of CUTS) {
   for (const w of WINDOWS) {
@@ -182,6 +184,8 @@ for (const r of CUTS) {
       control: r === 0 ? rate(gs.map((g) => g.control.state === 'met')) : null,
       controlByCusum: r === 0 ? rate(gs.map((g) => g.control.alarmAt !== null)) : null,
       controlPosterior: r === 0 ? rate(gs.map((g) => g.control.pImproved !== null && g.control.pImproved >= SUCCESS_P)) : null,
+      states: tally(gs.map((g) => g.state)),
+      controlStates: r === 0 ? tally(gs.map((g) => g.control.state)) : null,
     }
   }
 }
@@ -202,6 +206,7 @@ summary.nullDrift = (() => {
 })()
 
 const out = { project: 'focus-backtest', app: await appCommit(), candidate: process.env.CANDIDATE ?? null, runs: rows.length, seed: SEED, perms: PERMS, alpha: ALPHA, pool: pool.length, cuts: CUTS, windows: WINDOWS, summary }
-const file = join(resultsDir('focus-backtest'), process.env.CANDIDATE ? `simulate-${process.env.CANDIDATE}.json` : 'simulate.json')
+// Seed 1 is the reported run; another seed is its replication on fresh draws.
+const file = join(resultsDir('focus-backtest'), `simulate${process.env.CANDIDATE ? `-${process.env.CANDIDATE}` : ''}${SEED === 1 ? '' : `-seed${SEED}`}.json`)
 fs.writeFileSync(file, JSON.stringify(out, null, 1) + '\n')
 console.error(`wrote ${file} in ${((Date.now() - t0) / 1000).toFixed(0)} s`)

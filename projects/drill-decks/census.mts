@@ -10,6 +10,7 @@ import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { Chess } from 'chess.js'
 import { CHESS_DIR, privateDir, resultsDir } from '../../bridge/lib/chess.mjs'
+import { classify } from './lib.mts'
 
 const load = (rel: string) => import(pathToFileURL(join(CHESS_DIR, rel)).href)
 const K = await load('src/services/knowledge/index.ts')
@@ -20,75 +21,21 @@ const read = (rel: string) => JSON.parse(fs.readFileSync(join(CHESS_DIR, rel), '
 const misses: any[] = read('public/coach/mistake-deck.json')
 const quizzes: any[] = read('public/coach/plan-quizzes.json')
 
-/** Mate scores in the decks' collapsed centipawns. */
-const MATE = 9000
-const GAIN = 2
-const VALUE: Record<string, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 }
-
-const sanTokens = (line: string): string[] =>
-  line
-    .split(/\s+/)
-    .map((t) => t.replace(/^\d+\.(\.\.)?/, ''))
-    .filter((t) => t.length > 0)
-
-/** His material minus theirs. */
-function balance(c: Chess, me: 'w' | 'b'): number {
-  let s = 0
-  for (const row of c.board()) for (const sq of row) if (sq) s += (sq.color === me ? 1 : -1) * VALUE[sq.type]
-  return s
-}
-
-/**
- * Walk a line of SAN from a position; his balance change at its end (the lower
- * of the last two when it ends on a capture), and whether it ends in mate.
- * Null when the line does not replay.
- */
-function walk(fen: string, sans: string[], me: 'w' | 'b'): { delta: number; mate: boolean; plies: number } | null {
-  const c = new Chess(fen)
-  const start = balance(c, me)
-  const bal: number[] = [start]
-  let lastCapture = false
-  for (const san of sans) {
-    let mv
-    try {
-      mv = c.move(san)
-    } catch {
-      return null
-    }
-    lastCapture = !!mv.captured
-    bal.push(balance(c, me))
-  }
-  const n = bal.length - 1
-  const end = lastCapture && n >= 1 ? Math.min(bal[n], bal[n - 1]) : bal[n]
-  return { delta: end - start, mate: c.isCheckmate(), plies: n }
-}
-
 const rows: any[] = []
 const unreadable = { best: 0, played: 0 }
-for (const it of misses) {
-  if (it.kind === 'deviation') continue
+// RETHEME=1 files each position again with the checkout's own labeller (a candidate's, under CHESS_DIR).
+const retheme = process.env.RETHEME === '1'
+for (const raw of misses) {
+  if (raw.kind === 'deviation') continue
+  const it = retheme && raw.kind !== 'missedMate' ? { ...raw, theme: K.themeOfBest(raw.fen, raw.best) } : raw
   const me: 'w' | 'b' = new Chess(it.fen).turn()
-  const bestOpt = it.options.find((o: any) => o.move === it.best) ?? null
-  const bestLine = bestOpt ? sanTokens(bestOpt.line) : [it.best]
-  const b = walk(it.fen, bestLine, me)
-  if (!b) unreadable.best++
-  const bestMates = it.kind === 'missedMate' || (b?.mate ?? false) || (bestOpt !== null && bestOpt.eval >= MATE)
-  const bestWins = !bestMates && b !== null && b.delta >= GAIN
-  const best = bestMates ? 'mates' : bestWins ? 'wins' : 'holds'
-
-  const playedOpt = it.options.find((o: any) => o.move === it.played) ?? null
-  const playedLine = playedOpt ? sanTokens(playedOpt.line) : [it.played, ...(it.punish ? sanTokens(it.punish) : [])]
-  const p = walk(it.fen, playedLine, me)
-  if (!p) unreadable.played++
-  const allowedMate = (p?.mate ?? false) || (playedOpt !== null && playedOpt.eval <= -MATE)
-  const lost = !allowedMate && p !== null && p.delta <= -GAIN
-  const played = allowedMate ? 'allowedMate' : lost ? 'lost' : 'other'
-
-  const shape = best !== 'holds' && played === 'other' ? 'attacking' : best === 'holds' && played !== 'other' ? 'defensive' : 'mixed'
+  const { best, played, shape, bestDelta, playedDelta, readable } = classify(it)
+  if (!readable.best) unreadable.best++
+  if (!readable.played) unreadable.played++
   const fits =
     it.theme === 'defensiveMove'
       ? shape === 'defensive'
-      : it.theme === 'hangingPiece' || it.theme === 'fork' || it.theme === 'attackingF2F7'
+      : ['hangingPiece', 'fork', 'attackingF2F7', 'skewer', 'discoveredAttack', 'pin'].includes(it.theme)
         ? best !== 'holds'
         : it.theme === 'mateIn1' || it.theme === 'backRankMate'
           ? best === 'mates'
@@ -102,7 +49,7 @@ for (const it of misses) {
   } catch {
     named = []
   }
-  rows.push({ id: it.id, kind: it.kind, theme: it.theme, best, played, shape, fits, named, competency: L.THEME_COMPETENCY[it.theme] ?? null, wpDrop: it.wpDrop ?? null, wpBefore: it.wpBefore ?? null, bestDelta: b?.delta ?? null, playedDelta: p?.delta ?? null })
+  rows.push({ id: it.id, kind: it.kind, theme: it.theme, best, played, shape, fits, named, competency: L.THEME_COMPETENCY[it.theme] ?? null, wpDrop: it.wpDrop ?? null, wpBefore: it.wpBefore ?? null, bestDelta, playedDelta })
 }
 
 const count = (xs: string[]) => Object.fromEntries(Object.entries(xs.reduce((m: Record<string, number>, x) => ((m[x] = (m[x] ?? 0) + 1), m), {})).sort((a, b) => b[1] - a[1]))
@@ -168,6 +115,7 @@ const out = {
   },
   quiz,
 }
-fs.writeFileSync(join(resultsDir('drill-decks'), 'census.json'), JSON.stringify(out, null, 1) + '\n')
-fs.writeFileSync(join(privateDir('drill-decks'), 'census-rows.json'), JSON.stringify({ misses: rows, quiz: quizRows }))
+const tag = process.env.CANDIDATE ? `-${process.env.CANDIDATE}` : ''
+fs.writeFileSync(join(resultsDir('drill-decks'), `census${tag}.json`), JSON.stringify({ ...out, candidate: process.env.CANDIDATE ?? null, retheme }, null, 1) + '\n')
+fs.writeFileSync(join(privateDir('drill-decks'), `census-rows${tag}.json`), JSON.stringify({ misses: rows, quiz: quizRows }))
 console.error(`census: ${rows.length} misses, ${quizRows.length} quizzes`)

@@ -15,8 +15,10 @@ nearly as often on a cause drawn at random, so most of it is the test itself
 (a CUSUM on skewed per-game losses), not the choice. A permutation test of
 the window against older games, which played no part in choosing the cause,
 holds its level, and points per move of the cause sees a real cut sooner
-than points per game. The paper, [`paper/paper.pdf`](paper/paper.pdf), has
-the numbers.
+than points per game. A candidate grade built that way, with a third verdict
+(unclear) and a longer hold, holds its level on fresh draws and sees a cut of
+a quarter more often than not. The paper, [`paper/paper.pdf`](paper/paper.pdf),
+has the numbers.
 
 ## The two studies
 
@@ -63,8 +65,23 @@ stronger.
 |---|---|
 | `lib.mts` | The archive's facts through the app's own loader, the app's metrics and method services, and a seeded generator. |
 | `replay.mts` | The weekly replay. Writes `results/replay.json` (weekly aggregates). |
-| `simulate.mts` | The simulation. Writes `results/simulate.json` (rates and quantiles); per-run rows go to `private/focus-backtest/`. |
+| `simulate.mts` | The simulation. Writes `results/simulate.json` (rates, quantiles and each grade's verdict counts); per-run rows go to `private/focus-backtest/`. Another `--seed` writes `simulate-seed<n>.json`. |
+| `candidates/` | Each candidate's replacement for the app's `src/services/method/focus.ts`. |
 | `paper/` | The paper. |
+
+## Candidates
+
+A candidate replaces the app's `focus.ts` and runs through the same replay and
+simulation with `CHESS_DIR` pointed at it (`bridge/candidate.sh`) and
+`CANDIDATE=<name>` set, which names its results files. It is read by the rule
+above, on the reported draws (seed 1) and on fresh draws (seed 2) that no
+choice was tuned on: it earns its word when its met rate with nothing changed
+stays within two standard errors of its level at every window, on both seeds
+and on a cause drawn at random.
+
+| Candidate | The change |
+|---|---|
+| `permove` | A one-sided permutation test (1,000 shuffles of games, seeded by the focus) of points per move of the cause in the window against the 100 games before the baseline; met at p ≤ 0.1, not met at p ≥ 0.5, unclear between; a 120-game window with no early pass. |
 
 ## Running it
 
@@ -72,8 +89,15 @@ stronger.
 make chess
 bridge/run.sh projects/focus-backtest/replay.mts
 bridge/run.sh projects/focus-backtest/simulate.mts --runs 4000 --seed 1
+bridge/run.sh projects/focus-backtest/simulate.mts --runs 4000 --seed 2
+export CHESS_DIR=$(bridge/candidate.sh permove src/services/method/focus.ts=projects/focus-backtest/candidates/permove/focus.ts)
+CANDIDATE=permove bridge/run.sh projects/focus-backtest/replay.mts
+CANDIDATE=permove bridge/run.sh projects/focus-backtest/simulate.mts --runs 4000 --seed 1
+CANDIDATE=permove bridge/run.sh projects/focus-backtest/simulate.mts --runs 4000 --seed 2
+unset CHESS_DIR
 bridge/run.sh projects/focus-backtest/paper/generate.mjs
 ```
 
-The simulation takes about five minutes on four cores. Both scripts read the
-player's archive from the pinned app checkout and never run in CI.
+The app's simulation takes about five minutes on one core, the candidate's
+about ten. The scripts read the player's archive from the pinned app checkout
+and never run in CI.

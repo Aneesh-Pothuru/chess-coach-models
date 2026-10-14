@@ -21,7 +21,9 @@ deck's labeller has no word for pins, skewers, discovered attacks, deflections o
 pieces, and when it says ``defensive move'' (\DefShareHeld\% of held-out puzzles) the tagger
 agrees \DefPrecHeld{} of the time. The review scan tags a hanging piece on \HangSaidHeld{}
 held-out puzzles, against \HangRealHeld{} that the tagger says have one. The move describer is
-the most precise of the three and the one to build the others on.
+the most precise of the three and the one to build the others on: naming its skewers, discovered
+attacks and pins before the misses deck's defensive fallback raised agreement on both sets
+(\CandAppAgreeDiff{} and \CandHeldAgreeDiff{} points) and is kept.
 \end{abstract}
 
 \section{The question}
@@ -131,12 +133,32 @@ green one the first solution move.
 \paragraph{\ForkId.} After \ForkFirst, the solution \ForkLine{} (\ForkUci) from \ForkFen.
 Lichess: \ForkThemes. The review scan: \ForkBlunder. The misses deck's labeller: \ForkBest.
 
+\section{A first candidate}
+
+The rule for a change, fixed before the first one ran: per puzzle, a reader \emph{agrees} when one
+of its words names a concept the puzzle is tagged with and \emph{disagrees} when one names a
+concept it is not tagged with; a change is kept when, on both sets, agreement rises with the 95\%
+interval of the paired difference (\CandDraws{} bootstrap draws of puzzles) above zero and
+disagreement does not rise.
+
+The first candidate changes only the misses deck's labeller: before its defensive fallback, it
+names a skewer, a discovered attack or a pin when the move describer finds one for the mover.
+Agreement rose from \CandAppAgreeBase\% to \CandAppAgree\% on the app's pool (\CandAppAgreeDiff{}
+points, \CandAppAgreeCi) and from \CandHeldAgreeBase\% to \CandHeldAgree\% held out
+(\CandHeldAgreeDiff{} points, \CandHeldAgreeCi); disagreement moved \CandAppDisDiff{} points
+\CandAppDisCi{} and \CandHeldDisDiff{} points \CandHeldDisCi. It is kept.
+
+On the player's misses deck the same change re-files \DeckMoved{} positions, and the best line
+wins material or mates in \DeckMovedFit{} of them; the describer's pin, on \DeckPins{} positions,
+wins material in \DeckPinsFit, because it also fires on pins that win nothing at once. A port
+should carry the skewer and the discovered attack, and the pin only when the line wins with it.
+
 \section{What it means for the app}
 
 \begin{enumerate}[nosep]
-\item The misses deck's theme should come from the describer's findings for the tactics it has
-words for (pin, skewer, discovered attack, trapped piece) before the defensive fallback, and the
-defensive move should require that the move answers a threat the board code can name.
+\item Port the kept candidate: the describer's skewer and discovered attack before the
+defensive fallback, and its pin only when the line wins with it; then make the defensive move
+require that the move answers a threat the board code can name, the next candidate.
 \item The review scan's hanging piece should require a piece that was attacked and not
 defended before the refutation, not any material the refutation wins; its counts feed the
 weakness profile and the metrics.

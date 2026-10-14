@@ -21,7 +21,10 @@ own \SuccessP{} threshold implies; a cause drawn at random gets \NullControl\%, 
 permutation test against older games that played no part in the choice holds its level
 (\NullFresh\% and \NullPerMove\%), and reading points per move of the cause sees a real cut
 sooner than points per game. The targets ask for a median cut of \TargetCut\% while \Window{}
-games can only see about \NeededCut\%.
+games can only see about \NeededCut\%. A candidate grade built on those findings says met
+\CandNullLong\% of the time with nothing changed and \CandQuarterLong\% with a quarter of the loss
+removed, over \CandWindow{} games; on his games it graded not met a focus the app had graded met
+on a baseline read at its worst.
 \end{abstract}
 
 \section{The question}
@@ -136,12 +139,50 @@ skewed loss does not alarm by itself.
 can run two or three weeks of games instead of one.
 \end{enumerate}
 
+\section{A candidate grade}
+
+The candidate (\texttt{candidates/permove/focus.ts}) is the app's \texttt{focus.ts} with the first
+four changes and a longer hold. It grades a focus by a one-sided permutation test, \CandPerms{}
+shuffles of games seeded by the focus, of his points per move on the cause in the window against
+the \Baseline{} games before the ones the choice read (the baseline itself when the archive is
+shorter). It says met when the test's p-value is at most \MetP, not met when it is
+\NotMetP{} or more (the window is no better than the older games), and unclear in between, and it
+holds a focus for \CandWindow{} games with no early pass. It ran through the same simulation on the
+same draws, again on fresh draws (seed \FreshSeed), and through the same weekly replay.
+
+\paragraph{It holds its level.} With nothing changed, it says met \CandNull\% of the time at 40
+games, \CandNullMid\% at 80 and \CandNullLong\% at \CandWindow, and \CandNullFresh\% on fresh draws;
+on a cause drawn at random, \CandControl\%. On the fresh draws the app's grade says met
+\AppNullFresh\% of the time at 40 games, so its false met is not a property of one set of draws.
+
+\paragraph{It sees a real cut.} With a tenth, a quarter and a half of his loss on the cause
+removed, it says met \CandTenthLong\%, \CandQuarterLong\% and \CandHalfLong\% of the time at
+\CandWindow{} games (\CandQuarter\% at 40 for a quarter). These are the per-move test's rates
+above, within two points at every cut and window: the candidate is that test, with its own
+shuffles.
+
+\paragraph{What the weekly would say.} At the end of a \CandWindow-game window with nothing
+changed, the candidate says met \VNullMet\%, unclear \VNullUnclear\% and not met \VNullNotMet\% of the
+time; with a quarter of the loss removed, \VQuarterMet\%, \VQuarterUnclear\% and \VQuarterNotMet\%.
+Not met now means something: it is common when nothing changed and rare when something did.
+
+\paragraph{On his games.} Replayed over the same \Weeks{} weeks, the candidate held \CandFocuses{}
+focuses instead of \Focuses, each for \CandSpanMin{} to \CandSpanMax{} weeks. It graded
+\CandUnclear{} of them unclear and \CandNotMet{} not met, and none met. The one it graded not met,
+\texttt{\FlipCause}, is one the app graded met: his loss on the cause fell from \FlipGameBaseline{}
+points a game in the baseline to \FlipGameAppWindow{} in the \Window{} games after it, but the
+\Baseline{} games before the baseline had read \FlipGameReference. Per move, the windows after the
+choice (\FlipAppWindow{} over \Window{} games, \FlipWindow{} over \CandWindow) were no better than
+the older games' \FlipReference, while the baseline that chose it read \FlipBaseline. The app's met
+was the regression to the mean the simulation predicts.
+
 \section{Limits}
 
 The simulation draws games independently, so it has no streaks, no rating drift and no change in
 his opponents; a real improvement may arrive unevenly. The cut removes loss uniformly across his
 moves on the cause, which is one shape of improvement among many. The replay covers \Weeks{}
 weeks, too few to grade the picker's choices on outcomes; it shows how the loop behaves, not
-whether it helped.
+whether it helped. The candidate compares a window with games played weeks earlier, so anything
+else that changed in between (his openings, his opponents, his rating) reads as a change too.
 
 \end{document}

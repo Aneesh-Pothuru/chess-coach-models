@@ -11,6 +11,8 @@ export const app = {
   factsDeps: await load('src/cli/factsDeps.ts'),
   metrics: await load('src/services/metrics/index.ts'),
   method: await load('src/services/method/index.ts'),
+  /** The focus module itself, for constants a candidate adds without exporting them from the service. */
+  focus: await load('src/services/method/focus.ts'),
   time: await load('src/core/time/index.ts'),
 }
 

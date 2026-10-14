@@ -110,5 +110,26 @@ for (const [name, r] of examples) {
   g.def(`${name}Best`, `\\texttt{${r.best}}`).def(`${name}Blunder`, r.blunder.length ? r.blunder.map((t) => `\\texttt{${t}}`).join(', ') : 'nothing').def(`${name}Move`, r.move.length ? r.move.map((t) => `\\texttt{${esc(t)}}`).join(', ') : 'nothing')
 }
 
+// ---- the first candidate: the describer's tactics before the defensive fallback ----
+const cmp = json(join(resultsDir('detector-themes'), 'compare-describe-first.json'))
+claim(cmp.verdict === 'keep', 'the describe-first candidate is kept by the rule')
+const pts = (x) => fixed(100 * x, 1)
+for (const [set, name] of [['app', 'App'], ['heldout', 'Held']]) {
+  const c = cmp.sets[set]
+  g.def(`Cand${name}AgreeBase`, pts(c.base.agree)).def(`Cand${name}Agree`, pts(c.candidate.agree))
+  g.def(`Cand${name}AgreeDiff`, pts(c.agreeDiff)).def(`Cand${name}AgreeCi`, `[${pts(c.agreeCi[0])}, ${pts(c.agreeCi[1])}]`)
+  g.def(`Cand${name}DisDiff`, pts(c.disagreeDiff)).def(`Cand${name}DisCi`, `[${pts(c.disagreeCi[0])}, ${pts(c.disagreeCi[1])}]`)
+}
+g.def('CandDraws', cmp.draws.toLocaleString('en-US'))
+// The same labeller on the misses deck (the drill-decks census, re-filed by the candidate).
+const deckBase = json(join(resultsDir('drill-decks'), 'census-retheme-base.json')).misses.byTheme
+const deckCand = json(join(resultsDir('drill-decks'), 'census-describe-first.json')).misses.byTheme
+const NEW = ['skewer', 'discoveredAttack', 'pin']
+const moved = NEW.reduce((s, w) => s + (deckCand[w]?.items ?? 0), 0)
+const movedFit = NEW.reduce((s, w) => s + (deckCand[w]?.fits?.k ?? 0), 0)
+claim(moved > 0 && moved < 100, 'the candidate re-files a few dozen of the deck positions')
+claim(deckBase.defensiveMove.items === 405, 'the pinned labeller re-files the deck exactly as published')
+g.def('DeckMoved', String(moved)).def('DeckMovedFit', String(movedFit)).def('DeckPins', String(deckCand.pin.items)).def('DeckPinsFit', String(deckCand.pin.fits.k))
+
 g.write(join(HERE, 'generated.tex'))
 console.error('wrote projects/detector-themes/paper/generated.tex')

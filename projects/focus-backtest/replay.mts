@@ -93,12 +93,33 @@ for (const sunday of sundays) {
 // The log's own record of each focus, graded on the full archive at its end.
 const focuses = [...log.history.map((h: any) => ({ ...h })), log.current ? { cause: log.current.cause, id: log.current.id, startedOn: log.current.startedOn, outcome: 'current' } : null].filter(Boolean)
 
+// Each focus's cause read three ways on the full archive's curve: per game and per move, over the
+// games before the baseline (the reference), the baseline, and the window that followed.
+const { causeLoss } = app.method
+const { LEAK_CAUSES } = app.metrics
+const window = focuses.length && log.current ? log.current.window : FOCUS_WINDOW
+for (const f of focuses as any[]) {
+  const cause = LEAK_CAUSES.find((c: any) => c.id === f.cause)
+  const start = upto(f.startedOn).length
+  const read = (gs: any[]) => {
+    const rows = gs.map((g: any) => causeLoss(g, cause, fullK)).filter(Boolean)
+    const mine = rows.reduce((a: number, r: any) => a + r.mine, 0)
+    const moves = rows.reduce((a: number, r: any) => a + r.moves, 0)
+    return { games: rows.length, perGame: rows.length ? mine / rows.length : null, perMove: moves ? mine / moves : null, movesPerGame: rows.length ? moves / rows.length : null }
+  }
+  f.read = {
+    reference: read(games.slice(Math.max(0, start - 2 * BASELINE_GAMES), Math.max(0, start - BASELINE_GAMES))),
+    baseline: read(games.slice(Math.max(0, start - BASELINE_GAMES), start)),
+    window: read(games.slice(start, start + window)),
+  }
+}
+
 const out = {
   project: 'focus-backtest',
   app: await appCommit(),
   candidate: process.env.CANDIDATE ?? null,
   archive: { games: games.length, first, last, k: fullK },
-  constants: { BASELINE_GAMES, FOCUS_WINDOW, SWITCH_RATIO: app.method.SWITCH_RATIO, SUCCESS_P: app.method.SUCCESS_P },
+  constants: { BASELINE_GAMES, FOCUS_WINDOW, SWITCH_RATIO: app.method.SWITCH_RATIO, SUCCESS_P: app.method.SUCCESS_P, PERMUTATIONS: app.focus.PERMUTATIONS ?? null, NOT_MET_P: app.focus.NOT_MET_P ?? null },
   weeks,
   focuses,
 }
