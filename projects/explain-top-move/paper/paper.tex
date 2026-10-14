@@ -102,7 +102,9 @@ when the opponent simply saves the attacked piece, so the judge decides it. Roun
 12's sentence where the judge's notes said it ran long, so the judge decides it too. Round 14
 corrects how the lessons name an amount: its number was the line's net, but the pieces it named
 were not always the ones that changed hands. That is read off the board, which the judge does not
-see, so the round counts its defects as round 11 did.
+see, so the round counts its defects as round 11 did. Round 15 fills the sections on what the
+played move allowed that named the reply and said nothing about it, which the player's own
+calibration answers had pointed to, so the judge decides it.
 
 \begin{table}[!htbp]
 \centering\footnotesize
@@ -173,6 +175,14 @@ bishop for two pawns'', ``limits the loss to a rook for a pawn''. Where one sent
 amount for two lines whose pieces differ, it says the worth (``a pawn's worth of material''), and
 a piece is said to fall only when the line keeps it. The round was graded on round 13's documents
 (Section~\ref{sec:results}).
+\item[Round 15: what a quiet reply defends.] Where the section on what the played move allowed
+named the reply and gave no reason for it, and the reply captures nothing, the lesson says what the
+reply defends, checked on the board: it moves or guards the piece the better move would have won or
+attacked (``it moves the rook off e5, where dxe5 would have won it''; ``it guards the pawn on e4,
+which Nxe4 would have won''), takes away the better move's check (``it takes away the check Qd3
+would have given''), or answers the played move's own threat (``it guards the pawn on b5, which Rd5
+attacked''). The headline's sentence about the reply carries the point. The round was graded on
+the documents round 14 was (Section~\ref{sec:results}).
 \end{description}
 
 \begin{table}[!htbp]
@@ -209,7 +219,10 @@ toward length and the round is not kept on its word. In round 10 the decoy won \
 its batches carry the mirror, a trim control: moments the round does not change, set against themselves
 with the last point of the better move's section cut. A judge drifting toward short texts would
 prefer the cut one, under the same rule; it did in \TrimThirteenDecoy{} of \TrimThirteenN{}
-comparisons (\TrimThirteenUnchanged{} the full text, \TrimThirteenSame{} same).
+comparisons (\TrimThirteenUnchanged{} the full text, \TrimThirteenSame{} same). Round 15 grows the
+section on what the played move allowed, so its padding control pads that section, on moments where
+it says nothing and the round leaves it so; the decoy won \PadFifteenDecoy{} of \PadFifteenN{}
+comparisons (\PadFifteenUnchanged{} the shorter text, \PadFifteenSame{} same).
 
 \begin{table}[!htbp]
 \centering\footnotesize
@@ -309,6 +322,19 @@ an amount names pieces other than the ones that changed hands, and in
 texts neither is left and none of round 11's defects appears, and the texts change on those
 \RoundFourteenDefectMoments{} moments (\RoundFourteenChangedTest{} test,
 \RoundFourteenChangedTrain{} train) and on no other.
+
+Round 15 was graded on the same documents, against the pinned app's texts, which carry round 14,
+after the grader learned the round's new clauses, each checked on the board apart from the app's
+code, and graded the base exactly as before. It changes the texts of \RoundFifteenChangedTest{}
+test and \RoundFifteenChangedTrain{} train moments, each graded faithful; no grade falls, and the
+moments graded concrete rise from \RoundFifteenConcreteBaseTest{} to \RoundFifteenConcreteTest{}
+on test and from \RoundFifteenConcreteBaseTrain{} to \RoundFifteenConcreteTrain{} on train
+(Table~\ref{tab:rebuilt}). The judge preferred the new texts
+\RoundFifteenTrainNew--\RoundFifteenTrainOld{} on train, with \RoundFifteenTrainSame{} same, and
+\RoundFifteenTestNew--\RoundFifteenTestOld{} on test. One moment did not win both runs: there the
+reply guards a pawn the better move would have attacked, but the played move attacks that pawn too
+and the engine answers the better move with the same reply, so the point does not tell the two
+moves apart.
 
 \begin{table}[!htbp]
 \centering\footnotesize

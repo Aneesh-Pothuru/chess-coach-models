@@ -49,9 +49,9 @@
 \newcommand{\KeptTrainConcreteVsBase}{+6.8 [3.2, 10.6]}
 \newcommand{\KeptTrainTextsChanged}{87}
 \newcommand{\KeptVariant}{v8}
-\newcommand{\RoundCount}{14}
-\newcommand{\RoundCountCap}{14}
-\newcommand{\KeptRoundCount}{eleven}
+\newcommand{\RoundCount}{15}
+\newcommand{\RoundCountCap}{15}
+\newcommand{\KeptRoundCount}{twelve}
 \newcommand{\UnjudgedKept}{1, 2, 11 and 14}
 \newcommand{\RoundsTable}{%
 \begin{tabularx}{\textwidth}{l L rrrr r r}
@@ -76,6 +76,7 @@ v11 & Five text defects, fixed where the texts are written & \multicolumn{5}{c}{
 v12 & Say what the natural defense to the better move costs & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 19--9 / 22--12 \\
 v13 & Leave out the moves the defense sentence does not need (\emph{not kept}) & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 0--16 / 4--24 \\
 v14 & Say an amount in the pieces it is made of & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} &  \\
+v15 & Say what a quiet reply defends & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 22--1 / 8--0 \\
 \bottomrule
 \end{tabularx}
 }
@@ -96,6 +97,7 @@ round & judged & train new--old (same) & test new--old (same) & the rule says \\
 10 & round 10 & 18--2 (0) & 12--0 (0) & keep \\
 12 & round 12 & 19--9 (0) & 22--12 (0) & keep \\
 13 & round 13 & 0--16 (0) & 4--24 (0) & do not keep \\
+15 & round 15 & 22--1 (1) & 8--0 (0) & keep \\
 \bottomrule
 \end{tabular}
 }
@@ -114,6 +116,8 @@ v13 & test & 153 & 153 & 127 & 144 & 152 & 14 \\
 v13 & train & 180 & 179 & 149 & 166 & 179 & 8 \\
 v14 & test & 153 & 153 & 127 & 144 & 152 & 32 \\
 v14 & train & 180 & 179 & 149 & 166 & 179 & 26 \\
+v15 & test & 153 & 153 & 127 / 128 & 144 & 152 & 4 \\
+v15 & train & 180 & 179 & 149 / 152 & 166 & 179 & 12 \\
 \bottomrule
 \end{tabular}
 }
@@ -184,6 +188,17 @@ the five of Table~\ref{tab:defects} & 0 & 0 \\
 \bottomrule
 \end{tabular}
 }
+\newcommand{\RoundFifteenChangedTest}{4}
+\newcommand{\RoundFifteenChangedTrain}{12}
+\newcommand{\RoundFifteenConcreteBaseTest}{127}
+\newcommand{\RoundFifteenConcreteTest}{128}
+\newcommand{\RoundFifteenConcreteBaseTrain}{149}
+\newcommand{\RoundFifteenConcreteTrain}{152}
+\newcommand{\RoundFifteenTrainNew}{22}
+\newcommand{\RoundFifteenTrainOld}{1}
+\newcommand{\RoundFifteenTrainSame}{1}
+\newcommand{\RoundFifteenTestNew}{8}
+\newcommand{\RoundFifteenTestOld}{0}
 \newcommand{\LongerPicked}{305}
 \newcommand{\LongerDecided}{326}
 \newcommand{\LongerRounds}{3, 4, 5, 7, 7b, 8 and 9}
@@ -202,6 +217,10 @@ the five of Table~\ref{tab:defects} & 0 & 0 \\
 \newcommand{\TrimThirteenN}{20}
 \newcommand{\TrimThirteenUnchanged}{16}
 \newcommand{\TrimThirteenSame}{3}
+\newcommand{\PadFifteenDecoy}{0}
+\newcommand{\PadFifteenN}{20}
+\newcommand{\PadFifteenUnchanged}{17}
+\newcommand{\PadFifteenSame}{3}
 \newcommand{\ControlsTable}{%
 \begin{tabularx}{\textwidth}{L l l}
 \toprule
@@ -215,6 +234,7 @@ J3, round 9: the longer text against a decoy of its length & train 36 of 36, tes
 padding control, round 10: the decoy preferred & 0 of 20 (20 the shorter text, 0 same) & no drift \\
 padding control, round 12: the decoy preferred & 0 of 20 (20 the shorter text, 0 same) & no drift \\
 trim control, round 13: the decoy preferred & 1 of 20 (16 the full text, 3 same) & no drift \\
+padding control, round 15: the decoy preferred & 0 of 20 (17 the shorter text, 3 same) & no drift \\
 \bottomrule
 \end{tabularx}
 }
@@ -252,11 +272,11 @@ trim control, round 13: the decoy preferred & 1 of 20 (16 the full text, 3 same)
 \newcommand{\ReproLinesMatched}{27}
 \newcommand{\ReproLines}{27}
 \newcommand{\AppCommit}{\texttt{ace6ef2}}
-\newcommand{\RecordsCommit}{\texttt{f5998ae}}
+\newcommand{\RecordsCommit}{\texttt{9410bab}}
 \newcommand{\RerunSearches}{the capture searches on it (88 kept) and the defense searches (51 kept)}
 \newcommand{\RerunEvidence}{review-evidence/6}
 \newcommand{\AppKeptThrough}{14}
-\newcommand{\AppKeptSentence}{The app at that commit carries every kept round.}
+\newcommand{\AppKeptSentence}{The app at that commit carries the kept rounds through round 14; round 15 is not in it yet.}
 \newcommand{\RerunTestMoments}{153}
 \newcommand{\RerunTestShared}{146}
 \newcommand{\RerunTestSameGrades}{129}

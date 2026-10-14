@@ -55,6 +55,7 @@ const ROUNDS = [
   { round: '10', dirs: ['round10'] },
   { round: '12', dirs: ['round12'] },
   { round: '13', dirs: ['round13'] },
+  { round: '15', dirs: ['round15'] },
 ];
 // The rounds judged before the length check, whose streak of longer texts it tested.
 const BEFORE_CHECK = ['3', '4', '5', '7', '7b', '8', '9'];
@@ -76,12 +77,12 @@ const appDefends = () => existsSync(join(CHESS_DIR, 'src', 'services', 'review',
  * Which kept rounds after the kept variant the pinned app carries, each read
  * from a mark its change left in the app's source: round 10's "an even trade",
  * round 11's `takesBack`, round 12's defense searches, round 14's
- * `materialChange`.
+ * `materialChange`, round 15's `quietDefense`.
  */
 function appCarries() {
   const lessonFile = join(CHESS_DIR, 'src', 'services', 'knowledge', 'detectors', 'lesson.ts');
   const lesson = existsSync(lessonFile) ? readFileSync(lessonFile, 'utf8') : '';
-  return { v10: lesson.includes('an even trade'), v11: /\btakesBack\b/.test(lesson), v12: appDefends(), v14: /\bmaterialChange\b/.test(lesson) };
+  return { v10: lesson.includes('an even trade'), v11: /\btakesBack\b/.test(lesson), v12: appDefends(), v14: /\bmaterialChange\b/.test(lesson), v15: /\bquietDefense\b/.test(lesson) };
 }
 
 function rerun(dir) {

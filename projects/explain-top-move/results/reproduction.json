@@ -2,12 +2,13 @@
   "eval": "explain-top-move reproduction",
   "chess": {
     "pinned_commit": "ace6ef2f9e84edbe0dfc43882536ee138741dbdb",
-    "records_commit": "f5998ae76d2c5b7b05d9397ccc1519e719d91942",
+    "records_commit": "9410babf0839446d4553f6cc3e6b00fe2b5673d2",
     "carries": {
       "v10": true,
       "v11": true,
       "v12": true,
-      "v14": true
+      "v14": true,
+      "v15": false
     }
   },
   "recomputed": {
@@ -267,6 +268,25 @@
       },
       "keepByRule": false,
       "recordedReason": "the defense sentence without its moves (a pointer to the engine's line when the defense is its reply, \"by move N\" when the line ran past 4 moves): train 0 new vs 16 old, test 4 vs 24, and a trim control's decoy preferred 1 of 20; the judges want the moves that win the material, and the line the lesson prints ends before the gain in 4 of the 11 sentences that point to it"
+    },
+    {
+      "round": "15",
+      "judged": "round15",
+      "moments": null,
+      "tally": {
+        "train": {
+          "new": 22,
+          "old": 1,
+          "same": 1
+        },
+        "test": {
+          "new": 8,
+          "old": 0,
+          "same": 0
+        }
+      },
+      "keepByRule": true,
+      "recordedReason": "what a quiet reply defends, said where \"What X allowed\" had no point and the reply captures nothing: it moves or guards the piece the better move would have won or attacked (\"it moves the rook off e5, where dxe5 would have won it\", \"it guards the pawn on e4, which Nxe4 would have won\"), takes away the better move's check, or answers the played move's own threat; 16 sections gain the point (12 train, 4 test), all 60 claims graded true, no grade falls and concrete rises on four moments (149 to 152 on train, 127 to 128 on test); judge model, pairwise and blind, two runs with the order reversed: the new text preferred 22 to 1 on train (1 same) and 8 to 0 on test, with a 10-moment padding control in the same batches, padded in the silent section, whose decoy was preferred in none of its 20 comparisons (v15/change.md)"
     }
   ],
   "controls": {
@@ -463,6 +483,17 @@
         "same": 3,
         "decoyShareOfAll": 5,
         "decoyShareOfDecided": 5.9,
+        "drifted": false
+      },
+      {
+        "round": "15",
+        "kind": "padding",
+        "comparisons": 20,
+        "decoy": 0,
+        "unchanged": 17,
+        "same": 3,
+        "decoyShareOfAll": 0,
+        "decoyShareOfDecided": 0,
         "drifted": false
       }
     ],
@@ -712,6 +743,48 @@
           "fallenGivenBack": 0
         }
       }
+    },
+    {
+      "variant": "v15",
+      "sameMoments": true,
+      "splits": [
+        {
+          "split": "test",
+          "moments": 153,
+          "base": {
+            "faithful": 153,
+            "concrete": 127,
+            "named_deep": 144,
+            "faithfulAll": 152
+          },
+          "variant": {
+            "faithful": 153,
+            "concrete": 128,
+            "named_deep": 144,
+            "faithfulAll": 152
+          },
+          "textsChanged": 4
+        },
+        {
+          "split": "train",
+          "moments": 180,
+          "base": {
+            "faithful": 179,
+            "concrete": 149,
+            "named_deep": 166,
+            "faithfulAll": 179
+          },
+          "variant": {
+            "faithful": 179,
+            "concrete": 152,
+            "named_deep": 166,
+            "faithfulAll": 179
+          },
+          "textsChanged": 12
+        }
+      ],
+      "gradesEqual": false,
+      "defects": null
     }
   ],
   "kept": "v8",

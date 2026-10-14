@@ -293,6 +293,32 @@ g.block('DefectsFourteenTable', [
   '\\bottomrule', '\\end{tabular}',
 ].join('\n'));
 
+// ---- round 15: what a quiet reply defends, on the documents round 14 was graded on, at the pinned app's texts
+const fifteen = rebuilt.get('v15');
+claim(fifteen?.sameMoments, "round 15 was graded on its base's moments");
+const fifteenSplit = s => fifteen.splits.find(x => x.split === s);
+claim(['train', 'test'].every(s => DIMS.every(d => fifteenSplit(s).variant[d] >= fifteenSplit(s).base[d])), 'no grade falls with round 15 on either half');
+claim(['train', 'test'].every(s => fifteenSplit(s).variant.concrete > fifteenSplit(s).base.concrete), 'round 15 raises concrete on both halves');
+const fifteenBase = new Map(jsonl(join(flow, 'v15', 'rebuilt', 'base.results.jsonl')).map(m => [m.id, m]));
+const fifteenChanged = jsonl(join(flow, 'v15', 'rebuilt', 'v15.results.jsonl')).filter(m => m.textHash !== fifteenBase.get(m.id)?.textHash);
+claim(fifteenChanged.length > 0 && fifteenChanged.every(m => m.faithful === 1 && m.faithfulAll === 1), 'every moment round 15 changes is graded faithful');
+const fifteenPatch = readFileSync(join(flow, 'v15', 'change.patch'), 'utf8');
+claim(['it moves the rook off e5, where dxe5 would have won it', 'it guards the pawn on e4, which Nxe4 would have won', 'it takes away the check Qd3 would have given', 'it guards the pawn on b5, which Rd5 attacked'].every(q => fifteenPatch.includes(q)), "round 15's tests pin the phrases the paper quotes");
+const r15 = judgeOf.get('15');
+claim(r15?.keepByRule, 'the judge preferred round 15 on both halves');
+{
+  const dir = join(judgeDir, 'round15');
+  const keys = ['r1', 'r2'].map(r => read(join(dir, `key-${r}.json`)));
+  const answers = ['r1', 'r2'].map(r => new Map(read(join(dir, `out-${r}.judge.json`)).answers.map(a => [a.id, a.choice])));
+  const notBoth = Object.keys(keys[0]).filter(id => ![0, 1].every(i => keys[i][id][answers[i].get(id)] === 'new')).length;
+  claim(notBoth === 1, 'one moment of round 15 was not preferred in both runs');
+}
+g.def('RoundFifteenChangedTest', String(fifteenSplit('test').textsChanged)).def('RoundFifteenChangedTrain', String(fifteenSplit('train').textsChanged))
+  .def('RoundFifteenConcreteBaseTest', String(fifteenSplit('test').base.concrete)).def('RoundFifteenConcreteTest', String(fifteenSplit('test').variant.concrete))
+  .def('RoundFifteenConcreteBaseTrain', String(fifteenSplit('train').base.concrete)).def('RoundFifteenConcreteTrain', String(fifteenSplit('train').variant.concrete))
+  .def('RoundFifteenTrainNew', String(r15.tally.train.new)).def('RoundFifteenTrainOld', String(r15.tally.train.old)).def('RoundFifteenTrainSame', String(r15.tally.train.same))
+  .def('RoundFifteenTestNew', String(r15.tally.test.new)).def('RoundFifteenTestOld', String(r15.tally.test.old));
+
 // ---- the judge's controls, as reproduce.mjs recomputed them
 const c = repro.controls;
 claim(c.length.matchesRecorded, 'the length check recomputed from its answers matches the score the records keep');
@@ -315,6 +341,10 @@ const trim13 = c.perRound.find(p => p.round === '13');
 claim(trim13?.kind === 'trim', 'round 13 carried a trim control');
 g.def('TrimThirteenDecoy', String(trim13.decoy)).def('TrimThirteenN', String(trim13.comparisons))
   .def('TrimThirteenUnchanged', String(trim13.unchanged)).def('TrimThirteenSame', String(trim13.same));
+const pad15 = c.perRound.find(p => p.round === '15');
+claim(pad15?.kind === 'padding', 'round 15 carried a padding control');
+g.def('PadFifteenDecoy', String(pad15.decoy)).def('PadFifteenN', String(pad15.comparisons))
+  .def('PadFifteenUnchanged', String(pad15.unchanged)).def('PadFifteenSame', String(pad15.same));
 const won = t => `${t.long} of ${t.long + t.decoy}`;
 g.block('ControlsTable', [
   '\\begin{tabularx}{\\textwidth}{L l l}', '\\toprule', 'check & result & verdict \\\\', '\\midrule',
