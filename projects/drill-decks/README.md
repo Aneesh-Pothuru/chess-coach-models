@@ -9,6 +9,15 @@ with three engine moves and asks which is the plan. Does the theme word say
 what the missed move did, and does the quiz ask a plan question with one right
 answer?
 
+**The answer.** Not yet. The defensive-move word is on a minority of his
+defensive misses, many missed wins are filed under a phase, and most quizzes
+have two right answers or a forcing best move. A search with the move passed
+to his opponent tells his misses apart: a third of those whose lines show no
+material change were threats he had to answer, two in five clear defensive
+misses had no threat to answer (his own move made the loss), and the deck's
+quiet positions hold many more one-answer plan questions than the quiz has.
+The paper, [`paper/paper.pdf`](paper/paper.pdf), has the numbers.
+
 The detector-themes project scores the same theme labeller on Lichess puzzles.
 Puzzles are tactics by construction; the misses deck is not, so this project
 reads the labeller on the deck's own positions, against what the deck's own
@@ -105,7 +114,7 @@ centipawns ahead of the second.
 |---|---|
 | `lib.mts` | The board code both scripts share: walking a stored line and a deck item's cell. |
 | `census.mts` | Classifies every item of both decks by the rules above and writes `results/census.json` (counts only). With `RETHEME=1` it files each position again with the checkout's own labeller (a candidate's, under `CHESS_DIR`) and writes `results/census-<CANDIDATE>.json`. |
-| `threats.mts` | The threat search. Writes `results/threats.json` (counts only). |
+| `threats.mts` | The threat search. Writes `results/threats.json` (counts only); its per-item rows go to `private/drill-decks/`. |
 | `paper/` | The paper. |
 
 ## Running it

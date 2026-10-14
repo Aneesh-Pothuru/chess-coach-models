@@ -98,3 +98,75 @@ word & skill it feeds & items & defensive & attacking & mixed & fits \\
 \newcommand{\QuizUci}{\uci{g2f3 e7e6 e3e4 f8e7 e4f5 e6f5 g1h1 g7g6 a1e1 e8f7}}
 \newcommand{\QuizOptions}{11.~gxf3 (0.2), 11.~\symbishop{}xb8 ($-$2.1), 11.~\symrook{}ae1 ($-$2.3)}
 \newcommand{\QuizLead}{2.3}
+\newcommand{\ThreatTable}{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ & & & \multicolumn{3}{c}{threatened} & \multicolumn{3}{c}{the gate} \\
+\cmidrule(lr){4-6}\cmidrule(lr){7-9}
+ & positions & in check & $n$ & \% & mate & fires \% & precision \% & recall \% \\
+\midrule
+clear defensive miss & 489 & 45 & 260 & 59 & 42 & 58 & 75 & 75 \\
+clear missed win & 286 & 12 & 86 & 31 & 7 & 50 & 51 & 81 \\
+both & 84 & 9 & 34 & 45 & 6 & 57 & 63 & 79 \\
+no material change & 477 & 21 & 140 & 31 & 11 & 44 & 55 & 78 \\
+\midrule
+\texttt{defensiveMove} & 405 & 11 & 271 & 69 & 39 & 100 & 69 & 100 \\
+\texttt{hangingPiece} & 109 & 9 & 36 & 36 & 4 & 51 & 57 & 81 \\
+\texttt{fork} & 20 & 0 & 6 & 30 & 0 & 60 & 42 & 83 \\
+\texttt{mateIn1} & 20 & 0 & 12 & 60 & 1 & 80 & 63 & 83 \\
+\texttt{backRankMate} & 1 & 0 & 1 & 100 & 0 & 100 & 100 & 100 \\
+\texttt{middlegame} & 406 & 21 & 110 & 29 & 11 & 26 & 53 & 49 \\
+\texttt{endgame} & 187 & 37 & 45 & 30 & 10 & 21 & 45 & 31 \\
+\texttt{opening} & 188 & 9 & 39 & 22 & 1 & 18 & 52 & 44 \\
+\midrule
+all & 1336 & 87 & 520 & 42 & 66 & 51 & 63 & 77 \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\Budget}{600,000}
+\newcommand{\Searches}{2,585}
+\newcommand{\InCheck}{87}
+\newcommand{\Searched}{1,249}
+\newcommand{\Threatened}{520}
+\newcommand{\ThreatShare}{42}
+\newcommand{\ThreatMate}{66}
+\newcommand{\ThreatMaterial}{454}
+\newcommand{\NeitherSearched}{456}
+\newcommand{\NeitherThreat}{140}
+\newcommand{\NeitherThreatShare}{31}
+\newcommand{\DefSearched}{444}
+\newcommand{\DefThreat}{260}
+\newcommand{\DefThreatShare}{59}
+\newcommand{\SelfInflicted}{184}
+\newcommand{\SelfShare}{41}
+\newcommand{\DefWordSearched}{394}
+\newcommand{\DefWordThreat}{271}
+\newcommand{\DefWordThreatShare}{69}
+\newcommand{\DefWordOfThreats}{52}
+\newcommand{\DefWordFalse}{123}
+\newcommand{\PhaseThreat}{194}
+\newcommand{\PhaseThreatOfThreats}{37}
+\newcommand{\PhaseGateRecall}{44}
+\newcommand{\PhaseGateMissed}{109}
+\newcommand{\GatePrecision}{63}
+\newcommand{\GateRecall}{77}
+\newcommand{\GateMissed}{119}
+\newcommand{\GateFalse}{239}
+\newcommand{\GatePawnOnly}{176}
+\newcommand{\GatePawnOnlyShare}{74}
+\newcommand{\DefWordPawnOnly}{89}
+\newcommand{\PassThreat}{34}
+\newcommand{\PassNot}{14}
+\newcommand{\Quiet}{316}
+\newcommand{\QuietQuiz}{73}
+\newcommand{\QuietQuizShare}{23}
+\newcommand{\QuietBoard}{%
+\chessboard[setfen={r2qr1k1/1p2bp1p/2p3pB/p2n1p2/1n1P4/1Q2PN2/PP1N1PPP/2R2RK1 w - - 2 16}, boardfontsize=14pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={f3-e5}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={a2-a3}]
+}
+\newcommand{\QuietFen}{\fen{r2qr1k1/1p2bp1p/2p3pB/p2n1p2/1n1P4/1Q2PN2/PP1N1PPP/2R2RK1 w - - 2 16}}
+\newcommand{\QuietPlayed}{16.~\symknight{}e5}
+\newcommand{\QuietDrop}{16}
+\newcommand{\QuietLine}{16.~a3 a4 17.~\symqueen{}d1 \symknight{}d3 18.~\symrook{}b1 \symqueen{}b6 19.~b3 \symknight{}c3}
+\newcommand{\QuietUci}{\uci{a2a3 a5a4 b3d1 b4d3 c1b1 d8b6 b2b3 d5c3}}
+\newcommand{\QuietTheme}{\texttt{middlegame}}
+\newcommand{\QuietOptions}{16.~a3 (0.7), 16.~\symrook{}a1 ($-$0.1), 16.~a4 ($-$0.4)}

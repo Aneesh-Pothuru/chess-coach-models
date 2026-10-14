@@ -71,6 +71,20 @@ zstdcat data/raw/lichess_db_puzzle.csv.zst | CHESS_DIR=$(bridge/checkout.sh) pyt
 bridge/run.sh projects/detector-themes/score.mts app
 bridge/run.sh projects/detector-themes/score.mts heldout
 bridge/run.sh projects/drill-decks/census.mts
+RETHEME=1 CANDIDATE=retheme-base bridge/run.sh projects/drill-decks/census.mts
+bridge/run.sh projects/drill-decks/threats.mts --pool 4
+
+# Their candidates, each a copy of the pinned app with its files replaced.
+export CHESS_DIR=$(bridge/candidate.sh permove src/services/method/focus.ts=projects/focus-backtest/candidates/permove/focus.ts)
+CANDIDATE=permove bridge/run.sh projects/focus-backtest/replay.mts
+CANDIDATE=permove bridge/run.sh projects/focus-backtest/simulate.mts --runs 4000 --seed 1
+CANDIDATE=permove bridge/run.sh projects/focus-backtest/simulate.mts --runs 4000 --seed 2
+export CHESS_DIR=$(bridge/candidate.sh describe-first src/services/knowledge/detectors/theme.ts=projects/detector-themes/candidates/describe-first/theme.ts)
+CANDIDATE=describe-first bridge/run.sh projects/detector-themes/score.mts app
+CANDIDATE=describe-first bridge/run.sh projects/detector-themes/score.mts heldout
+RETHEME=1 CANDIDATE=describe-first bridge/run.sh projects/drill-decks/census.mts
+unset CHESS_DIR
+bridge/run.sh projects/detector-themes/compare.mjs describe-first
 
 make papers   # each paper's generated.tex, then its PDF
 ```

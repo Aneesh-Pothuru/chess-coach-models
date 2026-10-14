@@ -20,7 +20,11 @@ phase name, among them \PhaseDefensive{} clear defensive misses and \PhaseAttack
 missed wins, and only \DefRecall\% of the clear defensive misses carry its defensive-move word.
 The guess-the-plan quiz has \Quizzes{} positions; by the app's own rule \TwoRight{} of them have
 two right answers out of three, the best option is a capture, a check or a two-pawn lead in
-\ForcingOrMaterial, and \PlanQuestions{} ask a plan question with one right answer.
+\ForcingOrMaterial, and \PlanQuestions{} ask a plan question with one right answer. A search with
+the move passed to his opponent finds a threat in \ThreatShare\% of the positions: \NeitherThreatShare\%
+of those whose lines show no material change, while \SelfShare\% of the clear defensive misses had no
+threat to answer, so his own move made the loss. The deck's \Quiet{} quiet positions hold
+\QuietQuiz{} plan questions with one right answer.
 \end{abstract}
 
 \section{The question}
@@ -122,25 +126,92 @@ check in \Forcing{} and leads the next option by two pawns or more in \Material:
 he had played the best option in the game. Only \PlanQuestions{} (\PlanShare\%) ask a plan question
 with one right answer. In the position above (\QuizFen), the best option is \QuizLine{} (\QuizUci).
 
+\section{What his opponent threatened}
+
+The stored lines say what the best move and his move did, not whether he had anything to answer.
+So each scored position was searched by the app's engine at the routine's punishing budget
+(\Budget{} nodes), as he faced it and with the move passed to his opponent, \Searches{} searches in
+all; the \InCheck{} positions where he was in check cannot be passed and are counted apart. By the
+rules the README fixed before the search ran, a position is \emph{threatened} when the opponent's
+line after the pass mates or wins him two points or more, counted as the census counts a gain.
+\Threatened{} of the \Searched{} passed positions (\ThreatShare\%) were: \ThreatMate{} by mate and
+\ThreatMaterial{} by material. Passing cost him a median \PassThreat{} points of win\% in those and
+\PassNot{} in the rest, where it is the value of the move itself.
+
+\begin{table}[h]
+\centering
+\small
+\ThreatTable
+\caption{The threat search by what the stored lines show and by theme word: positions, those in
+check (not searched), the threatened share of the searched, how many by mate, and the live coach's
+instant threat reader (the gate) against the search: how often it fires, how often a firing is a
+real threat (precision), and how many of the threats it fires on (recall).}
+\end{table}
+
+\paragraph{A third of the positions with no material change were defences.} Of the
+\NeitherSearched{} positions whose lines show no material change, \NeitherThreat{}
+(\NeitherThreatShare\%) were threatened: defensive misses the stored lines could not show. The other
+\Quiet{} are quiet: nothing was threatened, and nothing was won or lost.
+
+\paragraph{Two in five clear defensive misses had no threat to answer.} Of the \DefSearched{}
+clear defensive misses searched, \DefThreat{} (\DefThreatShare\%) were threatened. In the other
+\SelfInflicted{} (\SelfShare\%) nothing was threatened before he moved: his move made the loss. Those
+ask what his own move allows, not what his opponent's move threatens.
+
+\paragraph{The defensive-move word is right more often than the lines show.} The gate fires on
+every defensive-move position, since the labeller's defensive move protects a piece the gate reads as
+loose. The search finds a threat in \DefWordThreat{} of its \DefWordSearched{} searched positions
+(\DefWordThreatShare\%), where the stored lines alone found a clear defensive miss in \DefFit\%. In
+\DefWordPawnOnly{} of the other \DefWordFalse{}, the loose piece was a pawn alone. The word is on
+\DefWordOfThreats\% of all the threatened positions; phase words carry \PhaseThreat{}
+(\PhaseThreatOfThreats\%).
+
+\paragraph{The gate misses the threats the phase words hide.} Over all the searched positions the
+gate's precision is \GatePrecision\% and its recall \GateRecall\%: it misses \GateMissed{} threats.
+Of its \GateFalse{} false alarms, \GatePawnOnly{} (\GatePawnOnlyShare\%) are a loose pawn alone,
+which the two-point rule never counts. On the \PhaseThreat{} threatened positions filed under a
+phase, it fires on \PhaseGateRecall\%. The rest held a threat of another kind than the three it reads
+(a loose piece, the f7 strike, a mate in one), and the labeller, which reads the same loose piece,
+could not call them defensive.
+
+\begin{figure}[h]
+\centering
+\QuietBoard
+\caption{A quiet miss from the deck, from White's side; he is the side to move. Red is his move,
+green the engine's. Its three best options are \QuietOptions, in pawns from his side.}
+\end{figure}
+
+\paragraph{Quiet misses as plan questions.} Of the \Quiet{} quiet positions, \QuietQuiz{}
+(\QuietQuizShare\%) would make a plan question with one right answer by the quiz's own rule, against
+the \PlanQuestions{} of the quiz's \Quizzes{} positions that do today. In the first of them in the
+deck's order (\QuietFen), filed under \QuietTheme, he played \QuietPlayed, which cost \QuietDrop{}
+points of winning chances; the engine's \QuietLine{} (\QuietUci) is the one option within the
+quiz's margin.
+
 \section{What it means for the app}
 
 \begin{enumerate}[nosep]
-\item The misses deck's word should come from what the stored lines show before the detectors
-are asked: a defensive miss is one, whatever the phase, and a defensive move should include
-stopping a mate or a threat the board code can name, not only a loose piece.
+\item The misses deck's word should come from what the position shows before the detectors are
+asked. One more search per miss, with the move passed, at the budget the routine already uses
+to punish, tells the three kinds apart: a threat he had to answer, a loss his own move made, and a
+quiet position.
 \item A phase word should not feed a skill: the endgame positions that were defensive misses
 should not count toward conversion.
 \item The quiz should be drawn from positions where one option is right and the best option is
-quiet, or say when a position is a calculation question.
+quiet, or say when a position is a calculation question. The misses deck's quiet positions supply
+\QuietQuiz{} such positions.
+\item The live coach's instant gate misses \GateMissed{} of the \Threatened{} threats the search
+finds, most of them filed under a phase, and a loose pawn is most of what it flags that the search
+does not count.
 \end{enumerate}
 
 \section{Limits}
 
 The rule reads material only. A capture that removes an attacker and also wins material reads as
 a missed win: \DefWinsSmall{} of the \DefWins{} defensive-move positions read as wins gain
-exactly two points, and some of those are such captures, where the word is right. The \Neither{}
-mixed positions, whose stored lines show no material change, cannot be judged this way; a
-threat search (what the opponent would win if he passed) could read them. The stored lines are
-the engine's, at the depth the routine used.
+exactly two points, and some of those are such captures, where the word is right. The threat
+search reads what the opponent would do with a free move, which is not a fair question where
+moving at all hurts him, and it counts a threat that his best move happened to stop; the two-point
+rule leaves out a pawn. The lines are the engine's, at the budgets the routine uses.
 
 \end{document}

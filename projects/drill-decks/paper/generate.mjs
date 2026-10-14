@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Writes paper/generated.tex for the decks paper: the census
-// (results/census.json), and two positions from the decks, read from the
-// census's private rows and the pinned app's published decks. It prints no id,
+// Writes paper/generated.tex for the decks paper: the census and the threat search
+// (results/census.json, results/threats.json), and positions from the decks, read from the
+// private rows and the pinned app's published decks. It prints no id,
 // opponent or link. It refuses to write when a claim the paper makes no longer
 // holds.
 //
@@ -10,7 +10,7 @@
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { CHESS_DIR, privateDir, resultsDir } from '../../../bridge/lib/chess.mjs'
+import { CHESS_DIR, chess, privateDir, resultsDir } from '../../../bridge/lib/chess.mjs'
 import { Chess } from 'chess.js'
 import { Generated, board, fixed, movesTex, percent, sansOf, ucisOf, word } from '../../paper.mjs'
 
@@ -131,6 +131,113 @@ g.block('QuizBoard', board(q.fen, { better: ucisOf(q.fen, [top[0].move])[0], siz
 g.def('QuizFen', `\\fen{${q.fen}}`).def('QuizLine', movesTex(q.fen, qSans)).def('QuizUci', `\\uci{${ucisOf(q.fen, qSans).join(' ')}}`)
 g.def('QuizOptions', top.map((o) => `${movesTex(q.fen, [o.move])} (${fixed(o.eval / 100, 1)})`).join(', '))
 g.def('QuizLead', fixed(qrow.lead / 100, 1))
+
+// ---- the threat search ----
+const threats = json(join(resultsDir('drill-decks'), 'threats.json'))
+const trows = json(join(privateDir('drill-decks'), 'threats-rows.json'))
+claim(threats.app === census.app, "the threat search ran on the census's app commit")
+claim(threats.failed === 0 && threats.items === M.scored, 'the threat search read every scored position')
+const KEYS = ['items', 'inCheck', 'searched', 'threatened', 'mate', 'material']
+/** Counts summed over groups of the search's summaries. */
+const sum = (groups) => {
+  const out = Object.fromEntries(KEYS.map((k) => [k, groups.reduce((s, x) => s + x[k], 0)]))
+  for (const k of ['tp', 'fp', 'fn', 'tn']) out[k] = groups.reduce((s, x) => s + x.gateOnSearched[k], 0)
+  return out
+}
+const TC = threats.byCell
+const cellsWhere = (test) => Object.entries(TC).filter(([k]) => test(k)).map(([, v]) => v)
+const TG = {
+  defensive: sum(cellsWhere((k) => k.startsWith('holds/') && !k.endsWith('/other'))),
+  attacking: sum(cellsWhere((k) => !k.startsWith('holds/') && k.endsWith('/other'))),
+  both: sum(cellsWhere((k) => !k.startsWith('holds/') && !k.endsWith('/other'))),
+  neither: sum([TC['holds/other']]),
+}
+claim(TG.defensive.items === n(M.shape, 'defensive') && TG.attacking.items === n(M.shape, 'attacking') && TG.both.items === both && TG.neither.items === neither, "the search's cells are the census's")
+const A = sum([threats.all])
+const share = (k, of) => (of ? percent(k / of, 0) : '--')
+const threatRow = (label, x) =>
+  `${label} & ${x.items} & ${x.inCheck} & ${x.threatened} & ${share(x.threatened, x.searched)} & ${x.mate} & ${share(x.tp + x.fp, x.searched)} & ${share(x.tp, x.tp + x.fp)} & ${share(x.tp, x.tp + x.fn)} \\\\`
+g.block('ThreatTable', [
+  '\\begin{tabular}{lrrrrrrrr}',
+  '\\toprule',
+  ' & & & \\multicolumn{3}{c}{threatened} & \\multicolumn{3}{c}{the gate} \\\\',
+  '\\cmidrule(lr){4-6}\\cmidrule(lr){7-9}',
+  ' & positions & in check & $n$ & \\% & mate & fires \\% & precision \\% & recall \\% \\\\',
+  '\\midrule',
+  threatRow('clear defensive miss', TG.defensive),
+  threatRow('clear missed win', TG.attacking),
+  threatRow('both', TG.both),
+  threatRow('no material change', TG.neither),
+  '\\midrule',
+  ...ORDER.map((t) => threatRow(`\\texttt{${t}}`, sum([threats.byTheme[t]]))),
+  '\\midrule',
+  threatRow('all', A),
+  '\\bottomrule',
+  '\\end{tabular}',
+].join('\n'))
+g.def('Budget', threats.budget.nodes.toLocaleString('en-US')).def('Searches', threats.searches.toLocaleString('en-US'))
+g.def('InCheck', String(A.inCheck)).def('Searched', A.searched.toLocaleString('en-US')).def('Threatened', String(A.threatened)).def('ThreatShare', share(A.threatened, A.searched))
+g.def('ThreatMate', String(A.mate)).def('ThreatMaterial', String(A.material))
+
+const N = TG.neither
+const nShare = N.threatened / N.searched
+claim(nShare >= 0.28 && nShare <= 0.39, 'about a third of the no-change positions were threatened')
+g.def('NeitherSearched', String(N.searched)).def('NeitherThreat', String(N.threatened)).def('NeitherThreatShare', percent(nShare, 0))
+
+const DG = TG.defensive
+const selfInflicted = DG.searched - DG.threatened
+claim(selfInflicted / DG.searched >= 0.35 && selfInflicted / DG.searched <= 0.45, 'about two in five clear defensive misses were self-inflicted')
+g.def('DefSearched', String(DG.searched)).def('DefThreat', String(DG.threatened)).def('DefThreatShare', share(DG.threatened, DG.searched))
+g.def('SelfInflicted', String(selfInflicted)).def('SelfShare', share(selfInflicted, DG.searched))
+
+const DW = sum([threats.byTheme.defensiveMove])
+claim(threats.byTheme.defensiveMove.gate === DW.items, 'the gate fires on every defensive-move position')
+claim(DW.threatened / DW.searched > defFit, 'the search finds the defensive-move word right more often than the stored lines do')
+g.def('DefWordSearched', String(DW.searched)).def('DefWordThreat', String(DW.threatened)).def('DefWordThreatShare', share(DW.threatened, DW.searched))
+g.def('DefWordOfThreats', share(DW.threatened, A.threatened)).def('DefWordFalse', String(DW.searched - DW.threatened))
+
+const PT = sum(PHASES.map((t) => threats.byTheme[t]))
+const phaseRecall = PT.tp / (PT.tp + PT.fn)
+claim(phaseRecall < 0.5, 'the gate sees under half of the threats filed under a phase')
+claim(PT.fn / A.fn > 0.5, "most of the gate's missed threats are filed under a phase")
+g.def('PhaseThreat', String(PT.threatened)).def('PhaseThreatOfThreats', share(PT.threatened, A.threatened)).def('PhaseGateRecall', percent(phaseRecall, 0)).def('PhaseGateMissed', String(PT.fn))
+
+// The gate's false alarms that are a loose pawn alone, which the two-point rule never counts.
+const K = await chess('src/services/knowledge/index.ts')
+const falseAlarms = trows.filter((r) => r.gate && r.threatened === false)
+const loosePawnOnly = (r) => {
+  const it = byId.get(r.id)
+  const gate = K.readThreatGate(it.fen, new Chess(it.fen).turn())
+  return gate.f7 === null && gate.mateThreats.length === 0 && gate.hanging.length > 0 && gate.hanging.every((h) => h.piece === 'p')
+}
+const pawnOnly = falseAlarms.filter(loosePawnOnly).length
+const defWordPawnOnly = falseAlarms.filter((r) => r.theme === 'defensiveMove' && loosePawnOnly(r)).length
+claim(falseAlarms.length === A.fp, "the rows' false alarms are the summary's")
+claim(pawnOnly / A.fp > 0.5, "most of the gate's false alarms are a loose pawn alone")
+g.def('GatePrecision', share(A.tp, A.tp + A.fp)).def('GateRecall', share(A.tp, A.tp + A.fn)).def('GateMissed', String(A.fn))
+g.def('GateFalse', String(A.fp)).def('GatePawnOnly', String(pawnOnly)).def('GatePawnOnlyShare', share(pawnOnly, A.fp)).def('DefWordPawnOnly', String(defWordPawnOnly))
+
+const passT = threats.all.passCostThreatened
+const passN = threats.all.passCostNot
+claim(passT > 1.5 * passN, 'passing costs him more when he was threatened')
+g.def('PassThreat', fixed(passT, 0)).def('PassNot', fixed(passN, 0))
+
+const QT = threats.quiet
+claim(QT.items === N.searched - N.threatened, 'the quiet positions are the unthreatened no-change ones')
+claim(QT.quiz > Q.plan, "the deck's quiet positions make more one-answer plan questions than the quiz has")
+g.def('Quiet', String(QT.items)).def('QuietQuiz', String(QT.quiz)).def('QuietQuizShare', share(QT.quiz, QT.items))
+
+// A quiet position that would make a plan question: the first in the deck's own order.
+const qr = trows.find((r) => r.quiz)
+const qi = byId.get(qr.id)
+const qTop = [...qi.options].sort((a, b) => b.eval - a.eval).slice(0, 3)
+const qBest = qi.options.find((o) => o.move === qi.best)
+claim(qTop[0].move === qi.best, "the quiet example's best option is the deck's best move")
+const qbSans = sansOf(qBest.line)
+g.block('QuietBoard', board(qi.fen, { played: ucisOf(qi.fen, [qi.played])[0], better: qi.bestUci, size: '14pt' }))
+g.def('QuietFen', `\\fen{${qi.fen}}`).def('QuietPlayed', movesTex(qi.fen, [qi.played])).def('QuietDrop', String(qi.wpDrop))
+g.def('QuietLine', movesTex(qi.fen, qbSans)).def('QuietUci', `\\uci{${ucisOf(qi.fen, qbSans).join(' ')}}`).def('QuietTheme', `\\texttt{${qi.theme}}`)
+g.def('QuietOptions', qTop.map((o) => `${movesTex(qi.fen, [o.move])} (${fixed(o.eval / 100, 1)})`).join(', '))
 
 g.write(join(HERE, 'generated.tex'))
 console.error('wrote projects/drill-decks/paper/generated.tex')
