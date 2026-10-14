@@ -79,9 +79,11 @@ app's gets a parity eval, like `projects/winprob-parity/parity.py`.
 ## Porting a winner to the app
 
 - A port is its own pull request on the app repository, made by its rules (its
-  `CLAUDE.md`, its services and contracts, `npm run verify`). It carries the
-  evidence: this repository's report and the commit of the eval that produced
-  it.
+  `CLAUDE.md`, its services and contracts, `npm run verify`). Its description
+  carries the evidence: this repository's report and the commit of the eval
+  that produced it. The app's code, docs and routines never cite this
+  repository or its papers: the research shapes the app without being
+  referenced there.
 - After the port merges, move `bridge/chess.json` to the merge commit and
   rerun the eval, so the lab's baseline is the app as it now runs.
 - Merging to the app's `main` deploys to production, so it happens only on
