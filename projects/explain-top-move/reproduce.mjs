@@ -75,12 +75,13 @@ const appDefends = () => existsSync(join(CHESS_DIR, 'src', 'services', 'review',
 /**
  * Which kept rounds after the kept variant the pinned app carries, each read
  * from a mark its change left in the app's source: round 10's "an even trade",
- * round 11's `takesBack`, round 12's defense searches.
+ * round 11's `takesBack`, round 12's defense searches, round 14's
+ * `materialChange`.
  */
 function appCarries() {
   const lessonFile = join(CHESS_DIR, 'src', 'services', 'knowledge', 'detectors', 'lesson.ts');
   const lesson = existsSync(lessonFile) ? readFileSync(lessonFile, 'utf8') : '';
-  return { v10: lesson.includes('an even trade'), v11: /\btakesBack\b/.test(lesson), v12: appDefends() };
+  return { v10: lesson.includes('an even trade'), v11: /\btakesBack\b/.test(lesson), v12: appDefends(), v14: /\bmaterialChange\b/.test(lesson) };
 }
 
 function rerun(dir) {

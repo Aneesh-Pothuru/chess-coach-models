@@ -95,7 +95,7 @@ const roundRows = variants.map(v => {
 // The judge read every kept round but those that fix errors, and preferred each one on both halves.
 const verdictOf = r => judgeOf.get(r.variant === 'v7b' ? '7 and 7b' : String(r.round));
 const unjudged = state.rounds.filter(r => !verdictOf(r)).map(r => r.round);
-claim(unjudged.join() === '1,2,11', 'the judge read every kept round but rounds 1, 2 and 11');
+claim(unjudged.join() === '1,2,11,14', 'the judge read every kept round but rounds 1, 2, 11 and 14');
 claim(state.rounds.filter(verdictOf).every(r => verdictOf(r).keepByRule), 'every kept round the judge read was preferred on both halves');
 claim(['5', '9', '13'].every(r => !judgeOf.get(r).keepByRule), 'the judge did not prefer rounds 5, 9 and 13');
 const newShare = j => (j.tally.train.new + j.tally.test.new) / (j.tally.train.new + j.tally.train.old + j.tally.test.new + j.tally.test.old);
@@ -103,8 +103,9 @@ claim(['9', '13'].every(r => newShare(judgeOf.get(r)) < 0.1), 'rounds 9 and 13 w
 g.def('UnjudgedKept', listed(unjudged.map(String)));
 // A round graded on documents rebuilt for it has no rates on the rounds' documents: its row points to its own table.
 const rebuilt = new Map(repro.rebuilt.map(r => [r.variant, r]));
-for (const v of [...kept.keys(), ...notKept.keys()].filter(v => rebuilt.has(v) && !variants.includes(v))) {
-  const judge = judgeOf.get(String(kept.get(v) ?? notKept.get(v)));
+const roundOf = v => kept.get(v) ?? notKept.get(v);
+for (const v of [...kept.keys(), ...notKept.keys()].filter(v => rebuilt.has(v) && !variants.includes(v)).sort((a, b) => roundOf(a) - roundOf(b))) {
+  const judge = judgeOf.get(String(roundOf(v)));
   roundRows.push(`${v} & ${esc(changeLine(v) ?? '')}${kept.has(v) ? '' : ' (\\emph{not kept})'} & \\multicolumn{5}{c}{\\emph{graded on rebuilt documents (Table~\\ref{tab:rebuilt})}} & ${tally(judge)} \\\\`);
 }
 g.block('RoundsTable', [
@@ -261,6 +262,36 @@ g.def('RoundThirteenChangedTest', String(thirteenSplit('test').textsChanged)).de
     .def('RoundThirteenJudged', String(cuts.length))
     .def('RoundThirteenQuotePointer', esc(quote.pointer)).def('RoundThirteenQuoteLong', esc(quote.long));
 }
+
+// ---- round 14: an amount in the pieces it is made of, on the documents round 13 was graded on
+const fourteen = rebuilt.get('v14');
+claim(fourteen?.sameMoments && fourteen.gradesEqual, "round 14's grades equal its base's on the documents it was graded on");
+const fourteenSplit = s => fourteen.splits.find(x => x.split === s);
+const AMOUNT_DEFECT_LABEL = {
+  amountNamesUnwon: 'an amount that names pieces other than the ones that changed hands',
+  fallenGivenBack: 'a piece said to fall that the line gives back',
+};
+const F = fourteen.defects;
+claim(F && Object.keys(F.base).every(d => DEFECT_LABEL[d] || AMOUNT_DEFECT_LABEL[d]), 'round 14 counts the defects the paper names');
+claim(Object.keys(AMOUNT_DEFECT_LABEL).every(d => F.base[d] > 0 && F.variant[d] === 0), 'round 14 removes both defects it counts');
+claim(Object.keys(DEFECT_LABEL).every(d => F.base[d] === 0 && F.variant[d] === 0), "none of round 11's defects appears in round 14's texts or its base's");
+const fourteenDefects = read(join(flow, 'v14', 'defects.json'));
+const defectMoments = new Set(Object.keys(AMOUNT_DEFECT_LABEL).flatMap(d => fourteenDefects.base.moments[d]));
+const fourteenBase = new Map(jsonl(join(flow, 'v14', 'rebuilt', 'base.results.jsonl')).map(m => [m.id, m]));
+const fourteenChanged = jsonl(join(flow, 'v14', 'rebuilt', 'v14.results.jsonl')).filter(m => m.textHash !== fourteenBase.get(m.id)?.textHash);
+claim(fourteenChanged.length === defectMoments.size && fourteenChanged.every(m => defectMoments.has(m.id)), 'round 14 changes the texts of its defect moments and no other');
+const fourteenPatch = readFileSync(join(flow, 'v14', 'change.patch'), 'utf8');
+claim(['they win a bishop for two pawns', 'limits the loss to a rook for a pawn', "a pawn's worth of material"].every(q => fourteenPatch.includes(q)), "round 14's tests pin the phrases the paper quotes");
+g.def('RoundFourteenChangedTest', String(fourteenSplit('test').textsChanged)).def('RoundFourteenChangedTrain', String(fourteenSplit('train').textsChanged))
+  .def('RoundFourteenAmountMoments', String(F.base.amountNamesUnwon)).def('RoundFourteenFallenMoments', String(F.base.fallenGivenBack))
+  .def('RoundFourteenDefectMoments', String(defectMoments.size));
+const roundElevenKinds = counts => Object.keys(DEFECT_LABEL).reduce((n, d) => n + counts[d], 0);
+g.block('DefectsFourteenTable', [
+  '\\begin{tabular}{l rr}', '\\toprule', 'defect & base & v14 \\\\', '\\midrule',
+  ...Object.keys(AMOUNT_DEFECT_LABEL).map(d => `${AMOUNT_DEFECT_LABEL[d]} & ${F.base[d]} & ${F.variant[d]} \\\\`),
+  `the five of Table~\\ref{tab:defects} & ${roundElevenKinds(F.base)} & ${roundElevenKinds(F.variant)} \\\\`,
+  '\\bottomrule', '\\end{tabular}',
+].join('\n'));
 
 // ---- the judge's controls, as reproduce.mjs recomputed them
 const c = repro.controls;

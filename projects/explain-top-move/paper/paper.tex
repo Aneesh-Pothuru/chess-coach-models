@@ -99,7 +99,10 @@ that the judge's notes named, so the judge decides them. Round 11 fixes five def
 off the text and the board, so the round counts them rather than asking the judge. Round 12
 answers the question the player's second set of calibration answers kept asking, what happens
 when the opponent simply saves the attacked piece, so the judge decides it. Round 13 shortens round
-12's sentence where the judge's notes said it ran long, so the judge decides it too.
+12's sentence where the judge's notes said it ran long, so the judge decides it too. Round 14
+corrects how the lessons name an amount: its number was the line's net, but the pieces it named
+were not always the ones that changed hands. That is read off the board, which the judge does not
+see, so the round counts its defects as round 11 did.
 
 \begin{table}[!htbp]
 \centering\footnotesize
@@ -160,6 +163,16 @@ reply, the sentence points to the engine's line instead of printing its moves ag
 (``\RoundThirteenQuotePointer''); where the line would show more than \RoundThirteenCut{} moves, it
 says only when the gain is in (``\RoundThirteenQuoteLong''). The judge wanted the moves back
 (Figure~\ref{fig:exh}).
+\item[Round 14: an amount in the pieces it is made of.] The lesson turned a line's net material
+into a count whatever pieces made it up, so a bishop won for two pawns was ``a pawn'' and a rook
+won for a pawn ``a piece and a pawn''; the same count picked the piece said to fall, and some
+lines gave that piece back. Each line now carries the pieces its mover won and gave, by kind, with
+trades set off (a piece against one of its kind, then a knight against a bishop), and an amount
+keeps its count only when the count names those pieces. Otherwise it names them: ``they win a
+bishop for two pawns'', ``limits the loss to a rook for a pawn''. Where one sentence gives an
+amount for two lines whose pieces differ, it says the worth (``a pawn's worth of material''), and
+a piece is said to fall only when the line keeps it. The round was graded on round 13's documents
+(Section~\ref{sec:results}).
 \end{description}
 
 \begin{table}[!htbp]
@@ -283,6 +296,20 @@ engine's line, the gain comes after the moves the lesson prints beside it, and a
 line is not on the card at all. Round 12's long lines had split the judge evenly; set against the
 same sentence without its moves, it wanted the moves.
 
+Round 14 was graded on the documents round 13 was, against the pinned app's texts on them, after
+the grader learned to read the pieces behind each amount and the round's new phrases. Every
+amount the base says is the line's net, which is what faithful checks, so its misnamed pieces
+passed; no grade moves with the round (Table~\ref{tab:rebuilt}). One of the grader's fixes came
+after it first graded the round: it read ``a rook for a pawn'' as ``a rook'' where an amount ends
+a sentence, and failed those amounts. With the longer phrases tried first, it grades the base
+exactly as before, as it did after each of its other changes. What the round fixes is counted
+instead (Table~\ref{tab:defectsfourteen}): in \RoundFourteenAmountMoments{} of the base's moments
+an amount names pieces other than the ones that changed hands, and in
+\RoundFourteenFallenMoments{} a piece said to fall is given back later in the line. In round 14's
+texts neither is left and none of round 11's defects appears, and the texts change on those
+\RoundFourteenDefectMoments{} moments (\RoundFourteenChangedTest{} test,
+\RoundFourteenChangedTrain{} train) and on no other.
+
 \begin{table}[!htbp]
 \centering\footnotesize
 \RebuiltTable
@@ -297,6 +324,14 @@ same sentence without its moves, it wanted the moves.
 \caption{The text defects round 11 fixes, counted in each variant's texts on every moment of round
 10's rebuilt documents (\texttt{defects.mjs}).}
 \label{tab:defects}
+\end{table}
+
+\begin{table}[!htbp]
+\centering\footnotesize
+\DefectsFourteenTable
+\caption{The text defects round 14 fixes, counted in the pinned app's texts (base) and round 14's
+on every moment of round 13's documents (\texttt{defects.mjs}), with round 11's five beside them.}
+\label{tab:defectsfourteen}
 \end{table}
 
 \section{Reproduction in the lab}

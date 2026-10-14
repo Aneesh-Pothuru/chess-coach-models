@@ -2,11 +2,12 @@
   "eval": "explain-top-move reproduction",
   "chess": {
     "pinned_commit": "3a6c0992cc91d184a9d2254e6d6bf4d1046c0e01",
-    "records_commit": "b2e487f01ac0d0b992dfc3027c0ff9feb8b1fd1e",
+    "records_commit": "f5998ae76d2c5b7b05d9397ccc1519e719d91942",
     "carries": {
       "v10": true,
       "v11": true,
-      "v12": true
+      "v12": true,
+      "v14": false
     }
   },
   "recomputed": {
@@ -650,6 +651,67 @@
       ],
       "gradesEqual": true,
       "defects": null
+    },
+    {
+      "variant": "v14",
+      "sameMoments": true,
+      "splits": [
+        {
+          "split": "test",
+          "moments": 153,
+          "base": {
+            "faithful": 153,
+            "concrete": 127,
+            "named_deep": 144,
+            "faithfulAll": 152
+          },
+          "variant": {
+            "faithful": 153,
+            "concrete": 127,
+            "named_deep": 144,
+            "faithfulAll": 152
+          },
+          "textsChanged": 32
+        },
+        {
+          "split": "train",
+          "moments": 180,
+          "base": {
+            "faithful": 179,
+            "concrete": 149,
+            "named_deep": 166,
+            "faithfulAll": 179
+          },
+          "variant": {
+            "faithful": 179,
+            "concrete": 149,
+            "named_deep": 166,
+            "faithfulAll": 179
+          },
+          "textsChanged": 26
+        }
+      ],
+      "gradesEqual": true,
+      "defects": {
+        "base": {
+          "lowercaseReveal": 0,
+          "recaptureOutright": 0,
+          "quietForcing": 0,
+          "unsettledVsOutright": 0,
+          "pieceOverAmount": 0,
+          "amountNamesUnwon": 51,
+          "fallenGivenBack": 10
+        },
+        "variant": {
+          "lowercaseReveal": 0,
+          "recaptureOutright": 0,
+          "quietForcing": 0,
+          "unsettledVsOutright": 0,
+          "pieceOverAmount": 0,
+          "amountNamesUnwon": 0,
+          "fallenGivenBack": 0
+        }
+      }
     }
   ],
   "kept": "v8",

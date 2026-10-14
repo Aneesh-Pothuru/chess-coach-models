@@ -49,10 +49,10 @@
 \newcommand{\KeptTrainConcreteVsBase}{+6.8 [3.2, 10.6]}
 \newcommand{\KeptTrainTextsChanged}{87}
 \newcommand{\KeptVariant}{v8}
-\newcommand{\RoundCount}{13}
-\newcommand{\RoundCountCap}{13}
-\newcommand{\KeptRoundCount}{ten}
-\newcommand{\UnjudgedKept}{1, 2 and 11}
+\newcommand{\RoundCount}{14}
+\newcommand{\RoundCountCap}{14}
+\newcommand{\KeptRoundCount}{eleven}
+\newcommand{\UnjudgedKept}{1, 2, 11 and 14}
 \newcommand{\RoundsTable}{%
 \begin{tabularx}{\textwidth}{l L rrrr r r}
 \toprule
@@ -75,6 +75,7 @@ v10 & Say the natural capture that only trades as the trade it is & \multicolumn
 v11 & Five text defects, fixed where the texts are written & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} &  \\
 v12 & Say what the natural defense to the better move costs & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 19--9 / 22--12 \\
 v13 & Leave out the moves the defense sentence does not need (\emph{not kept}) & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 0--16 / 4--24 \\
+v14 & Say an amount in the pieces it is made of & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} &  \\
 \bottomrule
 \end{tabularx}
 }
@@ -111,6 +112,8 @@ v12 & test & 152 & 152 & 127 & 143 & 151 & 17 \\
 v12 & train & 177 & 176 & 149 & 163 & 176 & 14 \\
 v13 & test & 153 & 153 & 127 & 144 & 152 & 14 \\
 v13 & train & 180 & 179 & 149 & 166 & 179 & 8 \\
+v14 & test & 153 & 153 & 127 & 144 & 152 & 32 \\
+v14 & train & 180 & 179 & 149 & 166 & 179 & 26 \\
 \bottomrule
 \end{tabular}
 }
@@ -165,6 +168,22 @@ a lost piece worth more than the amount named & 6 & 0 \\
 \newcommand{\RoundThirteenJudged}{22}
 \newcommand{\RoundThirteenQuotePointer}{if they move the bishop (Bb2), as in the engine's line, you have won a pawn by move 14}
 \newcommand{\RoundThirteenQuoteLong}{if they move the queen (Qxd5), you have won about 6 pawns of material by move 19}
+\newcommand{\RoundFourteenChangedTest}{32}
+\newcommand{\RoundFourteenChangedTrain}{26}
+\newcommand{\RoundFourteenAmountMoments}{51}
+\newcommand{\RoundFourteenFallenMoments}{10}
+\newcommand{\RoundFourteenDefectMoments}{58}
+\newcommand{\DefectsFourteenTable}{%
+\begin{tabular}{l rr}
+\toprule
+defect & base & v14 \\
+\midrule
+an amount that names pieces other than the ones that changed hands & 51 & 0 \\
+a piece said to fall that the line gives back & 10 & 0 \\
+the five of Table~\ref{tab:defects} & 0 & 0 \\
+\bottomrule
+\end{tabular}
+}
 \newcommand{\LongerPicked}{305}
 \newcommand{\LongerDecided}{326}
 \newcommand{\LongerRounds}{3, 4, 5, 7, 7b, 8 and 9}
@@ -233,11 +252,11 @@ trim control, round 13: the decoy preferred & 1 of 20 (16 the full text, 3 same)
 \newcommand{\ReproLinesMatched}{27}
 \newcommand{\ReproLines}{27}
 \newcommand{\AppCommit}{\texttt{3a6c099}}
-\newcommand{\RecordsCommit}{\texttt{b2e487f}}
+\newcommand{\RecordsCommit}{\texttt{f5998ae}}
 \newcommand{\RerunSearches}{the capture searches on it (88 kept) and the defense searches (51 kept)}
 \newcommand{\RerunEvidence}{review-evidence/6}
 \newcommand{\AppKeptThrough}{12}
-\newcommand{\AppKeptSentence}{The app at that commit carries every kept round.}
+\newcommand{\AppKeptSentence}{The app at that commit carries the kept rounds through round 12; round 14 is not in it yet.}
 \newcommand{\RerunTestMoments}{153}
 \newcommand{\RerunTestShared}{146}
 \newcommand{\RerunTestSameGrades}{129}
