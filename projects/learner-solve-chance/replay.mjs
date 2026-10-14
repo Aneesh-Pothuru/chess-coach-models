@@ -2,8 +2,9 @@
 // cards, the app's learner folded on the record before each one, and the two
 // solve chances it gives (the headline rating's and the view of the
 // attempt's channel). The same replay runs over the profile as the app holds
-// it. Also the learner's own self-check and the difficulty each estimate would
-// aim a set at today. Rows go to private/, since the attempts are his.
+// it. Also the learner's own self-check, the difficulty each estimate would
+// aim a set at today, and the estimate the app aims it from (servingAbility).
+// Rows go to private/, since the attempts are his.
 //
 //   bridge/run.sh projects/learner-solve-chance/replay.mjs
 import fs from 'node:fs'
@@ -17,7 +18,7 @@ const { catalogue } = await chess('src/services/learner/competencies.ts')
 const { observations, byCompetency } = await chess('src/services/learner/evidence.ts')
 const { foldAbilities } = await chess('src/services/learner/ability.ts')
 const { channelOf } = await chess('src/services/learner/channels.ts')
-const { solveChance, serveTarget, MIN_ATTEMPTS, LADDER_START } = await chess('src/services/learner/index.ts')
+const { solveChance, serveTarget, servingAbility, MIN_ATTEMPTS, LADDER_START } = await chess('src/services/learner/index.ts')
 const { ptDayKey } = await chess('src/core/time/index.ts')
 
 const loaded = loadProfile(join(CHESS_DIR, 'progress', 'profile.json'))
@@ -206,11 +207,18 @@ const today = learner
     const pool = bank[s.id].map((p) => ({ id: p.id, rating: p.rating }))
     const phase = s.attempts < MIN_ATTEMPTS ? 'new' : 'core'
     const view = s.channels.themed
+    const serving = servingAbility(s, 'themed')
     return {
       bucket: s.id,
       phase,
       head: { rating: s.ability.rating, rd: s.ability.rd, target: serveTarget(s.ability, phase, pool, LADDER_START) },
       view: view ? { rating: view.rating, rd: view.rd, n: view.n, target: serveTarget({ ...s.ability, rating: view.rating, rd: view.rd }, phase, pool, LADDER_START) } : null,
+      app: {
+        from: view ? 'view' : s.seed?.channel === 'themed' ? 'totals' : 'headline',
+        rating: serving.rating,
+        rd: serving.rd,
+        target: serveTarget(serving, phase, pool, LADDER_START),
+      },
       bankMax: Math.max(...pool.map((p) => p.rating)),
       bankSize: pool.length,
     }

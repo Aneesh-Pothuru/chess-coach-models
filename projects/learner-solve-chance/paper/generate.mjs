@@ -160,19 +160,25 @@ g.block('BucketTable', [
 const withView = r.today.filter((t) => t.view)
 claim(withView.every((t) => t.view.target > t.head.target), 'the view aims every bucket that has one higher than the headline does')
 claim(withView.every((t) => t.view.target <= t.bankMax + 100), 'the bank can serve where the view aims')
+claim(withView.every((t) => t.app.from === 'view' && t.app.target === t.view.target), 'the app aims every bucket that has a view from it')
+const totalsOnly = r.today.filter((t) => !t.view)
+claim(totalsOnly.length > 0 && totalsOnly.every((t) => t.app.from === 'totals' && t.app.target > t.head.target), 'the app aims every bucket without a view from its stored totals, higher than the headline does')
+claim(totalsOnly.every((t) => t.app.target <= t.bankMax + 100), 'the bank can serve where the stored totals aim')
 const ups = withView.map((t) => t.view.target - t.head.target)
+const totUps = totalsOnly.map((t) => t.app.target - t.head.target)
 g.def('LastDay', esc(rec.lastAttempt))
-g.def('UpMin', String(Math.min(...ups))).def('UpMax', String(Math.max(...ups))).def('WithView', word(withView.length)).def('WithoutView', word(r.today.length - withView.length))
+g.def('UpMin', String(Math.min(...ups))).def('UpMax', String(Math.max(...ups))).def('WithView', word(withView.length)).def('WithoutView', word(totalsOnly.length))
+g.def('TotUpMin', String(Math.min(...totUps))).def('TotUpMax', String(Math.max(...totUps)))
 const phases = new Set(r.today.map((t) => t.phase))
 claim(phases.size === 1 && phases.has('core'), 'every bucket is served at the core target today')
 g.block('TodayTable', [
-  '\\begin{tabular}{lrrrrr}',
+  '\\begin{tabular}{lrrrrrrr}',
   '\\toprule',
-  '& \\multicolumn{2}{c}{headline} & \\multicolumn{2}{c}{themed view} & \\\\',
-  '\\cmidrule(lr){2-3}\\cmidrule(lr){4-5}',
-  'bucket & rating & aims at & rating & aims at & hardest in the bank \\\\',
+  '& \\multicolumn{2}{c}{headline} & \\multicolumn{2}{c}{themed view} & \\multicolumn{2}{c}{stored totals} & \\\\',
+  '\\cmidrule(lr){2-3}\\cmidrule(lr){4-5}\\cmidrule(lr){6-7}',
+  'bucket & rating & aims at & rating & aims at & rating & aims at & hardest in the bank \\\\',
   '\\midrule',
-  ...r.today.map((t) => `${bucketName(t.bucket)} & ${t.head.rating} $\\pm$ ${t.head.rd} & ${t.head.target} & ${t.view ? `${t.view.rating} $\\pm$ ${t.view.rd}` : 'none'} & ${t.view ? t.view.target : '--'} & ${t.bankMax} \\\\`),
+  ...r.today.map((t) => `${bucketName(t.bucket)} & ${t.head.rating} $\\pm$ ${t.head.rd} & ${t.head.target} & ${t.view ? `${t.view.rating} $\\pm$ ${t.view.rd}` : 'none'} & ${t.view ? t.view.target : '--'} & ${t.app.from === 'totals' ? `${t.app.rating} $\\pm$ ${t.app.rd}` : '--'} & ${t.app.from === 'totals' ? t.app.target : '--'} & ${t.bankMax} \\\\`),
   '\\bottomrule',
   '\\end{tabular}',
 ].join('\n'))

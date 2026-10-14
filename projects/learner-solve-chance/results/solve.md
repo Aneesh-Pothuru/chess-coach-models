@@ -1,6 +1,6 @@
 # The learner's solve chances: results
 
-Written by fit.mjs. App commit ae69a3e09304681871fdedc0aa8647cf157de288. Bootstrap: 1000 draws over days, seed 7.
+Written by fit.mjs. App commit 5c846e207ccc7edfdf3d24e49e96d438144aafe9. Bootstrap: 1000 draws over days, seed 7.
 
 ## Round 1, on the rebuilt record
 
@@ -46,19 +46,19 @@ The learner's own self-check on this profile: 40 held-out attempts, Brier 0.0751
 
 ## What each estimate would aim a set at today
 
-| Bucket | Phase | Headline | Its target | Themed view | Its target | Hardest in the bank |
-|---|---|---:|---:|---:|---:|---:|
-| planning | core | 918 ± 222 | 725 | 1123 ± 94 (n=25) | 930 | 1878 |
-| hangingPiece | core | 1608 ± 245 | 1415 | 1797 ± 108 (n=17) | 1604 | 1899 |
-| defensiveMove | core | 1096 ± 246 | 903 | none | n/a | 1898 |
-| mateIn1 | core | 1587 ± 247 | 1394 | 1833 ± 82 (n=38) | 1640 | 1896 |
-| fork | core | 1006 ± 280 | 813 | 1282 ± 119 (n=12) | 1089 | 1897 |
-| mateIn2 | core | 796 ± 290 | 603 | 1083 ± 118 (n=12) | 890 | 1897 |
-| mateIn3 | core | 1066 ± 314 | 873 | 1084 ± 212 (n=2) | 891 | 1899 |
-| pawnEndgame | core | 1223 ± 318 | 1030 | none | n/a | 1887 |
-| discoveredAttack | core | 1056 ± 328 | 863 | none | n/a | 1899 |
-| op:london | core | 1056 ± 328 | 863 | none | n/a | 1494 |
-| attackingF2F7 | core | 1040 ± 337 | 847 | none | n/a | 1889 |
+| Bucket | Phase | Headline | Its target | Themed view | Its target | The app aims from | Its target | Hardest in the bank |
+|---|---|---:|---:|---:|---:|---|---:|---:|
+| planning | core | 918 ± 222 | 725 | 1123 ± 94 (n=25) | 930 | view, 1123 ± 94 | 930 | 1878 |
+| hangingPiece | core | 1608 ± 245 | 1415 | 1797 ± 108 (n=17) | 1604 | view, 1797 ± 108 | 1604 | 1899 |
+| defensiveMove | core | 1096 ± 246 | 903 | none | n/a | totals, 1182 ± 70 | 989 | 1898 |
+| mateIn1 | core | 1587 ± 247 | 1394 | 1833 ± 82 (n=38) | 1640 | view, 1833 ± 82 | 1640 | 1896 |
+| fork | core | 1006 ± 280 | 813 | 1282 ± 119 (n=12) | 1089 | view, 1282 ± 119 | 1089 | 1897 |
+| mateIn2 | core | 796 ± 290 | 603 | 1083 ± 118 (n=12) | 890 | view, 1083 ± 118 | 890 | 1897 |
+| mateIn3 | core | 1066 ± 314 | 873 | 1084 ± 212 (n=2) | 891 | view, 1084 ± 212 | 891 | 1899 |
+| pawnEndgame | core | 1223 ± 318 | 1030 | none | n/a | totals, 1418 ± 112 | 1225 | 1887 |
+| discoveredAttack | core | 1056 ± 328 | 863 | none | n/a | totals, 1362 ± 112 | 1169 | 1899 |
+| op:london | core | 1056 ± 328 | 863 | none | n/a | totals, 1362 ± 112 | 1169 | 1494 |
+| attackingF2F7 | core | 1040 ± 337 | 847 | none | n/a | totals, 1349 ± 85 | 1156 | 1889 |
 
 ## Round 1's rebuilt record, for completeness
 

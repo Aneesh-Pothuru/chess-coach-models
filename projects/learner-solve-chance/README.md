@@ -35,8 +35,10 @@ view on the attempts the app records next. On that look the app's owner
 chose to adopt the view before round 2: since chess PR 78 (merged as
 `ae69a3e`) the app aims a bucket's set from its themed view, and the skill
 map's next difficulty reads the same estimate. Round 2 decides whether it
-stays. Rerun at `ae69a3e`, every number here is unchanged. The numbers are in
-the paper,
+stays. Since chess PR 79 (merged as `5c846e2`), a bucket with no attempt logged
+in its own set aims from its stored totals read alone instead of the
+headline; round 2 scores no attempt in such a bucket. Rerun at `5c846e2`, every
+number here is unchanged. The numbers are in the paper,
 [`paper/paper.pdf`](paper/paper.pdf), and the script's report,
 [`results/solve.md`](results/solve.md).
 

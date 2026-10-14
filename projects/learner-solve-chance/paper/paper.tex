@@ -191,26 +191,30 @@ lowest chance, as he faced it, after the opponent's move.}\label{fig:example}
 \section{What it means for the app}
 
 The sets aimed far below him. Today the view aims a set \UpMin{} to \UpMax{} points higher than the
-headline in the \WithView{} buckets that have a themed view (Table~\ref{tab:today}); the other
-\WithoutView{} have no attempt in their own sets since the log began, so they keep the headline. The
-bank can serve every one of those targets. The view still under-predicts him, so sets aimed from it
-should still land above \TargetCore\%, but nearer.
+headline in the \WithView{} buckets that have a themed view (Table~\ref{tab:today}). The other
+\WithoutView{} have no attempt in their own sets since the log began, and the app aims them from
+their stored totals read alone at full weight, \TotUpMin{} to \TotUpMax{} points higher than the
+headline. The bank can serve every one of those targets. The view still under-predicts him, so sets
+aimed from it should still land above \TargetCore\%, but nearer.
 
 By its rule this round adopts nothing: its test did not stand, and the profile's look, named
 beside it, decides nothing. On that look the app's owner chose to adopt the view at once: since
-commit \AppCommit{} the app aims a bucket's set from its themed view, and the skill map's next
-difficulty reads the same estimate. Round 2 decides whether it stays. It takes the attempts the app
+chess PR 78 the app aims a bucket's set from its themed view, and the skill map's next difficulty
+reads the same estimate; since PR 79, a bucket with no themed view aims from its stored totals
+instead of the headline. Commit \AppCommit{}, which this paper measures, has both. Round 2 decides
+whether the view stays; it scores no attempt in a bucket without one. It takes the attempts the app
 records after the last one in the profile at commit \AppCommit{} (played on \LastDay, Los Angeles
 time), each folded on everything before it as the app holds it, and runs once they fall on at least
 ten days. Rules 1 and 2 apply unchanged: sets now aim harder, and each estimate is still scored on
 the puzzles he was served.
 
 \begin{table}[!htbp]
-\centering\small
+\centering\footnotesize\setlength{\tabcolsep}{4pt}
 \TodayTable
 \caption{Each puzzle bucket today: each estimate's rating with its deviation, the difficulty a set
 would aim at from it (the core target, clamped to what the bucket can serve), and the hardest
-puzzle the bank holds.}
+puzzle the bank holds. The stored totals, read alone, are shown where the app aims from them: in a
+bucket with no themed view.}
 \label{tab:today}
 \end{table}
 
