@@ -597,6 +597,108 @@ function checkFork(att, listText, span, shown, surface) {
   return claim('forks', surface, shown, span, T(`${mv.san} attacks each piece named`))
 }
 
+/** "it moves the P off S": the reply takes that piece off S. */
+function checkMovesOff(att, pieceType, sq, span, shown, surface) {
+  const mv = att?.mv
+  if (!mv) return claim('defends_moves', surface, shown, span, F('the move does not replay'))
+  return mv.from === sq && mv.piece === pieceType
+    ? claim('defends_moves', surface, shown, span, T(`${mv.san} moves the ${WORD_OF_TYPE[pieceType]} off ${sq}`))
+    : claim('defends_moves', surface, shown, span, F(`${mv.san} does not move a ${WORD_OF_TYPE[pieceType]} off ${sq}`))
+}
+
+/** "it guards the P on S": after the reply its piece covers S, with that piece of its side still there. */
+function checkCoversOwn(att, pieceType, sq, span, shown, surface) {
+  const mv = att?.mv
+  if (!mv) return claim('defends_guards', surface, shown, span, F('the move does not replay'))
+  const cell = mv.board.get(sq)
+  if (!cell || cell.color !== mv.color || cell.type !== pieceType) return claim('defends_guards', surface, shown, span, F(`after ${mv.san} there is no ${WORD_OF_TYPE[pieceType]} of ${SIDE_NAME[mv.color]}'s on ${sq}`))
+  return mv.board.attackers(sq, mv.color).includes(mv.to)
+    ? claim('defends_guards', surface, shown, span, T(`after ${mv.san} the piece on ${mv.to} covers ${sq}`))
+    : claim('defends_guards', surface, shown, span, F(`after ${mv.san} the piece on ${mv.to} does not cover ${sq}`))
+}
+
+/** The better move a defence clause names: legal before the played move, and the engine's best. */
+function bestNamed(M, token, type, span, shown, surface) {
+  if (!M) return { fail: claim(type, surface, shown, span, U('no moment context')) }
+  const r = resolveSan(M.F0, token)
+  if (!r.ok) return { fail: claim(type, surface, shown, span, F(r.reason)) }
+  if (r.uci !== M.bestUci) return { fail: claim(type, surface, shown, span, U(`${token} is not the engine's best move: no line to read`)) }
+  return { uci: r.uci, mv: moveAt(M.F0, r.uci) }
+}
+
+/** "where X would have won it" / "which X would have won": X takes that piece on S, and the engine's line after X ends at least a pawn up. */
+function checkWouldWin(M, token, pieceType, sq, span, shown, surface) {
+  const b = bestNamed(M, token, 'would_win', span, shown, surface)
+  if (b.fail) return b.fail
+  if (b.mv.to !== sq || b.mv.captured !== pieceType) return claim('would_win', surface, shown, span, F(`${token} does not take a ${WORD_OF_TYPE[pieceType]} on ${sq}`))
+  if (!M.bestRead) return claim('would_win', surface, shown, span, U('no best line'))
+  return M.bestRead.net >= 1
+    ? claim('would_win', surface, shown, span, T(`${token} takes it, and the line ends ${M.bestRead.net} up`))
+    : claim('would_win', surface, shown, span, F(`${token} takes it, but the line ends ${M.bestRead.net}`))
+}
+
+/** "where it falls after X": the engine's line after X takes that piece on S, and ends at least a pawn up. */
+function checkFallsAfter(M, token, pieceType, sq, span, shown, surface) {
+  const b = bestNamed(M, token, 'falls_after', span, shown, surface)
+  if (b.fail) return b.fail
+  if (!M.bestRead) return claim('falls_after', surface, shown, span, U('no best line'))
+  const taken = M.bestRead.captures.some((c) => c.by === M.mover && c.piece === pieceType && c.square === sq)
+  if (!taken) return claim('falls_after', surface, shown, span, F(`the line after ${token} takes no ${WORD_OF_TYPE[pieceType]} on ${sq}`))
+  return M.bestRead.net >= 1
+    ? claim('falls_after', surface, shown, span, T(`the line after ${token} takes it, and ends ${M.bestRead.net} up`))
+    : claim('falls_after', surface, shown, span, F(`the line after ${token} takes it, but ends ${M.bestRead.net}`))
+}
+
+/** After `uci` from `fen`, the moved piece attacks the other side's P on S. */
+function movedPieceAttacks(fen, uci, pieceType, sq) {
+  const mv = moveAt(fen, uci)
+  if (!mv) return false
+  const cell = mv.board.get(sq)
+  return !!cell && cell.color === other(mv.color) && cell.type === pieceType && mv.board.attackers(sq, mv.color).includes(mv.to)
+}
+
+/** "where X would have attacked it" / "which X would have attacked": after X, the piece X moved attacks that piece on S. */
+function checkWouldAttack(M, token, pieceType, sq, span, shown, surface) {
+  const b = bestNamed(M, token, 'would_attack', span, shown, surface)
+  if (b.fail) return b.fail
+  return movedPieceAttacks(M.F0, b.uci, pieceType, sq)
+    ? claim('would_attack', surface, shown, span, T(`after ${token} the ${WORD_OF_TYPE[pieceType]} on ${sq} is attacked`))
+    : claim('would_attack', surface, shown, span, F(`after ${token} the moved piece does not attack a ${WORD_OF_TYPE[pieceType]} on ${sq}`))
+}
+
+/** "which X attacked": X is the played move, and after it the piece it moved attacks that piece on S. */
+function checkPlayedAttacked(M, token, pieceType, sq, span, shown, surface) {
+  if (!M) return claim('played_attacked', surface, shown, span, U('no moment context'))
+  const r = resolveSan(M.F0, token)
+  if (!r.ok) return claim('played_attacked', surface, shown, span, F(r.reason))
+  if (r.uci !== M.playedUci) return claim('played_attacked', surface, shown, span, F(`${token} is not the move played`))
+  return movedPieceAttacks(M.F0, r.uci, pieceType, sq)
+    ? claim('played_attacked', surface, shown, span, T(`after ${token} the ${WORD_OF_TYPE[pieceType]} on ${sq} is attacked`))
+    : claim('played_attacked', surface, shown, span, F(`after ${token} the moved piece does not attack a ${WORD_OF_TYPE[pieceType]} on ${sq}`))
+}
+
+/**
+ * "it takes away the check X would have given": X is the better move; it gives check before the played move and,
+ * with the played move made and the turn handed back, still would; after the reply it is legal and gives none.
+ */
+function checkTakesCheck(M, att, token, span, shown, surface) {
+  const mv = att?.mv
+  if (!M || !mv) return claim('takes_check', surface, shown, span, U('no moment context'))
+  const now = resolveSan(mv.afterFen, token)
+  if (!now.ok) return claim('takes_check', surface, shown, span, F(`after ${mv.san}: ${now.reason}`))
+  const later = moveAt(mv.afterFen, now.uci)
+  if (later.board.inCheck()) return claim('takes_check', surface, shown, span, F(`after ${mv.san}, ${token} still gives check`))
+  if (now.uci !== M.bestUci) return claim('takes_check', surface, shown, span, F(`${token} is not the better move`))
+  const first = moveAt(M.F0, now.uci)
+  if (!first || !first.board.inCheck()) return claim('takes_check', surface, shown, span, F(`${token} gives no check before the played move`))
+  const f1 = load(M.F1)
+  if (!f1 || f1.inCheck()) return claim('takes_check', surface, shown, span, F('the played move gives check: the reply had to answer it'))
+  const turned = moveAt(flipFen(M.F1), now.uci)
+  return turned && turned.board.inCheck()
+    ? claim('takes_check', surface, shown, span, T(`${token} would still check after the played move, and after ${mv.san} it does not`))
+    : claim('takes_check', surface, shown, span, F(`after the played move ${token} would no longer give check`))
+}
+
 function findPieceAttackedBy(b, color, type, attackerSq) {
   for (const row of b.board()) for (const cell of row) if (cell && cell.color === color && cell.type === type && b.attackers(cell.square, b.get(attackerSq)?.color ?? 'w').includes(attackerSq)) return cell.square
   return null
@@ -1204,7 +1306,7 @@ function attackItems(list) {
  * `attOf(index)` says which move a clause at that index is about. Returns the
  * claims and the text with the matched clauses blanked out.
  */
-function clauseClaims(text, attOf, surface, shown) {
+function clauseClaims(text, attOf, surface, shown, M = null) {
   const attAt = typeof attOf === 'function' ? attOf : () => attOf
   const claims = []
   let rest = text
@@ -1253,6 +1355,15 @@ function clauseClaims(text, attOf, surface, shown) {
   take(/\bthe rook lands on the seventh rank and boxes the king in on its back rank\b/g, (_g, whole, att) => checkSeventh(att, [], whole, shown, surface))
   take(new RegExp(String.raw`\bthe (knight|bishop) settles on ${SQ}: a pawn-guarded outpost, and no enemy pawn is placed to attack it\b`, 'g'), ([p, sq], whole, att) => checkOutpost(att, TYPE_OF_WORD[p], sq, whole, shown, surface))
   take(new RegExp(String.raw`\b[Aa] pawn break: the ([a-h])-pawn strikes at ${SQ}\b[^.]*`, 'g'), ([f, sq], whole, att) => checkPawnBreak(att, f, sq, whole, shown, surface))
+  // What a quiet reply defends: the better move's target, its check, or the played move's target.
+  take(new RegExp(String.raw`\bit moves the ${PIECE} off ${SQ}, where ${TOKR} would have won it\b`, 'g'), ([p, sq, tok], whole, att) => [checkMovesOff(att, TYPE_OF_WORD[p], sq, whole, shown, surface), checkWouldWin(M, tok, TYPE_OF_WORD[p], sq, whole, shown, surface)])
+  take(new RegExp(String.raw`\bit moves the ${PIECE} off ${SQ}, where it falls after ${TOKR}`, 'g'), ([p, sq, tok], whole, att) => [checkMovesOff(att, TYPE_OF_WORD[p], sq, whole, shown, surface), checkFallsAfter(M, tok, TYPE_OF_WORD[p], sq, whole, shown, surface)])
+  take(new RegExp(String.raw`\bit moves the ${PIECE} off ${SQ}, where ${TOKR} would have attacked it\b`, 'g'), ([p, sq, tok], whole, att) => [checkMovesOff(att, TYPE_OF_WORD[p], sq, whole, shown, surface), checkWouldAttack(M, tok, TYPE_OF_WORD[p], sq, whole, shown, surface)])
+  take(new RegExp(String.raw`\bit moves the ${PIECE} off ${SQ}, which ${TOKR} attacked\b`, 'g'), ([p, sq, tok], whole, att) => [checkMovesOff(att, TYPE_OF_WORD[p], sq, whole, shown, surface), checkPlayedAttacked(M, tok, TYPE_OF_WORD[p], sq, whole, shown, surface)])
+  take(new RegExp(String.raw`\bit guards the ${PIECE} on ${SQ}, which ${TOKR} would have won\b`, 'g'), ([p, sq, tok], whole, att) => [checkCoversOwn(att, TYPE_OF_WORD[p], sq, whole, shown, surface), checkWouldWin(M, tok, TYPE_OF_WORD[p], sq, whole, shown, surface)])
+  take(new RegExp(String.raw`\bit guards the ${PIECE} on ${SQ}, which ${TOKR} would have attacked\b`, 'g'), ([p, sq, tok], whole, att) => [checkCoversOwn(att, TYPE_OF_WORD[p], sq, whole, shown, surface), checkWouldAttack(M, tok, TYPE_OF_WORD[p], sq, whole, shown, surface)])
+  take(new RegExp(String.raw`\bit guards the ${PIECE} on ${SQ}, which ${TOKR} attacked\b`, 'g'), ([p, sq, tok], whole, att) => [checkCoversOwn(att, TYPE_OF_WORD[p], sq, whole, shown, surface), checkPlayedAttacked(M, tok, TYPE_OF_WORD[p], sq, whole, shown, surface)])
+  take(new RegExp(String.raw`\bit takes away the check ${TOKR} would have given\b`, 'g'), ([tok], whole, att) => checkTakesCheck(M, att, tok, whole, shown, surface))
   // What the better move does for the piece the played line takes.
   take(new RegExp(String.raw`\b(?:it )?guards (?:your|their) ${PIECE} on ${SQ}\b`, 'g'), ([p, sq], whole, att) => checkGuards(att, TYPE_OF_WORD[p], sq, whole, shown, surface))
   take(new RegExp(String.raw`\b(?:it )?moves (?:your|their) ${PIECE} on ${SQ} away, where it had no defender\b`, 'g'), ([p, sq], whole, att) => checkMovesAway(att, TYPE_OF_WORD[p], sq, whole, shown, surface))
@@ -1396,7 +1507,7 @@ function applyTemplates(text, templates, M, surface, shown) {
     shown,
     san: (tok, fen, uci = null) => checkSan(tok, fen, shown, surface, uci),
     mate: (side, n, fen, ucis, score, span) => claim('mate', surface, shown, span, checkMate(side, n, fen, ucis, score), { n }),
-    clauses: (t, att) => clauseClaims(t, att, surface, shown).claims,
+    clauses: (t, att) => clauseClaims(t, att, surface, shown, M).claims,
     lineOf: (t, fen) => (t ? sansToUcis(fen, t.split(' ')).ucis : null),
     amount: (phrase, sign, span, read) => materialAmount(phrase, sign, span, read, surface, shown),
     presence: (fen, ucis, piece, sq, byColour, span) => materialPresence(fen, ucis, piece, sq, byColour, span, surface, shown),
@@ -2116,7 +2227,7 @@ function walkField(text, M, surface, shown, defaultAtt, templates = LESSON_TEMPL
     return a
   }
   const tpl = applyTemplates(text, templates, M, surface, shown)
-  const cl = clauseClaims(tpl.rest, attOf, surface, shown)
+  const cl = clauseClaims(tpl.rest, attOf, surface, shown, M)
   return { claims: [...tpl.claims, ...cl.claims], unparsed: unparsedOf(cl.rest) }
 }
 
@@ -2430,6 +2541,20 @@ function runCorruption(cases) {
     copy.texts.lessonFor.better.points = copy.texts.lessonFor.better.points.map((p) => (byMove.test(p) ? p.replace(byMove, (_, ask, rest, n) => `${ask}as in the engine's line, ${rest} by move ${n}`) : p))
     results.push(corruptionRow('a searched defense said "as in the engine\'s line"', bs, copy, /as in the engine's line/))
   }
+  // A quiet reply's defence: the square it moves off, the piece it guards, the check it takes away.
+  const swapPoint = (c, from, to) => {
+    const copy = structuredClone(c)
+    copy.texts.lessonFor.allowed.points = copy.texts.lessonFor.allowed.points.map((p) => p.replace(from, to))
+    return copy
+  }
+  const movesOff = /^it moves the (\w+) off ([a-h])([1-8]), where/
+  const mo = cases.find((c) => c.texts?.lessonFor?.allowed?.points?.some((p) => movesOff.test(p)))
+  if (mo) results.push(corruptionRow('a quiet reply said to move off the square next to its own', mo, swapPoint(mo, movesOff, (_, piece, f, r) => `it moves the ${piece} off ${f}${r === '8' ? 7 : +r + 1}, where`), /moves the \w+ off/))
+  const guardsIt = /^it guards the (\w+) on ([a-h][1-8]), which/
+  const gu = cases.find((c) => c.texts?.lessonFor?.allowed?.points?.some((p) => guardsIt.test(p)))
+  if (gu) results.push(corruptionRow('a quiet reply said to guard another piece on that square', gu, swapPoint(gu, guardsIt, (_, piece, sq) => `it guards the ${piece === 'knight' ? 'bishop' : 'knight'} on ${sq}, which`), /guards the \w+ on/))
+  const tc = cases.find((c) => c.texts?.lessonFor?.allowed?.points?.some((p) => /^it takes away the check \S+ would have given$/.test(p)))
+  if (tc) results.push(corruptionRow('the check a quiet reply takes away, named as the played move', tc, swapPoint(tc, /^it takes away the check \S+ would have given$/, `it takes away the check ${tc.san} would have given`), /takes away the check/))
   // The difference's amounts, as the lesson now words them.
   const swapIn = (c, from, to) => {
     const copy = structuredClone(c)
