@@ -3,7 +3,7 @@ PIP ?= .venv/bin/pip
 CONFIG ?= configs/config.yaml
 PYTHON_BOOTSTRAP ?= $(shell command -v python3.12 2>/dev/null || command -v python3)
 
-.PHONY: setup data train eval reports test all benchmark concepts
+.PHONY: setup data train eval reports test all benchmark concepts chess parity
 
 setup:
 	test -d .venv || $(PYTHON_BOOTSTRAP) -m venv .venv
@@ -35,5 +35,11 @@ reports:
 
 test:
 	$(PYTHON) -m pytest
+
+chess:
+	bridge/checkout.sh
+
+parity:
+	$(PYTHON) scripts/parity_winprob.py
 
 all: setup data eval reports

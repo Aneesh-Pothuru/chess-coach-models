@@ -268,6 +268,25 @@ labels, splits, features, Wilson intervals, opening-tree counts, the
 benchmark's protocol filters, and the puzzle semantics and head training of
 the concept tagger.
 
+## 8. The lab and the app
+
+This repository is the research lab for the coaching app
+([Aneesh-Pothuru/chess](https://github.com/Aneesh-Pothuru/chess), private): a
+change is measured here, and one that wins is ported to the app. Evals import
+the app's own TypeScript through a bridge pinned to one app commit, so they
+measure the code the app runs.
+
+```bash
+make chess    # fetch the pinned app commit and its npm dependencies (needs read access)
+make parity   # the first bridge eval: the lab's win% against the app's
+```
+
+[`reports/parity_winprob.md`](reports/parity_winprob.md) is that eval's
+report: within ±1000 cp the lab and the app compute the same curve, and past
+it the lab's clamp parts from the app's. [`CLAUDE.md`](CLAUDE.md) covers the
+bridge, the data rule (this repository is public, so nothing from the
+player's own games is committed) and how a winner is ported.
+
 ## Data and software licenses
 
 - [Lichess Open Database](https://database.lichess.org/) exports are **CC0**.

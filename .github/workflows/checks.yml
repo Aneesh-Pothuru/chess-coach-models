@@ -1,0 +1,30 @@
+name: checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: No private data in tracked files
+        run: python scripts/check_private.py
+        env:
+          PRIVATE_PATTERNS: ${{ secrets.PRIVATE_PATTERNS }}
+      # The models' tests need Torch, LightGBM and downloaded data; these need
+      # only python-chess, so every pull request runs them in seconds.
+      - name: Install the light dependencies
+        run: |
+          pip install pytest python-chess pyyaml
+          pip install --no-deps -e .
+      - name: Tests that need no models or data
+        run: python -m pytest tests/test_bridge.py tests/test_winprob.py tests/test_features.py
