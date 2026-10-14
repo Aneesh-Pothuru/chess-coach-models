@@ -22,7 +22,9 @@
 // best line, a searched capture (the case's `probes`, probes.mjs), or the
 // played line. An "if they move the queen (Qe3)" or "if they block with c6"
 // answer is replayed the same way after the better move: the best line, or
-// the searched defense (the case's `defenses`, defenses.mjs).
+// the searched defense (the case's `defenses`, defenses.mjs); one that gives
+// the move by which the gain is in instead of its moves is checked at that
+// move.
 //
 //   bridge/run.sh projects/explain-top-move/grade.mjs [cases.json] [--out grades.json]
 //
@@ -944,6 +946,56 @@ function checkDefenseAnswer(g, e) {
   return [claim('defense_answer', surface, shown, whole, bad ? F(bad) : T(`${token} ${sans.join(' ')} is the engine line, and it holds`))]
 }
 
+/**
+ * The same answer with the moves left out and the move by which the gain is
+ * in: "if they move the pawn (a5), you have won a pawn by move 34", or, when D
+ * is the engine's own reply, "if they move the queen (Qg4), as in the
+ * engine's line, you have won about 6 pawns of material by move 14". D is
+ * checked as above. The line is the best line when the text says so, and its
+ * reply must be D; otherwise any engine line from D (the best line, or a
+ * searched defense). At a ply of move N on it, from the mover's reply on and
+ * with the line's next move not a capture, the material counted from before
+ * the better move for the side named must be the amount.
+ */
+function checkDefenseByMove(g, e) {
+  const [who, piece, moved, blocked, asEngine, wonWho, amt, moveNo] = g
+  const { M, surface, shown, whole } = e
+  const no = (reason) => [claim('defense_answer', surface, shown, whole, F(reason))]
+  const best = M.attBest?.mv
+  if (!best) return no('no better move for a defense to answer')
+  const token = moved ?? blocked
+  const d = resolveSan(best.afterFen, token)
+  if (!d.ok) return no(d.reason)
+  const defense = moveAt(best.afterFen, d.uci)
+  const sideOf = (word) => (word === 'you' ? M.pov : other(M.pov))
+  if (defense.color !== sideOf(who)) return no(`${token} is ${SIDE_NAME[defense.color]}'s move, not ${who === 'you' ? 'yours' : 'theirs'}`)
+  const board = load(best.afterFen)
+  if (moved) {
+    if (defense.piece !== TYPE_OF_WORD[piece]) return no(`${token} moves a ${WORD_OF_TYPE[defense.piece]}, not the ${piece}`)
+    if (!board.isAttacked(defense.from, best.color)) return no(`nothing attacks the ${piece} on ${defense.from} after ${best.san}`)
+  } else if (!blocksSlider(board, best, defense)) return no(`${token} does not block the ${WORD_OF_TYPE[best.piece]} on ${best.to}`)
+  if (asEngine && M.bestPv[1] !== d.uci) return no(`the engine's line does not play ${token}`)
+  const want = parseMaterialPhrase(amt)
+  if (!want) return no(`"${amt}" is no amount the app writes`)
+  const side = sideOf(wonWho)
+  const base = balance(load(M.F0), side)
+  const lines = (asEngine ? [M.bestPv.slice(1)] : [M.bestPv.slice(1), ...M.defenses]).filter((l) => l[0] === d.uci)
+  for (const l of lines) {
+    const game = load(best.afterFen)
+    for (let i = 0; i < l.length; i++) {
+      const number = game.moveNumber()
+      if (!playUci(game, l[i])) break
+      const next = l[i + 1] ? moveAt(game.fen(), l[i + 1]) : null
+      const got = balance(game, side) - base
+      if (i >= 1 && number === +moveNo && !next?.captured && got >= want.min && got <= want.max) {
+        return [claim('defense_answer', surface, shown, whole, T(`after ${token}, the engine line has ${SIDE_NAME[side]} ${got} ahead of before ${best.san} on move ${moveNo}, with no capture next`))]
+      }
+    }
+  }
+  if (!lines.length) return no(`no engine line here plays ${token}`)
+  return no(`no engine line after ${token} has ${SIDE_NAME[side]} won ${amt} on move ${moveNo} with no capture next`)
+}
+
 // ---------------------------------------------------------------- clauses
 
 /** The attacked pieces in an "attacks ..." list: "the pawn on f7 (undefended) and the knight on c3". */
@@ -1325,6 +1377,14 @@ const LESSON_TEMPLATES = [
       'g',
     ),
     run: (g, e) => checkDefenseAnswer(g, e),
+  },
+  // The same answer said by the move the gain is in, its moves left out.
+  {
+    re: new RegExp(
+      String.raw`\b[Ii]f ${WHO} (?:move the ${PIECE} \(${TOKR}\)|block with ${TOKR}), (as in the engine's line, )?${WHO} have won ${AMT} by move (\d+)`,
+      'g',
+    ),
+    run: (g, e) => checkDefenseByMove(g, e),
   },
   // Mates: the better move, the played move, and the reply.
   {
@@ -2044,7 +2104,7 @@ function runCorruption(cases) {
   const df = cases.find((c) => c.texts?.lessonFor?.better?.points?.some((p) => isDefense(p) && /have won (?!a queen)/.test(p)))
   if (df) {
     const copy = structuredClone(df)
-    copy.texts.lessonFor.better.points = copy.texts.lessonFor.better.points.map((p) => (isDefense(p) ? p.replace(/have won .*$/, 'have won a queen') : p))
+    copy.texts.lessonFor.better.points = copy.texts.lessonFor.better.points.map((p) => (isDefense(p) ? p.replace(/have won .*?( by move \d+)?$/, 'have won a queen$1') : p))
     results.push(corruptionRow('"have won N" -> "have won a queen" (after a defense answer)', df, copy, /won a queen/))
   }
   const dm = cases.find((c) => c.texts?.lessonFor?.better?.points?.some((p) => /^if (?:they|you) move the (?!rook)\w+ \(/.test(p)))
@@ -2052,6 +2112,19 @@ function runCorruption(cases) {
     const copy = structuredClone(dm)
     copy.texts.lessonFor.better.points = copy.texts.lessonFor.better.points.map((p) => p.replace(/^(if (?:they|you) move the )(?!rook)\w+/, '$1rook'))
     results.push(corruptionRow('"move the queen (Qe3)" -> "move the rook (Qe3)" (the defense)', dm, copy, /move the rook/))
+  }
+  const byMove = /^(if (?:they|you) (?:move the \w+ \([^)]+\)|block with \S+), )(.*) by move (\d+)$/
+  const bm = cases.find((c) => c.texts?.lessonFor?.better?.points?.some((p) => byMove.test(p)))
+  if (bm) {
+    const copy = structuredClone(bm)
+    copy.texts.lessonFor.better.points = copy.texts.lessonFor.better.points.map((p) => p.replace(byMove, (_, ask, rest, n) => `${ask}${rest} by move ${+n + 40}`))
+    results.push(corruptionRow('"by move N" -> "by move N+40" (a defense answer by move)', bm, copy, /by move \d+$/))
+  }
+  const bs = cases.find((c) => c.texts?.lessonFor?.better?.points?.some((p) => byMove.test(p) && !p.includes("as in the engine's line")))
+  if (bs) {
+    const copy = structuredClone(bs)
+    copy.texts.lessonFor.better.points = copy.texts.lessonFor.better.points.map((p) => (byMove.test(p) ? p.replace(byMove, (_, ask, rest, n) => `${ask}as in the engine's line, ${rest} by move ${n}`) : p))
+    results.push(corruptionRow('a searched defense said "as in the engine\'s line"', bs, copy, /as in the engine's line/))
   }
   return results
 }
