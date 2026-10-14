@@ -11,8 +11,20 @@ errors at these moments, and more than at an ordinary move? Are there moments
 the triggers miss where a long think pays more? Are 30 and 45 seconds the
 right bars?
 
-**The answer.** Not computed yet. The rule below was committed before any
-effect was computed; the results will be added under it.
+**The answer.** Nowhere this design can see. At every trigger, at eight other
+moments and at every rating from 900 to 2099, a long think is followed by more
+serious errors than a quick move in a position the danger score rates alike,
+and at the book exit by no fewer, even within the very same position. Players
+think long where a position is harder than the board and the clocks show, and
+that outweighs whatever the think buys. By the rule, all four triggers get *no
+sign it pays*, no candidate joins them, and no think length is a bar. Two
+descriptions, added after the rule and testing nothing, matter more for the
+app: as written, the triggers fire on most of the moves analysed and ask for
+nine tenths of a 10-minute game's clock, and serious errors gather where they
+do not point (a third of them on the move right after the opponent's own
+serious error, almost none at the book exit). A design that compares players
+rather than positions is the next step. The paper,
+[`paper/paper.pdf`](paper/paper.pdf), has the numbers.
 
 ## The data
 
@@ -136,6 +148,9 @@ ones).
   weighted by its quick moves. This needs no danger score.
 - Sensitivity: quick as 6 to 10 seconds (the app's own buckets treat the moves
   under 5 seconds as decided before the turn), and ten strata instead of five.
+- **Where the errors are** (added after the rule was committed, before the
+  month's results were computed): each moment's share of the primary set's
+  moves and of its serious errors, at every length of think.
 - **His games.** The same facts from his 10-minute games in the app's archive,
   read by the same reader from the evals alone with the same book rule, and
   only described: how often each moment comes up, how often he thinks long
@@ -173,6 +188,7 @@ ones).
 | `facts.mjs` | The app's move facts and triggers for every kept game (`private/think-time-rapid/moves-<month>.csv.gz`, sharded). `--check N` builds Black's row for real on the first N games and stops on any difference from the flipped build. |
 | `archive.mjs` | The same rows for his 10-minute games in the app's archive, read from their evals alone (`private/think-time-rapid/archive-moves.csv.gz`). |
 | `analyze.py` | The danger score, the rule and the descriptions; writes `results/analysis.json` and `results/analysis.md`. |
+| `paper/` | The paper. |
 
 ## Running it
 
@@ -184,6 +200,7 @@ for i in 0 1 2 3; do
 done; wait
 bridge/run.sh projects/think-time-rapid/archive.mjs
 python3 projects/think-time-rapid/analyze.py --month 2026-09
+bridge/run.sh projects/think-time-rapid/paper/generate.mjs
 ```
 
 Per-game files stay in `private/think-time-rapid/`; `results/` holds

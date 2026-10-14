@@ -1,0 +1,288 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Where does a longer think pay in rapid?\\[0.3em]
+\large The app's long-think triggers on \GamesBuilt{} Lichess 10-minute games}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The app tells the player to stop and think at four kinds of moment: the first move out of the
+opening book (\BookEnd{} seconds), a winning position to convert, a forcing moment, and a pawn
+capture outside the endgame (\Deep{} seconds each). On \GamesBuilt{} rated 10-minute Lichess games
+from \Month, built with the app's own code, players at his level made serious errors on
+\NoneRateQuick\% of ordinary moves played in under \Rushed{} seconds and on \NoneRateLong\% of those
+played after \Deep{} seconds or more. Compared only in positions a danger score rates alike, a long
+think was followed by more serious errors at ordinary moves (\NoneDelta{} points), at conversion
+moments (\ConversionDelta) and at forcing moments (\ForcingDelta), and by no fewer at the book exit
+(\BookEndDelta) or a pawn capture (\StructureDelta). By the rule fixed before any effect was
+computed, no trigger shows that a long think pays, none of eight other moments does, and no think
+length is a bar. The pattern holds at every rating from \RatingLo{} to \RatingHi{} and, at the book exit, within
+the very same position. Players think long where a position is harder than the board and the
+clocks show, and that outweighs whatever the think buys: this design cannot see past it. It does
+show two things the app can use. The triggers fire on \TriggerShare\% of the moves analysed and ask
+for about \AskedSeconds{} of a game's 600 seconds, so they cannot be followed as written. And
+serious errors gather where the triggers do not point: a third of them come on the move right
+after the opponent's own serious error, while the book exit holds \BookEndErrors\% of them.
+\end{abstract}
+
+\section{The question}
+
+The app's method service (\texttt{triggerOf}, at commit \texttt{\AppCommit}) names the moments
+where a long think should pay. The first move out of the player's book should get \BookEnd{}
+seconds. A position to convert (an evaluation of $+3$ or better), a forcing moment (in check, just
+after a capture, a piece hanging on either side, or a move that gives check) and a pawn capture
+outside the endgame should get \Deep. The app calls a move made in under \Rushed{} seconds rushed
+and one of \Deep{} seconds or more a long think. For players at his level in 10-minute games, does
+a long think cut serious errors at these moments, and more than at an ordinary move? Do other
+moments pay more? Are \Deep{} and \BookEnd{} seconds the right bars?
+
+\section{The data}
+
+The Lichess database for \Month{} (CC0) holds \GamesRead{} games, \GamesRapid{} of them rated
+rapid; \GamesWithEvals{} of those were played at 10 minutes with no increment and carry Lichess's
+engine evaluation on every move beside the clock. The project's stream kept, in file order, the
+games that ended normally or on time, had at least 20 plies and two ratings within 300 points,
+by bins of the mean rating (Table~\ref{tab:kept}).
+
+\begin{table}[h]
+\centering
+\small\KeptTable
+\caption{Games kept, by the players' mean rating.}
+\label{tab:kept}
+\end{table}
+
+Each game was read as the routine's archive row and built with the app's own code through the
+lab's bridge: the metrics service's \texttt{primaryFacts} and \texttt{deriveGameFacts} with the
+routine's ports, and \texttt{triggerOf}. Every game was built once with each player as ``me'', so
+every move gets its moment from its own side; Black's build is White's with the evaluations and
+the result turned around, and on \BlackChecked{} games it matched a real Black build exactly.
+All \GamesBuilt{} games built. Two choices are this study's. A Lichess player has no repertoire in
+the app, so the book exit is the first move the app's review reader does not call book (its book
+covers the first 12 plies). And a serious error is a mistake or a blunder as the reader classifies
+it from the evaluations; the app also counts misses, which need the routine's miss ledger.
+
+The moves studied have a think time (each side's first move has none), are graded and not trivial
+(the app's \texttt{nonTrivial}: not book, not forced, a win probability before the move between 5
+and 95\%), and leave the mover at least \MinClock{} seconds on the clock before the move, so a long
+think was affordable: \MovesAnalysed{} of \MovesTimed{} timed moves. His chess.com rapid rating
+comes to about \WindowCentre{} on Lichess by the app's default conversion, so the rule is applied to
+the moves of players rated \WindowLo{} to \WindowHi: \MovesPrimary{} moves in \PlayerGames{} player-games, of
+which \QuickShare\% were quick and \LongShare\% long.
+
+\section{The method}
+
+Players think longer where a position is harder, and harder positions breed errors, so long and
+quick moves are compared only in positions a \emph{danger score} rates alike. The score is the
+chance that a quick move in the position is a serious error, predicted from what the player could
+see before moving: both ratings and clocks, the opponent's last think, the ply and the moves since
+the book exit, the evaluation and win probability before the move, the phase, the material, the
+legal moves, the checks and captures available, the hanging pieces on each side, being in check,
+coming just after a capture or either side's serious error, and the colour. Nothing about the
+think or the move played. A gradient-boosted model (LightGBM, \Trees{} trees, fixed settings) was
+trained on the quick moves of every rating and cross-fitted in two halves split by game, so each
+move's score comes from a model that never saw its game. It ranks quick moves well (AUC \AucQuick)
+and the others nearly as well (\AucOther).
+
+For a set of moves $T$, its moves are split into \Strata{} strata at the quintiles of the danger
+score over $T$'s quick moves, and $\Delta_T$ is the long moves' serious-error rate minus the quick
+moves', averaged over the strata with weights equal to $T$'s quick moves in each: how much a long
+think would change the error rate of the moves now played quickly. Intervals come from \Draws{}
+bootstrap draws over games (Poisson weights, seed \Seed), the 95\% percentile interval, and a
+$p$-value of twice the smaller share of draws on either side of zero; every comparison uses the
+same draws.
+
+The rule, committed before any effect was computed: a long think \emph{pays} at $T$ when
+$\Delta_T$'s interval lies below zero; $T$ \emph{marks} where it pays when it also beats ordinary
+moves ($\Delta_T - \Delta_{\text{none}}$ below zero with a Holm-adjusted $p$ under 0.05 over the
+four triggers). Each trigger is kept when both hold. Eight candidate moments, each defined before
+the move, would join the triggers under the same test over eight. A trigger's bar is the shortest
+think bin whose $\Delta$ reaches \BarShare\% of a \Plateau-second think's, when that one pays.
+
+\section{Results}
+
+\subsection{The triggers}
+
+\begin{table}[h]
+\centering
+\small\setlength{\tabcolsep}{4pt}\TriggerTable
+\caption{The four triggers and ordinary moves (none), players rated \WindowLo--\WindowHi.
+Per game: moves per player per game among those analysed. Quick: under \Rushed{} seconds; long:
+\Deep{} seconds or more. Error rates are raw; $\Delta$ is long minus quick within danger strata,
+in percentage points, with its 95\% interval.}
+\label{tab:triggers}
+\end{table}
+
+At ordinary moves a long think is followed by \NoneDelta{} points more serious errors than a quick
+move in a position the score rates alike (Table~\ref{tab:triggers}). At conversion and forcing
+moments the excess is larger still (\ConversionDelta{} and \ForcingDelta), and larger than at
+ordinary moves by \ConversionVsNone{} and \ForcingVsNone{} points. At the book exit and at a pawn
+capture, the intervals hold zero (\BookEndLo{} to \BookEndHi{} and \StructureLo{} to
+\StructureHi), and the excess is smaller than at ordinary moves (by \BookEndVsNone{} and
+\StructureVsNone{} points, Holm $p$ \BookEndPHolm{} and \StructurePHolm). No trigger's interval
+lies below zero, so the verdict is the same for all four: \emph{no sign it pays}. Read as the rule
+reports it, a long think's extra minute at a conversion moment goes with \ConversionSaved{}
+serious errors saved (\ConversionSavedLo{} to \ConversionSavedHi), at a forcing moment with
+\ForcingSaved{}: a cost, not a saving.
+
+\subsection{Eight other moments}
+
+\begin{table}[h]
+\centering
+\footnotesize\setlength{\tabcolsep}{4pt}\CandidateTable
+\caption{The candidates, each defined by what the player sees before moving. Joins: pays, and
+beats ordinary moves with a Holm-adjusted $p$ under 0.05 over the eight.}
+\label{tab:candidates}
+\end{table}
+
+None pays (Table~\ref{tab:candidates}): at every candidate a long think is followed by more serious
+errors than a quick one, most of all right after the opponent's serious error
+(\CandAfterOppErrorDelta) and in the top fifth of the danger score (\CandHighDangerDelta). The
+first four candidates are the parts of the forcing trigger; none of them carries it.
+
+\subsection{The bars}
+
+\begin{figure}[h]
+\centering
+\begin{subfigure}{0.49\textwidth}\centering\BookEndBarPlot\end{subfigure}\hfill
+\begin{subfigure}{0.49\textwidth}\centering\ConversionBarPlot\end{subfigure}
+
+\medskip
+\begin{subfigure}{0.49\textwidth}\centering\ForcingBarPlot\end{subfigure}\hfill
+\begin{subfigure}{0.49\textwidth}\centering\StructureBarPlot\end{subfigure}
+\caption{$\Delta$ for each length of think against the quick moves, by trigger, in percentage
+points with 95\% intervals. Below zero would mean fewer serious errors after the longer think.}
+\label{fig:bars}
+\end{figure}
+
+No think length pays at any trigger, so no trigger has a bar (Figure~\ref{fig:bars}). At
+conversion and forcing moments the excess grows with the length of the think: every bin from
+\Deep{} seconds up lies above the 10--14-second bin. The longer the think, the harder the position
+it marks, in ways the danger score does not see.
+
+\subsection{Every rating}
+
+\begin{table}[h]
+\centering
+\footnotesize\setlength{\tabcolsep}{2pt}\TrendTable
+\caption{$\Delta$ by the mover's rating, in percentage points with 95\% intervals. Described,
+not tested.}
+\label{tab:trend}
+\end{table}
+
+The answer does not move with the level (Table~\ref{tab:trend}): at every rating from \RatingLo{} to \RatingHi,
+ordinary, conversion and forcing moves are followed by more serious errors after a long think. So
+the uncertainty in his Lichess level matters little here.
+
+\subsection{The same position}
+
+A book-exit move is often made in a position many games reach, so long and quick moves can be
+compared in the very same position, with no danger score at all: \SamePositions{} positions were
+reached with both (\SameQuick{} quick moves, \SameLong{} long). Weighted by their quick moves, the
+long thinks were followed by \SameDelta{} points more serious errors (\SameLo{} to \SameHi): a cut
+of more than \SameCutBound{} points is ruled out. The positions most games reached are
+quiet (Figure~\ref{fig:same}): in them long thinks are rare, and serious errors rarer than at his
+level's average move.
+
+\begin{figure}[h]
+\centering
+\SameBoards
+\caption{The three book-exit positions the most games at his level reached, with the moves made
+in them.}
+\label{fig:same}
+\end{figure}
+
+\subsection{Sensitivity}
+
+With ten strata instead of five, and with quick moves limited to those over \Decided{} seconds (the
+app's own clock buckets treat faster moves as decided before the turn), no trigger pays and each
+comparison with ordinary moves keeps its side (Table~\ref{tab:sens}).
+
+\begin{table}[h]
+\centering
+\small\setlength{\tabcolsep}{4pt}\SensitivityTable
+\caption{The triggers' $\Delta$ and $\Delta - \Delta_{\text{none}}$ under two other choices.}
+\label{tab:sens}
+\end{table}
+
+\section{Where the errors are}
+
+This section was added after the rule was committed, before the month's results were computed, and
+tests nothing. A trigger can save at most the errors made at its moment, so it is worth knowing
+where they are. At his level a player makes about \ErrorsPerGame{} serious errors a game among the
+moves analysed (\SeriousRate\% of them). Table~\ref{tab:where} sets each moment's share of the
+moves against its share of those errors.
+
+\begin{table}[h]
+\centering
+\small\ConcentrationTable
+\caption{Each moment's share of the moves analysed at his level and of their serious errors, at
+every length of think. Ratio: the second over the first. The candidates overlap.}
+\label{tab:where}
+\end{table}
+
+The right moment to stop is where the errors are. The move right after the opponent's serious error
+is \AfterMoves\% of the moves and \AfterErrors\% of the serious errors, about \AfterErrorsPerGame{}
+a game. By the evaluations, failing to take what an error offers costs as much as making one, so
+these include every punishment missed. The top fifth of the danger score holds \HighErrors\%. The book exit, where the app asks
+for its longest think, is \BookEndMoves\% of the moves and \BookEndErrors\% of the errors, about
+\BookEndErrorsPerGame{} a game: even a think that removed every one of them would save little.
+Meanwhile the triggers fire about \TriggersPerGame{} times in a player's game, on \TriggerShare\% of
+the \AnalysedPerGame{} or so moves analysed (the forcing trigger alone on \ForcingShare\%), and at
+the app's bars they ask for about \AskedSeconds{} seconds, \AskedShare\% of a 10-minute game.
+
+\section{His games}
+
+\begin{table}[h]
+\centering
+\small\setlength{\tabcolsep}{4pt}\HisTable
+\caption{His \HisGames{} 10-minute games in the app's archive, read the same way and only
+described. His error rates come from the routine's engine rather than Lichess's, so they are not
+set beside his level's.}
+\label{tab:his}
+\end{table}
+
+His games meet the moments about as often as his level does (Table~\ref{tab:his}), except the
+rare pawn capture outside the endgame, which comes up more often in his. He thinks long
+on \HisConversionLong\% of his conversion moves, against \PeersConversionLong\% at his level; at
+the other moments his share is close to theirs. After a long think his own serious errors run
+above those after a quick move at every moment with at least \HisMinLong{} long thinks to read, as at
+his level.
+
+\section{What it means for the app}
+
+\begin{enumerate}[nosep]
+\item \textbf{The triggers' think times are advice, not a measurement.} Nothing here shows a long
+think cutting serious errors at any moment, for any rating. That does not show the advice is wrong:
+it shows that where players choose to think long, the position is harder than anything the board
+and the clocks reveal, by more than the think can make up. The app should not tell him a think
+time at a moment saves errors as if it had been measured.
+\item \textbf{Fewer triggers.} As written they fire on most of the moves he plays and ask for
+nine tenths of his clock. A trigger list a player can follow in 10 minutes has to be short, and
+the forcing trigger, which fires on almost half the moves, is the place to cut.
+\item \textbf{Point them where errors are.} The move after the opponent's serious error holds a
+third of the serious errors at his level on a seventh of the moves; it is also the ledger's own
+``after a gift'' leak. The book exit holds almost none: its \BookEnd{} seconds are the cheapest to
+give back.
+\item \textbf{Measure the effect with players, not positions.} Whether a long think pays at a
+moment can be read by comparing players who habitually think longer there with others of their
+rating, in their other games, against the same comparison at ordinary moves; or, on his own games,
+by having the coach flag a moment in some games and not in others.
+\end{enumerate}
+
+\section{Limits}
+
+The study is observational. The danger score adjusts for what the board and the clocks show, not
+for what the player saw; the comparison with ordinary moves is less exposed when the bias is alike,
+but it is not alike at every moment. Two parts of the triggers depend on the move played (giving
+check, a pawn capture), which a long think may change. The clock a long think takes from later
+moves is not counted. The book exit is the reader's 12-ply book's, not a repertoire's, and a serious
+error leaves out misses. Lichess evaluations come from its own server analysis; games someone asked
+to have analysed are not a random sample; and his Lichess level is the app's conversion of his
+chess.com rating, not a measurement, though the answer is the same at every level.
+
+\end{document}

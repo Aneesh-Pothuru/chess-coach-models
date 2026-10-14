@@ -42,6 +42,7 @@ DEFENDING_CP = -300            # conversion's mirror (triggerOf converts from +3
 EARLY_OWN_MOVES = 4            # the book-end move and the player's next four
 HIGH_DANGER = 0.8              # the top fifth of the danger score
 RATING_BINS = [(900, 1099), (1100, 1299), (1300, 1499), (1500, 1699), (1700, 1899), (1900, 2099)]
+TOP_POSITIONS = 3              # the same-position boards the paper shows
 
 LGB_PARAMS = dict(objective="binary", n_estimators=400, learning_rate=0.05, num_leaves=31,
                   min_child_samples=200, subsample=0.8, subsample_freq=1, colsample_bytree=0.8,
@@ -229,6 +230,12 @@ def run(month: str) -> dict:
     trig = a["trigger"].to_numpy()
     sets = {t: in_window & (trig == t) for t in TRIGGERS + ["none"]}
     player_games = a.loc[in_window, ["game", "color"]].drop_duplicates().shape[0]
+    y_all = a["serious"].to_numpy()
+
+    def share(m: np.ndarray) -> dict:
+        """A set's share of the primary set's moves and of its serious errors, at every think."""
+        return {"moves": int(m.sum()), "serious": int(y_all[m].sum()), "moveShare": float(m.sum() / in_window.sum()),
+                "errorShare": float(y_all[m].sum() / y_all[in_window].sum())}
 
     # 1-3: the triggers.
     est = {t: st.delta(m) for t, m in sets.items()}
@@ -328,11 +335,22 @@ def run(month: str) -> dict:
 
     archive = archive_summary(st, a, in_window, rushed, deep)
 
+    # Added after the rule was committed, before the month's results; it tests nothing.
+    concentration = {"seriousRate": float(y_all[in_window].mean()),
+                     "triggers": {t: share(m) for t, m in sets.items()},
+                     "candidates": {k: share(in_window & m) for k, m in cand_masks.items()}}
+
     return {
         "month": month,
         "appCommit": const["appCommit"],
-        "constants": {"RUSHED_SECONDS": rushed, "DEEP_THINK_SECONDS": deep, "BOOK_END_SECONDS": book_end},
-        "games": {"kept": games_meta["kept"], "read": games_meta["gamesRead"],
+        "constants": {"RUSHED_SECONDS": rushed, "DEEP_THINK_SECONDS": deep, "BOOK_END_SECONDS": book_end,
+                      "decidedSeconds": decided},
+        "params": {"window": WINDOW, "minClock": MIN_CLOCK, "strata": STRATA, "draws": DRAWS, "seed": SEED,
+                   "alpha": ALPHA, "thinkBins": THINK_BINS, "plateau": PLATEAU, "barShare": BAR_SHARE,
+                   "defendingCp": DEFENDING_CP, "earlyOwnMoves": EARLY_OWN_MOVES, "highDanger": HIGH_DANGER,
+                   "ratingBins": RATING_BINS},
+        "games": {"kept": games_meta["kept"], "read": games_meta["gamesRead"], "rapid": games_meta["rapidGames"],
+                  "rapidWithEvalsAndClocks": games_meta["rapidWithEvalsAndClocks"],
                   "built": sum(s["gamesBuilt"] for s in shards),
                   "skipped": {k: sum(s["skipped"].get(k, 0) for s in shards)
                               for k in sorted(set().union(*(s["skipped"] for s in shards)))},
@@ -343,7 +361,7 @@ def run(month: str) -> dict:
         "danger": {**diag, "features": FEATURES, "params": LGB_PARAMS, "highDangerCut": cut_high},
         "triggers": triggers, "none": none, "candidates": candidates, "bars": bars,
         "trend": trend, "samePosition": same, "sensitivity": sens, "archive": archive,
-        "seconds": round(time.time() - started),
+        "concentration": concentration, "seconds": round(time.time() - started),
     }
 
 
@@ -361,8 +379,12 @@ def same_position(a: pd.DataFrame, st: Study, mask: np.ndarray, draws: Draws) ->
     c, s, cd, sd = draws.sums(st.gi[idx], cell, 2 * len(fens), st.y[idx])
     point, _ = stratified(c[0::2], s[0::2], c[1::2], s[1::2])
     dr, _ = stratified(cd[:, 0::2], sd[:, 0::2], cd[:, 1::2], sd[:, 1::2])
+    # The positions with the most such moves, for the paper's boards.
+    order = np.argsort(-(c[0::2] + c[1::2]), kind="stable")[:TOP_POSITIONS]
+    top = [{"fen": fens[i], "quick": int(c[2 * i]), "long": int(c[2 * i + 1]),
+            "rateQuick": float(s[2 * i] / c[2 * i]), "rateLong": float(s[2 * i + 1] / c[2 * i + 1])} for i in order]
     return {"positions": int(len(fens)), "quick": int(c[0::2].sum()), "long": int(c[1::2].sum()),
-            "delta": float(point), **interval(dr)}
+            "delta": float(point), **interval(dr), "top": top}
 
 
 def archive_summary(st: Study, a: pd.DataFrame, in_window: np.ndarray, rushed: int, deep: int) -> dict | None:
@@ -464,6 +486,15 @@ def markdown(res: dict) -> str:
     for t in TRIGGERS:
         a, b = res["sensitivity"]["strata10"][t], res["sensitivity"]["quick6to10"][t]
         out.append(f"| {t} | {ci(a)} | {ci(a['vsNone'])} | {ci(b)} | {ci(b['vsNone'])} |")
+    con = res["concentration"]
+    out += ["", "## Where the errors are", "",
+            "Added after the rule was committed, before the month's results; it tests nothing. Every think, "
+            f"primary set; its serious-error rate is {pct(con['seriousRate'])}.", "",
+            "| Moment | Moves | Share of moves | Share of serious errors |", "|---|---|---|---|"]
+    for t, r in con["triggers"].items():
+        out.append(f"| {t} | {r['moves']:,} | {pct(r['moveShare'])} | {pct(r['errorShare'])} |")
+    for k, r in con["candidates"].items():
+        out.append(f"| {res['candidates'][k]['label']} | {r['moves']:,} | {pct(r['moveShare'])} | {pct(r['errorShare'])} |")
     arc = res["archive"]
     if arc:
         out += ["", "## His games", "",
@@ -478,6 +509,19 @@ def markdown(res: dict) -> str:
     return "\n".join(out) + "\n"
 
 
+def clean(x):
+    """Plain JSON: numpy scalars as Python numbers, and a value that is not a number (no long move to compare) as null."""
+    if isinstance(x, dict):
+        return {k: clean(v) for k, v in x.items()}
+    if isinstance(x, (list, tuple)):
+        return [clean(v) for v in x]
+    if isinstance(x, np.generic):
+        x = x.item()
+    if isinstance(x, float) and not np.isfinite(x):
+        return None
+    return x
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--month", required=True)
@@ -485,7 +529,7 @@ def main() -> int:
     res = run(args.month)
     out = PROJECT / "results"
     out.mkdir(exist_ok=True)
-    (out / "analysis.json").write_text(json.dumps(res, indent=2, default=lambda o: o.item()) + "\n")
+    (out / "analysis.json").write_text(json.dumps(clean(res), indent=2, allow_nan=False) + "\n")
     (out / "analysis.md").write_text(markdown(res))
     print(json.dumps({"seconds": res["seconds"], "triggers": {t: r["verdict"] for t, r in res["triggers"].items()}}))
     return 0

@@ -20,7 +20,7 @@ everything that answers it:
 | [winprob-parity](winprob-parity/) | Does the lab compute the same win% as the app? | A check: nothing to port |
 | [maia-rating-offset](maia-rating-offset/) | Which chess.com to Lichess offset makes Maia-2 most likely to play the moves in the player's games? | Confirmed: the app's 250 stays |
 | [maia-calibration](maia-calibration/) | Does a temperature for each Maia band, fitted on Lichess, make its probabilities truer on the player's games? | Not adopted |
-| [think-time-rapid](think-time-rapid/) | In 10-minute games at his level, where does a long think cut serious errors, and do the app's long-think triggers mark those moments? | Running: the rule is fixed, the results are to come |
+| [think-time-rapid](think-time-rapid/) | In 10-minute games at his level, where does a long think cut serious errors, and do the app's long-think triggers mark those moments? | Not yet ported: no trigger shows a long think pays, and as written they ask for most of the clock |
 | [focus-backtest](focus-backtest/) | Does the weekly focus's grade tell a real improvement from none? | Not yet ported: the grade says met on several times its level when nothing changed |
 | [detector-themes](detector-themes/) | Do the app's motif labels name the tactic a position holds, judged on public puzzles? | Not yet ported: a harness (app pool to tune, held-out puzzles to test) |
 | [drill-decks](drill-decks/) | Do the misses deck's theme words and the plan quiz ask what they say they ask? | Not yet ported |
@@ -106,6 +106,14 @@ PYTHON=.venv/bin/python scripts/stream_benchmark.sh
 for k in 0 1 2 3; do bridge/run.sh projects/maia-calibration/lichess-policies.mts --shard $k/4 & done; wait
 bridge/run.sh projects/maia-calibration/punish-policies.mts
 bridge/run.sh projects/maia-calibration/fit.mjs
+
+# Lichess 10-minute games: think time, then the band above (which reads the same games).
+python3 projects/think-time-rapid/stream.py --month 2026-09
+for i in 0 1 2 3; do
+  bridge/run.sh projects/think-time-rapid/facts.mjs --month 2026-09 --shard $i/4 --check 200 &
+done; wait
+bridge/run.sh projects/think-time-rapid/archive.mjs
+python3 projects/think-time-rapid/analyze.py --month 2026-09
 
 make papers   # each paper's generated.tex, then its PDF
 ```
