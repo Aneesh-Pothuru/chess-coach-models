@@ -20,7 +20,9 @@
 // template recognises is reported as unparsed, never graded as true. An "if
 // they take it with" answer is replayed on the engine line it comes from: the
 // best line, a searched capture (the case's `probes`, probes.mjs), or the
-// played line.
+// played line. An "if they move the queen (Qe3)" or "if they block with c6"
+// answer is replayed the same way after the better move: the best line, or
+// the searched defense (the case's `defenses`, defenses.mjs).
 //
 //   bridge/run.sh projects/explain-top-move/grade.mjs [cases.json] [--out grades.json]
 //
@@ -864,6 +866,84 @@ function checkTakeAnswer(g, e) {
   return [claim('take_answer', surface, shown, whole, F(reason))]
 }
 
+/**
+ * Whether `defense` lands between the bishop, rook or queen the better move
+ * moved (`best`) and a piece of the defender's that it attacks along that
+ * line: the squares from the slider to the block are empty, and the first
+ * piece behind the block is the defender's.
+ */
+function blocksSlider(board, best, defense) {
+  if (!'brq'.includes(best.piece)) return false
+  const fx = best.to.charCodeAt(0) - 97, fy = +best.to[1] - 1
+  const tx = defense.to.charCodeAt(0) - 97, ty = +defense.to[1] - 1
+  const straight = fx === tx || fy === ty
+  const diagonal = Math.abs(tx - fx) === Math.abs(ty - fy)
+  if ((!straight && !diagonal) || (fx === tx && fy === ty)) return false
+  if ((straight && best.piece === 'b') || (!straight && best.piece === 'r')) return false
+  const dx = Math.sign(tx - fx), dy = Math.sign(ty - fy)
+  let past = false
+  for (let x = fx + dx, y = fy + dy; x >= 0 && x < 8 && y >= 0 && y < 8; x += dx, y += dy) {
+    const sq = String.fromCharCode(97 + x) + (y + 1)
+    if (sq === defense.to) {
+      past = true
+      continue
+    }
+    const cell = board.get(sq)
+    if (cell) return past && cell.color === defense.color
+  }
+  return false
+}
+
+/**
+ * An answer to "what if they just defend?": "if they move the X (D), M1 M2
+ * ..., and you have won N", "if they block with D, ...", or the mate form
+ * "if ..., [M1 M2 ..., then] Y is mate". D is played after the better move:
+ * it is legal there, it is the defender's move, and it moves the piece named
+ * from a square the better move's side attacks, or it lands between the
+ * better move's bishop, rook or queen and a piece of the defender's that the
+ * slider attacks along that line. The text's moves must be an engine line's
+ * moves after D (the best line, or the searched defense), and the claim must
+ * hold where they end: a mate, or the material counted from before the
+ * better move for the side named, with the line's next move not a capture.
+ */
+function checkDefenseAnswer(g, e) {
+  const [who, piece, moved, blocked, mateLead, mateY, line, wonWho, amt] = g
+  const { M, surface, shown, whole } = e
+  const no = (reason) => [claim('defense_answer', surface, shown, whole, F(reason))]
+  const best = M.attBest?.mv
+  if (!best) return no('no better move for a defense to answer')
+  const token = moved ?? blocked
+  const d = resolveSan(best.afterFen, token)
+  if (!d.ok) return no(d.reason)
+  const defense = moveAt(best.afterFen, d.uci)
+  const sideOf = (word) => (word === 'you' ? M.pov : other(M.pov))
+  if (defense.color !== sideOf(who)) return no(`${token} is ${SIDE_NAME[defense.color]}'s move, not ${who === 'you' ? 'yours' : 'theirs'}`)
+  const board = load(best.afterFen)
+  if (moved) {
+    if (defense.piece !== TYPE_OF_WORD[piece]) return no(`${token} moves a ${WORD_OF_TYPE[defense.piece]}, not the ${piece}`)
+    if (!board.isAttacked(defense.from, best.color)) return no(`nothing attacks the ${piece} on ${defense.from} after ${best.san}`)
+  } else if (!blocksSlider(board, best, defense)) return no(`${token} does not block the ${WORD_OF_TYPE[best.piece]} on ${best.to}`)
+  const sans = line ? line.trim().split(/\s+/) : [...(mateLead ? mateLead.trim().split(/\s+/) : []), mateY]
+  const r = sansToUcis(defense.afterFen, sans)
+  if (r.illegalAt !== null) return no(`the line after ${token} stops being legal at "${sans[r.illegalAt]}"`)
+  const hit = [M.bestPv.slice(1), ...M.defenses].find((l) => l[0] === d.uci && r.ucis.every((u, i) => u === l[i + 1]))
+  if (!hit) return no(`no engine line here plays ${token} ${sans.join(' ')}`)
+  const game = load(defense.afterFen)
+  for (const u of r.ucis) playUci(game, u)
+  let bad = null
+  if (mateY) bad = game.isCheckmate() ? null : `${mateY} is not mate`
+  else {
+    const want = parseMaterialPhrase(amt)
+    const side = sideOf(wonWho)
+    const got = balance(game, side) - balance(load(M.F0), side)
+    const nextUci = hit[r.ucis.length + 1] ?? null
+    const next = nextUci ? moveAt(game.fen(), nextUci) : null
+    if (!want || got < want.min || got > want.max) bad = `${SIDE_NAME[side]} has won ${got} there, not ${amt}`
+    else if (next?.captured) bad = `the line goes on with ${next.san}, a capture`
+  }
+  return [claim('defense_answer', surface, shown, whole, bad ? F(bad) : T(`${token} ${sans.join(' ')} is the engine line, and it holds`))]
+}
+
 // ---------------------------------------------------------------- clauses
 
 /** The attacked pieces in an "attacks ..." list: "the pawn on f7 (undefended) and the knight on c3". */
@@ -981,6 +1061,8 @@ function momentContext(c) {
     bestPv,
     // The searched captures of the best move (probes.mjs): lines from the position after it.
     probes: Array.isArray(c.probes) ? c.probes.map((p) => p.pv) : [],
+    // The searched natural defenses to the best move's threat (defenses.mjs): lines from the position after it.
+    defenses: Array.isArray(c.defenses) ? c.defenses.map((d) => d.pv) : [],
     pov: c.playerColor ?? mover,
     attPlayed,
     attBest,
@@ -1235,6 +1317,14 @@ const LESSON_TEMPLATES = [
       'g',
     ),
     run: (g, e) => checkTakeAnswer(g, e),
+  },
+  // "What if they defend?": the natural defense to the better move's threat and what it costs, on the engine line.
+  {
+    re: new RegExp(
+      String.raw`\b[Ii]f ${WHO} (?:move the ${PIECE} \(${TOKR}\)|block with ${TOKR}), (?:(?:([^,.:()]+?), then )?${TOKR} is mate|([^,.:()]+?), and ${WHO} have won ${AMT})`,
+      'g',
+    ),
+    run: (g, e) => checkDefenseAnswer(g, e),
   },
   // Mates: the better move, the played move, and the reply.
   {
@@ -1948,6 +2038,20 @@ function runCorruption(cases) {
     const copy = structuredClone(up)
     copy.texts.lessonFor.better.points = copy.texts.lessonFor.better.points.map((p) => p.replace(/\byou have won a piece\b/, 'you have won a rook'))
     results.push(corruptionRow('"you have won a piece" -> "you have won a rook" (after a take-answer)', up, copy, /won a rook/))
+  }
+  // The defense answers (defenses.mjs): the amount, and the piece the defense moves.
+  const isDefense = (p) => /^if (?:they|you) (?:move the|block with)\b/.test(p)
+  const df = cases.find((c) => c.texts?.lessonFor?.better?.points?.some((p) => isDefense(p) && /have won (?!a queen)/.test(p)))
+  if (df) {
+    const copy = structuredClone(df)
+    copy.texts.lessonFor.better.points = copy.texts.lessonFor.better.points.map((p) => (isDefense(p) ? p.replace(/have won .*$/, 'have won a queen') : p))
+    results.push(corruptionRow('"have won N" -> "have won a queen" (after a defense answer)', df, copy, /won a queen/))
+  }
+  const dm = cases.find((c) => c.texts?.lessonFor?.better?.points?.some((p) => /^if (?:they|you) move the (?!rook)\w+ \(/.test(p)))
+  if (dm) {
+    const copy = structuredClone(dm)
+    copy.texts.lessonFor.better.points = copy.texts.lessonFor.better.points.map((p) => p.replace(/^(if (?:they|you) move the )(?!rook)\w+/, '$1rook'))
+    results.push(corruptionRow('"move the queen (Qe3)" -> "move the rook (Qe3)" (the defense)', dm, copy, /move the rook/))
   }
   return results
 }

@@ -1,8 +1,13 @@
 {
   "eval": "explain-top-move reproduction",
   "chess": {
-    "pinned_commit": "d8b771238c11c84d0c4b2a8010bb75f5f756b8d9",
-    "records_commit": "c90428c4f8acc3f00c8f3ec8136aebda29c2b869"
+    "pinned_commit": "c7b19cfcae35b91cb6635068dfc1ba93af091cf1",
+    "records_commit": "9330de9bf0efd069546a0452ff242aa3e2144864",
+    "carries": {
+      "v10": true,
+      "v11": false,
+      "v12": false
+    }
   },
   "recomputed": {
     "publishedLines": 27,
@@ -17,6 +22,7 @@
       },
       "kept": 88
     },
+    "defenses": null,
     "evidence": {
       "documents": 60,
       "versions": [
@@ -217,6 +223,25 @@
       },
       "keepByRule": true,
       "recordedReason": "the natural capture that only trades, said as the trade it is ('if they take it with axb5, axb5 takes back: an even trade'); judge model, pairwise and blind, two runs with the order reversed: the new text preferred 18 to 2 on train and 12 to 0 on test, with a 10-moment padding control in the same batches whose decoy was preferred in none of its 20 comparisons; graded on the 60 games' rebuilt phone documents against their own base (v10/change.md), grades equal"
+    },
+    {
+      "round": "12",
+      "judged": "round12",
+      "moments": null,
+      "tally": {
+        "train": {
+          "new": 19,
+          "old": 9,
+          "same": 0
+        },
+        "test": {
+          "new": 22,
+          "old": 12,
+          "same": 0
+        }
+      },
+      "keepByRule": true,
+      "recordedReason": "what the natural defense to the better move's threat costs ('if they move the queen (Qg4), Nxg4 hxg4, and you have won about 6 pawns of material'): the human-move model's likeliest reply at the defender's band, when it moves an attacked piece or blocks, and the engine's line from it; 31 moments gain the point (14 train, 17 test), all 31 claims graded true, every grade equal on both splits; judge model, pairwise and blind, two runs with the order reversed: the new text preferred 19 to 9 on train and 22 to 12 on test, with a 10-moment padding control in the same batches whose decoy was preferred in none of its 20 comparisons (v12/change.md)"
     }
   ],
   "controls": {
@@ -391,6 +416,16 @@
         "decoyShareOfAll": 0,
         "decoyShareOfDecided": 0,
         "drifted": false
+      },
+      {
+        "round": "12",
+        "comparisons": 20,
+        "decoy": 0,
+        "short": 20,
+        "same": 0,
+        "decoyShareOfAll": 0,
+        "decoyShareOfDecided": 0,
+        "drifted": false
       }
     ],
     "driftRule": "the judge has drifted toward length if the decoy is preferred in at least 25% of the control's comparisons and in more than half of the decided ones."
@@ -494,6 +529,48 @@
           "pieceOverAmount": 0
         }
       }
+    },
+    {
+      "variant": "v12",
+      "sameMoments": true,
+      "splits": [
+        {
+          "split": "test",
+          "moments": 152,
+          "base": {
+            "faithful": 152,
+            "concrete": 127,
+            "named_deep": 143,
+            "faithfulAll": 151
+          },
+          "variant": {
+            "faithful": 152,
+            "concrete": 127,
+            "named_deep": 143,
+            "faithfulAll": 151
+          },
+          "textsChanged": 17
+        },
+        {
+          "split": "train",
+          "moments": 177,
+          "base": {
+            "faithful": 176,
+            "concrete": 149,
+            "named_deep": 163,
+            "faithfulAll": 176
+          },
+          "variant": {
+            "faithful": 176,
+            "concrete": 149,
+            "named_deep": 163,
+            "faithfulAll": 176
+          },
+          "textsChanged": 14
+        }
+      ],
+      "gradesEqual": true,
+      "defects": null
     }
   ],
   "kept": "v8",

@@ -7,9 +7,11 @@
 //
 // Rerun: the pinned app's explanations rebuilt end to end on engine evidence
 // the lab rebuilt (build-evidence.mjs, phone profile): build-cases.mjs, then
-// probes.mjs on those cases, then build-cases.mjs again with the probes, then
-// grade.mjs and results.mjs. Its rates are set beside the recorded baseline's
-// and the kept variant's, with how many moments are the same moments.
+// probes.mjs on those cases, then build-cases.mjs again with the probes, then,
+// when the pinned app makes defense searches, defenses.mjs and build-cases.mjs
+// once more, then grade.mjs and results.mjs. Each step reads only the searches
+// the rerun made. Its rates are set beside the recorded baseline's and the
+// kept variant's, with how many moments are the same moments.
 //
 //   bridge/run.sh projects/accuracy-vs-chesscom/build-evidence.mjs --profile phone   (first; see README.md)
 //   bridge/run.sh projects/explain-top-move/reproduce.mjs [--no-rerun]
@@ -24,7 +26,8 @@
 // documents. A round that fixes text defects keeps their counts in the records
 // (<variant>/defects.json, written by defects.mjs over both variants' texts when
 // the round ran); the report carries them, checked against the moments behind
-// each count.
+// each count. And it says which kept rounds after the kept variant the pinned
+// app carries, so the paper can say how far the app has come.
 
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -50,6 +53,7 @@ const ROUNDS = [
   { round: '8', dirs: ['round8'] },
   { round: '9', dirs: ['round9'] },
   { round: '10', dirs: ['round10'] },
+  { round: '12', dirs: ['round12'] },
 ];
 // The rounds judged before the length check, whose streak of longer texts it tested.
 const BEFORE_CHECK = ['3', '4', '5', '7', '7b', '8', '9'];
@@ -64,15 +68,36 @@ const roundOrder = (a, b) => parseInt(a.replace(/^\D+/, ''), 10) - parseInt(b.re
 /** JSON with every object's keys sorted, to compare two reports whatever order they were written in. */
 const canonical = o => JSON.stringify(o, (k, v) => (v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => a.localeCompare(b))) : v));
 
+/** Whether the pinned app makes the routine's defense searches (services/review `defenseProbes`). */
+const appDefends = () => existsSync(join(CHESS_DIR, 'src', 'services', 'review', 'pipeline', 'defenses.ts'));
+
+/**
+ * Which kept rounds after the kept variant the pinned app carries, each read
+ * from a mark its change left in the app's source: round 10's "an even trade",
+ * round 11's `takesBack`, round 12's defense searches.
+ */
+function appCarries() {
+  const lessonFile = join(CHESS_DIR, 'src', 'services', 'knowledge', 'detectors', 'lesson.ts');
+  const lesson = existsSync(lessonFile) ? readFileSync(lessonFile, 'utf8') : '';
+  return { v10: lesson.includes('an even trade'), v11: /\btakesBack\b/.test(lesson), v12: appDefends() };
+}
+
 function rerun(dir) {
   rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });
+  const searches = ['--probes', join(dir, 'probes.json'), '--defenses', join(dir, 'defenses.json')];
   console.error('[reproduce] cases on the pinned app, without probes');
-  run('build-cases.mjs', '--out', dir, '--probes', join(dir, 'probes.json'));
+  run('build-cases.mjs', '--out', dir, ...searches);
   console.error('[reproduce] probes: the capture searches the best lines decline');
   run('probes.mjs', '--cases', join(dir, 'cases.json'), '--out', join(dir, 'probes.json'));
   console.error('[reproduce] cases again, with the probes');
-  run('build-cases.mjs', '--out', dir, '--probes', join(dir, 'probes.json'));
+  run('build-cases.mjs', '--out', dir, ...searches);
+  if (appDefends()) {
+    console.error('[reproduce] defenses: the natural defenses to the best moves\' threats');
+    run('defenses.mjs', '--cases', join(dir, 'cases.json'), '--out', join(dir, 'defenses.json'));
+    console.error('[reproduce] cases again, with the defenses');
+    run('build-cases.mjs', '--out', dir, ...searches);
+  }
   console.error('[reproduce] grades');
   run('grade.mjs', join(dir, 'cases.json'), '--out', join(dir, 'grades.json'));
   execFileSync(process.execPath, [join(projectDir(FLOW), 'results.mjs'), dir], { stdio: ['ignore', 'ignore', 'inherit'] });
@@ -167,6 +192,8 @@ function main() {
   const app = new Map(jsonl(join(dir, 'results.jsonl')).map(m => [m.id, m]));
   const kept = new Map(jsonl(join(recorded, KEPT, 'results.jsonl')).map(m => [m.id, m]));
   const probes = JSON.parse(readFileSync(join(dir, 'probes.json'), 'utf8'));
+  const defensesFile = join(dir, 'defenses.json');
+  const defenses = existsSync(defensesFile) ? JSON.parse(readFileSync(defensesFile, 'utf8')) : null;
 
   const rows = [];
   for (const which of ['test', 'train']) {
@@ -191,11 +218,12 @@ function main() {
   const provenance = readdirSync(phone).filter(f => f.endsWith('.json')).map(f => JSON.parse(readFileSync(join(phone, f), 'utf8')).provenance ?? {});
   const report = {
     eval: 'explain-top-move reproduction',
-    chess: { pinned_commit: git(CHESS_DIR, 'rev-parse', 'HEAD'), records_commit: git(records(), 'rev-parse', 'HEAD') },
+    chess: { pinned_commit: git(CHESS_DIR, 'rev-parse', 'HEAD'), records_commit: git(records(), 'rev-parse', 'HEAD'), carries: appCarries() },
     recomputed: { publishedLines: published.length, matched: published.length - missing.length, missing },
     rerun: {
       moments: app.size,
       probes: { budget: probes.budget, kept: Object.values(probes.games ?? {}).flat().length },
+      defenses: defenses && { budget: defenses.budget, kept: Object.values(defenses.games ?? {}).flat().length },
       evidence: { documents: provenance.length, versions: [...new Set(provenance.map(p => p.evidenceVersion))], builds: [...new Set(provenance.map(p => p.build))] },
     },
     judge,
@@ -260,6 +288,14 @@ function renderRebuilt(rebuilt) {
   ];
 }
 
+function renderCarries(report) {
+  const rounds = Object.entries(report.chess.carries);
+  const yes = rounds.filter(([, c]) => c).map(([v]) => v), no = rounds.filter(([, c]) => !c).map(([v]) => v);
+  const listed = (xs, and) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} ${and} ${xs.at(-1)}`);
+  const carries = !yes.length ? `none of ${listed(no, 'and')}` : `${listed(yes, 'and')}${no.length ? `, and not ${listed(no, 'or')}` : ''}`;
+  return `Of the kept rounds after ${report.kept}, the pinned app carries ${carries}, each read from a mark its change left in the app's source.`;
+}
+
 function render(report) {
   const f = r => `${r.est.toFixed(1)} [${r.lo.toFixed(1)}, ${r.hi.toFixed(1)}]`;
   const L = [
@@ -287,7 +323,9 @@ function render(report) {
     ...renderRebuilt(report.rebuilt),
     '## Rerun on the pinned app',
     '',
-    `The pinned app's explanations, rebuilt from engine evidence the lab rebuilt (${report.rerun.evidence.documents} games, ${report.rerun.evidence.versions.join(', ')}, ${report.rerun.evidence.builds.join(', ')}), with the capture searches redone on that evidence (${report.rerun.probes.kept} kept). ${report.rerun.moments} key moments.`,
+    `The pinned app's explanations, rebuilt from engine evidence the lab rebuilt (${report.rerun.evidence.documents} games, ${report.rerun.evidence.versions.join(', ')}, ${report.rerun.evidence.builds.join(', ')}), with the capture searches redone on that evidence (${report.rerun.probes.kept} kept)${report.rerun.defenses ? ` and the defense searches (${report.rerun.defenses.kept} kept)` : '; the pinned app makes no defense searches'}. ${report.rerun.moments} key moments.`,
+    '',
+    renderCarries(report),
     '',
     '| split | grade | recorded baseline | recorded ' + report.kept + ' | pinned app, rerun |',
     '|---|---|---|---|---|',

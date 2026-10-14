@@ -9,7 +9,7 @@
 // verdict and every text comes from the review and knowledge services over
 // that stored evidence. No engine runs here.
 //
-//   bridge/run.sh projects/explain-top-move/build-cases.mjs [--evidence DIR] [--out DIR] [--probes FILE]
+//   bridge/run.sh projects/explain-top-move/build-cases.mjs [--evidence DIR] [--out DIR] [--probes FILE] [--defenses FILE]
 //
 // --evidence (default private/accuracy-vs-chesscom/evidence): the kept
 // documents build-evidence.mjs writes, read from <DIR>/phone/<id>.json.
@@ -18,6 +18,10 @@
 // each document as its ext.captures, so the lessons can say what such a
 // capture costs. They are evidence like the kept documents; nothing searches
 // here.
+// --defenses (default private/explain-top-move/defenses.json, when present):
+// the stored natural defenses to the best moves' threats with the engine's
+// answer to each (defenses.mjs), added as each document's ext.defenses the
+// same way. An app without defense answers reads past them.
 //
 // Writes cases.json (one object per key moment, sorted by game then ply) and
 // preview.md (counts and sample moments) into private/explain-top-move/, or
@@ -56,7 +60,7 @@ const UI_NOTES = Object.freeze({
 });
 
 function parseArgs(argv) {
-  const args = { evidence: join(ACCURACY, 'evidence'), out: OUT, probes: join(OUT, 'probes.json') };
+  const args = { evidence: join(ACCURACY, 'evidence'), out: OUT, probes: join(OUT, 'probes.json'), defenses: join(OUT, 'defenses.json') };
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--evidence') {
       if (argv[i + 1] === undefined) throw new Error('missing value for --evidence');
@@ -64,6 +68,9 @@ function parseArgs(argv) {
     } else if (argv[i] === '--probes') {
       if (argv[i + 1] === undefined) throw new Error('missing value for --probes');
       args.probes = resolve(argv[++i]);
+    } else if (argv[i] === '--defenses') {
+      if (argv[i + 1] === undefined) throw new Error('missing value for --defenses');
+      args.defenses = resolve(argv[++i]);
     } else if (argv[i] === '--out') {
       if (argv[i + 1] === undefined) throw new Error('missing value for --out');
       args.out = resolve(argv[++i]);
@@ -260,6 +267,8 @@ function momentOf(c, doc, kept, index, s) {
     bestPvUci: pvUci,
     // The searched captures of the best move (ext.captures), each line from the position after it.
     probes: (doc.ext?.captures ?? []).filter((p) => p.ply === index).map((p) => ({ capture: p.capture, pv: p.pv })),
+    // The natural defense to the best move's threat (ext.defenses), its line from the position after it.
+    defenses: (doc.ext?.defenses ?? []).filter((p) => p.ply === index).map((p) => ({ best: p.best, defense: p.defense, band: p.band, p: p.p, pv: p.pv })),
     pvNote,
     bestFromPass2: deep !== null && deep.complete === true,
     pass2: { present: deep !== null, complete: deep ? deep.complete : null },
@@ -426,6 +435,7 @@ async function main() {
   const s = await loadServices();
   const cases = JSON.parse(readFileSync(join(ACCURACY, 'cases.json'), 'utf8'));
   const probes = existsSync(args.probes) ? JSON.parse(readFileSync(args.probes, 'utf8')).games ?? {} : {};
+  const defenses = existsSync(args.defenses) ? JSON.parse(readFileSync(args.defenses, 'utf8')).games ?? {} : {};
   const moments = [];
   const gameFailures = [];
   const games = [];
@@ -440,6 +450,7 @@ async function main() {
       meta.builds.add(kept.provenance?.build ?? 'none');
       const doc = reread(kept, s);
       if (probes[c.id]?.length) doc.ext = { ...(doc.ext ?? {}), captures: probes[c.id] };
+      if (defenses[c.id]?.length) doc.ext = { ...(doc.ext ?? {}), defenses: defenses[c.id] };
       if (doc.fens.length !== doc.records.length + 1) throw new Error(`${doc.fens.length} fens for ${doc.records.length} records`);
       if (doc.playerColor !== c.playerColor) throw new Error(`document playerColor ${doc.playerColor} differs from cases.json (${c.playerColor})`);
       const km = s.keyMoments(doc);

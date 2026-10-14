@@ -160,6 +160,45 @@ g.block('DefectsTable', [
   '\\bottomrule', '\\end{tabular}',
 ].join('\n'));
 
+// ---- round 12: what the natural defense costs, on documents rebuilt for it at round 11's code
+const twelve = rebuilt.get('v12');
+claim(twelve?.sameMoments && twelve.gradesEqual, "round 12's grades equal its base's on the documents rebuilt for it");
+const twelveSplit = s => twelve.splits.find(x => x.split === s);
+const jsonl = path => readFileSync(path, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l));
+const twelveBase = new Map(jsonl(join(flow, 'v12', 'rebuilt', 'base.results.jsonl')).map(m => [m.id, m]));
+const twelveChanged = jsonl(join(flow, 'v12', 'rebuilt', 'v12.results.jsonl')).filter(m => m.textHash !== twelveBase.get(m.id)?.textHash);
+claim(twelveChanged.length > 0 && twelveChanged.every(m => m.faithful === 1 && m.faithfulAll === 1), 'every moment round 12 changes is graded faithful');
+const r12 = judgeOf.get('12');
+claim(r12?.keepByRule, 'the judge preferred round 12 on both halves');
+g.def('RoundTwelveChangedTest', String(twelveSplit('test').textsChanged)).def('RoundTwelveChangedTrain', String(twelveSplit('train').textsChanged))
+  .def('RoundTwelveTrainNew', String(r12.tally.train.new)).def('RoundTwelveTrainOld', String(r12.tally.train.old))
+  .def('RoundTwelveTestNew', String(r12.tally.test.new)).def('RoundTwelveTestOld', String(r12.tally.test.old));
+// What the judge held against it: the moves the defense sentence shows, against both runs' answers.
+const SHORT = 4;
+const DEFENSE = /if (?:they|you) (?:move the \w+ \([^)]+\)|block with [^,]+), (?:([^,;]+?), and (?:you|they) have won|(?:([^,;]+?), then )?(\S+) is mate)/;
+{
+  const dir = join(judgeDir, 'round12');
+  const keys = ['r1', 'r2'].map(r => read(join(dir, `key-${r}.json`)));
+  const answers = ['r1', 'r2'].map(r => new Map(read(join(dir, `out-${r}.judge.json`)).answers.map(a => [a.id, a.choice])));
+  const tallies = { short: { new: 0, old: 0 }, long: { new: 0, old: 0 } };
+  for (const item of read(join(dir, 'items-r1.json')).items) {
+    const after = keys[0][item.id].X === 'new' ? item.versionX : item.versionY;
+    const m = after.map(x => x.text).join(' ').match(DEFENSE);
+    if (!m) throw new Error('round 12: a judged moment without its defense sentence');
+    const shown = (m[1] ?? [m[2] ?? '', m[3]].join(' ')).trim().split(/\s+/).length;
+    const t = tallies[shown <= SHORT ? 'short' : 'long'];
+    for (const i of [0, 1]) {
+      const c = answers[i].get(item.id);
+      if (c === 'X' || c === 'Y') t[keys[i][item.id][c]] += 1;
+    }
+  }
+  const share = t => t.new / (t.new + t.old);
+  claim(share(tallies.short) > share(tallies.long), 'the judge preferred round 12\'s short defense lines more often than its long ones');
+  g.def('RoundTwelveShortMax', String(SHORT)).def('RoundTwelveLongMin', String(SHORT + 1))
+    .def('RoundTwelveShortNew', String(tallies.short.new)).def('RoundTwelveShortOld', String(tallies.short.old))
+    .def('RoundTwelveLongNew', String(tallies.long.new)).def('RoundTwelveLongOld', String(tallies.long.old));
+}
+
 // ---- the judge's controls, as reproduce.mjs recomputed them
 const c = repro.controls;
 claim(c.length.matchesRecorded, 'the length check recomputed from its answers matches the score the records keep');
@@ -175,6 +214,9 @@ g.def('LongerPicked', String(c.longer.longer)).def('LongerDecided', String(c.lon
 const pad10 = c.padding.find(p => p.round === '10');
 claim(pad10, 'round 10 carried a padding control');
 g.def('PadTenDecoy', String(pad10.decoy)).def('PadTenN', String(pad10.comparisons));
+const pad12 = c.padding.find(p => p.round === '12');
+claim(pad12, 'round 12 carried a padding control');
+g.def('PadTwelveDecoy', String(pad12.decoy)).def('PadTwelveN', String(pad12.comparisons));
 const won = t => `${t.long} of ${t.long + t.decoy}`;
 g.block('ControlsTable', [
   '\\begin{tabularx}{\\textwidth}{L l l}', '\\toprule', 'check & result & verdict \\\\', '\\midrule',
@@ -199,6 +241,7 @@ const EXAMPLES = [
   { round: 'round8', want: 'new' },
   { round: 'round9', want: 'old' },
   { round: 'round10', want: 'new', has: 'an even trade' },
+  { round: 'round12', want: 'new', has: 'if they move the' },
 ];
 const newer = key => (Object.values(key).some(k => k.X === 'new') ? 'new' : [...new Set(Object.values(key).flatMap(k => [k.X, k.Y]))].sort().at(-1));
 const sideName = fen => (fen.split(' ')[1] === 'w' ? 'White' : 'Black');
@@ -228,6 +271,8 @@ for (const { round, want, has } of EXAMPLES) {
   const removed = before.filter(s => !after.some(a => a.heading === s.heading)).map(s => ({ heading: s.heading, before: s.text, after: null }));
   const sections = [...differ, ...removed];
   const reason = answers[0].get(item.id).reason;
+  // The defense sentence as the card shows it: up to the next point or the line beside it.
+  if (round === 'round12') g.def('RoundTwelveQuote', esc(after.map(s => s.text).join(' ').match(/if (?:they|you) (?:move the|block with)[^;·]*/)[0].trim()));
   const newIsX = keys[0][item.id].X === newer(keys[0]);
   const roundName = round.replace('round', '');
   g.def(`Example${L}Round`, roundName);
@@ -262,6 +307,17 @@ g.def('ReproLinesMatched', String(repro.recomputed.matched)).def('ReproLines', S
   .def('RecordsCommit', `\\texttt{${repro.chess.records_commit.slice(0, 7)}}`)
   .def('RerunProbes', String(repro.rerun.probes.kept))
   .def('RerunEvidence', esc(repro.rerun.evidence.versions.join(', ')));
+// How far the app the rerun measures has come: the kept rounds after the kept
+// variant that it carries. "Through round N" needs them carried in order.
+const later = state.rounds.map(r => r.variant).filter(v => kept.get(v) > kept.get(KEPT));
+claim(later.every(v => typeof repro.chess.carries?.[v] === 'boolean'), `the reproduction says whether the pinned app carries each kept round after ${KEPT}`);
+const carried = later.filter(v => repro.chess.carries[v]);
+claim(carried.every((v, i) => v === later[i]), `the pinned app carries the kept rounds after ${KEPT} in order`);
+const pending = later.slice(carried.length).map(v => String(kept.get(v)));
+g.def('AppKeptThrough', String(kept.get(carried.at(-1) ?? KEPT)))
+  .def('AppKeptSentence', pending.length
+    ? `The app at that commit carries the kept rounds through round ${kept.get(carried.at(-1) ?? KEPT)}; ${pending.length > 1 ? 'rounds' : 'round'} ${listed(pending)} ${pending.length > 1 ? 'are' : 'is'} not in it yet.`
+    : 'The app at that commit carries every kept round.');
 for (const r of rr) {
   const S = Name(r.split);
   g.def(`Rerun${S}Moments`, String(r.momentsApp)).def(`Rerun${S}Shared`, String(r.sharedMoments)).def(`Rerun${S}SameGrades`, String(r.sharedSameGrades))

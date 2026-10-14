@@ -1,0 +1,22 @@
+% Written by projects/explain-top-move/paper/generate.mjs; do not edit by hand.
+\begin{minipage}[t]{0.4\textwidth}\vspace{0pt}
+\chessboard[setfen={rn1q2k1/ppp1r1p1/3b1p1p/3pNp1Q/3Pn2B/2P1P3/PP3PPP/RN3RK1 w - - 0 13}, boardfontsize=13pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={f2-f3}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={e5-g6}]
+\end{minipage}\hfill
+\begin{minipage}[t]{0.56\textwidth}\vspace{0pt}\small
+\textbf{Played:} 13.~f3, White to move; the app's verdict: Mistake.\par
+\textbf{Engine:} +1.6 with the best move, +0.3 after yours.\par
+\textbf{Best line:} 13.~\symknight{}g6 \symrook{}e8 14.~\symqueen{}xf5 c6 15.~f3 \symknight{}g5\par
+\textbf{UCI:} \uci{f2f3}; best line \uci{e5g6 e7e8 h5f5 c7c6 f2f3 e4g5}\par
+\textbf{FEN:} \fen{rn1q2k1/ppp1r1p1/3b1p1p/3pNp1Q/3Pn2B/2P1P3/PP3PPP/RN3RK1 w - - 0 13}
+\end{minipage}
+
+\smallskip\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.17\textwidth} L L}
+\toprule
+section & before & after \\
+\midrule
+What Ng6 does instead & it attacks the rook on e7 \textperiodcentered{} 13.Ng6 Re8 14.Qxf5 c6 15.f3 Ng5 16.Bf2 a5 & it attacks the rook on e7; if they move the rook (Rf7), Qxf5, and you have won a pawn \textperiodcentered{} 13.Ng6 Re8 14.Qxf5 c6 15.f3 Ng5 16.Bf2 a5 \\
+\bottomrule
+\end{tabularx}
+
+\textbf{The judge (run 1, where the new text was X):} ``X adds the concrete point that once the attacked rook moves (Rf7), Qxf5 wins the f5 pawn, tying Ng6's threat to the material it gains.''

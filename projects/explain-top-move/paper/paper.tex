@@ -15,18 +15,19 @@ At each key moment of a game review, the coaching app explains what the move pla
 what the engine's better move does instead, and the difference between them. We measured
 those explanations on the \Moments{} key moments of \Games{} of the player's games, with three
 grades checked against the board, and changed the code that writes them one idea per round,
-keeping a round only when no grade fell on either half of the games (the last round fixed five
+keeping a round only when no grade fell on either half of the games (one round fixed five
 text defects at once). Where a change wrote
 something the grades cannot check, a judge model compared the old and new texts blind, twice,
 with the order reversed. Over \RoundCount{} rounds (\KeptRoundCount{} kept), the share of held-out moments whose
 texts make no false checkable claim rose from \BaseTestFaithful\% to \KeptTestFaithful\%, and
 the share that names a concrete consequence of the better move from \BaseTestConcrete\% to
-\KeptTestConcrete\%. The judge preferred the texts of every kept round it read in nearly every
-comparison it decided, and a length control showed that was not for their length: filler as long as a
+\KeptTestConcrete\%. The judge preferred the texts of every kept round it read in most of the
+comparisons it decided on each half, and a length control showed that was not for their length: filler as long as a
 round's change won \LengthPaddingDecoy{} of \LengthPaddingN{} comparisons against the same text
-without it. The kept code is the app's. The lab recomputes every published number from the
-records, and the app rerun on fresh engine evidence scores \RerunTestFaithful\% and
-\RerunTestConcrete\% on the same two measures.
+without it. Each kept round is a change to the app's own code. The lab recomputes every
+published number from the records, and the app rerun on fresh engine evidence, carrying the kept
+rounds through round \AppKeptThrough, scores \RerunTestFaithful\% and \RerunTestConcrete\% on
+the same two measures.
 \end{abstract}
 
 \section{What the player reads}
@@ -95,7 +96,9 @@ templates made, found by the grader over all moments before the split was used t
 anything. Rounds 3 to 10 add something the player asked for on the app's Coach Calibration page or
 that the judge's notes named, so the judge decides them. Round 11 fixes five defects in round
 10's texts that the player's calibration answers and the judge's notes flagged; each can be read
-off the text and the board, so the round counts them rather than asking the judge.
+off the text and the board, so the round counts them rather than asking the judge. Round 12
+answers the question the player's second set of calibration answers kept asking, what happens
+when the opponent simply saves the attacked piece, so the judge decides it.
 
 \begin{table}[!htbp]
 \centering\footnotesize
@@ -143,6 +146,14 @@ a capture or a check was called ``a quiet improvement''; the difference called t
 short or unsettled'' to compare beside a capture the same card calls outright; and a line's net
 gain was glossed with a piece worth more than it, as in ``they win a piece and a pawn (your rook
 on d7)''. The round was graded on round 10's rebuilt documents (Section~\ref{sec:results}).
+\item[Round 12: what the natural defense costs.] When the better move threatens a piece, a
+human-move model gives the defender's likeliest reply at the defender's rating band. When that
+reply moves the attacked piece or blocks the attack, the engine's line from it (the better line
+itself when it is the engine's reply there, otherwise a search at the routine's budget,
+\texttt{defenses.mjs}) says what it costs: ``\RoundTwelveQuote'' (Figure~\ref{fig:exg}). A
+capture of the attacker is left to the capture answers, and the sentence appears only when the
+line wins material after the defense or mates. The round was graded on documents rebuilt for it
+(Section~\ref{sec:results}).
 \end{description}
 
 \begin{table}[!htbp]
@@ -175,7 +186,7 @@ From round 10 on, each round's batches also carry a padding control: moments the
 change, set against themselves with filler as long as the round's change. If the decoy wins at
 least a quarter of those comparisons and more than half of the decided ones, the judge has drifted
 toward length and the round is not kept on its word. In round 10 the decoy won \PadTenDecoy{} of
-\PadTenN.
+\PadTenN, and in round 12 \PadTwelveDecoy{} of \PadTwelveN.
 
 \begin{table}[!htbp]
 \centering\footnotesize
@@ -197,6 +208,7 @@ the judge agreed. The tables show only the sections whose text the round changed
 \begin{figure}[!htbp]\ExampleD\caption{\ExampleDCaption}\label{fig:exd}\end{figure}
 \begin{figure}[!htbp]\ExampleE\caption{\ExampleECaption}\label{fig:exe}\end{figure}
 \begin{figure}[!htbp]\ExampleF\caption{\ExampleFCaption}\label{fig:exf}\end{figure}
+\begin{figure}[!htbp]\ExampleG\caption{\ExampleGCaption}\label{fig:exg}\end{figure}
 
 \section{Results}
 \label{sec:results}
@@ -232,6 +244,17 @@ no grade falls, and the moments graded concrete rise from \RoundElevenConcreteTe
 from \RoundElevenConcreteTrain{} on train (Table~\ref{tab:rebuilt}). Of the \RoundElevenDefects{}
 defects \texttt{defects.mjs} counts in round 10's texts, none is left (Table~\ref{tab:defects}).
 
+Round 12 was graded on documents rebuilt for it at round 11's code, with fresh capture searches
+and its own defense searches, against round 11's texts on the same documents. It changes the
+texts of \RoundTwelveChangedTest{} test and \RoundTwelveChangedTrain{} train moments, each of them
+graded faithful, and no grade moves (Table~\ref{tab:rebuilt}). The judge preferred the new texts
+\RoundTwelveTrainNew--\RoundTwelveTrainOld{} on train and \RoundTwelveTestNew--\RoundTwelveTestOld{}
+on test, with no drift toward length in the padding control dealt into the same batches. Its
+reasons against the new texts were mostly their length: pooling both halves, the new text won
+\RoundTwelveShortNew--\RoundTwelveShortOld{} where the sentence shows \RoundTwelveShortMax{} moves
+or fewer, and \RoundTwelveLongNew--\RoundTwelveLongOld{} where it shows \RoundTwelveLongMin{} or
+more. A round that shortens the line has seen that tally, so it fixes its cut on train.
+
 \begin{table}[!htbp]
 \centering\footnotesize
 \RebuiltTable
@@ -261,7 +284,7 @@ round 6 later kept; the decision is the same, since a tie on train is not a majo
 
 \paragraph{Rerun.} The lab rebuilt the engine evidence for the same games on the app as it now runs
 (\AppCommit, evidence \RerunEvidence), redid the capture searches on it (\RerunProbes{} kept), and
-graded the app's texts. The rebuilt evidence is not the hill-climb's: the review pipeline changed
+graded the app's texts. \AppKeptSentence{} The rebuilt evidence is not the hill-climb's: the review pipeline changed
 after the rounds, so engine lines differ in detail and some key moments move (on test,
 \RerunTestShared{} of \RerunTestMoments{} moments are the same moments; on train
 \RerunTrainShared{} of \RerunTrainMoments). The rates hold (Table~\ref{tab:repro}). The records
@@ -286,6 +309,8 @@ length; a decoy built from true but beside-the-point facts about the position wo
 \item The judge is a model reading on the player's behalf. It is a good finder of what is
 missing and a poorer judge of how much it matters, which is why the rounds use its pairwise
 preferences and its notes, not its ratings.
+\item Round 12 answers one defense, the model's likeliest; when the defender's second choice is
+nearly as likely, the lesson leaves it unanswered.
 \item \Games{} games of one player. The split keeps the claims honest about that player, not
 about players in general.
 \end{itemize}
