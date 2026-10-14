@@ -27,7 +27,7 @@ everything that answers it:
 | [praise-gate](praise-gate/) | Does the live coach, holding its instant praise for the engine's verdict, praise only the moves that earn it? | Measured on the change before it lands: narrowly short of its bar; the next round tests a stricter one |
 | [band-above](band-above/) | Where do players 200 points above his level give away fewer points a game than players at his level, by the leak ledger's own causes, and how much of a point given away shows in the result? | Running: the rule is fixed, the results are to come |
 | [phone-vs-routine](phone-vs-routine/) | Does Game Review on his phone name the same mistakes and blunders as the routine's review of the same game? | Running: the rule is fixed, the results are to come |
-| [learner-solve-chance](learner-solve-chance/) | When the learner gives a solve chance for a puzzle, how often does he solve it, and should a set aim from the view of its own channel instead of the headline rating? | Running: the rule is fixed, the results are to come |
+| [learner-solve-chance](learner-solve-chance/) | When the learner gives a solve chance for a puzzle, how often does he solve it, and should a set aim from the view of its own channel instead of the headline rating? | Not settled: round 1's record kept only his solves; on the app's own log the rating serving reads gives him about half a chance on puzzles he solves nearly always, and round 2 waits on new attempts |
 
 `paper.mjs` holds the helpers the generators share (boards, moves in SAN, UCI
 and FEN, number formats), and `preamble.tex` the LaTeX every paper loads.
@@ -120,6 +120,12 @@ for i in 0 1 2 3; do
 done; wait
 bridge/run.sh projects/think-time-rapid/archive.mjs
 python3 projects/think-time-rapid/analyze.py --month 2026-09
+
+# The learner's solve chances: his puzzle attempts replayed through the app's
+# learner, on a record rebuilt from the memory cards and on the profile as the
+# app holds it.
+bridge/run.sh projects/learner-solve-chance/replay.mjs
+bridge/run.sh projects/learner-solve-chance/fit.mjs
 
 make papers   # each paper's generated.tex, then its PDF
 ```

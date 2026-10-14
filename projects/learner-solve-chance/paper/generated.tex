@@ -1,0 +1,172 @@
+% Written by projects/learner-solve-chance/paper/generate.mjs; do not edit by hand.
+
+\newcommand{\AppCommit}{\texttt{d8b7712}}
+\newcommand{\Draws}{1{,}000}
+\newcommand{\Seed}{7}
+\newcommand{\TargetCore}{75}
+\newcommand{\TargetNew}{85}
+\newcommand{\ThemedWin}{a fifth}
+\newcommand{\ThemedLoss}{0.7}
+\newcommand{\ObviousWin}{a tenth}
+\newcommand{\ObviousLoss}{0.4}
+\newcommand{\UnknownFirst}{half}
+\newcommand{\ObviousUnknownWin}{a twentieth}
+\newcommand{\NotesPoints}{60}
+\newcommand{\TotalAttempts}{467}
+\newcommand{\TotalCorrect}{441}
+\newcommand{\Cards}{429}
+\newcommand{\Once}{365}
+\newcommand{\More}{64}
+\newcommand{\FromEvents}{24}
+\newcommand{\Rebuilt}{341}
+\newcommand{\LogEntries}{106}
+\newcommand{\LogOnce}{94}
+\newcommand{\LogMore}{12}
+\newcommand{\OnceMisses}{1}
+\newcommand{\MoreMisses}{26}
+\newcommand{\MoreWithMiss}{25}
+\newcommand{\AllWithMiss}{26}
+\newcommand{\RAttempts}{354}
+\newcommand{\RDays}{21}
+\newcommand{\RFirstTries}{365}
+\newcommand{\RFrom}{2026-07-21}
+\newcommand{\RTo}{2026-10-05}
+\newcommand{\RSolved}{99.7}
+\newcommand{\RHead}{52.0}
+\newcommand{\RView}{78.1}
+\newcommand{\RGap}{47.7}
+\newcommand{\RGapLo}{40.5}
+\newcommand{\RGapHi}{56.8}
+\newcommand{\HOneDays}{11}
+\newcommand{\HOneAttempts}{124}
+\newcommand{\HOneView}{0.269}
+\newcommand{\HOneHead}{0.694}
+\newcommand{\HOneDiff}{$-$0.426}
+\newcommand{\HOneLo}{$-$0.569}
+\newcommand{\HOneHi}{$-$0.266}
+\newcommand{\HTwoDays}{10}
+\newcommand{\HTwoAttempts}{230}
+\newcommand{\HTwoView}{0.270}
+\newcommand{\HTwoHead}{0.779}
+\newcommand{\HTwoDiff}{$-$0.509}
+\newcommand{\HTwoLo}{$-$0.729}
+\newcommand{\HTwoHi}{$-$0.348}
+\newcommand{\PAttempts}{100}
+\newcommand{\PDays}{seven}
+\newcommand{\PFrom}{2026-08-28}
+\newcommand{\PTo}{2026-10-05}
+\newcommand{\PMisses}{four}
+\newcommand{\PSolved}{96.0}
+\newcommand{\PHead}{58.0}
+\newcommand{\PView}{82.4}
+\newcommand{\PRun}{93.1}
+\newcommand{\PGap}{38.0}
+\newcommand{\PGapLo}{31.3}
+\newcommand{\PGapHi}{42.7}
+\newcommand{\PViewGap}{13.6}
+\newcommand{\PViewGapLo}{8.9}
+\newcommand{\PViewGapHi}{22.1}
+\newcommand{\PDiff}{$-$0.292}
+\newcommand{\PDiffLo}{$-$0.366}
+\newcommand{\PDiffHi}{$-$0.161}
+\newcommand{\PHeadLL}{0.568}
+\newcommand{\PHeadBrier}{0.191}
+\newcommand{\PViewLL}{0.276}
+\newcommand{\PViewBrier}{0.069}
+\newcommand{\PRunLL}{0.298}
+\newcommand{\PRunBrier}{0.064}
+\newcommand{\HeadAbove}{60}
+\newcommand{\ViewAbove}{287}
+\newcommand{\ItemMean}{1131}
+\newcommand{\PShiftHead}{500 or more (385 to 500, the grid's edge)}
+\newcommand{\PShiftView}{305 (160 to 500, the grid's edge)}
+\newcommand{\ShiftEdge}{500}
+\newcommand{\SelfN}{40}
+\newcommand{\SelfPred}{85.3}
+\newcommand{\SelfObs}{92.5}
+\newcommand{\SelfBrier}{0.075}
+\newcommand{\SelfBaseBrier}{0.070}
+\newcommand{\SelfLL}{0.288}
+\newcommand{\SelfBaseLL}{0.295}
+\newcommand{\ScoreTable}{%
+\begin{tabular}{lrrr}
+\toprule
+estimate & mean chance & Brier & log loss \\
+\midrule
+headline rating (serving reads it) & 58.0\% & 0.191 & 0.568 \\
+view of the themed sets & 82.4\% & 0.069 & 0.276 \\
+running rate & 93.1\% & 0.064 & 0.298 \\
+\midrule
+share solved & 96.0\% & & \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\ReliabilityTable}{%
+\begin{tabular}{lrrrrrr}
+\toprule
+& \multicolumn{3}{c}{headline rating} & \multicolumn{3}{c}{view} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+solve chance & attempts & mean chance & solved & attempts & mean chance & solved \\
+\midrule
+0.0 to 0.5 & 22 & 45.2\% & 90.9\% & 3 & 37.4\% & 100.0\% \\
+0.5 to 0.6 & 37 & 55.2\% & 100.0\% & 0 & -- & -- \\
+0.6 to 0.7 & 29 & 63.7\% & 93.1\% & 2 & 65.5\% & 100.0\% \\
+0.7 to 0.8 & 8 & 74.2\% & 100.0\% & 17 & 75.8\% & 100.0\% \\
+0.8 to 0.9 & 4 & 81.9\% & 100.0\% & 67 & 85.0\% & 94.0\% \\
+0.9 to 1.0 & 0 & -- & -- & 11 & 92.1\% & 100.0\% \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\BucketTable}{%
+\begin{tabular}{lrrrrr}
+\toprule
+bucket & attempts & mean rating & solved & headline's chance & view's chance \\
+\midrule
+fork & 11 & 906 & 100.0\% & 60.0\% & 84.0\% \\
+hanging piece & 16 & 1511 & 87.5\% & 59.4\% & 82.4\% \\
+mate in one & 37 & 1436 & 94.6\% & 49.4\% & 82.9\% \\
+mate in two & 11 & 693 & 100.0\% & 61.4\% & 85.8\% \\
+mate in three & 1 & 1075 & 100.0\% & 47.6\% & 27.0\% \\
+planning & 24 & 716 & 100.0\% & 68.5\% & 81.5\% \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\LastDay}{2026-10-07}
+\newcommand{\UpMin}{18}
+\newcommand{\UpMax}{287}
+\newcommand{\WithView}{six}
+\newcommand{\WithoutView}{five}
+\newcommand{\TodayTable}{%
+\begin{tabular}{lrrrrr}
+\toprule
+& \multicolumn{2}{c}{headline} & \multicolumn{2}{c}{themed view} & \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+bucket & rating & aims at & rating & aims at & hardest in the bank \\
+\midrule
+planning & 918 $\pm$ 222 & 725 & 1123 $\pm$ 94 & 930 & 1878 \\
+hanging piece & 1608 $\pm$ 245 & 1415 & 1797 $\pm$ 108 & 1604 & 1899 \\
+defensive move & 1096 $\pm$ 246 & 903 & none & -- & 1898 \\
+mate in one & 1587 $\pm$ 247 & 1394 & 1833 $\pm$ 82 & 1640 & 1896 \\
+fork & 1006 $\pm$ 280 & 813 & 1282 $\pm$ 119 & 1089 & 1897 \\
+mate in two & 796 $\pm$ 290 & 603 & 1083 $\pm$ 118 & 890 & 1897 \\
+mate in three & 1066 $\pm$ 314 & 873 & 1084 $\pm$ 212 & 891 & 1899 \\
+pawn endgame & 1223 $\pm$ 318 & 1030 & none & -- & 1887 \\
+discovered attack & 1056 $\pm$ 328 & 863 & none & -- & 1899 \\
+London System & 1056 $\pm$ 328 & 863 & none & -- & 1494 \\
+f2 and f7 & 1040 $\pm$ 337 & 847 & none & -- & 1889 \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\MateN}{37}
+\newcommand{\MateSolved}{35}
+\newcommand{\CurveHead}{(1,1332) (2,1335) (3,1337) (4,1337) (5,1338) (6,1345) (7,1346) (8,1349) (9,1351) (10,1375) (11,1357) (12,1360) (13,1369) (14,1396) (15,1397) (16,1402) (17,1403) (18,1419) (19,1421) (20,1429) (21,1430) (22,1433) (23,1441) (24,1469) (25,1471) (26,1491) (27,1494) (28,1496) (29,1497) (30,1514) (31,1521) (32,1540) (33,1542) (34,1548) (35,1548) (36,1557) (37,1560)}
+\newcommand{\CurveView}{(1,1481) (2,1539) (3,1581) (4,1590) (5,1608) (6,1623) (7,1635) (8,1650) (9,1662) (10,1677) (11,1681) (12,1688) (13,1701) (14,1719) (15,1728) (16,1678) (17,1688) (18,1702) (19,1709) (20,1720) (21,1728) (22,1737) (23,1745) (24,1758) (25,1765) (26,1778) (27,1788) (28,1795) (29,1801) (30,1814) (31,1820) (32,1832) (33,1837) (34,1845) (35,1817) (36,1822) (37,1827)}
+\newcommand{\ItemsSolved}{(1,1305) (2,1350) (3,1273) (4,1343) (5,1279) (6,1278) (7,1336) (8,1331) (9,1352) (10,1279) (11,1282) (12,1417) (13,1479) (14,1398) (16,1398) (17,1478) (18,1383) (19,1439) (20,1445) (21,1448) (22,1461) (23,1449) (24,1460) (25,1554) (26,1565) (27,1523) (28,1499) (29,1563) (30,1503) (31,1567) (32,1545) (33,1526) (35,1503) (36,1531) (37,1560)}
+\newcommand{\ItemsMissed}{(15,1460) (34,1560)}
+\newcommand{\ExRating}{1479}
+\newcommand{\ExBucket}{mate in one}
+\newcommand{\ExHead}{35}
+\newcommand{\ExView}{78}
+\newcommand{\ExHeadRating}{1369}
+\newcommand{\ExViewRating}{1701}
+\newcommand{\Example}{\input{example}}

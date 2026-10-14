@@ -21,11 +21,25 @@ exposures, each at full weight (`foldAbilities` in `ability.ts`). Serving
 reads the headline. The learner's own notes expect the discount to read a
 player served at 75% in themed sets about 60 points under his strength.
 
-**The answer.** Not computed yet. The rule below was committed before any
-solve chance was computed. Known before it: the profile's totals (441 of
-467) and the shape of the data (how many memory cards, how many reviews
-each, how the legacy log lines up with the cards, how many attempts and days
-the app's own record holds), not any attempt's result beside a prediction.
+**The answer.** Not settled by round 1. Its verdicts do not stand: the
+record it rebuilt from the memory cards keeps almost only his solves, because
+a miss comes back as a redemption card and the cards reviewed more than once,
+which hold all but one of the puzzles he ever missed, were left out. The
+profile as the app holds it was logged as he played, so nothing in it selects
+on the result, and round 1 named it beside the verdicts. There the headline
+rating, which serving reads, gave him a mean solve chance of 58% on puzzles he
+solved 96% of: it sits close to the difficulty he was served, so sets aim far
+below him. The view of his themed sets gave 82%, still low, with about half the
+headline's log loss. That look decides nothing, so round 2 below tests the
+view on the attempts the app records next. The numbers are in the paper,
+[`paper/paper.pdf`](paper/paper.pdf), and the script's report,
+[`results/solve.md`](results/solve.md).
+
+Round 1's rule was committed before any solve chance was computed. Known
+before it: the profile's totals (441 of 467) and the shape of the data (how
+many memory cards, how many reviews each, how the legacy log lines up with
+the cards, how many attempts and days the app's own record holds), not any
+attempt's result beside a prediction.
 
 ## The attempts
 
@@ -105,6 +119,25 @@ Not in this round: an item-level model of difficulty (the published rating
 stands for each item's difficulty, as in the app), which needs more than one
 attempt per item.
 
+## Round 2, fixed before any of its attempts exists
+
+Round 1's record selected on the result, so its verdicts do not stand, and
+the record that does not select is one whose attempts round 1 has already
+read. Round 2 therefore tests on attempts the app has not recorded yet.
+
+- **The attempts.** The profile as the app holds it at a later commit of the
+  app, read with that commit's learner: every puzzle attempt in a bucket's own
+  set (the themed channel) that the app counts as a first exposure, recorded
+  after the last attempt in the profile at the commit round 1 measured
+  (`d8b7712`; that attempt was played at 09:27 on 7 October, Los Angeles
+  time). Everything before an attempt is its evidence, as the app folds it.
+- **When.** Once those attempts fall on at least ten Los Angeles days. Until
+  then nothing is decided.
+- **The rule.** Rules 1 and 2 above, unchanged, on those attempts: the halves
+  alternate over their days, and the view replaces the headline for a set's
+  solve chance only if both halves pass. If the view has already been ported
+  when round 2 runs, the same verdict decides whether it stays.
+
 ## Files
 
 | File | What it does |
@@ -121,6 +154,8 @@ bridge/run.sh projects/learner-solve-chance/replay.mjs
 bridge/run.sh projects/learner-solve-chance/fit.mjs
 bridge/run.sh projects/learner-solve-chance/paper/generate.mjs
 ```
+
+Round 2 adds its own script when its attempts exist.
 
 The attempts are his, so the rows stay in `private/learner-solve-chance/`;
 `results/` holds aggregates only.

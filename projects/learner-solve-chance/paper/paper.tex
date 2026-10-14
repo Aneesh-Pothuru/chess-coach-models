@@ -1,0 +1,228 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Does the learner know how often he solves a puzzle?\\[0.3em]
+\large The coaching app's solve chances, replayed over the player's puzzle record}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The coaching app sets the difficulty of each puzzle set from a Glicko-2 rating: it aims where its
+learner says the player will solve \TargetCore\% of the time. Replayed over the profile as the app
+holds it (\PAttempts{} puzzle attempts on \PDays{} days, logged as he played), the rating serving
+reads gave him a mean solve chance of \PHead\% on puzzles he solved \PSolved\% of. It sits close
+to the difficulty he was served, so the sets aim far below him. The learner's view of his themed
+sets, which it already keeps, gave \PView\%, still low, with about half the log loss. The test
+committed before the run used a record rebuilt from the app's memory cards, which turned out to
+keep almost only his solves, because a missed puzzle comes back for another review; its verdicts
+do not stand. A second round, fixed before any of its attempts exists, tests the view on the
+attempts the app records next.
+\end{abstract}
+
+\section{The question}
+
+The app's learner keeps a Glicko-2 rating for each skill and turns it into the chance that the
+player solves an item of a given difficulty: Glicko's expected score against the item's rating,
+with the item's own deviation. Serving reads that chance backwards. A bucket's puzzle set aims at
+the difficulty he should solve \TargetCore\% of the time (\TargetNew\% while the bucket is new),
+and draws the unseen puzzles nearest to it. The profile's puzzle totals count \TotalCorrect{}
+solved of \TotalAttempts.
+
+The learner keeps two estimates of each skill. The \emph{headline rating} folds every channel and
+counts a result in an announced set at the Lichess discount, so that a record earned in announced
+sets does not overstate how he plays when nothing is announced: in a bucket's own set a solve moves
+it \ThemedWin{} as far as one in an unannounced set and a miss \ThemedLoss{} as far, and for an
+obvious theme such as mate in N \ObviousWin{} and \ObviousLoss. The legacy attempt log cannot say
+whether an attempt was a first try, so each of its attempts counts at \UnknownFirst{} of that. Beside it, a
+\emph{view} per channel folds only that channel's first exposures, each at full weight. Serving
+reads the headline. The learner's own notes expect the discount to read a player served at
+\TargetCore\% in themed sets about \NotesPoints{} points under his strength. When the learner gives a solve
+chance, how often does he solve? And is the rating serving reads the right one?
+
+\section{The record and the rule}
+
+\paragraph{The record.} The rule was committed before any solve chance was computed. It named a
+record rebuilt so that every first try has its time. The app keeps a memory card for every puzzle
+he has been served, with its last review's time and its passes and fails, and the bank gives each
+puzzle's bucket and Lichess rating. A card reviewed exactly once holds one first try with its time
+and result; a card reviewed more than once keeps only its last review's time, so it was left out.
+That leaves \Once{} of the \Cards{} cards: \FromEvents{} with the app's own attempt event and
+\Rebuilt{} rebuilt as the event the app writes today, \RFirstTries{} first tries from \RFrom{} to
+\RTo.
+
+\paragraph{The instrument.} For every first try, in time order, the app's own learner at commit
+\AppCommit{} is folded on the record before it, at the moment of the attempt, and gives two solve
+chances for the puzzle: from the headline rating and from the view of the attempt's channel (for a
+bucket's own set, the themed view). An attempt is scored when its skill already has a rated attempt
+in that channel, so both exist. A solve scores $-\ln p$ and a miss $-\ln(1-p)$, as the learner's
+own self-check scores them.
+
+\paragraph{The candidate.} Read a set's solve chance, and so its target, from the view of the set's
+own channel, falling back to the headline where the view has no attempt yet. It fits nothing.
+
+\paragraph{The rule.} The days with scored attempts alternate between two halves. (1) The headline
+under-predicts if the share solved minus its mean chance has a 95\% interval over \Draws{}
+bootstrap draws of the days (seed \Seed) entirely above zero, over-predicts if entirely below, and
+is calibrated within the noise otherwise. (2) The view replaces the headline only if, on each
+half, its mean log loss is below the headline's with the interval of the difference entirely below
+zero. Named beside the verdicts, deciding nothing: the same replay on the profile as the app holds
+it, scores against a running rate (the share of the skill's earlier attempts he solved), a
+reliability table, the buckets, a best-fitting shift, the learner's self-check, and where each
+estimate would aim a set today.
+
+\section{Round 1, and why its verdicts do not stand}
+
+On the rebuilt record (\RAttempts{} scored attempts on \RDays{} days) he solved \RSolved\%, and the
+headline's mean chance was \RHead\%: a gap of \RGap{} points (\RGapLo{} to \RGapHi), so by rule 1
+the headline under-predicts. By rule 2 the view passes on both halves: its log loss minus the
+headline's is \HOneDiff{} on the first (\HOneDays{} days, \HOneLo{} to \HOneHi) and \HTwoDiff{} on
+the second (\HTwoDays{} days, \HTwoLo{} to \HTwoHi).
+
+Neither verdict stands. A missed puzzle becomes a redemption card that comes back until he solves
+it, while a solved one retires, so a card reviewed once is nearly always a solve
+(Table~\ref{tab:cards}). Leaving out the cards reviewed more than once removed \MoreWithMiss{} of
+the \AllWithMiss{} puzzles he ever missed, which is the outcome both rules measure. The rebuilt
+record's \RSolved\% is that selection, and on a record with almost no misses a higher chance can
+only score better, so rule 2 could hardly fail. The memory a scheduler keeps is shaped by the results
+it reacts to; a record of first tries has to come from a log written as they were played.
+
+\begin{table}[!htbp]
+\centering\small
+\begin{tabular}{lrr}
+\toprule
+memory cards & cards & misses \\
+\midrule
+reviewed once (round 1's record) & \Once & \OnceMisses \\
+reviewed more than once (left out) & \More & \MoreMisses{} on \MoreWithMiss{} cards \\
+\bottomrule
+\end{tabular}
+\caption{Where the misses sit on the memory cards. A miss returns as a redemption card, so the
+cards reviewed once hold almost none.}
+\label{tab:cards}
+\end{table}
+
+\section{The profile as the app holds it}
+
+The profile also holds what the app logged as he played: the legacy attempt log (\LogEntries{}
+entries, \LogOnce{} of them on cards reviewed once and \LogMore{} on the others, all agreeing with
+the cards in time, bucket, rating and result), the puzzle totals from before the log, which the
+learner folds as a seed, and the attempt events. Every attempt in it was logged when it was played,
+so nothing in it selects on the result. Replayed the same way, it gives \PAttempts{} scored attempts
+on \PDays{} days, from \PFrom{} to \PTo, with \PMisses{} misses: he solved \PSolved\%.
+
+The headline's mean chance was \PHead\%, a gap of \PGap{} points (\PGapLo{} to \PGapHi); the
+view's was \PView\%, a gap of \PViewGap{} (\PViewGapLo{} to \PViewGapHi). Both under-predict, the
+headline by far more (Table~\ref{tab:scores}). The view's log loss is about half the headline's,
+a difference of \PDiff{} (\PDiffLo{} to \PDiffHi), and the reliability table shows where: the headline put
+most of his attempts below a 70\% chance, and he solved nearly all of them
+(Table~\ref{tab:reliability}). The same holds in every bucket with more than one attempt
+(Table~\ref{tab:buckets}). The view scores only about as well as the running rate, though: the share of the skill's earlier
+attempts he solved.
+
+\begin{table}[!htbp]
+\centering\small
+\ScoreTable
+\caption{Each estimate's mean solve chance and scores on the profile's \PAttempts{} scored
+attempts. Lower is better for both scores.}
+\label{tab:scores}
+\end{table}
+
+\begin{table}[!htbp]
+\centering\small
+\ReliabilityTable
+\caption{The scored attempts binned by each estimate's solve chance.}
+\label{tab:reliability}
+\end{table}
+
+\begin{table}[!htbp]
+\centering\small
+\BucketTable
+\caption{Each bucket's scored attempts, the mean Lichess rating of its puzzles, the share solved
+and each estimate's mean chance.}
+\label{tab:buckets}
+\end{table}
+
+Why the headline reads him so low shows in its own fold. It starts each skill at the median rating
+of the puzzles he was served, and a solve in a mate set that the log cannot call a first try moves
+it \ObviousUnknownWin{} of a full step. So it follows the puzzles up and never gets ahead of them:
+on the profile it sat on average \HeadAbove{} points above the puzzles he was asked about (their
+mean rating \ItemMean), where Glicko gives a little over half, while the view sat \ViewAbove{}
+points above. Figure~\ref{fig:mate} shows it on mate in one, where he solved \MateSolved{} of
+\MateN. The shift that best fits the headline's chances, taken off every puzzle's rating, is
+\PShiftHead; the view's is \PShiftView.
+
+\begin{figure}[!htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=0.85\textwidth, height=0.45\textwidth, xmin=0, xmax=38,
+  xlabel={his mate-in-one attempts, in order}, ylabel={rating},
+  grid=major, legend cell align=left, legend columns=2,
+  legend style={font=\scriptsize, at={(0.5,-0.22)}, anchor=north, column sep=6pt}]
+\addplot[black, thick] coordinates {\CurveHead};
+\addlegendentry{headline rating (serving reads it)}
+\addplot[blue!70!black, dashed, thick] coordinates {\CurveView};
+\addlegendentry{view of the themed sets}
+\addplot[only marks, mark=*, mark size=1.3pt, gray] coordinates {\ItemsSolved};
+\addlegendentry{puzzle solved, at its rating}
+\addplot[only marks, mark=x, mark size=3pt, red!75!black, thick] coordinates {\ItemsMissed};
+\addlegendentry{puzzle missed}
+\end{axis}
+\end{tikzpicture}
+\caption{The two estimates before each mate-in-one attempt on the profile, and the puzzle's
+Lichess rating. The headline follows the puzzles; the view sits well above them.}
+\label{fig:mate}
+\end{figure}
+
+The learner's own self-check, which folds each channel's earlier attempts and predicts the later
+ones, says the same of the views: on its \SelfN{} held-out attempts it predicted \SelfPred\% and he
+solved \SelfObs\%, and its Brier score, \SelfBrier, is no better than its constant's,
+\SelfBaseBrier. Figure~\ref{fig:example} shows the solved puzzle the headline gave the lowest
+chance.
+
+\begin{figure}[!htbp]\Example\caption{The solved puzzle on the profile the headline gave the
+lowest chance, as he faced it, after the opponent's move.}\label{fig:example}
+\end{figure}
+
+\section{What it means for the app}
+
+The sets aim far below him. Today the view would aim a set \UpMin{} to \UpMax{} points higher in
+the \WithView{} buckets that have a themed view (Table~\ref{tab:today}); the other \WithoutView{}
+have no attempt in their own sets since the log began, so they would keep the headline. The bank can serve
+every one of those targets. The view still under-predicts him, so sets aimed from it should still
+land above \TargetCore\%, but nearer.
+
+This round adopts nothing: its test did not stand, and the profile's look, named beside it,
+decides nothing. Round 2 decides. It takes the attempts the app records after the last one in the
+profile at commit \AppCommit{} (played on \LastDay, Los Angeles time), each folded on everything
+before it as the app holds it, and runs once they fall on at least ten days. Rules 1 and 2 apply
+unchanged; if the view is ported before then, the same verdict decides whether it stays.
+
+\begin{table}[!htbp]
+\centering\small
+\TodayTable
+\caption{Each puzzle bucket today: each estimate's rating with its deviation, the difficulty a set
+would aim at from it (the core target, clamped to what the bucket can serve), and the hardest
+puzzle the bank holds.}
+\label{tab:today}
+\end{table}
+
+\section{Limitations}
+
+\begin{itemize}[nosep]
+\item One player, served puzzles far below him: the profile holds \PMisses{} misses, so its log
+losses rest on a handful of them.
+\item The profile's attempts fall on \PDays{} days, so the bootstrap over days has few to draw from
+and its intervals are rough.
+\item The log cannot say which attempts were retries; the replay counts them as the app does, at
+half weight in the headline and in full in the view.
+\item A puzzle's published Lichess rating stands for its difficulty, as in the app. An item-level
+model would need more than one attempt per puzzle.
+\item Round 1's record was rebuilt from memory that selects on the result. Round 2 reads only the
+app's own log, written as the attempts are played.
+\end{itemize}
+
+\end{document}
