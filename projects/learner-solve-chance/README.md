@@ -37,8 +37,9 @@ chose to adopt the view before round 2: since chess PR 78 (merged as
 map's next difficulty reads the same estimate. Round 2 decides whether it
 stays. Since chess PR 79 (merged as `5c846e2`), a bucket with no attempt logged
 in its own set aims from its stored totals read alone instead of the
-headline; round 2 scores no attempt in such a bucket. Rerun at `5c846e2`, every
-number here is unchanged. The numbers are in the paper,
+headline; round 2 scores no attempt in such a bucket. Rerun at `3a6c099`
+(after chess PR 75 changed the learner's plan and study pick), every number
+here is unchanged. The numbers are in the paper,
 [`paper/paper.pdf`](paper/paper.pdf), and the script's report,
 [`results/solve.md`](results/solve.md).
 
