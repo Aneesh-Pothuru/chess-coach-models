@@ -168,7 +168,11 @@ ones).
 | File | What it does |
 |---|---|
 | `stream.py` | Streams the month from the Lichess database and keeps the games above (`private/think-time-rapid/games-<month>.jsonl.gz`). |
+| `games.mjs` | Reads a kept game the app's way: the archive row, the routine's ports, the book exit, and Black's build flipped from White's. |
+| `moves.mjs` | The CSV row of one move: the app's derived facts and `triggerOf`. |
 | `facts.mjs` | The app's move facts and triggers for every kept game (`private/think-time-rapid/moves-<month>.csv.gz`, sharded). `--check N` builds Black's row for real on the first N games and stops on any difference from the flipped build. |
+| `archive.mjs` | The same rows for his 10-minute games in the app's archive, read from their evals alone (`private/think-time-rapid/archive-moves.csv.gz`). |
+| `analyze.py` | The danger score, the rule and the descriptions; writes `results/analysis.json` and `results/analysis.md`. |
 
 ## Running it
 
@@ -178,7 +182,9 @@ python3 projects/think-time-rapid/stream.py --month 2026-09
 for i in 0 1 2 3; do
   bridge/run.sh projects/think-time-rapid/facts.mjs --month 2026-09 --shard $i/4 --check 200 &
 done; wait
+bridge/run.sh projects/think-time-rapid/archive.mjs
+python3 projects/think-time-rapid/analyze.py --month 2026-09
 ```
 
-Per-game files stay in `private/think-time-rapid/`; `results/` will hold
+Per-game files stay in `private/think-time-rapid/`; `results/` holds
 aggregates only.
