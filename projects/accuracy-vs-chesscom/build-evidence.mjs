@@ -6,11 +6,11 @@
 // rebuild at the same commit gives the same documents.
 //
 //   bridge/run.sh projects/accuracy-vs-chesscom/build-evidence.mjs --profile routine \
-//     [--out private/accuracy-vs-chesscom/evidence] [--concurrency 4] [--timeout-s 3600]
+//     [--out private/accuracy-vs-chesscom/evidence] [--concurrency 4] [--timeout-s 3600] [--games FILE]
 //
 // The reviews run in the app checkout the bridge pins (CHESS_DIR), on the cases
-// build-cases.mjs wrote; the documents describe the player's games, so they stay
-// under private/.
+// build-cases.mjs wrote (or the games --games names, in the same shape); the
+// documents describe the player's games, so they stay under private/.
 //
 // Resumable: a case whose document is already on disk is skipped. Each
 // finished case appends its wall-clock seconds to <out>/<profile>/_timing.jsonl;
@@ -27,7 +27,7 @@ const ROOT = CHESS_DIR;
 const TSX = join(ROOT, 'node_modules', '.bin', 'tsx');
 
 function parseArgs(argv) {
-  const a = { profile: null, out: join(FLOW_DIR, 'evidence'), concurrency: 4, timeoutS: 3600, only: null };
+  const a = { profile: null, out: join(FLOW_DIR, 'evidence'), concurrency: 4, timeoutS: 3600, only: null, games: join(FLOW_DIR, 'cases.json') };
   for (let i = 0; i < argv.length; i++) {
     const k = argv[i];
     const val = () => {
@@ -39,12 +39,13 @@ function parseArgs(argv) {
     else if (k === '--concurrency') a.concurrency = Number(val());
     else if (k === '--timeout-s') a.timeoutS = Number(val());
     else if (k === '--only') a.only = new Set(val().split(','));
+    else if (k === '--games') a.games = val();
     else { console.error(`unknown argument: ${k}`); process.exit(2); }
   }
   if (!/^(phone|desktop|routine)$/.test(a.profile ?? '')
       || !Number.isInteger(a.concurrency) || a.concurrency < 1
       || !Number.isFinite(a.timeoutS) || a.timeoutS <= 0) {
-    console.error('usage: bridge/run.sh projects/accuracy-vs-chesscom/build-evidence.mjs --profile phone|desktop|routine [--out DIR] [--concurrency N] [--timeout-s N] [--only id,id]');
+    console.error('usage: bridge/run.sh projects/accuracy-vs-chesscom/build-evidence.mjs --profile phone|desktop|routine [--out DIR] [--concurrency N] [--timeout-s N] [--only id,id] [--games FILE]');
     process.exit(2);
   }
   return a;
@@ -86,7 +87,7 @@ function reviewOnce(c, profile, timeoutS) {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  const cases = JSON.parse(readFileSync(join(FLOW_DIR, 'cases.json'), 'utf8')).filter(c => !args.only || args.only.has(String(c.id)));
+  const cases = JSON.parse(readFileSync(args.games, 'utf8')).filter(c => !args.only || args.only.has(String(c.id)));
   const dir = join(args.out, args.profile);
   mkdirSync(dir, { recursive: true });
   const todo = cases.filter(c => {

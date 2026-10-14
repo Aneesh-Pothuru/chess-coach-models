@@ -9,7 +9,8 @@
 //   bridge/run.sh projects/explain-top-move/judge/pairwise.mjs --old DIR --new DIR --out ROUND_DIR [--seed N]
 //   node projects/explain-top-move/judge/pairwise.mjs --score ROUND_DIR [--over ROUND_DIR]
 //
-// --old and --new are two variants' case directories (build-cases.mjs);
+// --old and --new are two variants' case directories (build-cases.mjs, or
+// endgame-cases.mjs, whose moments carry their own split);
 // ROUND_DIR names moments, so a new round's belongs under
 // private/explain-top-move/. The recorded rounds are in the research records
 // (evals/explain-top-move/judge/round*/), which --score reads in place.
@@ -131,7 +132,7 @@ async function build(opt) {
         bestLine: c.bestPv ? numbered(c.bestPv.slice(0, 6), c.moveNumber, c.mover) : null,
       },
     };
-    const split = train.has(String(c.game)) ? 'train' : 'test';
+    const split = c.split ?? (train.has(String(c.game)) ? 'train' : 'test');
     const newIsX = rng() < 0.5;
     const [x, y] = newIsX ? [versionOf(c), versionOf(o)] : [versionOf(o), versionOf(c)];
     items1.push({ ...base, versionX: x, versionY: y });

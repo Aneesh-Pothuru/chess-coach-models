@@ -9,7 +9,10 @@
 // verdict and every text comes from the review and knowledge services over
 // that stored evidence. No engine runs here.
 //
-//   bridge/run.sh projects/explain-top-move/build-cases.mjs [--evidence DIR] [--out DIR] [--probes FILE] [--defenses FILE]
+//   bridge/run.sh projects/explain-top-move/build-cases.mjs [--evidence DIR] [--out DIR] [--probes FILE] [--defenses FILE] [--games FILE]
+//
+// --games (default private/accuracy-vs-chesscom/cases.json): the games to read,
+// in the accuracy cases' shape, such as the endgame set endgames.mjs draws.
 //
 // --evidence (default private/accuracy-vs-chesscom/evidence): the kept
 // documents build-evidence.mjs writes, read from <DIR>/phone/<id>.json.
@@ -60,7 +63,7 @@ const UI_NOTES = Object.freeze({
 });
 
 function parseArgs(argv) {
-  const args = { evidence: join(ACCURACY, 'evidence'), out: OUT, probes: join(OUT, 'probes.json'), defenses: join(OUT, 'defenses.json') };
+  const args = { evidence: join(ACCURACY, 'evidence'), out: OUT, probes: join(OUT, 'probes.json'), defenses: join(OUT, 'defenses.json'), games: join(ACCURACY, 'cases.json') };
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--evidence') {
       if (argv[i + 1] === undefined) throw new Error('missing value for --evidence');
@@ -71,6 +74,9 @@ function parseArgs(argv) {
     } else if (argv[i] === '--defenses') {
       if (argv[i + 1] === undefined) throw new Error('missing value for --defenses');
       args.defenses = resolve(argv[++i]);
+    } else if (argv[i] === '--games') {
+      if (argv[i + 1] === undefined) throw new Error('missing value for --games');
+      args.games = resolve(argv[++i]);
     } else if (argv[i] === '--out') {
       if (argv[i + 1] === undefined) throw new Error('missing value for --out');
       args.out = resolve(argv[++i]);
@@ -479,7 +485,7 @@ function renderPreview(ctx) {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const s = await loadServices();
-  const cases = JSON.parse(readFileSync(join(ACCURACY, 'cases.json'), 'utf8'));
+  const cases = JSON.parse(readFileSync(args.games, 'utf8'));
   const probes = existsSync(args.probes) ? JSON.parse(readFileSync(args.probes, 'utf8')).games ?? {} : {};
   const defenses = existsSync(args.defenses) ? JSON.parse(readFileSync(args.defenses, 'utf8')).games ?? {} : {};
   const moments = [];

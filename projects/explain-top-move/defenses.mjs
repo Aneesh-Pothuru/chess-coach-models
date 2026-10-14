@@ -10,7 +10,7 @@
 // game, which build-cases.mjs adds to each re-read document. The cases carry
 // no game history, so each search starts from the position before the move.
 //
-//   bridge/run.sh projects/explain-top-move/defenses.mjs [--cases FILE] [--out FILE]
+//   bridge/run.sh projects/explain-top-move/defenses.mjs [--cases FILE] [--out FILE] [--games FILE]
 //
 // --cases defaults to private/explain-top-move/cases.json (build-cases.mjs),
 // --out to private/explain-top-move/defenses.json, where build-cases.mjs reads
@@ -30,6 +30,7 @@ const args = process.argv.slice(2);
 const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? resolve(args[i + 1]) : d; };
 const casesPath = opt('--cases', join(HERE, 'cases.json'));
 const out = opt('--out', join(HERE, 'defenses.json'));
+const gamesPath = opt('--games', join(ACCURACY, 'cases.json'));
 const BUDGET = { nodes: 600_000 };
 
 const load = (rel) => import(pathToFileURL(join(ROOT, rel)).href);
@@ -42,7 +43,7 @@ const engine = createNodeEngine({ root: ROOT, tablebase: false, evalCache: false
 if ((await engine.humanPolicy(position(START_FEN))) === 'unavailable') throw new Error('the human-move model is unavailable');
 
 const cases = JSON.parse(readFileSync(casesPath, 'utf8'));
-const games = new Map(JSON.parse(readFileSync(join(ACCURACY, 'cases.json'), 'utf8')).map((g) => [String(g.id), g]));
+const games = new Map(JSON.parse(readFileSync(gamesPath, 'utf8')).map((g) => [String(g.id), g]));
 const byMoment = new Map();
 for (const c of cases) {
   if (!byMoment.has(c.game)) byMoment.set(c.game, []);
