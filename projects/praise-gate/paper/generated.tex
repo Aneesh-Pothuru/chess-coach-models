@@ -1,0 +1,107 @@
+% Written by projects/praise-gate/paper/generate.mjs; do not edit by hand.
+
+\newcommand{\RuleFaulted}{one in twenty}
+\newcommand{\RuleFine}{three in four}
+\newcommand{\CandidateBar}{1}
+\newcommand{\StrictBar}{0.5}
+\newcommand{\AppCommit}{5fb30d9f81}
+\newcommand{\ArchiveThrough}{2026-10-13}
+\newcommand{\Games}{634}
+\newcommand{\HisMoves}{19,918}
+\newcommand{\Moves}{289}
+\newcommand{\Castles}{201}
+\newcommand{\Trades}{88}
+\newcommand{\PraiseBar}{2}
+\newcommand{\ClearBar}{5}
+\newcommand{\NamingNodes}{600,000}
+\newcommand{\CheckNodes}{120,000}
+\newcommand{\ArchiveNodes}{1,000,000}
+\newcommand{\Lines}{three}
+\newcommand{\GateTable}{%
+\begin{table}[ht]\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lrrrrrrr}
+\toprule
+ & & & \multicolumn{2}{c}{Faulted ($\ge$ 2 win\%)} & \multicolumn{2}{c}{Clearly faulted ($\ge$ 5)} & \\
+\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+Rule & Moves & Praised & of all & of praised & of all & of praised & Fine praised \\
+\midrule
+Castling by move 8 & 201 & 133 (66.2\%) & 57 (28.4\%) & 9 (6.8\%) & 20 (10.0\%) & 0 (0.0\%) & 124 (86.1\%) \\
+Even trade while ahead & 88 & 69 (78.4\%) & 13 (14.8\%) & 4 (5.8\%) & 6 (6.8\%) & 1 (1.4\%) & 65 (86.7\%) \\
+\midrule
+Both & 289 & 202 (69.9\%) & 70 (24.2\%) & 13 (6.4\%) & 26 (9.0\%) & 1 (0.5\%) & 189 (86.3\%) \\
+\bottomrule
+\end{tabular}
+\caption{His moves where an instant rule held praise, read by the change's verdict at the live budgets and by the archive's deeper reading of the same move. \emph{Of all} is what the instant rules alone would have praised; \emph{of praised} is what the gate lets through. \emph{Fine moves praised}: of the moves that gave away under 2 win\% by the archive's reading, the share the gate praises.}
+\label{tab:gate}
+\end{table}
+}
+\newcommand{\Praised}{202}
+\newcommand{\PraisedPct}{70}
+\newcommand{\FaultedAll}{70}
+\newcommand{\FaultedAllPct}{24}
+\newcommand{\ClearAll}{26}
+\newcommand{\ClearAllPct}{9}
+\newcommand{\FaultedPraised}{13}
+\newcommand{\FaultedPraisedPct}{6.4}
+\newcommand{\FaultedPraisedCI}{3.8--10.7}
+\newcommand{\ClearPraised}{one}
+\newcommand{\ClearPraisedCastles}{zero}
+\newcommand{\Caught}{57}
+\newcommand{\CaughtPct}{81}
+\newcommand{\Fine}{219}
+\newcommand{\FinePraised}{189}
+\newcommand{\FinePraisedPct}{86}
+\newcommand{\FinePraisedCI}{81.1--90.2}
+\newcommand{\CastlesFaultedPct}{6.8}
+\newcommand{\TradesFaultedPct}{5.8}
+\newcommand{\CastlesPraisedPct}{66}
+\newcommand{\CastlesWithheld}{68}
+\newcommand{\CastlesWithheldFaulted}{48}
+\newcommand{\FaultedPraisedInLines}{twelve}
+\newcommand{\FaultedPraisedOutOfLines}{one}
+\newcommand{\FaultedRangeLow}{2.3}
+\newcommand{\FaultedRangeHigh}{7.5}
+\newcommand{\CastleRangeHigh}{3.6}
+\newcommand{\GapMedian}{0.5}
+\newcommand{\GapNinety}{1.8}
+\newcommand{\LiveOnly}{15}
+\newcommand{\ArchiveOnly}{15}
+\newcommand{\Agree}{259}
+\newcommand{\Withheld}{87}
+\newcommand{\WithheldLoss}{70}
+\newcommand{\WithheldJudgment}{15}
+\newcommand{\SweepTable}{%
+\begin{table}[ht]\centering\small
+\begin{tabular}{lrrrrr}
+\toprule
+Live bar (win\%) & Praised & Faulted of praised & 95\% interval & Fine moves praised & 95\% interval \\
+\midrule
+0.5 & 146 & 4 (2.7\%) & 1.1--6.8 & 142 (64.8\%) & 58.3--70.9 \\
+1.0 & 181 & 9 (5.0\%) & 2.6--9.2 & 172 (78.5\%) & 72.6--83.5 \\
+1.5 & 197 & 12 (6.1\%) & 3.5--10.3 & 185 (84.5\%) & 79.1--88.7 \\
+2.0 (as built) & 202 & 13 (6.4\%) & 3.8--10.7 & 189 (86.3\%) & 81.1--90.2 \\
+\bottomrule
+\end{tabular}
+\caption{The same moves, praised only when the gate praises them and the live loss is also under the bar. The bars were chosen after the run, so this table describes these games; it does not test a rule.}
+\label{tab:sweep}
+\end{table}
+}
+\newcommand{\OneFaultedPct}{5.0}
+\newcommand{\OneFinePct}{79}
+\newcommand{\HalfFinePct}{65}
+\newcommand{\ExTaken}{knight}
+\newcommand{\ExTargets}{the bishop on g5 and the queen on g3}
+\newcommand{\ExMove}{7}
+\newcommand{\ExPlayed}{7\ldots{}O-O}
+\newcommand{\ExBetter}{7\ldots{}\symknight{}xe4}
+\newcommand{\ExLive}{25.6}
+\newcommand{\ExArchive}{28.2}
+\newcommand{\ExJudgment}{blunder}
+\newcommand{\ExClass}{miss}
+\newcommand{\ExFen}{\fen{rnbqk2r/pp2bppp/2p2n2/4p1B1/4N3/3P2Q1/PPP2PPP/R3KBNR b KQkq - 4 7}}
+\newcommand{\ExPlayedUci}{\uci{e8g8}}
+\newcommand{\ExBetterUci}{\uci{f6e4}}
+\newcommand{\ExBoard}{%
+\chessboard[setfen={rnbqk2r/pp2bppp/2p2n2/4p1B1/4N3/3P2Q1/PPP2PPP/R3KBNR b KQkq - 4 7}, boardfontsize=14pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={e8-g8}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={f6-e4}]
+}

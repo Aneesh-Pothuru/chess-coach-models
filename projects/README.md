@@ -21,9 +21,10 @@ everything that answers it:
 | [maia-rating-offset](maia-rating-offset/) | Which chess.com to Lichess offset makes Maia-2 most likely to play the moves in the player's games? | Confirmed: the app's 250 stays |
 | [maia-calibration](maia-calibration/) | Does a temperature for each Maia band, fitted on Lichess, make its probabilities truer on the player's games? | Not adopted |
 | [think-time-rapid](think-time-rapid/) | In 10-minute games at his level, where does a long think cut serious errors, and do the app's long-think triggers mark those moments? | Not yet ported: no trigger shows a long think pays, and as written they ask for most of the clock |
-| [focus-backtest](focus-backtest/) | Does the weekly focus's grade tell a real improvement from none? | Not yet ported: the grade says met on several times its level when nothing changed |
-| [detector-themes](detector-themes/) | Do the app's motif labels name the tactic a position holds, judged on public puzzles? | Not yet ported: a harness (app pool to tune, held-out puzzles to test) |
-| [drill-decks](drill-decks/) | Do the misses deck's theme words and the plan quiz ask what they say they ask? | Not yet ported |
+| [focus-backtest](focus-backtest/) | Does the weekly focus's grade tell a real improvement from none? | Port open: the candidate grade (a permutation test of points per move over 120 games), waiting on the owner's review |
+| [detector-themes](detector-themes/) | Do the app's motif labels name the tactic a position holds, judged on public puzzles? | Not yet ported: the describe-first candidate gained on both pools and waits its turn |
+| [drill-decks](drill-decks/) | Do the misses deck's theme words and the plan quiz ask what they say they ask? | Not yet ported: the threat search and the quiet positions' plan questions are the candidates |
+| [praise-gate](praise-gate/) | Does the live coach, holding its instant praise for the engine's verdict, praise only the moves that earn it? | Measured on the change before it lands: narrowly short of its bar; the next round tests a stricter one |
 | [band-above](band-above/) | Where do players 200 points above his level give away fewer points a game than players at his level, by the leak ledger's own causes, and how much of a point given away shows in the result? | Running: the rule is fixed, the results are to come |
 | [phone-vs-routine](phone-vs-routine/) | Does Game Review on his phone name the same mistakes and blunders as the routine's review of the same game? | Running: the rule is fixed, the results are to come |
 | [learner-solve-chance](learner-solve-chance/) | When the learner gives a solve chance for a puzzle, how often does he solve it, and should a set aim from the view of its own channel instead of the headline rating? | Running: the rule is fixed, the results are to come |
@@ -42,7 +43,8 @@ committed here. The projects read three sources at run time:
 - the engine evidence the lab rebuilds on the pinned app
   (`accuracy-vs-chesscom/build-evidence.mjs`), kept under `private/`;
 - the app's game archive at the pinned commit, read through its archive
-  service (`maia-rating-offset/positions.mts`).
+  service (`maia-rating-offset/positions.mts`), or at a change's own commit
+  when a study measures a change before it lands (`praise-gate`).
 
 Public games and puzzles come from the Lichess database, such as the Maia-2
 benchmark's sample (`scripts/stream_benchmark.sh`, which `maia-calibration`
@@ -94,6 +96,10 @@ CANDIDATE=describe-first bridge/run.sh projects/detector-themes/score.mts heldou
 RETHEME=1 CANDIDATE=describe-first bridge/run.sh projects/drill-decks/census.mts
 unset CHESS_DIR
 bridge/run.sh projects/detector-themes/compare.mjs describe-first
+
+# A change measured before it lands: the live coach's held praise, read on a
+# checkout of the change's commit (results/praise.json names it as app).
+CHESS_DIR=<checkout of the change> bridge/run.sh projects/praise-gate/praise.mts --pool 4
 
 # Maia-2's rating scale for the player, then its calibration by band. Maia runs
 # on every counted move at every offset, so the policies step is the slow one;

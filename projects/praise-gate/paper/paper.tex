@@ -1,0 +1,160 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Does the live coach praise only the moves that earn it?\\[0.3em]
+\large Held praise, read by the engine's verdict at the live budgets, replayed on the player's archive}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The live coach praises two habits the moment a move lands, from the board alone: castling by
+move 8, and an even trade while ahead. A change to the app holds that praise until the engine's
+verdict on the move arrives, and shows it only when the verdict is a plain good one under the praise
+bar of \PraiseBar{} win\%. Replayed on the player's archive at the change's own live budgets, \Moves{}
+of his moves held praise. Without the gate, \FaultedAllPct\% of them would have been praised
+although the archive's deeper reading says they gave away \PraiseBar{} win\% or more, and
+\ClearAllPct\% although they gave away \ClearBar{} or more. With it, \FaultedPraisedPct\% of the
+praised moves are faulted (95\% interval \FaultedPraisedCI) and \ClearPraised{} is clearly
+faulted, while \FinePraisedPct\% of the moves the archive reads as fine keep their praise. By the
+rule fixed before the run, at most \RuleFaulted{} praised moves faulted and at least \RuleFine{}
+fine moves praised, the gate meets the second bar and misses the first narrowly. What it still
+praises sits at the bar, where a live search and the archive's deeper one disagree as often in
+one direction as the other. Read after the fact, a live bar of \CandidateBar{} win\% would sit just
+inside both bars on these games; the next round tests it on games played after this run.
+\end{abstract}
+
+\section{The question}
+
+In a coached game the live coach writes notes the moment a move lands. Two of them praise a
+habit: castling by move 8, and an even trade while he is ahead, which the coach says only under
+the Won-Game Protocol. Those notes read only the board, so they praised a castle that passed up a
+capture attacking two pieces (Figure~\ref{fig:example}) as warmly as a good one. The change measured here, at commit \texttt{\AppCommit}, holds
+their praise for the engine's verdict on the move. The praise stands only when the verdict is a
+plain good one (the engine's own move, or a good one that gives up less than the praise bar of
+\PraiseBar{} win\%), and for a trade only when the trade still reads as a trade while ahead.
+
+Two numbers decide whether the gate does its job: how much of the praise it lets through went to
+moves that gave something away, and how much praise it withholds from moves that did not.
+
+\section{How it was measured}
+
+\paragraph{The moves.} The player's archive at that commit holds \Games{} games, with
+\HisMoves{} moves of his. Each game is replayed from the start through the change's own instant
+rules, under the coached game's policy. A move is in the study when a rule holds praise on it:
+\Castles{} castles by move 8 and \Trades{} even trades while ahead, \Moves{} in all. The coach
+switches the Won-Game Protocol on from its verdict on his previous move; the replay reads that
+position from the archive's evaluation of it.
+
+\paragraph{The verdict.} Each move gets the change's own verdict through the app's Node engine
+service: the position before the move at the budget that names moves to him (\NamingNodes{}
+nodes, \Lines{} lines), the position after it at the check budget (\CheckNodes{} nodes), one
+thread, the same Stockfish build and the same budgets as on a phone or a desktop. Each move is
+searched from a cleared hash, so a rerun repeats every count. A held note is praised when the
+change's own test says the verdict confirms it. No move in the study had seven pieces or fewer,
+so the tablebase, which the coach asks there, never speaks.
+
+\paragraph{The reference.} The archive's own reading of the same move: the routine's sweep
+searched every position at \ArchiveNodes{} nodes, which gives the win\% each move gave away on
+the app's curve. A move is \emph{faulted} when it gave away \PraiseBar{} win\% or more, the praise bar,
+and \emph{clearly faulted} at \ClearBar{} or more, an inaccuracy or worse on the judge's scale.
+
+\paragraph{The rule, fixed before the first run.} The gate works when, among the moves it
+praises, at most \RuleFaulted{} is faulted, and it praises at least \RuleFine{} of the moves the
+archive reads as not faulted. Shares carry 95\% Wilson intervals.
+
+\section{What the gate does}
+
+\GateTable
+
+\paragraph{It takes most of the faulted praise away.} The instant rules alone would have praised
+all \Moves{} moves: \FaultedAll{} of them (\FaultedAllPct\%) faulted and \ClearAll{}
+(\ClearAllPct\%) clearly faulted. The gate praises \Praised, and \FaultedPraised{} of those are
+faulted, \FaultedPraisedPct\% (95\% interval \FaultedPraisedCI), and \ClearPraised{} is clearly
+faulted: a trade made while winning, which the archive's own classifier calls good. No castle it
+praises is clearly faulted. Of the \FaultedAll{} faulted moves, it withholds praise from
+\Caught{} (\CaughtPct\%).
+
+\paragraph{It keeps most of the earned praise.} Of the \Fine{} moves the archive reads as fine,
+the gate praises \FinePraised{} (\FinePraisedPct\%, \FinePraisedCI). Of the \Withheld{} moves it
+withholds praise from, \WithheldLoss{} lost too much by the live verdict's reading and
+\WithheldJudgment{} drew a judgment short of good. With the gate, castling praise reaches
+\CastlesPraisedPct\% of his early castles; of the \CastlesWithheld{} it withholds, \CastlesWithheldFaulted{} are
+faulted by the archive.
+
+\paragraph{By the rule fixed before the run, it does not yet work.} The second bar is met; the
+first is not, at \FaultedPraisedPct\% against \RuleFaulted, and neither rule meets it alone
+(castles \CastlesFaultedPct\%, trades \TradesFaultedPct\%). The interval reaches below the bar, so
+these games cannot say the gate is far from it either.
+
+\begin{figure}[ht]
+\centering
+\ExBoard\\[0.4em]
+{\footnotesize FEN \ExFen}
+\caption{The castle with the largest loss the gate withheld. He castled, \ExPlayed{}
+(\ExPlayedUci), by move 8, and the instant rule alone would have praised it. The engine's move
+was \ExBetter{} (\ExBetterUci), which takes the \ExTaken{} and then attacks \ExTargets. The live
+verdict reads the castle as a \ExJudgment{} that gave away \ExLive{} win\%; the archive reads it
+as a \ExClass{} that gave away \ExArchive.}
+\label{fig:example}
+\end{figure}
+
+\section{Where the faulted praise sits}
+
+Every faulted move the gate praises gave away between \FaultedRangeLow{} and
+\FaultedRangeHigh{} win\% by the archive's reading, the castles no more than \CastleRangeHigh,
+and the archive's own classifier calls each of them good or best. All but
+\FaultedPraisedOutOfLines{} of them were among the engine's \Lines{} lines in the live search, so
+their loss is the gap between two lines of the naming search; the other was read by the check
+after the move. The live and archive readings of the same move differ by a median of \GapMedian{} win\% and
+by \GapNinety{} at the 90th percentile, and they put a move on different sides of the bar about
+as often each way: \LiveOnly{} moves are faulted only by the live verdict, \ArchiveOnly{} only by
+the archive. What the gate still praises is the disagreement between a \NamingNodes-node search
+and a \ArchiveNodes-node one at a bar of \PraiseBar{} win\%, not moves the archive itself calls errors.
+
+\SweepTable
+
+\paragraph{A stricter bar, read after the fact.} Table~\ref{tab:sweep} reads the same moves at
+stricter live bars. At \CandidateBar{} win\%, the faulted share of the praise falls to
+\OneFaultedPct\% and the gate still praises \OneFinePct\% of the fine moves: inside both bars, just.
+At \StrictBar{} win\% it praises only \HalfFinePct\%. These bars were chosen after seeing these games, so
+the \CandidateBar{} win\% bar is a candidate for the next round, not a finding.
+
+\section{What it means for the app}
+
+\begin{enumerate}[leftmargin=*]
+\item The gate does what it is for on the clear cases. The instant rules alone would praise the
+castle in Figure~\ref{fig:example}, which passes up a capture that attacks two pieces; the gate
+withholds that praise, and of the \ClearAll{} clearly faulted moves the rules held praise on, it
+praises \ClearPraised.
+\item As built it misses the bar of \RuleFaulted{} narrowly, and what it lets through sits at the
+praise bar, inside the noise of the live search.
+\item If that bar must hold, a deeper check after the move will not reach it: all but
+\FaultedPraisedOutOfLines{} of the faulted praised moves were read from the naming search's own
+lines, which the check does not touch. A stricter bar for held praise, or a deeper naming search,
+would.
+\item A held-praise bar of \CandidateBar{} win\% would meet both bars on these games. It should be
+adopted only if the next round, on games these numbers have not seen, agrees.
+\end{enumerate}
+
+\section{Limits}
+
+The reference is itself a search of bounded depth, so at the bar neither reading is the truth;
+the gate is measured against the deeper one. The games are one player's, and the trades are few
+enough that their row's intervals are wide. The Won-Game Protocol is read from the archive's
+evaluation of his previous move, where the coach reads it from its own verdict, so a trade near
+the protocol's line can fall in or out. In play the engine's hash holds the game's earlier
+searches, where here each move starts from a cleared one, so a count here can move by a few in
+play.
+
+\section{The next round}
+
+Fixed now, before any of its games are played: the candidate praises a held note only when the
+gate praises it and the live loss is under \CandidateBar{} win\%. It is measured by this replay, on the games
+the archive holds after \ArchiveThrough, by the same two bars; it is adopted only if it meets
+both, and the gate as built is measured on the same games beside it.
+
+\end{document}

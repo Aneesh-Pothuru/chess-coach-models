@@ -45,7 +45,7 @@ parity:
 
 # Each paper's numbers from what its project last wrote, then its PDF. The
 # projects' reproductions come first (projects/README.md gives the order).
-PAPERS := accuracy-vs-chesscom explain-top-move judge-in-context maia-punish maia-rating-offset maia-calibration winprob-parity focus-backtest detector-themes drill-decks think-time-rapid
+PAPERS := accuracy-vs-chesscom explain-top-move judge-in-context maia-punish maia-rating-offset maia-calibration winprob-parity focus-backtest detector-themes drill-decks think-time-rapid praise-gate
 
 papers:
 	bridge/run.sh projects/accuracy-vs-chesscom/paper/generate.mjs
@@ -59,6 +59,7 @@ papers:
 	bridge/run.sh projects/detector-themes/paper/generate.mjs
 	bridge/run.sh projects/drill-decks/paper/generate.mjs
 	bridge/run.sh projects/think-time-rapid/paper/generate.mjs
+	bridge/run.sh projects/praise-gate/paper/generate.mjs
 	for p in $(PAPERS); do (cd projects/$$p/paper && latexmk -pdf -interaction=nonstopmode -halt-on-error paper.tex) || exit 1; done
 
 all: setup data eval reports
