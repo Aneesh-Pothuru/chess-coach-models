@@ -21,7 +21,7 @@ jobs:
         env:
           PRIVATE_PATTERNS: ${{ secrets.PRIVATE_PATTERNS }}
       # The models' tests need Torch, LightGBM and downloaded data; these need
-      # only python-chess, so every pull request runs them in seconds.
+      # only python-chess, so every push runs them in seconds.
       - name: Install the light dependencies
         run: |
           pip install pytest python-chess pyyaml

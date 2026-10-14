@@ -70,6 +70,12 @@ app's gets a parity eval, like `projects/winprob-parity/parity.py`.
   wins, check it with controls: the same text on both sides, and a decoy of
   the same length that says nothing new.
 
+## Landing a change here
+
+- Commit and push straight to `main`; this repository takes no pull requests.
+  Fetch and rebase on the latest `main` before each push, since other sessions
+  push here too. CI runs the privacy check and the light tests on every push.
+
 ## Porting a winner to the app
 
 - A port is its own pull request on the app repository, made by its rules (its
