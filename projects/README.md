@@ -18,6 +18,8 @@ everything that answers it:
 | [maia-punish](maia-punish/) | Can Maia-2's odds of the reply that punishes an error be trusted on the player's games? | Shipped: every error is priced with these odds |
 | [judge-in-context](judge-in-context/) | Should a move's verdict read win% on a curve fitted to the mover's rating? | Not adopted |
 | [winprob-parity](winprob-parity/) | Does the lab compute the same win% as the app? | A check: nothing to port |
+| [maia-rating-offset](maia-rating-offset/) | Which chess.com to Lichess offset makes Maia-2 most likely to play the moves in the player's games? | Confirmed: the app's 250 stays |
+| [maia-calibration](maia-calibration/) | Does a temperature for each Maia band, fitted on Lichess, make its probabilities truer on the player's games? | Not adopted |
 | [think-time-rapid](think-time-rapid/) | In 10-minute games at his level, where does a long think cut serious errors, and do the app's long-think triggers mark those moments? | Running: the rule is fixed, the results are to come |
 | [focus-backtest](focus-backtest/) | Does the weekly focus's grade tell a real improvement from none? | Not yet ported: the grade says met on several times its level when nothing changed |
 | [detector-themes](detector-themes/) | Do the app's motif labels name the tactic a position holds, judged on public puzzles? | Not yet ported: a harness (app pool to tune, held-out puzzles to test) |
@@ -31,13 +33,19 @@ and FEN, number formats), and `preamble.tex` the LaTeX every paper loads.
 ## Where the data lives
 
 The games these projects study are the player's own, so no per-game file is
-committed here. The projects read two sources at run time:
+committed here. The projects read three sources at run time:
 
 - the research records: the cases, per-game rows and judge rounds the app's
   repository keeps at the commit `bridge/chess.json` pins as `records`
   (`bridge/checkout.sh records`, or `records()` in `bridge/lib/lab.mjs`);
 - the engine evidence the lab rebuilds on the pinned app
-  (`accuracy-vs-chesscom/build-evidence.mjs`), kept under `private/`.
+  (`accuracy-vs-chesscom/build-evidence.mjs`), kept under `private/`;
+- the app's game archive at the pinned commit, read through its archive
+  service (`maia-rating-offset/positions.mts`).
+
+Public games and puzzles come from the Lichess database, such as the Maia-2
+benchmark's sample (`scripts/stream_benchmark.sh`, which `maia-calibration`
+scores again).
 
 Everything a project writes per game goes under `private/<project>/`, which
 git ignores. What is committed is code, aggregates and papers. A paper may
@@ -85,6 +93,18 @@ CANDIDATE=describe-first bridge/run.sh projects/detector-themes/score.mts heldou
 RETHEME=1 CANDIDATE=describe-first bridge/run.sh projects/drill-decks/census.mts
 unset CHESS_DIR
 bridge/run.sh projects/detector-themes/compare.mjs describe-first
+
+# Maia-2's rating scale for the player, then its calibration by band. Maia runs
+# on every counted move at every offset, so the policies step is the slow one;
+# both policies steps resume where they stopped.
+bridge/run.sh projects/maia-rating-offset/positions.mts
+for k in 0 1 2 3; do bridge/run.sh projects/maia-rating-offset/policies.mts --shard $k/4 & done; wait
+bridge/run.sh projects/maia-rating-offset/fit.mjs
+PYTHON=.venv/bin/python scripts/stream_benchmark.sh
+.venv/bin/python projects/maia-calibration/sample.py
+for k in 0 1 2 3; do bridge/run.sh projects/maia-calibration/lichess-policies.mts --shard $k/4 & done; wait
+bridge/run.sh projects/maia-calibration/punish-policies.mts
+bridge/run.sh projects/maia-calibration/fit.mjs
 
 make papers   # each paper's generated.tex, then its PDF
 ```

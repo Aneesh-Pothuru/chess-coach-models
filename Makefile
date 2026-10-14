@@ -45,13 +45,15 @@ parity:
 
 # Each paper's numbers from what its project last wrote, then its PDF. The
 # projects' reproductions come first (projects/README.md gives the order).
-PAPERS := accuracy-vs-chesscom explain-top-move judge-in-context maia-punish winprob-parity focus-backtest detector-themes drill-decks
+PAPERS := accuracy-vs-chesscom explain-top-move judge-in-context maia-punish maia-rating-offset maia-calibration winprob-parity focus-backtest detector-themes drill-decks
 
 papers:
 	bridge/run.sh projects/accuracy-vs-chesscom/paper/generate.mjs
 	bridge/run.sh projects/explain-top-move/paper/generate.mjs
 	bridge/run.sh projects/judge-in-context/paper/generate.mjs
 	bridge/run.sh projects/maia-punish/paper/generate.mjs
+	bridge/run.sh projects/maia-rating-offset/paper/generate.mjs
+	bridge/run.sh projects/maia-calibration/paper/generate.mjs
 	$(PYTHON) projects/winprob-parity/paper/generate.py
 	bridge/run.sh projects/focus-backtest/paper/generate.mjs
 	bridge/run.sh projects/detector-themes/paper/generate.mjs

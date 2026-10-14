@@ -1,0 +1,150 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Is Maia-2 too sure of itself?\\[0.3em]
+\large A temperature for each rating band, fitted on Lichess and tested on the player's games}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The coaching app reads Maia-2's probabilities as chances: the odds that a mistake is punished,
+how findable a move is, the moves its Maia bot samples. The lab's benchmark found Maia-2 more
+confident than right on Lichess in every band. We fitted a temperature for each band on
+\FitMoves{} Lichess moves and tested it by a rule fixed before any number was computed. It
+improves the held-out Lichess moves and does not hurt the punish odds, but it makes the player's
+own games less likely, so it is not adopted. On his games, at the rating offset the app uses,
+Maia-2 is already about as sure as it is right, and softening it makes it less sure than right.
+The app keeps the raw policy. Scored by the app's own Maia-2, the Lichess sample also reproduces
+the benchmark's first-choice count exactly.
+\end{abstract}
+
+\section{The question}
+
+The coaching app reads Maia-2's probabilities as chances. A review says how often players at the
+opponent's level find the reply that punishes a mistake; a drill says how findable a move is at
+the player's level; the Maia bot samples its moves from them. The lab's benchmark of Maia-2, on
+\LichessMoves{} moves from rated rapid games on Lichess in \BenchMonth, after Maia-2's training
+window, found it more confident than right in every band: its first choice is the move played
+\BenchTop\% of the time, while the mean probability it gives that choice is \BenchConf\%, and
+the gap runs from \BenchGapMin{} to \BenchGapMax{} points across the benchmark's bands.
+
+A common remedy is a temperature: each probability $p$ becomes $p^{1/T}$, divided by the same
+sum over the position's legal moves. A temperature above one softens the policy and below one
+sharpens it; either way the order of the moves stays, so the top move and every ranking the app
+reads stay as they are. Does a temperature for each band, fitted on Lichess, make the
+probabilities truer on the player's own games?
+
+\section{The data}
+
+\paragraph{Fitting.} The benchmark's own sample, drawn again by its sampler, unchanged:
+\BenchPerBand{} moves per band of the benchmark from \BenchSeen{} streamed games, at most
+\BenchPerGame{} per player and game, from ply \BenchMinPly{} on with both clocks at
+\BenchMinClock{} seconds or more. Each move is scored by the Maia-2 the app ships, through its engine service in Node, with
+each side at its own Lichess rating's band. The \LichessGames{} games, ordered by their ids,
+alternate between a fitting half (\FitMoves{} moves) and a held-out half (\HeldMoves{} moves).
+
+\paragraph{Testing.} The player's games, never used to fit: the \HisMoves{} moves of the
+rating-offset project in \HisGames{} games, with both players' chess.com ratings converted at the
+offset that project keeps (\KeptOffset); and the punish events of the punish-odds project, each
+priced as the app prices it, at the replier's band facing an equal opponent. The punish events'
+primary set holds the \PunishExact{} replies whose evidence the review's deeper pass verified;
+all \PunishAll{} non-book replies, in \PunishGames{} games, are reported beside it.
+
+\paragraph{Parity.} Scored by the app's Maia-2, the move played is its first choice for
+\FirstChoice{} of the \LichessMoves{} moves, exactly the count the benchmark's Maia-2, the
+reference implementation, gives on the same moves.
+
+\section{The candidate and the rule}
+
+Each band's temperature maximises the likelihood of the moves played by movers in that band in
+the fitting half; a band with fewer than \MinFitMoves{} fitting moves would keep $T = 1$. The rule
+was committed before any number was computed: the temperatures are adopted only if all three
+tests hold, each judged by the 95\% interval of the difference over \Draws{} bootstrap draws of
+games.
+
+\begin{enumerate}[nosep]
+\item On the Lichess held-out half, the mean log-likelihood per move of the moves played rises.
+\item On the player's games, the same.
+\item On the punish events, the Brier score of the punish odds, against whether the punishing
+reply was played, does not rise.
+\end{enumerate}
+
+\section{Results}
+
+Not adopted: the temperatures pass the first and third tests and fail the second
+(Table~\ref{tab:tests}). Fitted on Lichess, every band's temperature is above one, from
+\TempMin{} to \TempMax{} (Figure~\ref{fig:temps}), so every band is softened; each had at least
+\FitMovesMin{} fitting moves. On the Lichess held-out half, the softer policy raises the mean
+log-likelihood of the moves played by \TestOneDiff{} per move \TestOneCI. On the player's games
+it lowers it by \TestTwoLoss{} per move \TestTwoLossCI, and the rule stops there. On the punish
+events the Brier score moves from \PunishRaw{} to \PunishTempered, a rise of \TestThreeDiff{}
+\TestThreeCI{} whose interval holds zero, so the third test passes.
+
+\begin{table}[!htbp]
+\centering\scriptsize
+\setlength{\tabcolsep}{4pt}
+\TestTable
+\caption{The three tests, raw against tempered, with the 95\% interval of the difference over
+\Draws{} bootstrap draws of games. A higher log-likelihood and a lower Brier score are better.
+All non-book punish events are reported beside the verified ones and decide nothing.}
+\label{tab:tests}
+\end{table}
+
+\begin{figure}[!htbp]
+\centering
+\TempFigure
+\caption{Each band's temperature, fitted on the Lichess fitting half. Above the dashed line a
+band's policy is softened.}
+\label{fig:temps}
+\end{figure}
+
+\paragraph{Why it does not transfer.} Figure~\ref{fig:gaps} and Table~\ref{tab:bands} compare
+Maia-2's mean probability of its first choice with how often that choice is the move played. On
+the Lichess held-out half Maia-2 is more confident than right in every band, by \LichGapMin{} to
+\LichGapMax{} points, and the temperature brings that to between \LichTGapMin{} and
+\LichTGapMax. On the player's games there is little to correct: in the bands he and his opponents
+occupy (\HisBandLow{} to \HisBandHigh), the gap runs from \HisGapMin{} to \HisGapMax{} points,
+smaller in every band than the smallest on Lichess, and softening turns it into
+underconfidence of \HisTGapMin{} to \HisTGapMax{} points. One reading, not tested here: the
+rating offset was chosen on these games for the same likelihood, and a higher band is a sharper
+policy, so the offset already sets how sure Maia-2 is about them.
+
+\begin{figure}[!htbp]
+\centering
+\GapFigure
+\caption{Maia-2's mean probability of its first choice less the share of moves where that choice
+was played, in points, by band: above zero it is more confident than right.}
+\label{fig:gaps}
+\end{figure}
+
+\begin{table}[!htbp]
+\centering\scriptsize
+\setlength{\tabcolsep}{4pt}
+\BandTable
+\caption{By band: the fitting moves and the fitted temperature, then, on the Lichess held-out
+half and on the player's games, the share of moves where Maia-2's first choice was played and its
+mean probability, raw and tempered (percent).}
+\label{tab:bands}
+\end{table}
+
+\section{What it means for the app}
+
+Nothing to port. On this player's games Maia-2, at the bands the app's offset gives, is about
+as sure as it is right, so the punish odds, findability and the Maia bot keep the raw policy.
+The overconfidence the benchmark measured is real on Lichess; it is not what this player's games
+show.
+
+\section{Limitations}
+
+\begin{itemize}[nosep]
+\item One temperature per band corrects confidence on average. It cannot fix a policy that
+ranks the moves wrongly, and it says nothing about positions where Maia-2 is sure for a reason.
+\item The fitting sample is one month of Lichess rapid. The player's games are chess.com rapid,
+through a rating conversion that is itself fitted.
+\end{itemize}
+
+\end{document}

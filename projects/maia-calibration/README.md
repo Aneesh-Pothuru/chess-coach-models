@@ -8,8 +8,14 @@ choice's mean probability runs 3 to 4 points above how often that choice is
 the move played. Does a temperature for each band, fitted on Lichess games,
 make the probabilities truer on the player's own games?
 
-**The answer.** Not yet measured. The rule below was committed before any
-number was computed.
+**The answer.** Not adopted. Fitted on Lichess, every band's temperature
+softens Maia-2, and that improves the held-out Lichess moves and leaves the
+punish odds' Brier score within noise, but it makes the player's own games
+less likely: on his games, at the app's offset, Maia-2 is already about as
+sure as it is right. Scored by the app's Maia-2, the Lichess sample also
+gives exactly the benchmark's first-choice count. The numbers are in the
+paper, [`paper/paper.pdf`](paper/paper.pdf), and the script's report,
+[`results/calibration.md`](results/calibration.md).
 
 ## The data
 
@@ -52,7 +58,9 @@ interval of the difference over 1000 bootstrap draws of games (seed 7):
 Reported beside the verdict, not deciding it: each band's temperature, and
 how far the top choice's mean probability sits from how often it is the move
 played, before and after, on the Lichess held-out half and on the player's
-games.
+games. Added before the first run, also deciding nothing: how often the app's
+Maia-2 has the move played as its first choice over the whole sample, beside
+the benchmark's count for its own Maia-2 on the same moves.
 
 ## Files
 

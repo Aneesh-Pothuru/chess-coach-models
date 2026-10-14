@@ -10,8 +10,12 @@ Which offset makes Maia-2 most likely to play the moves actually played in the
 player's games, by him and by his opponents, each at their own chess.com
 rating?
 
-**The answer.** Not yet measured. The rule below was committed before any
-number was computed.
+**The answer.** 250 stays: the fitting half of the games chose it, the app's
+own number, and so did the held-out half and the games as a whole. Beside the
+verdict, one offset hides a split: Maia-2 predicts the player's own moves best
+at a lower offset and his opponents' at a higher one, a question for a project
+of its own. The numbers are in the paper, [`paper/paper.pdf`](paper/paper.pdf),
+and the script's report, [`results/offset.md`](results/offset.md).
 
 ## The moves
 
@@ -46,7 +50,10 @@ bootstrap draws of the held-out games (seed 7), entirely above zero. Otherwise
 Reported beside the verdict, not deciding it: the mean log-likelihood at every
 offset, the 95% interval of the best offset over 1000 bootstrap draws of all
 the games, and the share of moves that are Maia-2's first choice at the
-fitted offset and at 250.
+fitted offset and at 250. Added before the first run, also deciding nothing:
+the best offset for the player's moves and his opponents' apart, and for the
+movers in each third of the ratings, each with its interval over the same
+draws.
 
 ## Files
 

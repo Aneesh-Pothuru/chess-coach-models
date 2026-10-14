@@ -1,0 +1,135 @@
+% Written by projects/maia-rating-offset/paper/generate.mjs; do not edit by hand.
+
+\newcommand{\AppOffset}{250}
+\newcommand{\OffsetMin}{0}
+\newcommand{\OffsetMax}{500}
+\newcommand{\OffsetStep}{25}
+\newcommand{\OffsetCount}{21}
+\newcommand{\MaiaStart}{1100}
+\newcommand{\MaiaEnd}{2000}
+\newcommand{\MaiaWidth}{100}
+\newcommand{\MaiaBands}{11}
+\newcommand{\AppCommit}{\texttt{d8b7712}}
+\newcommand{\LowestBelow}{850}
+\newcommand{\MinPly}{11}
+\newcommand{\MinClock}{30}
+\newcommand{\Games}{634}
+\newcommand{\Moves}{32{,}988}
+\newcommand{\HimMoves}{16{,}499}
+\newcommand{\OppMoves}{16{,}489}
+\newcommand{\FitGames}{317}
+\newcommand{\FitMoves}{16{,}767}
+\newcommand{\HeldGames}{317}
+\newcommand{\HeldMoves}{16{,}221}
+\newcommand{\RatingMin}{513}
+\newcommand{\RatingMedian}{1008}
+\newcommand{\RatingMax}{1228}
+\newcommand{\MedianBand}{1200}
+\newcommand{\Draws}{1{,}000}
+\newcommand{\Seed}{7}
+\newcommand{\TenMinuteGames}{633}
+\newcommand{\OtherGames}{one}
+\newcommand{\Fitted}{250}
+\newcommand{\Kept}{250}
+\newcommand{\HeldDiff}{0.0000}
+\newcommand{\HeldLo}{0.0000}
+\newcommand{\HeldHi}{0.0000}
+\newcommand{\FitGain}{0.0000}
+\newcommand{\LLBase}{$-$1.397}
+\newcommand{\LLFitted}{$-$1.397}
+\newcommand{\TopBase}{53.9}
+\newcommand{\TopFitted}{53.9}
+\newcommand{\BestAll}{250}
+\newcommand{\BestAllLo}{250}
+\newcommand{\BestAllHi}{325}
+\newcommand{\BestHim}{175}
+\newcommand{\BestHimLo}{150}
+\newcommand{\BestHimHi}{200}
+\newcommand{\BestOpp}{425}
+\newcommand{\BestOppLo}{350}
+\newcommand{\BestOppHi}{425}
+\newcommand{\HeldBest}{250}
+\newcommand{\LossAtMin}{0.0214}
+\newcommand{\LossAtMax}{0.0143}
+\newcommand{\RatioAtMin}{2.2}
+\newcommand{\RatioAtMax}{1.4}
+\newcommand{\TopMin}{53.4}
+\newcommand{\TopMax}{53.9}
+\newcommand{\GainHim}{0.0018}
+\newcommand{\GainOpp}{0.0064}
+\newcommand{\GainLow}{0.0042}
+\newcommand{\CurveFit}{(0,-0.02244) (25,-0.01699) (50,-0.01422) (75,-0.01253) (100,-0.01004) (125,-0.00778) (150,-0.00565) (175,-0.00363) (200,-0.00252) (225,-0.00174) (250,0.00000) (275,-0.00005) (300,-0.00064) (325,-0.00057) (350,-0.00057) (375,-0.00195) (400,-0.00299) (425,-0.00464) (450,-0.00637) (475,-0.00917) (500,-0.01232)}
+\newcommand{\CurveHeld}{(0,-0.02035) (25,-0.01684) (50,-0.01388) (75,-0.01133) (100,-0.00921) (125,-0.00685) (150,-0.00465) (175,-0.00211) (200,-0.00135) (225,-0.00106) (250,0.00000) (275,-0.00022) (300,-0.00117) (325,-0.00138) (350,-0.00208) (375,-0.00307) (400,-0.00520) (425,-0.00629) (450,-0.00888) (475,-0.01185) (500,-0.01633)}
+\newcommand{\CurveAll}{(0,-0.02141) (25,-0.01692) (50,-0.01405) (75,-0.01194) (100,-0.00963) (125,-0.00732) (150,-0.00516) (175,-0.00289) (200,-0.00195) (225,-0.00141) (250,0.00000) (275,-0.00014) (300,-0.00090) (325,-0.00097) (350,-0.00131) (375,-0.00250) (400,-0.00408) (425,-0.00545) (450,-0.00761) (475,-0.01049) (500,-0.01429)}
+\newcommand{\CurveHim}{(0,-0.00792) (25,-0.00462) (50,-0.00287) (75,-0.00174) (100,-0.00093) (125,0.00019) (150,0.00103) (175,0.00184) (200,0.00130) (225,0.00023) (250,0.00000) (275,-0.00189) (300,-0.00432) (325,-0.00643) (350,-0.00793) (375,-0.01090) (400,-0.01411) (425,-0.01730) (450,-0.02086) (475,-0.02556) (500,-0.03114)}
+\newcommand{\CurveOpp}{(0,-0.03490) (25,-0.02922) (50,-0.02524) (75,-0.02215) (100,-0.01833) (125,-0.01485) (150,-0.01135) (175,-0.00761) (200,-0.00519) (225,-0.00304) (250,0.00000) (275,0.00162) (300,0.00252) (325,0.00450) (350,0.00531) (375,0.00591) (400,0.00596) (425,0.00641) (450,0.00565) (475,0.00458) (500,0.00256)}
+\newcommand{\CurveLow}{(0,-0.00728) (25,-0.00728) (50,-0.00728) (75,-0.00728) (100,-0.00736) (125,-0.00736) (150,-0.00697) (175,-0.00544) (200,-0.00361) (225,-0.00304) (250,0.00000) (275,0.00058) (300,0.00102) (325,0.00236) (350,0.00325) (375,0.00389) (400,0.00422) (425,0.00419) (450,0.00199) (475,0.00011) (500,-0.00188)}
+\newcommand{\LowFrom}{513}
+\newcommand{\LowTo}{934}
+\newcommand{\LowMoves}{10{,}783}
+\newcommand{\LowBest}{400}
+\newcommand{\LowLo}{325}
+\newcommand{\LowHi}{425}
+\newcommand{\CurveMid}{(0,-0.02992) (25,-0.02870) (50,-0.02231) (75,-0.01797) (100,-0.01398) (125,-0.01044) (150,-0.00537) (175,-0.00128) (200,-0.00075) (225,-0.00076) (250,0.00000) (275,-0.00087) (300,-0.00148) (325,-0.00210) (350,-0.00381) (375,-0.00695) (400,-0.00839) (425,-0.00988) (450,-0.01344) (475,-0.01780) (500,-0.01966)}
+\newcommand{\MidFrom}{935}
+\newcommand{\MidTo}{1073}
+\newcommand{\MidMoves}{11{,}087}
+\newcommand{\MidBest}{250}
+\newcommand{\MidLo}{200}
+\newcommand{\MidHi}{275}
+\newcommand{\CurveHigh}{(0,-0.02663) (25,-0.01452) (50,-0.01239) (75,-0.01045) (100,-0.00749) (125,-0.00417) (150,-0.00320) (175,-0.00201) (200,-0.00152) (225,-0.00046) (250,0.00000) (275,-0.00009) (300,-0.00218) (325,-0.00307) (350,-0.00325) (375,-0.00425) (400,-0.00782) (425,-0.01039) (450,-0.01110) (475,-0.01349) (500,-0.02098)}
+\newcommand{\HighFrom}{1074}
+\newcommand{\HighTo}{1228}
+\newcommand{\HighMoves}{11{,}118}
+\newcommand{\HighBest}{250}
+\newcommand{\HighLo}{250}
+\newcommand{\HighHi}{275}
+\newcommand{\OffsetTable}{%
+\begin{tabular}{lrrrr}
+\toprule
+offset & fitting half & held-out half & all games & first choice \\
+\midrule
+0 & $-$1.4202 & $-$1.4176 & $-$1.4189 & 53.4\% \\
+25 & $-$1.4147 & $-$1.4140 & $-$1.4144 & 53.5\% \\
+50 & $-$1.4119 & $-$1.4111 & $-$1.4115 & 53.6\% \\
+75 & $-$1.4103 & $-$1.4085 & $-$1.4094 & 53.6\% \\
+100 & $-$1.4078 & $-$1.4064 & $-$1.4071 & 53.6\% \\
+125 & $-$1.4055 & $-$1.4041 & $-$1.4048 & 53.7\% \\
+150 & $-$1.4034 & $-$1.4019 & $-$1.4026 & 53.7\% \\
+175 & $-$1.4014 & $-$1.3993 & $-$1.4004 & 53.8\% \\
+200 & $-$1.4002 & $-$1.3986 & $-$1.3994 & 53.8\% \\
+225 & $-$1.3995 & $-$1.3983 & $-$1.3989 & 53.8\% \\
+250 (app, fitted) & $-$1.3977 & $-$1.3972 & $-$1.3975 & 53.9\% \\
+275 & $-$1.3978 & $-$1.3974 & $-$1.3976 & 53.9\% \\
+300 & $-$1.3984 & $-$1.3984 & $-$1.3984 & 53.9\% \\
+325 & $-$1.3983 & $-$1.3986 & $-$1.3984 & 53.9\% \\
+350 & $-$1.3983 & $-$1.3993 & $-$1.3988 & 53.9\% \\
+375 & $-$1.3997 & $-$1.4003 & $-$1.4000 & 53.8\% \\
+400 & $-$1.4007 & $-$1.4024 & $-$1.4015 & 53.8\% \\
+425 & $-$1.4024 & $-$1.4035 & $-$1.4029 & 53.7\% \\
+450 & $-$1.4041 & $-$1.4061 & $-$1.4051 & 53.7\% \\
+475 & $-$1.4069 & $-$1.4091 & $-$1.4080 & 53.6\% \\
+500 & $-$1.4100 & $-$1.4135 & $-$1.4118 & 53.6\% \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\LookTable}{%
+\begin{tabular}{lrrl}
+\toprule
+moves & count & best offset & 95\% interval over draws \\
+\midrule
+all & 32{,}988 & 250 & 250 to 325 \\
+the player's & 16{,}499 & 175 & 150 to 200 \\
+his opponents' & 16{,}489 & 425 & 350 to 425 \\
+movers rated 513 to 934 & 10{,}783 & 400 & 325 to 425 \\
+movers rated 935 to 1073 & 11{,}087 & 250 & 200 to 275 \\
+movers rated 1074 to 1228 & 11{,}118 & 250 & 250 to 275 \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\ExampleRating}{1061}
+\newcommand{\ExampleOppRating}{1082}
+\newcommand{\ExamplePlayed}{29.~\symking{}h1}
+\newcommand{\ExampleLowP}{41}
+\newcommand{\ExampleHighP}{95}
+\newcommand{\Example}{\input{example}}

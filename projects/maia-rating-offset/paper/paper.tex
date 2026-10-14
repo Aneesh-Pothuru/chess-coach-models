@@ -1,0 +1,197 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Which rating does Maia-2 need for this player?\\[0.3em]
+\large Fitting the chess.com to Lichess offset on the player's own games}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The coaching app converts the player's chess.com rating to Maia-2's Lichess scale by adding
+\AppOffset{} points, a number its own code calls a default, not a measurement. We measured it on
+the \Games{} rapid games of the player's archive: at every offset from \OffsetMin{} to
+\OffsetMax, how likely Maia-2 finds the \Moves{} moves both players made. By a rule fixed before
+any number was computed, the fitting half of the games chose \Fitted, the app's own number, so it
+stays; the held-out half chose it too. Beside the verdict, a single offset hides a split: Maia-2
+predicts the player's own moves best at \BestHim{} and his opponents' at \BestOpp, with intervals
+that do not overlap. Whether separate offsets beat one is a question for its own rule.
+\end{abstract}
+
+\section{The question}
+
+Maia-2 predicts the move a human plays from the position and two ratings, the mover's and the
+opponent's. It learned from Lichess games, so its ratings are Lichess ratings, in \MaiaBands{}
+bands: one below \MaiaStart, one for every \MaiaWidth{} points up to \MaiaEnd, and one from
+\MaiaEnd{} up. The coaching app knows the player's chess.com rating and adds \AppOffset{} points
+to it before it asks Maia-2 anything; its own code calls that number a default, not a
+measurement. Every Maia number the app gives rests on it: the odds that a mistake gets punished,
+how findable a move is at the player's level, and the Maia bot's model of the player and of the
+opponent it plays as.
+
+The player's games can measure it. The offset Maia-2 needs is the one under which it finds the
+moves actually played most likely, with both players at their own chess.com ratings converted by
+that offset.
+
+\section{The moves}
+
+The games are the \Games{} in the app's archive, every one from the standard start with both
+ratings and a clock after every ply. All are rapid: \TenMinuteGames{} at ten minutes a side and
+\OtherGames{} at a slower control. A move counts from ply \MinPly{} on when both players had at least
+\MinClock{} seconds left at the position, the protocol of the Maia papers that the lab's Maia-2
+benchmark also follows. That leaves \Moves{} moves: \HimMoves{} by the player and \OppMoves{} by
+his opponents. The movers are rated from \RatingMin{} to \RatingMax{} on chess.com (median
+\RatingMedian, which the app's offset puts in Maia's \MedianBand{} band); the rating is the one
+chess.com recorded after each game.
+
+\section{The instrument and the rule}
+
+At an offset $o$, a move by a player rated $r$ against one rated $r'$ scores the logarithm of
+Maia-2's probability of the move played, with the mover's band the one $r + o$ falls in and the
+opponent's the one $r' + o$ falls in, exactly as the app computes them (\texttt{defaultMaiaElo}),
+through the app's own Maia-2 in Node (\texttt{humanPolicy} with both bands). The offsets run over
+the range the app allows, \OffsetMin{} to \OffsetMax, in steps of \OffsetStep{} (\OffsetCount{}
+offsets). The bands are \MaiaWidth{} points wide, so a step changes only the players whose
+converted rating crosses a band edge, and at the app's offset everyone rated under
+\LowestBelow{} on chess.com shares the lowest band.
+
+The rule was committed before any number was computed. The games, ordered by when they ended,
+alternate between a fitting half (\FitGames{} games, \FitMoves{} moves) and a held-out half
+(\HeldGames{} games, \HeldMoves{} moves). The fitted offset is the one with the highest mean
+log-likelihood per move on the fitting half. It replaces \AppOffset{} only if, on the held-out
+half, its mean log-likelihood per move beats \AppOffset's with the 95\% interval of the
+difference, over \Draws{} bootstrap draws of the held-out games, entirely above zero.
+
+\section{Results}
+
+The fitting half's best offset is \Fitted, the app's own, so \AppOffset{} stays. The held-out
+half's best is \HeldBest{} as well, and so is the best over all the games; over \Draws{}
+bootstrap draws of the games, the best offset falls between \BestAllLo{} and \BestAllHi{}
+(Table~\ref{tab:offsets}, Figure~\ref{fig:curve}).
+
+Near the top the offset matters little. At \AppOffset{} the moves played average a
+log-likelihood of \LLBase{} per move; \OffsetMin{} loses \LossAtMin{} per move and \OffsetMax{}
+loses \LossAtMax. As a geometric mean, Maia-2 gives the moves played \RatioAtMin\% more
+probability at \AppOffset{} than at \OffsetMin, and \RatioAtMax\% more than at \OffsetMax. Its
+first choice is the move played \TopMin\% to \TopMax\% of the time across the whole range: the
+offset changes how sure Maia-2 is far more than which move it ranks first.
+
+\begin{figure}[!htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=0.7\textwidth, height=0.42\textwidth, xmin=-10, xmax=510,
+  xlabel={offset added to the chess.com rating}, ylabel={change from \AppOffset, per move},
+  xtick={0,100,200,300,400,500}, grid=major, legend pos=south east, legend cell align=left,
+  y tick label style={/pgf/number format/fixed, /pgf/number format/precision=3},
+  scaled y ticks=false]
+\addplot[black, mark=*, mark size=1.2pt] coordinates {\CurveFit};
+\addlegendentry{fitting half}
+\addplot[red!70!black, dashed, mark=square*, mark size=1.2pt] coordinates {\CurveHeld};
+\addlegendentry{held-out half}
+\end{axis}
+\end{tikzpicture}
+\caption{The mean log-likelihood per move of the moves played at each offset, as a change from
+its value at the app's \AppOffset. Both halves peak at \AppOffset.}
+\label{fig:curve}
+\end{figure}
+
+\begin{table}[!htbp]
+\centering\small
+\OffsetTable
+\caption{The mean log-likelihood per move at each offset, on each half and over all the games,
+and the share of all the moves that are Maia-2's first choice.}
+\label{tab:offsets}
+\end{table}
+
+\section{Beside the verdict}
+
+Named before the first run, these looks decide nothing, but they show what one offset hides
+(Table~\ref{tab:looks}, Figure~\ref{fig:looks}). Maia-2 predicts the player's own moves best at
+\BestHim{} (\BestHimLo{} to \BestHimHi{} over the draws) and his opponents' best at \BestOpp{}
+(\BestOppLo{} to \BestOppHi); the two intervals do not overlap. By the movers' rating, the
+weakest third (\LowFrom{} to \LowTo) fits best at \LowBest, and the two stronger thirds at
+\AppOffset, like the moves as a whole. The gains a part's own best offset would bring over \AppOffset{} are
+small: \GainHim{} per move for the player's moves, \GainOpp{} for his opponents' and \GainLow{}
+for the weakest third.
+
+One offset moves both players at once, so it cannot follow the split: every offset that fits his
+opponents better than \AppOffset{} fits him worse, and every one that fits him better fits them
+worse. \AppOffset{} is where the two balance. Whether an offset for the player and another for
+his opponents would beat one on held-out games is a question for its own project, with its rule
+written first: these looks chose where to look, so they cannot also be the test. A split would
+also move both directions of the punish odds, which the punish-odds project found calibrated at
+\AppOffset, so it would have to keep them so.
+
+\begin{table}[!htbp]
+\centering\small
+\LookTable
+\caption{The best offset for each part of the moves, and its 95\% interval over \Draws{}
+bootstrap draws of the games. The thirds split the movers' chess.com ratings.}
+\label{tab:looks}
+\end{table}
+
+\begin{figure}[!htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[name=sides, width=0.48\textwidth, height=0.4\textwidth, xmin=-10, xmax=510,
+  xlabel={offset}, ylabel={change from \AppOffset, per move},
+  xtick={0,250,500}, grid=major, legend pos=south west, legend cell align=left,
+  legend style={font=\scriptsize}, y tick label style={/pgf/number format/fixed,
+  /pgf/number format/precision=3}, scaled y ticks=false, title={by side}]
+\addplot[black, mark=*, mark size=1pt] coordinates {\CurveHim};
+\addlegendentry{the player's moves}
+\addplot[red!70!black, dashed, mark=square*, mark size=1pt] coordinates {\CurveOpp};
+\addlegendentry{his opponents'}
+\end{axis}
+\begin{axis}[at={(sides.east)}, anchor=west, xshift=1cm, width=0.48\textwidth,
+  height=0.4\textwidth, xmin=-10, xmax=510, xlabel={offset}, xtick={0,250,500}, grid=major,
+  legend pos=south west, legend cell align=left, legend style={font=\scriptsize},
+  y tick label style={/pgf/number format/fixed, /pgf/number format/precision=3},
+  scaled y ticks=false, title={by the mover's rating}]
+\addplot[blue!70!black, mark=triangle*, mark size=1.2pt] coordinates {\CurveLow};
+\addlegendentry{\LowFrom--\LowTo}
+\addplot[black, mark=*, mark size=1pt] coordinates {\CurveMid};
+\addlegendentry{\MidFrom--\MidTo}
+\addplot[gray, dashed, mark=o, mark size=1pt] coordinates {\CurveHigh};
+\addlegendentry{\HighFrom--\HighTo}
+\end{axis}
+\end{tikzpicture}
+\caption{The same curve for each part of the moves, as a change from each part's value at
+\AppOffset.}
+\label{fig:looks}
+\end{figure}
+
+Figure~\ref{fig:example} shows what the bands do in one position: the player's move whose
+probability moves most between \OffsetMin{} and \OffsetMax. The stronger the bands the offset
+gives the two players, the surer Maia-2 is of the move he chose.
+
+\begin{figure}[!htbp]\Example\caption{The player's move at the bands three offsets give the two
+players: Maia-2's probability of the move played and its first choice.}\label{fig:example}
+\end{figure}
+
+\section{What it means for the app}
+
+Nothing to port. The app's \AppOffset{} is the offset this player's games choose, so the punish
+odds, how findable a move is and the Maia bot stand as they are. The app lets the player change
+the offset; any offset from \BestAllLo{} to \BestAllHi, the range the best one takes over the
+draws, fits these games about as well. The split between the player and his opponents is the next question for this
+part of the app.
+
+\section{Limitations}
+
+\begin{itemize}[nosep]
+\item One player's games and his opponents', rated \RatingMin{} to \RatingMax{} on chess.com. The
+offset that fits them says nothing about players far from that range.
+\item The rating is chess.com's after each game, a few points from the one the game was played
+at.
+\item Maia-2's lowest band holds everyone under \MaiaStart{} on its scale, so it cannot tell the
+weakest players here apart from each other at any offset that leaves them there.
+\item The likelihood measures how well Maia-2 predicts the moves, not why. An offset that fits
+best also absorbs whatever Maia-2 gets wrong about this pool of players, which is what the app
+needs from it, but it is not a statement about the two sites' rating pools.
+\end{itemize}
+
+\end{document}
