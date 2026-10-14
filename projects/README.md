@@ -18,6 +18,7 @@ everything that answers it:
 | [maia-punish](maia-punish/) | Can Maia-2's odds of the reply that punishes an error be trusted on the player's games? | Shipped: every error is priced with these odds |
 | [judge-in-context](judge-in-context/) | Should a move's verdict read win% on a curve fitted to the mover's rating? | Not adopted |
 | [winprob-parity](winprob-parity/) | Does the lab compute the same win% as the app? | A check: nothing to port |
+| [think-time-rapid](think-time-rapid/) | In 10-minute games at his level, where does a long think cut serious errors, and do the app's long-think triggers mark those moments? | Running: the rule is fixed, the results are to come |
 
 `paper.mjs` holds the helpers the generators share (boards, moves in SAN, UCI
 and FEN, number formats), and `preamble.tex` the LaTeX every paper loads.
