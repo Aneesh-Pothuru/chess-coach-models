@@ -60,6 +60,8 @@ for (const [id, moments] of byMoment) {
     fens[c.index] = c.fenBefore;
   }
   const rating = (side) => (side === g.playerColor ? g.myRating : g.oppRating);
+  // defenseProbes skips a defender with no rating, so a games file without them would read as no defenses.
+  if (!Number.isFinite(rating('w')) || !Number.isFinite(rating('b'))) throw new Error(`no ratings for game ${id} in ${gamesPath}`);
   const probes = await defenseProbes(
     engine,
     { records, fens, moments: moments.map((c) => c.index) },

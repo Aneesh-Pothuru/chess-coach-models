@@ -18,8 +18,9 @@
 //
 // Writes private/explain-top-move/endgames/games.json, in the accuracy cases'
 // shape (so build-evidence.mjs, build-cases.mjs and defenses.mjs read it with
-// --games) plus each game's split and the ply its endgame starts at, and
-// prints counts only. The file names games, so it stays under private/.
+// --games; the defense searches read the players' ratings) plus each game's
+// split and the ply its endgame starts at, and prints counts only. The file
+// names games, so it stays under private/.
 
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -96,6 +97,8 @@ for (const g of latest.values()) {
     date: g.date,
     playerColor: g.row.meIsWhite ? 'w' : 'b',
     result: RESULT_WORD[g.row.result] ?? null,
+    myRating: g.row.myRating ?? null,
+    oppRating: g.row.oppRating ?? null,
     plies,
     endgameFrom: from,
   });

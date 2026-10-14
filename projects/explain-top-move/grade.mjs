@@ -1029,6 +1029,178 @@ function checkPassedFile(att, file, span, shown, surface) {
   return claim('passed_pawn', surface, shown, span, F(`no passed pawn of the mover's on the ${file}-file`))
 }
 
+// ---------------------------------------------------------------- passed pawns in the lines
+
+/** The pawns of a line, each followed from the square it starts on: its moves, its promotion, and the move that takes it. */
+function pawnTrack(fen, ucis, plies) {
+  const g = load(fen)
+  const pawns = new Map()
+  const at = new Map()
+  if (!g) return { pawns, plies: 0 }
+  for (const row of g.board()) for (const cell of row) if (cell && cell.type === 'p') {
+    pawns.set(cell.square, { origin: cell.square, color: cell.color, steps: [], promoted: null, fell: null })
+    at.set(cell.square, cell.square)
+  }
+  let read = 0
+  for (let i = 0; i < Math.min(plies, ucis.length); i++) {
+    const m = playUci(g, ucis[i])
+    if (!m) break
+    read++
+    const taken = m.flags.includes('e') ? m.to[0] + m.from[1] : m.to
+    if (m.captured === 'p' && at.has(taken)) {
+      pawns.get(at.get(taken)).fell = { ply: i, san: m.san, by: m.color }
+      at.delete(taken)
+    }
+    if (m.piece === 'p' && at.has(m.from)) {
+      const origin = at.get(m.from)
+      at.delete(m.from)
+      const pawn = pawns.get(origin)
+      pawn.steps.push({ ply: i, san: m.san })
+      if (m.promotion) pawn.promoted = { ply: i, piece: m.promotion, to: m.to }
+      else at.set(m.to, origin)
+    }
+  }
+  return { pawns, plies: read }
+}
+
+/** The lesson's two lines, read over the windows the lesson reads them. */
+function lessonLines(M) {
+  const best = M.bestUci ? (M.bestPv[0] === M.bestUci ? M.bestPv : [M.bestUci]) : []
+  const played = M.playedUci && Array.isArray(M.replyPvUci) ? [M.playedUci, ...M.replyPvUci] : []
+  return {
+    best: { ucis: best, plies: best.length ? windowRead(M.F0, best, M.mover)?.plies ?? 0 : 0 },
+    played: { ucis: played, plies: M.playedFullRead?.plies ?? 0 },
+  }
+}
+
+const ownerOf = (word, M) => (word === 'your' ? M.pov : other(M.pov))
+const stepList = (t) => t.split(/, | and /).map((x) => x.trim()).filter(Boolean)
+
+/** "After X, their b-pawn queens: b7 and b8=Q in the engine's line." and what the other line does with that pawn. */
+function checkPawnStory(g, e) {
+  const [x, owner, file, verb, steps, takesTok, fallsAfter, fallsSan, notAfter] = g
+  const M = e.M
+  const lines = lessonLines(M)
+  const onPlayed = x === M.san
+  const out = [e.san(x, M.F0, onPlayed ? M.playedUci : M.bestUci)]
+  const color = ownerOf(owner, M)
+  const line = onPlayed ? lines.played : lines.best
+  const pawns = [...pawnTrack(M.F0, line.ucis, line.plies).pawns.values()].filter((p) => p.color === color && p.origin[0] === file && p.promoted)
+  const want = stepList(steps)
+  const queen = verb === 'queens'
+  const hit = pawns.find((p) => p.steps.map((s) => s.san).join(' ') === want.join(' ') && (p.promoted.piece === 'q') === queen)
+  out.push(claim('pawn_run', e.surface, e.shown, e.whole, hit
+    ? T(`the ${file}-pawn's moves ${want.join(' ')} replay in the line's ${line.plies} plies`)
+    : F(pawns.length ? `the ${file}-pawn's moves in the line are ${pawns[0].steps.map((s) => s.san).join(' ')}` : `no ${file}-pawn of that side ${queen ? 'queens' : 'promotes'} in the line's ${line.plies} plies`)))
+  if (!hit) return out
+  const otherLine = onPlayed ? lines.best : lines.played
+  const track = pawnTrack(M.F0, otherLine.ucis, otherLine.plies).pawns.get(hit.origin)
+  if (takesTok) {
+    out.push(e.san(takesTok, M.F0, onPlayed ? M.bestUci : M.playedUci))
+    out.push(claim('pawn_fate', e.surface, e.shown, e.whole, track?.fell?.ply === 0 ? T(`${takesTok} takes the pawn on ${hit.origin}`) : F(`${takesTok} does not take the pawn on ${hit.origin}`)))
+  } else if (fallsAfter) {
+    out.push(e.san(fallsAfter, M.F0, onPlayed ? M.bestUci : M.playedUci))
+    out.push(claim('pawn_fate', e.surface, e.shown, e.whole, track?.fell && track.fell.san.replace(/[+#]$/, '') === fallsSan.replace(/[+#]$/, '') ? T(`${fallsSan} takes the pawn in the line`) : F(`the pawn ${track?.fell ? `falls to ${track.fell.san}` : 'does not fall'} in the line`)))
+  } else if (notAfter) {
+    out.push(e.san(notAfter, M.F0, onPlayed ? M.bestUci : M.playedUci))
+    const promotes = !!track?.promoted
+    out.push(claim('pawn_fate', e.surface, e.shown, e.whole, !promotes && otherLine.plies > hit.promoted.ply ? T(`the pawn does not promote in the other line's ${otherLine.plies} plies`) : F(promotes ? 'the pawn promotes in the other line too' : `the other line's ${otherLine.plies} plies are no longer than the promotion's ply`)))
+  }
+  return out
+}
+
+/** The squares ahead of a pawn to its promotion square. */
+function pawnPath(sq, color) {
+  const out = []
+  const step = color === 'w' ? 1 : -1
+  for (let r = +sq[1] + step; r >= 1 && r <= 8; r += step) out.push(sq[0] + r)
+  return out
+}
+
+/** "it takes their passed b-pawn", "it blocks their passed b-pawn on b7", "the king stands in front of their passed c-pawn": a block stands on the open path of a passed pawn past the middle of the board. */
+function checkStopsPassed(att, kind, owner, file, sq, M, span, shown, surface) {
+  const mv = att?.mv
+  if (!mv) return claim('passed_stop', surface, shown, span, F('the move does not replay'))
+  const color = ownerOf(owner, M)
+  const before = load(att.fen)
+  if (kind === 'takes') {
+    const ok = mv.captured === 'p' && !mv.flags.includes('e') && mv.to[0] === file && before.get(mv.to)?.color === color && isPassed(before, mv.to, color)
+    return claim('passed_stop', surface, shown, span, ok ? T(`${mv.san} takes the passed pawn on ${mv.to}`) : F(`${mv.san} does not take a passed ${file}-pawn of that side`))
+  }
+  if (kind === 'king' && mv.piece !== 'k') return claim('passed_stop', surface, shown, span, F(`${mv.san} is not a king move`))
+  if (kind === 'blocks' && mv.to !== sq) return claim('passed_stop', surface, shown, span, F(`${mv.san} lands on ${mv.to}, not ${sq}`))
+  for (let r = 1; r <= 8; r++) {
+    const p = file + r
+    const cell = before.get(p)
+    if (!cell || cell.type !== 'p' || cell.color !== color || !isPassed(before, p, color) || (color === 'w' ? r < 5 : r > 4)) continue
+    const path = pawnPath(p, color)
+    const i = path.indexOf(mv.to)
+    if (i >= 0 && path.slice(0, i).every((s) => !before.get(s))) return claim('passed_stop', surface, shown, span, T(`${mv.to} is on the path of the passed pawn on ${p}, with nothing between`))
+  }
+  return claim('passed_stop', surface, shown, span, F(`${mv.to} is not on the open path of a passed ${file}-pawn of that side past the middle of the board`))
+}
+
+/** "the b-pawn goes on to queen on b8 in the engine's line": the reply moves that pawn, and it promotes there later in the played line. */
+function checkGoesOn(M, att, file, kind, sq, span, shown, surface) {
+  const mv = att?.mv
+  if (!mv || att !== M.attReply) return claim('pawn_run', surface, shown, span, F('not said of the reply'))
+  if (mv.piece !== 'p' || mv.from[0] !== file) return claim('pawn_run', surface, shown, span, F(`${mv.san} is not a ${file}-pawn move`))
+  const lines = lessonLines(M)
+  const pawn = [...pawnTrack(M.F0, lines.played.ucis, lines.played.plies).pawns.values()].find((p) => p.steps.some((s) => s.ply === 1))
+  const ok = !!pawn?.promoted && pawn.promoted.to === sq && (pawn.promoted.piece === 'q') === (kind === 'queen') && pawn.promoted.ply > 1
+  return claim('pawn_run', surface, shown, span, ok ? T(`the pawn ${mv.san} moves promotes on ${sq} at ply ${pawn.promoted.ply}`) : F(`the pawn ${mv.san} moves does not ${kind} on ${sq} in the line's ${lines.played.plies} plies`))
+}
+
+const kingDist = (a, b) => Math.max(Math.abs(a.charCodeAt(0) - b.charCodeAt(0)), Math.abs(+a[1] - +b[1]))
+
+/** "your king walks over to their c-pawn: Kb2, Kc3 and Kxc4 in the engine's line": that king's first moves in its line, each closer to the pawn. */
+function checkKingWalk(M, whose, dir, owner, file, moves, span, shown, surface) {
+  const king = whose === 'your' ? M.pov : other(M.pov)
+  const pawnColor = owner === 'its' ? king : ownerOf(owner, M)
+  if ((dir === 'up') !== (pawnColor === king)) return claim('king_walk', surface, shown, span, F(`"walks ${dir} to" names the wrong side's pawn`))
+  const lines = lessonLines(M)
+  const line = king === M.mover ? lines.best : lines.played
+  const g = load(M.F0)
+  let pawnSq = null
+  for (let r = 1; r <= 8; r++) {
+    const c = g.get(file + r)
+    if (c && c.type === 'p' && c.color === pawnColor && isPassed(g, file + r, pawnColor)) pawnSq = file + r
+  }
+  if (!pawnSq) return claim('king_walk', surface, shown, span, F(`no passed ${file}-pawn of that side at the start`))
+  let kingSq = findKing(g, king)
+  let near = kingDist(kingSq, pawnSq)
+  const d0 = near
+  const want = stepList(moves)
+  const made = []
+  for (let i = 0; i < Math.min(line.plies, line.ucis.length) && made.length < want.length; i++) {
+    const m = playUci(g, line.ucis[i])
+    if (!m) break
+    const taken = m.flags.includes('e') ? m.to[0] + m.from[1] : m.to
+    if (m.captured === 'p' && taken === pawnSq) {
+      if (m.color === king && m.piece === 'k') {
+        made.push(m.san)
+        near = 0
+        break
+      }
+      return claim('king_walk', surface, shown, span, F(`the pawn falls to ${m.san} first`))
+    }
+    if (m.piece === 'p' && m.from === pawnSq) pawnSq = m.promotion || m.to[0] !== m.from[0] ? null : m.to
+    if (!pawnSq) return claim('king_walk', surface, shown, span, F('the pawn promotes or leaves its file first'))
+    if (m.color === king && m.piece === 'k') {
+      const d = kingDist(m.to, pawnSq)
+      if (d >= near) return claim('king_walk', surface, shown, span, F(`${m.san} does not come closer to the pawn`))
+      made.push(m.san)
+      near = d
+      kingSq = m.to
+    }
+  }
+  const same = made.length === want.length && made.every((s, i) => s.replace(/[+#]$/, '') === want[i].replace(/[+#]$/, ''))
+  if (!same) return claim('king_walk', surface, shown, span, F(`the king's moves in the line are ${made.join(' ') || 'none'}`))
+  return near <= 1 && d0 - near >= 2
+    ? claim('king_walk', surface, shown, span, T(`the king comes from ${d0} to ${near} squares from the pawn`))
+    : claim('king_walk', surface, shown, span, F(`the king comes from ${d0} to ${near} squares from the pawn`))
+}
+
 /** "it delivers double check": two of the mover's pieces give check. */
 function checkDoubleCheck(att, span, shown, surface) {
   const mv = att.mv
@@ -1319,6 +1491,12 @@ function clauseClaims(text, attOf, surface, shown, M = null) {
       return ' '.repeat(whole.length)
     })
   }
+  // What a move or a line does with the passed pawns.
+  take(/\b(?:it )?takes (their|your) passed ([a-h])-pawn\b/g, ([owner, f], whole, att) => checkStopsPassed(att, 'takes', owner, f, null, M, whole, shown, surface))
+  take(new RegExp(String.raw`\b(?:it )?blocks (their|your) passed ([a-h])-pawn on ${SQ}`, 'g'), ([owner, f, sq], whole, att) => checkStopsPassed(att, 'blocks', owner, f, sq, M, whole, shown, surface))
+  take(/\bthe king stands in front of (their|your) passed ([a-h])-pawn\b/g, ([owner, f], whole, att) => checkStopsPassed(att, 'king', owner, f, null, M, whole, shown, surface))
+  take(new RegExp(String.raw`\bthe ([a-h])-pawn goes on to (queen|promote) on ${SQ} in the engine's line\b`, 'g'), ([f, kind, sq], whole, att) => checkGoesOn(M, att, f, kind, sq, whole, shown, surface))
+  take(/\b(your|their) king walks (up|over) to (your|their|its) ([a-h])-pawn: ([^.]+?) in the engine's line\b/g, ([whose, dir, owner, f, moves], whole) => checkKingWalk(M, whose, dir, owner, f, moves, whole, shown, surface))
   // A mate the move gives, or the reply gives.
   take(/\bit is checkmate\b/g, (_g, whole, att) => claim('mate_move', surface, shown, whole, att.mv && att.mv.board.isCheckmate() ? T(`${att.mv.san} is checkmate`) : F(`${att.mv ? att.mv.san : att.uci} is not checkmate`)))
   take(/\bit forces mate in (\d+)\b/g, ([n], whole, att) => claim('mate', surface, shown, whole, checkMate(att.mover, +n, att.fen, att.mateLine, att.mateScore), { n: +n }))
@@ -1417,6 +1595,7 @@ function momentContext(c) {
     replyUci,
     lineUcis: playedLine.ucis,
     bestPv,
+    replyPvUci: Array.isArray(c.replyPvUci) ? c.replyPvUci : [],
     // The searched captures of the best move (probes.mjs): lines from the position after it.
     probes: Array.isArray(c.probes) ? c.probes.map((p) => p.pv) : [],
     // The searched natural defenses to the best move's threat (defenses.mjs): lines from the position after it.
@@ -1680,6 +1859,11 @@ function replayCaptures(fen, ucis) {
 
 // Lesson templates: the sentence shapes lesson.ts and prose.ts write.
 const LESSON_TEMPLATES = [
+  // A pawn that promotes in one line and not the other, and what the other line does with it.
+  {
+    re: new RegExp(String.raw`\bAfter ${TOKR}, (their|your) ([a-h])-pawn (queens|promotes): ([^.]+?) in the engine's line\.(?: (?:${TOKR} takes it first|After ${TOKR} it falls \(${TOKR}\)|After ${TOKR} it does not (queen|promote) in the engine's line)\.)?`, 'g'),
+    run: (g, e) => checkPawnStory(g, e),
+  },
   // The move order: the played move comes in the engine's best line too, one or two of the mover's moves later.
   {
     re: new RegExp(String.raw`\bThe order matters: ${TOKR} comes in the engine's line too, (a move|two moves) later \(([^)]*)\)`, 'g'),
@@ -2292,6 +2476,7 @@ const CONCRETE_POSITIVE = [
   { name: 'check that wins something', re: /\bwith check\b[^.]*\bwins?\b|\bwins?\b[^.]*\bwith check\b|\bforks?\b[^.]*\bcheck\b/i },
   { name: 'named threat', re: /\battacks (?:the |their |your )?(?:king|queen|rook|bishop|knight|pawn) on [a-h][1-8]|\bthreatens?\b|\bforks?\b|\bpins? the\b|\bskewers\b/i },
   { name: 'prevents or keeps', re: /\bavoids it\b|\bkeeps it\b|\bprevents?\b|\bstops\b/i },
+  { name: 'passed pawn taken or blocked', re: /\b(?:takes|blocks) (?:their|your) passed [a-h]-pawn\b|\bstands in front of (?:their|your) passed [a-h]-pawn\b/i },
 ]
 /** Phrases that carry no consequence: the generic fallbacks. */
 const CONCRETE_GENERIC = [/a stronger continuation/i, /\bpositional\b/i, /improves the position/i, /Neither line wins material/i, /the position it reaches is worth more than the material/i]
@@ -2301,6 +2486,7 @@ const PLAYED_NAMED = [
   { name: 'material lost in the line', re: /\byou lose\b|\bthey win\b|\bwin \S+ in the engine's line\b|\bfalls\b/i },
   { name: 'material missed: no gain after the played move', re: /\bno material is won\b|\bthe best you get is\b/i },
   { name: 'a missed mate or win', re: /\bwalked into\b|\bhad a forced mate\b|\bleft a piece to collect\b|\bhanded (?:you|them)\b/i },
+  { name: 'a pawn that promotes after the played move', re: /\b[a-h]-pawn (?:queens|promotes):|\bgoes on to (?:queen|promote) on\b/i },
 ]
 
 function escapeRe(x) {
@@ -2560,6 +2746,31 @@ function runCorruption(cases) {
     const copy = structuredClone(c)
     copy.texts.lessonFor.difference = copy.texts.lessonFor.difference.map((d) => d.replace(from, to))
     return copy
+  }
+  // The passed pawns: the pawn that queens, the square the reply's pawn queens on, the block, the king's walk.
+  const nextFile = (f) => (f === 'a' ? 'b' : String.fromCharCode(f.charCodeAt(0) - 1))
+  const story = /\b(their|your) ([a-h])-pawn (queens|promotes): /
+  const ps = cases.find((c) => c.texts?.lessonFor?.difference?.some((d) => story.test(d)))
+  if (ps) results.push(corruptionRow('the pawn that queens named on the next file', ps, swapIn(ps, story, (_, o, f, v) => `${o} ${nextFile(f)}-pawn ${v}: `), /-pawn (?:queens|promotes):/))
+  const goesOn = /\bthe ([a-h])-pawn goes on to (queen|promote) on ([a-h])([1-8])/
+  const go = cases.find((c) => c.texts?.lessonFor?.allowed?.points?.some((p) => goesOn.test(p)))
+  if (go) results.push(corruptionRow('the reply\'s pawn said to queen on the next file', go, swapPoint(go, goesOn, (_, f, k, sf, r) => `the ${f}-pawn goes on to ${k} on ${nextFile(sf)}${r}`), /goes on to (?:queen|promote) on/))
+  const swapBetter = (c, from, to) => {
+    const copy = structuredClone(c)
+    copy.texts.lessonFor.better.points = copy.texts.lessonFor.better.points.map((p) => p.replace(from, to))
+    return copy
+  }
+  const blocks = /\bit blocks (their|your) passed ([a-h])-pawn on ([a-h])([1-8])/
+  const bl = cases.find((c) => c.texts?.lessonFor?.better?.points?.some((p) => blocks.test(p)))
+  if (bl) results.push(corruptionRow('a block said to stand on the next file', bl, swapBetter(bl, blocks, (_, o, f, sf, r) => `it blocks ${o} passed ${f}-pawn on ${nextFile(sf)}${r}`), /it blocks (?:their|your) passed/))
+  const walks = /\b(your|their) king walks (up|over) to/
+  const wk = cases.find((c) => [...(c.texts?.lessonFor?.better?.points ?? []), ...(c.texts?.lessonFor?.allowed?.points ?? [])].some((p) => walks.test(p)))
+  if (wk) {
+    const copy = structuredClone(wk)
+    const flip = (p) => p.replace(walks, (_, k, d) => `${k} king walks ${d === 'up' ? 'over' : 'up'} to`)
+    copy.texts.lessonFor.better.points = copy.texts.lessonFor.better.points.map(flip)
+    if (copy.texts.lessonFor.allowed) copy.texts.lessonFor.allowed.points = copy.texts.lessonFor.allowed.points.map(flip)
+    results.push(corruptionRow('a king\'s walk said to go to the other side\'s pawn', wk, copy, /king walks (?:up|over) to/))
   }
   const gain = cases.find((c) => c.texts?.lessonFor?.difference?.some((d) => /you gain a pawn over the engine's line/.test(d)))
   if (gain) results.push(corruptionRow('"you gain a pawn over the engine\'s line" -> "you gain a piece ..."', gain, swapIn(gain, 'you gain a pawn', 'you gain a piece'), /you gain a piece/))
