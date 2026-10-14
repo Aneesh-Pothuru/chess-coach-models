@@ -1,0 +1,155 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Do the app's motif labels name the tactic a position holds?\\[0.3em]
+\large Three of the coaching app's board readers, scored on public puzzles}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Three of the app's board readers put a motif word on a position: the theme of the best move the
+player missed (it files the misses deck, the puzzle buckets and the rule ledger, and the learner
+credits a solve to the skill it names), the motifs a bad move allowed (counted by the weakness
+profile, the metrics and the pattern census), and what a move does (the explanations' source).
+We scored each against the themes Lichess's own tagger put on \AppPuzzles{} puzzles the app ships
+and on \HeldPuzzles{} held-out puzzles of the same ratings. All three name forks well. The misses
+deck's labeller has no word for pins, skewers, discovered attacks, deflections or trapped
+pieces, and when it says ``defensive move'' (\DefShareHeld\% of held-out puzzles) the tagger
+agrees \DefPrecHeld{} of the time. The review scan tags a hanging piece on \HangSaidHeld{}
+held-out puzzles, against \HangRealHeld{} that the tagger says have one. The move describer is
+the most precise of the three and the one to build the others on.
+\end{abstract}
+
+\section{The question}
+
+A motif word is a claim about the board. When the misses deck files a position under
+``defensive move'', the learner counts a solve there toward a defensive-move skill; when the
+review scan tags a hanging piece, the weakness profile counts one more hanging piece. A wrong
+word sends practice and advice to the wrong place, so before the routines lean on these words
+we asked how often each is right when it is said (precision) and how often it is said when it
+is right (recall).
+
+A Lichess puzzle is a mistake, its first move, followed by the line that punishes it, and
+Lichess tags each with themes. That is the shape the app's readers already read: the position
+the solver faces, the best move, the mistake that allowed it and the refutation. Lichess's tags
+come from another heuristic tagger, not from the truth, so this measures agreement; the three
+puzzles in Section~\ref{sec:boards} read disagreements on the board.
+
+\section{Method}
+
+Each reader runs on each puzzle the way the app runs it on a game (commit
+\texttt{\AppCommit}): the theme of the best move on the solver's position and the first
+solution move (\texttt{themeOfBest}); the motifs of the mistake from the position before it,
+the mistake, the solution line and the score it reaches (\texttt{blunderMotifs}); and the
+findings that are a gain for the solver when the first solution move is described with the rest
+of the line as its reply (\texttt{describeMove}). Both sides' words are mapped to concepts by the
+app's own vocabulary, so a Lichess theme and an app word name one concept the way the app
+resolves them. A concept that only one side has a word for is not scored. The app's pool is the
+training set for any change tuned here; the held-out set, a seeded uniform sample of the same
+rating range that leaves out every puzzle the app ships, is the test.
+
+\section{Results}
+
+\begin{table}[tbp]
+\centering
+\small
+\TableBest
+\caption{The misses deck's labeller (\texttt{themeOfBest}). Tagged: puzzles Lichess tags with
+the concept; said: puzzles the reader names it on. Checkmate is said only for a mate in one.}
+\end{table}
+
+\begin{table}[tbp]
+\centering
+\small
+\TableBlunder
+\caption{The review scan's motifs (\texttt{blunderMotifs}). Checkmate is left out: the score
+passed in decides it.}
+\end{table}
+
+\begin{table}[tbp]
+\centering
+\small
+\TableMove
+\caption{The move describer's gain findings (\texttt{describeMove}).}
+\end{table}
+
+\paragraph{The misses deck's labeller.} It has six motif words. When none fires it files the
+position under its phase (\PhaseShareApp\% of the app's pool, \PhaseShareHeld\% held out) or, when
+one of the solver's pieces was loose and the move protected it, as a defensive move. Puzzles
+are tactics, so the defensive move mostly catches the tactics the labeller has no word for:
+said on \DefSaidApp{} of the app's pool and \DefSaidHeld{} held-out puzzles, it agrees with the
+tagger \DefPrecApp{} and \DefPrecHeld{} of the time. Its hanging piece is right \BestHangPrecApp{}
+and \BestHangPrecHeld{} of the time. It said back-rank mate on \BrmSaidApp{} of the app's pool
+and \BrmSaidHeld{} held-out puzzles, \BrmTpHeld{} of them tagged so. Its fork is good.
+
+\paragraph{The review scan.} It tags a hanging piece whenever the refutation wins material, so
+it tags one on \HangSaidApp{} puzzles of the app's pool (\HangRealApp{} tagged) and \HangSaidHeld{}
+held out (\HangRealHeld{} tagged): precision \HangPrecApp{} and \HangPrecHeld. It never tags a
+pin, a skewer, a back-rank mate or a trapped piece. Its fork and discovered attack are precise
+but catch about half.
+
+\paragraph{The move describer.} The most precise of the three on the tactics both
+vocabularies name: fork, skewer and discovered attack all above 0.6 precision and 0.5 recall on
+both sets. It finds a quarter of pins (\MovePinRecHeld{} held out), and its back-rank mate is
+mostly not one the tagger sees (\MoveBrmPrecHeld).
+
+\paragraph{The vocabulary.} The app's vocabulary does not resolve the named mates Lichess
+tags (\NamedMates; \NamedMateTags{} tags held out), so they score as nothing on either side.
+
+\section{Three held-out puzzles}\label{sec:boards}
+
+Each board is the position the solver faces; the red arrow is the mistake just played, the
+green one the first solution move.
+
+\begin{figure}[h]
+\centering
+\begin{minipage}[t]{0.31\textwidth}\centering
+\PinBoard\\[0.3em]
+\footnotesize Puzzle \texttt{\PinId}, rated \PinRating
+\end{minipage}\hfill
+\begin{minipage}[t]{0.31\textwidth}\centering
+\SkewerBoard\\[0.3em]
+\footnotesize Puzzle \texttt{\SkewerId}, rated \SkewerRating
+\end{minipage}\hfill
+\begin{minipage}[t]{0.31\textwidth}\centering
+\ForkBoard\\[0.3em]
+\footnotesize Puzzle \texttt{\ForkId}, rated \ForkRating
+\end{minipage}
+\end{figure}
+
+\paragraph{\PinId.} After \PinFirst, the solution \PinLine{} (\PinUci) from \PinFen. Lichess:
+\PinThemes. The misses deck's labeller: \PinBest. The describer: \PinMove.
+
+\paragraph{\SkewerId.} After \SkewerFirst, the solution \SkewerLine{} (\SkewerUci) from
+\SkewerFen. Lichess: \SkewerThemes. The misses deck's labeller: \SkewerBest. The describer:
+\SkewerMove.
+
+\paragraph{\ForkId.} After \ForkFirst, the solution \ForkLine{} (\ForkUci) from \ForkFen.
+Lichess: \ForkThemes. The review scan: \ForkBlunder. The misses deck's labeller: \ForkBest.
+
+\section{What it means for the app}
+
+\begin{enumerate}[nosep]
+\item The misses deck's theme should come from the describer's findings for the tactics it has
+words for (pin, skewer, discovered attack, trapped piece) before the defensive fallback, and the
+defensive move should require that the move answers a threat the board code can name.
+\item The review scan's hanging piece should require a piece that was attacked and not
+defended before the refutation, not any material the refutation wins; its counts feed the
+weakness profile and the metrics.
+\item The vocabulary should resolve the named mates, so a mate pattern is a concept on both
+sides.
+\item Any change is tuned on the app's pool and kept only if it holds on the held-out set.
+\end{enumerate}
+
+\section{Limits}
+
+Lichess's tags are another tagger's, and a puzzle has as many tags as that tagger found, so a
+correct app word with no matching tag counts as wrong. Puzzles are tactics by construction; the
+misses deck is built from the player's own mistakes, where a defensive move is more common, which
+the drill-decks project measures on the deck itself.
+
+\end{document}

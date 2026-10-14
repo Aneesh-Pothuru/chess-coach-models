@@ -1,0 +1,146 @@
+% Written by projects/detector-themes/paper/generate.mjs; do not edit by hand.
+
+\newcommand{\AppCommit}{d8b771238c}
+\newcommand{\AppPuzzles}{4,630}
+\newcommand{\HeldPuzzles}{20,000}
+\newcommand{\TableBest}{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ & \multicolumn{4}{c}{the app's pool} & \multicolumn{4}{c}{held out} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}
+concept & tagged & said & precision & recall & tagged & said & precision & recall \\
+\midrule
+checkmate & 2074 & 1069 & 1.00 & 0.52 & 7833 & 3770 & 1.00 & 0.48 \\
+fork & 563 & 389 & 0.92 & 0.63 & 2808 & 1804 & 0.91 & 0.58 \\
+discovered-attack & 322 & 0 & \multicolumn{2}{c}{never said} & 1100 & 0 & \multicolumn{2}{c}{never said} \\
+skewer & 196 & 0 & \multicolumn{2}{c}{never said} & 511 & 0 & \multicolumn{2}{c}{never said} \\
+pin & 325 & 0 & \multicolumn{2}{c}{never said} & 1069 & 0 & \multicolumn{2}{c}{never said} \\
+hanging-piece & 609 & 682 & 0.60 & 0.67 & 813 & 2025 & 0.28 & 0.70 \\
+defensive-move & 315 & 864 & 0.03 & 0.09 & 637 & 5166 & 0.02 & 0.14 \\
+back-rank-mate & 346 & 0 & \multicolumn{2}{c}{never said} & 845 & 12 & 0.00 & 0.00 \\
+trapped-piece & 170 & 0 & \multicolumn{2}{c}{never said} & 209 & 0 & \multicolumn{2}{c}{never said} \\
+deflection & 135 & 0 & \multicolumn{2}{c}{never said} & 789 & 0 & \multicolumn{2}{c}{never said} \\
+attraction & 113 & 0 & \multicolumn{2}{c}{never said} & 640 & 0 & \multicolumn{2}{c}{never said} \\
+f7-raid & 267 & 30 & 0.77 & 0.09 & 180 & 91 & 0.19 & 0.09 \\
+double-check & 13 & 0 & \multicolumn{2}{c}{never said} & 80 & 0 & \multicolumn{2}{c}{never said} \\
+zwischenzug & 34 & 0 & \multicolumn{2}{c}{never said} & 214 & 0 & \multicolumn{2}{c}{never said} \\
+removing-the-defender & 5 & 0 & \multicolumn{2}{c}{never said} & 118 & 0 & \multicolumn{2}{c}{never said} \\
+promotion & 361 & 0 & \multicolumn{2}{c}{never said} & 468 & 0 & \multicolumn{2}{c}{never said} \\
+passed-pawn & 615 & 0 & \multicolumn{2}{c}{never said} & 1072 & 0 & \multicolumn{2}{c}{never said} \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\TableBlunder}{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ & \multicolumn{4}{c}{the app's pool} & \multicolumn{4}{c}{held out} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}
+concept & tagged & said & precision & recall & tagged & said & precision & recall \\
+\midrule
+fork & 563 & 262 & 0.94 & 0.44 & 2808 & 1374 & 0.92 & 0.45 \\
+discovered-attack & 322 & 178 & 0.90 & 0.50 & 1100 & 683 & 0.79 & 0.49 \\
+skewer & 196 & 0 & \multicolumn{2}{c}{never said} & 511 & 0 & \multicolumn{2}{c}{never said} \\
+pin & 325 & 0 & \multicolumn{2}{c}{never said} & 1069 & 0 & \multicolumn{2}{c}{never said} \\
+hanging-piece & 609 & 1619 & 0.38 & 1.00 & 813 & 6334 & 0.13 & 1.00 \\
+defensive-move & 315 & 0 & \multicolumn{2}{c}{never said} & 637 & 0 & \multicolumn{2}{c}{never said} \\
+back-rank-mate & 346 & 0 & \multicolumn{2}{c}{never said} & 845 & 0 & \multicolumn{2}{c}{never said} \\
+trapped-piece & 170 & 0 & \multicolumn{2}{c}{never said} & 209 & 0 & \multicolumn{2}{c}{never said} \\
+deflection & 135 & 61 & 0.46 & 0.21 & 789 & 548 & 0.55 & 0.38 \\
+attraction & 113 & 146 & 0.18 & 0.24 & 640 & 883 & 0.23 & 0.32 \\
+f7-raid & 267 & 0 & \multicolumn{2}{c}{never said} & 180 & 0 & \multicolumn{2}{c}{never said} \\
+double-check & 13 & 0 & \multicolumn{2}{c}{never said} & 80 & 0 & \multicolumn{2}{c}{never said} \\
+zwischenzug & 34 & 42 & 0.67 & 0.82 & 214 & 268 & 0.49 & 0.61 \\
+removing-the-defender & 5 & 55 & 0.04 & 0.40 & 118 & 361 & 0.24 & 0.73 \\
+promotion & 361 & 0 & \multicolumn{2}{c}{never said} & 468 & 0 & \multicolumn{2}{c}{never said} \\
+passed-pawn & 615 & 0 & \multicolumn{2}{c}{never said} & 1072 & 0 & \multicolumn{2}{c}{never said} \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\TableMove}{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ & \multicolumn{4}{c}{the app's pool} & \multicolumn{4}{c}{held out} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}
+concept & tagged & said & precision & recall & tagged & said & precision & recall \\
+\midrule
+checkmate & 2074 & 0 & \multicolumn{2}{c}{never said} & 7833 & 0 & \multicolumn{2}{c}{never said} \\
+fork & 563 & 387 & 0.92 & 0.63 & 2808 & 1802 & 0.91 & 0.58 \\
+discovered-attack & 322 & 246 & 0.79 & 0.61 & 1100 & 979 & 0.66 & 0.59 \\
+skewer & 196 & 153 & 0.91 & 0.71 & 511 & 446 & 0.65 & 0.57 \\
+pin & 325 & 111 & 0.73 & 0.25 & 1069 & 472 & 0.54 & 0.24 \\
+hanging-piece & 609 & 0 & \multicolumn{2}{c}{never said} & 813 & 0 & \multicolumn{2}{c}{never said} \\
+defensive-move & 315 & 0 & \multicolumn{2}{c}{never said} & 637 & 0 & \multicolumn{2}{c}{never said} \\
+back-rank-mate & 346 & 263 & 0.21 & 0.16 & 845 & 774 & 0.18 & 0.17 \\
+trapped-piece & 170 & 200 & 0.63 & 0.74 & 209 & 494 & 0.32 & 0.76 \\
+deflection & 135 & 0 & \multicolumn{2}{c}{never said} & 789 & 0 & \multicolumn{2}{c}{never said} \\
+attraction & 113 & 0 & \multicolumn{2}{c}{never said} & 640 & 0 & \multicolumn{2}{c}{never said} \\
+f7-raid & 267 & 14 & 1.00 & 0.05 & 180 & 8 & 1.00 & 0.04 \\
+double-check & 13 & 5 & 1.00 & 0.38 & 80 & 43 & 1.00 & 0.54 \\
+zwischenzug & 34 & 0 & \multicolumn{2}{c}{never said} & 214 & 0 & \multicolumn{2}{c}{never said} \\
+removing-the-defender & 5 & 0 & \multicolumn{2}{c}{never said} & 118 & 0 & \multicolumn{2}{c}{never said} \\
+promotion & 361 & 16 & 1.00 & 0.04 & 468 & 34 & 0.97 & 0.07 \\
+passed-pawn & 615 & 454 & 0.73 & 0.54 & 1072 & 806 & 0.64 & 0.48 \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\DefSaidApp}{864}
+\newcommand{\DefSaidHeld}{5,166}
+\newcommand{\DefPrecApp}{0.03}
+\newcommand{\DefPrecHeld}{0.02}
+\newcommand{\DefShareHeld}{26}
+\newcommand{\PhaseShareApp}{34}
+\newcommand{\PhaseShareHeld}{36}
+\newcommand{\HangSaidApp}{1619}
+\newcommand{\HangRealApp}{609}
+\newcommand{\HangSaidHeld}{6,334}
+\newcommand{\HangRealHeld}{813}
+\newcommand{\HangPrecApp}{0.38}
+\newcommand{\HangPrecHeld}{0.13}
+\newcommand{\BestHangPrecApp}{0.60}
+\newcommand{\BestHangPrecHeld}{0.28}
+\newcommand{\BrmSaidHeld}{12}
+\newcommand{\BrmTpHeld}{0}
+\newcommand{\BrmSaidApp}{0}
+\newcommand{\MovePinRecHeld}{0.24}
+\newcommand{\MoveBrmPrecHeld}{0.18}
+\newcommand{\NamedMates}{\texttt{pillsburysMate}, \texttt{operaMate}, \texttt{epauletteMate}, \texttt{smotheredMate}, \texttt{cornerMate}, \texttt{swallowstailMate}, \texttt{morphysMate}, \texttt{hookMate}, \texttt{arabianMate}, \texttt{killBoxMate}, \texttt{triangleMate}, \texttt{anastasiaMate}, \texttt{blindSwineMate}, \texttt{bodenMate}, \texttt{dovetailMate}, \texttt{doubleBishopMate}, \texttt{vukovicMate}, \texttt{balestraMate}}
+\newcommand{\NamedMateTags}{1,051}
+\newcommand{\PinBoard}{%
+\chessboard[setfen={8/5n2/p1K1k3/P7/5P2/4b3/8/3R4 w - - 3 43}, boardfontsize=13pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={d4-e3}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={d1-e1}]
+}
+\newcommand{\PinId}{0MHcM}
+\newcommand{\PinRating}{1462}
+\newcommand{\PinFen}{\fen{8/5n2/p1K1k3/P7/5P2/4b3/8/3R4 w - - 3 43}}
+\newcommand{\PinFirst}{42\ldots{}\symbishop{}e3}
+\newcommand{\PinLine}{43.~\symrook{}e1 \symknight{}e5+ 44.~fxe5}
+\newcommand{\PinUci}{\uci{d1e1 f7e5 f4e5}}
+\newcommand{\PinThemes}{\texttt{crushing}, \texttt{endgame}, \texttt{pin}, \texttt{short}}
+\newcommand{\PinBest}{\texttt{defensiveMove}}
+\newcommand{\PinBlunder}{nothing}
+\newcommand{\PinMove}{\texttt{trapped-piece}, \texttt{pin}, \texttt{open-file}}
+\newcommand{\SkewerBoard}{%
+\chessboard[setfen={6rk/2R2K2/1p2p3/4P3/1P6/4B3/6p1/8 b - - 1 41}, boardfontsize=13pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={h6-e3}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={g8-g7}]
+}
+\newcommand{\SkewerId}{1dno2}
+\newcommand{\SkewerRating}{1178}
+\newcommand{\SkewerFen}{\fen{6rk/2R2K2/1p2p3/4P3/1P6/4B3/6p1/8 b - - 1 41}}
+\newcommand{\SkewerFirst}{41.~\symbishop{}e3}
+\newcommand{\SkewerLine}{41\ldots{}\symrook{}g7+ 42.~\symking{}f6 \symrook{}xc7}
+\newcommand{\SkewerUci}{\uci{g8g7 f7f6 g7c7}}
+\newcommand{\SkewerThemes}{\texttt{crushing}, \texttt{endgame}, \texttt{short}, \texttt{skewer}}
+\newcommand{\SkewerBest}{\texttt{defensiveMove}}
+\newcommand{\SkewerBlunder}{nothing}
+\newcommand{\SkewerMove}{\texttt{skewer}}
+\newcommand{\ForkBoard}{%
+\chessboard[setfen={4rn2/p2bkpR1/2p1p3/1p2P2B/5n2/1PN5/P2K1P2/8 w - - 0 35}, boardfontsize=13pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={d5-f4}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={g7-f7}]
+}
+\newcommand{\ForkId}{1Aofp}
+\newcommand{\ForkRating}{1168}
+\newcommand{\ForkFen}{\fen{4rn2/p2bkpR1/2p1p3/1p2P2B/5n2/1PN5/P2K1P2/8 w - - 0 35}}
+\newcommand{\ForkFirst}{34\ldots{}\symknight{}xf4}
+\newcommand{\ForkLine}{35.~\symrook{}xf7+ \symking{}d8 36.~\symrook{}xf4}
+\newcommand{\ForkUci}{\uci{g7f7 e7d8 f7f4}}
+\newcommand{\ForkThemes}{\texttt{crushing}, \texttt{fork}, \texttt{middlegame}, \texttt{short}}
+\newcommand{\ForkBest}{\texttt{fork}}
+\newcommand{\ForkBlunder}{\texttt{hangingPiece}}
+\newcommand{\ForkMove}{\texttt{fork}, \texttt{king-attack}}

@@ -1,0 +1,147 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Does the weekly focus's grade tell a real improvement from none?\\[0.3em]
+\large A replay of the ONE focus on the player's games, and a simulation with a known truth}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Every Sunday the weekly review picks one focus, the leak cause where the player gives away the
+most against his opponents, freezes a baseline and a target, and grades it over the next \Window{}
+games. A met focus is the plan's evidence that the training worked. Replayed on his archive, the
+picker changed focus \Switches{} times in \Weeks{} weeks and graded \Met{} of \Finished{} finished
+focuses met. In \Runs{} simulated focuses drawn from his own games with nothing changed, the grade
+says met \NullApp\% of the time at \Window{} games and \NullAppLong\% at 120, against the \Level\% its
+own \SuccessP{} threshold implies; a cause drawn at random gets \NullControl\%, so most of it is the test, not the choice. A
+permutation test against older games that played no part in the choice holds its level
+(\NullFresh\% and \NullPerMove\%), and reading points per move of the cause sees a real cut
+sooner than points per game. The targets ask for a median cut of \TargetCut\% while \Window{}
+games can only see about \NeededCut\%.
+\end{abstract}
+
+\section{The question}
+
+The weekly's ONE focus is the app's answer to ``what should he work on now''. It ranks the leak
+causes (an opening, middlegame or endgame position that is tense or quiet, under a minute on the
+clock, a fast move in a tense position, the move after a gift, late in a game) by the Elo they
+cost, the probability the leak is real, its relevance, its actionability and its freshness, and
+keeps a running focus unless a challenger scores \SwitchRatio{} times as much. A chosen focus is
+pre-registered: a baseline (his points lost on the cause per game over the last \Baseline{}
+games), a target halfway to his opponents' level, and a CUSUM test. It is graded over the next
+\Window{} games: met when the CUSUM alarms downward or the posterior probability that his loss
+fell reaches \SuccessP, else not met.
+
+Two things decide whether that grade can be read as evidence: how often it says met when
+nothing changed, and how large a change it needs before it says met. Both are measured here on
+the app's own code at commit \texttt{\AppCommit}, through the lab's bridge.
+
+\section{What the app did with his games}
+
+The replay runs the weekly's own choice and commit every Sunday of the archive
+(\ArchiveGames{} games), on a metrics instance that holds only the games played by then. He plays
+a median of \GamesPerWeek{} games a week, more than the \Window-game window, so in \Filled{} of the
+\Graded{} weeks that had a focus running, it had already been decided by the next Sunday, and the
+picker moved on: \Focuses{} focuses in \Weeks{} weeks. Of the \Finished{} that finished, \Met{}
+were graded met and \NotMet{} not met. At the simulated null rate below, \Met{} or more of
+\Finished{} would read met by chance alone \ChanceOfMet\% of the time.
+
+The picker's probability that a leak is real averaged \MeanReal\% over the \Pairs{} ranked leaks
+of the replayed weeks, and \StillThere\% of them were still there (his loss on the cause still
+above his opponents') over the next \Window{} games. It did not say which: its Brier score for
+that outcome was \BrierReal, against \BrierBase{} for a constant. A 40-game future is noisy, so
+this does not show the probability is wrong; it shows that, over the span a focus runs, it does
+not tell the leaks that will show up again from those that will not. One switch went to a leak
+the picker gave even odds (\WeakestReal), with a gap of \WeakestGap{} points a game against a
+standard error of \WeakestSe.
+
+\section{A simulation with a known truth}
+
+Each of \Runs{} runs draws, with replacement from his \Pool{} archived games, an older
+\Baseline-game history, the \Baseline{} games the picker reads, and a window of up to 120 games
+after it, so nothing changes between them. The app's \texttt{rankFocus}, \texttt{preregister} and
+\texttt{gradeFocus} run on the draws exactly as the weekly would. The same draws are then graded
+with a known share of his loss on the chosen cause removed: each of his moves on the cause loses
+nothing with that probability, from a fixed uniform per move, so every cut is compared on the
+same games. Beside the app's grade, four candidates were scored on the same draws (fixed before
+this run, after a first run measured the app's grade alone): the app's grade on a cause drawn at
+random from the ranked ones (no selection), the app's grade without its CUSUM pass, and a
+one-sided permutation test (\Perms{} permutations, level \Level\%) of the window against the
+\emph{older} games, which played no part in choosing the cause, on points per game and on points
+per move of the cause.
+
+\begin{table}[h]
+\centering
+\TableForty
+
+\medskip
+\TableEighty
+
+\medskip
+\TableHundred
+\caption{The share of simulated focuses graded met, by grade, window and the share of his loss
+on the cause removed. With no change, every share above the level (\Level\%) is a false met.}
+\end{table}
+
+\paragraph{With nothing changed.} The app's grade says met \NullApp\% of the time at \Window{}
+games, and more as the window grows (\NullAppLong\% at 120): the CUSUM alone fires
+\NullCusum\% of the time and the posterior alone \NullPosterior\%. On a cause drawn at random the
+grade still says met \NullControl\% of the time (the posterior alone \NullControlPosterior\%), so
+selection adds little; the test itself is the problem. His per-game loss on a cause is heavily
+skewed (a median coefficient of variation of \Cv): most games lose little and a few lose a lot,
+so a short window usually sits below the mean, and a CUSUM tuned to a normal-looking shift
+alarms on it. The permutation tests, which make no such assumption, hold their level.
+
+\paragraph{The choice inflates the baseline.} With nothing changed, the window's loss on the
+chosen cause sits a median \DriftWindow\% below the baseline that chose it, and the older games
+sit \DriftOlder\% below it too: the picker reads the baseline at its worst. A test against the
+baseline credits that regression to the mean to the training. The older games carry no such
+bias.
+
+\paragraph{When something changed.} With a quarter of his loss on the cause removed, the app's
+grade says met \QuarterApp\% of the time at \Window{} games, but \NullApp\% of that it would say
+anyway: net \QuarterAppNet{} points. Points per move against the older games say met
+\QuarterPerMove\% of the time (net \QuarterPerMoveNet{} points), \QuarterPerMoveLong\% at 120
+games; with half of it removed, \HalfPerMove\% and \HalfPerMoveLong\%. Per move beats per game at
+every cut and window, because a game with many moves on the cause and a game with one are no
+longer weighed alike.
+
+\paragraph{Targets the window can see.} The pre-registered target asks for a median cut of
+\TargetCut\% of his loss on the cause (from \TargetCutLo\% at the tenth percentile to
+\TargetCutHi\% at the ninetieth). For the posterior to reach \SuccessP{} on \Window{} games, the cut has to be
+about \NeededCut\% at the median spread. Most targets are below what the window can tell from
+noise.
+
+\paragraph{Not met is mostly ``cannot tell''.} Of the focuses graded not met with nothing
+changed, \NotMetUnclear\% had a posterior between 0.1 and 0.9: the grade had no evidence either
+way, but the weekly records it as not met.
+
+\section{What it means for the app}
+
+The grade is the evidence the plan reads, so it should earn its word. The simulation points to
+five changes, each measurable again on this harness before it ships:
+
+\begin{enumerate}[nosep]
+\item Grade a focus against games that did not choose it (the games before the baseline, or a
+held-out half), not against the baseline that picked it.
+\item Drop the CUSUM early pass, or calibrate its threshold by resampling his own games, so a
+skewed loss does not alarm by itself.
+\item Read points per move of the cause, not per game.
+\item Say three things, not two: improved, not improved, and not enough games yet.
+\item Size the window, or hold the focus, to the cut the target asks for: at his pace a focus
+can run two or three weeks of games instead of one.
+\end{enumerate}
+
+\section{Limits}
+
+The simulation draws games independently, so it has no streaks, no rating drift and no change in
+his opponents; a real improvement may arrive unevenly. The cut removes loss uniformly across his
+moves on the cause, which is one shape of improvement among many. The replay covers \Weeks{}
+weeks, too few to grade the picker's choices on outcomes; it shows how the loop behaves, not
+whether it helped.
+
+\end{document}

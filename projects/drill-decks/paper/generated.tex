@@ -1,0 +1,100 @@
+% Written by projects/drill-decks/paper/generate.mjs; do not edit by hand.
+
+\newcommand{\AppCommit}{d8b771238c}
+\newcommand{\Items}{1,400}
+\newcommand{\Scored}{1,336}
+\newcommand{\Deviations}{64}
+\newcommand{\Defensive}{489}
+\newcommand{\Attacking}{286}
+\newcommand{\Mixed}{561}
+\newcommand{\Both}{84}
+\newcommand{\Neither}{477}
+\newcommand{\NeitherShare}{36}
+\newcommand{\DefensiveShare}{37}
+\newcommand{\AttackingShare}{21}
+\newcommand{\PhaseItems}{781}
+\newcommand{\PhaseShare}{56}
+\newcommand{\MotifItems}{150}
+\newcommand{\MotifShare}{11}
+\newcommand{\DefItems}{405}
+\newcommand{\DefShare}{29}
+\newcommand{\FeedsSkill}{742}
+\newcommand{\FeedsSkillShare}{56}
+\newcommand{\ThemeTable}{%
+\begin{tabular}{llrrrrl}
+\toprule
+word & skill it feeds & items & defensive & attacking & mixed & fits \\
+\midrule
+\texttt{defensiveMove} & \texttt{defensiveMove} & 405 & 195 & 56 & 154 & 195 of 405 (48\%) \\
+\texttt{hangingPiece} & \texttt{hangingPiece} & 109 & 13 & 54 & 42 & 70 of 109 (64\%) \\
+\texttt{fork} & \texttt{fork} & 20 & 1 & 15 & 4 & 16 of 20 (80\%) \\
+\texttt{mateIn1} & \texttt{mateIn1} & 20 & 0 & 17 & 3 & 20 of 20 (100\%) \\
+\texttt{backRankMate} & \texttt{backRankMate} & 1 & 0 & 0 & 1 & 0 of 1 (0\%) \\
+\texttt{middlegame} & -- & 406 & 139 & 81 & 186 & not scored \\
+\texttt{endgame} & \texttt{conv.technique} & 187 & 68 & 38 & 81 & not scored \\
+\texttt{opening} & -- & 188 & 73 & 25 & 90 & not scored \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\DefFit}{48}
+\newcommand{\DefFitK}{195}
+\newcommand{\DefAttacking}{56}
+\newcommand{\DefensiveElsewhere}{294}
+\newcommand{\DefRecall}{40}
+\newcommand{\PhaseAttacking}{144}
+\newcommand{\PhaseDefensive}{280}
+\newcommand{\AttackingNamed}{30}
+\newcommand{\PhaseAttackingNothing}{61}
+\newcommand{\EndgameItems}{187}
+\newcommand{\EndgameDefensive}{68}
+\newcommand{\EndgameCompetency}{\texttt{conv.technique}}
+\newcommand{\HangFit}{64}
+\newcommand{\HangPawn}{22}
+\newcommand{\HangFitPawn}{84}
+\newcommand{\HangItems}{109}
+\newcommand{\MateFit}{20 of 20}
+\newcommand{\ForkFit}{16 of 20}
+\newcommand{\Quizzes}{48}
+\newcommand{\Margin}{45}
+\newcommand{\TwoRight}{17}
+\newcommand{\TwoRightShare}{35}
+\newcommand{\OneRight}{31}
+\newcommand{\Forcing}{30}
+\newcommand{\Material}{eleven}
+\newcommand{\ForcingOrMaterial}{31}
+\newcommand{\ForcingShare}{65}
+\newcommand{\PlayedBest}{34}
+\newcommand{\PlanQuestions}{seven}
+\newcommand{\PlanShare}{15}
+\newcommand{\DefBoard}{%
+\chessboard[setfen={r4rk1/pp2np1p/5Qp1/1qbp4/6P1/2Bn3P/PP2NP2/1R3K1R b - - 5 17}, boardfontsize=14pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={d3-f2}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={d5-d4}]
+}
+\newcommand{\DefFen}{\fen{r4rk1/pp2np1p/5Qp1/1qbp4/6P1/2Bn3P/PP2NP2/1R3K1R b - - 5 17}}
+\newcommand{\DefPlayed}{17\ldots{}\symknight{}xf2}
+\newcommand{\DefLine}{17\ldots{}d4 18.~\symknight{}xd4 \symbishop{}xd4 19.~\symbishop{}xd4 \symknight{}f4+ 20.~\symking{}g1 \symknight{}e2+ 21.~\symking{}h2}
+\newcommand{\DefUci}{\uci{d5d4 e2d4 c5d4 c3d4 d3f4 f1g1 f4e2 g1h2}}
+\newcommand{\DefTheme}{\texttt{middlegame}}
+\newcommand{\DefSkill}{no skill}
+\newcommand{\DefDrop}{86}
+\newcommand{\DefPunish}{18.~\symqueen{}g7\#}
+\newcommand{\WinBoard}{%
+\chessboard[setfen={4r3/p7/1p3p2/8/1P4k1/P1P1B1R1/4nPK1/8 b - - 2 38}, boardfontsize=14pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={g4-f5}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={e2-g3}]
+}
+\newcommand{\WinFen}{\fen{4r3/p7/1p3p2/8/1P4k1/P1P1B1R1/4nPK1/8 b - - 2 38}}
+\newcommand{\WinPlayed}{38\ldots{}\symking{}f5}
+\newcommand{\WinLine}{38\ldots{}\symknight{}xg3 39.~a4 \symknight{}e2 40.~f3+ \symking{}f5 41.~\symbishop{}d2 \symknight{}d4 42.~\symbishop{}c1}
+\newcommand{\WinUci}{\uci{e2g3 a3a4 g3e2 f2f3 g4f5 e3d2 e2d4 d2c1}}
+\newcommand{\WinTheme}{\texttt{endgame}}
+\newcommand{\WinSkill}{\texttt{conv.technique}}
+\newcommand{\WinDrop}{40}
+\newcommand{\WinPunish}{39.~\symrook{}f3+ \symking{}e4 40.~\symbishop{}g5 \symrook{}g8 41.~\symrook{}e3+ \symking{}d5}
+\newcommand{\DefWinsSmall}{15}
+\newcommand{\DefWins}{34}
+\newcommand{\QuizBoard}{%
+\chessboard[setfen={rn2kb1r/pp1qp1pp/2p2n2/3p1p2/B2P1B2/2NQPb2/PPP2PPP/R4RK1 w kq - 0 11}, boardfontsize=14pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={g2-f3}]
+}
+\newcommand{\QuizFen}{\fen{rn2kb1r/pp1qp1pp/2p2n2/3p1p2/B2P1B2/2NQPb2/PPP2PPP/R4RK1 w kq - 0 11}}
+\newcommand{\QuizLine}{11.~gxf3 e6 12.~e4 \symbishop{}e7 13.~exf5 exf5 14.~\symking{}h1 g6 15.~\symrook{}ae1 \symking{}f7}
+\newcommand{\QuizUci}{\uci{g2f3 e7e6 e3e4 f8e7 e4f5 e6f5 g1h1 g7g6 a1e1 e8f7}}
+\newcommand{\QuizOptions}{11.~gxf3 (0.2), 11.~\symbishop{}xb8 ($-$2.1), 11.~\symrook{}ae1 ($-$2.3)}
+\newcommand{\QuizLead}{2.3}

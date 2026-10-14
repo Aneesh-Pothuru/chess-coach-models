@@ -19,6 +19,9 @@ everything that answers it:
 | [judge-in-context](judge-in-context/) | Should a move's verdict read win% on a curve fitted to the mover's rating? | Not adopted |
 | [winprob-parity](winprob-parity/) | Does the lab compute the same win% as the app? | A check: nothing to port |
 | [think-time-rapid](think-time-rapid/) | In 10-minute games at his level, where does a long think cut serious errors, and do the app's long-think triggers mark those moments? | Running: the rule is fixed, the results are to come |
+| [focus-backtest](focus-backtest/) | Does the weekly focus's grade tell a real improvement from none? | Not yet ported: the grade says met on several times its level when nothing changed |
+| [detector-themes](detector-themes/) | Do the app's motif labels name the tactic a position holds, judged on public puzzles? | Not yet ported: a harness (app pool to tune, held-out puzzles to test) |
+| [drill-decks](drill-decks/) | Do the misses deck's theme words and the plan quiz ask what they say they ask? | Not yet ported |
 
 `paper.mjs` holds the helpers the generators share (boards, moves in SAN, UCI
 and FEN, number formats), and `preamble.tex` the LaTeX every paper loads.
@@ -58,6 +61,14 @@ bridge/run.sh projects/explain-top-move/reproduce.mjs
 bridge/run.sh projects/judge-in-context/reproduce.mjs
 bridge/run.sh projects/maia-punish/reproduce.mjs
 make parity
+
+# The routines' studies: the weekly focus, the motif labels, the decks.
+bridge/run.sh projects/focus-backtest/replay.mts
+bridge/run.sh projects/focus-backtest/simulate.mts --runs 4000 --seed 1
+zstdcat data/raw/lichess_db_puzzle.csv.zst | CHESS_DIR=$(bridge/checkout.sh) python3 projects/detector-themes/sample.py
+bridge/run.sh projects/detector-themes/score.mts app
+bridge/run.sh projects/detector-themes/score.mts heldout
+bridge/run.sh projects/drill-decks/census.mts
 
 make papers   # each paper's generated.tex, then its PDF
 ```

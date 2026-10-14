@@ -1,0 +1,97 @@
+% Written by projects/focus-backtest/paper/generate.mjs; do not edit by hand.
+
+\newcommand{\AppCommit}{d8b771238c}
+\newcommand{\Window}{40}
+\newcommand{\Baseline}{100}
+\newcommand{\SwitchRatio}{1.5}
+\newcommand{\SuccessP}{0.9}
+\newcommand{\ArchiveGames}{634}
+\newcommand{\Weeks}{ten}
+\newcommand{\Focuses}{eight}
+\newcommand{\Finished}{seven}
+\newcommand{\Met}{five}
+\newcommand{\NotMet}{two}
+\newcommand{\Switches}{eight}
+\newcommand{\Graded}{nine}
+\newcommand{\Filled}{eight}
+\newcommand{\GamesPerWeek}{50}
+\newcommand{\ChanceOfMet}{14}
+\newcommand{\MeanReal}{40}
+\newcommand{\Pairs}{90}
+\newcommand{\StillThere}{40}
+\newcommand{\BrierReal}{0.246}
+\newcommand{\BrierBase}{0.240}
+\newcommand{\WeakestReal}{0.50}
+\newcommand{\WeakestGap}{0.03}
+\newcommand{\WeakestSe}{3.19}
+\newcommand{\Runs}{4,000}
+\newcommand{\Pool}{634}
+\newcommand{\Perms}{400}
+\newcommand{\Level}{10}
+\newcommand{\TableForty}{%
+\begin{tabular}{lrrrr}
+\toprule
+grade, 40 games & no change & 10\% cut & 25\% cut & 50\% cut \\
+\midrule
+the app & 44.3 & 55.3 & 71.1 & 87.6 \\
+\quad its CUSUM alarm alone & 35.9 & 45.4 & 59.3 & 74.4 \\
+\quad its posterior alone & 28.1 & 39.5 & 60.8 & 84.8 \\
+fresh (per game) & 8.3 & 15.5 & 31.1 & 63.2 \\
+fresh, per move & 9.1 & 20.0 & 44.1 & 76.3 \\
+random cause, the app's grade & 35.5 & & & \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\TableEighty}{%
+\begin{tabular}{lrrrr}
+\toprule
+grade, 80 games & no change & 10\% cut & 25\% cut & 50\% cut \\
+\midrule
+the app & 51.9 & 65.0 & 80.6 & 94.0 \\
+\quad its CUSUM alarm alone & 44.8 & 55.9 & 69.7 & 83.7 \\
+\quad its posterior alone & 31.4 & 48.4 & 72.8 & 92.5 \\
+fresh (per game) & 10.0 & 19.0 & 41.3 & 74.0 \\
+fresh, per move & 9.8 & 23.5 & 54.9 & 82.4 \\
+random cause, the app's grade & 41.8 & & & \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\TableHundred}{%
+\begin{tabular}{lrrrr}
+\toprule
+grade, 120 games & no change & 10\% cut & 25\% cut & 50\% cut \\
+\midrule
+the app & 55.0 & 69.1 & 84.0 & 95.2 \\
+\quad its CUSUM alarm alone & 46.0 & 57.5 & 72.0 & 86.3 \\
+\quad its posterior alone & 35.4 & 54.6 & 77.9 & 94.8 \\
+fresh (per game) & 10.0 & 20.4 & 46.7 & 78.2 \\
+fresh, per move & 9.6 & 25.6 & 60.7 & 84.8 \\
+random cause, the app's grade & 43.6 & & & \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\NullApp}{44}
+\newcommand{\NullAppLong}{55}
+\newcommand{\NullCusum}{36}
+\newcommand{\NullPosterior}{28}
+\newcommand{\NullControl}{36}
+\newcommand{\NullControlPosterior}{19}
+\newcommand{\NullFresh}{8.3}
+\newcommand{\NullPerMove}{9.1}
+\newcommand{\NotMetUnclear}{87}
+\newcommand{\QuarterApp}{71}
+\newcommand{\QuarterPerMove}{44}
+\newcommand{\QuarterPerMoveLong}{61}
+\newcommand{\HalfPerMove}{76}
+\newcommand{\HalfPerMoveLong}{85}
+\newcommand{\QuarterAppNet}{27}
+\newcommand{\QuarterPerMoveNet}{35}
+\newcommand{\TargetCut}{8}
+\newcommand{\TargetCutLo}{2}
+\newcommand{\TargetCutHi}{38}
+\newcommand{\NeededCut}{31}
+\newcommand{\Cv}{1.5}
+\newcommand{\DriftWindow}{10}
+\newcommand{\DriftOlder}{9}
+\newcommand{\TopCause}{endgame.tense}
+\newcommand{\TopCauseShare}{31}
