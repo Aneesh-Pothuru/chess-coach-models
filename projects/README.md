@@ -109,9 +109,10 @@ bridge/run.sh projects/maia-calibration/fit.mjs
 make papers   # each paper's generated.tex, then its PDF
 ```
 
-The papers need a TeX Live with `latexmk` and the games and pictures
-collections (on Debian: `apt-get install latexmk texlive-latex-extra
-texlive-games texlive-pictures`; on macOS, MacTeX).
+The papers need a TeX Live with `latexmk` and the games, pictures and
+plain-generic collections (the boards' `skak` needs `lambda.sty` from the
+last; on Debian: `apt-get install latexmk texlive-latex-extra texlive-games
+texlive-pictures texlive-plain-generic`; on macOS, MacTeX).
 
 ## Starting a project
 
