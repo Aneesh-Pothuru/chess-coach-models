@@ -37,10 +37,11 @@ chose to adopt the view before round 2: since chess PR 78 (merged as
 map's next difficulty reads the same estimate. Round 2 decides whether it
 stays. Since chess PR 79 (merged as `5c846e2`), a bucket with no attempt logged
 in its own set aims from its stored totals read alone instead of the
-headline; round 2 scores no attempt in such a bucket. Rerun at `ace6ef2`,
-after every later change to the learner, every number here is unchanged. The numbers are in the paper,
-[`paper/paper.pdf`](paper/paper.pdf), and the script's report,
-[`results/solve.md`](results/solve.md).
+headline; round 2 scores no attempt in such a bucket. The study reruns each
+time the lab's pin moves, and its numbers have not changed since `ae69a3e`.
+The numbers are in the paper, [`paper/paper.pdf`](paper/paper.pdf), and the
+script's report, [`results/solve.md`](results/solve.md), which names the app
+commit it measured.
 
 Round 1's rule was committed before any solve chance was computed. Known
 before it: the profile's totals (441 of 467) and the shape of the data (how
