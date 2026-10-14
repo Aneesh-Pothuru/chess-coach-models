@@ -1,6 +1,6 @@
 # The learner's solve chances: results
 
-Written by fit.mjs. App commit 784c7625198379a432943dae8bc76878d9930e09. Bootstrap: 1000 draws over days, seed 7.
+Written by fit.mjs. App commit d6e155bc8ece019c0a9bfe6ed2ac31b34ab2c3ed. Bootstrap: 1000 draws over days, seed 7.
 
 ## Round 1, on the rebuilt record
 

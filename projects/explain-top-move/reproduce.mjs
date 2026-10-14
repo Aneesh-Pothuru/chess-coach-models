@@ -23,7 +23,9 @@
 // It also recomputes the judge's controls from their answers
 // (judge/controls/score.mjs), and the grades of a round graded on documents rebuilt
 // for it (<variant>/rebuilt/ in the records) beside its base's on the same
-// documents. A round that fixes text defects keeps their counts in the records
+// documents; a round that also ran on the endgame set keeps those grades in
+// <variant>/rebuilt/endgames/, split by the games in <variant>/endgame-set.json.
+// A round that fixes text defects keeps their counts in the records
 // (<variant>/defects.json, written by defects.mjs over both variants' texts when
 // the round ran); the report carries them, checked against the moments behind
 // each count. And it says which kept rounds after the kept variant the pinned
@@ -56,6 +58,7 @@ const ROUNDS = [
   { round: '12', dirs: ['round12'] },
   { round: '13', dirs: ['round13'] },
   { round: '15', dirs: ['round15'] },
+  { round: '16', dirs: ['round16'] },
 ];
 // The rounds judged before the length check, whose streak of longer texts it tested.
 const BEFORE_CHECK = ['3', '4', '5', '7', '7b', '8', '9'];
@@ -77,12 +80,12 @@ const appDefends = () => existsSync(join(CHESS_DIR, 'src', 'services', 'review',
  * Which kept rounds after the kept variant the pinned app carries, each read
  * from a mark its change left in the app's source: round 10's "an even trade",
  * round 11's `takesBack`, round 12's defense searches, round 14's
- * `materialChange`, round 15's `quietDefense`.
+ * `materialChange`, round 15's `quietDefense`, round 16's `pawnRuns`.
  */
 function appCarries() {
   const lessonFile = join(CHESS_DIR, 'src', 'services', 'knowledge', 'detectors', 'lesson.ts');
   const lesson = existsSync(lessonFile) ? readFileSync(lessonFile, 'utf8') : '';
-  return { v10: lesson.includes('an even trade'), v11: /\btakesBack\b/.test(lesson), v12: appDefends(), v14: /\bmaterialChange\b/.test(lesson), v15: /\bquietDefense\b/.test(lesson) };
+  return { v10: lesson.includes('an even trade'), v11: /\btakesBack\b/.test(lesson), v12: appDefends(), v14: /\bmaterialChange\b/.test(lesson), v15: /\bquietDefense\b/.test(lesson), v16: /\bpawnRuns\b/.test(lesson) };
 }
 
 function rerun(dir) {
@@ -159,14 +162,24 @@ function main() {
   };
 
   // A round graded on documents rebuilt for it: its grades beside its base's on those documents.
-  const rebuilt = readdirSync(recorded).filter(v => existsSync(join(recorded, v, 'rebuilt'))).sort(roundOrder).map((v) => {
-    const grades = f => new Map(jsonl(join(recorded, v, 'rebuilt', f)).map(m => [m.id, m]));
+  const compared = (dir, v, splitOf) => {
+    const grades = f => new Map(jsonl(join(dir, f)).map(m => [m.id, m]));
     const before = grades('base.results.jsonl'), after = grades(`${v}.results.jsonl`);
+    const outside = [...after.keys()].filter(id => !splitOf.has(gameOf(id)));
+    if (outside.length) throw new Error(`${dir}: ${outside.length} moments in no split's games`);
     const splits = ['test', 'train'].map((which) => {
-      const ids = [...after.keys()].filter(id => split.get(gameOf(id)) === which);
+      const ids = [...after.keys()].filter(id => splitOf.get(gameOf(id)) === which);
       const count = m => Object.fromEntries(DIMS.map(d => [d, ids.filter(id => Number(m.get(id)?.[d]) === 1).length]));
       return { split: which, moments: ids.length, base: count(before), variant: count(after), textsChanged: ids.filter(id => after.get(id).textHash !== before.get(id)?.textHash).length };
     });
+    return {
+      before, after, splits,
+      sameMoments: before.size === after.size && [...after.keys()].every(id => before.has(id)),
+      gradesEqual: splits.every(s => DIMS.every(d => s.base[d] === s.variant[d])),
+    };
+  };
+  const rebuilt = readdirSync(recorded).filter(v => existsSync(join(recorded, v, 'rebuilt'))).sort(roundOrder).map((v) => {
+    const { after, splits, sameMoments, gradesEqual } = compared(join(recorded, v, 'rebuilt'), v, split);
     const defectsFile = join(recorded, v, 'defects.json');
     let defects = null;
     if (existsSync(defectsFile)) {
@@ -179,13 +192,20 @@ function main() {
       };
       defects = { base: side('base'), variant: side(v) };
     }
-    return {
-      variant: v,
-      sameMoments: before.size === after.size && [...after.keys()].every(id => before.has(id)),
-      splits,
-      gradesEqual: splits.every(s => DIMS.every(d => s.base[d] === s.variant[d])),
-      defects,
-    };
+    let endgames = null;
+    if (existsSync(join(recorded, v, 'rebuilt', 'endgames'))) {
+      const set = JSON.parse(readFileSync(join(recorded, v, 'endgame-set.json'), 'utf8'));
+      const setSplit = new Map(set.games.map(g => [String(g.id), g.split]));
+      const shared = set.games.filter(g => split.has(String(g.id))).length;
+      if (shared) throw new Error(`${v}/endgame-set.json: ${shared} of its games are among the 60`);
+      const { splits: setSplits, sameMoments: setSame, gradesEqual: setEqual } = compared(join(recorded, v, 'rebuilt', 'endgames'), v, setSplit);
+      endgames = {
+        seed: set.seed,
+        games: Object.fromEntries(['test', 'train'].map(which => [which, set.games.filter(g => g.split === which).length])),
+        splits: setSplits, sameMoments: setSame, gradesEqual: setEqual,
+      };
+    }
+    return { variant: v, sameMoments, splits, gradesEqual, defects, endgames };
   });
 
   // Rerun on the pinned app.
@@ -277,8 +297,10 @@ function renderRebuilt(rebuilt) {
     '| variant | split | moments | faithful | concrete | named_deep | faithfulAll | texts changed |',
     '|---|---|---|---|---|---|---|---|',
     ...rebuilt.flatMap(r => r.splits.map(s => `| ${r.variant} | ${s.split} | ${s.moments} | ${DIMS.map(d => cell(s, d)).join(' | ')} | ${s.textsChanged} |`)),
+    ...rebuilt.filter(r => r.endgames).flatMap(r => r.endgames.splits.map(s => `| ${r.variant}, endgame set | ${s.split} | ${s.moments} | ${DIMS.map(d => cell(s, d)).join(' | ')} | ${s.textsChanged} |`)),
     '',
     ...rebuilt.map(r => `${r.variant}: ${r.sameMoments ? 'the same moments as its base' : 'not the same moments as its base'}; its grades ${r.gradesEqual ? 'equal' : 'differ from'} the base's.`),
+    ...rebuilt.filter(r => r.endgames).map(r => `${r.variant} on the endgame set (${r.endgames.games.train + r.endgames.games.test} games outside the 60, ${r.endgames.games.train} train and ${r.endgames.games.test} test, drawn with seed ${r.endgames.seed}): ${r.endgames.sameMoments ? 'the same moments as its base' : 'not the same moments as its base'}; its grades ${r.endgames.gradesEqual ? 'equal' : 'differ from'} the base's.`),
     '',
     ...rebuilt.filter(r => r.defects).flatMap(r => [
       `The text defects ${r.variant} fixes, as \`defects.mjs\` counted them in each variant's texts (the records' \`${r.variant}/defects.json\`):`,

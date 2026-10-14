@@ -13,7 +13,8 @@
 \begin{abstract}
 At each key moment of a game review, the coaching app explains what the move played allowed,
 what the engine's better move does instead, and the difference between them. We measured
-those explanations on the \Moments{} key moments of \Games{} of the player's games, with three
+those explanations on the \Moments{} key moments of \Games{} of the player's games, and an
+endgame round also on \EndgameMoments{} endgame moments of \EndgameGames{} more, with three
 grades checked against the board, and changed the code that writes them one idea per round,
 keeping a round only when no grade fell on either half of the games (one round fixed five
 text defects at once). Where a change wrote
@@ -104,7 +105,10 @@ corrects how the lessons name an amount: its number was the line's net, but the 
 were not always the ones that changed hands. That is read off the board, which the judge does not
 see, so the round counts its defects as round 11 did. Round 15 fills the sections on what the
 played move allowed that named the reply and said nothing about it, which the player's own
-calibration answers had pointed to, so the judge decides it.
+calibration answers had pointed to, so the judge decides it. Round 16 tells an endgame's passed
+pawns' story, which the player's calibration answers asked for in his rook endings; the \Games{}
+games hold too few endgame moments to decide it, so it is also graded and judged on an endgame set
+of \EndgameGames{} more games (Section~\ref{sec:results}), and the judge decides it.
 
 \begin{table}[!htbp]
 \centering\footnotesize
@@ -183,6 +187,16 @@ which Nxe4 would have won''), takes away the better move's check (``it takes awa
 would have given''), or answers the played move's own threat (``it guards the pawn on b5, which Rd5
 attacked''). The headline's sentence about the reply carries the point. The round was graded on
 the documents round 14 was (Section~\ref{sec:results}).
+\item[Round 16: an endgame's passed pawns.] In an endgame, and when neither line ends in mate, the
+lesson follows each pawn over the lines it reads. The pawn that queens after the played move and
+not after the better one opens the section on the difference with its steps and its fate in the
+other line (``After Kg4, their b-pawn queens: b7 and b8=Q in the engine's line. Nxb6 takes it
+first.''; ``After Rc3 it falls (Rxh2)''); a reply that pushes that pawn ``goes on to queen''; a
+better move that takes a passed pawn, or stands in the path of one past the middle of the board,
+says so (``it blocks their passed b-pawn on b7''); and a king's walk to a passed pawn, each move
+closer, is named with its moves (``your king walks over to their c-pawn: Kb2, Kc3 and Kxc4''). The
+shown lines run on to the promotion or the walk's last move. The round was graded on the documents
+round 15 was and on the endgame set (Section~\ref{sec:results}).
 \end{description}
 
 \begin{table}[!htbp]
@@ -222,7 +236,11 @@ prefer the cut one, under the same rule; it did in \TrimThirteenDecoy{} of \Trim
 comparisons (\TrimThirteenUnchanged{} the full text, \TrimThirteenSame{} same). Round 15 grows the
 section on what the played move allowed, so its padding control pads that section, on moments where
 it says nothing and the round leaves it so; the decoy won \PadFifteenDecoy{} of \PadFifteenN{}
-comparisons (\PadFifteenUnchanged{} the shorter text, \PadFifteenSame{} same).
+comparisons (\PadFifteenUnchanged{} the shorter text, \PadFifteenSame{} same). Round 16 grows
+several sections of the card at once, so its padding control adds a sentence of filler after the
+difference, as long as the round's median growth of the whole card, on endgame moments the round
+leaves unchanged; the decoy won \PadSixteenDecoy{} of \PadSixteenN{} comparisons
+(\PadSixteenUnchanged{} the shorter text, \PadSixteenSame{} same).
 
 \begin{table}[!htbp]
 \centering\footnotesize
@@ -292,8 +310,8 @@ reasons against the new texts were mostly their length: pooling both halves, the
 or fewer, and \RoundTwelveLongNew--\RoundTwelveLongOld{} where it shows \RoundTwelveLongMin{} or
 more. A round that shortens the line has seen that tally, so it fixes its cut on train.
 
-Round 13 did, and was graded on the documents the reproduction rebuilt at the pinned app
-(Section~\ref{sec:repro}), against the pinned app's texts on them, after the grader learned its two
+Round 13 did, and was graded on the documents the reproduction rebuilt at the app then pinned
+(Section~\ref{sec:repro}), against that app's texts on them, after the grader learned its two
 new forms and graded the base exactly as before. It changes the texts of
 \RoundThirteenChangedTest{} test and \RoundThirteenChangedTrain{} train moments, each graded
 faithful, and no grade moves (Table~\ref{tab:rebuilt}). It barely shortened them: by a median of
@@ -309,7 +327,7 @@ engine's line, the gain comes after the moves the lesson prints beside it, and a
 line is not on the card at all. Round 12's long lines had split the judge evenly; set against the
 same sentence without its moves, it wanted the moves.
 
-Round 14 was graded on the documents round 13 was, against the pinned app's texts on them, after
+Round 14 was graded on the documents round 13 was, against that app's texts on them, after
 the grader learned to read the pieces behind each amount and the round's new phrases. Every
 amount the base says is the line's net, which is what faithful checks, so its misnamed pieces
 passed; no grade moves with the round (Table~\ref{tab:rebuilt}). One of the grader's fixes came
@@ -323,7 +341,7 @@ texts neither is left and none of round 11's defects appears, and the texts chan
 \RoundFourteenDefectMoments{} moments (\RoundFourteenChangedTest{} test,
 \RoundFourteenChangedTrain{} train) and on no other.
 
-Round 15 was graded on the same documents, against the pinned app's texts, which carry round 14,
+Round 15 was graded on the same documents, against the texts of the app then pinned, which carry round 14,
 after the grader learned the round's new clauses, each checked on the board apart from the app's
 code, and graded the base exactly as before. It changes the texts of \RoundFifteenChangedTest{}
 test and \RoundFifteenChangedTrain{} train moments, each graded faithful; no grade falls, and the
@@ -336,11 +354,31 @@ reply guards a pawn the better move would have attacked, but the played move att
 and the engine answers the better move with the same reply, so the point does not tell the two
 moves apart.
 
+Round 16 was graded on the same documents, against the texts of the app then pinned, which carry round 15,
+and on a second set built for it. The \Games{} games hold few endgame moments, so the round adds an
+endgame set: \EndgameGames{} more of the player's games from the routine's archive, outside the
+\Games, that reach the endgame by the app's divider, drawn with a fixed seed and split by game,
+\EndgameGamesTrain{} train and \EndgameGamesTest{} test, before any lesson was read. Its key moments
+in the endgame, \EndgameMomentsTrain{} train and \EndgameMomentsTest{} test, were built at that app
+on the lab's evidence with the routine's searches. The grader learned the round's new
+sentences first, each checked on the board apart from the app's code, and graded the base exactly
+as before in both sets. The round changes the texts of \RoundSixteenChangedEndgameTrain{} train
+and \RoundSixteenChangedEndgameTest{} test moments of the endgame set and of
+\RoundSixteenChangedSixtyTrain{} train and \RoundSixteenChangedSixtyTest{} test moments of the
+\Games{} games, each graded faithful; no moment loses a grade, and \RoundSixteenRose{} become
+concrete (Table~\ref{tab:rebuilt}). Judging both sets together, each moment in its own set's
+split, the judge preferred the new texts \RoundSixteenTrainNew--\RoundSixteenTrainOld{} on train,
+with \RoundSixteenTrainSame{} same, and \RoundSixteenTestNew--\RoundSixteenTestOld{} on test, with
+\RoundSixteenTestSame{} same. \RoundSixteenOldBothCap{} moments lost both runs: in one the king's
+walk the lesson names comes in the better line too, so it does not tell the moves apart; in the
+other the ``walk'' is a king stepping out of checks and taking back a queen.
+
 \begin{table}[!htbp]
 \centering\footnotesize
 \RebuiltTable
 \caption{A round graded on rebuilt documents, beside its base on the same documents: moments graded
-1, with one number where the round and its base agree.}
+1, with one number where the round and its base agree. The rows marked endgame set are round 16 on
+its second set.}
 \label{tab:rebuilt}
 \end{table}
 
@@ -355,7 +393,7 @@ moves apart.
 \begin{table}[!htbp]
 \centering\footnotesize
 \DefectsFourteenTable
-\caption{The text defects round 14 fixes, counted in the pinned app's texts (base) and round 14's
+\caption{The text defects round 14 fixes, counted in its base's texts and round 14's
 on every moment of round 13's documents (\texttt{defects.mjs}), with round 11's five beside them.}
 \label{tab:defectsfourteen}
 \end{table}
@@ -402,6 +440,9 @@ missing and a poorer judge of how much it matters, which is why the rounds use i
 preferences and its notes, not its ratings.
 \item Round 12 answers one defense, the model's likeliest; when the defender's second choice is
 nearly as likely, the lesson leaves it unanswered.
+\item Round 16 names a king's walk in one line without asking whether the other line makes it too;
+where both do, the point does not tell the moves apart. What separates such moves is often a king
+cut off along a file, which no reading names yet.
 \item \Games{} games of one player. The split keeps the claims honest about that player, not
 about players in general.
 \end{itemize}

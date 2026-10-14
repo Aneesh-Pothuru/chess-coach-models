@@ -1,14 +1,15 @@
 {
   "eval": "explain-top-move reproduction",
   "chess": {
-    "pinned_commit": "784c7625198379a432943dae8bc76878d9930e09",
-    "records_commit": "9410babf0839446d4553f6cc3e6b00fe2b5673d2",
+    "pinned_commit": "d6e155bc8ece019c0a9bfe6ed2ac31b34ab2c3ed",
+    "records_commit": "5d348c323afb1f5ef778d921ff9a73577942be21",
     "carries": {
       "v10": true,
       "v11": true,
       "v12": true,
       "v14": true,
-      "v15": true
+      "v15": true,
+      "v16": true
     }
   },
   "recomputed": {
@@ -287,6 +288,25 @@
       },
       "keepByRule": true,
       "recordedReason": "what a quiet reply defends, said where \"What X allowed\" had no point and the reply captures nothing: it moves or guards the piece the better move would have won or attacked (\"it moves the rook off e5, where dxe5 would have won it\", \"it guards the pawn on e4, which Nxe4 would have won\"), takes away the better move's check, or answers the played move's own threat; 16 sections gain the point (12 train, 4 test), all 60 claims graded true, no grade falls and concrete rises on four moments (149 to 152 on train, 127 to 128 on test); judge model, pairwise and blind, two runs with the order reversed: the new text preferred 22 to 1 on train (1 same) and 8 to 0 on test, with a 10-moment padding control in the same batches, padded in the silent section, whose decoy was preferred in none of its 20 comparisons (v15/change.md)"
+    },
+    {
+      "round": "16",
+      "judged": "round16",
+      "moments": null,
+      "tally": {
+        "train": {
+          "new": 37,
+          "old": 2,
+          "same": 3
+        },
+        "test": {
+          "new": 18,
+          "old": 3,
+          "same": 1
+        }
+      },
+      "keepByRule": true,
+      "recordedReason": "an endgame lesson tells its passed pawns' story, only when the position before the move is an endgame by the divider and neither line ends in mate: the pawn that queens after the played move and not after the better one, or the mover's pawn that queens after the better move, opens \"The difference\" with its steps and its fate in the other line (\"After Kg4, their b-pawn queens: b7 and b8=Q in the engine's line. Nxb6 takes it first.\"); the reply that pushes that pawn says it goes on to queen; a better move that takes a passed pawn or blocks one past the middle says so; a king's walk to a passed pawn in either line is named (\"their king walks up to its b-pawn: Kd3 and Kc3 in the engine's line\"); measured on a new endgame set of 160 archive games (403 endgame moments) and on the 60 games: 32 moments change (21 train, 11 test), no grade falls in either set, concrete rises on three moments (the player's 50...Rh2+ among them), and all 86 new claims are graded true; judge model, pairwise and blind, two runs with the order reversed, both sets pooled: the new text preferred 37 to 2 on train (3 same) and 18 to 3 on test (1 same), with a 10-moment padding control in the same batches, padded after \"The difference\" by the round's median growth of the whole card, whose decoy was preferred in none of its 20 comparisons (v16/change.md)"
     }
   ],
   "controls": {
@@ -495,6 +515,17 @@
         "decoyShareOfAll": 0,
         "decoyShareOfDecided": 0,
         "drifted": false
+      },
+      {
+        "round": "16",
+        "kind": "padding",
+        "comparisons": 20,
+        "decoy": 0,
+        "unchanged": 14,
+        "same": 6,
+        "decoyShareOfAll": 0,
+        "decoyShareOfDecided": 0,
+        "drifted": false
       }
     ],
     "driftRule": "the judge has drifted if the decoy (the text with filler, or with a point cut) is preferred in at least 25% of the control's comparisons and in more than half of the decided ones."
@@ -540,7 +571,8 @@
         }
       ],
       "gradesEqual": true,
-      "defects": null
+      "defects": null,
+      "endgames": null
     },
     {
       "variant": "v11",
@@ -597,7 +629,8 @@
           "unsettledVsOutright": 0,
           "pieceOverAmount": 0
         }
-      }
+      },
+      "endgames": null
     },
     {
       "variant": "v12",
@@ -639,7 +672,8 @@
         }
       ],
       "gradesEqual": true,
-      "defects": null
+      "defects": null,
+      "endgames": null
     },
     {
       "variant": "v13",
@@ -681,7 +715,8 @@
         }
       ],
       "gradesEqual": true,
-      "defects": null
+      "defects": null,
+      "endgames": null
     },
     {
       "variant": "v14",
@@ -742,7 +777,8 @@
           "amountNamesUnwon": 0,
           "fallenGivenBack": 0
         }
-      }
+      },
+      "endgames": null
     },
     {
       "variant": "v15",
@@ -784,7 +820,95 @@
         }
       ],
       "gradesEqual": false,
-      "defects": null
+      "defects": null,
+      "endgames": null
+    },
+    {
+      "variant": "v16",
+      "sameMoments": true,
+      "splits": [
+        {
+          "split": "test",
+          "moments": 153,
+          "base": {
+            "faithful": 153,
+            "concrete": 128,
+            "named_deep": 144,
+            "faithfulAll": 152
+          },
+          "variant": {
+            "faithful": 153,
+            "concrete": 129,
+            "named_deep": 144,
+            "faithfulAll": 152
+          },
+          "textsChanged": 8
+        },
+        {
+          "split": "train",
+          "moments": 180,
+          "base": {
+            "faithful": 179,
+            "concrete": 152,
+            "named_deep": 166,
+            "faithfulAll": 179
+          },
+          "variant": {
+            "faithful": 179,
+            "concrete": 152,
+            "named_deep": 166,
+            "faithfulAll": 179
+          },
+          "textsChanged": 2
+        }
+      ],
+      "gradesEqual": false,
+      "defects": null,
+      "endgames": {
+        "seed": 20261014,
+        "games": {
+          "test": 80,
+          "train": 80
+        },
+        "splits": [
+          {
+            "split": "test",
+            "moments": 184,
+            "base": {
+              "faithful": 181,
+              "concrete": 162,
+              "named_deep": 158,
+              "faithfulAll": 180
+            },
+            "variant": {
+              "faithful": 181,
+              "concrete": 162,
+              "named_deep": 158,
+              "faithfulAll": 180
+            },
+            "textsChanged": 3
+          },
+          {
+            "split": "train",
+            "moments": 219,
+            "base": {
+              "faithful": 213,
+              "concrete": 170,
+              "named_deep": 204,
+              "faithfulAll": 213
+            },
+            "variant": {
+              "faithful": 213,
+              "concrete": 172,
+              "named_deep": 204,
+              "faithfulAll": 213
+            },
+            "textsChanged": 19
+          }
+        ],
+        "sameMoments": true,
+        "gradesEqual": false
+      }
     }
   ],
   "kept": "v8",
@@ -851,8 +975,8 @@
           "moments": 153
         },
         "concrete": {
-          "est": 83.7,
-          "lo": 75,
+          "est": 84.3,
+          "lo": 76.7,
           "hi": 91,
           "moments": 153
         },
@@ -872,7 +996,7 @@
       "momentsApp": 153,
       "momentsKept": 152,
       "sharedMoments": 146,
-      "sharedSameGrades": 130
+      "sharedSameGrades": 129
     },
     {
       "split": "train",

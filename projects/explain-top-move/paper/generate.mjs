@@ -128,6 +128,7 @@ g.block('RebuiltTable', [
   '\\begin{tabular}{ll r rrrr r}', '\\toprule',
   'variant & split & moments & faithful & concrete & named\\_deep & faithfulAll & texts changed \\\\', '\\midrule',
   ...repro.rebuilt.flatMap(r => r.splits.map(s => `${r.variant} & ${s.split} & ${s.moments} & ${DIMS.map(d => both(s, d)).join(' & ')} & ${s.textsChanged} \\\\`)),
+  ...repro.rebuilt.filter(r => r.endgames).flatMap(r => r.endgames.splits.map(s => `${r.variant}, endgame set & ${s.split} & ${s.moments} & ${DIMS.map(d => both(s, d)).join(' & ')} & ${s.textsChanged} \\\\`)),
   '\\bottomrule', '\\end{tabular}',
 ].join('\n'));
 const ten = rebuilt.get('v10');
@@ -319,6 +320,46 @@ g.def('RoundFifteenChangedTest', String(fifteenSplit('test').textsChanged)).def(
   .def('RoundFifteenTrainNew', String(r15.tally.train.new)).def('RoundFifteenTrainOld', String(r15.tally.train.old)).def('RoundFifteenTrainSame', String(r15.tally.train.same))
   .def('RoundFifteenTestNew', String(r15.tally.test.new)).def('RoundFifteenTestOld', String(r15.tally.test.old));
 
+// ---- round 16: an endgame's passed pawns, on the documents round 15 was graded on and on the endgame set
+const sixteen = rebuilt.get('v16');
+claim(sixteen?.sameMoments && sixteen.endgames?.sameMoments, "round 16 was graded on its base's moments in both sets");
+const sixteenSets = [[sixteen, join(flow, 'v16', 'rebuilt')], [sixteen.endgames, join(flow, 'v16', 'rebuilt', 'endgames')]];
+claim(sixteenSets.every(([set]) => set.splits.every(x => DIMS.every(d => x.variant[d] >= x.base[d]))), 'no grade falls with round 16 in either set or half');
+const sixteenMoments = sixteenSets.map(([, dir]) => {
+  const before = new Map(jsonl(join(dir, 'base.results.jsonl')).map(m => [m.id, m]));
+  const after = jsonl(join(dir, 'v16.results.jsonl'));
+  return {
+    changed: after.filter(m => m.textHash !== before.get(m.id)?.textHash),
+    fell: after.filter(m => DIMS.some(d => Number(m[d]) < Number(before.get(m.id)[d]))),
+    rose: after.filter(m => Number(m.concrete) > Number(before.get(m.id).concrete)),
+  };
+});
+claim(sixteenMoments.every(x => x.fell.length === 0), 'no moment loses a grade with round 16');
+claim(sixteenMoments.every(x => x.changed.length > 0 && x.changed.every(m => m.faithful === 1 && m.faithfulAll === 1)), 'every moment round 16 changes, in both sets, is graded faithful');
+const sixteenPatch = readFileSync(join(flow, 'v16', 'change.patch'), 'utf8');
+claim(['Nxb6 takes it first.', 'After Rc3 it falls (Rxh2)', 'it blocks their passed b-pawn on b7', 'your king walks over to their c-pawn: Kb2, Kc3 and Kxc4', 'goes on to queen'].every(q => sixteenPatch.includes(q)), "round 16's tests pin the phrases the paper quotes");
+const r16 = judgeOf.get('16');
+claim(r16?.keepByRule, 'the judge preferred round 16 on both halves');
+{
+  const dir = join(judgeDir, 'round16');
+  const keys = ['r1', 'r2'].map(r => read(join(dir, `key-${r}.json`)));
+  const answers = ['r1', 'r2'].map(r => new Map(read(join(dir, `out-${r}.judge.json`)).answers.map(a => [a.id, a.choice])));
+  const verdict = (i, id) => { const choice = answers[i].get(id); return choice === 'same' ? 'same' : keys[i][id][choice]; };
+  const oldBoth = Object.keys(keys[0]).filter(id => [0, 1].every(i => verdict(i, id) === 'old')).length;
+  claim(oldBoth === 2, 'two moments of round 16 lost both runs');
+  g.def('RoundSixteenOldBothCap', Cap(word(oldBoth)));
+}
+const sixteenSplit = (set, s) => set.splits.find(x => x.split === s);
+const E = sixteen.endgames;
+g.def('EndgameGames', String(E.games.train + E.games.test)).def('EndgameGamesTrain', String(E.games.train)).def('EndgameGamesTest', String(E.games.test))
+  .def('EndgameMoments', String(sixteenSplit(E, 'train').moments + sixteenSplit(E, 'test').moments))
+  .def('EndgameMomentsTrain', String(sixteenSplit(E, 'train').moments)).def('EndgameMomentsTest', String(sixteenSplit(E, 'test').moments))
+  .def('RoundSixteenChangedEndgameTrain', String(sixteenSplit(E, 'train').textsChanged)).def('RoundSixteenChangedEndgameTest', String(sixteenSplit(E, 'test').textsChanged))
+  .def('RoundSixteenChangedSixtyTrain', String(sixteenSplit(sixteen, 'train').textsChanged)).def('RoundSixteenChangedSixtyTest', String(sixteenSplit(sixteen, 'test').textsChanged))
+  .def('RoundSixteenRose', word(sixteenMoments.reduce((n, x) => n + x.rose.length, 0)))
+  .def('RoundSixteenTrainNew', String(r16.tally.train.new)).def('RoundSixteenTrainOld', String(r16.tally.train.old)).def('RoundSixteenTrainSame', String(r16.tally.train.same))
+  .def('RoundSixteenTestNew', String(r16.tally.test.new)).def('RoundSixteenTestOld', String(r16.tally.test.old)).def('RoundSixteenTestSame', String(r16.tally.test.same));
+
 // ---- the judge's controls, as reproduce.mjs recomputed them
 const c = repro.controls;
 claim(c.length.matchesRecorded, 'the length check recomputed from its answers matches the score the records keep');
@@ -345,6 +386,10 @@ const pad15 = c.perRound.find(p => p.round === '15');
 claim(pad15?.kind === 'padding', 'round 15 carried a padding control');
 g.def('PadFifteenDecoy', String(pad15.decoy)).def('PadFifteenN', String(pad15.comparisons))
   .def('PadFifteenUnchanged', String(pad15.unchanged)).def('PadFifteenSame', String(pad15.same));
+const pad16 = c.perRound.find(p => p.round === '16');
+claim(pad16?.kind === 'padding', 'round 16 carried a padding control');
+g.def('PadSixteenDecoy', String(pad16.decoy)).def('PadSixteenN', String(pad16.comparisons))
+  .def('PadSixteenUnchanged', String(pad16.unchanged)).def('PadSixteenSame', String(pad16.same));
 const won = t => `${t.long} of ${t.long + t.decoy}`;
 g.block('ControlsTable', [
   '\\begin{tabularx}{\\textwidth}{L l l}', '\\toprule', 'check & result & verdict \\\\', '\\midrule',

@@ -49,9 +49,9 @@
 \newcommand{\KeptTrainConcreteVsBase}{+6.8 [3.2, 10.6]}
 \newcommand{\KeptTrainTextsChanged}{87}
 \newcommand{\KeptVariant}{v8}
-\newcommand{\RoundCount}{15}
-\newcommand{\RoundCountCap}{15}
-\newcommand{\KeptRoundCount}{twelve}
+\newcommand{\RoundCount}{16}
+\newcommand{\RoundCountCap}{16}
+\newcommand{\KeptRoundCount}{13}
 \newcommand{\UnjudgedKept}{1, 2, 11 and 14}
 \newcommand{\RoundsTable}{%
 \begin{tabularx}{\textwidth}{l L rrrr r r}
@@ -77,6 +77,7 @@ v12 & Say what the natural defense to the better move costs & \multicolumn{5}{c}
 v13 & Leave out the moves the defense sentence does not need (\emph{not kept}) & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 0--16 / 4--24 \\
 v14 & Say an amount in the pieces it is made of & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} &  \\
 v15 & Say what a quiet reply defends & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 22--1 / 8--0 \\
+v16 & Tell an endgame's passed pawns' story & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 37--2 / 18--3 \\
 \bottomrule
 \end{tabularx}
 }
@@ -98,6 +99,7 @@ round & judged & train new--old (same) & test new--old (same) & the rule says \\
 12 & round 12 & 19--9 (0) & 22--12 (0) & keep \\
 13 & round 13 & 0--16 (0) & 4--24 (0) & do not keep \\
 15 & round 15 & 22--1 (1) & 8--0 (0) & keep \\
+16 & round 16 & 37--2 (3) & 18--3 (1) & keep \\
 \bottomrule
 \end{tabular}
 }
@@ -118,6 +120,10 @@ v14 & test & 153 & 153 & 127 & 144 & 152 & 32 \\
 v14 & train & 180 & 179 & 149 & 166 & 179 & 26 \\
 v15 & test & 153 & 153 & 127 / 128 & 144 & 152 & 4 \\
 v15 & train & 180 & 179 & 149 / 152 & 166 & 179 & 12 \\
+v16 & test & 153 & 153 & 128 / 129 & 144 & 152 & 8 \\
+v16 & train & 180 & 179 & 152 & 166 & 179 & 2 \\
+v16, endgame set & test & 184 & 181 & 162 & 158 & 180 & 3 \\
+v16, endgame set & train & 219 & 213 & 170 / 172 & 204 & 213 & 19 \\
 \bottomrule
 \end{tabular}
 }
@@ -199,6 +205,24 @@ the five of Table~\ref{tab:defects} & 0 & 0 \\
 \newcommand{\RoundFifteenTrainSame}{1}
 \newcommand{\RoundFifteenTestNew}{8}
 \newcommand{\RoundFifteenTestOld}{0}
+\newcommand{\RoundSixteenOldBothCap}{Two}
+\newcommand{\EndgameGames}{160}
+\newcommand{\EndgameGamesTrain}{80}
+\newcommand{\EndgameGamesTest}{80}
+\newcommand{\EndgameMoments}{403}
+\newcommand{\EndgameMomentsTrain}{219}
+\newcommand{\EndgameMomentsTest}{184}
+\newcommand{\RoundSixteenChangedEndgameTrain}{19}
+\newcommand{\RoundSixteenChangedEndgameTest}{3}
+\newcommand{\RoundSixteenChangedSixtyTrain}{2}
+\newcommand{\RoundSixteenChangedSixtyTest}{8}
+\newcommand{\RoundSixteenRose}{three}
+\newcommand{\RoundSixteenTrainNew}{37}
+\newcommand{\RoundSixteenTrainOld}{2}
+\newcommand{\RoundSixteenTrainSame}{3}
+\newcommand{\RoundSixteenTestNew}{18}
+\newcommand{\RoundSixteenTestOld}{3}
+\newcommand{\RoundSixteenTestSame}{1}
 \newcommand{\LongerPicked}{305}
 \newcommand{\LongerDecided}{326}
 \newcommand{\LongerRounds}{3, 4, 5, 7, 7b, 8 and 9}
@@ -221,6 +245,10 @@ the five of Table~\ref{tab:defects} & 0 & 0 \\
 \newcommand{\PadFifteenN}{20}
 \newcommand{\PadFifteenUnchanged}{17}
 \newcommand{\PadFifteenSame}{3}
+\newcommand{\PadSixteenDecoy}{0}
+\newcommand{\PadSixteenN}{20}
+\newcommand{\PadSixteenUnchanged}{14}
+\newcommand{\PadSixteenSame}{6}
 \newcommand{\ControlsTable}{%
 \begin{tabularx}{\textwidth}{L l l}
 \toprule
@@ -235,6 +263,7 @@ padding control, round 10: the decoy preferred & 0 of 20 (20 the shorter text, 0
 padding control, round 12: the decoy preferred & 0 of 20 (20 the shorter text, 0 same) & no drift \\
 trim control, round 13: the decoy preferred & 1 of 20 (16 the full text, 3 same) & no drift \\
 padding control, round 15: the decoy preferred & 0 of 20 (17 the shorter text, 3 same) & no drift \\
+padding control, round 16: the decoy preferred & 0 of 20 (14 the shorter text, 6 same) & no drift \\
 \bottomrule
 \end{tabularx}
 }
@@ -271,17 +300,17 @@ padding control, round 15: the decoy preferred & 0 of 20 (17 the shorter text, 3
 \newcommand{\ExampleCount}{8}
 \newcommand{\ReproLinesMatched}{27}
 \newcommand{\ReproLines}{27}
-\newcommand{\AppCommit}{\texttt{784c762}}
-\newcommand{\RecordsCommit}{\texttt{9410bab}}
+\newcommand{\AppCommit}{\texttt{d6e155b}}
+\newcommand{\RecordsCommit}{\texttt{5d348c3}}
 \newcommand{\RerunSearches}{the capture searches on it (88 kept) and the defense searches (51 kept)}
 \newcommand{\RerunEvidence}{review-evidence/6}
-\newcommand{\AppKeptThrough}{15}
+\newcommand{\AppKeptThrough}{16}
 \newcommand{\AppKeptSentence}{The app at that commit carries every kept round.}
 \newcommand{\RerunTestMoments}{153}
 \newcommand{\RerunTestShared}{146}
-\newcommand{\RerunTestSameGrades}{130}
+\newcommand{\RerunTestSameGrades}{129}
 \newcommand{\RerunTestFaithful}{100.0}
-\newcommand{\RerunTestConcrete}{83.7}
+\newcommand{\RerunTestConcrete}{84.3}
 \newcommand{\RerunTrainMoments}{180}
 \newcommand{\RerunTrainShared}{170}
 \newcommand{\RerunTrainSameGrades}{157}
@@ -293,7 +322,7 @@ padding control, round 15: the decoy preferred & 0 of 20 (17 the shorter text, 3
 split & grade & recorded baseline & recorded v8 & pinned app, rerun \\
 \midrule
 test & faithful & 90.1 [84.2, 95.9] & 100.0 [100.0, 100.0] & 100.0 [100.0, 100.0] \\
-test & concrete & 75.0 [65.3, 83.6] & 82.9 [72.0, 91.4] & 83.7 [75.0, 91.0] \\
+test & concrete & 75.0 [65.3, 83.6] & 82.9 [72.0, 91.4] & 84.3 [76.7, 91.0] \\
 test & named\_deep & 94.1 [89.7, 97.9] & 94.1 [89.7, 97.9] & 94.1 [89.7, 97.9] \\
 test & faithfulAll & 89.5 [83.3, 95.2] & 99.3 [97.8, 100.0] & 99.3 [97.8, 100.0] \\
 train & faithful & 87.6 [83.0, 91.7] & 99.4 [98.1, 100.0] & 99.4 [98.2, 100.0] \\
