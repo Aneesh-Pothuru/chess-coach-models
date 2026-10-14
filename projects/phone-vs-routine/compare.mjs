@@ -14,7 +14,7 @@ import { CHESS_DIR, chess, privateDir, resultsDir } from '../../bridge/lib/chess
 
 const { isSerious, isBlunder } = await chess('src/services/metrics/index.ts')
 const { PASS2_SHARE } = await chess('src/services/review/index.ts')
-const { DESKTOP_KNPS, ACCEPT_WINDOW_WP } = await chess('src/services/engine/index.ts')
+const { DESKTOP_KNPS, ACCEPT_WINDOW_WP, ANALYST_OPTIONS, NODE_ANALYST_OPTIONS } = await chess('src/services/engine/index.ts')
 const { JUDGMENT_THRESHOLDS } = await chess('src/services/knowledge/index.ts')
 
 // The study's own parameters, as the README fixes them.
@@ -231,11 +231,33 @@ const LIVE_COACH = 'src/services/livecoach/verdict.ts'
 const liveCoach = readFileSync(join(CHESS_DIR, LIVE_COACH), 'utf8').split('\n')
 const typedAt = liveCoach.findIndex((l) => /amongFine\s*=.*<=\s*3\b/.test(l))
 
+// Which review Game Review opens, also a fact about the code: the line that
+// reads the review kept on the device, and the line that asks for the coach's,
+// and whether that ask sits inside the block that runs only when none is kept.
+const GAME_REVIEW = 'src/features/gamereview/GameReview.tsx'
+const gameReview = readFileSync(join(CHESS_DIR, GAME_REVIEW), 'utf8').split('\n')
+const keptAt = gameReview.findIndex((l) => /await reviewService\.stored\(key\)/.test(l))
+const unlessKeptAt = gameReview.findIndex((l, i) => i > keptAt && /if \(!kept\)\s*\{/.test(l))
+const coachAt = gameReview.findIndex((l) => /await coachReviewFor\(/.test(l))
+function inside(open, at) {
+  let depth = 0
+  for (let i = open; i < at; i++) {
+    for (const ch of gameReview[i]) depth += ch === '{' ? 1 : ch === '}' ? -1 : 0
+    if (depth <= 0) return false
+  }
+  return true
+}
+// And the device's analyst: its hash, and whether it keeps an evaluation cache.
+const BROWSER_ENGINE = 'src/adapters/browser/engine/index.ts'
+const browserCache = /store:\s*idbEvalStore\(\)/.test(readFileSync(join(CHESS_DIR, BROWSER_ENGINE), 'utf8'))
+
 const routineDoc = cases.map((c) => docOf('routine', c.id)).find(Boolean)
 const out = {
   appCommit: CHESS_DIR.split('/').pop(),
   engine: routineDoc?.provenance?.build ?? null,
-  app: { PASS2_SHARE, DESKTOP_KNPS, ACCEPT_WINDOW_WP, liveCoach: { file: LIVE_COACH, typedLine: typedAt >= 0 ? typedAt + 1 : null, importsAcceptWindow: liveCoach.some((l) => /ACCEPT_WINDOW_WP/.test(l)) } },
+  app: { PASS2_SHARE, DESKTOP_KNPS, ACCEPT_WINDOW_WP, liveCoach: { file: LIVE_COACH, typedLine: typedAt >= 0 ? typedAt + 1 : null, importsAcceptWindow: liveCoach.some((l) => /ACCEPT_WINDOW_WP/.test(l)) },
+    gameReview: { file: GAME_REVIEW, keptLine: keptAt >= 0 ? keptAt + 1 : null, coachLine: coachAt >= 0 ? coachAt + 1 : null, coachOnlyWhenNoneKept: keptAt >= 0 && unlessKeptAt > keptAt && coachAt > unlessKeptAt && inside(unlessKeptAt, coachAt) },
+    analyst: { deviceHash: ANALYST_OPTIONS.Hash, nodeHash: NODE_ANALYST_OPTIONS.Hash, deviceCache: { file: BROWSER_ENGINE, kept: browserCache } } },
   budgets: Object.fromEntries(['phone', 'desktop', 'routine'].map((p) => {
     const d = cases.map((c) => docOf(p, c.id)).find(Boolean)
     return [p, d ? { sweepNodes: d.provenance.scanNodes, verifyNodes: d.provenance.verifyNodes, tablebase: d.provenance.tablebase } : null]
@@ -295,6 +317,12 @@ const md = [
   }),
   '',
   `The phone against the desktop: the phone misses ${ci(posthoc.phoneAgainstDesktop.miss)} of the desktop's serious errors and adds ${ci(posthoc.phoneAgainstDesktop.extra)}.`,
+  '',
+  '## Facts about the code (not measurements)',
+  '',
+  `- Game Review reads the review it kept on the device (\`${GAME_REVIEW}\` line ${out.app.gameReview.keptLine}) before it asks for the coach's own (line ${out.app.gameReview.coachLine}), and asks only when it kept none: ${out.app.gameReview.coachOnlyWhenNoneKept ? 'yes' : 'no'}.`,
+  `- The device's analyst: a ${out.app.analyst.deviceHash} MB hash, ${out.app.analyst.deviceCache.kept ? 'with' : 'without'} an evaluation cache; every profile here ran on the Node analyst, a ${out.app.analyst.nodeHash} MB hash with no cache.`,
+  `- The live coach types its own accept window (\`${LIVE_COACH}\` line ${out.app.liveCoach.typedLine}); it imports the review's: ${out.app.liveCoach.importsAcceptWindow ? 'yes' : 'no'}.`,
   '',
 ]
 writeFileSync(join(results_, 'compare.md'), md.join('\n'))

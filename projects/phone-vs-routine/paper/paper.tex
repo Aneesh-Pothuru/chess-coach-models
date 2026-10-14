@@ -22,8 +22,11 @@ mistake on one side and an inaccuracy on the other, and the second look itself d
 the \PhoneBothLooked{} moves both the phone and the routine looked at twice, with the same nodes from
 the same position, the two looks gave the same numbers on \PhoneIdentical. The phone and the desktop
 disagree with each other as much as either does with the routine. What tells the reviews apart is
-what the engine searched earlier in the game, not the phone's smaller budget. A second look that
-starts with the engine's memory cleared is the next round.
+what the engine searched earlier in the game, not the phone's smaller budget. A fact about the code
+makes the difference last: Game Review keeps the review a device made of a game, and opens the
+routine's only when it has kept none. Opening the routine's once there is one would end the
+difference for every game the routine reviews; a second look that starts with the engine's memory
+cleared is the next round.
 \end{abstract}
 
 \section{The question}
@@ -190,12 +193,27 @@ side, in pawns). The routine's line is \ExampleBest{} (\ExampleBestUci), from th
 \label{fig:example}
 \end{figure}
 
-\section{The live coach's accept window}
+\section{Facts about the code}
 
-The Play screen's live coach decides whether the move played was among the fine ones with its own
-\AcceptWindow{} (\VerdictFile, line \VerdictLine), where the review imports
-\texttt{ACCEPT\_WINDOW\_WP}, also \AcceptWindow. The two agree today, but a change to the review's
-window would not reach the live coach. This is a fact about the code, not a measurement.
+These are facts about the app at commit \texttt{\AppCommit}, not measurements.
+
+\paragraph{Which review Game Review opens.} When he opens a game, Game Review first reads the review
+it kept on the device (\GameReviewFile, line \KeptLine) and asks for the coach's own review only
+when it has kept none (line \CoachLine). The daily routine reviews the evening's games the next
+morning. A game he opens on his phone before then is reviewed on the phone, and the phone keeps that
+review: once the routine has reviewed the game, the daily review names the routine's serious errors
+and Game Review still shows the phone's. For those games the differences measured here stay. A game
+he first opens after the routine reviewed it shows the routine's review.
+
+\paragraph{The device's engine.} On a device the engine runs with a \DeviceHash{} MB hash and keeps
+an evaluation cache (\DeviceEngineFile); the routine's runs with a \NodeHash{} MB hash. This study
+ran every profile on the routine's engine with no cache, so here the phone and the desktop differ
+from the routine only by their profile.
+
+\paragraph{The live coach's accept window.} The Play screen's live coach decides whether the move
+played was among the fine ones with its own \AcceptWindow{} (\VerdictFile, line \VerdictLine), where
+the review imports \texttt{ACCEPT\_WINDOW\_WP}, also \AcceptWindow. The two agree today, but a change
+to the review's window would not reach the live coach.
 
 \section{What it means for the app}
 
@@ -203,12 +221,17 @@ window would not reach the live coach. This is a fact about the code, not a meas
 \item \textbf{The phone's review and the routine's part on about one serious error in
 \PhoneOneIn.} Nearly all of them are moves near the line between a mistake and an inaccuracy. A
 player reading both would meet \PhoneDisagree{} such moves in \Cases{} games.
+\item \textbf{Open the coach's review in Game Review once there is one,} in place of a review the
+device kept, so that his phone and the daily review name the same serious errors for every game the
+routine has reviewed. Before the routine reaches a game, the device's review is the only one there
+is.
 \item \textbf{A bigger device budget would not fix it.} The desktop parts from the routine as much
 as the phone does, and the phone and the desktop part from each other as much. The second-look quota
 is not the cause either.
-\item \textbf{Make the second look repeat.} With the engine's memory cleared before each second look,
-the look becomes a function of the position, the history, the nodes and the engine build, and every
-profile that looks at a move twice would read it the same way. The cost is that the look no longer
+\item \textbf{Make the second look repeat,} for the games the routine has not reached. With the
+engine's memory cleared before each second look, on a hash of one size, the look becomes a function
+of the position, the history, the nodes and the engine build, and every profile that looks at a move
+twice would read it the same way. The cost is that the look no longer
 starts from the sweep's work, so it may search less deeply for its nodes. The next round measures
 that change on these \Cases{} games against this paper's rule, with its own rule committed first.
 \item \textbf{The live coach imports the review's accept window} instead of typing its own
@@ -221,7 +244,9 @@ The \Cases{} games are his games of one stretch of the archive, sampled for an a
 read here is today's: the daily reviews he has read were written by the routine on the app of their
 day, and this compares the profiles on one commit, so a difference is the profiles', not the app's
 history. Which profile his phone runs depends on its measured speed, so both device profiles are
-reported. The descriptions of why the reviews part came after the results were read; they say what
-the measured disagreements look like and test nothing.
+reported. Every profile ran on the routine's engine with no cache; a real device's engine has a
+\DeviceHash{} MB hash and a cache, so its second looks start from a memory that differs further,
+which this study did not measure. The descriptions of why the reviews part came after the results
+were read; they say what the measured disagreements look like and test nothing.
 
 \end{document}

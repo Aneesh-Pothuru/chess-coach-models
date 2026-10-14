@@ -29,3 +29,9 @@ The routine: 1000000 nodes a position, 1738 second looks.
 | desktop | 905 | 245 | 18 | 0.63 (2.43, 17.35) | 55 | 49 | 25 | inaccuracy/mistake 30, mistake/inaccuracy 24, mistake/good 1 |
 
 The phone against the desktop: the phone misses 9.8% (6.5% to 13.4%; 34 of 346) of the desktop's serious errors and adds 7.1% (4.6% to 9.9%; 24 of 336).
+
+## Facts about the code (not measurements)
+
+- Game Review reads the review it kept on the device (`src/features/gamereview/GameReview.tsx` line 203) before it asks for the coach's own (line 214), and asks only when it kept none: yes.
+- The device's analyst: a 64 MB hash, with an evaluation cache; every profile here ran on the Node analyst, a 128 MB hash with no cache.
+- The live coach types its own accept window (`src/services/livecoach/verdict.ts` line 314); it imports the review's: no.

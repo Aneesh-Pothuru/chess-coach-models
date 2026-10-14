@@ -27,7 +27,10 @@ because the engine keeps what it learned from the game's earlier searches and
 each profile searched different things first. The phone and the desktop part
 from each other as much as either does from the routine. A second look that
 starts with the engine's memory cleared is the next round, with its own rule.
-The live coach still types its own accept window. The paper,
+Two facts about the code: Game Review keeps the review a device made of a
+game and opens the routine's only when it has kept none, so for a game he
+opens on his phone before the routine reviews it the difference stays; and
+the live coach still types its own accept window. The paper,
 [`paper/paper.pdf`](paper/paper.pdf), has the numbers and one position.
 
 The rule below was committed after one game had been reviewed at the phone
@@ -112,7 +115,9 @@ Added after the results were read; they test nothing:
   the routine's place.
 - `compare.mjs` also records the app's constants it reads (`PASS2_SHARE`,
   `DESKTOP_KNPS`, `ACCEPT_WINDOW_WP` and the live coach's line), so the paper
-  does not depend on the lab's pin.
+  does not depend on the lab's pin, and two more facts about the code: the
+  lines where Game Review reads the review it kept before it asks for the
+  coach's, and the device engine's hash and cache against the routine's.
 
 ## Caveats
 

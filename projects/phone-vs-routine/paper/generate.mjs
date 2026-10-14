@@ -25,7 +25,7 @@ const DEVICES = ['phone', 'desktop']
 const NAME = { phone: 'Phone', desktop: 'Desktop' }
 
 // The app's constants as compare.mjs read them, on the commit it ran on.
-const { PASS2_SHARE, DESKTOP_KNPS, ACCEPT_WINDOW_WP, liveCoach } = res.app
+const { PASS2_SHARE, DESKTOP_KNPS, ACCEPT_WINDOW_WP, liveCoach, gameReview, analyst } = res.app
 g.def('AppCommit', res.appCommit.slice(0, 10)).def('Engine', res.engine.split('/').slice(0, 2).join(' ').replace('@', ' '))
 g.def('Cases', String(res.cases)).def('Line', percent(res.line, 0)).def('Draws', count(res.draws)).def('Seed', String(res.seed))
 g.def('PassShare', percent(PASS2_SHARE, 0)).def('DesktopKnps', String(DESKTOP_KNPS)).def('AcceptWindow', String(ACCEPT_WINDOW_WP))
@@ -168,6 +168,12 @@ g.def('PvDExtra', percent(PD.extra.value, 1)).def('PvDExtraLo', percent(PD.extra
 claim(liveCoach.typedLine != null && !liveCoach.importsAcceptWindow, "the live coach types its own window instead of importing the review's")
 claim(ACCEPT_WINDOW_WP === 3, "the review's accept window is the 3 the live coach types")
 g.def('VerdictLine', String(liveCoach.typedLine)).def('VerdictFile', `\\texttt{${liveCoach.file}}`)
+
+// ---- which review Game Review opens, and the device's analyst: facts about the code ----
+claim(gameReview.coachOnlyWhenNoneKept, "Game Review asks for the coach's review only when it has kept none")
+g.def('GameReviewFile', `\\texttt{${gameReview.file}}`).def('KeptLine', String(gameReview.keptLine)).def('CoachLine', String(gameReview.coachLine))
+claim(analyst.deviceHash < analyst.nodeHash && analyst.deviceCache.kept, "the device's engine has a smaller hash than the routine's, and an evaluation cache")
+g.def('DeviceHash', String(analyst.deviceHash)).def('NodeHash', String(analyst.nodeHash)).def('DeviceEngineFile', `\\texttt{${analyst.deviceCache.file}}`)
 
 // ---- one position: the phone's costliest missed serious error ----
 const diffPath = join(privateDir('phone-vs-routine'), 'differences.json')
