@@ -22,6 +22,7 @@ everything that answers it:
 | [focus-backtest](focus-backtest/) | Does the weekly focus's grade tell a real improvement from none? | Not yet ported: the grade says met on several times its level when nothing changed |
 | [detector-themes](detector-themes/) | Do the app's motif labels name the tactic a position holds, judged on public puzzles? | Not yet ported: a harness (app pool to tune, held-out puzzles to test) |
 | [drill-decks](drill-decks/) | Do the misses deck's theme words and the plan quiz ask what they say they ask? | Not yet ported |
+| [band-above](band-above/) | Where do players 200 points above his level give away fewer points a game than players at his level, by the leak ledger's own causes, and how much of a point given away shows in the result? | Running: the rule is fixed, the results are to come |
 
 `paper.mjs` holds the helpers the generators share (boards, moves in SAN, UCI
 and FEN, number formats), and `preamble.tex` the LaTeX every paper loads.
