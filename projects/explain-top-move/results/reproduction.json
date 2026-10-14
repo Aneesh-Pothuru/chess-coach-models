@@ -1,12 +1,12 @@
 {
   "eval": "explain-top-move reproduction",
   "chess": {
-    "pinned_commit": "c7b19cfcae35b91cb6635068dfc1ba93af091cf1",
+    "pinned_commit": "3a6c0992cc91d184a9d2254e6d6bf4d1046c0e01",
     "records_commit": "9330de9bf0efd069546a0452ff242aa3e2144864",
     "carries": {
       "v10": true,
-      "v11": false,
-      "v12": false
+      "v11": true,
+      "v12": true
     }
   },
   "recomputed": {
@@ -15,18 +15,23 @@
     "missing": []
   },
   "rerun": {
-    "moments": 329,
+    "moments": 333,
     "probes": {
       "budget": {
         "nodes": 600000
       },
       "kept": 88
     },
-    "defenses": null,
+    "defenses": {
+      "budget": {
+        "nodes": 600000
+      },
+      "kept": 51
+    },
     "evidence": {
       "documents": 60,
       "versions": [
-        "review-evidence/5"
+        "review-evidence/6"
       ],
       "builds": [
         "stockfish@18.0.8/stockfish-18-lite-single/nn-9067e33176e8"
@@ -634,31 +639,31 @@
           "est": 100,
           "lo": 100,
           "hi": 100,
-          "moments": 152
+          "moments": 153
         },
         "concrete": {
-          "est": 82.9,
+          "est": 83,
           "lo": 73.9,
-          "hi": 90.5,
-          "moments": 152
+          "hi": 90.6,
+          "moments": 153
         },
         "named_deep": {
           "est": 94.1,
           "lo": 89.7,
-          "hi": 97.8,
-          "moments": 152
+          "hi": 97.9,
+          "moments": 153
         },
         "faithfulAll": {
           "est": 99.3,
-          "lo": 97.7,
+          "lo": 97.8,
           "hi": 100,
-          "moments": 152
+          "moments": 153
         }
       },
-      "momentsApp": 152,
+      "momentsApp": 153,
       "momentsKept": 152,
       "sharedMoments": 146,
-      "sharedSameGrades": 130
+      "sharedSameGrades": 129
     },
     {
       "split": "train",
@@ -717,32 +722,32 @@
       "app": {
         "faithful": {
           "est": 99.4,
-          "lo": 98.1,
+          "lo": 98.2,
           "hi": 100,
-          "moments": 177
+          "moments": 180
         },
         "concrete": {
-          "est": 83.6,
-          "lo": 77,
-          "hi": 89.4,
-          "moments": 177
+          "est": 82.8,
+          "lo": 76.1,
+          "hi": 88.5,
+          "moments": 180
         },
         "named_deep": {
-          "est": 92.1,
-          "lo": 86.7,
-          "hi": 97.2,
-          "moments": 177
+          "est": 92.2,
+          "lo": 87,
+          "hi": 97.1,
+          "moments": 180
         },
         "faithfulAll": {
           "est": 99.4,
-          "lo": 98.1,
+          "lo": 98.2,
           "hi": 100,
-          "moments": 177
+          "moments": 180
         }
       },
-      "momentsApp": 177,
+      "momentsApp": 180,
       "momentsKept": 177,
-      "sharedMoments": 171,
+      "sharedMoments": 170,
       "sharedSameGrades": 160
     }
   ]

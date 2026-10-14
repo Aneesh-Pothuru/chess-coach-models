@@ -305,7 +305,7 @@ const rr = repro.rows;
 g.def('ReproLinesMatched', String(repro.recomputed.matched)).def('ReproLines', String(repro.recomputed.publishedLines))
   .def('AppCommit', `\\texttt{${repro.chess.pinned_commit.slice(0, 7)}}`)
   .def('RecordsCommit', `\\texttt{${repro.chess.records_commit.slice(0, 7)}}`)
-  .def('RerunProbes', String(repro.rerun.probes.kept))
+  .def('RerunSearches', `the capture searches on it (${repro.rerun.probes.kept} kept)${repro.rerun.defenses ? ` and the defense searches (${repro.rerun.defenses.kept} kept)` : ''}`)
   .def('RerunEvidence', esc(repro.rerun.evidence.versions.join(', ')));
 // How far the app the rerun measures has come: the kept rounds after the kept
 // variant that it carries. "Through round N" needs them carried in order.
@@ -323,10 +323,12 @@ for (const r of rr) {
   g.def(`Rerun${S}Moments`, String(r.momentsApp)).def(`Rerun${S}Shared`, String(r.sharedMoments)).def(`Rerun${S}SameGrades`, String(r.sharedSameGrades))
     .def(`Rerun${S}Faithful`, fixed(r.app.faithful.est, 1)).def(`Rerun${S}Concrete`, fixed(r.app.concrete.est, 1));
 }
+const REPRO_DIMS = ['faithful', 'concrete', 'named_deep', 'faithfulAll'];
+claim(rr.every(r => REPRO_DIMS.every(d => r.app[d].est >= r.recordedKept[d].lo && r.app[d].est <= r.recordedKept[d].hi)), `every rate of the rerun lies within the recorded ${KEPT}'s interval`);
 const fmt = x => `${fixed(x.est, 1)} [${fixed(x.lo, 1)}, ${fixed(x.hi, 1)}]`;
 g.block('ReproTable', [
   '\\begin{tabular}{ll lll}', '\\toprule', 'split & grade & recorded baseline & recorded ' + KEPT + ' & pinned app, rerun \\\\', '\\midrule',
-  ...rr.flatMap(r => ['faithful', 'concrete', 'named_deep', 'faithfulAll'].map(d => `${r.split} & ${esc(d)} & ${fmt(r.recordedBaseline[d])} & ${fmt(r.recordedKept[d])} & ${fmt(r.app[d])} \\\\`)),
+  ...rr.flatMap(r => REPRO_DIMS.map(d => `${r.split} & ${esc(d)} & ${fmt(r.recordedBaseline[d])} & ${fmt(r.recordedKept[d])} & ${fmt(r.app[d])} \\\\`)),
   '\\bottomrule', '\\end{tabular}',
 ].join('\n'));
 
