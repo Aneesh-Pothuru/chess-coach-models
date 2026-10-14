@@ -1,0 +1,23 @@
+% Written by projects/explain-top-move/paper/generate.mjs; do not edit by hand.
+\begin{minipage}[t]{0.4\textwidth}\vspace{0pt}
+\chessboard[setfen={rn1q2k1/ppp3p1/3b1p1p/3p1R1Q/3P3B/2P1r3/PP1N2PP/R5K1 w - - 0 17}, boardfontsize=13pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={a1-f1}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={f5-f6}]
+\end{minipage}\hfill
+\begin{minipage}[t]{0.56\textwidth}\vspace{0pt}\small
+\textbf{Played:} 17.~\symrook{}af1, White to move; the app's verdict: Blunder.\par
+\textbf{Engine:} +2.5 with the best move, 0.0 after yours.\par
+\textbf{Best line:} 17.~\symrook{}xf6 \symqueen{}e8 18.~\symqueen{}xd5+ \symking{}h8 19.~\symrook{}f7 \symknight{}c6\par
+\textbf{UCI:} \uci{a1f1}; best line \uci{f5f6 d8e8 h5d5 g8h8 f6f7 b8c6}\par
+\textbf{FEN:} \fen{rn1q2k1/ppp3p1/3b1p1p/3p1R1Q/3P3B/2P1r3/PP1N2PP/R5K1 w - - 0 17}
+\end{minipage}
+
+\smallskip\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.17\textwidth} L L}
+\toprule
+section & before & after \\
+\midrule
+What Rxf6 does instead & it attacks the bishop on d6 and the pawn on h6 \textperiodcentered{} 17.Rxf6 Qe8 18.Qxd5+ Kh8 19.Rf7 Nc6 20.Raf1 Ne7 & it attacks the bishop on d6 and the pawn on h6; if they take it with gxf6, Qg6+ Kf8 Qxh6+ Kf7, then Qxe3 takes their rook on e3, and you are two pawns' worth of material up; if they take it with Qxf6, Bxf6 wins their queen for your rook \textperiodcentered{} 17.Rxf6 Qe8 18.Qxd5+ Kh8 19.Rf7 Nc6 20.Raf1 Ne7 \\
+Retry answer & The move was Rxf6 (the green arrow). It attacks the bishop on d6 and the pawn on h6. & The move was Rxf6 (the green arrow). It attacks the bishop on d6 and the pawn on h6. If they take it with gxf6, Qg6+ Kf8 Qxh6+ Kf7, then Qxe3 takes their rook on e3, and you are two pawns' worth of material up. If they take it with Qxf6, Bxf6 wins their queen for your rook. \\
+\bottomrule
+\end{tabularx}
+
+\textbf{The judge (run 1, where the new text was X):} ``X shows why the rook sacrifice works (gxf6 Qg6+ Kf8 Qxh6+ then Qxe3 wins the rook back, and Qxf6 Bxf6 wins the queen), while Y leaves the player wondering why Rxf6 does not just lose a rook to gxf6.''

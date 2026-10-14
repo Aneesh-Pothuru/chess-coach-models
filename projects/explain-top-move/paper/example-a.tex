@@ -1,0 +1,26 @@
+% Written by projects/explain-top-move/paper/generate.mjs; do not edit by hand.
+\begin{minipage}[t]{0.4\textwidth}\vspace{0pt}
+\chessboard[setfen={1rr3k1/5pp1/p1pbpq1p/P2p3b/Q2P2P1/2P2N1P/1P1N1P2/R3R1K1 b - - 0 18}, boardfontsize=13pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={b8-b2}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={h5-g6}]
+\end{minipage}\hfill
+\begin{minipage}[t]{0.56\textwidth}\vspace{0pt}\small
+\textbf{Played:} 18\ldots{}\symrook{}xb2, Black to move; the app's verdict: Mistake.\par
+\textbf{Engine:} +1.8 with the best move, +0.1 after yours.\par
+\textbf{Best line:} 18\ldots{}\symbishop{}g6 19.~b4 h5 20.~\symknight{}e5 hxg4 21.~\symknight{}xg4\par
+\textbf{UCI:} \uci{b8b2}; best line \uci{h5g6 b2b4 h6h5 f3e5 h5g4 e5g4}\par
+\textbf{FEN:} \fen{1rr3k1/5pp1/p1pbpq1p/P2p3b/Q2P2P1/2P2N1P/1P1N1P2/R3R1K1 b - - 0 18}
+\end{minipage}
+
+\smallskip\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.17\textwidth} L L}
+\toprule
+section & before & after \\
+\midrule
+On the card & Rxb2 allows gxh5, and it wins the bishop outright. You lose a pawn in the engine's line. Bg6 avoids it. Mistake: it cost 15\% of your winning chances. & Rxb2 allows gxh5, and it wins the bishop outright. You lose a pawn in the engine's line. Bg6 moves your bishop on h5 away, where it had no defender. Mistake: it cost 15\% of your winning chances. \\
+What Bg6 does instead & 18...Bg6 19.b4 h5 20.Ne5 hxg4 21.Nxg4 Qh4 22.Kg2 & it moves your bishop on h5 away, where it had no defender \textperiodcentered{} 18...Bg6 19.b4 h5 20.Ne5 hxg4 21.Nxg4 Qh4 22.Kg2 \\
+The difference & After Rxb2, they win a pawn in the engine's line. Bg6 keeps it. & After Rxb2, they win a pawn in the engine's line. Bg6 keeps it: it moves your bishop on h5 away, where it had no defender. \\
+Retry hint & \emph{(not shown)} & Hint: it moves your bishop on h5 away, where it had no defender. The move starts on the lit square. \\
+Retry answer & \emph{(not shown)} & The move was Bg6. it moves your bishop on h5 away, where it had no defender \\
+\bottomrule
+\end{tabularx}
+
+\textbf{The judge (run 1, where the new text was Y):} ``Y says Bg6 rescues the attacked, undefended bishop on h5 that gxh5 wins, where X only says Bg6 'avoids it'.''

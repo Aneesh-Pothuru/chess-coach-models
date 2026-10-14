@@ -1,0 +1,209 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Explaining the better move\\[0.3em]
+\large Nine rounds of hill-climbing a game review's lessons, graded on the board and by a blind judge}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+At each key moment of a game review, the coaching app explains what the move played allowed,
+what the engine's better move does instead, and the difference between them. We measured
+those explanations on the \Moments{} key moments of \Games{} of the player's games, with three
+grades checked against the board, and changed the code that writes them one idea per round,
+keeping a round only when no grade fell on either half of the games. Where a change wrote
+something the grades cannot check, a judge model compared the old and new texts blind, twice,
+with the order reversed. Over \RoundCount{} rounds (\KeptRoundCount{} kept), the share of held-out moments whose
+texts make no false checkable claim rose from \BaseTestFaithful\% to \KeptTestFaithful\%, and
+the share that names a concrete consequence of the better move from \BaseTestConcrete\% to
+\KeptTestConcrete\%. The judge preferred every kept round's texts in nearly every comparison
+it decided. The kept code is the app's. The lab recomputes every published number from the
+records, and the app rerun on fresh engine evidence scores \RerunTestFaithful\% and
+\RerunTestConcrete\% on the same two measures.
+\end{abstract}
+
+\section{What the player reads}
+
+When a game review stops at a key moment (a mistake, a blunder, a missed win), the app shows a
+card with a headline and a verdict, a lesson panel (what the move played allowed, what the
+better move does instead, the difference between the two lines, a takeaway), a Why sheet with
+the evidence behind the verdict, and a retry: the player may try the position again, with a
+hint and then the answer. Every one of those texts is written by heuristics in the app's review
+and knowledge services from the engine's evidence. No language model writes them, so every
+claim they make can be traced to a template, and most can be checked on the board.
+
+The player is an adult club player, rated \PlayerRatingMin--\PlayerRatingMax{} on chess.com across the
+\Games{} games studied here. Two things matter: that the texts are true, and that they say
+\emph{why} the better move is better, in terms the player can use at the board, not only by how
+much.
+
+\section{Data and measures}
+
+\paragraph{Moments.} The \Moments{} key moments the review stops at in \Games{} of the player's
+games, from the app's phone-profile engine evidence for each game. The games are split
+\GamesTrain{} for train and \GamesTest{} for test, the same split as the accuracy project, so no
+game is train in one and test in the other: \MomentsTrain{} train moments and \MomentsTest{}
+test moments. A round was designed on train moments only.
+
+\paragraph{Grades.} Each moment's texts get three grades, all checked against the board with
+chess.js and against the stored engine lines (\texttt{grade.mjs}):
+
+\begin{itemize}[nosep]
+\item \textbf{faithful}: 1 unless a checkable claim in the visible text is false: an illegal
+move, a line that does not replay, a piece said to attack what it does not, material said to
+be won that the line does not win, a mate that is not there, or an ``if they take it with''
+answer that is not the engine's line or whose claim does not hold at its end.
+\item \textbf{concrete}: 1 when the better move's explanation names a consequence (material, a
+mate, a named threat, a prevented reply) and the text says what the move played allowed or
+missed.
+\item \textbf{named\_deep}: 1 when every move the text names as best rests on a search at the
+app's best budget. It is a property of the evidence, not of the words, and is held, not
+targeted.
+\end{itemize}
+
+A fourth grade, \textbf{faithfulAll}, is faithful over the lesson the Why sheet also shows on a
+moment whose card shows only a comment. A clause no template recognises is reported as
+unparsed, never graded true. The grader was checked by hand on \HandcheckMoments{} moments
+before any round; the hand verdicts and the baseline's grades agree on all three grades for
+\HandcheckAgree{} of them.
+
+Every rate below is a share of key moments, with a 95\% interval from a bootstrap over games
+(a game's moments share its evidence, so the game is the unit). A variant's difference from the
+baseline is paired on the same moments.
+
+\paragraph{The judge.} The grades cannot see whether a new clause \emph{helps}. For a round that
+writes something new, every moment whose texts change is shown to a judge model as two versions
+(X and Y, by a seeded coin), each laid out as the app lays it out, with the position, the move,
+the verdict, the engine's evaluation and best line. The judge answers which version would help
+the player more (understand why the better move is better, and know what to look for next
+time), or that they are the same, with one sentence of reason. It answers twice, with X and Y
+swapped the second time. The rule, fixed before any run: keep the round if, pooling both runs,
+the new texts are preferred in more than half of the decided comparisons on train \emph{and} on
+test.
+
+\section{The rounds}
+
+Table~\ref{tab:rounds} lists every variant. Rounds 1 and 2 fix false claims the baseline's
+templates made, found by the grader over all moments before the split was used to design
+anything. Rounds 3 to 9 add something the player asked for on the app's Coach Calibration page or
+that the judge's notes named, so the judge decides them.
+
+\begin{table}[!htbp]
+\centering\footnotesize
+\RoundsTable
+\caption{Every variant. Rates are shares of key moments; \emph{texts changed} counts the test and
+train moments whose visible texts differ from the baseline's; \emph{judge} is the round's pooled
+preferences, new--old, on train and test (Table~\ref{tab:judge}).}
+\label{tab:rounds}
+\end{table}
+
+\begin{description}[style=nextline, nosep]
+\item[Round 1: each line's material as it is.] The lesson's fallback sentence said ``neither
+line wins material in the next 5 moves'' whenever no earlier branch fired, including when both
+lines won the same material. It now says each line's material.
+\item[Round 2: the seventh-rank rook.] The insight named pawns the rook could not see past
+another pawn. It now names only the pawns the rook hits.
+\item[Round 3: what the better move defends.] A piece the reply takes, guarded or moved away by
+the better move (Figure~\ref{fig:exa}).
+\item[Round 4: the capture a learner asks about first.] Where the better move or the reply lands
+on a square it can be taken on and the engine's line takes it, the lesson says what follows
+(Figure~\ref{fig:exb}).
+\item[Rounds 5 and 6: where a long mate ends.] A mate is told with where it ends and what holds
+it there. Round 5 did so for every mate of three moves or more and failed its rule on train; round
+6 keeps it for mates of three to seven moves with no promotion on the way.
+\item[Round 7: a capture the better line declines.] A search of each capture the line declines
+(\texttt{probes.mjs}, at the routine's budget), and the lesson says what it would cost: a
+recapture as the trade it is, or checks that win a piece, move by move (Figure~\ref{fig:exc}).
+Round 7b fixes the material clause the judge found false in a few moments (a gain read as a
+balance).
+\item[Round 8: the right move, too early.] Where the move played is in the engine's best line at
+the mover's next or second turn, the difference and the takeaway say so, with the line
+(Figure~\ref{fig:exd}).
+\item[Round 9 (not kept): fewer capture answers.] Skipping an answer when a pawn plainly guards
+the square, and stopping at the first capture with no answer. The judge wanted every answer back
+(Figure~\ref{fig:exe}).
+\end{description}
+
+\begin{table}[!htbp]
+\centering\footnotesize
+\JudgeTable
+\caption{The judge rounds, pooled over both runs: new--old preferred, with the same-answers in
+parentheses. Round 6 made no run of its own: it reads round 5's judgments on the moments whose
+texts round 6 changes.}
+\label{tab:judge}
+\end{table}
+
+\section{Examples}
+
+Each example is the first moment of its round, in the round's own order, on which both runs of
+the judge agreed. The tables show only the sections whose text the round changed.
+
+\begin{figure}[!htbp]\ExampleA\caption{\ExampleACaption}\label{fig:exa}\end{figure}
+\begin{figure}[!htbp]\ExampleB\caption{\ExampleBCaption}\label{fig:exb}\end{figure}
+\begin{figure}[!htbp]\ExampleC\caption{\ExampleCCaption}\label{fig:exc}\end{figure}
+\begin{figure}[!htbp]\ExampleD\caption{\ExampleDCaption}\label{fig:exd}\end{figure}
+\begin{figure}[!htbp]\ExampleE\caption{\ExampleECaption}\label{fig:exe}\end{figure}
+
+\section{Results}
+
+From the baseline to the kept variant (\KeptVariant), on the held-out games:
+
+\begin{itemize}[nosep]
+\item faithful: \BaseTestFaithfulCI\% to \KeptTestFaithfulCI\%, a paired change of
+\KeptTestFaithfulVsBase{} points;
+\item concrete: \BaseTestConcreteCI\% to \KeptTestConcreteCI\%, a paired change of
+\KeptTestConcreteVsBase{} points;
+\item named\_deep: \BaseTestNamedDeepCI\% throughout, as expected of a property of the evidence;
+\item faithfulAll: \BaseTestFaithfulAllCI\% to \KeptTestFaithfulAllCI\%.
+\end{itemize}
+
+On train the same changes read \BaseTrainFaithful\% to \KeptTrainFaithful\% (faithful,
+\KeptTrainFaithfulVsBase) and \BaseTrainConcrete\% to \KeptTrainConcrete\% (concrete,
+\KeptTrainConcreteVsBase). The kept variant changes the visible texts of \KeptTestTextsChanged{}
+test and \KeptTrainTextsChanged{} train moments. Every kept round past the second was preferred
+by the judge on both halves; round 5 was not, and round 9 was rejected nearly unanimously.
+
+\section{Reproduction in the lab}
+
+\paragraph{Recomputed.} The lab recomputes every variant's aggregates from the per-moment grades
+the records keep (\texttt{summarize.mjs}): \ReproLinesMatched{} of the \ReproLines{} lines of the
+published aggregates match exactly. Every judge round's tally is recomputed from the judge's
+answers and the order keys (\texttt{judge/pairwise.mjs}), and every decision follows from the
+rule as recorded. One recorded reason misstates its counts: round 5's reads ``\RoundFiveReason'',
+while the recorded answers give \RoundFiveTrainNew--\RoundFiveTrainOld{} on train and
+\RoundFiveTestNew--\RoundFiveTestOld{} on test. The new counts it gives are those of the moments
+round 6 later kept; the decision is the same, since a tie on train is not a majority.
+
+\paragraph{Rerun.} The lab rebuilt the engine evidence for the same games on the app as it now runs
+(\AppCommit, evidence \RerunEvidence), redid the capture searches on it (\RerunProbes{} kept), and
+graded the app's texts. The rebuilt evidence is not the hill-climb's: the review pipeline changed
+after the rounds, so engine lines differ in detail and some key moments move (on test,
+\RerunTestShared{} of \RerunTestMoments{} moments are the same moments; on train
+\RerunTrainShared{} of \RerunTrainMoments). The rates hold (Table~\ref{tab:repro}). The records
+are read at \RecordsCommit.
+
+\begin{table}[!htbp]
+\centering\footnotesize
+\ReproTable
+\caption{The recorded baseline and kept variant beside the pinned app's texts on rebuilt evidence.}
+\label{tab:repro}
+\end{table}
+
+\section{Limitations}
+
+\begin{itemize}[nosep]
+\item The grades check what can be checked: a true and concrete text can still fail to teach.
+That question goes to the player on the Calibration page, and to the judge, whose agreement with
+the player is itself only partly measured.
+\item The judge is a model reading on the player's behalf. It is a good finder of what is
+missing and a poorer judge of how much it matters, which is why the rounds use its pairwise
+preferences and its notes, not its ratings.
+\item \Games{} games of one player. The split keeps the claims honest about that player, not
+about players in general.
+\end{itemize}
+
+\end{document}

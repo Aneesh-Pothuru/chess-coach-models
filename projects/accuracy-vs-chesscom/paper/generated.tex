@@ -1,0 +1,189 @@
+% Written by projects/accuracy-vs-chesscom/paper/generate.mjs; do not edit by hand.
+
+\newcommand{\Games}{60}
+\newcommand{\GamesTrain}{30}
+\newcommand{\GamesTest}{30}
+\newcommand{\Eligible}{192}
+\newcommand{\DevPool}{132}
+\newcommand{\RejectedSplits}{1}
+\newcommand{\PlayerRatingMin}{948}
+\newcommand{\PlayerRatingMax}{1167}
+\newcommand{\ShortMax}{40}
+\newcommand{\MediumMin}{41}
+\newcommand{\MediumMax}{80}
+\newcommand{\WithinPoints}{5}
+\newcommand{\RoutineScan}{1,000,000}
+\newcommand{\PhoneScan}{100,000}
+\newcommand{\VerifyNodes}{750,000}
+\newcommand{\VerifyLines}{3}
+\newcommand{\PhoneShare}{25}
+\newcommand{\BaseTestMae}{7.5}
+\newcommand{\BaseTestMaeCI}{7.5 [5.3, 10.0]}
+\newcommand{\BaseTrainMae}{8.3}
+\newcommand{\BaseTestWithin}{50}
+\newcommand{\BaseTestBias}{$-$0.5}
+\newcommand{\BaseTestR}{0.49}
+\newcommand{\BaseTestRCI}{0.49 [0.29, 0.73]}
+\newcommand{\OneTestMae}{4.9}
+\newcommand{\OneTestMaeCI}{4.9 [3.7, 6.2]}
+\newcommand{\OneTrainMae}{3.6}
+\newcommand{\OneTestWithin}{63}
+\newcommand{\OneTestBias}{0.5}
+\newcommand{\OneTestR}{0.76}
+\newcommand{\OneTestRCI}{0.76 [0.61, 0.88]}
+\newcommand{\OneVsBase}{$-$2.6 [$-$4.8, $-$0.9]}
+\newcommand{\TwoTestMae}{5.0}
+\newcommand{\TwoTestMaeCI}{5.0 [3.8, 6.3]}
+\newcommand{\TwoTrainMae}{3.6}
+\newcommand{\TwoTestWithin}{63}
+\newcommand{\TwoTestBias}{0.6}
+\newcommand{\TwoTestR}{0.76}
+\newcommand{\TwoTestRCI}{0.76 [0.61, 0.88]}
+\newcommand{\TwoVsBase}{$-$2.5 [$-$4.7, $-$0.7]}
+\newcommand{\PhoneBaseTestMae}{7.5}
+\newcommand{\PhoneBaseTestMaeCI}{7.5 [5.5, 9.8]}
+\newcommand{\PhoneBaseTrainMae}{8.1}
+\newcommand{\PhoneBaseTestWithin}{48}
+\newcommand{\PhoneBaseTestBias}{0.2}
+\newcommand{\PhoneBaseTestR}{0.50}
+\newcommand{\PhoneBaseTestRCI}{0.50 [0.30, 0.74]}
+\newcommand{\PhoneOneTestMae}{5.4}
+\newcommand{\PhoneOneTestMaeCI}{5.4 [4.0, 6.8]}
+\newcommand{\PhoneOneTrainMae}{4.6}
+\newcommand{\PhoneOneTestWithin}{57}
+\newcommand{\PhoneOneTestBias}{0.0}
+\newcommand{\PhoneOneTestR}{0.72}
+\newcommand{\PhoneOneTestRCI}{0.72 [0.54, 0.86]}
+\newcommand{\PhoneOneVsBase}{$-$2.1 [$-$4.1, $-$0.5]}
+\newcommand{\PhoneTwoTestMae}{5.4}
+\newcommand{\PhoneTwoTestMaeCI}{5.4 [4.0, 6.8]}
+\newcommand{\PhoneTwoTrainMae}{4.6}
+\newcommand{\PhoneTwoTestWithin}{57}
+\newcommand{\PhoneTwoTestBias}{0.0}
+\newcommand{\PhoneTwoTestR}{0.72}
+\newcommand{\PhoneTwoTestRCI}{0.72 [0.54, 0.86]}
+\newcommand{\PhoneTwoVsBase}{$-$2.1 [$-$4.1, $-$0.5]}
+\newcommand{\AggregateTable}{%
+\begin{tabular}{lllllll}
+\toprule
+instrument & test MAE & train MAE & within 5 & bias & $r$ & vs baseline \\
+\midrule
+\multicolumn{7}{l}{\emph{routine evidence (the headline)}} \\
+baseline (Lichess) & 7.5 [5.3, 10.0] & 8.3 & 50\% & $-$0.5 [$-$4.1, 2.8] & 0.49 [0.29, 0.73] & -- \\
+round 1 & 4.9 [3.7, 6.2] & 3.6 & 63\% & $+$0.5 [$-$1.6, 2.6] & 0.76 [0.61, 0.88] & $-$2.6 [$-$4.8, $-$0.9] \\
+the app (v2) & 5.0 [3.8, 6.3] & 3.6 & 63\% & $+$0.6 [$-$1.5, 2.7] & 0.76 [0.61, 0.88] & $-$2.5 [$-$4.7, $-$0.7] \\
+\midrule
+\multicolumn{7}{l}{\emph{phone evidence (the guardrail)}} \\
+baseline (Lichess) & 7.5 [5.5, 9.8] & 8.1 & 48\% & $+$0.2 [$-$3.3, 3.3] & 0.50 [0.30, 0.74] & -- \\
+round 1 & 5.4 [4.0, 6.8] & 4.6 & 57\% & $+$0.0 [$-$2.3, 2.4] & 0.72 [0.54, 0.86] & $-$2.1 [$-$4.1, $-$0.5] \\
+the app (v2) & 5.4 [4.0, 6.8] & 4.6 & 57\% & $+$0.0 [$-$2.3, 2.4] & 0.72 [0.54, 0.86] & $-$2.1 [$-$4.1, $-$0.5] \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\ReproAggregates}{match the published ones to the character}
+\newcommand{\NotRun}{%
+\begin{itemize}[nosep]
+\item book and forced moves counted: inside the noise or worse on the dev pool and train.
+\item flatter cp-to-win curve for accuracy: inside the noise or worse on the dev pool and train.
+\item floors and caps on per-move scores: 6.4 on dev, worse than round 1.
+\item book moves as best on top of round 1: cut the length tilt, MAE inside noise.
+\item per-category move scores (bands, classes, blunder cap): dev 4.46 / 4.50 / 4.30 against round 1's 4.29 in-sample; cross-validated 4.6.
+\end{itemize}
+}
+\newcommand{\StopRule}{no candidate beat round 1 by more than 0.5 on the dev pool while improving train}
+\newcommand{\ConstantGuess}{73.8}
+\newcommand{\ConstantTestMae}{7.9}
+\newcommand{\ConstantTrainMae}{7.2}
+\newcommand{\TiltTable}{%
+\begin{tabular}{lrrrr}
+\toprule
+length & sides & baseline & round 1 & the app (v2) \\
+\midrule
+short (40 plies or fewer) & 24 & $-$7.7 & $-$4.1 & $-$4.1 \\
+medium (41 to 80) & 66 & $-$2.4 & $+$0.7 & $+$0.7 \\
+long (over 80) & 30 & $+$5.1 & $+$3.5 & $+$3.9 \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\TiltBaseShort}{7.7}
+\newcommand{\TiltTwoShort}{4.1}
+\newcommand{\TiltBaseMedium}{2.4}
+\newcommand{\TiltTwoMedium}{0.7}
+\newcommand{\TiltBaseLong}{5.1}
+\newcommand{\TiltTwoLong}{3.9}
+\newcommand{\ScatterBase}{(84.52,87.61) (69.23,75.17) (70.61,66.84) (65.90,45.97) (82.44,80.32) (68.70,67.69) (77.37,77.42) (69.03,67.91) (71.07,67.51) (86.38,84.86) (75.99,91.89) (63.99,80.60) (62.50,66.38) (76.80,75.54) (78.90,83.06) (89.33,94.44) (71.72,62.21) (89.80,83.50) (60.73,73.03) (54.33,66.60) (64.08,71.64) (80.72,86.10) (74.39,73.35) (97.75,97.97) (79.18,91.95) (71.36,81.89) (85.41,84.19) (72.16,72.68) (77.27,56.87) (83.08,79.23) (69.10,60.24) (74.35,74.41) (75.37,74.80) (84.44,82.99) (83.80,68.06) (78.92,29.56) (69.34,70.87) (87.58,81.85) (83.19,69.66) (88.70,85.98) (80.89,91.37) (75.33,81.07) (57.48,74.24) (64.05,82.70) (73.33,68.70) (76.41,77.29) (80.38,78.99) (70.22,63.08) (63.84,71.86) (82.63,72.57) (58.44,70.68) (80.56,78.14) (82.54,87.40) (74.07,68.46) (84.27,87.12) (79.33,83.48) (73.29,71.53) (51.41,58.25) (94.31,89.50) (81.68,54.99)}
+\newcommand{\ScatterTwo}{(84.52,80.86) (69.23,73.04) (70.61,70.28) (65.90,73.81) (82.44,78.29) (68.70,72.64) (77.37,78.49) (69.03,74.21) (71.07,67.85) (86.38,85.80) (75.99,87.61) (63.99,77.32) (62.50,61.15) (76.80,72.50) (78.90,79.78) (89.33,86.00) (71.72,69.51) (89.80,84.76) (60.73,63.59) (54.33,56.38) (64.08,63.48) (80.72,83.32) (74.39,66.46) (97.75,95.35) (79.18,91.55) (71.36,84.29) (85.41,86.10) (72.16,75.74) (77.27,76.41) (83.08,80.26) (69.10,68.72) (74.35,70.10) (75.37,67.00) (84.44,80.32) (83.80,73.44) (78.92,75.48) (69.34,70.22) (87.58,85.74) (83.19,80.10) (88.70,84.53) (80.89,88.18) (75.33,83.21) (57.48,73.05) (64.05,76.98) (73.33,77.44) (76.41,83.35) (80.38,77.17) (70.22,75.47) (63.84,56.34) (82.63,80.97) (58.44,65.23) (80.56,78.83) (82.54,76.70) (74.07,70.15) (84.27,86.29) (79.33,84.29) (73.29,72.07) (51.41,58.13) (94.31,77.94) (81.68,73.19)}
+\newcommand{\ScatterSides}{60}
+\newcommand{\BaseDecay}{0.0435}
+\newcommand{\AppDecay}{0.14}
+\newcommand{\CurveA}{103.1668}
+\newcommand{\CurveC}{3.1669}
+\newcommand{\WindowMin}{2}
+\newcommand{\WindowMax}{8}
+\newcommand{\WindowShare}{10}
+\newcommand{\WeightMin}{0.5}
+\newcommand{\WeightMax}{12}
+\newcommand{\CurveBase}{(0,100.000) (0.5,98.778) (1,96.604) (1.5,94.477) (2,92.395) (2.5,90.359) (3,88.366) (3.5,86.416) (4,84.509) (4.5,82.642) (5,80.815) (5.5,79.028) (6,77.279) (6.5,75.568) (7,73.894) (7.5,72.256) (8,70.653) (8.5,69.085) (9,67.550) (9.5,66.049) (10,64.580) (10.5,63.142) (11,61.736) (11.5,60.360) (12,59.013) (12.5,57.695) (13,56.406) (13.5,55.145) (14,53.910) (14.5,52.703) (15,51.521) (15.5,50.365) (16,49.233) (16.5,48.126) (17,47.043) (17.5,45.983) (18,44.946) (18.5,43.932) (19,42.939) (19.5,41.967) (20,41.017) (20.5,40.087) (21,39.177) (21.5,38.286) (22,37.415) (22.5,36.563) (23,35.729) (23.5,34.912) (24,34.114) (24.5,33.332) (25,32.568) (25.5,31.820) (26,31.088) (26.5,30.372) (27,29.671) (27.5,28.985) (28,28.314) (28.5,27.658) (29,27.016) (29.5,26.387) (30,25.772) (30.5,25.170) (31,24.582) (31.5,24.005) (32,23.442) (32.5,22.890) (33,22.351) (33.5,21.823) (34,21.306) (34.5,20.800) (35,20.306) (35.5,19.822) (36,19.348) (36.5,18.885) (37,18.431) (37.5,17.988) (38,17.554) (38.5,17.129) (39,16.713) (39.5,16.307) (40,15.909)}
+\newcommand{\CurveApp}{(0,100.000) (0.5,94.025) (1,87.522) (1.5,81.458) (2,75.805) (2.5,70.533) (3,65.618) (3.5,61.036) (4,56.763) (4.5,52.779) (5,49.064) (5.5,45.601) (6,42.371) (6.5,39.360) (7,36.553) (7.5,33.935) (8,31.494) (8.5,29.219) (9,27.097) (9.5,25.118) (10,23.274) (10.5,21.554) (11,19.950) (11.5,18.455) (12,17.061) (12.5,15.761) (13,14.549) (13.5,13.419) (14,12.365) (14.5,11.383) (15,10.467) (15.5,9.612) (16,8.816) (16.5,8.074) (17,7.381) (17.5,6.736) (18,6.134) (18.5,5.573) (19,5.049) (19.5,4.562) (20,4.107) (20.5,3.683) (21,3.287) (21.5,2.918) (22,2.575) (22.5,2.254) (23,1.955) (23.5,1.676) (24,1.417) (24.5,1.174) (25,0.948) (25.5,0.738) (26,0.541) (26.5,0.358) (27,0.188) (27.5,0.028) (28,0.000) (28.5,0.000) (29,0.000) (29.5,0.000) (30,0.000) (30.5,0.000) (31,0.000) (31.5,0.000) (32,0.000) (32.5,0.000) (33,0.000) (33.5,0.000) (34,0.000) (34.5,0.000) (35,0.000) (35.5,0.000) (36,0.000) (36.5,0.000) (37,0.000) (37.5,0.000) (38,0.000) (38.5,0.000) (39,0.000) (39.5,0.000) (40,0.000)}
+\newcommand{\BaseAtTwo}{92}
+\newcommand{\AppAtTwo}{76}
+\newcommand{\BaseAtFive}{81}
+\newcommand{\AppAtFive}{49}
+\newcommand{\BaseAtTen}{65}
+\newcommand{\AppAtTen}{23}
+\newcommand{\DevMaeBefore}{8.0}
+\newcommand{\DevMaeAfter}{4.3}
+\newcommand{\DevCI}{[$-$4.90, $-$2.61]}
+\newcommand{\DevRBefore}{0.61}
+\newcommand{\DevRAfter}{0.86}
+\newcommand{\DecayLow}{0.12}
+\newcommand{\DecayHigh}{0.16}
+\newcommand{\DecaySpread}{0.6}
+\newcommand{\ExamplePlies}{27}
+\newcommand{\ExampleSide}{Black}
+\newcommand{\ExampleGraded}{11}
+\newcommand{\ExampleWorst}{13\ldots{}h6}
+\newcommand{\ExampleWorstLoss}{78.1}
+\newcommand{\ExampleWorstBase}{1.3}
+\newcommand{\ExampleWorstApp}{0.0}
+\newcommand{\ExampleWeighted}{46.8}
+\newcommand{\ExampleHarmonic}{12.3}
+\newcommand{\ExampleBase}{29.6}
+\newcommand{\ExampleApp}{75.5}
+\newcommand{\ExampleChessCom}{78.9}
+\newcommand{\ExampleAfter}{14.~\symqueen{}h7\#}
+\newcommand{\ExampleGame}{\input{example-game}}
+\newcommand{\ReproTable}{%
+\begin{tabular}{llrrrrrr}
+\toprule
+ & & \multicolumn{2}{c}{test MAE} & \multicolumn{2}{c}{train MAE} & \multicolumn{2}{c}{test $r$} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}
+evidence & instrument & recorded & rerun & recorded & rerun & recorded & rerun \\
+\midrule
+routine & baseline & 7.5 & 7.5 & 8.3 & 8.3 & 0.49 & 0.49 \\
+routine & round 1 & 4.9 & 5.0 & 3.6 & 3.7 & 0.76 & 0.76 \\
+routine & the app (v2) & 5.0 & 5.0 & 3.6 & 3.6 & 0.76 & 0.76 \\
+phone & baseline & 7.5 & 7.6 & 8.1 & 8.2 & 0.50 & 0.51 \\
+phone & round 1 & 5.4 & 5.5 & 4.6 & 4.5 & 0.72 & 0.71 \\
+phone & the app (v2) & 5.4 & 5.5 & 4.6 & 4.5 & 0.72 & 0.71 \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\ReproLargest}{0.17}
+\newcommand{\AppCommit}{\texttt{d8b7712}}
+\newcommand{\RecordsCommit}{\texttt{b3b827d}}
+\newcommand{\RereadRecordedMae}{0.34}
+\newcommand{\RereadRecordedPNinety}{1.04}
+\newcommand{\RereadRecordedSides}{454}
+\newcommand{\RereadMae}{0.38}
+\newcommand{\RereadPNinety}{1.16}
+\newcommand{\RereadSides}{466}
+\newcommand{\RereadMax}{7.0}
+\newcommand{\RereadRuleMae}{0.5}
+\newcommand{\RereadRuleP}{1.5}
+\newcommand{\RereadHolds}{holds}
+\newcommand{\RereadLaterRows}{42}
+\newcommand{\RereadUntaggedSides}{286}
+\newcommand{\RereadUntaggedMae}{0.03}
+\newcommand{\RereadTaggedSides}{180}
+\newcommand{\RereadTaggedMae}{0.92}

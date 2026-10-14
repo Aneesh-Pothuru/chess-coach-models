@@ -1,0 +1,140 @@
+% Written by projects/judge-in-context/paper/generate.mjs; do not edit by hand.
+
+\newcommand{\ThBlunder}{20}
+\newcommand{\ThMistake}{10}
+\newcommand{\ThInaccuracy}{5}
+\newcommand{\ThGood}{1}
+\newcommand{\ThKeptWon}{88}
+\newcommand{\ThKeptWinning}{75}
+\newcommand{\ShippedSlope}{0.00368208}
+\newcommand{\LowSlope}{0.00245}
+\newcommand{\RatingFloor}{1000}
+\newcommand{\RatingSpan}{1300}
+\newcommand{\RatingTop}{2300}
+\newcommand{\Games}{60}
+\newcommand{\Records}{3917}
+\newcommand{\ExactPlies}{3880}
+\newcommand{\NotExactPlies}{37}
+\newcommand{\BookPlies}{254}
+\newcommand{\ForcedPlies}{48}
+\newcommand{\GradedPlies}{3578}
+\newcommand{\GradedPlayer}{1783}
+\newcommand{\GradedOpponent}{1795}
+\newcommand{\Flips}{492}
+\newcommand{\FlipShare}{13.8}
+\newcommand{\FlipsPlayer}{250}
+\newcommand{\FlipsOpponent}{242}
+\newcommand{\FlipSharePlayer}{14.0}
+\newcommand{\FlipShareOpponent}{13.5}
+\newcommand{\MateSlipChanged}{9}
+\newcommand{\PlayerRatingMin}{948}
+\newcommand{\PlayerRatingMax}{1167}
+\newcommand{\OpponentRatingMin}{513}
+\newcommand{\OpponentRatingMax}{1178}
+\newcommand{\CrossoverPawns}{5.1}
+\newcommand{\FloorOld}{5.4}
+\newcommand{\FloorNew}{8.1}
+\newcommand{\CapOld}{3.0}
+\newcommand{\CapNew}{4.5}
+\newcommand{\AssertMaxDiff}{1.4\times 10^{-14}}
+\newcommand{\EvidenceRecorded}{review-evidence/4}
+\newcommand{\FlipOneIn}{seven}
+\newcommand{\MainTcGames}{59}
+\newcommand{\MainTcMinutes}{10}
+\newcommand{\JudgeStudent}{an adult club player rated about 950--1150 on chess.com who plays 10-minute games}
+\newcommand{\MatrixPlayer}{%
+\begin{tabular}{l rrrrr r}
+\toprule
+shipped $\downarrow$ proposed $\rightarrow$ & blunder & mistake & inaccuracy & ok & good & total \\
+\midrule
+blunder & (37) & \textbf{29} & 0 & 0 & 0 & 66 \\
+mistake & \textbf{4} & (50) & \textbf{48} & 0 & 0 & 102 \\
+inaccuracy & \textbf{1} & \textbf{9} & (76) & \textbf{54} & 0 & 140 \\
+ok & 0 & 0 & \textbf{16} & (439) & \textbf{78} & 533 \\
+good & 0 & 0 & 0 & \textbf{11} & (931) & 942 \\
+\midrule
+total & 42 & 88 & 140 & 504 & 1009 & 1783 \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\MatrixOpponent}{%
+\begin{tabular}{l rrrrr r}
+\toprule
+shipped $\downarrow$ proposed $\rightarrow$ & blunder & mistake & inaccuracy & ok & good & total \\
+\midrule
+blunder & (52) & \textbf{28} & 0 & 0 & 0 & 80 \\
+mistake & \textbf{2} & (45) & \textbf{50} & 0 & 0 & 97 \\
+inaccuracy & 0 & \textbf{10} & (75) & \textbf{47} & 0 & 132 \\
+ok & 0 & \textbf{2} & \textbf{12} & (500) & \textbf{76} & 590 \\
+good & 0 & 0 & 0 & \textbf{15} & (881) & 896 \\
+\midrule
+total & 54 & 85 & 137 & 562 & 957 & 1795 \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\JudgeMoves}{25}
+\newcommand{\RunsAgree}{23}
+\newcommand{\ShippedRunOne}{13}
+\newcommand{\ShippedRunTwo}{15}
+\newcommand{\ProposedRunOne}{12}
+\newcommand{\ProposedRunTwo}{10}
+\newcommand{\UnsureRunOne}{0}
+\newcommand{\UnsureRunTwo}{0}
+\newcommand{\JudgeTable}{%
+\begin{tabular}{lrr}
+\toprule
+ & run 1 & run 2 \\
+\midrule
+shipped verdict preferred & 13 & 15 \\
+proposed verdict preferred & 12 & 10 \\
+unsure & 0 & 0 \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\KindTable}{%
+\begin{tabular}{lrrrr}
+\toprule
+shown label: shipped $\to$ proposed & moves & both runs: shipped & both runs: proposed & split \\
+\midrule
+Inaccuracy $\to$ Good & 7 & 2 & 5 & 0 \\
+Mistake $\to$ Inaccuracy & 7 & 4 & 1 & 2 \\
+Blunder $\to$ Mistake & 4 & 2 & 2 & 0 \\
+Good $\to$ Inaccuracy & 2 & 2 & 0 & 0 \\
+Inaccuracy $\to$ Mistake & 2 & 1 & 1 & 0 \\
+Mistake $\to$ Blunder & 2 & 1 & 1 & 0 \\
+Inaccuracy $\to$ Blunder & 1 & 1 & 0 & 0 \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\ExampleCount}{4}
+\newcommand{\ExampleACaption}{Inaccuracy on the shipped curve, Good on the proposed one: the judge preferred the proposed label in both runs.}
+\newcommand{\ExampleA}{\input{example-a}}
+\newcommand{\ExampleBCaption}{Mistake on the shipped curve, Inaccuracy on the proposed one: the judge preferred the shipped label in both runs.}
+\newcommand{\ExampleB}{\input{example-b}}
+\newcommand{\ExampleCCaption}{Blunder on the shipped curve, Mistake on the proposed one: the judge preferred the shipped label in both runs.}
+\newcommand{\ExampleC}{\input{example-c}}
+\newcommand{\ExampleDCaption}{Good on the shipped curve, Inaccuracy on the proposed one: the judge preferred the shipped label in both runs.}
+\newcommand{\ExampleD}{\input{example-d}}
+\newcommand{\EvidenceRerun}{review-evidence/5}
+\newcommand{\RerunFlips}{492}
+\newcommand{\RerunFlipShare}{13.8}
+\newcommand{\RerunFlipsPlayer}{247}
+\newcommand{\RerunFlipsOpponent}{245}
+\newcommand{\ReproTable}{%
+\begin{tabular}{lrr}
+\toprule
+ & recorded & rerun in the lab \\
+\midrule
+engine evidence & review-evidence/4 & review-evidence/5 \\
+games & 60 & 60 \\
+plies with exact scores & 3880 & 3880 \\
+graded plies & 3578 & 3578 \\
+flips & 492 (13.8\%) & 492 (13.8\%) \\
+the player's flips & 250 of 1783 & 247 of 1783 \\
+the opponents' flips & 242 of 1795 & 245 of 1795 \\
+the copy of the judge matches the app's & yes & yes \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\AppCommit}{\texttt{d8b7712}}
+\newcommand{\RecordsCommit}{\texttt{b3b827d}}

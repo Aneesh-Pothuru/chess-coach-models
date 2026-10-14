@@ -1,0 +1,136 @@
+% Written by projects/maia-punish/paper/generate.mjs; do not edit by hand.
+
+\newcommand{\StepAt}{10}
+\newcommand{\ErrorAt}{5}
+\newcommand{\EAt}{2}
+\newcommand{\BinMin}{15}
+\newcommand{\BinGap}{0.1}
+\newcommand{\Draws}{1000}
+\newcommand{\Events}{689}
+\newcommand{\ExactEvents}{517}
+\newcommand{\Games}{60}
+\newcommand{\BandMin}{1000}
+\newcommand{\BandMax}{1400}
+\newcommand{\ResultTable}{%
+\begin{tabular}{llrrrrlll}
+\toprule
+replies & errors of & events & punished & $q$ & base & size & $q$ $-$ base & $q$ $-$ size \\
+\midrule
+verified & player & 243 (57) & 0.436 & 0.162 & 0.249 & 0.236 & $-$0.087 [$-$0.118, $-$0.056] & $-$0.074 [$-$0.106, $-$0.046] \\
+verified & opponents & 274 (59) & 0.427 & 0.145 & 0.247 & 0.231 & $-$0.102 [$-$0.125, $-$0.079] & $-$0.087 [$-$0.113, $-$0.060] \\
+all & player & 334 (57) & 0.419 & 0.162 & 0.245 & 0.241 & $-$0.083 [$-$0.105, $-$0.060] & $-$0.079 [$-$0.103, $-$0.055] \\
+all & opponents & 355 (60) & 0.425 & 0.151 & 0.246 & 0.238 & $-$0.095 [$-$0.116, $-$0.074] & $-$0.087 [$-$0.110, $-$0.066] \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\PlayerEvents}{243}
+\newcommand{\PlayerGames}{57}
+\newcommand{\PlayerPunished}{0.44}
+\newcommand{\PlayerBrier}{0.162}
+\newcommand{\PlayerBrierBase}{0.249}
+\newcommand{\PlayerBrierSize}{0.236}
+\newcommand{\PlayerBigErrors}{140}
+\newcommand{\PlayerUnpunished}{45}
+\newcommand{\PlayerQPunished}{0.62}
+\newcommand{\PlayerQUnpunished}{0.28}
+\newcommand{\PlayerAuc}{0.80}
+\newcommand{\PlayerAucCI}{[0.72, 0.88]}
+\newcommand{\OppEvents}{274}
+\newcommand{\OppGames}{59}
+\newcommand{\OppPunished}{0.43}
+\newcommand{\OppBrier}{0.145}
+\newcommand{\OppBrierBase}{0.247}
+\newcommand{\OppBrierSize}{0.231}
+\newcommand{\OppBigErrors}{157}
+\newcommand{\OppUnpunished}{41}
+\newcommand{\OppQPunished}{0.63}
+\newcommand{\OppQUnpunished}{0.27}
+\newcommand{\OppAuc}{0.81}
+\newcommand{\OppAucCI}{[0.73, 0.88]}
+\newcommand{\AllPlayerEvents}{334}
+\newcommand{\AllPlayerGames}{57}
+\newcommand{\AllPlayerPunished}{0.42}
+\newcommand{\AllPlayerBrier}{0.162}
+\newcommand{\AllPlayerBrierBase}{0.245}
+\newcommand{\AllPlayerBrierSize}{0.241}
+\newcommand{\AllPlayerBigErrors}{169}
+\newcommand{\AllPlayerUnpunished}{43}
+\newcommand{\AllPlayerQPunished}{0.57}
+\newcommand{\AllPlayerQUnpunished}{0.28}
+\newcommand{\AllPlayerAuc}{0.76}
+\newcommand{\AllPlayerAucCI}{[0.69, 0.83]}
+\newcommand{\AllOppEvents}{355}
+\newcommand{\AllOppGames}{60}
+\newcommand{\AllOppPunished}{0.43}
+\newcommand{\AllOppBrier}{0.151}
+\newcommand{\AllOppBrierBase}{0.246}
+\newcommand{\AllOppBrierSize}{0.238}
+\newcommand{\AllOppBigErrors}{175}
+\newcommand{\AllOppUnpunished}{39}
+\newcommand{\AllOppQPunished}{0.59}
+\newcommand{\AllOppQUnpunished}{0.25}
+\newcommand{\AllOppAuc}{0.80}
+\newcommand{\AllOppAucCI}{[0.73, 0.86]}
+\newcommand{\AppPrior}{0.44}
+\newcommand{\AllPlayerETwoDiff}{$-$0.001}
+\newcommand{\AllPlayerETwoCI}{[$-$0.031, 0.031]}
+\newcommand{\CalPlayer}{(0.038,0.086) += (0,0.100) -= (0,0.049) (0.147,0.200) += (0,0.191) -= (0,0.111) (0.312,0.298) += (0,0.142) -= (0,0.111) (0.503,0.567) += (0,0.160) -= (0,0.175) (0.713,0.700) += (0,0.119) -= (0,0.154) (0.909,0.860) += (0,0.074) -= (0,0.133)}
+\newcommand{\CalOpp}{(0.042,0.091) += (0,0.105) -= (0,0.051) (0.152,0.184) += (0,0.150) -= (0,0.092) (0.289,0.151) += (0,0.120) -= (0,0.072) (0.513,0.581) += (0,0.135) -= (0,0.148) (0.715,0.757) += (0,0.110) -= (0,0.158) (0.902,0.917) += (0,0.050) -= (0,0.112)}
+\newcommand{\CalTable}{%
+\begin{tabular}{lrrrrrr}
+\toprule
+ & \multicolumn{3}{c}{the player's errors} & \multicolumn{3}{c}{the opponents' errors} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+$q$ & mean $q$ & found & $n$ & mean $q$ & found & $n$ \\
+\midrule
+0.0--0.1 & 0.04 & 0.09 & 58 & 0.04 & 0.09 & 55 \\
+0.1--0.2 & 0.15 & 0.20 & 25 & 0.15 & 0.18 & 38 \\
+0.2--0.4 & 0.31 & 0.30 & 47 & 0.29 & 0.15 & 53$^{*}$ \\
+0.4--0.6 & 0.50 & 0.57 & 30 & 0.51 & 0.58 & 43 \\
+0.6--0.8 & 0.71 & 0.70 & 40 & 0.72 & 0.76 & 37 \\
+0.8--1.0 & 0.91 & 0.86 & 43 & 0.90 & 0.92 & 48 \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\SoftLo}{0.2}
+\newcommand{\SoftHi}{0.4}
+\newcommand{\SoftQ}{0.29}
+\newcommand{\SoftFound}{0.15}
+\newcommand{\SoftN}{53}
+\newcommand{\BigLoss}{20}
+\newcommand{\BigLossEvents}{58}
+\newcommand{\ExampleAQ}{0.954}
+\newcommand{\ExampleABand}{1200}
+\newcommand{\ExampleALoss}{23}
+\newcommand{\ExampleAError}{21\ldots{}\symrook{}cc2}
+\newcommand{\ExampleABest}{22.~\symqueen{}xd6}
+\newcommand{\ExampleAPlayed}{22.~\symqueen{}xd6}
+\newcommand{\ExampleA}{\input{example-a}}
+\newcommand{\ExampleBQ}{0.003}
+\newcommand{\ExampleBBand}{1300}
+\newcommand{\ExampleBLoss}{24}
+\newcommand{\ExampleBError}{7.~\symknight{}xd4}
+\newcommand{\ExampleBBest}{7\ldots{}e5}
+\newcommand{\ExampleBPlayed}{7\ldots{}\symbishop{}b4+}
+\newcommand{\ExampleB}{\input{example-b}}
+\newcommand{\RecomputedIdentical}{matches the records' results byte for byte}
+\newcommand{\RerunEvents}{684}
+\newcommand{\RecordedEvents}{689}
+\newcommand{\AppCommit}{\texttt{d8b7712}}
+\newcommand{\RecordsCommit}{\texttt{b3b827d}}
+\newcommand{\ReproTable}{%
+\begin{tabular}{llrrrrrrll}
+\toprule
+ & & \multicolumn{2}{c}{events} & \multicolumn{2}{c}{Brier, $q$} & \multicolumn{2}{c}{AUC} & \multicolumn{2}{c}{verdict} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}
+replies & to errors of & recorded & rerun & recorded & rerun & recorded & rerun & recorded & rerun \\
+\midrule
+verified & the player's & 243 & 245 & 0.162 & 0.160 & 0.80 & 0.76 & holds & holds \\
+verified & the opponents' & 274 & 276 & 0.145 & 0.146 & 0.81 & 0.85 & holds & holds \\
+all & the player's & 334 & 336 & 0.162 & 0.163 & 0.76 & 0.72 & holds & holds \\
+all & the opponents' & 355 & 348 & 0.151 & 0.147 & 0.80 & 0.83 & holds & holds \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\RerunBrierMove}{0.004}
+\newcommand{\RerunAucMove}{0.04}

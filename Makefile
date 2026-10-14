@@ -3,7 +3,7 @@ PIP ?= .venv/bin/pip
 CONFIG ?= configs/config.yaml
 PYTHON_BOOTSTRAP ?= $(shell command -v python3.12 2>/dev/null || command -v python3)
 
-.PHONY: setup data train eval reports test all benchmark concepts chess parity
+.PHONY: setup data train eval reports test all benchmark concepts chess parity papers
 
 setup:
 	test -d .venv || $(PYTHON_BOOTSTRAP) -m venv .venv
@@ -38,8 +38,21 @@ test:
 
 chess:
 	bridge/checkout.sh
+	bridge/checkout.sh records
 
 parity:
-	$(PYTHON) scripts/parity_winprob.py
+	$(PYTHON) projects/winprob-parity/parity.py
+
+# Each paper's numbers from what its project last wrote, then its PDF. The
+# projects' reproductions come first (projects/README.md gives the order).
+PAPERS := accuracy-vs-chesscom explain-top-move judge-in-context maia-punish winprob-parity
+
+papers:
+	bridge/run.sh projects/accuracy-vs-chesscom/paper/generate.mjs
+	bridge/run.sh projects/explain-top-move/paper/generate.mjs
+	bridge/run.sh projects/judge-in-context/paper/generate.mjs
+	bridge/run.sh projects/maia-punish/paper/generate.mjs
+	$(PYTHON) projects/winprob-parity/paper/generate.py
+	for p in $(PAPERS); do (cd projects/$$p/paper && latexmk -pdf -interaction=nonstopmode -halt-on-error paper.tex) || exit 1; done
 
 all: setup data eval reports

@@ -1,0 +1,376 @@
+{
+  "eval": "explain-top-move reproduction",
+  "chess": {
+    "pinned_commit": "d8b771238c11c84d0c4b2a8010bb75f5f756b8d9",
+    "records_commit": "b3b827d454e19454dd06f71414ee37ebf8ffd8bc"
+  },
+  "recomputed": {
+    "publishedLines": 27,
+    "matched": 27,
+    "missing": []
+  },
+  "rerun": {
+    "moments": 329,
+    "probes": {
+      "budget": {
+        "nodes": 600000
+      },
+      "kept": 88
+    },
+    "evidence": {
+      "documents": 60,
+      "versions": [
+        "review-evidence/5"
+      ],
+      "builds": [
+        "stockfish@18.0.8/stockfish-18-lite-single/nn-9067e33176e8"
+      ]
+    }
+  },
+  "judge": [
+    {
+      "round": "3",
+      "judged": "round3",
+      "moments": null,
+      "tally": {
+        "train": {
+          "new": 22,
+          "old": 0,
+          "same": 0
+        },
+        "test": {
+          "new": 18,
+          "old": 2,
+          "same": 0
+        }
+      },
+      "keepByRule": true,
+      "recordedReason": "judge model, pairwise and blind, two runs with the order reversed, identical on 21 of 21: the new text preferred on 22 of 22 train and 18 of 20 test comparisons; programmatic grades unchanged (the clause is not parsed); its 21 claims verified with chess.js"
+    },
+    {
+      "round": "4",
+      "judged": "round4",
+      "moments": null,
+      "tally": {
+        "train": {
+          "new": 8,
+          "old": 0,
+          "same": 0
+        },
+        "test": {
+          "new": 6,
+          "old": 0,
+          "same": 0
+        }
+      },
+      "keepByRule": true,
+      "recordedReason": "judge model, pairwise and blind, two runs: the new text preferred in all 14 comparisons"
+    },
+    {
+      "round": "5",
+      "judged": "round5",
+      "moments": null,
+      "tally": {
+        "train": {
+          "new": 6,
+          "old": 6,
+          "same": 10
+        },
+        "test": {
+          "new": 14,
+          "old": 2,
+          "same": 12
+        }
+      },
+      "keepByRule": false,
+      "recordedReason": "train 4 new vs 6 old (test 10 vs 2): the picture hurt mates of 8 to 13 moves"
+    },
+    {
+      "round": "6",
+      "judged": "round5",
+      "moments": 17,
+      "tally": {
+        "train": {
+          "new": 4,
+          "old": 0,
+          "same": 8
+        },
+        "test": {
+          "new": 10,
+          "old": 0,
+          "same": 12
+        }
+      },
+      "keepByRule": true,
+      "recordedReason": "round 5's picture limited to mates of three to seven moves with no promotion; on its 17 moments (texts the judge compared blind in round 5) the new text preferred 10 to 0 on test and 4 to 0 on train"
+    },
+    {
+      "round": "7",
+      "judged": "round7",
+      "moments": null,
+      "tally": {
+        "train": {
+          "new": 48,
+          "old": 3,
+          "same": 15
+        },
+        "test": {
+          "new": 40,
+          "old": 1,
+          "same": 9
+        }
+      },
+      "keepByRule": true,
+      "recordedReason": "what a capture the better line declines would cost, from a search of it. Round 7's runs: 48 to 3 train, 40 to 1 test. Its material clause then said 'you are N up' for a gain (false on the board in 6 moments); v7b says 'you have won N', and its 16 changed moments, judged again against v6: 20 to 0 train, 12 to 0 test. On the final texts: 51 to 0 train, 41 to 0 test"
+    },
+    {
+      "round": "7b",
+      "judged": "round7b",
+      "moments": null,
+      "tally": {
+        "train": {
+          "new": 20,
+          "old": 0,
+          "same": 0
+        },
+        "test": {
+          "new": 12,
+          "old": 0,
+          "same": 0
+        }
+      },
+      "keepByRule": true,
+      "recordedReason": null
+    },
+    {
+      "round": "7 and 7b",
+      "judged": "round7 then round7b",
+      "moments": null,
+      "tally": {
+        "train": {
+          "new": 51,
+          "old": 0,
+          "same": 15
+        },
+        "test": {
+          "new": 41,
+          "old": 0,
+          "same": 9
+        }
+      },
+      "keepByRule": true,
+      "recordedReason": "what a capture the better line declines would cost, from a search of it. Round 7's runs: 48 to 3 train, 40 to 1 test. Its material clause then said 'you are N up' for a gain (false on the board in 6 moments); v7b says 'you have won N', and its 16 changed moments, judged again against v6: 20 to 0 train, 12 to 0 test. On the final texts: 51 to 0 train, 41 to 0 test"
+    },
+    {
+      "round": "8",
+      "judged": "round8",
+      "moments": null,
+      "tally": {
+        "train": {
+          "new": 50,
+          "old": 0,
+          "same": 0
+        },
+        "test": {
+          "new": 20,
+          "old": 0,
+          "same": 0
+        }
+      },
+      "keepByRule": true,
+      "recordedReason": "the right move too early: the played move in the best line at the mover's next or second turn is said, with the line, in the difference and the takeaway; 50 to 0 train, 20 to 0 test"
+    },
+    {
+      "round": "9",
+      "judged": "round9",
+      "moments": null,
+      "tally": {
+        "train": {
+          "new": 1,
+          "old": 35,
+          "same": 0
+        },
+        "test": {
+          "new": 0,
+          "old": 12,
+          "same": 0
+        }
+      },
+      "keepByRule": false,
+      "recordedReason": "skipping capture answers a pawn plainly guards, and stopping at an unanswered natural capture: train 1 new vs 35 old, test 0 vs 12; the judges prefer an answer to 'can it just be taken?' even when the guard is a pawn"
+    }
+  ],
+  "kept": "v8",
+  "rows": [
+    {
+      "split": "test",
+      "recordedBaseline": {
+        "faithful": {
+          "est": 90.1,
+          "lo": 84.2,
+          "hi": 95.9,
+          "moments": 152
+        },
+        "concrete": {
+          "est": 75,
+          "lo": 65.3,
+          "hi": 83.6,
+          "moments": 152
+        },
+        "named_deep": {
+          "est": 94.1,
+          "lo": 89.7,
+          "hi": 97.9,
+          "moments": 152
+        },
+        "faithfulAll": {
+          "est": 89.5,
+          "lo": 83.3,
+          "hi": 95.2,
+          "moments": 152
+        }
+      },
+      "recordedKept": {
+        "faithful": {
+          "est": 100,
+          "lo": 100,
+          "hi": 100,
+          "moments": 152
+        },
+        "concrete": {
+          "est": 82.9,
+          "lo": 72,
+          "hi": 91.4,
+          "moments": 152
+        },
+        "named_deep": {
+          "est": 94.1,
+          "lo": 89.7,
+          "hi": 97.9,
+          "moments": 152
+        },
+        "faithfulAll": {
+          "est": 99.3,
+          "lo": 97.8,
+          "hi": 100,
+          "moments": 152
+        }
+      },
+      "app": {
+        "faithful": {
+          "est": 100,
+          "lo": 100,
+          "hi": 100,
+          "moments": 152
+        },
+        "concrete": {
+          "est": 82.9,
+          "lo": 73.9,
+          "hi": 90.5,
+          "moments": 152
+        },
+        "named_deep": {
+          "est": 94.1,
+          "lo": 89.7,
+          "hi": 97.8,
+          "moments": 152
+        },
+        "faithfulAll": {
+          "est": 99.3,
+          "lo": 97.7,
+          "hi": 100,
+          "moments": 152
+        }
+      },
+      "momentsApp": 152,
+      "momentsKept": 152,
+      "sharedMoments": 146,
+      "sharedSameGrades": 130
+    },
+    {
+      "split": "train",
+      "recordedBaseline": {
+        "faithful": {
+          "est": 87.6,
+          "lo": 83,
+          "hi": 91.7,
+          "moments": 177
+        },
+        "concrete": {
+          "est": 78,
+          "lo": 70.7,
+          "hi": 84.2,
+          "moments": 177
+        },
+        "named_deep": {
+          "est": 92.1,
+          "lo": 86.8,
+          "hi": 97.1,
+          "moments": 177
+        },
+        "faithfulAll": {
+          "est": 87.6,
+          "lo": 82.9,
+          "hi": 91.8,
+          "moments": 177
+        }
+      },
+      "recordedKept": {
+        "faithful": {
+          "est": 99.4,
+          "lo": 98.1,
+          "hi": 100,
+          "moments": 177
+        },
+        "concrete": {
+          "est": 84.7,
+          "lo": 78.9,
+          "hi": 89.8,
+          "moments": 177
+        },
+        "named_deep": {
+          "est": 92.1,
+          "lo": 86.8,
+          "hi": 97.1,
+          "moments": 177
+        },
+        "faithfulAll": {
+          "est": 99.4,
+          "lo": 98.2,
+          "hi": 100,
+          "moments": 177
+        }
+      },
+      "app": {
+        "faithful": {
+          "est": 99.4,
+          "lo": 98.1,
+          "hi": 100,
+          "moments": 177
+        },
+        "concrete": {
+          "est": 83.6,
+          "lo": 77,
+          "hi": 89.4,
+          "moments": 177
+        },
+        "named_deep": {
+          "est": 92.1,
+          "lo": 86.7,
+          "hi": 97.2,
+          "moments": 177
+        },
+        "faithfulAll": {
+          "est": 99.4,
+          "lo": 98.1,
+          "hi": 100,
+          "moments": 177
+        }
+      },
+      "momentsApp": 177,
+      "momentsKept": 177,
+      "sharedMoments": 171,
+      "sharedSameGrades": 160
+    }
+  ]
+}

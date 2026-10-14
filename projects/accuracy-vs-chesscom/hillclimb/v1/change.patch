@@ -1,0 +1,63 @@
+diff --git a/src/services/review/accuracy.ts b/src/services/review/accuracy.ts
+index ffd4328..b9b0121 100644
+--- a/src/services/review/accuracy.ts
++++ b/src/services/review/accuracy.ts
+@@ -10,21 +10,18 @@ import type { ReviewClass } from './classify/refine'
+ import type { PlayerSummary, PlyRecord } from './types'
+ 
+ /**
+- * Lichess's published accuracy curve: per-move win%-loss to a 0-100 score
+- * (https://lichess.org/page/accuracy), including their flat +1 uncertainty
+- * bonus: the search is an estimate, and the bonus keeps a perfectly held
+- * move from grading 99.99 for rounding reasons.
+- *
+- * This is the app's own Lichess-derived metric, not CAPS2 and not a claim of
+- * exact Lichess parity.
++ * Per-move win%-loss to a 0-100 score: Lichess's curve shape and offsets (the
++ * flat +1 uncertainty bonus keeps a perfectly held move from grading 99.99 for
++ * rounding reasons) with a steeper decay, so a plain mean of these scores
++ * tracks chess.com's game accuracy. Not a claim of Lichess parity.
+  */
+ export function moveAccuracy(lossPct: number): number {
+-  const a = 103.1668100711649 * Math.exp(-0.04354415386753951 * lossPct) - 3.166924740191411 + 1
++  const a = 103.1668100711649 * Math.exp(-0.14 * lossPct) - 3.166924740191411 + 1
+   return Math.max(0, Math.min(100, a))
+ }
+ 
+ /** The scoring instrument's identity, stored with every summary. */
+-export const ACCURACY_MODEL = 'coach-accuracy/2-lichess-derived'
++export const ACCURACY_MODEL = 'coach-accuracy/3-plain-mean-steep'
+ 
+ /** Sample standard deviation; 0 below two points. */
+ export function stdev(xs: number[]): number {
+@@ -64,24 +61,15 @@ export function volatilityWeights(winSeq: number[], windowSize: number): number[
+ }
+ 
+ /**
+- * Game accuracy: the mean of the volatility-weighted mean and the harmonic
+- * mean of per-move accuracies. The weighted half makes sharp-phase moves
+- * count more; the harmonic half makes a single blunder cost what it feels
+- * like.
++ * Game accuracy: the plain mean of per-move accuracies. The volatility weights
++ * are no longer applied here: under the steep per-move curve their weighted
++ * mean falls far below the plain mean, so they are not part of this instrument.
+  */
+ export function gameAccuracy(pairs: Array<{ acc: number; weight: number }>): number | null {
+   if (pairs.length === 0) return null
+-  let accW = 0
+-  let wSum = 0
+-  let invSum = 0
+-  for (const { acc, weight } of pairs) {
+-    accW += acc * weight
+-    wSum += weight
+-    invSum += 1 / acc // acc 0 → Infinity → harmonic 0, the intended floor
+-  }
+-  const weighted = wSum > 0 ? accW / wSum : 0
+-  const harmonic = pairs.length / invSum
+-  return (weighted + harmonic) / 2
++  let sum = 0
++  for (const { acc } of pairs) sum += acc
++  return sum / pairs.length
+ }
+ 
+ export function emptyCounts(): Record<ReviewClass, number> {

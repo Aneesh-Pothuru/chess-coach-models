@@ -1,0 +1,816 @@
+{
+  "eval": "maia-punish reproduction",
+  "chess": {
+    "pinned_commit": "d8b771238c11c84d0c4b2a8010bb75f5f756b8d9",
+    "records_commit": "b3b827d454e19454dd06f71414ee37ebf8ffd8bc"
+  },
+  "recomputedIdentical": true,
+  "events": {
+    "recorded": 689,
+    "rerun": 684
+  },
+  "rows": [
+    {
+      "key": "EXACT|player-err",
+      "recorded": {
+        "key": "EXACT|player-err",
+        "events": 243,
+        "games": 57,
+        "punished": 106,
+        "meanQ": 0.42492518509001775,
+        "brierMaia": 0.16219241126543396,
+        "brierBaseRate": 0.2488658644721983,
+        "brierLossOnly": 0.2364032275243217,
+        "verdict": "HOLDS",
+        "aucStep5": 0.7996289424860853
+      },
+      "rerun": {
+        "key": "EXACT|player-err",
+        "events": 245,
+        "games": 56,
+        "punished": 104,
+        "meanQ": 0.4202940299335012,
+        "brierMaia": 0.15995037253614766,
+        "brierBaseRate": 0.24704615578387876,
+        "brierLossOnly": 0.23410527586849392,
+        "verdict": "HOLDS",
+        "aucStep5": 0.7550835148874364
+      }
+    },
+    {
+      "key": "EXACT|opp-err",
+      "recorded": {
+        "key": "EXACT|opp-err",
+        "events": 274,
+        "games": 59,
+        "punished": 117,
+        "meanQ": 0.4205160119877382,
+        "brierMaia": 0.1445390936111526,
+        "brierBaseRate": 0.2468375382322443,
+        "brierLossOnly": 0.2314889349207479,
+        "verdict": "HOLDS",
+        "aucStep5": 0.8130434782608695
+      },
+      "rerun": {
+        "key": "EXACT|opp-err",
+        "events": 276,
+        "games": 60,
+        "punished": 123,
+        "meanQ": 0.4261640998553338,
+        "brierMaia": 0.14629348992824942,
+        "brierBaseRate": 0.24918863564649915,
+        "brierLossOnly": 0.2368163245248621,
+        "verdict": "HOLDS",
+        "aucStep5": 0.8487922705314009
+      }
+    },
+    {
+      "key": "ALL|player-err",
+      "recorded": {
+        "key": "ALL|player-err",
+        "events": 334,
+        "games": 57,
+        "punished": 140,
+        "meanQ": 0.4041561336508052,
+        "brierMaia": 0.16186913692230243,
+        "brierBaseRate": 0.2453508075610757,
+        "brierLossOnly": 0.24105328887885213,
+        "verdict": "HOLDS",
+        "aucStep5": 0.759020618556701
+      },
+      "rerun": {
+        "key": "ALL|player-err",
+        "events": 336,
+        "games": 58,
+        "punished": 138,
+        "meanQ": 0.40545609278634903,
+        "brierMaia": 0.16341997522378396,
+        "brierBaseRate": 0.2438687265617156,
+        "brierLossOnly": 0.23978828390514115,
+        "verdict": "HOLDS",
+        "aucStep5": 0.7209989258861439
+      }
+    },
+    {
+      "key": "ALL|opp-err",
+      "recorded": {
+        "key": "ALL|opp-err",
+        "events": 355,
+        "games": 60,
+        "punished": 151,
+        "meanQ": 0.40535168258072507,
+        "brierMaia": 0.15087345847733027,
+        "brierBaseRate": 0.2460510979440338,
+        "brierLossOnly": 0.23794120820659487,
+        "verdict": "HOLDS",
+        "aucStep5": 0.7961443806398687
+      },
+      "rerun": {
+        "key": "ALL|opp-err",
+        "events": 348,
+        "games": 60,
+        "punished": 156,
+        "meanQ": 0.40983491856810217,
+        "brierMaia": 0.14694380115341393,
+        "brierBaseRate": 0.24899269599101928,
+        "brierLossOnly": 0.24221452607551225,
+        "verdict": "HOLDS",
+        "aucStep5": 0.8288888888888889
+      }
+    }
+  ],
+  "calibration": {
+    "recorded": {
+      "EXACT|player-err": [
+        {
+          "lo": 0,
+          "hi": 0.1,
+          "n": 58,
+          "meanQ": 0.038312745455854814,
+          "observed": 0.08620689655172414,
+          "wilson": [
+            0.037385383126191135,
+            0.18643629062873543
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.1,
+          "hi": 0.2,
+          "n": 25,
+          "meanQ": 0.1465748100265476,
+          "observed": 0.2,
+          "wilson": [
+            0.08860584686802572,
+            0.3913095036954033
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.2,
+          "hi": 0.4,
+          "n": 47,
+          "meanQ": 0.3120887627369199,
+          "observed": 0.2978723404255319,
+          "wilson": [
+            0.18651250504604835,
+            0.4397767391904607
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.4,
+          "hi": 0.6,
+          "n": 30,
+          "meanQ": 0.5030736513899016,
+          "observed": 0.5666666666666667,
+          "wilson": [
+            0.3919730700081361,
+            0.7262251442353347
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.6,
+          "hi": 0.8,
+          "n": 40,
+          "meanQ": 0.712995630914248,
+          "observed": 0.7,
+          "wilson": [
+            0.5456998118185507,
+            0.8192515477025347
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.8,
+          "hi": 1,
+          "n": 43,
+          "meanQ": 0.9090721828574139,
+          "observed": 0.8604651162790697,
+          "wilson": [
+            0.7273641203261714,
+            0.9344427657203511
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        }
+      ],
+      "EXACT|opp-err": [
+        {
+          "lo": 0,
+          "hi": 0.1,
+          "n": 55,
+          "meanQ": 0.042214646595676614,
+          "observed": 0.09090909090909091,
+          "wilson": [
+            0.03945815507418035,
+            0.1957749458397994
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.1,
+          "hi": 0.2,
+          "n": 38,
+          "meanQ": 0.15176811512001903,
+          "observed": 0.18421052631578946,
+          "wilson": [
+            0.09221765185221271,
+            0.334188580711314
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.2,
+          "hi": 0.4,
+          "n": 53,
+          "meanQ": 0.2890965688213046,
+          "observed": 0.1509433962264151,
+          "wilson": [
+            0.07852417850846262,
+            0.27054249276195336
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": true
+        },
+        {
+          "lo": 0.4,
+          "hi": 0.6,
+          "n": 43,
+          "meanQ": 0.5132317124031766,
+          "observed": 0.5813953488372093,
+          "wilson": [
+            0.4332857738696422,
+            0.7161544907215082
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.6,
+          "hi": 0.8,
+          "n": 37,
+          "meanQ": 0.7150093990312942,
+          "observed": 0.7567567567567568,
+          "wilson": [
+            0.5988270787855735,
+            0.8663864701088361
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.8,
+          "hi": 1,
+          "n": 48,
+          "meanQ": 0.9017909125477858,
+          "observed": 0.9166666666666666,
+          "wilson": [
+            0.8044669820963272,
+            0.9671162431819081
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        }
+      ],
+      "ALL|player-err": [
+        {
+          "lo": 0,
+          "hi": 0.1,
+          "n": 84,
+          "meanQ": 0.03944806298059381,
+          "observed": 0.09523809523809523,
+          "wilson": [
+            0.049051709909559385,
+            0.17682635594992718
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.1,
+          "hi": 0.2,
+          "n": 46,
+          "meanQ": 0.1443866651373512,
+          "observed": 0.17391304347826086,
+          "wilson": [
+            0.09085791702246311,
+            0.30723353716378493
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.2,
+          "hi": 0.4,
+          "n": 60,
+          "meanQ": 0.3088542358552206,
+          "observed": 0.3333333333333333,
+          "wilson": [
+            0.2272926152352268,
+            0.4594313354788031
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.4,
+          "hi": 0.6,
+          "n": 36,
+          "meanQ": 0.5070542062722491,
+          "observed": 0.5555555555555556,
+          "wilson": [
+            0.395810617556973,
+            0.7045873125991978
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.6,
+          "hi": 0.8,
+          "n": 50,
+          "meanQ": 0.7143667770910297,
+          "observed": 0.7,
+          "wilson": [
+            0.562496495355466,
+            0.8089644649911906
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.8,
+          "hi": 1,
+          "n": 58,
+          "meanQ": 0.9056755227761232,
+          "observed": 0.8448275862068966,
+          "wilson": [
+            0.730660191401075,
+            0.9161550804698196
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        }
+      ],
+      "ALL|opp-err": [
+        {
+          "lo": 0,
+          "hi": 0.1,
+          "n": 75,
+          "meanQ": 0.04251979693066908,
+          "observed": 0.06666666666666667,
+          "wilson": [
+            0.02881006289949372,
+            0.14675060058560468
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.1,
+          "hi": 0.2,
+          "n": 56,
+          "meanQ": 0.1484053857346273,
+          "observed": 0.25,
+          "wilson": [
+            0.15517054688270684,
+            0.376926421476675
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": true
+        },
+        {
+          "lo": 0.2,
+          "hi": 0.4,
+          "n": 66,
+          "meanQ": 0.2942719665488541,
+          "observed": 0.21212121212121213,
+          "wilson": [
+            0.13077985107923806,
+            0.3251307120497705
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.4,
+          "hi": 0.6,
+          "n": 50,
+          "meanQ": 0.50776417627121,
+          "observed": 0.56,
+          "wilson": [
+            0.4230602802165686,
+            0.6883780078874284
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.6,
+          "hi": 0.8,
+          "n": 48,
+          "meanQ": 0.6972114584319701,
+          "observed": 0.7083333333333334,
+          "wilson": [
+            0.5682074019042831,
+            0.8175842107348348
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.8,
+          "hi": 1,
+          "n": 60,
+          "meanQ": 0.902064205578311,
+          "observed": 0.9333333333333333,
+          "wilson": [
+            0.8407464268680283,
+            0.9737713012754938
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        }
+      ]
+    },
+    "rerun": {
+      "EXACT|player-err": [
+        {
+          "lo": 0,
+          "hi": 0.1,
+          "n": 61,
+          "meanQ": 0.03884571036960839,
+          "observed": 0.08196721311475409,
+          "wilson": [
+            0.03551956660687358,
+            0.17794661802925352
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.1,
+          "hi": 0.2,
+          "n": 25,
+          "meanQ": 0.1452420866185153,
+          "observed": 0.2,
+          "wilson": [
+            0.08860584686802572,
+            0.3913095036954033
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.2,
+          "hi": 0.4,
+          "n": 46,
+          "meanQ": 0.31016162339263004,
+          "observed": 0.2826086956521739,
+          "wilson": [
+            0.17324202381870632,
+            0.425485612305459
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.4,
+          "hi": 0.6,
+          "n": 30,
+          "meanQ": 0.505799524768973,
+          "observed": 0.5666666666666667,
+          "wilson": [
+            0.3919730700081361,
+            0.7262251442353347
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.6,
+          "hi": 0.8,
+          "n": 40,
+          "meanQ": 0.7109968138424948,
+          "observed": 0.675,
+          "wilson": [
+            0.5201774618987768,
+            0.799154977682173
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.8,
+          "hi": 1,
+          "n": 43,
+          "meanQ": 0.9090721828574139,
+          "observed": 0.8604651162790697,
+          "wilson": [
+            0.7273641203261714,
+            0.9344427657203511
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        }
+      ],
+      "EXACT|opp-err": [
+        {
+          "lo": 0,
+          "hi": 0.1,
+          "n": 51,
+          "meanQ": 0.04681859005708551,
+          "observed": 0.0784313725490196,
+          "wilson": [
+            0.03092219678848919,
+            0.18499946312595889
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.1,
+          "hi": 0.2,
+          "n": 41,
+          "meanQ": 0.14996805383164036,
+          "observed": 0.1951219512195122,
+          "wilson": [
+            0.10234437385158025,
+            0.3401358518706343
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.2,
+          "hi": 0.4,
+          "n": 52,
+          "meanQ": 0.29868348142478335,
+          "observed": 0.21153846153846154,
+          "wilson": [
+            0.12244370532487485,
+            0.34032104628504567
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.4,
+          "hi": 0.6,
+          "n": 47,
+          "meanQ": 0.5085706469683253,
+          "observed": 0.5531914893617021,
+          "wilson": [
+            0.41245459838218734,
+            0.6858903373450472
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.6,
+          "hi": 0.8,
+          "n": 37,
+          "meanQ": 0.707527861580187,
+          "observed": 0.8108108108108109,
+          "wilson": [
+            0.6579530307016159,
+            0.9052002126968799
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.8,
+          "hi": 1,
+          "n": 48,
+          "meanQ": 0.905665852916595,
+          "observed": 0.9166666666666666,
+          "wilson": [
+            0.8044669820963272,
+            0.9671162431819081
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        }
+      ],
+      "ALL|player-err": [
+        {
+          "lo": 0,
+          "hi": 0.1,
+          "n": 85,
+          "meanQ": 0.03993862327363051,
+          "observed": 0.09411764705882353,
+          "wilson": [
+            0.04846506129221763,
+            0.17487051968624767
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.1,
+          "hi": 0.2,
+          "n": 46,
+          "meanQ": 0.14494177246280293,
+          "observed": 0.17391304347826086,
+          "wilson": [
+            0.09085791702246311,
+            0.30723353716378493
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.2,
+          "hi": 0.4,
+          "n": 59,
+          "meanQ": 0.3074174006705504,
+          "observed": 0.3220338983050847,
+          "wilson": [
+            0.21687575241885632,
+            0.44894995573474633
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.4,
+          "hi": 0.6,
+          "n": 36,
+          "meanQ": 0.5093257674214753,
+          "observed": 0.5555555555555556,
+          "wilson": [
+            0.395810617556973,
+            0.7045873125991978
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.6,
+          "hi": 0.8,
+          "n": 51,
+          "meanQ": 0.7105979323492303,
+          "observed": 0.6470588235294118,
+          "wilson": [
+            0.5098605845450523,
+            0.7636551154847915
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.8,
+          "hi": 1,
+          "n": 59,
+          "meanQ": 0.9060558279342251,
+          "observed": 0.847457627118644,
+          "wilson": [
+            0.7348201621622644,
+            0.9176153600140352
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        }
+      ],
+      "ALL|opp-err": [
+        {
+          "lo": 0,
+          "hi": 0.1,
+          "n": 71,
+          "meanQ": 0.04529787452045215,
+          "observed": 0.056338028169014086,
+          "wilson": [
+            0.022124519301696642,
+            0.13609605799976943
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.1,
+          "hi": 0.2,
+          "n": 57,
+          "meanQ": 0.14917543213077344,
+          "observed": 0.24561403508771928,
+          "wilson": [
+            0.15232837470290395,
+            0.37102296232755894
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.2,
+          "hi": 0.4,
+          "n": 63,
+          "meanQ": 0.3047298056943236,
+          "observed": 0.2698412698412698,
+          "wilson": [
+            0.17583844412315988,
+            0.39029909219551784
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.4,
+          "hi": 0.6,
+          "n": 53,
+          "meanQ": 0.5035369853197095,
+          "observed": 0.5471698113207547,
+          "wilson": [
+            0.414539754871058,
+            0.6734242084707774
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.6,
+          "hi": 0.8,
+          "n": 44,
+          "meanQ": 0.6969514658107955,
+          "observed": 0.8181818181818182,
+          "wilson": [
+            0.6803944911281533,
+            0.9048719428437227
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        },
+        {
+          "lo": 0.8,
+          "hi": 1,
+          "n": 60,
+          "meanQ": 0.9058683410488556,
+          "observed": 0.9333333333333333,
+          "wilson": [
+            0.8407464268680283,
+            0.9737713012754938
+          ],
+          "tested": true,
+          "violates": false,
+          "altViolates": false
+        }
+      ]
+    }
+  }
+}

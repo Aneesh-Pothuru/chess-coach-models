@@ -1,0 +1,181 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Win probability in the lab and in the app\\[0.3em]
+\large One curve, two clamps, and the move labels they can change}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The lab and the coaching app turn an engine evaluation into a win probability with the same
+curve, the logistic Lichess fits on its games, with a slope of \Slope{} per centipawn. They
+clamp it differently: the lab clamps the evaluation at $\pm\LabClampPawns$ pawns and reads
+every mate as that clamp, while the app clamps at $\pm\AppClampPawns$ pawns and reads mate in
+$n$ as $\pm(\AppClamp - \MateStep n)$ centipawns. We evaluated both at \AllPoints{} evaluations, the app's
+through its own code at commit \AppCommit. Within $\pm\LabClampPawns$ pawns the two agree at
+every point. Past it the lab holds every evaluation, mates included, at \LabCeiling\% for the
+side ahead, while the app goes on to 100\%: a gap of up to \MaxGap{} points. The lab's move
+labels (a loss of more than \CandidateThreshold{} or \BlunderThreshold{} points of the mover's
+win probability) can therefore differ from the same labels read on the app's curve, but only
+for a move that starts more than \LabClampPawns{} pawns ahead or ends more than
+\LabClampPawns{} pawns behind, and only by one step, the lab's being the milder.
+\end{abstract}
+
+\section{Why the two must agree}
+
+The lab trains its models on labels read from win probability. Its data pipeline marks a move
+as a blunder when it costs the mover more than \BlunderThreshold{} points of win probability
+(the blunder hazard model's target, and the early traps the repertoire optimizer counts), and
+the graded-opponent scorer keeps a move as a candidate when it costs more than
+\CandidateThreshold. A model that wins in the lab is ported to the app, and the app computes its
+own verdicts from its own win probability. If the two curves differ, a label the lab trained on
+means something else once the model runs in the app.
+
+The lab never re-implements an app instrument to compare against it. This check calls the
+app's own function (\texttt{winPercent} in \texttt{src/core/score}) at the commit the lab pins,
+through the lab's bridge, and compares it with the lab's (\texttt{win\_percent} in
+\texttt{chess\_coach\_models.winprob}).
+
+\section{One curve, two clamps}
+
+Both sides compute White's win probability from an evaluation of $x$ centipawns from White's
+side as
+\[
+  W(x) \;=\; 50 + 50\left(\frac{2}{1+e^{-kx}} - 1\right),\qquad k = \Slope,
+\]
+and differ only in what they feed it.
+
+\begin{itemize}[nosep]
+\item \textbf{The lab} clamps $x$ to $\pm\LabClamp$ before the curve, as Lichess does. A mate
+from a game's annotations, or from the engine, becomes $\pm\MateCp$ (or within a few
+centipawns of it) and is then clamped like any other evaluation, so every mate reads
+\LabCeiling\% for the side delivering it and \LabFloor\% for the side receiving it.
+\item \textbf{The app} clamps $x$ to $\pm\AppClamp$ and reads mate in $n$ as $\pm(\AppClamp - \MateStep n)$,
+so a mate reads as won, a little less won the further off it is. Its code notes that the wider clamp
+is the one every number it has stored was computed with. A finished game or a tablebase result
+reads exactly 100, 50 or 0; the lab has no such reading, and this check leaves it out.
+\end{itemize}
+
+\section{Method}
+
+Both functions were evaluated at every evaluation from $\GridMinPawns$ to $+\GridMaxPawns$ pawns
+in steps of \GridStepPawns{} pawns and at mate in 1 to \MateMax{} for either side: \AllPoints{} points, \SharedPoints{} of
+them within the lab's clamp. The lab's side runs in Python, the app's in Node under the app's
+own toolchain at \AppCommit{} (\texttt{parity.py} sends the evaluations to \texttt{app.mts} on
+standard input and reads White's win probability back). The check fails if any point within
+$\pm\LabClampPawns$ pawns differs by more than $10^{\TolerancePower}$ points, the room left for the two
+languages' exponentials to differ in the last bit. Past the clamp it reports, for each range,
+the largest gap and where it falls.
+
+\section{Results}
+
+Within $\pm\LabClampPawns$ pawns the two curves \SharedAgrees{} at all \SharedPoints{} points
+(the largest difference rounds to \SharedMaxGap{} at six decimals). Past the clamp they part as
+designed (Table~\ref{tab:parity}, Figure~\ref{fig:curves}): the lab's curve is flat at
+\LabCeiling\% while the app's keeps rising, and from \WonAtPawns{} pawns on the app reads the side
+ahead as won to within \WonWithin{} points. Every mate shows the full gap, \MaxGap{} points, because
+the lab reads it at the clamp and the app at 100\% less a sliver.
+
+\begin{table}[!htbp]
+\centering\small
+\ParityTable
+\caption{White's win probability in the lab and in the app, in percentage points: the largest gap
+in each range, the first evaluation where it occurs, and the two readings there. Within the lab's
+clamp the gap is zero at every point.}
+\label{tab:parity}
+\end{table}
+
+\begin{figure}[!htbp]
+\centering
+\begin{subfigure}{0.49\textwidth}\centering
+\begin{tikzpicture}
+\begin{axis}[scale only axis, width=0.78\linewidth, height=4.4cm,
+  xlabel={evaluation, pawns (White's side)}, ylabel={White's win \%}, xmin=0, xmax=\FigurePawns, ymin=50, ymax=101, grid=major,
+  legend pos=south east, legend cell align=left]
+\addplot[thick, black] table[col sep=comma, x expr=\thisrow{cp}/100, y=app,
+  restrict x to domain=0:\FigurePawns] {../results/parity_winprob_curve.csv};
+\addlegendentry{app}
+\addplot[thick, red!70!black, dashed] table[col sep=comma, x expr=\thisrow{cp}/100, y=lab,
+  restrict x to domain=0:\FigurePawns] {../results/parity_winprob_curve.csv};
+\addlegendentry{lab}
+\draw[gray, densely dotted] (axis cs:\LabClampPawns,50) -- (axis cs:\LabClampPawns,101);
+\end{axis}
+\end{tikzpicture}
+\caption{The two curves. The dotted line is the lab's clamp.}
+\end{subfigure}\hfill
+\begin{subfigure}{0.49\textwidth}\centering
+\begin{tikzpicture}
+\begin{axis}[scale only axis, width=0.78\linewidth, height=4.4cm,
+  xlabel={evaluation, pawns (White's side)}, ylabel={app $-$ lab, points}, xmin=0, xmax=\FigurePawns, ymin=0, ymax=\GapAxisMax, grid=major]
+\addplot[thick, black] table[col sep=comma, x expr=\thisrow{cp}/100,
+  y expr=\thisrow{app}-\thisrow{lab}, restrict x to domain=0:\FigurePawns]
+  {../results/parity_winprob_curve.csv};
+\end{axis}
+\end{tikzpicture}
+\caption{The gap. It is zero up to the clamp and approaches \MaxGap{} points past it.}
+\end{subfigure}
+\caption{White's win probability for White's evaluations from level to \FigurePawns{} pawns ahead, every half
+pawn, both columns written by \texttt{parity.py}. Black's side is the mirror image.}
+\label{fig:curves}
+\end{figure}
+
+\section{Which labels can change}
+
+A move's label depends on its loss, the mover's win probability before the move less the one
+after. Read from the mover's side, the two curves give the same loss when both evaluations lie
+within the clamp, and the same label when both lie past it on the same side (a loss of at most
+\MaxGap{} points either way, too small for any label) or on opposite sides (a change of more than
+\CrossLoss{} points on either curve: a blunder on both, or a gain on both). A label can differ only when one evaluation lies
+past the clamp and the other within it, and of those only a move that starts more than
+\LabClampPawns{} pawns ahead, or ends more than \LabClampPawns{} pawns behind, has a positive loss
+to label. There the lab's loss is smaller than the app's by the gap between the two readings of
+the evaluation past the clamp, at most \MaxGap{} points, so the lab's label is one step milder
+whenever the app's loss exceeds a threshold by no more than that gap.
+
+\paragraph{The claim, checked.} Over every move from one evaluation to another on a grid of
+\GridPoints{} evaluations (every half pawn from $\GridMinPawns$ to $+\GridMaxPawns$; \GridPairs{}
+pairs, both curves as \texttt{parity.py} wrote them), \GridDiffer{} get different labels: \GridBlunderToCandidate{}
+blunders on the app's curve are candidates in the lab, and \GridCandidateToNone{} candidates on
+the app's curve are unlabelled in the lab. Every one starts more than \LabClampPawns{} pawns ahead
+for the mover or ends more than \LabClampPawns{} pawns behind, in every one the lab's label is one
+step milder, and no window is wider than \GridWidest{} points. \texttt{generate.py} checks all
+three and refuses to write this paper if any fails. The counts say how many grid pairs are
+affected, not how many moves in real games are.
+
+\paragraph{An example.} A player who is \ExampleFrom{} pawns up plays a move that leaves them
+\ExampleTo{} pawns up, the smallest such drop the app's curve calls a blunder. The app reads the
+position before at \ExampleAppBefore\% and after at \ExampleAfter\%, a loss of
+\ExampleAppLoss{} points: a blunder. The lab reads the position before at \ExampleLabBefore\% and
+after at the same \ExampleAfter\%, a loss of \ExampleLabLoss{} points: a candidate, not a
+blunder. In a won position, the lab forgives a little more.
+
+\section{What a port has to decide}
+
+Which clamp a ported model uses is decided in its port, not here. A model whose labels or
+features were computed with the lab's clamp either keeps that clamp inside the port and says so,
+or is retrained on labels read from the app's curve. This check is how either choice stays
+honest: it runs again whenever the lab moves its pin to a new app commit (\texttt{make parity}),
+and fails if the curves ever differ within the clamp.
+
+\section{Reproduction}
+
+\texttt{parity.py} writes the report (\texttt{results/parity\_winprob.json} and \texttt{.md}) and
+the curve every half pawn (\texttt{results/parity\_winprob\_curve.csv}) from the app at
+\AppCommit; \texttt{paper/generate.py} reads those files, the lab's thresholds and the lab's own
+curve, and writes every number this paper prints. The app's repository is private, so the check
+runs where the bridge can read it, and its results are committed with the commit they measured.
+
+\section{Limitations}
+
+\begin{itemize}[nosep]
+\item The grid is uniform in evaluation. How often real moves fall in the window where a label
+differs, on Lichess games at the levels the lab trains on, is not measured here.
+\item Only evaluations and mates are compared. A finished game or a tablebase result, which the
+app reads exactly, has no counterpart in the lab.
+\end{itemize}
+
+\end{document}

@@ -277,15 +277,21 @@ the app's own TypeScript through a bridge pinned to one app commit, so they
 measure the code the app runs.
 
 ```bash
-make chess    # fetch the pinned app commit and its npm dependencies (needs read access)
-make parity   # the first bridge eval: the lab's win% against the app's
+make chess    # fetch the pinned app, its npm dependencies and the research records (needs read access)
+make parity   # the lab's win% against the app's
 ```
 
-[`reports/parity_winprob.md`](reports/parity_winprob.md) is that eval's
-report: within ±1000 cp the lab and the app compute the same curve, and past
-it the lab's clamp parts from the app's. [`CLAUDE.md`](CLAUDE.md) covers the
-bridge, the data rule (this repository is public, so nothing from the
-player's own games is committed) and how a winner is ported.
+Each question put to the app is a project under [`projects/`](projects/),
+with its scripts, its results and a short paper:
+[`projects/README.md`](projects/README.md) lists them (accuracy against
+chess.com, explaining the better move, which mistakes get punished, verdicts
+in context, and win% parity) and the order that reproduces them.
+[`projects/winprob-parity/results/parity_winprob.md`](projects/winprob-parity/results/parity_winprob.md)
+is the parity eval's report: within ±1000 cp the lab and the app compute the
+same curve, and past it the lab's clamp parts from the app's.
+[`CLAUDE.md`](CLAUDE.md) covers the bridge, the data rule (this repository is
+public, so the player's games are read at run time and only aggregates and a
+few example positions are committed) and how a winner is ported.
 
 ## Data and software licenses
 

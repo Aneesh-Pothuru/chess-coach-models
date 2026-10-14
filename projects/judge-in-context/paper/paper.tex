@@ -1,0 +1,209 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Should a move's verdict follow the mover's rating?\\[0.3em]
+\large A rating-aware win-probability curve, put to a blind judge}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The coaching app labels each move (good, ok, inaccuracy, mistake, blunder) from how much
+of the mover's winning chances it gives away, read on the win-probability curve Lichess
+uses. A natural objection is that the curve is calibrated on stronger players: near a
+level position, a pawn decides fewer games between lower-rated players. We tested a
+proposal that flattens the curve for lower-rated movers, with a slope of \LowSlope{} per
+centipawn at or below \RatingFloor{} rising linearly to the shipped \ShippedSlope{} at
+\RatingTop{}. Over \Games{} of the player's games, the proposal changes \Flips{} of the
+\GradedPlies{} graded verdicts (\FlipShare\%). A judge model, shown \JudgeMoves{} of the
+player's own flipped moves with the two labels in random order and unnamed, preferred the
+shipped label \ShippedRunOne{} and \ShippedRunTwo{} times in two runs, and the proposed one
+\ProposedRunOne{} and \ProposedRunTwo{} times. The proposal moves one verdict in \FlipOneIn{}
+without making verdicts fairer on balance, and was not adopted. The judge's reasons point
+elsewhere: to what a move gives away (material, a mate) rather than to the size of the swing.
+\end{abstract}
+
+\section{The question}
+
+A game review is only useful if its verdicts match what the player can learn from. The
+app's judge reads the mover's win probability before and after the move and labels the
+move by the drop. The curve that turns an engine evaluation into a win probability is the
+one Lichess fits on its own games, and it does not depend on who is playing. For a player
+at this level, a half-pawn concession in a level position rarely decides the game, so a
+curve for that level might be flatter near zero, and verdicts there milder.
+
+The question here is whether such a curve gives fairer verdicts \emph{to this player}: an
+adult club player, rated \PlayerRatingMin--\PlayerRatingMax{} on chess.com across the \Games{} games
+studied here, \MainTcGames{} of them played at \MainTcMinutes{} minutes a side.
+
+\section{The judge and the proposal}
+
+The win probability of the mover, for an evaluation of $x$ centipawns from the mover's side,
+is
+\[
+  W_k(x) \;=\; 50 + 50\left(\frac{2}{1+e^{-kx}} - 1\right),
+\]
+with $k = \ShippedSlope$ in the app. The judge takes the drop
+$\Delta = W_k(x_\text{before}) - W_k(x_\text{after})$ in percentage points and labels the
+move a blunder at $\Delta \ge \ThBlunder$, a mistake at $\ge \ThMistake$, an inaccuracy at
+$\ge \ThInaccuracy$, good at $\le \ThGood$, and ok otherwise. Two clamps protect a decided
+game: if the mover still has at least \ThKeptWon\% after the move, any label but good becomes
+ok, and at \ThKeptWinning\% or more, a blunder or mistake becomes an inaccuracy. The judge
+reads ok and good alike as a good move, so a flip between them does not change the label
+the player sees.
+
+The proposal changes only the slope, by the mover's rating $r$:
+\[
+  k(r) \;=\; \LowSlope + (\ShippedSlope - \LowSlope)\cdot
+  \operatorname{clamp}\!\left(\frac{r - \RatingFloor}{\RatingSpan},\, 0,\, 1\right).
+\]
+Thresholds and clamps stay as shipped. Figure~\ref{fig:curves} shows the two curves for a
+mover at or below \RatingFloor.
+
+\begin{figure}[!htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=0.8\textwidth, height=6cm, xlabel={evaluation, pawns (mover's side)},
+  ylabel={mover's win \%}, xmin=-10, xmax=10, ymin=0, ymax=100, grid=major,
+  legend pos=south east, legend cell align=left]
+\addplot[thick, black, domain=-10:10, samples=201] {50 + 50*(2/(1+exp(-\ShippedSlope*100*x)) - 1)};
+\addlegendentry{shipped, $k=\ShippedSlope$}
+\addplot[thick, red!70!black, dashed, domain=-10:10, samples=201] {50 + 50*(2/(1+exp(-\LowSlope*100*x)) - 1)};
+\addlegendentry{proposed at $r \le \RatingFloor$, $k=\LowSlope$}
+\end{axis}
+\end{tikzpicture}
+\caption{The two win-probability curves. Near level the proposed curve counts each pawn as
+fewer win points, so a drop there reads milder; further out it counts each pawn as more.}
+\label{fig:curves}
+\end{figure}
+
+\paragraph{Where the curves part.} The two curves change win probability at the same rate
+per pawn at about \CrossoverPawns{} pawns from level on either side. Nearer level, the
+proposed curve moves less per pawn and its verdicts are milder; further out it moves more
+and they are harsher. The clamps move too: the \ThKeptWon\% floor needs about
+$+\FloorOld$ pawns on the shipped curve and $+\FloorNew$ on the proposed one, and the
+\ThKeptWinning\% cap needs $+\CapOld$ and $+\CapNew$. A move that leaves the mover between
+those levels is protected on the shipped curve and not on the proposed one.
+
+\section{How many verdicts change}
+
+The data are the phone-profile reviews of \Games{} of the player's games
+(\Records{} moves, \ExactPlies{} with an exact engine score before and after; the other
+\NotExactPlies{} end the game with mate, which the outcome grades). Book and forced moves
+(\BookPlies{} and \ForcedPlies) are not graded, which leaves \GradedPlies{} graded moves,
+\GradedPlayer{} by the player and \GradedOpponent{} by the opponents. Player ratings in the
+set run from \PlayerRatingMin{} to \PlayerRatingMax{} and opponent ratings from
+\OpponentRatingMin{} to \OpponentRatingMax, so nearly every mover sits at or near the
+proposal's floor.
+
+Every graded move is judged twice by a copy of the app's judge that takes the slope as a
+parameter. On the shipped slope the copy reproduces the app's own judge on all
+\ExactPlies{} exact-score moves, with the largest win-probability difference
+$\AssertMaxDiff$, so the comparison isolates the curve.
+
+The proposal changes \Flips{} verdicts (\FlipShare\% of graded moves): \FlipsPlayer{} of the
+player's (\FlipSharePlayer\%) and \FlipsOpponent{} of the opponents' (\FlipShareOpponent\%).
+Table~\ref{tab:matrix} shows where they go.
+
+\begin{table}[!htbp]
+\centering\small
+\begin{subtable}{\textwidth}\centering
+\MatrixPlayer
+\caption{The player's moves.}
+\end{subtable}
+
+\vspace{0.8em}
+\begin{subtable}{\textwidth}\centering
+\MatrixOpponent
+\caption{The opponents' moves.}
+\end{subtable}
+\caption{Verdicts on the shipped curve (rows) and on the proposed one (columns). Unchanged
+verdicts are in parentheses; flips are in bold.}
+\label{tab:matrix}
+\end{table}
+
+Most flips are milder near level (an inaccuracy that becomes ok, a mistake that becomes an
+inaccuracy, a blunder that becomes a mistake). The harsher ones come from positions already
+far from level, where the proposed curve moves more per pawn and its clamps protect less.
+
+\section{What a judge preferred}
+
+\paragraph{Protocol.} The \JudgeMoves{} moves are the player's own flipped moves whose shown
+label changes (the moves on the app's Coach Calibration page). For each, a judge model was
+given the position before the move, the move, the engine's evaluation with the best move and
+after the move played, the engine's best move and line, both players' ratings, and the two
+labels as X and Y in random order, unnamed. It was asked, as an experienced coach whose student
+is ``\JudgeStudent'', which label matches how bad the move really was at this level, or to say it could not tell, with one sentence of reason. It answered twice,
+independently, with the order of the labels reversed.
+
+\paragraph{Result.} Table~\ref{tab:judge} shows the preferences. The two runs gave the same
+answer on \RunsAgree{} of \JudgeMoves{} moves. Neither run prefers the proposed curve.
+
+\begin{table}[!htbp]
+\centering\small
+\begin{subtable}{\textwidth}\centering
+\JudgeTable
+\caption{Each run.}
+\end{subtable}
+
+\vspace{0.8em}
+\begin{subtable}{\textwidth}\centering
+\KindTable
+\caption{By the kind of change, as the player sees the labels.}
+\end{subtable}
+\caption{Which verdict the judge preferred.}
+\label{tab:judge}
+\end{table}
+
+By kind, the judge took the proposed side where a small concession near level becomes a
+good move, and kept the shipped side where the move simply hangs material, where a piece is
+trapped, and where the game was already decided and the proposal would raise the verdict.
+Figures~\ref{fig:exa}--\ref{fig:exd} show one move of each of the four commonest kinds, with
+the move played (red arrow) and the engine's best move (green).
+
+\begin{figure}[!htbp]\ExampleA\caption{\ExampleACaption}\label{fig:exa}\end{figure}
+\begin{figure}[!htbp]\ExampleB\caption{\ExampleBCaption}\label{fig:exb}\end{figure}
+\begin{figure}[!htbp]\ExampleC\caption{\ExampleCCaption}\label{fig:exc}\end{figure}
+\begin{figure}[!htbp]\ExampleD\caption{\ExampleDCaption}\label{fig:exd}\end{figure}
+
+\section{Decision, and what the reasons suggest}
+
+The proposal would move one verdict in \FlipOneIn{}, and in neither run did the judge prefer the
+proposed verdict more often than the shipped one, so it was not adopted. The reasons the judge gives are about consequences, not
+the size of the swing: a move that hangs material near level is a mistake whatever the curve
+says; a small positional concession near level is a normal move; and an error in a decided
+position matters less, which the shipped clamps already express. Those are the theses a next
+round would test, on a fresh sample, with the player's own answers as the key.
+
+\section{Reproduction in the lab}
+
+The lab recomputes every number of the judge's table from the judge's recorded answers and
+each run's order key (\texttt{tally.mjs}), exactly. The flips are rerun on engine evidence
+the lab rebuilt on the pinned app (\AppCommit) from the same games
+(\texttt{reproduce.mjs}); the recorded run used evidence the app wrote before a later
+change to its review pipeline (\EvidenceRecorded, against \EvidenceRerun{} now), so the
+scores differ in detail. Table~\ref{tab:repro} sets the two side by side; the records are
+read at \RecordsCommit.
+
+\begin{table}[!htbp]
+\centering\small
+\ReproTable
+\caption{The flips as recorded and as rerun in the lab.}
+\label{tab:repro}
+\end{table}
+
+\section{Limitations}
+
+\begin{itemize}[nosep]
+\item The judge is a model, not the player. The player's own answers on the Calibration page
+are the key this check is waiting for.
+\item \JudgeMoves{} moves from one player's games is a small sample: it can show that the
+proposal is not clearly fairer, not that it is clearly worse.
+\item Only the slope was varied. The judge's reasons suggest that a fairer verdict needs
+something the curve cannot see, such as whether the move gives away material.
+\end{itemize}
+
+\end{document}

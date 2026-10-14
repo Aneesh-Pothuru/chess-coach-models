@@ -1,0 +1,24 @@
+% Written by projects/explain-top-move/paper/generate.mjs; do not edit by hand.
+\begin{minipage}[t]{0.4\textwidth}\vspace{0pt}
+\chessboard[setfen={4r1k1/p2r2p1/5p1p/1R6/8/1P6/P2n1BPP/5RK1 w - - 1 29}, boardfontsize=13pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={f1-d1}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={f1-e1}]
+\end{minipage}\hfill
+\begin{minipage}[t]{0.56\textwidth}\vspace{0pt}\small
+\textbf{Played:} 29.~\symrook{}d1, White to move; the app's verdict: Blunder.\par
+\textbf{Engine:} +0.0 with the best move, $-$4.7 after yours.\par
+\textbf{Best line:} 29.~\symrook{}e1 \symknight{}e4 30.~\symrook{}b4 f5 31.~\symrook{}a4 \symrook{}ee7\par
+\textbf{UCI:} \uci{f1d1}; best line \uci{f1e1 d2e4 b5b4 f6f5 b4a4 e8e7}\par
+\textbf{FEN:} \fen{4r1k1/p2r2p1/5p1p/1R6/8/1P6/P2n1BPP/5RK1 w - - 1 29}
+\end{minipage}
+
+\smallskip\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.17\textwidth} L L}
+\toprule
+section & before & after \\
+\midrule
+On the card & Rd1 allows Nf3+, and it attacks the pawn on h2. You lose a piece in the engine's line. Re1 attacks the rook on e8 (undefended). Blunder: it cost 35\% of your winning chances. & Rd1 allows Nf3+, and if you take it with gxf3, Rxd1+ takes your rook on d1. You lose a piece in the engine's line. Re1 attacks the rook on e8 (undefended). Blunder: it cost 35\% of your winning chances. \\
+Takeaway & Before you move, ask what their best reply attacks. Nf3+ was the answer to Rd1, and it attacks the pawn on h2. & Before you move, ask what their best reply attacks. Nf3+ was the answer to Rd1, and it if you take it with gxf3, Rxd1+ takes your rook on d1. \\
+What Rd1 allowed: Nf3+ & it attacks the pawn on h2; it comes with check \textperiodcentered{} 29.Rd1 Nf3+ 30.gxf3 Rxd1+ 31.Kg2 Rd2 32.Kg3 & if you take it with gxf3, Rxd1+ takes your rook on d1; it attacks the pawn on h2; it comes with check \textperiodcentered{} 29.Rd1 Nf3+ 30.gxf3 Rxd1+ 31.Kg2 Rd2 32.Kg3 \\
+\bottomrule
+\end{tabularx}
+
+\textbf{The judge (run 1, where the new text was X):} ``X names the real tactic, that Nf3+ comes with check and uncovers the d7 rook so Rxd1+ wins your rook on d1, while Y only says the knight attacks h2, which does not explain the lost material.''

@@ -1,0 +1,34 @@
+% The preamble every project's paper shares: \input{../../preamble} from
+% projects/<project>/paper/. Boards come from chessboard and xskak, plots from
+% pgfplots; every number a paper prints comes from its generated.tex.
+\usepackage[LSBC4,T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage[obeyspaces,spaces]{url}
+\usepackage{xskak}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{enumitem}
+\usepackage[section]{placeins}
+\usepackage[hidelinks]{hyperref}
+
+\setchessboard{boardfontencoding=LSBC4, boardfontfamily=skaknew, blackfieldcolor=black!22,
+  whitefieldcolor=white, setfontcolors, showmover=false, label=true, labelfontsize=6pt,
+  boardfontsize=14pt}
+
+% A move or line in UCI, and a position in FEN, both breakable at a slash.
+\newcommand{\uci}[1]{\texttt{#1}}
+\newcommand{\fen}[1]{{\footnotesize\path{#1}}}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+
+\setlength{\parskip}{0.4em}
+\setlength{\parindent}{0pt}

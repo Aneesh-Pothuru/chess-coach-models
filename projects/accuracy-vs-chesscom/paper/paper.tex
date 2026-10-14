@@ -1,0 +1,261 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Matching chess.com's accuracy\\[0.3em]
+\large One round of hill-climbing a game review's accuracy, held out by game}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The coaching app's game review gives each side an accuracy, and the player reads it beside the
+one chess.com gives the same game. The app's first instrument followed Lichess's published
+method: a score for each move from the share of winning chances it gives away, then a game
+score that averages a volatility-weighted mean and a harmonic mean of those scores. On
+\Games{} of the player's games, \GamesTest{} of them held out, it missed chess.com's number by
+\BaseTestMae{} points on average, no better than guessing \ConstantGuess{} for every side
+(\ConstantTestMae). One change, a plain mean of per-move scores on a steeper per-move curve,
+cut the held-out error to \OneTestMae{} points (a paired change of \OneVsBase) and raised the
+correlation with chess.com's number from \BaseTestR{} to \OneTestR. Merged with the app's
+grading of moves an endgame tablebase decides, it is the instrument the app ships
+(\TwoTestMae). The lab recomputes every number from the recorded per-game results, and reruns
+all three instruments on engine evidence it rebuilt on the app as it now runs: no held-out
+error moves by more than \ReproLargest{} points.
+\end{abstract}
+
+\section{The number the player compares}
+
+After a game, chess.com shows each side an accuracy between 0 and 100, and so does the app's
+game review. The player reads the two side by side, so a review whose accuracy disagrees with
+chess.com's by a wide margin for no visible reason costs it the player's trust. chess.com's
+formula is not published, and its number is not a ground truth about how well anyone played.
+The goal here is narrower: parity with the number the player sees.
+
+\section{Data and protocol}
+
+\paragraph{Games.} The app's archive holds \Eligible{} of the player's games with chess.com's
+accuracy for both sides, recorded when the daily routine fetched each game. \Games{} were
+sampled, stratified by length (\ShortMax{} plies or fewer, \MediumMin{} to \MediumMax, more than \MediumMax) and
+by result; the
+other \DevPool{} form a dev pool. Each sampled game counts twice, once for each side.
+
+\paragraph{Split.} The \Games{} games were split \GamesTrain{} for train and \GamesTest{} for
+test, at random within each length bucket from a seeded generator, with the pilot games read
+while building the eval kept in train. Seeds were tried in order until the baseline's
+test-minus-train difference in both error and bias had a 95\% interval containing zero, so that
+the split itself did not favour one half; \RejectedSplits{} seed was rejected. Work on a round saw
+only the train games and the dev pool. The held-out games were scored once per round, for its
+decision.
+
+\paragraph{Evidence.} The app reviewed each game through its own entry point at two engine
+budgets, and the documents were frozen: \emph{routine} (a sweep of \RoutineScan{} nodes a
+position, every flagged move verified at \VerifyNodes{} nodes and \VerifyLines{} lines, as the
+daily routine reviews a game), which gives the headline numbers, and \emph{phone} (a sweep of
+\PhoneScan{} nodes, with verification for at most \PhoneShare\% of the moves, as the app reviews a
+game on a phone), which is the guardrail. The engine is deterministic at a fixed node
+count on one thread, so one run is the whole measurement, and an instrument is measured by
+reading the frozen evidence again under its code.
+
+\paragraph{Statistics.} The headline is the mean absolute error (MAE) between the app's
+accuracy and chess.com's, over sides; within~\WithinPoints{} is the share of sides within \WithinPoints{}
+points, the
+bias is the mean signed error, and $r$ is Pearson's correlation over sides. Every interval is a
+95\% bootstrap over games (a game's two sides share its evidence), and a variant's difference
+from the baseline is paired on the same resampled games.
+
+\section{The instruments}
+
+Every instrument scores each graded move (book and forced moves are left out, and so are moves
+without an exact evaluation, except in v2 those a tablebase decides) from $\Delta$, the share of the mover's winning chances the move
+gives away against the engine's best, in percentage points:
+\[
+  s(\Delta) \;=\; \min\!\left(100,\ \max\!\left(0,\ \CurveA\, e^{-d\,\Delta} - \CurveC + 1\right)\right).
+\]
+\begin{itemize}[nosep]
+\item \textbf{The baseline} is Lichess's published method: $d = \BaseDecay$, and a side's
+accuracy is the average of two means of its scores, one weighted by volatility (the standard
+deviation of the winning chances over a sliding window of positions, one position for every
+\WindowShare{} of the side's graded moves and between \WindowMin{} and \WindowMax{} wide, each
+weight held between \WeightMin{} and \WeightMax) and one harmonic.
+\item \textbf{Round 1} keeps the curve's shape with a steeper decay, $d = \AppDecay$, and a
+side's accuracy is the plain mean of its scores.
+\item \textbf{The app (v2)} is round 1 over the moves the app now grades: since a later change,
+a move an endgame tablebase decides is graded by its exact outcome.
+\end{itemize}
+A move that gives away 2 points of winning chances scores \BaseAtTwo{} on the baseline's curve
+and \AppAtTwo{} on the steep one; 5 points, \BaseAtFive{} and \AppAtFive; 10 points,
+\BaseAtTen{} and \AppAtTen{} (Figure~\ref{fig:curves}).
+
+\begin{figure}[!htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=0.7\textwidth, height=5.2cm, xlabel={winning chances given away, $\Delta$ (points)},
+  ylabel={move score}, xmin=0, xmax=40, ymin=0, ymax=102, grid=major, legend pos=north east,
+  legend cell align=left]
+\addplot[thick, black, dashed] coordinates {\CurveBase};
+\addlegendentry{baseline, $d=\BaseDecay$}
+\addplot[thick, red!70!black] coordinates {\CurveApp};
+\addlegendentry{round 1 and the app, $d=\AppDecay$}
+\end{axis}
+\end{tikzpicture}
+\caption{The per-move score on each curve, sampled from each instrument's own code.}
+\label{fig:curves}
+\end{figure}
+
+\section{Why the baseline missed}
+
+The baseline barely carried information about chess.com's number. Guessing the train sides'
+mean chess.com accuracy, \ConstantGuess, for every side scores \ConstantTestMae{} on test and
+\ConstantTrainMae{} on train, against the baseline's \BaseTestMae{} and \BaseTrainMae. The error
+was not a constant offset (the baseline's bias on test is \BaseTestBias) but a tilt with the
+game's length (Table~\ref{tab:tilt}): short games read about \TiltBaseShort{} points below
+chess.com, long games about \TiltBaseLong{} above.
+
+Both halves of the baseline's average explain the short end. In a short game a single blunder is
+a large share of the side's moves; its score near zero sinks the harmonic mean, and its window
+has the game's largest swing, so the volatility weights count it most. Figure~\ref{fig:example}
+shows the held-out side the round improved most: \ExampleSide{} gives away little until
+\ExampleWorst, which allows \ExampleAfter. Its score of \ExampleWorstBase{} pulls the harmonic mean
+to \ExampleHarmonic{} and the weighted mean to \ExampleWeighted, and the side reads
+\ExampleBase{} against chess.com's \ExampleChessCom. The plain mean of the same moves on the
+steep curve reads \ExampleApp.
+
+\begin{figure}[!htbp]
+\ExampleGame
+\caption{The held-out side whose error round 1 shrank most, from the evidence the lab rebuilt:
+\ExampleSide's \ExampleGraded{} graded moves in a \ExamplePlies-ply game, the move played at the
+worst one (red) and the engine's best (green). chess.com gives the side \ExampleChessCom.}
+\label{fig:example}
+\end{figure}
+
+\begin{table}[!htbp]
+\centering\small
+\TiltTable
+\caption{Mean signed error (the app's accuracy less chess.com's) by the game's length, over all
+\Games{} games' sides, routine evidence.}
+\label{tab:tilt}
+\end{table}
+
+\section{Round 1: a plain mean on a steep curve}
+
+\paragraph{Thesis.} chess.com's accuracy is close to an average of per-move scores, each
+on a curve much steeper than Lichess's. The round's notes give the grounds: chess.com's
+description of its method as mostly averaging, and the example points of an independent public
+replication. A plain mean cannot be sunk by one move the way the harmonic mean is, and the
+steeper curve makes up for it by charging small concessions more.
+
+\paragraph{Before the held-out games.} On the dev pool (\DevPool{} games, never part of the
+sample) the change took the MAE from \DevMaeBefore{} to \DevMaeAfter{} (paired 95\% interval
+\DevCI) and $r$ from \DevRBefore{} to \DevRAfter. Decays from \DecayLow{} to \DecayHigh{} landed
+within \DecaySpread{} points of each other, so the gain is the shape, not a tuned constant.
+
+\paragraph{Result.} On the held-out games the MAE fell from \BaseTestMaeCI{} to \OneTestMaeCI,
+a paired change of \OneVsBase{} points, and $r$ rose from \BaseTestRCI{} to \OneTestRCI{}
+(Table~\ref{tab:results}, Figure~\ref{fig:scatter}). Train improved with it (\BaseTrainMae{} to
+\OneTrainMae), and so did the phone guardrail (\PhoneBaseTestMae{} to \PhoneOneTestMae{} on
+test). The length tilt shrinks but does not close: short games still read about
+\TiltTwoShort{} points low and long ones \TiltTwoLong{} high.
+
+\begin{table}[!htbp]
+\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
+\AggregateTable
+\caption{Each instrument against chess.com, with 95\% bootstrap intervals over games. Every column
+but the train MAE is on the held-out games. MAE and bias in accuracy points, the app's less
+chess.com's; the last column is the change in test MAE from the baseline, paired on the same
+games.}
+\label{tab:results}
+\end{table}
+
+\begin{figure}[!htbp]
+\centering
+\begin{subfigure}{0.49\textwidth}\centering
+\begin{tikzpicture}
+\begin{axis}[scale only axis, width=0.78\linewidth, height=0.78\linewidth, xmin=20, xmax=100,
+  ymin=20, ymax=100, xlabel={chess.com}, ylabel={the app}, grid=major]
+\addplot[gray, densely dotted, domain=20:100] {x};
+\addplot[only marks, mark=*, mark size=1.3pt, black] coordinates {\ScatterBase};
+\end{axis}
+\end{tikzpicture}
+\caption{Baseline: MAE \BaseTestMae, $r = \BaseTestR$.}
+\end{subfigure}\hfill
+\begin{subfigure}{0.49\textwidth}\centering
+\begin{tikzpicture}
+\begin{axis}[scale only axis, width=0.78\linewidth, height=0.78\linewidth, xmin=20, xmax=100,
+  ymin=20, ymax=100, xlabel={chess.com}, ylabel={the app}, grid=major]
+\addplot[gray, densely dotted, domain=20:100] {x};
+\addplot[only marks, mark=*, mark size=1.3pt, red!70!black] coordinates {\ScatterTwo};
+\end{axis}
+\end{tikzpicture}
+\caption{The app (v2): MAE \TwoTestMae, $r = \TwoTestR$.}
+\end{subfigure}
+\caption{The \ScatterSides{} held-out sides, the app's accuracy against chess.com's, routine
+evidence. The dotted line is parity.}
+\label{fig:scatter}
+\end{figure}
+
+\paragraph{Merged with tablebase grading.} The app had meanwhile begun grading moves a tablebase
+decides by their exact outcome. Round 1's formula over that graded set is the app's instrument,
+v2, and costs nothing measurable: \TwoTestMae{} on test (paired change from the baseline
+\TwoVsBase), \TwoTrainMae{} on train and \PhoneTwoTestMae{} on phone evidence.
+
+\paragraph{What was tried and not run as rounds.} The hill-climb stopped after round 1 because
+\StopRule. These were tried on the dev pool and train and not run as rounds:
+\NotRun
+
+\section{Moving the history}
+
+The archive keeps every game's accuracy as the routine computed it, so a trend that mixed old
+numbers with new ones would show a jump that is only the change of instrument. The app therefore
+carries a stored accuracy only when it was taken under the current instrument, and otherwise reads
+the game again from its stored per-move evaluations. That is safe only if those evaluations give
+back the stored numbers under the old instrument, and the check of that was fixed before it ran:
+a whole-game mean gap of at most \RereadRuleMae{} points and a 90th percentile of at most
+\RereadRuleP. It held when recorded (\RereadRecordedMae{} and \RereadRecordedPNinety{} over
+\RereadRecordedSides{} sides) and holds on the app's archive as it is now (\RereadMae{} and
+\RereadPNinety{} over \RereadSides{} sides, the largest gap \RereadMax). Since the first run the
+archive has gained \RereadLaterRows{} games stored under later instruments, which the old
+instrument cannot reproduce and the check leaves out, as its definition says. The older rows,
+stored with no instrument named, come back within \RereadUntaggedMae{} points on average
+(\RereadUntaggedSides{} sides); the later rows named after the old instrument come back within
+\RereadTaggedMae{} (\RereadTaggedSides{} sides). The rule does not separate the two, and why the
+named rows reproduce less closely is not established here.
+
+\section{Reproduction in the lab}
+
+\paragraph{Recomputed.} The lab recomputes every aggregate from the per-game results the records
+keep (\texttt{summarize.mjs}), and they \ReproAggregates. The records are read at \RecordsCommit.
+
+\paragraph{Rerun.} The engine evidence the hill-climb used was lost, so the lab rebuilt it for
+the same games on the app as it now runs (\AppCommit) and read it under each instrument
+(\texttt{reproduce.mjs}). The app's review pipeline changed after the hill-climb, so the
+evidence differs in detail, and the two older instruments needed one adjustment: they take the
+root position's winning chances as an argument the current app no longer passes, so they run
+with the app's document builder passing it again, as the app of their day did. Without it the
+baseline's volatility weights fail on a game whose first moves are graded, and such a game reads
+far below its recorded accuracy. With it, no held-out MAE moves by more than \ReproLargest{} points
+(Table~\ref{tab:repro}).
+
+\begin{table}[!htbp]
+\centering\small
+\ReproTable
+\caption{The recorded numbers beside the lab's rerun on rebuilt evidence.}
+\label{tab:repro}
+\end{table}
+
+\section{Limitations}
+
+\begin{itemize}[nosep]
+\item chess.com's formula is unknown, and parity with it is the goal, not a measure of play.
+\item \Games{} games of one player, rated \PlayerRatingMin--\PlayerRatingMax{} on chess.com in
+these games. The held-out half keeps the claim honest about this player, not about others.
+\item The tilt with length remains: short games read low and long games high under every
+variant tried.
+\item The held-out games were scored for each round's decision. With one round kept and the
+others stopped on the dev pool, the room for a lucky pick is small, but not zero.
+\end{itemize}
+
+\end{document}

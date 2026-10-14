@@ -1,0 +1,23 @@
+% Written by projects/explain-top-move/paper/generate.mjs; do not edit by hand.
+\begin{minipage}[t]{0.4\textwidth}\vspace{0pt}
+\chessboard[setfen={r3r1k1/p5p1/3R1p1p/np6/3P3B/2P5/PP4PP/5RK1 w - - 1 23}, boardfontsize=13pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={d6-d5}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={b2-b3}]
+\end{minipage}\hfill
+\begin{minipage}[t]{0.56\textwidth}\vspace{0pt}\small
+\textbf{Played:} 23.~\symrook{}d5, White to move; the app's verdict: Inaccuracy.\par
+\textbf{Engine:} +2.1 with the best move, +1.0 after yours.\par
+\textbf{Best line:} 23.~b3 \symrook{}e2 24.~\symrook{}a6 \symknight{}b7 25.~\symrook{}e1 \symrook{}c2\par
+\textbf{UCI:} \uci{d6d5}; best line \uci{b2b3 e8e2 d6a6 a5b7 f1e1 e2c2}\par
+\textbf{FEN:} \fen{r3r1k1/p5p1/3R1p1p/np6/3P3B/2P5/PP4PP/5RK1 w - - 1 23}
+\end{minipage}
+
+\smallskip\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.17\textwidth} L L}
+\toprule
+section & before & after \\
+\midrule
+What b3 does instead & if they take it with Nxb3, axb3 wins their knight for your pawn \textperiodcentered{} 23.b3 Re2 24.Ra6 Nb7 25.Re1 Rc2 26.Re7 Nd8 & 23.b3 Re2 24.Ra6 Nb7 25.Re1 Rc2 26.Re7 Nd8 \\
+Retry answer & The move was b3 (the green arrow). If they take it with Nxb3, axb3 wins their knight for your pawn. & The move was b3 (the green arrow). \\
+\bottomrule
+\end{tabularx}
+
+\textbf{The judge (run 1, where the new text was X):} ``Y adds the true safety check that b3 does not hang to the a5 knight, since Nxb3 axb3 wins the knight.''

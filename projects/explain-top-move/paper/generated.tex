@@ -1,0 +1,144 @@
+% Written by projects/explain-top-move/paper/generate.mjs; do not edit by hand.
+
+\newcommand{\MomentsTest}{152}
+\newcommand{\MomentsTrain}{177}
+\newcommand{\Moments}{329}
+\newcommand{\GamesTest}{30}
+\newcommand{\GamesTrain}{30}
+\newcommand{\Games}{60}
+\newcommand{\HandcheckMoments}{19}
+\newcommand{\PlayerRatingMin}{948}
+\newcommand{\PlayerRatingMax}{1167}
+\newcommand{\HandcheckAgree}{19}
+\newcommand{\BaseTestFaithful}{90.1}
+\newcommand{\BaseTestFaithfulCI}{90.1 [84.2, 95.9]}
+\newcommand{\BaseTestConcrete}{75.0}
+\newcommand{\BaseTestConcreteCI}{75.0 [65.3, 83.6]}
+\newcommand{\BaseTestNamedDeep}{94.1}
+\newcommand{\BaseTestNamedDeepCI}{94.1 [89.7, 97.9]}
+\newcommand{\BaseTestFaithfulAll}{89.5}
+\newcommand{\BaseTestFaithfulAllCI}{89.5 [83.3, 95.2]}
+\newcommand{\KeptTestFaithful}{100.0}
+\newcommand{\KeptTestFaithfulCI}{100.0 [100.0, 100.0]}
+\newcommand{\KeptTestConcrete}{82.9}
+\newcommand{\KeptTestConcreteCI}{82.9 [72.0, 91.4]}
+\newcommand{\KeptTestNamedDeep}{94.1}
+\newcommand{\KeptTestNamedDeepCI}{94.1 [89.7, 97.9]}
+\newcommand{\KeptTestFaithfulAll}{99.3}
+\newcommand{\KeptTestFaithfulAllCI}{99.3 [97.8, 100.0]}
+\newcommand{\KeptTestFaithfulVsBase}{+9.9 [4.0, 15.9]}
+\newcommand{\KeptTestConcreteVsBase}{+7.9 [3.9, 12.1]}
+\newcommand{\KeptTestTextsChanged}{70}
+\newcommand{\BaseTrainFaithful}{87.6}
+\newcommand{\BaseTrainFaithfulCI}{87.6 [83.0, 91.7]}
+\newcommand{\BaseTrainConcrete}{78.0}
+\newcommand{\BaseTrainConcreteCI}{78.0 [70.7, 84.2]}
+\newcommand{\BaseTrainNamedDeep}{92.1}
+\newcommand{\BaseTrainNamedDeepCI}{92.1 [86.8, 97.1]}
+\newcommand{\BaseTrainFaithfulAll}{87.6}
+\newcommand{\BaseTrainFaithfulAllCI}{87.6 [82.9, 91.8]}
+\newcommand{\KeptTrainFaithful}{99.4}
+\newcommand{\KeptTrainFaithfulCI}{99.4 [98.1, 100.0]}
+\newcommand{\KeptTrainConcrete}{84.7}
+\newcommand{\KeptTrainConcreteCI}{84.7 [78.9, 89.8]}
+\newcommand{\KeptTrainNamedDeep}{92.1}
+\newcommand{\KeptTrainNamedDeepCI}{92.1 [86.8, 97.1]}
+\newcommand{\KeptTrainFaithfulAll}{99.4}
+\newcommand{\KeptTrainFaithfulAllCI}{99.4 [98.2, 100.0]}
+\newcommand{\KeptTrainFaithfulVsBase}{+11.9 [7.9, 16.4]}
+\newcommand{\KeptTrainConcreteVsBase}{+6.8 [3.2, 10.6]}
+\newcommand{\KeptTrainTextsChanged}{87}
+\newcommand{\KeptVariant}{v8}
+\newcommand{\RoundCount}{nine}
+\newcommand{\KeptRoundCount}{seven}
+\newcommand{\RoundsTable}{%
+\begin{tabularx}{\textwidth}{l L rrrr r r}
+\toprule
+ & & \multicolumn{2}{c}{test (\%)} & \multicolumn{2}{c}{train (\%)} & texts & judge \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+variant & change & faithful & concrete & faithful & concrete & changed & train / test \\
+\midrule
+baseline & the app before the rounds & 90.1 & 75.0 & 87.6 & 78.0 &  &  \\
+v1 & Say each line's material as it is in the lesson's difference & 96.1 & 82.2 & 98.3 & 84.7 & 20, 34 &  \\
+v2 & Name only the pawns the seventh-rank rook hits & 100.0 & 82.2 & 99.4 & 84.7 & 25, 35 &  \\
+v3 & Say what the better move defends & 100.0 & 82.2 & 99.4 & 84.7 & 31, 43 & 22--0 / 18--2 \\
+v4 & Answer the capture a learner asks about first & 100.0 & 82.9 & 99.4 & 84.7 & 34, 45 & 8--0 / 6--0 \\
+v5 & Say where a long mate ends (\emph{not kept}) & 100.0 & 82.9 & 99.4 & 84.7 & 45, 54 & 6--6 / 14--2 \\
+v6 & Say where a long mate ends, when the end is in reach & 100.0 & 82.9 & 99.4 & 84.7 & 44, 51 & 4--0 / 10--0 \\
+v7 & Say what a capture the better line declines would cost (\emph{replaced by v7b}) & 98.7 & 82.9 & 97.2 & 84.7 & 65, 77 & 48--3 / 40--1 \\
+v7b & Say what a capture wins, not the balance it leaves & 100.0 & 82.9 & 99.4 & 84.7 & 65, 77 & 51--0 / 41--0 \\
+v8 & Say when the played move is right but too early & 100.0 & 82.9 & 99.4 & 84.7 & 70, 87 & 50--0 / 20--0 \\
+v9 & Answer the natural capture, and skip what a pawn plainly guards (\emph{not kept}) & 100.0 & 82.2 & 98.9 & 85.9 & 142, 166 & 1--35 / 0--12 \\
+\bottomrule
+\end{tabularx}
+}
+\newcommand{\JudgeTable}{%
+\begin{tabular}{l l rr l}
+\toprule
+round & judged & train new--old (same) & test new--old (same) & the rule says \\
+\midrule
+3 & round 3 & 22--0 (0) & 18--2 (0) & keep \\
+4 & round 4 & 8--0 (0) & 6--0 (0) & keep \\
+5 & round 5 & 6--6 (10) & 14--2 (12) & do not keep \\
+6 & round 5 (17 moments) & 4--0 (8) & 10--0 (12) & keep \\
+7 & round 7 & 48--3 (15) & 40--1 (9) & keep \\
+7b & round 7b & 20--0 (0) & 12--0 (0) & keep \\
+7 and 7b & round 7 then round 7b & 51--0 (15) & 41--0 (9) & keep \\
+8 & round 8 & 50--0 (0) & 20--0 (0) & keep \\
+9 & round 9 & 1--35 (0) & 0--12 (0) & do not keep \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\RoundFiveTrainNew}{6}
+\newcommand{\RoundFiveTrainOld}{6}
+\newcommand{\RoundFiveTestNew}{14}
+\newcommand{\RoundFiveTestOld}{2}
+\newcommand{\RoundFiveReason}{train 4 new vs 6 old (test 10 vs 2): the picture hurt mates of 8 to 13 moves}
+\newcommand{\ExampleARound}{3}
+\newcommand{\ExampleACaption}{Round 3: the judge preferred the new text in both runs. The move played is the red arrow, the engine's best move the green one.}
+\newcommand{\ExampleA}{\input{example-a}}
+\newcommand{\ExampleBRound}{4}
+\newcommand{\ExampleBCaption}{Round 4: the judge preferred the new text in both runs. The move played is the red arrow, the engine's best move the green one.}
+\newcommand{\ExampleB}{\input{example-b}}
+\newcommand{\ExampleCRound}{7}
+\newcommand{\ExampleCCaption}{Round 7: the judge preferred the new text in both runs. The move played is the red arrow, the engine's best move the green one.}
+\newcommand{\ExampleC}{\input{example-c}}
+\newcommand{\ExampleDRound}{8}
+\newcommand{\ExampleDCaption}{Round 8: the judge preferred the new text in both runs. The move played is the red arrow, the engine's best move the green one.}
+\newcommand{\ExampleD}{\input{example-d}}
+\newcommand{\ExampleERound}{9}
+\newcommand{\ExampleECaption}{Round 9: the judge preferred the old text in both runs. The move played is the red arrow, the engine's best move the green one.}
+\newcommand{\ExampleE}{\input{example-e}}
+\newcommand{\ExampleCount}{5}
+\newcommand{\ReproLinesMatched}{27}
+\newcommand{\ReproLines}{27}
+\newcommand{\AppCommit}{\texttt{d8b7712}}
+\newcommand{\RecordsCommit}{\texttt{b3b827d}}
+\newcommand{\RerunProbes}{88}
+\newcommand{\RerunEvidence}{review-evidence/5}
+\newcommand{\RerunTestMoments}{152}
+\newcommand{\RerunTestShared}{146}
+\newcommand{\RerunTestSameGrades}{130}
+\newcommand{\RerunTestFaithful}{100.0}
+\newcommand{\RerunTestConcrete}{82.9}
+\newcommand{\RerunTrainMoments}{177}
+\newcommand{\RerunTrainShared}{171}
+\newcommand{\RerunTrainSameGrades}{160}
+\newcommand{\RerunTrainFaithful}{99.4}
+\newcommand{\RerunTrainConcrete}{83.6}
+\newcommand{\ReproTable}{%
+\begin{tabular}{ll lll}
+\toprule
+split & grade & recorded baseline & recorded v8 & pinned app, rerun \\
+\midrule
+test & faithful & 90.1 [84.2, 95.9] & 100.0 [100.0, 100.0] & 100.0 [100.0, 100.0] \\
+test & concrete & 75.0 [65.3, 83.6] & 82.9 [72.0, 91.4] & 82.9 [73.9, 90.5] \\
+test & named\_deep & 94.1 [89.7, 97.9] & 94.1 [89.7, 97.9] & 94.1 [89.7, 97.8] \\
+test & faithfulAll & 89.5 [83.3, 95.2] & 99.3 [97.8, 100.0] & 99.3 [97.7, 100.0] \\
+train & faithful & 87.6 [83.0, 91.7] & 99.4 [98.1, 100.0] & 99.4 [98.1, 100.0] \\
+train & concrete & 78.0 [70.7, 84.2] & 84.7 [78.9, 89.8] & 83.6 [77.0, 89.4] \\
+train & named\_deep & 92.1 [86.8, 97.1] & 92.1 [86.8, 97.1] & 92.1 [86.7, 97.2] \\
+train & faithfulAll & 87.6 [82.9, 91.8] & 99.4 [98.2, 100.0] & 99.4 [98.1, 100.0] \\
+\bottomrule
+\end{tabular}
+}

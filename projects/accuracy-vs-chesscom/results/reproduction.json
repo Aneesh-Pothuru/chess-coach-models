@@ -1,0 +1,223 @@
+{
+  "eval": "accuracy-vs-chesscom reproduction",
+  "chess": {
+    "pinned_commit": "d8b771238c11c84d0c4b2a8010bb75f5f756b8d9",
+    "records_commit": "b3b827d454e19454dd06f71414ee37ebf8ffd8bc"
+  },
+  "cases": 60,
+  "runs": [
+    {
+      "variant": "baseline",
+      "accuracy": "projects/accuracy-vs-chesscom/hillclimb/v1/accuracy.before.ts",
+      "builder": "src/services/review/pipeline/document.ts at the pinned commit, passing the root's win% to summarizeSide"
+    },
+    {
+      "variant": "v1",
+      "accuracy": "projects/accuracy-vs-chesscom/hillclimb/v1/accuracy.ts",
+      "builder": "src/services/review/pipeline/document.ts at the pinned commit, passing the root's win% to summarizeSide"
+    },
+    {
+      "variant": "v2",
+      "accuracy": "src/services/review/accuracy.ts at the pinned commit",
+      "builder": "src/services/review/pipeline/document.ts at the pinned commit"
+    }
+  ],
+  "largest_test_mae_change": 0.16999999999999993,
+  "rows": [
+    {
+      "profile": "routine",
+      "variant": "baseline",
+      "recorded": {
+        "testMae": 7.47,
+        "testMaeCi": [
+          5.3,
+          10.01
+        ],
+        "trainMae": 8.3,
+        "testWithin5": 50,
+        "testBias": -0.5,
+        "testR": 0.49,
+        "testMaeVsBaseline": null
+      },
+      "reproduced": {
+        "testMae": 7.47,
+        "testMaeCi": [
+          5.32,
+          10
+        ],
+        "trainMae": 8.25,
+        "testWithin5": 48.33,
+        "testBias": -0.34,
+        "testR": 0.49,
+        "testMaeVsBaseline": null
+      }
+    },
+    {
+      "profile": "routine",
+      "variant": "v1",
+      "recorded": {
+        "testMae": 4.9,
+        "testMaeCi": [
+          3.74,
+          6.24
+        ],
+        "trainMae": 3.56,
+        "testWithin5": 63.33,
+        "testBias": 0.48,
+        "testR": 0.76,
+        "testMaeVsBaseline": -2.57
+      },
+      "reproduced": {
+        "testMae": 4.95,
+        "testMaeCi": [
+          3.79,
+          6.31
+        ],
+        "trainMae": 3.66,
+        "testWithin5": 61.67,
+        "testBias": 0.57,
+        "testR": 0.76,
+        "testMaeVsBaseline": -2.52
+      }
+    },
+    {
+      "profile": "routine",
+      "variant": "v2",
+      "recorded": {
+        "testMae": 4.98,
+        "testMaeCi": [
+          3.83,
+          6.31
+        ],
+        "trainMae": 3.58,
+        "testWithin5": 63.33,
+        "testBias": 0.56,
+        "testR": 0.76,
+        "testMaeVsBaseline": -2.49
+      },
+      "reproduced": {
+        "testMae": 4.96,
+        "testMaeCi": [
+          3.8,
+          6.31
+        ],
+        "trainMae": 3.65,
+        "testWithin5": 61.67,
+        "testBias": 0.57,
+        "testR": 0.76,
+        "testMaeVsBaseline": -2.51
+      }
+    },
+    {
+      "profile": "phone",
+      "variant": "baseline",
+      "recorded": {
+        "testMae": 7.49,
+        "testMaeCi": [
+          5.48,
+          9.85
+        ],
+        "trainMae": 8.1,
+        "testWithin5": 48.33,
+        "testBias": 0.19,
+        "testR": 0.5,
+        "testMaeVsBaseline": null
+      },
+      "reproduced": {
+        "testMae": 7.57,
+        "testMaeCi": [
+          5.54,
+          9.95
+        ],
+        "trainMae": 8.16,
+        "testWithin5": 45,
+        "testBias": 0.38,
+        "testR": 0.51,
+        "testMaeVsBaseline": null
+      }
+    },
+    {
+      "profile": "phone",
+      "variant": "v1",
+      "recorded": {
+        "testMae": 5.36,
+        "testMaeCi": [
+          4.05,
+          6.83
+        ],
+        "trainMae": 4.56,
+        "testWithin5": 56.67,
+        "testBias": 0.01,
+        "testR": 0.72,
+        "testMaeVsBaseline": -2.13
+      },
+      "reproduced": {
+        "testMae": 5.53,
+        "testMaeCi": [
+          4.21,
+          7.04
+        ],
+        "trainMae": 4.5,
+        "testWithin5": 56.67,
+        "testBias": 0.1,
+        "testR": 0.71,
+        "testMaeVsBaseline": -2.04
+      }
+    },
+    {
+      "profile": "phone",
+      "variant": "v2",
+      "recorded": {
+        "testMae": 5.36,
+        "testMaeCi": [
+          4.05,
+          6.83
+        ],
+        "trainMae": 4.56,
+        "testWithin5": 56.67,
+        "testBias": 0.01,
+        "testR": 0.72,
+        "testMaeVsBaseline": -2.13
+      },
+      "reproduced": {
+        "testMae": 5.53,
+        "testMaeCi": [
+          4.21,
+          7.04
+        ],
+        "trainMae": 4.5,
+        "testWithin5": 56.67,
+        "testBias": 0.1,
+        "testR": 0.71,
+        "testMaeVsBaseline": -2.04
+      }
+    }
+  ],
+  "reread": {
+    "recorded": {
+      "sides": 454,
+      "mae": 0.34,
+      "p90": 1.04
+    },
+    "rerun": {
+      "holds": true,
+      "sides": 466,
+      "mae": 0.38,
+      "p90": 1.16,
+      "max": 6.98,
+      "within05": 0.76,
+      "untaggedMae": 0.03,
+      "taggedMae": 0.92,
+      "untaggedSides": 286,
+      "taggedSides": 180,
+      "leftOut": {
+        "coach-accuracy/3-lichess-derived-tablebase": 14,
+        "coach-accuracy/4-plain-mean-steep-tablebase": 28
+      }
+    },
+    "rule": {
+      "mae": 0.5,
+      "p90": 1.5
+    }
+  }
+}
