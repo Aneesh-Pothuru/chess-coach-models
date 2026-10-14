@@ -31,7 +31,12 @@ rating, which serving reads, gave him a mean solve chance of 58% on puzzles he
 solved 96% of: it sits close to the difficulty he was served, so sets aim far
 below him. The view of his themed sets gave 82%, still low, with about half the
 headline's log loss. That look decides nothing, so round 2 below tests the
-view on the attempts the app records next. The numbers are in the paper,
+view on the attempts the app records next. On that look the app's owner
+chose to adopt the view before round 2: since chess PR 78 (merged as
+`ae69a3e`) the app aims a bucket's set from its themed view, and the skill
+map's next difficulty reads the same estimate. Round 2 decides whether it
+stays. Rerun at `ae69a3e`, every number here is unchanged. The numbers are in
+the paper,
 [`paper/paper.pdf`](paper/paper.pdf), and the script's report,
 [`results/solve.md`](results/solve.md).
 
@@ -136,7 +141,9 @@ read. Round 2 therefore tests on attempts the app has not recorded yet.
 - **The rule.** Rules 1 and 2 above, unchanged, on those attempts: the halves
   alternate over their days, and the view replaces the headline for a set's
   solve chance only if both halves pass. If the view has already been ported
-  when round 2 runs, the same verdict decides whether it stays.
+  when round 2 runs, the same verdict decides whether it stays. (It was
+  ported before round 2. Sets then aim harder; each estimate is still scored
+  on the puzzles he was served, so the rule applies unchanged.)
 
 ## Files
 
