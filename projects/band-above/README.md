@@ -19,9 +19,30 @@ at his level, and how much of a point given away shows up in the result.
 3. How often do players at each level hang a piece or allow a mate, and what
    does it cost them?
 
-**The answer.** Not computed yet. The rule below was committed before any
-result on the month's games was computed (the scripts were first run on 100
-of them, to test the code); the results will be added under it.
+**The answer.** In tense positions, and on the move after the opponent's
+serious error. Players a band above give away about five and a half points a
+game fewer than players at his level. Six of the ten causes separate the
+bands: tense middlegames and the move after the opponent's serious error
+first, about three points a game each, then tense openings, tense positions
+answered in under five seconds, tense endgames and quiet openings. Tense
+positions carry more than the whole difference. The band above gives away
+more a game in quiet middlegames and endgames, under a minute on the clock and
+from move 40 only because its games are longer: per move it gives away less
+or the same on every cause. Serious errors carry nearly all of the difference
+and hanging a piece about two fifths of it; mates carry little.
+
+By the rule, the app's 0.6 discount is too high on every cause. That verdict
+does not stand: the rule's fit left out the opponent's points, which rise and
+fall with the player's, and with them in, a point given away costs about a
+point of result. The data give no reason to lower the 0.6. In his own games,
+tense endgames take a larger share of his points than at either level, and he
+allows a mate more often than either. The fits with the opponent's points,
+points per move and his games' split were added after the results were read
+and test nothing. The paper, [`paper/paper.pdf`](paper/paper.pdf), has the
+numbers.
+
+The rule below was committed before any result on the month's games was
+computed (the scripts were first run on 100 of them, to test the code).
 
 ## The data
 
@@ -104,6 +125,23 @@ same draws.
   committed.
 - Each band's own fitted slope, game length and moves per game on each cause.
 
+Added after the results were read; they test nothing:
+
+- **Points per move** on each cause, each band's total points over its total
+  moves of the kind, his band against the band above: is a band that gives
+  away more a game worse at those moves, or meeting more of them?
+- **What each error kind costs**, his band against the band above, and its
+  share of the difference on every move.
+- **The discount with the opponent's points.** The rule's fit leaves out the
+  points the opponent gives away, which correlate with the player's; these
+  fits put them in, for each cause alone and with every partition cause in
+  one fit.
+- **How the points split** between the partition's causes, his games beside
+  the two bands, and how often his board shows each error kind. His games'
+  points come from the app's reviews, with another engine and depth than
+  Lichess's, so only their split and the kinds a board shows are set beside
+  the bands.
+
 ## Caveats
 
 - **A cross-section, not a path.** The band above is other players, in games
@@ -130,13 +168,18 @@ same draws.
 - Rates the coach can cite ("players a band above hang a piece once every N
   games").
 
+After the results: the second yardstick (read per move) and the rates stand;
+a δ per cause in place of the 0.6 does not, since a point given away costs
+about a point of result.
+
 ## Files
 
 | File | What it does |
 |---|---|
 | `primary.mjs` | Builds each kept game once with the app's `primaryFacts` (White as the player) and keeps the review reader's motif tags for every move (`private/band-above/primary-<month>.jsonl.gz`, sharded). `--check N` holds Black's flipped build to a real one, facts and tags, on the first N games. |
 | `ledger.mjs` | Fits the yardstick on his band, then writes one row per player-game: points given away on each cause, all moves and each error kind, for both players (`private/band-above/player-games-<month>.csv.gz`). `--archive` reads his games instead. |
-| `analyze.py` | The rule over the player-games; writes `results/analysis.json` and `results/analysis.md`. |
+| `analyze.py` | The rule over the player-games, and the descriptions; writes `results/analysis.json` and `results/analysis.md`. |
+| `paper/` | The paper. |
 
 ## Running it
 
@@ -149,6 +192,7 @@ done; wait
 bridge/run.sh projects/band-above/ledger.mjs --month 2026-09
 bridge/run.sh projects/band-above/ledger.mjs --month 2026-09 --archive
 python3 projects/band-above/analyze.py --month 2026-09
+bridge/run.sh projects/band-above/paper/generate.mjs
 ```
 
 Per-game files stay in `private/band-above/`; `results/` holds aggregates

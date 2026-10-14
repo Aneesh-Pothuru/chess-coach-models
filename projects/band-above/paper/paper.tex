@@ -1,0 +1,317 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{What does the band above do differently?\\[0.3em]
+\large The leak ledger's causes on \GamesBuilt{} Lichess 10-minute games, his level against 200 points above}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Players 200 points above his level give away \AllGap{} fewer points a game than players at his
+level (\AllGapLo{} to \AllGapHi), on \GamesBuilt{} Lichess 10-minute games built with the app's
+own code. \SeparateCap{} of the leak ledger's \Causes{} causes separate the two bands. Ranked by the
+difference, they are \RankedList. Tense positions carry more than the whole difference
+(\TenseShare\%). The band above gives away more a game in quiet middlegames and endgames only
+because its games are longer: per move it gives away less or the same on every cause. Serious
+errors carry \SeriousDiffShare\% of the difference, and hanging a piece \HangingDiffShare\%; his
+level hangs one once every \HisHangingEvery{} games, the band above once every
+\AboveHangingEvery. The rule's fit of the result on the points given away finds the app's
+\Discount{} discount too high on every cause. But that fit leaves out the opponent's points, which
+rise and fall with the player's. With them in, in a check added after the results were read, a
+point given away costs about a point of result (\TheirsAll). The data give no reason to lower the
+\Discount. In his own games, tense endgames take a larger share of his points than at either level,
+and he allows a mate about \MateRatio{} times as often as players at his level.
+\end{abstract}
+
+\section{The question}
+
+The app's ONE focus is a leak from the metrics service's ledger (\texttt{leakLedgerOf}, at commit
+\texttt{\AppCommit}): the points a game the player gives away on one kind of move, against what his
+opponents give away on the same kind of move in the same games. The kinds of move are the ledger's
+\Causes{} causes: the phase and whether the position was tense, under a minute on the clock, a
+tense position answered in under five seconds, the move after the opponent's serious error, and
+moves from move 40. A point is a percent of a game, the drop in expected score across the move,
+and a leak is priced in Elo as \EloPerPoint{} times a hand-set discount of \Discount{} times the
+gap: the share of a point given away that a fix would bank. Two things the ledger does not
+measure: where players a band above his give away less than players at his level, and how much of
+a point given away shows in the result. So:
+\begin{enumerate}[nosep]
+\item On which causes do players 200 points above his level (\AboveLo--\AboveHi{} on Lichess) give
+away fewer points a game than players at his level (\HisLo--\HisHi), and which carry the difference?
+\item How much does a point given away on each cause cost in the result, against the app's
+\Discount?
+\item How often do players at each level hang a piece or allow a mate, and what does it cost them?
+\end{enumerate}
+
+\section{The data}
+
+The games are the \GamesBuilt{} rated 10-minute Lichess games the think-time study kept from
+\Month{} (CC0), with Lichess's evaluation on every move and the clock. Each was built once with the
+app's own code through the lab's bridge: the metrics service's \texttt{primaryFacts} with the
+routine's ports, and the review service's reader for its motif tags. Each game gives two
+player-games, one for each player as ``me''; Black's facts are derived from White's build with the
+evaluations and the result turned around, and on \BlackChecked{} games they matched a real Black
+build, move facts, score and tags. A player-game's band is the player's Lichess rating
+(Table~\ref{tab:bands}). His chess.com rapid rating comes to the middle of his band by the app's
+default conversion.
+
+\begin{table}[h]
+\centering
+\small\BandTable
+\caption{The bands. The slope is the band curve's, fitted on the band's own player-games; plies
+are a game's mean length.}
+\label{tab:bands}
+\end{table}
+
+\section{The method}
+
+Every measure is the app's. The points a player gives away on a cause are the method service's
+\texttt{causeLoss} for that cause: the drop in expected score across each of his moves of that
+kind, on the band curve, floored at zero. One yardstick prices every band: the curve's slope fitted
+by the metrics service's \texttt{fitWinCurve} on his band's player-games ($k = \YardstickK \times
+10^{-3}$ per centipawn, from \YardstickPositions{} positions; the Lichess curve's is \LichessK),
+so the same move costs the same points at every level. The ledger's first seven causes, the six
+phase-by-position ones and the low clock, split every move between them, so their differences add
+up to the difference on every move.
+
+Error kinds come from the review reader's motif tags on the moves it calls a mistake or a blunder,
+read from the evaluations alone: with no engine line, a move that leaves one of the mover's pieces
+newly hanging is \emph{hanging a piece}, and the evaluation or the board gives \emph{allowing mate in
+one} and \emph{allowing a forced mate} (in two to five). The three kinds and the untagged rest split
+the serious errors.
+
+Means are over player-games. Intervals come from \Draws{} bootstrap draws over games (a game's two
+player-games share its Poisson weight; seed \Seed), the 95\% percentile interval, with a $p$-value
+of twice the smaller share of draws on either side of zero.
+
+The rule, committed before any result was computed. (1) A cause \emph{separates the bands} when the
+band above's mean points a game on it minus his band's, $\Delta_c$, is below zero with a
+Holm-adjusted $p$ under 0.05 over the \Causes{} causes; the causes that separate them, ranked by
+$\Delta_c$, are the priorities the data give his band. (2) Over his band's player-games, a least
+squares fit of the result (0, 50 or 100) on the points given away on a cause and the rating
+difference gives $\delta_c$, minus the slope on the points: the share of a point given away that
+shows in the result. The app's \Discount{} is \emph{too high} for a cause when $\delta_c$'s interval
+lies below it, \emph{too low} when above, and \emph{within} otherwise.
+
+Four checks were added after the results were read, and each is marked where it appears: points per
+move, the error kinds' share of the difference, the discount fitted with the opponent's points, and
+his own games' split. They test nothing and carry no rule; they say what the registered numbers mean.
+
+\section{Results}
+
+\subsection{What separates the bands}
+
+Over every move, the band above gives away \AllAbove{} points a game and his band \AllHis, a
+difference of \AllDelta{} (\AllDeltaLo{} to \AllDeltaHi; Table~\ref{tab:separates}). \SeparateCap{}
+of the \Causes{} causes separate the bands. Ranked by the difference, they are \RankedList. The first
+two cost about three points a game each: tense middlegames \MiddlegameTenseDelta{} and the move
+after the opponent's serious error \AfterGiftDelta.
+
+The \PartitionCauses{} causes that split every move add up to the difference on every move, and the
+tense ones carry more than all of it: \OpeningTenseShare\% in the opening, \MiddlegameTenseShare\%
+in the middlegame and \EndgameTenseShare\% in the endgame, \TenseShare\% together. Quiet openings
+add \OpeningQuietShare\%. The band above gives away \emph{more} a game in quiet middlegames
+(\MiddlegameQuietDelta), quiet endgames (\EndgameQuietDelta), under a minute on the clock
+(\ClockLowDelta) and from move 40 (\LateDelta), the four causes that do not separate the bands; the
+first three give back \GiveBack\% of the difference.
+
+\begin{table}[h]
+\centering
+\scriptsize\SeparatesTable
+\caption{What separates the bands: points a game given away on each cause at his level
+(\HisLo--\HisHi) and the band above (\AboveLo--\AboveHi), the difference $\Delta$ (above minus his)
+with its 95\% interval, the Holm-adjusted $p$, the rule's verdict, and each partition cause's share
+of the difference on every move. The first seven causes split every move; the next three overlap
+them.}
+\label{tab:separates}
+\end{table}
+
+\subsection{Per game and per move}
+
+Why would stronger players give away more in quiet positions? A cause's points a game are its points
+a move times its moves a game, and the band above's games are longer (\AbovePlies{} plies against
+\HisPlies), with more quiet middlegame moves in them (\AboveQuietMiddlegameMoves{} a game against
+\HisQuietMiddlegameMoves). Per move, a check added after the results were read, the band above gives
+away less on \PerMoveLess{} of the \Causes{} causes and the same, within the interval, on quiet
+endgames, under a minute on the clock and from move 40 (Table~\ref{tab:permove}); over every move,
+\AllPerMoveAbove{} points a move against \AllPerMoveHis. Where the band above gives away more a game,
+it meets more of those moves; it does not play them worse. The move after the opponent's serious
+error costs the most a move in both bands: \GiftPerMoveHis{} points a move at his level, \GiftRatio{}
+times an average move.
+
+\begin{table}[h]
+\centering
+\scriptsize\PerMoveTable
+\caption{Per game and per move (added after the results were read; it tests nothing): each cause's
+moves a game, and the points a move given away on it, the band's total points over its total moves,
+with the difference (above minus his).}
+\label{tab:permove}
+\end{table}
+
+\subsection{Error kinds}
+
+Every level gives away fewer points than the one below it, from \AllLow{} points a game at
+\BandLo{} to \AllHigh{} at \BandHi, and makes fewer serious errors (Figure~\ref{fig:trend},
+Table~\ref{tab:kinds}), while its games get longer, from \PliesLow{} plies to \PliesHigh. Points a
+game fall at every band on tense openings and middlegames, quiet openings, fast tense answers and
+the move after the opponent's serious error, and rise at every band on quiet middlegames and
+endgames and from move 40 (Table~\ref{tab:trend}).
+
+A player at his level makes \HisSerious{} serious errors a game and one at the band above
+\AboveSerious. In a check added after the results were read, serious errors carry
+\SeriousDiffShare\% of the difference between the two bands and hanging a piece \HangingDiffShare\%
+on its own (Table~\ref{tab:kinddiff}): his band hangs a piece once every \HisHangingEvery{} games,
+the band above once every \AboveHangingEvery. Allowing a mate is rare at both levels, mate in one
+once every \HisMateOneEvery{} games at his and once every \AboveMateOneEvery{} above, and mates carry
+\MatesDiffShare\% of the difference. The serious errors the reader leaves untagged, which include
+every fork or pin that wins material, carry \UntaggedDiffShare\%.
+
+\begin{figure}[h]
+\centering
+\begin{subfigure}{0.49\textwidth}\centering\AllPlot\caption{Points a game, every move.}\end{subfigure}\hfill
+\begin{subfigure}{0.49\textwidth}\centering\SeriousPlot\caption{Serious errors a game.}\end{subfigure}
+\caption{Across the \Bands{} bands, with 95\% intervals (most are narrower than the marks).}
+\label{fig:trend}
+\end{figure}
+
+\begin{table}[h]
+\centering
+\scriptsize\KindsTable
+\caption{Error kinds by band: serious errors a game and the kinds the reader tags among them, with
+95\% intervals.}
+\label{tab:kinds}
+\end{table}
+
+\begin{table}[h]
+\centering
+\scriptsize\KindDiffTable
+\caption{What each kind costs, his band against the band above (added after the results were read;
+it tests nothing): points a game, the difference and its share of the difference on every move.
+The four kinds below serious errors split them.}
+\label{tab:kinddiff}
+\end{table}
+
+\begin{table}[h]
+\centering
+\scriptsize\TrendTable
+\caption{Points a game on each cause, by band.}
+\label{tab:trend}
+\end{table}
+
+\subsection{The discount}
+\label{sec:discount}
+
+By the rule, the app's \Discount{} is too high on all \Causes{} causes: $\delta$ runs from
+\DiscountMin{} to \DiscountMax, and is \AllDiscount{} over every move (Table~\ref{tab:discount}).
+The fit cannot carry that verdict. On a calibrated curve a game's result is, near enough, 50 plus
+the points the opponent gives away less the points the player gives away, and games where one
+player gives away more are games where the other does too: over every move, the two players' points
+a game correlate at \CorrAll. Left out of the fit, the opponent's points pull the slope on the
+player's points towards zero.
+
+With them in, a check added after the results were read and not part of the rule, a point given
+away costs \TheirsAll{} points of result over every move (\TheirsAllLo{} to \TheirsAllHi), and a
+point the opponent gives away is worth \TheirsAllOpp{} (Table~\ref{tab:theirs}). With the
+\PartitionCauses{} partition causes in one fit, each beside the opponent's points on it, a point
+given away costs between \PartitionMin{} and \PartitionMax{} points of result on every one. The
+other three causes overlap the partition, so a fit of one of them alone still leaves out points that
+rise and fall with it, and comes in lower (\GiftTheirs{} for the move after the opponent's serious
+error).
+
+So the results give no reason to lower the \Discount: a point given away shows in the result one
+for one, as the curve says it should. What the \Discount{} can stand for is the share of a leak a fix
+removes, and bands of other players cannot measure that.
+
+\begin{table}[h]
+\centering
+\small\DiscountTable
+\caption{The rule's discount fit, over his band's player-games: $\delta$, minus the slope of the
+result on the points given away with the rating difference beside them, and its 95\% interval. By
+the rule every cause is \emph{too high} against the app's \Discount.}
+\label{tab:discount}
+\end{table}
+
+\begin{table}[h]
+\centering
+\scriptsize\TheirsTable
+\caption{The discount with the opponent's points (added after the results were read; not part of the
+rule): the correlation of the two players' points a game, $\delta$ with the opponent's points on the
+same cause beside the player's, and $\delta$ in one fit with both players' points on every partition
+cause.}
+\label{tab:theirs}
+\end{table}
+
+\subsection{His games}
+
+His \ArchiveGames{} ten-minute games come from the app's own reviews, with its engine and depth, not
+Lichess's server analysis, so their points are not on the bands' footing. This section compares only
+how they split between the causes and how often a board shows an error; both were added after the
+results were read and test nothing.
+
+His points split like his band's on most causes, and two differ (Table~\ref{tab:split}). Tense
+endgames take \SplitEndgameTenseMine\% of his points, against \SplitEndgameTenseHis\% at his level
+and \SplitEndgameTenseAbove\% above. Tense openings take \SplitOpeningTenseMine\%, against
+\SplitOpeningTenseHis\% at his level, about the band above's \SplitOpeningTenseAbove\%. He hangs a
+piece about as often as either band, once every \ArchiveHangingEvery{} games, and allows a mate more
+often than either: mate in one once every \ArchiveMateOneEvery{} games and a forced mate once every
+\ArchiveMateNEvery, about \MateRatio{} times his level's rate (Table~\ref{tab:hiskinds}).
+
+\begin{table}[h]
+\centering
+\small\SplitTable
+\caption{How the points given away split between the partition's causes (added after the results
+were read; it tests nothing): his games, his band and the band above, with 95\% intervals.}
+\label{tab:split}
+\end{table}
+
+\begin{table}[h]
+\centering
+\scriptsize\HisKindsTable
+\caption{How often a board shows an error (added after the results were read; it tests nothing):
+per game in his games and in each band, with 95\% intervals.}
+\label{tab:hiskinds}
+\end{table}
+
+\section{What it means for the app}
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Where his level loses to the band above.} The ledger's ONE focus picks the cause where
+he gives away most against his own opponents. The bands add a second yardstick, where players 200
+points above give away less, and for his level it puts tense positions first: the middlegame, the
+opening, then the endgame, with the move after the opponent's serious error and fast answers in
+tense positions beside them. Quiet middlegames and endgames are not where the band above is better.
+\item \textbf{A yardstick from other players' games is per move.} Per game, the band above's longer
+games make quiet positions and late moves look like its weakness. The ledger's own comparison,
+against the opponent in the same games, meets the same moves and needs no change.
+\item \textbf{The move after the opponent's error.} It costs \GiftRatio{} times an average move at
+his level and separates the bands, and the think-time study found \ThinkGiftErrors\% of serious
+errors there, on \ThinkGiftMoves\% of moves.
+The coach can teach a check for that move; the think-time study could not show that more time there
+pays.
+\item \textbf{Keep the \Discount.} A point given away costs about a point of result. The \Discount{}
+can only discount how much of a leak a fix removes, which needs his own games before and after a
+focus, not other players' games.
+\item \textbf{Rates the coach can cite.} At his level a player hangs a piece once every
+\HisHangingEvery{} games and the band above once every \AboveHangingEvery; his own rate can sit
+beside them. In his games, mates allowed and tense endgames stand out.
+\end{enumerate}
+
+\section{Limits}
+
+The bands are a cross-section, not a path: the band above is other players, in games against
+their own level, and their numbers say where stronger players give away less, not what he would gain
+by fixing one thing. The rule's discount fit adjusted only for the rating difference, and the
+results show what that left out (Section~\ref{sec:discount}); the fits with the opponent's points
+came after the results were read and are descriptions, not tests. With no engine line, the reader
+tags only a piece left hanging and a mate; a fork or a pin that wins material goes untagged. Lichess
+evaluations come from its own server analysis, games someone asked to have analysed are not a random
+sample, and his Lichess level is the app's conversion of his chess.com rating. His games come from
+the app's reviews, with another engine and depth, so the paper sets no band's level beside his.
+Players recur across games and no username is kept, so the intervals, drawn over games, are somewhat
+narrow.
+
+\end{document}

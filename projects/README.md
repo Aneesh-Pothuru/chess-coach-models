@@ -25,7 +25,7 @@ everything that answers it:
 | [detector-themes](detector-themes/) | Do the app's motif labels name the tactic a position holds, judged on public puzzles? | Not yet ported: the describe-first candidate gained on both pools and waits its turn |
 | [drill-decks](drill-decks/) | Do the misses deck's theme words and the plan quiz ask what they say they ask? | Not yet ported: the threat search and the quiet positions' plan questions are the candidates |
 | [praise-gate](praise-gate/) | Does the live coach, holding its instant praise for the engine's verdict, praise only the moves that earn it? | Measured on the change before it lands: narrowly short of its bar; the next round tests a stricter one |
-| [band-above](band-above/) | Where do players 200 points above his level give away fewer points a game than players at his level, by the leak ledger's own causes, and how much of a point given away shows in the result? | Running: the rule is fixed, the results are to come |
+| [band-above](band-above/) | Where do players 200 points above his level give away fewer points a game than players at his level, by the leak ledger's own causes, and how much of a point given away shows in the result? | Not yet ported: tense positions and the move after the opponent's error separate the bands; a point given away costs about a point of result, so the 0.6 stays |
 | [phone-vs-routine](phone-vs-routine/) | Does Game Review on his phone name the same mistakes and blunders as the routine's review of the same game? | Running: the rule is fixed, the results are to come |
 | [learner-solve-chance](learner-solve-chance/) | When the learner gives a solve chance for a puzzle, how often does he solve it, and should a set aim from the view of its own channel instead of the headline rating? | Adopted on the owner's call, not by the rule: round 1's record kept only his solves; on the app's own log the rating serving read gave him about half a chance on puzzles he solves nearly always, so the app now aims sets from the themed view (chess PR 78), and round 2 decides whether it stays |
 
@@ -120,6 +120,12 @@ for i in 0 1 2 3; do
 done; wait
 bridge/run.sh projects/think-time-rapid/archive.mjs
 python3 projects/think-time-rapid/analyze.py --month 2026-09
+for i in 0 1 2 3; do
+  bridge/run.sh projects/band-above/primary.mjs --month 2026-09 --shard $i/4 --check 200 &
+done; wait
+bridge/run.sh projects/band-above/ledger.mjs --month 2026-09
+bridge/run.sh projects/band-above/ledger.mjs --month 2026-09 --archive
+python3 projects/band-above/analyze.py --month 2026-09
 
 # The learner's solve chances: his puzzle attempts replayed through the app's
 # learner, on a record rebuilt from the memory cards and on the profile as the
