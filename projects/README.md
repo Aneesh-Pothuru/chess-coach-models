@@ -26,7 +26,7 @@ everything that answers it:
 | [drill-decks](drill-decks/) | Do the misses deck's theme words and the plan quiz ask what they say they ask? | Not yet ported: the threat search and the quiet positions' plan questions are the candidates |
 | [praise-gate](praise-gate/) | Does the live coach, holding its instant praise for the engine's verdict, praise only the moves that earn it? | Measured on the change before it lands: narrowly short of its bar; the next round tests a stricter one |
 | [band-above](band-above/) | Where do players 200 points above his level give away fewer points a game than players at his level, by the leak ledger's own causes, and how much of a point given away shows in the result? | Not yet ported: tense positions and the move after the opponent's error separate the bands; a point given away costs about a point of result, so the 0.6 stays |
-| [phone-vs-routine](phone-vs-routine/) | Does Game Review on his phone name the same mistakes and blunders as the routine's review of the same game? | Running: the rule is fixed, the results are to come |
+| [phone-vs-routine](phone-vs-routine/) | Does Game Review on his phone name the same mistakes and blunders as the routine's review of the same game? | Not yet ported: both devices differ, about one serious error in eleven, at the line between a mistake and an inaccuracy; the second look does not repeat across profiles, and a look with the engine's memory cleared is the next round |
 | [learner-solve-chance](learner-solve-chance/) | When the learner gives a solve chance for a puzzle, how often does he solve it, and should a set aim from the view of its own channel instead of the headline rating? | Adopted on the owner's call, not by the rule: round 1's record kept only his solves; on the app's own log the rating serving read gave him about half a chance on puzzles he solves nearly always, so the app now aims sets from the themed view (chess PR 78), or from the stored totals where a bucket has no view (PR 79), and round 2 decides whether the view stays |
 
 `paper.mjs` holds the helpers the generators share (boards, moves in SAN, UCI
@@ -63,9 +63,11 @@ From the lab's root, in order; each step reads what the steps above it wrote.
 make chess    # the pinned app with its npm dependencies, and the records
 
 # The games and their engine evidence. The evidence is the slow step: every
-# game reviewed at two engine budgets. Both builds resume where they stopped.
+# game reviewed at the phone's and the routine's budgets, and the desktop's for
+# phone-vs-routine. The builds resume where they stopped.
 bridge/run.sh projects/accuracy-vs-chesscom/build-cases.mjs --frozen
 bridge/run.sh projects/accuracy-vs-chesscom/build-evidence.mjs --profile phone
+bridge/run.sh projects/accuracy-vs-chesscom/build-evidence.mjs --profile desktop
 bridge/run.sh projects/accuracy-vs-chesscom/build-evidence.mjs --profile routine
 
 # Each project's numbers, recomputed from the records and rerun on that evidence.
@@ -73,6 +75,7 @@ bridge/run.sh projects/accuracy-vs-chesscom/reproduce.mjs
 bridge/run.sh projects/explain-top-move/reproduce.mjs
 bridge/run.sh projects/judge-in-context/reproduce.mjs
 bridge/run.sh projects/maia-punish/reproduce.mjs
+bridge/run.sh projects/phone-vs-routine/compare.mjs
 make parity
 
 # The routines' studies: the weekly focus, the motif labels, the decks.

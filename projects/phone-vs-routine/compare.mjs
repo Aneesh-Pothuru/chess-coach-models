@@ -13,6 +13,9 @@ import { join } from 'node:path'
 import { CHESS_DIR, chess, privateDir, resultsDir } from '../../bridge/lib/chess.mjs'
 
 const { isSerious, isBlunder } = await chess('src/services/metrics/index.ts')
+const { PASS2_SHARE } = await chess('src/services/review/index.ts')
+const { DESKTOP_KNPS, ACCEPT_WINDOW_WP } = await chess('src/services/engine/index.ts')
+const { JUDGMENT_THRESHOLDS } = await chess('src/services/knowledge/index.ts')
 
 // The study's own parameters, as the README fixes them.
 const LINE = 0.05
@@ -154,10 +157,85 @@ for (const device of DEVICES) {
   }
 }
 
+// Added after the results were read; it tests nothing. Why the reviews part:
+// on the plies both profiles gave the second look (the same position, nodes
+// and candidates), whether the two looks reached the same depth or the same
+// numbers and how far apart their losses are; for the serious errors they
+// disagree on, the classes they flip between, how many have both losses
+// within NEAR points of the mistake line, and how many either profile's own
+// extra look at twice the nodes changed. And the phone against the desktop,
+// the rule's shares, to see whether two device profiles that differ only in
+// their sweep disagree as much.
+const NEAR = 3
+function readings(device) {
+  let bothLooked = 0
+  let sameDepth = 0
+  let identical = 0
+  let serious = 0
+  let near = 0
+  let unsettled = 0
+  const gaps = []
+  const flips = {}
+  for (const c of cases) {
+    const r = docOf('routine', c.id)
+    const d = docOf(device, c.id)
+    if (!r || !d) continue
+    r.records.forEach((rr, i) => {
+      const dd = d.records[i]
+      const a = r.positions[i]?.deep
+      const b = d.positions[i]?.deep
+      if (rr.evidence === 'verified' && dd.evidence === 'verified' && a && b) {
+        bothLooked++
+        sameDepth += a.depth === b.depth
+        identical += JSON.stringify([a.lines?.[0]?.move, a.lines?.[0]?.score, a.played]) === JSON.stringify([b.lines?.[0]?.move, b.lines?.[0]?.score, b.played])
+        gaps.push(Math.abs(rr.lossPct - dd.lossPct))
+      }
+      if (isSerious(rr.cls, rr.judged) === isSerious(dd.cls, dd.judged)) return
+      serious++
+      const pair = `${rr.cls}/${dd.cls}`
+      flips[pair] = (flips[pair] ?? 0) + 1
+      near += [rr.lossPct, dd.lossPct].every((x) => Math.abs(x - JUDGMENT_THRESHOLDS.mistake) <= NEAR)
+      unsettled += a?.stability === 'changed' || b?.stability === 'changed'
+    })
+  }
+  gaps.sort((x, y) => x - y)
+  const at = (q) => (gaps.length ? gaps[Math.min(gaps.length - 1, Math.floor(q * gaps.length))] : null)
+  return { bothLooked, sameDepth, identical, lossGap: { median: at(0.5), p90: at(0.9), max: gaps.at(-1) ?? null }, serious, flips, near, unsettled }
+}
+const devicePair = cases.map((c) => {
+  const p = docOf('phone', c.id)
+  const d = docOf('desktop', c.id)
+  if (!p || !d) return null
+  const g = { desktopSerious: 0, phoneSerious: 0, missed: 0, extra: 0 }
+  d.records.forEach((dd, i) => {
+    const pp = p.records[i]
+    const ds = isSerious(dd.cls, dd.judged)
+    const ps = isSerious(pp.cls, pp.judged)
+    g.desktopSerious += ds
+    g.phoneSerious += ps
+    g.missed += ds && !ps
+    g.extra += ps && !ds
+  })
+  return g
+})
+const posthoc = {
+  near: NEAR,
+  mistakeLine: JUDGMENT_THRESHOLDS.mistake,
+  readings: Object.fromEntries(DEVICES.map((p) => [p, readings(p)])),
+  phoneAgainstDesktop: { miss: ratio(devicePair, (g) => g.missed, (g) => g.desktopSerious), extra: ratio(devicePair, (g) => g.extra, (g) => g.phoneSerious) },
+}
+
+// The live coach's accept window, a fact about the code: the line that types
+// its own window, and whether the file imports the review's.
+const LIVE_COACH = 'src/services/livecoach/verdict.ts'
+const liveCoach = readFileSync(join(CHESS_DIR, LIVE_COACH), 'utf8').split('\n')
+const typedAt = liveCoach.findIndex((l) => /amongFine\s*=.*<=\s*3\b/.test(l))
+
 const routineDoc = cases.map((c) => docOf('routine', c.id)).find(Boolean)
 const out = {
   appCommit: CHESS_DIR.split('/').pop(),
   engine: routineDoc?.provenance?.build ?? null,
+  app: { PASS2_SHARE, DESKTOP_KNPS, ACCEPT_WINDOW_WP, liveCoach: { file: LIVE_COACH, typedLine: typedAt >= 0 ? typedAt + 1 : null, importsAcceptWindow: liveCoach.some((l) => /ACCEPT_WINDOW_WP/.test(l)) } },
   budgets: Object.fromEntries(['phone', 'desktop', 'routine'].map((p) => {
     const d = cases.map((c) => docOf(p, c.id)).find(Boolean)
     return [p, d ? { sweepNodes: d.provenance.scanNodes, verifyNodes: d.provenance.verifyNodes, tablebase: d.provenance.tablebase } : null]
@@ -168,6 +246,7 @@ const out = {
   seed: SEED,
   skipped,
   results,
+  posthoc,
 }
 const results_ = resultsDir('phone-vs-routine')
 writeFileSync(join(results_, 'compare.json'), JSON.stringify(out, null, 2) + '\n')
@@ -204,6 +283,18 @@ const md = [
     const w = results[p].where
     return `| ${p} | ${w.missed.verified} | ${w.missed.sweep} | ${w.missed.routineTablebase} | ${w.extra.verified} | ${w.extra.sweep} | ${w.extra.routineTablebase} |`
   }),
+  '',
+  `## Why the reviews part (added after the results were read; it tests nothing)`,
+  '',
+  `| Profile | Plies both looked at twice | Same depth | Same numbers | Loss gap: median (90th percentile, largest) | Serious disagreements | Of them, both losses within ${NEAR} points of the ${posthoc.mistakeLine}-point mistake line | Of them, an extra look changed the verdict | Classes (routine/device) |`,
+  '|---|---|---|---|---|---|---|---|---|',
+  ...DEVICES.map((p) => {
+    const x = posthoc.readings[p]
+    const g = (v) => (v === null ? 'n/a' : v.toFixed(2))
+    return `| ${p} | ${x.bothLooked} | ${x.sameDepth} | ${x.identical} | ${g(x.lossGap.median)} (${g(x.lossGap.p90)}, ${g(x.lossGap.max)}) | ${x.serious} | ${x.near} | ${x.unsettled} | ${Object.entries(x.flips).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v}`).join(', ')} |`
+  }),
+  '',
+  `The phone against the desktop: the phone misses ${ci(posthoc.phoneAgainstDesktop.miss)} of the desktop's serious errors and adds ${ci(posthoc.phoneAgainstDesktop.extra)}.`,
   '',
 ]
 writeFileSync(join(results_, 'compare.md'), md.join('\n'))

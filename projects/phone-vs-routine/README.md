@@ -13,10 +13,26 @@ same mistakes and blunders as the routine's review of it? Where it does not,
 is the move one the device never looked at twice, and would a better choice of
 second looks close the gap?
 
-**The answer.** Not computed yet. The rule below was committed after one game
-had been reviewed at the phone and routine profiles, to time them (its labels
-were read: the one serious error agreed, four inaccuracies did not), and
-before any other comparison; the results will be added under it.
+**The answer.** No. By the rule, both devices differ from the routine: the
+phone misses about one serious error in eleven that the routine names and adds
+about as many of its own, and the desktop does the same. The step the rule
+named for that case does not apply: the devices gave the deeper second look to
+nearly every move they disagree on, so a better choice of which moves get it
+would not close the gap. Descriptions added after the results were read, and
+testing nothing, say why. Nearly every disagreement is a move called a mistake
+on one side and an inaccuracy on the other, near the line between them, and
+the second look does not repeat across profiles: with the same nodes from the
+same position, two profiles' looks at a move rarely give the same numbers,
+because the engine keeps what it learned from the game's earlier searches and
+each profile searched different things first. The phone and the desktop part
+from each other as much as either does from the routine. A second look that
+starts with the engine's memory cleared is the next round, with its own rule.
+The live coach still types its own accept window. The paper,
+[`paper/paper.pdf`](paper/paper.pdf), has the numbers and one position.
+
+The rule below was committed after one game had been reviewed at the phone
+and routine profiles, to time them (its labels were read: the one serious
+error agreed, four inaccuracies did not), and before any other comparison.
 
 ## The data
 
@@ -83,6 +99,21 @@ on these games' training half and held to the other.
   `ACCEPT_WINDOW_WP`, so a change to the window would not reach it. A fact
   about the code, not a measurement.
 
+Added after the results were read; they test nothing:
+
+- **Why the reviews part.** On the moves both a device and the routine gave
+  the second look: whether the two looks reached the same depth and gave the
+  same numbers (the best move's score and the played move's), and the gap
+  between their losses. On the serious errors they disagree on: the classes
+  they flip between, how many have both losses within 3 points of the
+  knowledge service's mistake line, and on how many either profile's own
+  extra look at twice the nodes changed its verdict.
+- **The phone against the desktop:** the rule's two shares, the desktop in
+  the routine's place.
+- `compare.mjs` also records the app's constants it reads (`PASS2_SHARE`,
+  `DESKTOP_KNPS`, `ACCEPT_WINDOW_WP` and the live coach's line), so the paper
+  does not depend on the lab's pin.
+
 ## Caveats
 
 - **Sixty games.** The frozen sample is his games of one stretch of the
@@ -98,7 +129,8 @@ on these games' training half and held to the other.
 
 | File | What it does |
 |---|---|
-| `compare.mjs` | Reads the phone, desktop and routine documents of every case and writes the shares, intervals, the attribution and the rule's verdicts (`results/compare.json`, `results/compare.md`). |
+| `compare.mjs` | Reads the phone, desktop and routine documents of every case and writes the shares, intervals, the attribution, the rule's verdicts and the descriptions (`results/compare.json`, `results/compare.md`). |
+| `paper/` | The paper. |
 
 ## Running it
 
@@ -109,6 +141,7 @@ for p in phone desktop routine; do
   bridge/run.sh projects/accuracy-vs-chesscom/build-evidence.mjs --profile $p
 done
 bridge/run.sh projects/phone-vs-routine/compare.mjs
+bridge/run.sh projects/phone-vs-routine/paper/generate.mjs
 ```
 
 The documents and the per-ply comparisons stay under `private/`; `results/`

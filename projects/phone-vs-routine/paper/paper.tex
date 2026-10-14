@@ -1,0 +1,227 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Does Game Review on his phone agree with the routine?\\[0.3em]
+\large The phone's, the desktop's and the routine's reviews of the same \Cases{} games}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+On \Cases{} of his games, Game Review on a phone or a desktop does not name the same serious errors
+as the routine's review of the same game. By the rule committed before any comparison, both devices
+differ from the routine: the phone misses \PhoneMiss\% of the routine's mistakes and blunders and
+names \PhoneExtraShare\% of its own that the routine does not; the desktop misses \DesktopMiss\%
+and adds \DesktopExtraShare\%. The next step the rule named, a better choice of which moves get the
+deeper second look, would not close the gap, because the devices looked twice at nearly every move
+they disagree on. In checks added after the results were read, nearly every disagreement is a
+mistake on one side and an inaccuracy on the other, and the second look itself does not repeat: on
+the \PhoneBothLooked{} moves both the phone and the routine looked at twice, with the same nodes from
+the same position, the two looks gave the same numbers on \PhoneIdentical. The phone and the desktop
+disagree with each other as much as either does with the routine. What tells the reviews apart is
+what the engine searched earlier in the game, not the phone's smaller budget. A second look that
+starts with the engine's memory cleared is the next round.
+\end{abstract}
+
+\section{The question}
+
+The app reviews a game in two places. On a device, Game Review sweeps each position at
+\PhoneSweep{} nodes on a phone or \DesktopSweep{} on a desktop (a device counts as a desktop at
+\DesktopKnps{} thousand nodes a second or more), gives the deeper second look to at most
+\PassShare\% of the game's moves, and reads no tablebase. The daily routine sweeps at
+\RoutineSweep{} nodes, gives every move it flags the second look and reads the Lichess tablebase.
+The second look itself is \VerifyNodes{} nodes everywhere. When he opens a game on his phone, does
+Game Review name the same mistakes and blunders as the routine's review of it? Where it does not, is
+the move one the device never looked at twice?
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llll}
+\toprule
+profile & sweep (nodes) & second look & tablebase \\
+\midrule
+phone & \PhoneSweep & at most \PassShare\% of moves, \VerifyNodes{} nodes & no \\
+desktop & \DesktopSweep & at most \PassShare\% of moves, \VerifyNodes{} nodes & no \\
+routine & \RoutineSweep & every flagged move, \VerifyNodes{} nodes & yes \\
+\bottomrule
+\end{tabular}
+\caption{The three review profiles, as the app at commit \texttt{\AppCommit} sets them.}
+\label{tab:profiles}
+\end{table}
+
+\section{The data}
+
+The \Cases{} games of the research records' frozen sample, drawn from his archive by length and
+result. Each was reviewed by the app's own entry point (commit \texttt{\AppCommit}, \Engine) at the
+phone, desktop and routine profiles, with a fresh engine and no cache for every game, so a document
+depends only on the code and the game; on one thread at fixed nodes the engine is deterministic.
+
+\section{The method}
+
+All the measures come from the review documents, with the app's own definitions. A ply is
+\emph{serious} when the metrics service's \texttt{isSerious} says so of its class: a mistake, a
+blunder or a miss. A serious error the routine names is \emph{missed} by a device when the device's
+record of the same ply is not serious; a device's serious error is \emph{extra} when the routine's
+record of that ply is not. The \emph{miss share} is the missed plies over the routine's serious
+errors, the \emph{extra share} the extra plies over the device's. Beside them: the same shares for
+blunders and for inaccuracies, the plies whose class differs in any way, and each side's accuracy on
+the device against the routine. For every missed or extra ply, the device either gave it the second
+look or left it at the sweep's reading, and the routine's reading either came from the tablebase or
+did not.
+
+Shares are pooled over the \Cases{} games, with 95\% intervals from \Draws{} bootstrap draws over
+games (a Poisson(1) weight for each game, seed \Seed).
+
+The rule, committed before any comparison was made, for each device: the device \emph{agrees} with
+the routine when the upper ends of both the miss share's and the extra share's intervals lie below
+\Line\%; it \emph{differs} when the lower end of either lies above \Line\%; otherwise the games
+cannot tell (\emph{unclear}). One in twenty is the line: a phone that missed more would, every few
+games, leave out an error the daily review names, which a player reading both would notice within a
+week. When a device differs and most of its missed or extra plies are ones it left at the sweep's
+reading, the next round chooses better which moves get the second look, at the device's fixed
+budget.
+
+Four descriptions were added after the results were read, and each is marked where it appears:
+whether the two profiles' second looks of the same move give the same numbers, how far apart their
+losses are, how near the mistake line the disagreements lie, and the phone against the desktop. They
+test nothing and carry no rule.
+
+\section{Results}
+
+\subsection{The verdict}
+
+By the rule, both devices differ from the routine (Table~\ref{tab:verdict}). The phone misses
+\PhoneMissed{} of the routine's \PhoneRoutineSerious{} serious errors, \PhoneMiss\%
+(\PhoneMissLo{} to \PhoneMissHi\%), and names \PhoneExtra{} that the routine does not,
+\PhoneExtraShare\% of its own (\PhoneExtraLo{} to \PhoneExtraHi\%). The desktop misses
+\DesktopMiss\% (\DesktopMissLo{} to \DesktopMissHi\%) and adds \DesktopExtraShare\%
+(\DesktopExtraLo{} to \DesktopExtraHi\%). The phone's miss share and the desktop's extra share each
+lie wholly above the \Line\% line. Blunders alone part about as often, and about a third of the
+inaccuracies differ (Table~\ref{tab:other}): on the phone, \PhoneDiffer\% of all moves get a
+different class from the routine's. Both devices read a side's accuracy a little lower than the
+routine does, by \PhoneBiasAbs{} and \DesktopBiasAbs{} points on average.
+
+\begin{table}[h]
+\centering
+\scriptsize\VerdictTable
+\caption{The rule: serious errors (mistakes, blunders and misses) named by the routine and by each
+device over the \Cases{} games, the routine's that the device missed, the device's that the routine
+does not name, the two shares with their 95\% intervals, and the verdict against the \Line\% line.}
+\label{tab:verdict}
+\end{table}
+
+\begin{table}[h]
+\centering
+\scriptsize\OtherTable
+\caption{Beside the rule: the same shares for blunders alone and for inaccuracies, and the share of
+all moves whose class differs in any way, with 95\% intervals.}
+\label{tab:other}
+\end{table}
+
+\subsection{Where the differences come from}
+
+Not from the second look's quota. The phone gave the second look to \PhoneMissedVerified{} of the
+\PhoneMissed{} serious errors it missed and to all \PhoneExtra{} it added; the desktop to
+\DesktopMissedVerified{} of \DesktopMissed{} and all \DesktopExtra{} (Table~\ref{tab:where}). The
+tablebase played almost no part. So the next round the rule named, choosing better which moves get
+the second look, would leave nearly every difference where it is.
+
+\begin{table}[h]
+\centering
+\scriptsize\WhereTable
+\caption{Where each missed or extra serious error comes from: whether the device gave the move the
+second look or left it at the sweep's reading, and whether the routine's reading came from the
+tablebase.}
+\label{tab:where}
+\end{table}
+
+\subsection{Why the reviews part}
+
+The second look is the same search on every profile: \VerifyNodes{} nodes and the same candidates,
+from the same position with the game's history. But the engine keeps what it learned from the game's
+earlier searches, and each profile has searched different things before it reaches a move: the
+sweep at its own budget, and the second looks it chose before. In a check added after the results
+were read, on the \PhoneBothLooked{} moves both the phone and the routine looked at twice, the two
+looks gave the same numbers on only \PhoneIdentical{} and reached the same depth on
+\PhoneSameDepth{} (Table~\ref{tab:readings}). Their losses for the move differ by \PhoneGapMedian{}
+points at the median and \PhoneGapNinety{} at the 90th percentile.
+
+That is enough to move a class at the line. Of the \PhoneDisagree{} serious errors the phone and the
+routine disagree on, \PhoneFlips{} are a mistake on one side and an inaccuracy on the other, and
+\PhoneNear{} have both losses within \Near{} points of the \MistakeLine-point mistake line; on
+\PhoneUnsettled, one profile's own extra look, at twice the nodes, changed its verdict, so the engine
+had not settled them either. The desktop's are alike. And the phone and the desktop, whose profiles
+differ only in the sweep, disagree with each other as much as either does with the routine: the
+phone misses \PvDMiss\% of the desktop's serious errors (\PvDMissLo{} to \PvDMissHi\%) and adds
+\PvDExtra\% (\PvDExtraLo{} to \PvDExtraHi\%).
+
+\begin{table}[h]
+\centering
+\scriptsize\ReadingsTable
+\caption{Why the reviews part (added after the results were read; it tests nothing). On the moves
+both the device and the routine looked at twice: how many, on how many the two looks reached the
+same depth or gave the same numbers (the best move's score and the played move's), and the gap
+between their losses. On the serious errors they disagree on: how many, how many are a mistake on one
+side and an inaccuracy on the other, how many have both losses within \Near{} points of the
+\MistakeLine-point line, and on how many either profile's extra look changed its verdict.}
+\label{tab:readings}
+\end{table}
+
+\subsection{An example}
+
+The phone's costliest miss is \ExampleSide's \ExampleMove{} in Figure~\ref{fig:example}. The
+routine calls it a \ExampleRoutineCls{} (a loss of \ExampleRoutineLoss{} points) and the phone an
+\ExamplePhoneCls{} (\ExamplePhoneLoss). Both looked at it twice, and both looks found
+\ExampleBestMove{} best at depth \ExampleDepth. They part on the move played. The phone's look kept
+\ExampleMove{} among its \ExampleCandidates{} candidates and scored it \ExamplePhonePlayed{} there;
+the routine's left it out and searched it on its own, at \ExampleRoutinePlayed{} (both from White's
+side, in pawns). The routine's line is \ExampleBest{} (\ExampleBestUci), from the position
+\ExampleFen.
+
+\begin{figure}[h]
+\centering
+\ExampleBoard
+\caption{\ExampleSide{} to move: \ExampleMove{} (red) where the routine's second look prefers
+\ExampleBestMove{} (green).}
+\label{fig:example}
+\end{figure}
+
+\section{The live coach's accept window}
+
+The Play screen's live coach decides whether the move played was among the fine ones with its own
+\AcceptWindow{} (\VerdictFile, line \VerdictLine), where the review imports
+\texttt{ACCEPT\_WINDOW\_WP}, also \AcceptWindow. The two agree today, but a change to the review's
+window would not reach the live coach. This is a fact about the code, not a measurement.
+
+\section{What it means for the app}
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{The phone's review and the routine's part on about one serious error in
+\PhoneOneIn.} Nearly all of them are moves near the line between a mistake and an inaccuracy. A
+player reading both would meet \PhoneDisagree{} such moves in \Cases{} games.
+\item \textbf{A bigger device budget would not fix it.} The desktop parts from the routine as much
+as the phone does, and the phone and the desktop part from each other as much. The second-look quota
+is not the cause either.
+\item \textbf{Make the second look repeat.} With the engine's memory cleared before each second look,
+the look becomes a function of the position, the history, the nodes and the engine build, and every
+profile that looks at a move twice would read it the same way. The cost is that the look no longer
+starts from the sweep's work, so it may search less deeply for its nodes. The next round measures
+that change on these \Cases{} games against this paper's rule, with its own rule committed first.
+\item \textbf{The live coach imports the review's accept window} instead of typing its own
+\AcceptWindow, so that a change to one reaches the other.
+\end{enumerate}
+
+\section{Limits}
+
+The \Cases{} games are his games of one stretch of the archive, sampled for an accuracy study. The routine
+read here is today's: the daily reviews he has read were written by the routine on the app of their
+day, and this compares the profiles on one commit, so a difference is the profiles', not the app's
+history. Which profile his phone runs depends on its measured speed, so both device profiles are
+reported. The descriptions of why the reviews part came after the results were read; they say what
+the measured disagreements look like and test nothing.
+
+\end{document}

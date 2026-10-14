@@ -1,0 +1,180 @@
+% Written by projects/phone-vs-routine/paper/generate.mjs; do not edit by hand.
+
+\newcommand{\AppCommit}{d8b771238c}
+\newcommand{\Engine}{stockfish 18.0.8 stockfish-18-lite-single}
+\newcommand{\Cases}{60}
+\newcommand{\Line}{5}
+\newcommand{\Draws}{2,000}
+\newcommand{\Seed}{20261014}
+\newcommand{\PassShare}{25}
+\newcommand{\DesktopKnps}{500}
+\newcommand{\AcceptWindow}{3}
+\newcommand{\PhoneSweep}{100,000}
+\newcommand{\DesktopSweep}{250,000}
+\newcommand{\RoutineSweep}{1 million}
+\newcommand{\VerifyNodes}{750,000}
+\newcommand{\VerdictTable}{%
+\begin{tabular}{lrrrrlll}
+\toprule
+ & \multicolumn{2}{c}{serious errors} & & & & & \\
+\cmidrule(lr){2-3}
+profile & routine & device & missed & extra & miss share & extra share & verdict \\
+\midrule
+Phone & 341 & 336 & 31 & 26 & 9.1\% {\footnotesize (5.9, 12.6)} & 7.7\% {\footnotesize (4.9, 10.7)} & differs \\
+Desktop & 341 & 346 & 25 & 30 & 7.3\% {\footnotesize (4.4, 10.5)} & 8.7\% {\footnotesize (5.7, 11.7)} & differs \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\OtherTable}{%
+\begin{tabular}{llllll}
+\toprule
+ & \multicolumn{2}{c}{blunders} & \multicolumn{2}{c}{inaccuracies} & any class \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+profile & missed & extra & missed & extra & differs \\
+\midrule
+Phone & 8.1\% {\footnotesize (3.7, 12.3)} & 6.0\% {\footnotesize (2.2, 10.0)} & 35.8\% {\footnotesize (29.4, 42.5)} & 27.0\% {\footnotesize (21.9, 32.0)} & 26.1\% {\footnotesize (24.0, 28.2)} \\
+Desktop & 6.6\% {\footnotesize (2.7, 10.7)} & 6.6\% {\footnotesize (2.8, 10.8)} & 32.7\% {\footnotesize (27.0, 38.8)} & 24.6\% {\footnotesize (19.2, 29.9)} & 23.1\% {\footnotesize (21.1, 25.2)} \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\WhereTable}{%
+\begin{tabular}{lrrrrrr}
+\toprule
+ & \multicolumn{3}{c}{missed} & \multicolumn{3}{c}{extra} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+profile & second look & sweep only & routine: tablebase & second look & sweep only & routine: tablebase \\
+\midrule
+Phone & 26 & 5 & 0 & 26 & 0 & 1 \\
+Desktop & 23 & 2 & 0 & 30 & 0 & 0 \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\PhoneVerdict}{differs}
+\newcommand{\PhoneGames}{60}
+\newcommand{\PhonePlies}{3,917}
+\newcommand{\PhoneRoutineSerious}{341}
+\newcommand{\PhoneDeviceSerious}{336}
+\newcommand{\PhoneBoth}{310}
+\newcommand{\PhoneMissed}{31}
+\newcommand{\PhoneExtra}{26}
+\newcommand{\PhoneMiss}{9.1}
+\newcommand{\PhoneMissLo}{5.9}
+\newcommand{\PhoneMissHi}{12.6}
+\newcommand{\PhoneExtraShare}{7.7}
+\newcommand{\PhoneExtraLo}{4.9}
+\newcommand{\PhoneExtraHi}{10.7}
+\newcommand{\PhoneDiffer}{26.1}
+\newcommand{\PhoneDifferLo}{24.0}
+\newcommand{\PhoneDifferHi}{28.2}
+\newcommand{\PhoneInaccMiss}{36}
+\newcommand{\PhoneInaccExtra}{27}
+\newcommand{\PhoneLooks}{999}
+\newcommand{\PhoneFlags}{1,788}
+\newcommand{\PhoneCut}{789}
+\newcommand{\PhoneBias}{$-$0.6}
+\newcommand{\PhoneMae}{2.0}
+\newcommand{\PhoneLargest}{6.4}
+\newcommand{\PhoneSides}{120}
+\newcommand{\PhoneMissedSweep}{five}
+\newcommand{\PhoneMissedVerified}{26}
+\newcommand{\PhoneExtraSweep}{zero}
+\newcommand{\PhoneExtraVerified}{26}
+\newcommand{\PhoneMissedTablebase}{zero}
+\newcommand{\PhoneExtraTablebase}{one}
+\newcommand{\DesktopVerdict}{differs}
+\newcommand{\DesktopGames}{60}
+\newcommand{\DesktopPlies}{3,917}
+\newcommand{\DesktopRoutineSerious}{341}
+\newcommand{\DesktopDeviceSerious}{346}
+\newcommand{\DesktopBoth}{316}
+\newcommand{\DesktopMissed}{25}
+\newcommand{\DesktopExtra}{30}
+\newcommand{\DesktopMiss}{7.3}
+\newcommand{\DesktopMissLo}{4.4}
+\newcommand{\DesktopMissHi}{10.5}
+\newcommand{\DesktopExtraShare}{8.7}
+\newcommand{\DesktopExtraLo}{5.7}
+\newcommand{\DesktopExtraHi}{11.7}
+\newcommand{\DesktopDiffer}{23.1}
+\newcommand{\DesktopDifferLo}{21.1}
+\newcommand{\DesktopDifferHi}{25.2}
+\newcommand{\DesktopInaccMiss}{33}
+\newcommand{\DesktopInaccExtra}{25}
+\newcommand{\DesktopLooks}{994}
+\newcommand{\DesktopFlags}{1,786}
+\newcommand{\DesktopCut}{792}
+\newcommand{\DesktopBias}{$-$0.7}
+\newcommand{\DesktopMae}{1.6}
+\newcommand{\DesktopLargest}{7.3}
+\newcommand{\DesktopSides}{120}
+\newcommand{\DesktopMissedSweep}{two}
+\newcommand{\DesktopMissedVerified}{23}
+\newcommand{\DesktopExtraSweep}{zero}
+\newcommand{\DesktopExtraVerified}{30}
+\newcommand{\DesktopMissedTablebase}{zero}
+\newcommand{\DesktopExtraTablebase}{zero}
+\newcommand{\RoutineLooks}{1,738}
+\newcommand{\PhoneBiasAbs}{0.6}
+\newcommand{\DesktopBiasAbs}{0.7}
+\newcommand{\PhoneOneIn}{eleven}
+\newcommand{\Near}{3}
+\newcommand{\MistakeLine}{10}
+\newcommand{\ReadingsTable}{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ & \multicolumn{4}{c}{moves both looked at twice} & \multicolumn{4}{c}{serious errors they disagree on} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}
+ & & same & same & loss gap & & mistake & both within & an extra look \\
+profile & moves & depth & numbers & median (90\%) & moves & /inaccuracy & 3 points & changed it \\
+\midrule
+Phone & 880 & 260 & 17 & 0.57 (2.6) & 57 & 50 & 40 & 26 \\
+Desktop & 905 & 245 & 18 & 0.63 (2.4) & 55 & 54 & 49 & 25 \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\PhoneBothLooked}{880}
+\newcommand{\PhoneSameDepth}{260}
+\newcommand{\PhoneIdentical}{17}
+\newcommand{\PhoneGapMedian}{0.6}
+\newcommand{\PhoneGapNinety}{2.6}
+\newcommand{\PhoneDisagree}{57}
+\newcommand{\PhoneFlips}{50}
+\newcommand{\PhoneFlipShare}{88}
+\newcommand{\PhoneNear}{40}
+\newcommand{\PhoneUnsettled}{26}
+\newcommand{\DesktopBothLooked}{905}
+\newcommand{\DesktopSameDepth}{245}
+\newcommand{\DesktopIdentical}{18}
+\newcommand{\DesktopGapMedian}{0.6}
+\newcommand{\DesktopGapNinety}{2.4}
+\newcommand{\DesktopDisagree}{55}
+\newcommand{\DesktopFlips}{54}
+\newcommand{\DesktopFlipShare}{98}
+\newcommand{\DesktopNear}{49}
+\newcommand{\DesktopUnsettled}{25}
+\newcommand{\PvDMiss}{9.8}
+\newcommand{\PvDMissLo}{6.5}
+\newcommand{\PvDMissHi}{13.4}
+\newcommand{\PvDExtra}{7.1}
+\newcommand{\PvDExtraLo}{4.6}
+\newcommand{\PvDExtraHi}{9.9}
+\newcommand{\VerdictLine}{314}
+\newcommand{\VerdictFile}{\texttt{src/services/livecoach/verdict.ts}}
+\newcommand{\ExampleBoard}{%
+\chessboard[setfen={6k1/5ppp/P3p1b1/3p2q1/3rP3/5P2/4Q1PP/R5K1 b - - 0 28}, boardfontsize=13pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={g5-d8}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={d4-c4}]
+}
+\newcommand{\ExampleFen}{\fen{6k1/5ppp/P3p1b1/3p2q1/3rP3/5P2/4Q1PP/R5K1 b - - 0 28}}
+\newcommand{\ExampleMove}{28\ldots{}\symqueen{}d8}
+\newcommand{\ExampleUci}{\uci{g5d8}}
+\newcommand{\ExampleBest}{28\ldots{}\symrook{}c4 29.~\symqueen{}xc4 dxc4 30.~a7}
+\newcommand{\ExampleBestUci}{\uci{d4c4 e2c4 d5c4 a6a7}}
+\newcommand{\ExampleRoutineCls}{blunder}
+\newcommand{\ExamplePhoneCls}{inaccuracy}
+\newcommand{\ExampleRoutineLoss}{22.3}
+\newcommand{\ExamplePhoneLoss}{6.2}
+\newcommand{\ExampleSide}{Black}
+\newcommand{\ExampleDepth}{16}
+\newcommand{\ExampleBestMove}{28\ldots{}\symrook{}c4}
+\newcommand{\ExamplePhonePlayed}{$+$1.68}
+\newcommand{\ExampleRoutinePlayed}{$+$3.62}
+\newcommand{\ExampleCandidates}{three}
