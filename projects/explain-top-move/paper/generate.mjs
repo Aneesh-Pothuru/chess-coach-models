@@ -93,8 +93,9 @@ const roundRows = variants.map(v => {
   return `${v} & ${esc(changeLine(v) ?? (v === 'baseline' ? 'the app before the rounds' : ''))}${decision && decision !== 'kept' ? ` (\\emph{${decision}})` : ''} & ${pct(t.faithful.est)} & ${pct(t.concrete.est)} & ${pct(tr.faithful.est)} & ${pct(tr.concrete.est)} & ${t.textsChanged ?? ''}${tr.textsChanged != null ? `, ${tr.textsChanged}` : ''} & ${tally(judge)} \\\\`;
 });
 // The judge read every kept round but those that fix errors, and preferred each one on both halves.
-// A round whose final texts are a "b" variant is decided on both its judgings together.
-const judgeKey = (round, variant) => (/b$/.test(variant) ? `${round} and ${round}b` : String(round));
+// A round whose final texts are a lettered variant is decided on its first judging and its "b"
+// judging together; a later letter changes nothing the judge reads (17c, the grade note's numbers).
+const judgeKey = (round, variant) => (/^v\d+[b-z]$/.test(variant) ? `${round} and ${round}b` : String(round));
 const verdictOf = r => judgeOf.get(judgeKey(r.round, r.variant));
 const unjudged = state.rounds.filter(r => !verdictOf(r)).map(r => r.round);
 claim(unjudged.join() === '1,2,11,14', 'the judge read every kept round but rounds 1, 2, 11 and 14');
@@ -108,8 +109,8 @@ const rebuilt = new Map(repro.rebuilt.map(r => [r.variant, r]));
 const roundOf = v => kept.get(v) ?? notKept.get(v);
 for (const v of [...kept.keys(), ...notKept.keys()].filter(v => rebuilt.has(v) && !variants.includes(v)).sort((a, b) => roundOf(a) - roundOf(b))) {
   const judge = judgeOf.get(judgeKey(roundOf(v), v));
-  // A "b" variant only rewords its round, whose own change names the idea.
-  const named = /b$/.test(v) && changeLine(v.slice(0, -1)) ? v.slice(0, -1) : v;
+  // A lettered variant only rewords or corrects its round, whose own change names the idea.
+  const named = /^v\d+[b-z]$/.test(v) && changeLine(v.slice(0, -1)) ? v.slice(0, -1) : v;
   roundRows.push(`${v} & ${esc(changeLine(named) ?? '')}${kept.has(v) ? '' : ' (\\emph{not kept})'} & \\multicolumn{5}{c}{\\emph{graded on rebuilt documents (Table~\\ref{tab:rebuilt})}} & ${tally(judge)} \\\\`);
 }
 g.block('RoundsTable', [
@@ -416,6 +417,19 @@ g.def('RoundSeventeenChanged', String(changedOf(seventeen, 'train') + changedOf(
   .def('RoundSeventeenFirstTestNew', String(r17.tally.test.new)).def('RoundSeventeenFirstTestSame', String(r17.tally.test.same))
   .def('RoundSeventeenTrainNew', String(r17final.tally.train.new)).def('RoundSeventeenTrainOld', String(r17final.tally.train.old)).def('RoundSeventeenTrainSame', String(r17final.tally.train.same))
   .def('RoundSeventeenTestNew', String(r17final.tally.test.new)).def('RoundSeventeenTestOld', String(r17final.tally.test.old)).def('RoundSeventeenTestSame', String(r17final.tally.test.same));
+
+// ---- round 17c: the grade note's numbers, on round 17's documents in both sets
+const seventeenC = rebuilt.get('v17c');
+claim(seventeenC?.sameMoments && seventeenC.gradesEqual && seventeenC.endgames?.sameMoments && seventeenC.endgames.gradesEqual, "round 17c's grades equal round 17b's in both sets");
+const C = seventeenC.defects;
+claim(C?.endgames, 'round 17c counts its defect in both sets');
+claim(C.base.gradeScoreDiffers > 0 && C.endgames.base.gradeScoreDiffers > 0 && C.variant.gradeScoreDiffers === 0 && C.endgames.variant.gradeScoreDiffers === 0, 'round 17c removes its defect from both sets');
+claim(Object.keys(C.base).every(d => d === 'gradeScoreDiffers' || (C.base[d] === C.variant[d] && C.endgames.base[d] === C.endgames.variant[d])), "round 17c changes no other defect's count");
+const seventeenCPatch = readFileSync(join(flow, 'v17c', 'change.patch'), 'utf8');
+claim(/^\+.*\bevalFor\(score, mover\)/m.test(seventeenCPatch) && /^-.*\.toFixed\(1\)/m.test(seventeenCPatch), "round 17c's patch replaces the note's toFixed with evalFor");
+g.def('RoundSeventeenCDefectsGames', String(C.base.gradeScoreDiffers)).def('RoundSeventeenCDefectsEnd', String(C.endgames.base.gradeScoreDiffers))
+  .def('RoundSeventeenCDefects', String(C.base.gradeScoreDiffers + C.endgames.base.gradeScoreDiffers))
+  .def('RoundSeventeenCChanged', String(changedOf(seventeenC, 'train') + changedOf(seventeenC, 'test')));
 
 // ---- the judge's controls, as reproduce.mjs recomputed them
 const c = repro.controls;

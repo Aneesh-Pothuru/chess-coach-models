@@ -2,7 +2,7 @@
   "eval": "explain-top-move reproduction",
   "chess": {
     "pinned_commit": "ec6af10b4cf72c2bbafc1062cdf35bb2da896d23",
-    "records_commit": "3429b1ec66ff609670b5943d5acb5b061727f359",
+    "records_commit": "51b49564787cc1b94664bb37ebf0acac9b5fcc29",
     "carries": {
       "v10": true,
       "v11": true,
@@ -10,7 +10,8 @@
       "v14": true,
       "v15": true,
       "v16": true,
-      "v17b": true
+      "v17b": true,
+      "v17c": false
     }
   },
   "recomputed": {
@@ -42,9 +43,9 @@
       ]
     },
     "textsMatch": {
-      "variant": "v17b",
+      "variant": "v17c",
       "of": 333,
-      "same": 333
+      "same": 273
     }
   },
   "judge": [
@@ -366,7 +367,7 @@
         }
       },
       "keepByRule": true,
-      "recordedReason": "where each move leaves the game: on an inaccuracy, mistake, miss or blunder, \"The difference\" ends with the standing each move leaves the mover in, in evalWords' words and evalFor's number from the mover's side (\"You are behind either way: losing after Rb5 (-8.1), much worse after Rxb2+ (-4.4).\"; on a mistake, miss or blunder whose better move leaves a better standing, \"After b5 you are losing (-5.0). After Nc4 you would be slightly worse (-1.0).\"), and nothing when both moves leave the game open; 347 moments change on the 60 games and the endgame set (188 train, 159 test), no grade changes and all 347 sentences are graded true; judge model, pairwise and blind, two runs with the order reversed, on a seeded sample of 80 changed moments (20 per set and split) with a 10-moment padding control in the same batches: round 17's runs 72 to 0 on train (8 same) and 74 to 0 on test (6 same), the decoy preferred in none of its 20 comparisons; the crossing's semicolon, which the app's voice rules forbid, became two sentences in v17b, judged again on the 53 judged moments it changes; on the final texts 73 to 0 on train (7 same) and 76 to 0 on test (4 same) (v17/change.md, v17b/change.md)"
+      "recordedReason": "where each move leaves the game: on an inaccuracy, mistake, miss or blunder, \"The difference\" ends with the standing each move leaves the mover in, in evalWords' words and evalFor's number from the mover's side (\"You are behind either way: losing after Rb5 (-8.1), much worse after Rxb2+ (-4.4).\"; on a mistake, miss or blunder whose better move leaves a better standing, \"After b5 you are losing (-5.0). After Nc4 you would be slightly worse (-1.0).\"), and nothing when both moves leave the game open; 347 moments change on the 60 games and the endgame set (188 train, 159 test), no grade changes and all 347 sentences are graded true; judge model, pairwise and blind, two runs with the order reversed, on a seeded sample of 80 changed moments (20 per set and split) with a 10-moment padding control in the same batches: round 17's runs 72 to 0 on train (8 same) and 74 to 0 on test (6 same), the decoy preferred in none of its 20 comparisons; the crossing's semicolon, which the app's voice rules forbid, became two sentences in v17b, judged again on the 53 judged moments it changes; on the final texts 73 to 0 on train (7 same) and 76 to 0 on test (4 same); the folded grade text then gave both scores with its own toFixed, so 30 of the 347 changed cards gave a move two numbers a tenth apart (counted after the decision), and v17c takes them from evalFor too, a correctness fix with no judge run because the judge reads no grade text: the defect goes from 14 to 0 on the 60 games and 16 to 0 on the endgame set, 130 texts change only in the grade text's scores, and every grade equals v17b's (v17/change.md, v17b/change.md, v17c/change.md)"
     },
     {
       "round": "17b",
@@ -446,7 +447,7 @@
         }
       },
       "keepByRule": true,
-      "recordedReason": "where each move leaves the game: on an inaccuracy, mistake, miss or blunder, \"The difference\" ends with the standing each move leaves the mover in, in evalWords' words and evalFor's number from the mover's side (\"You are behind either way: losing after Rb5 (-8.1), much worse after Rxb2+ (-4.4).\"; on a mistake, miss or blunder whose better move leaves a better standing, \"After b5 you are losing (-5.0). After Nc4 you would be slightly worse (-1.0).\"), and nothing when both moves leave the game open; 347 moments change on the 60 games and the endgame set (188 train, 159 test), no grade changes and all 347 sentences are graded true; judge model, pairwise and blind, two runs with the order reversed, on a seeded sample of 80 changed moments (20 per set and split) with a 10-moment padding control in the same batches: round 17's runs 72 to 0 on train (8 same) and 74 to 0 on test (6 same), the decoy preferred in none of its 20 comparisons; the crossing's semicolon, which the app's voice rules forbid, became two sentences in v17b, judged again on the 53 judged moments it changes; on the final texts 73 to 0 on train (7 same) and 76 to 0 on test (4 same) (v17/change.md, v17b/change.md)"
+      "recordedReason": "where each move leaves the game: on an inaccuracy, mistake, miss or blunder, \"The difference\" ends with the standing each move leaves the mover in, in evalWords' words and evalFor's number from the mover's side (\"You are behind either way: losing after Rb5 (-8.1), much worse after Rxb2+ (-4.4).\"; on a mistake, miss or blunder whose better move leaves a better standing, \"After b5 you are losing (-5.0). After Nc4 you would be slightly worse (-1.0).\"), and nothing when both moves leave the game open; 347 moments change on the 60 games and the endgame set (188 train, 159 test), no grade changes and all 347 sentences are graded true; judge model, pairwise and blind, two runs with the order reversed, on a seeded sample of 80 changed moments (20 per set and split) with a 10-moment padding control in the same batches: round 17's runs 72 to 0 on train (8 same) and 74 to 0 on test (6 same), the decoy preferred in none of its 20 comparisons; the crossing's semicolon, which the app's voice rules forbid, became two sentences in v17b, judged again on the 53 judged moments it changes; on the final texts 73 to 0 on train (7 same) and 76 to 0 on test (4 same); the folded grade text then gave both scores with its own toFixed, so 30 of the 347 changed cards gave a move two numbers a tenth apart (counted after the decision), and v17c takes them from evalFor too, a correctness fix with no judge run because the judge reads no grade text: the defect goes from 14 to 0 on the 60 games and 16 to 0 on the endgame set, 130 texts change only in the grade text's scores, and every grade equals v17b's (v17/change.md, v17b/change.md, v17c/change.md)"
     }
   ],
   "controls": {
@@ -1229,6 +1230,136 @@
               "faithfulAll": 213
             },
             "textsChanged": 116
+          }
+        ],
+        "sameMoments": true,
+        "gradesEqual": true
+      }
+    },
+    {
+      "variant": "v17c",
+      "sameMoments": true,
+      "splits": [
+        {
+          "split": "test",
+          "moments": 153,
+          "base": {
+            "faithful": 153,
+            "concrete": 129,
+            "named_deep": 144,
+            "faithfulAll": 152
+          },
+          "variant": {
+            "faithful": 153,
+            "concrete": 129,
+            "named_deep": 144,
+            "faithfulAll": 152
+          },
+          "textsChanged": 26
+        },
+        {
+          "split": "train",
+          "moments": 180,
+          "base": {
+            "faithful": 179,
+            "concrete": 152,
+            "named_deep": 166,
+            "faithfulAll": 179
+          },
+          "variant": {
+            "faithful": 179,
+            "concrete": 152,
+            "named_deep": 166,
+            "faithfulAll": 179
+          },
+          "textsChanged": 34
+        }
+      ],
+      "gradesEqual": true,
+      "defects": {
+        "base": {
+          "lowercaseReveal": 0,
+          "recaptureOutright": 0,
+          "quietForcing": 0,
+          "unsettledVsOutright": 0,
+          "pieceOverAmount": 0,
+          "amountNamesUnwon": 0,
+          "fallenGivenBack": 0,
+          "gradeScoreDiffers": 14
+        },
+        "variant": {
+          "lowercaseReveal": 0,
+          "recaptureOutright": 0,
+          "quietForcing": 0,
+          "unsettledVsOutright": 0,
+          "pieceOverAmount": 0,
+          "amountNamesUnwon": 0,
+          "fallenGivenBack": 0,
+          "gradeScoreDiffers": 0
+        },
+        "endgames": {
+          "base": {
+            "lowercaseReveal": 0,
+            "recaptureOutright": 0,
+            "quietForcing": 0,
+            "unsettledVsOutright": 0,
+            "pieceOverAmount": 0,
+            "amountNamesUnwon": 0,
+            "fallenGivenBack": 0,
+            "gradeScoreDiffers": 16
+          },
+          "variant": {
+            "lowercaseReveal": 0,
+            "recaptureOutright": 0,
+            "quietForcing": 0,
+            "unsettledVsOutright": 0,
+            "pieceOverAmount": 0,
+            "amountNamesUnwon": 0,
+            "fallenGivenBack": 0,
+            "gradeScoreDiffers": 0
+          }
+        }
+      },
+      "endgames": {
+        "seed": 20261014,
+        "games": {
+          "test": 80,
+          "train": 80
+        },
+        "splits": [
+          {
+            "split": "test",
+            "moments": 184,
+            "base": {
+              "faithful": 181,
+              "concrete": 162,
+              "named_deep": 158,
+              "faithfulAll": 180
+            },
+            "variant": {
+              "faithful": 181,
+              "concrete": 162,
+              "named_deep": 158,
+              "faithfulAll": 180
+            },
+            "textsChanged": 29
+          },
+          {
+            "split": "train",
+            "moments": 219,
+            "base": {
+              "faithful": 213,
+              "concrete": 172,
+              "named_deep": 204,
+              "faithfulAll": 213
+            },
+            "variant": {
+              "faithful": 213,
+              "concrete": 172,
+              "named_deep": 204,
+              "faithfulAll": 213
+            },
+            "textsChanged": 41
           }
         ],
         "sameMoments": true,

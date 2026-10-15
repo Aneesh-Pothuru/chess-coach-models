@@ -27,8 +27,8 @@
 // <variant>/rebuilt/endgames/, split by the games in <variant>/endgame-set.json.
 // A round that fixes text defects keeps their counts in the records
 // (<variant>/defects.json, written by defects.mjs over both variants' texts when
-// the round ran); the report carries them, checked against the moments behind
-// each count. And it says which kept rounds after the kept variant the pinned
+// the round ran, with the endgame set's under "endgames" where it ran there too);
+// the report carries them, checked against the moments behind each count. And it says which kept rounds after the kept variant the pinned
 // app carries, so the paper can say how far the app has come.
 
 import { execFileSync } from 'node:child_process';
@@ -93,7 +93,7 @@ const appDefends = () => existsSync(join(CHESS_DIR, 'src', 'services', 'review',
 function appCarries() {
   const lessonFile = join(CHESS_DIR, 'src', 'services', 'knowledge', 'detectors', 'lesson.ts');
   const lesson = existsSync(lessonFile) ? readFileSync(lessonFile, 'utf8') : '';
-  return { v10: lesson.includes('an even trade'), v11: /\btakesBack\b/.test(lesson), v12: appDefends(), v14: /\bmaterialChange\b/.test(lesson), v15: /\bquietDefense\b/.test(lesson), v16: /\bpawnRuns\b/.test(lesson), v17b: /\bstakesSentence\b/.test(lesson) };
+  return { v10: lesson.includes('an even trade'), v11: /\btakesBack\b/.test(lesson), v12: appDefends(), v14: /\bmaterialChange\b/.test(lesson), v15: /\bquietDefense\b/.test(lesson), v16: /\bpawnRuns\b/.test(lesson), v17b: /\bstakesSentence\b/.test(lesson), v17c: /\bmateDistance\(score\.cp\b/.test(lesson) };
 }
 
 function rerun(dir) {
@@ -205,31 +205,37 @@ function main() {
   };
   const rebuilt = readdirSync(recorded).filter(v => existsSync(join(recorded, v, 'rebuilt'))).sort(roundOrder).map((v) => {
     const { after, splits, sameMoments, gradesEqual } = compared(join(recorded, v, 'rebuilt'), v, split);
-    const defectsFile = join(recorded, v, 'defects.json');
-    let defects = null;
-    if (existsSync(defectsFile)) {
-      const recordedDefects = JSON.parse(readFileSync(defectsFile, 'utf8'));
-      const side = (k) => {
-        const { counts, moments } = recordedDefects[k];
-        if (Object.keys(counts).some(d => counts[d] !== moments[d]?.length)) throw new Error(`${v}/defects.json: a ${k} count does not match its moments`);
-        if (Object.values(moments).flat().some(id => !after.has(id))) throw new Error(`${v}/defects.json: a ${k} moment is not one of the round's moments`);
-        return counts;
-      };
-      defects = { base: side('base'), variant: side(v) };
-    }
-    let endgames = null;
+    let endgames = null, setAfter = null;
     if (existsSync(join(recorded, v, 'rebuilt', 'endgames'))) {
       const own = join(recorded, v, 'endgame-set.json');
       const set = JSON.parse(readFileSync(existsSync(own) ? own : join(records(), state.endgame_set.file), 'utf8'));
       const setSplit = new Map(set.games.map(g => [String(g.id), g.split]));
       const shared = set.games.filter(g => split.has(String(g.id))).length;
       if (shared) throw new Error(`${v}: ${shared} of the endgame set's games are among the 60`);
-      const { splits: setSplits, sameMoments: setSame, gradesEqual: setEqual } = compared(join(recorded, v, 'rebuilt', 'endgames'), v, setSplit);
+      const setCompared = compared(join(recorded, v, 'rebuilt', 'endgames'), v, setSplit);
+      setAfter = setCompared.after;
       endgames = {
         seed: set.seed,
         games: Object.fromEntries(['test', 'train'].map(which => [which, set.games.filter(g => g.split === which).length])),
-        splits: setSplits, sameMoments: setSame, gradesEqual: setEqual,
+        splits: setCompared.splits, sameMoments: setCompared.sameMoments, gradesEqual: setCompared.gradesEqual,
       };
+    }
+    const defectsFile = join(recorded, v, 'defects.json');
+    let defects = null;
+    if (existsSync(defectsFile)) {
+      const recordedDefects = JSON.parse(readFileSync(defectsFile, 'utf8'));
+      // The endgame set's counts, where the round ran there too, sit under "endgames" and name its moments.
+      const side = (sides, k, moments, where) => {
+        const { counts, moments: ids } = sides[k];
+        if (Object.keys(counts).some(d => counts[d] !== ids[d]?.length)) throw new Error(`${v}/defects.json: a ${where}${k} count does not match its moments`);
+        if (Object.values(ids).flat().some(id => !moments.has(id))) throw new Error(`${v}/defects.json: a ${where}${k} moment is not one of the round's moments`);
+        return counts;
+      };
+      defects = { base: side(recordedDefects, 'base', after, ''), variant: side(recordedDefects, v, after, '') };
+      if (recordedDefects.endgames) {
+        if (!setAfter) throw new Error(`${v}/defects.json counts the endgame set, where the round has no rebuilt texts`);
+        defects.endgames = { base: side(recordedDefects.endgames, 'base', setAfter, 'endgame set '), variant: side(recordedDefects.endgames, v, setAfter, 'endgame set ') };
+      }
     }
     return { variant: v, sameMoments, splits, gradesEqual, defects, endgames };
   });
@@ -333,14 +339,17 @@ function renderRebuilt(rebuilt) {
     ...rebuilt.map(r => `${r.variant}: ${r.sameMoments ? 'the same moments as its base' : 'not the same moments as its base'}; its grades ${r.gradesEqual ? 'equal' : 'differ from'} the base's.`),
     ...rebuilt.filter(r => r.endgames).map(r => `${r.variant} on the endgame set (${r.endgames.games.train + r.endgames.games.test} games outside the 60, ${r.endgames.games.train} train and ${r.endgames.games.test} test, drawn with seed ${r.endgames.seed}): ${r.endgames.sameMoments ? 'the same moments as its base' : 'not the same moments as its base'}; its grades ${r.endgames.gradesEqual ? 'equal' : 'differ from'} the base's.`),
     '',
-    ...rebuilt.filter(r => r.defects).flatMap(r => [
-      `The text defects ${r.variant} fixes, as \`defects.mjs\` counted them in each variant's texts (the records' \`${r.variant}/defects.json\`):`,
-      '',
-      `| defect | base | ${r.variant} |`,
-      '|---|---|---|',
-      ...Object.keys(r.defects.base).map(d => `| ${d} | ${r.defects.base[d]} | ${r.defects.variant[d]} |`),
-      '',
-    ]),
+    ...rebuilt.filter(r => r.defects).flatMap(r => {
+      const set = r.defects.endgames;
+      return [
+        `The text defects ${r.variant} fixes, as \`defects.mjs\` counted them in each variant's texts (the records' \`${r.variant}/defects.json\`)${set ? ', on the round\'s documents and on the endgame set' : ''}:`,
+        '',
+        `| defect | base | ${r.variant} |${set ? ` base, endgame set | ${r.variant}, endgame set |` : ''}`,
+        `|---|---|---|${set ? '---|---|' : ''}`,
+        ...Object.keys(r.defects.base).map(d => `| ${d} | ${r.defects.base[d]} | ${r.defects.variant[d]} |${set ? ` ${set.base[d]} | ${set.variant[d]} |` : ''}`),
+        '',
+      ];
+    }),
   ];
 }
 

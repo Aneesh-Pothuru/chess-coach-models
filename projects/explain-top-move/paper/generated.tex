@@ -78,7 +78,7 @@ v13 & Leave out the moves the defense sentence does not need (\emph{not kept}) &
 v14 & Say an amount in the pieces it is made of & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} &  \\
 v15 & Say what a quiet reply defends & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 22--1 / 8--0 \\
 v16 & Tell an endgame's passed pawns' story & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 37--2 / 18--3 \\
-v17b & Say where each move leaves the game & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 73--0 / 76--0 \\
+v17c & Say where each move leaves the game & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 73--0 / 76--0 \\
 \bottomrule
 \end{tabularx}
 }
@@ -130,12 +130,16 @@ v17 & test & 153 & 153 & 129 & 144 & 152 & 65 \\
 v17 & train & 180 & 179 & 152 & 166 & 179 & 72 \\
 v17b & test & 153 & 153 & 129 & 144 & 152 & 65 \\
 v17b & train & 180 & 179 & 152 & 166 & 179 & 72 \\
+v17c & test & 153 & 153 & 129 & 144 & 152 & 26 \\
+v17c & train & 180 & 179 & 152 & 166 & 179 & 34 \\
 v16, endgame set & test & 184 & 181 & 162 & 158 & 180 & 3 \\
 v16, endgame set & train & 219 & 213 & 170 / 172 & 204 & 213 & 19 \\
 v17, endgame set & test & 184 & 181 & 162 & 158 & 180 & 94 \\
 v17, endgame set & train & 219 & 213 & 172 & 204 & 213 & 116 \\
 v17b, endgame set & test & 184 & 181 & 162 & 158 & 180 & 94 \\
 v17b, endgame set & train & 219 & 213 & 172 & 204 & 213 & 116 \\
+v17c, endgame set & test & 184 & 181 & 162 & 158 & 180 & 29 \\
+v17c, endgame set & train & 219 & 213 & 172 & 204 & 213 & 41 \\
 \bottomrule
 \end{tabular}
 }
@@ -258,6 +262,10 @@ the five of Table~\ref{tab:defects} & 0 & 0 \\
 \newcommand{\RoundSeventeenTestNew}{76}
 \newcommand{\RoundSeventeenTestOld}{0}
 \newcommand{\RoundSeventeenTestSame}{4}
+\newcommand{\RoundSeventeenCDefectsGames}{14}
+\newcommand{\RoundSeventeenCDefectsEnd}{16}
+\newcommand{\RoundSeventeenCDefects}{30}
+\newcommand{\RoundSeventeenCChanged}{130}
 \newcommand{\LongerPicked}{305}
 \newcommand{\LongerDecided}{326}
 \newcommand{\LongerRounds}{3, 4, 5, 7, 7b, 8 and 9}
@@ -341,12 +349,12 @@ padding control, round 17: the decoy preferred & 0 of 20 (0 the shorter text, 20
 \newcommand{\ReproLinesMatched}{27}
 \newcommand{\ReproLines}{27}
 \newcommand{\AppCommit}{\texttt{ec6af10}}
-\newcommand{\RecordsCommit}{\texttt{3429b1e}}
+\newcommand{\RecordsCommit}{\texttt{51b4956}}
 \newcommand{\RerunSearches}{the capture searches on it (88 kept) and the defense searches (51 kept)}
 \newcommand{\RerunEvidence}{review-evidence/7}
-\newcommand{\RerunTextsSentence}{Its texts equal the recorded texts of v17b, the last kept round, on all 333 moments of round 17's documents.}
-\newcommand{\AppKeptThrough}{17}
-\newcommand{\AppKeptSentence}{The app at that commit carries every kept round.}
+\newcommand{\RerunTextsSentence}{Its texts equal the recorded texts of v17c, the last kept round, on 273 of the 333 moments of round 17's documents.}
+\newcommand{\AppKeptThrough}{16}
+\newcommand{\AppKeptSentence}{The app at that commit carries the kept rounds through round 16; round 17 is not in it yet.}
 \newcommand{\RerunTestMoments}{153}
 \newcommand{\RerunTestShared}{146}
 \newcommand{\RerunTestSameGrades}{129}
