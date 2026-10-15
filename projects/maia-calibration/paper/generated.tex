@@ -1,6 +1,6 @@
 % Written by projects/maia-calibration/paper/generate.mjs; do not edit by hand.
 
-\newcommand{\AppCommit}{\texttt{50de20c}}
+\newcommand{\AppCommit}{\texttt{cec5d69}}
 \newcommand{\Draws}{1{,}000}
 \newcommand{\Seed}{7}
 \newcommand{\MinFitMoves}{300}
@@ -8,8 +8,8 @@
 \newcommand{\LichessGames}{13{,}785}
 \newcommand{\FitMoves}{12{,}474}
 \newcommand{\HeldMoves}{12{,}526}
-\newcommand{\HisMoves}{33{,}215}
-\newcommand{\HisGames}{632}
+\newcommand{\HisMoves}{33{,}522}
+\newcommand{\HisGames}{640}
 \newcommand{\KeptOffset}{250}
 \newcommand{\PunishExact}{521}
 \newcommand{\PunishAll}{684}
@@ -31,7 +31,7 @@
 test & raw & tempered & tempered $-$ raw & \\
 \midrule
 1. Lichess, held-out half (log-likelihood per move) & $-$1.4944 & $-$1.4915 & 0.0029 [0.0014, 0.0044] & passes \\
-2. the player's games (log-likelihood per move) & $-$1.3972 & $-$1.4039 & $-$0.0067 [$-$0.0077, $-$0.0056] & fails \\
+2. the player's games (log-likelihood per move) & $-$1.3959 & $-$1.4026 & $-$0.0068 [$-$0.0079, $-$0.0057] & fails \\
 3. punish events, verified (Brier score) & 0.1527 & 0.1542 & 0.0015 [$-$0.0005, 0.0037] & passes \\
 \phantom{3.} punish events, all (Brier score) & 0.1550 & 0.1563 & 0.0013 [$-$0.0005, 0.0032] & \\
 \bottomrule
@@ -39,8 +39,8 @@ test & raw & tempered & tempered $-$ raw & \\
 }
 \newcommand{\TestOneDiff}{0.0029}
 \newcommand{\TestOneCI}{[0.0014, 0.0044]}
-\newcommand{\TestTwoLoss}{0.0067}
-\newcommand{\TestTwoLossCI}{[0.0056, 0.0077]}
+\newcommand{\TestTwoLoss}{0.0068}
+\newcommand{\TestTwoLossCI}{[0.0057, 0.0079]}
 \newcommand{\TestThreeDiff}{0.0015}
 \newcommand{\TestThreeCI}{[$-$0.0005, 0.0037]}
 \newcommand{\TestThreeAllDiff}{0.0013}
@@ -85,9 +85,9 @@ test & raw & tempered & tempered $-$ raw & \\
 \begin{axis}[at={(lichess.east)}, anchor=west, xshift=0.8cm, width=0.48\textwidth, height=0.4\textwidth, xmin=-0.6, xmax=10.6, ymin=-6, ymax=6,
   xtick={0,1,2,3,4,5,6,7,8,9,10}, xticklabels={{<1100},{1100},{1200},{1300},{1400},{1500},{1600},{1700},{1800},{1900},{2000+}}, xticklabel style={font=\tiny, rotate=60, anchor=east}, grid=major,
   title={the player's games}, legend pos=south west, legend cell align=left, legend style={font=\scriptsize}]
-\addplot[black, mark=*, mark size=1.2pt] coordinates {(0,-1.30) (1,0.23) (2,1.08) (3,0.60) (4,-0.64)};
+\addplot[black, mark=*, mark size=1.2pt] coordinates {(0,-1.30) (1,0.23) (2,1.08) (3,0.55) (4,-0.64)};
 \addlegendentry{raw}
-\addplot[red!70!black, dashed, mark=square*, mark size=1.2pt] coordinates {(0,-4.04) (1,-1.89) (2,-1.75) (3,-2.25) (4,-4.62)};
+\addplot[red!70!black, dashed, mark=square*, mark size=1.2pt] coordinates {(0,-4.04) (1,-1.89) (2,-1.75) (3,-2.30) (4,-4.62)};
 \addlegendentry{tempered}
 \draw[gray] (axis cs:-0.6,0) -- (axis cs:10.6,0);
 \end{axis}
@@ -103,7 +103,7 @@ band & fitting moves & $T$ & played & raw & tempered & moves & played & raw & te
 <1100 & 2{,}537 & 1.082 & 46.2 & 49.8 & 47.0 & 6{,}618 & 53.0 & 51.7 & 48.9 \\
 1100 & 729 & 1.064 & 49.2 & 54.2 & 52.0 & 5{,}906 & 54.1 & 54.3 & 52.2 \\
 1200 & 833 & 1.085 & 51.3 & 54.2 & 51.5 & 6{,}893 & 53.1 & 54.1 & 51.3 \\
-1300 & 946 & 1.088 & 52.2 & 54.9 & 52.0 & 12{,}915 & 54.6 & 55.2 & 52.4 \\
+1300 & 946 & 1.088 & 52.2 & 54.9 & 52.0 & 13{,}222 & 54.6 & 55.2 & 52.3 \\
 1400 & 814 & 1.125 & 53.1 & 56.0 & 52.0 & 883 & 56.5 & 55.9 & 51.9 \\
 1500 & 823 & 1.058 & 49.2 & 54.4 & 52.5 &  & & & \\
 1600 & 841 & 1.068 & 52.8 & 54.7 & 52.5 &  & & & \\
