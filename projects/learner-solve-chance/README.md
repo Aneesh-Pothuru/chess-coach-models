@@ -40,11 +40,13 @@ in its own set aims from its stored totals read alone instead of the
 headline; round 2 scores no attempt in such a bucket. Round 2 also tests
 whether the chance holds for one-move puzzles and longer ones alike, which a
 target per depth would need (rule 3). The study reruns each time the lab's
-pin moves. Round 1's numbers have not changed since `ae69a3e`;
-the table of today's estimates reads his profile as of its last sync, so its
-deviations widen while he logs no puzzles. The numbers are in the paper, [`paper/paper.pdf`](paper/paper.pdf), and the
-script's report, [`results/solve.md`](results/solve.md), which names the app
-commit it measured.
+pin moves, always on the profile at the commit round 1 measured (`d8b7712`),
+so the attempts recorded after it never reach round 1 and its numbers move
+only when the app's learner does; its verdicts and the profile's look have
+not changed since `ae69a3e`. The numbers are in the paper,
+[`paper/paper.pdf`](paper/paper.pdf), and the script's report,
+[`results/solve.md`](results/solve.md), which names the app commit it
+measured.
 
 Round 1's rule was committed before any solve chance was computed. Known
 before it: the profile's totals (441 of 467) and the shape of the data (how
@@ -150,6 +152,11 @@ read. Round 2 therefore tests on attempts the app has not recorded yet.
   when round 2 runs, the same verdict decides whether it stays. (It was
   ported before round 2. Sets then aim harder; each estimate is still scored
   on the puzzles he was served, so the rule applies unchanged.)
+- **Seen early.** After rules 1 to 3 were fixed, one rerun of round 1 at a
+  later pin, made before round 1 was held to its own profile, read the
+  attempts recorded after it into the profile's look and reported their count
+  and misses (23 more scored attempts, 5 more misses). Its results were not
+  committed, and no rule has changed since.
 
 ## Round 2, rule 3: a target by depth, fixed before any of its results was read
 
@@ -227,7 +234,7 @@ Reported beside, deciding nothing:
 
 | File | What it does |
 |---|---|
-| `replay.mjs` | Rebuilds the record, replays the app's learner over it and over the profile as the app holds it, and writes one row per scored attempt. |
+| `replay.mjs` | Rebuilds the record, replays the app's learner over it and over the profile as the app held it at the commit round 1 measured, and writes one row per scored attempt. |
 | `fit.mjs` | Applies the rule and writes `results/`. |
 | `paper/` | The paper. |
 

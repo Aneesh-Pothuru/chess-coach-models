@@ -53,7 +53,8 @@ puzzle's bucket and Lichess rating. A card reviewed exactly once holds one first
 and result; a card reviewed more than once keeps only its last review's time, so it was left out.
 That leaves \Once{} of the \Cards{} cards: \FromEvents{} with the app's own attempt event and
 \Rebuilt{} rebuilt as the event the app writes today, \RFirstTries{} first tries from \RFrom{} to
-\RTo.
+\RTo. The cards, like everything else round 1 reads, come from the profile at commit
+\ProfileCommit, the one round 1 measured; what the app records after it is round 2's.
 
 \paragraph{The instrument.} For every first try, in time order, the app's own learner at commit
 \AppCommit{} is folded on the record before it, at the moment of the attempt, and gives two solve
@@ -203,7 +204,7 @@ chess PR 78 the app aims a bucket's set from its themed view, and the skill map'
 reads the same estimate; since PR 79, a bucket with no themed view aims from its stored totals
 instead of the headline. Commit \AppCommit{}, which this paper measures, has both. Round 2 decides
 whether the view stays; it scores no attempt in a bucket without one. It takes the attempts the app
-records after the last one in the profile at commit \AppCommit{} (played on \LastDay, Los Angeles
+records after the last one in the profile at commit \ProfileCommit{} (played on \LastDay, Los Angeles
 time), each folded on everything before it as the app holds it, and runs once they fall on at least
 ten days. Rules 1 and 2 apply unchanged: sets now aim harder, and each estimate is still scored on
 the puzzles he was served. A third rule, fixed after round 2's first attempts were recorded and
@@ -213,7 +214,7 @@ ones alike, which a target per depth would need; the project's README states it.
 \begin{table}[!htbp]
 \centering\footnotesize\setlength{\tabcolsep}{4pt}
 \TodayTable
-\caption{Each puzzle bucket as the profile stood at its last sync, on \SyncedOn{} (Los Angeles
+\caption{Each puzzle bucket as the profile round 1 reads stood when it was synced, on \SyncedOn{} (Los Angeles
 time): each estimate's rating with its deviation, the difficulty a set
 would aim at from it (the core target, clamped to what the bucket can serve), and the hardest
 puzzle the bank holds. The stored totals, read alone, are shown where the app aims from them: in a

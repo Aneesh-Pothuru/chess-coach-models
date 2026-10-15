@@ -166,7 +166,7 @@ claim(totalsOnly.length > 0 && totalsOnly.every((t) => t.app.from === 'totals' &
 claim(totalsOnly.every((t) => t.app.target <= t.bankMax + 100), 'the bank can serve where the stored totals aim')
 const ups = withView.map((t) => t.view.target - t.head.target)
 const totUps = totalsOnly.map((t) => t.app.target - t.head.target)
-g.def('LastDay', esc(rec.lastAttempt)).def('SyncedOn', esc(rec.syncedOn))
+g.def('LastDay', esc(rec.lastAttempt)).def('SyncedOn', esc(rec.syncedOn)).def('ProfileCommit', `\\texttt{${rec.profile.slice(0, 7)}}`)
 g.def('UpMin', String(Math.min(...ups))).def('UpMax', String(Math.max(...ups))).def('WithView', word(withView.length)).def('WithoutView', word(totalsOnly.length))
 g.def('TotUpMin', String(Math.min(...totUps))).def('TotUpMax', String(Math.max(...totUps)))
 const phases = new Set(r.today.map((t) => t.phase))

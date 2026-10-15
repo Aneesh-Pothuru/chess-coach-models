@@ -1,12 +1,14 @@
 // The instrument in README.md: his puzzle first tries rebuilt from the memory
 // cards, the app's learner folded on the record before each one, and the two
 // solve chances it gives (the headline rating's and the view of the
-// attempt's channel). The same replay runs over the profile as the app holds
-// it. Also the learner's own self-check, the difficulty each estimate would
-// aim a set at today, and the estimate the app aims it from (servingAbility).
-// Rows go to private/, since the attempts are his.
+// attempt's channel). The same replay runs over the profile as the app held
+// it at the commit round 1 measured. Also the learner's own self-check, the
+// difficulty each estimate would aim a set at as that profile stood, and the
+// estimate the app aims it from (servingAbility). Rows go to private/, since
+// the attempts are his.
 //
 //   bridge/run.sh projects/learner-solve-chance/replay.mjs
+import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import { join } from 'node:path'
 import { chess, CHESS_DIR, LAB_DIR, privateDir } from '../../bridge/lib/chess.mjs'
@@ -21,7 +23,24 @@ const { channelOf } = await chess('src/services/learner/channels.ts')
 const { solveChance, serveTarget, servingAbility, MIN_ATTEMPTS, LADDER_START } = await chess('src/services/learner/index.ts')
 const { ptDayKey } = await chess('src/core/time/index.ts')
 
-const loaded = loadProfile(join(CHESS_DIR, 'progress', 'profile.json'))
+// Round 1 reads the profile at the commit it measured, with the pinned app's
+// learner: the attempts recorded after it are round 2's, and round 1 never
+// scores them.
+const ROUND1 = 'd8b771238c11c84d0c4b2a8010bb75f5f756b8d9'
+const pin = JSON.parse(fs.readFileSync(join(LAB_DIR, 'bridge', 'chess.json'), 'utf8'))
+const dir = privateDir('learner-solve-chance')
+const round1Root = join(dir, 'round1')
+const round1File = join(round1Root, 'progress', 'profile.json')
+if (!fs.existsSync(round1File)) {
+  const git = join(LAB_DIR, '.cache', 'chess-round1')
+  fs.rmSync(git, { recursive: true, force: true })
+  execFileSync('git', ['init', '-q', git])
+  execFileSync('git', ['-C', git, 'fetch', '-q', '--depth', '1', pin.repo, ROUND1])
+  fs.mkdirSync(join(round1Root, 'progress'), { recursive: true })
+  fs.writeFileSync(round1File, execFileSync('git', ['-C', git, 'show', 'FETCH_HEAD:progress/profile.json']))
+  fs.rmSync(git, { recursive: true, force: true })
+}
+const loaded = loadProfile(round1File)
 if (!loaded.ok) throw new Error(`the profile does not load: ${loaded.reason}`)
 const held = loaded.profile
 const cat = catalogue(LEARNER_CONTENT.buckets)
@@ -198,7 +217,7 @@ const shape = {
 
 // ---------------------------------------------------------------- the learner today
 const now = held.updatedAt
-const learner = nodeLearner(CHESS_DIR, { now })
+const learner = nodeLearner(round1Root, { now })
 const selfCheck = learner.calibration()
 const today = learner
   .skills(now)
@@ -225,10 +244,9 @@ const today = learner
   })
 
 // Round 2 scores what the profile records after its last attempt here.
+shape.profile = ROUND1
 shape.lastAttempt = ptDayKey(Math.max(...(held.attempts ?? []).map((a) => a.at), ...(held.events ?? []).filter(isAttempt).map((e) => e.at)))
 shape.syncedOn = ptDayKey(now)
-const pin = JSON.parse(fs.readFileSync(join(LAB_DIR, 'bridge', 'chess.json'), 'utf8'))
-const dir = privateDir('learner-solve-chance')
 fs.writeFileSync(join(dir, 'rows.jsonl'), rows.map((r) => JSON.stringify(r)).join('\n') + '\n')
 fs.writeFileSync(join(dir, 'state.json'), JSON.stringify({ app: pin.commit, checks, log, selection, shape, selfCheck, today, now }, null, 1) + '\n')
 console.log(JSON.stringify({ rows: { rebuilt: rows.filter((r) => r.record === 'rebuilt').length, held: rows.filter((r) => r.record === 'held').length }, checks, log }, null, 1))
