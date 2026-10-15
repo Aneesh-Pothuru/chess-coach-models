@@ -16,6 +16,12 @@ export const MONTH = process.env.BOOK_ADVICE_MONTH ?? '2026-09'
 export const HIS = [1250, 1449]
 export const ABOVE = [1450, 1649]
 export const BANDS = { his: HIS, above: ABOVE }
+/** 1a: the punish goal's gifts (win% given), and the win% from which a move counts as winning. */
+export const GIFT_FLOOR = 20
+export const HIGH_WP = 75
+/** 1b's swing: the player 30 win% or more lower within six plies, by the game's own evals. */
+export const SWING_PLIES = 6
+export const SWING_WP = 30
 export const inBand = (rating, [lo, hi]) => rating !== null && rating >= lo && rating <= hi
 export const bandOf = (rating) => Object.keys(BANDS).find((k) => inBand(rating, BANDS[k])) ?? null
 

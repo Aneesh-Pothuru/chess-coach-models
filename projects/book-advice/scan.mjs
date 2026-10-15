@@ -8,7 +8,7 @@
 import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { CHESS_DIR, chess, privateDir, resultsDir } from '../../bridge/lib/chess.mjs'
-import { MONTH, archiveGames, bandOf, playerGames, playerSeries, records, sample, seeded } from './lib.mjs'
+import { MONTH, SWING_PLIES, SWING_WP, archiveGames, bandOf, playerGames, playerSeries, records, sample, seeded } from './lib.mjs'
 
 const K = await chess('src/services/knowledge/index.ts')
 const P = await chess('src/services/livecoach/praise.ts')
@@ -22,8 +22,6 @@ const DRAW = {
   retreats: { games: 3000, perGame: 10, archive: 6000 },
   practical: { games: 800 },
 }
-const SWING_PLIES = 6
-const SWING_WP = 30
 const BEHIND_CP = -250
 const MATE_CP = 9000
 const PRAISE_LINE = K.PRAISE_LOSS_PCT

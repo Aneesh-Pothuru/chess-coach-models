@@ -368,3 +368,32 @@ named move each (two preferred, one rejected).
 - **What follows.** No port: the margin stays (the books give no
   tie-breaker), and every disagreement goes to the app's plan drills as a
   case for their feedback, never as an answer to copy.
+
+## Running it
+
+From the lab's root, after think-time-rapid's games and band-above's builds
+(`projects/README.md`). Each step reads what the steps above it wrote; the
+engine passes resume where they stopped.
+
+```bash
+# No engine: 1f, 1a's split, and the positions 1b to 1e draw.
+bridge/run.sh projects/book-advice/conversion.mjs
+bridge/run.sh projects/book-advice/after-error.mjs facts
+bridge/run.sh projects/book-advice/scan.mjs
+
+# The engine passes, one after another, each on four threads.
+bridge/run.sh projects/book-advice/king.mjs --pool 4
+bridge/run.sh projects/book-advice/trades.mjs --pool 4
+bridge/run.sh projects/book-advice/practical.mjs --pool 4
+bridge/run.sh projects/book-advice/retreats.mjs --pool 4
+bridge/run.sh projects/book-advice/after-error.mjs engine --pool 4
+
+# 1b after its result: the signs again after the book's plies.
+bridge/run.sh projects/book-advice/king-notes.mjs
+
+# 1g reads the books' positions from private/book-advice/capstones.json,
+# copied there at run time; they are not in this repository.
+bridge/run.sh projects/book-advice/capstones.mjs
+
+bridge/run.sh projects/book-advice/paper/generate.mjs
+```

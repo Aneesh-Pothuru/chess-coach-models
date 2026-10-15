@@ -13,7 +13,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { Chess } from 'chess.js'
 import { CHESS_DIR, chess, privateDir, resultsDir } from '../../bridge/lib/chess.mjs'
-import { archiveGames, bandOf, playerGames, records, sample, share } from './lib.mjs'
+import { GIFT_FLOOR, HIGH_WP, archiveGames, bandOf, playerGames, records, sample, share } from './lib.mjs'
 
 const K = await chess('src/services/knowledge/index.ts')
 const C = await chess('src/core/chess/index.ts')
@@ -29,8 +29,6 @@ const arg = (name, d) => {
 }
 
 const OFFERED = new Set(['n', 'b', 'r', 'q'])
-const GIFT_FLOOR = 20
-const HIGH_WP = 75
 const SAMPLE = { misses: 2000, offers: 3000 }
 const SEED = 20261015
 const GROUPS = ['his', 'above', 'archive']
