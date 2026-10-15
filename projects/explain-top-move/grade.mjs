@@ -76,6 +76,8 @@ const PIECE_LIST = String.raw`${PIECE_UNIT}(?:, ${PIECE_UNIT})*(?: and ${PIECE_U
 const AMT = String.raw`(${PIECE_UNIT}(?:(?:, | and )${PIECE_UNIT})+(?: for ${PIECE_LIST})?|${PIECE_UNIT} for ${PIECE_LIST}|a pawn's worth of material|a pawn|two pawns' worth of material|a piece and a pawn|a piece and \d+ pawns|a piece|a rook|a queen|about \d+ pawns of material|nothing|(?:three|four|five) pawns' worth of material|${PIECE_UNIT})`
 const WHO = String.raw`(you|they)`
 const ATTACK_ITEM = String.raw`(?:(?:their|your|the) )?(?:pawn|knight|bishop|rook|queen|king) on [a-h][1-8](?: \(undefended\))?`
+const EVAL_WORD = String.raw`(about even|slightly better|slightly worse|much better|much worse|better|worse|winning|losing)`
+const PAWNS = String.raw`([+-]?\d+\.\d)`
 
 // ---------------------------------------------------------------- verdicts
 
@@ -2275,6 +2277,23 @@ const LESSON_TEMPLATES = [
       pWho ? e.played(pPhrase, signOf(e.M, pWho), e.whole) : levelClaim(e.M.playedNetStored, "the played line's stored net", e),
     ],
   },
+  // Where each move leaves the game, from the mover's side: the played move first, then the better one.
+  {
+    re: new RegExp(String.raw`\b(You|They) (stay ahead|are behind) either way: ${EVAL_WORD} after ${TOKR} \(${PAWNS}\), ${EVAL_WORD} after ${TOKR} \(${PAWNS}\)\.`, 'g'),
+    run: ([who, kind, pw, p, pn, bw, b, bn], e) => [
+      e.san(p, e.M.F0, e.M.playedUci),
+      e.san(b, e.M.F0, e.M.bestUci),
+      stakesClaim(e, who, [stakeAt(e.M.after, pw, pn, e.M.san, e.M), stakeAt(e.M.before, bw, bn, e.M.bestSan, e.M)], (sp, sb) => sp === sb && sp === (kind === 'stay ahead' ? 'ahead' : 'behind')),
+    ],
+  },
+  {
+    re: new RegExp(String.raw`\bAfter ${TOKR} (you|they) are ${EVAL_WORD} \(${PAWNS}\)(?:; after|\. After) ${TOKR} (you|they) would be ${EVAL_WORD} \(${PAWNS}\)\.`, 'g'),
+    run: ([p, who, pw, pn, b, who2, bw, bn], e) => [
+      e.san(p, e.M.F0, e.M.playedUci),
+      e.san(b, e.M.F0, e.M.bestUci),
+      stakesClaim(e, who === who2 ? who : null, [stakeAt(e.M.after, pw, pn, e.M.san, e.M), stakeAt(e.M.before, bw, bn, e.M.bestSan, e.M)], (sp, sb) => sp !== sb && STANDING_RANK[sb] > STANDING_RANK[sp]),
+    ],
+  },
   {
     re: /\bThe lines shown do not establish a material advantage for either continuation\./g,
     run: (_g, e) => [levelClaim(e.M.bestRead?.net ?? null, 'the best line', e), levelClaim(e.M.playedNetStored, "the played line's stored net", e)],
@@ -2304,6 +2323,47 @@ function pieceKept(read, pieceWord, side) {
   const pieces = piecesBehind(read.fen, read.end, side)
   const k = TYPE_OF_WORD[pieceWord]
   return { piece: pieceWord, kept: !!pieces && (k === 'n' || k === 'b' ? pieces.won.n + pieces.won.b : pieces.won[k]) > 0 }
+}
+
+/** The words core/score's evalWords gives a mover-side centipawn score, by its bands at 30, 100, 250 and 500 centipawns. */
+function evalWordOf(cp) {
+  const a = Math.abs(cp)
+  if (a < 30) return 'about even'
+  if (a < 100) return cp > 0 ? 'slightly better' : 'slightly worse'
+  if (a < 250) return cp > 0 ? 'better' : 'worse'
+  if (a < 500) return cp > 0 ? 'much better' : 'much worse'
+  return cp > 0 ? 'winning' : 'losing'
+}
+
+/** The pawns core/score's evalFor prints for a mover-side centipawn score. */
+function pawnsOf(cp) {
+  const p = Math.round(cp / 10) / 10
+  return p === 0 ? '0.0' : `${p > 0 ? '+' : ''}${p.toFixed(1)}`
+}
+
+const STANDING_OF = { 'much better': 'ahead', winning: 'ahead', 'much worse': 'behind', losing: 'behind' }
+const STANDING_RANK = { behind: 0, open: 1, ahead: 2 }
+
+/** One side of "where each move leaves the game": the words and pawns said for a move, read off its stored score from the mover's side. */
+function stakeAt(score, words, pawns, label, M) {
+  if (!score || score.mate !== null || typeof score.cp !== 'number' || (score.bound && score.bound !== 'exact')) return { ok: false, why: `${label}: no exact centipawn score` }
+  const cp = M.mover === 'w' ? score.cp : -score.cp
+  const w = evalWordOf(cp)
+  const n = pawnsOf(cp)
+  if (w !== words) return { ok: false, why: `${label} is ${w} (${n}), not ${words}` }
+  if (n !== pawns) return { ok: false, why: `${label} is ${n}, not ${pawns}` }
+  return { ok: true, standing: STANDING_OF[w] ?? 'open', why: `${label}: ${w} (${n})` }
+}
+
+/** The stakes sentence's claim: its subject is the mover, both sides read true, and the standings are the sentence's kind. */
+function stakesClaim(e, who, sides, holds) {
+  if (!who || signOf(e.M, who) !== 1) return claim('stakes', e.surface, e.shown, e.whole, F('the sentence is not about the side that moved'))
+  const bad = sides.find((x) => !x.ok)
+  if (bad) return claim('stakes', e.surface, e.shown, e.whole, F(bad.why))
+  const [played, best] = sides
+  return claim('stakes', e.surface, e.shown, e.whole, holds(played.standing, best.standing)
+    ? T(`${played.why}; ${best.why}`)
+    : F(`${played.standing} after the played move and ${best.standing} after the best: not this sentence`))
 }
 
 /** +1 when the side a pronoun names is the mover, -1 when it is the mover's opponent: the sign of a mover-POV net. */
@@ -2778,6 +2838,21 @@ function runCorruption(cases) {
   if (loses) results.push(corruptionRow('"the line loses a pawn" -> "the line loses a rook"', loses, swapIn(loses, 'the line loses a pawn', 'the line loses a rook'), /loses a rook/))
   const limits = cases.find((c) => c.texts?.lessonFor?.difference?.some((d) => /limits the loss to a pawn\b/.test(d)))
   if (limits) results.push(corruptionRow('"limits the loss to a pawn" -> "... to a piece"', limits, swapIn(limits, 'limits the loss to a pawn', 'limits the loss to a piece'), /limits the loss to a piece/))
+  // Where each move leaves the game: a word, a number, the kind and the order of the moves.
+  const eitherWay = /\b(You|They) (stay ahead|are behind) either way: /
+  const ew = cases.find((c) => c.texts?.lessonFor?.difference?.some((d) => eitherWay.test(d)))
+  if (ew) {
+    const nextWord = { winning: 'much better', 'much better': 'better', losing: 'much worse', 'much worse': 'worse' }
+    results.push(corruptionRow('"either way" with the played move\'s words one band milder', ew, swapIn(ew, /either way: (winning|much better|losing|much worse) after/, (_, w) => `either way: ${nextWord[w]} after`), /either way:/))
+    results.push(corruptionRow('"stay ahead" and "are behind" swapped', ew, swapIn(ew, eitherWay, (_, who, k) => `${who} ${k === 'stay ahead' ? 'are behind' : 'stay ahead'} either way: `), /either way:/))
+  }
+  const crossing = /\bAfter (\S+) (you|they) are ([^(]+) \(([+-]?\d+\.\d)\)(; after|\. After) (\S+) (you|they) would be ([^(]+) \(([+-]?\d+\.\d)\)\./
+  const cr = cases.find((c) => c.texts?.lessonFor?.difference?.some((d) => crossing.test(d)))
+  if (cr) {
+    const bump = (n) => { const v = Number(n) + 1; return v === 0 ? '0.0' : `${v > 0 ? '+' : ''}${v.toFixed(1)}` }
+    results.push(corruptionRow('the better move\'s pawns one pawn off', cr, swapIn(cr, crossing, (_, p, w1, x, n1, sep, b, w2, y, n2) => `After ${p} ${w1} are ${x} (${n1})${sep} ${b} ${w2} would be ${y} (${bump(n2)}).`), /would be/))
+    results.push(corruptionRow('the two moves swapped', cr, swapIn(cr, crossing, (_, p, w1, x, n1, sep, b, w2, y, n2) => `After ${b} ${w1} are ${x} (${n1})${sep} ${p} ${w2} would be ${y} (${n2}).`), new RegExp(`^(?:${escapeRe(cr.san)}|${escapeRe(cr.bestSan)})$`)))
+  }
   // A "won for given" phrase: "they win a pawn" that is a minor piece for two pawns, said as that trade, holds;
   // said with the other minor piece, it is caught.
   const minorForTwo = (x) => x.named?.plain === false && x.named.gave.join() === 'pawn,pawn' && x.named.won.length === 1 && ['knight', 'bishop'].includes(x.named.won[0])

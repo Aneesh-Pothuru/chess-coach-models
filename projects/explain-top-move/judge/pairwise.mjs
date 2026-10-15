@@ -7,7 +7,7 @@
 // (instructions.md); --score applies the round's rule to the two runs.
 //
 //   bridge/run.sh projects/explain-top-move/judge/pairwise.mjs --old DIR --new DIR --out ROUND_DIR [--seed N]
-//   node projects/explain-top-move/judge/pairwise.mjs --score ROUND_DIR [--over ROUND_DIR]
+//   node projects/explain-top-move/judge/pairwise.mjs --score ROUND_DIR [--over ROUND_DIR] [--only FILE]
 //
 // --old and --new are two variants' case directories (build-cases.mjs, or
 // endgame-cases.mjs, whose moments carry their own split);
@@ -16,6 +16,8 @@
 // (evals/explain-top-move/judge/round*/), which --score reads in place.
 // --over: a later round that re-judged some moments on their final texts; its
 // judgments replace the first round's for the moments it judged.
+// --only: a JSON list of moment ids, or sample.mjs's sample.json (its
+// counted ids), the only moments the score counts.
 //
 // The rule, fixed before any run: keep the round if, pooling both runs, the
 // new texts are preferred in more than half of the decided (non-same)
@@ -156,7 +158,8 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const opt = (k) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : null; };
   if (opt('--score')) {
     const dirs = [resolve(opt('--score')), ...(opt('--over') ? [resolve(opt('--over'))] : [])];
-    console.log(JSON.stringify(score(dirs), null, 1));
+    const only = opt('--only') ? J(resolve(opt('--only'))) : null;
+    console.log(JSON.stringify(score(dirs, only ? new Set(Array.isArray(only) ? only : only.counted) : null), null, 1));
   } else {
     await build(opt);
   }
