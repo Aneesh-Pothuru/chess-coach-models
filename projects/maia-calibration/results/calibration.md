@@ -1,6 +1,6 @@
 # Maia-2 calibration by band: results
 
-Written by fit.mjs. App commit ec6af10b4cf72c2bbafc1062cdf35bb2da896d23. Lichess sample: 25000 moves in 13785 games (fitting half 12474 moves, held-out half 12526). The player's games: 33215 moves in 632 games, at offset 250. Punish events: 521 in the primary set, 684 in all, over 60 games. Bootstrap: 1000 draws over games, seed 7.
+Written by fit.mjs. App commit 50de20ccbf1336f0a902156445359a02068517e3. Lichess sample: 25000 moves in 13785 games (fitting half 12474 moves, held-out half 12526). The player's games: 33215 moves in 632 games, at offset 250. Punish events: 521 in the primary set, 684 in all, over 60 games. Bootstrap: 1000 draws over games, seed 7.
 
 **Verdict.** Not adopted: Lichess held-out passes, the player's games fail, the punish events pass.
 
