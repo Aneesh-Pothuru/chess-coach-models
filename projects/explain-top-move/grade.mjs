@@ -1253,6 +1253,33 @@ function checkLater(M, when, sans, e) {
 }
 
 /**
+ * "X is a check with a reason: after K, their king no longer guards S, and Y
+ * follows" (or "Y takes the P there"): X is the better move and gives check,
+ * K is the engine's reply, a king's step from next to S to a square that is
+ * not, and Y, the next move of that line, lands on S, taking that piece when
+ * the text says so.
+ */
+function checkGuardLeft([x, k, whose, sq, y, piece], e) {
+  const { M, surface, shown, whole } = e
+  const out = [e.san(x, M.F0, M.bestUci)]
+  const fail = (why) => [...out, claim('check_reason', surface, shown, whole, F(why))]
+  const mv = M.attBest?.mv
+  if (!mv) return fail('the better move does not replay')
+  if (!mv.board.inCheck()) return fail(`${mv.san} gives no check`)
+  if (ownerOf(whose, M) !== other(mv.color)) return fail(`the king ${mv.san} checks is not ${whose}`)
+  out.push(e.san(k, mv.afterFen, M.bestPv[1]))
+  const reply = moveAt(mv.afterFen, M.bestPv[1])
+  if (!reply || reply.piece !== 'k') return fail(`the engine's reply to ${mv.san} is not a king move`)
+  if (kingDist(reply.from, sq) !== 1) return fail(`the king on ${reply.from} did not guard ${sq}`)
+  if (kingDist(reply.to, sq) <= 1) return fail(`the king on ${reply.to} still guards ${sq}`)
+  out.push(e.san(y, reply.afterFen, M.bestPv[2]))
+  const next = moveAt(reply.afterFen, M.bestPv[2])
+  if (!next || next.to !== sq) return fail(`the engine's line does not play to ${sq} after ${reply.san}`)
+  if (piece && next.captured !== TYPE_OF_WORD[piece]) return fail(`${next.san} does not take a ${piece} on ${sq}`)
+  return [...out, claim('check_reason', surface, shown, whole, T(`after ${mv.san} ${reply.san} the king no longer guards ${sq}, and the line plays ${next.san}`))]
+}
+
+/**
  * An answer to "why not just take it?": "if they take it with X, [M1 M2 ..., then] Y ...".
  * "It" is the piece the better move moved (the best line, or a searched capture
  * of it) or the reply moved (the played line). The text's moves must be the
@@ -1874,6 +1901,11 @@ const LESSON_TEMPLATES = [
   {
     re: new RegExp(String.raw`\b${TOKR} still comes, (a move|two moves) later, in the engine's line\b`, 'g'),
     run: ([x, when], e) => [e.san(x, e.M.F0, e.M.playedUci), checkLater(e.M, when, null, e)],
+  },
+  // A check's purpose: the better check takes a guard off a square the line's next move lands on.
+  {
+    re: new RegExp(String.raw`\b${TOKR} is a check with a reason: after ${TOKR}, (their|your) king no longer guards ${SQ}, and ${TOKR} (?:follows|takes the ${PIECE} there)\.`, 'g'),
+    run: (g, e) => checkGuardLeft(g, e),
   },
   // "Why not take it?": the capture of the move's piece and what follows, on the engine line.
   {
@@ -2863,6 +2895,17 @@ function runCorruption(cases) {
     results.push(heldRow(`a minor piece for two pawns said "they win a pawn", reworded "they win a ${minor} for two pawns" (must hold)`, traded, swapIn(traded, 'they win a pawn in', `they win a ${minor} for two pawns in`)))
     results.push(corruptionRow(`... reworded with the other piece, "they win a ${wrong} for two pawns"`, traded, swapIn(traded, 'they win a pawn in', `they win a ${wrong} for two pawns in`), new RegExp(`a ${wrong} for two pawns`)))
   }
+  // A better check's purpose: the square it frees, and the piece taken there.
+  const pick = (pred) => cases.find((c) => pred(c) && gradeMoment(c).faithful === 1) ?? cases.find(pred)
+  const inDiff = (test) => (c) => !!c.texts?.lessonFor?.difference?.some(test)
+  const freed = /\b(\S+) is a check with a reason: after (\S+), (their|your) king no longer guards ([a-h])([1-8]), and /
+  const fr = pick(inDiff((d) => freed.test(d)))
+  if (fr) results.push(corruptionRow('the square a better check frees, one file over', fr, swapIn(fr, freed, (_, x, k, w, f, r) => `${x} is a check with a reason: after ${k}, ${w} king no longer guards ${nextFile(f)}${r}, and `), /is a check with a reason/))
+  const takesThere = /takes the (pawn|knight|bishop|rook|queen) there\.$/
+  const tt = pick(inDiff((d) => freed.test(d) && takesThere.test(d)))
+  if (tt) results.push(corruptionRow('the piece a better check wins named as another', tt, swapIn(tt, takesThere, (_, p) => `takes the ${p === 'queen' ? 'rook' : 'queen'} there.`), /is a check with a reason/))
+  const fo = pick(inDiff((d) => freed.test(d) && / follows\.$/.test(d)))
+  if (fo) results.push(corruptionRow('a quiet follow-up said to take a queen', fo, swapIn(fo, / follows\.$/, ' takes the queen there.'), /is a check with a reason/))
   return results
 }
 

@@ -6,7 +6,7 @@
 // explanation rounds their endgame key moments, with a train half to design on
 // and a test half to check on.
 //
-//   bridge/run.sh projects/explain-top-move/endgames.mjs [--games N] [--archive DIR]
+//   bridge/run.sh projects/explain-top-move/endgames.mjs [--games N] [--set NAME] [--exclude FILE ...] [--archive DIR]
 //
 // A game is eligible when its move list replays, meIsWhite is a boolean, it is
 // not in the accuracy sample (private/accuracy-vs-chesscom/cases.json), and the
@@ -14,13 +14,17 @@
 // eligible games are sorted by numeric id and shuffled with Fisher-Yates driven
 // by mulberry32(SEED); the first N are taken, the first half of them train and
 // the second half test. A game id keeps the row from the latest day file, as
-// the accuracy sample's builder reads the archive.
+// the accuracy sample's builder reads the archive. --exclude FILE (an earlier
+// set's games.json, repeatable) leaves its games out before the draw, so a
+// later set, written to private/explain-top-move/NAME/ by --set NAME, shares
+// no game with it and leaves its splits as they are.
 //
-// Writes private/explain-top-move/endgames/games.json, in the accuracy cases'
-// shape (so build-evidence.mjs, build-cases.mjs and defenses.mjs read it with
-// --games; the defense searches read the players' ratings) plus each game's
-// split and the ply its endgame starts at, and prints counts only. The file
-// names games, so it stays under private/.
+// Writes private/explain-top-move/<set>/games.json (the set is endgames unless
+// --set names another), in the accuracy cases' shape (so build-evidence.mjs,
+// build-cases.mjs and defenses.mjs read it with --games; the defense searches
+// read the players' ratings) plus each game's split and the ply its endgame
+// starts at, and prints counts only. The file names games, so it stays under
+// private/.
 
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -36,9 +40,11 @@ const RESULT_WORD = { W: 'win', L: 'loss', D: 'draw' };
 const args = process.argv.slice(2);
 const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; };
 const take = Number(opt('--games', '160'));
+const setName = opt('--set', 'endgames');
+const excluded = new Set(args.flatMap((a, i) => (a === '--exclude' ? JSON.parse(readFileSync(args[i + 1], 'utf8')).map((g) => String(g.id)) : [])));
 const archiveDir = opt('--archive', join(CHESS_DIR, 'coach-log', 'review-analysis'));
-if (!Number.isInteger(take) || take < 2 || take % 2) {
-  console.error('usage: endgames.mjs [--games N (even, at least 2)] [--archive DIR]');
+if (!Number.isInteger(take) || take < 2 || take % 2 || !/^[a-z0-9-]+$/.test(setName)) {
+  console.error('usage: endgames.mjs [--games N (even, at least 2)] [--set NAME] [--exclude FILE ...] [--archive DIR]');
   process.exit(2);
 }
 
@@ -71,10 +77,11 @@ for (const file of readdirSync(archiveDir).filter((f) => DAY_FILE.test(f)).sort(
   }
 }
 
-const why = { sampled: 0, noMoves: 0, illegal: 0, noColor: 0, shortEndgame: 0 };
+const why = { sampled: 0, excluded: 0, noMoves: 0, illegal: 0, noColor: 0, shortEndgame: 0 };
 const eligible = [];
 for (const g of latest.values()) {
   if (sampled.has(g.id)) { why.sampled++; continue; }
+  if (excluded.has(g.id)) { why.excluded++; continue; }
   if (!Array.isArray(g.row.sans) || g.row.sans.length === 0) { why.noMoves++; continue; }
   if (typeof g.row.meIsWhite !== 'boolean') { why.noColor++; continue; }
   const board = new Chess();
@@ -110,7 +117,7 @@ const drawn = shuffle(eligible.slice(), mulberry32(SEED)).slice(0, take);
 drawn.forEach((g, i) => { g.split = i < take / 2 ? 'train' : 'test'; });
 drawn.sort((a, b) => Number(a.id) - Number(b.id));
 
-const dir = privateDir('explain-top-move/endgames');
+const dir = privateDir(`explain-top-move/${setName}`);
 mkdirSync(dir, { recursive: true });
 writeFileSync(join(dir, 'games.json'), `${JSON.stringify(drawn, null, 2)}\n`);
 console.log(JSON.stringify({
@@ -122,5 +129,5 @@ console.log(JSON.stringify({
   test: drawn.filter((g) => g.split === 'test').length,
   seed: SEED,
   minEndgamePlies: MIN_ENDGAME_PLIES,
-  out: 'private/explain-top-move/endgames/games.json',
+  out: `private/explain-top-move/${setName}/games.json`,
 }, null, 2));
