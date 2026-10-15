@@ -212,7 +212,7 @@ ask the solver to check whether a retreat helps one or two moves later.
 **The rule, fixed before the run.**
 
 - **The positions.** The position before a player's move, past the book, with
-  at least two legal moves and the move's loss known. Up to three positions
+  at least two legal moves and the move's loss known. Up to ten positions
   from each of 3,000 player-games in each band, and 6,000 from his games,
   drawn at random (seeded).
 - **Must-find.** The app's Node engine (one thread, the `check` budget, two

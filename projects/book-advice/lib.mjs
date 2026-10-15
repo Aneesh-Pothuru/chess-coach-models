@@ -11,7 +11,7 @@ const M = await chess('src/services/metrics/index.ts')
 const R = await chess('src/services/review/index.ts')
 const S = await chess('src/core/stats/index.ts')
 
-export const MONTH = '2026-09'
+export const MONTH = process.env.BOOK_ADVICE_MONTH ?? '2026-09'
 /** His band and the band above, by the player's Lichess rating (inclusive). */
 export const HIS = [1250, 1449]
 export const ABOVE = [1450, 1649]
@@ -73,4 +73,63 @@ export async function archiveGames() {
     out.push({ id: M.gidOf(r), rating: r.myRating ?? null, oppRating: r.oppRating ?? null, endTime: r.endTime ?? null, g: M.deriveGameFacts(p), tags })
   }
   return { games: out, skipped }
+}
+
+/** A seeded generator (mulberry32), so a draw is the same on every run. */
+export function mulberry32(seed) {
+  let a = seed >>> 0
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0
+    let t = a
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+/** A generator seeded by a key (FNV-1a), so each player-game draws the same positions on every run. */
+export function seeded(key) {
+  let h = 2166136261
+  for (let i = 0; i < key.length; i++) {
+    h ^= key.charCodeAt(i)
+    h = Math.imul(h, 16777619)
+  }
+  return mulberry32(h)
+}
+
+/** A seeded shuffle's first n. */
+export function sample(list, n, seed) {
+  const rnd = mulberry32(seed)
+  const xs = [...list]
+  for (let i = xs.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1))
+    ;[xs[i], xs[j]] = [xs[j], xs[i]]
+  }
+  return n >= xs.length ? xs : xs.slice(0, n)
+}
+
+/**
+ * The player's win% and eval before each ply, and after the last: the move facts give them from the
+ * mover's side. A game that ended in mate ends at 0 or 100 and at the mate's eval.
+ */
+export function playerSeries(g) {
+  const n = g.moves.length
+  const wp = new Array(n + 1).fill(null)
+  const cp = new Array(n + 1).fill(null)
+  for (const m of g.moves) {
+    const mine = m.mover === 'me'
+    if (m.wpBefore !== null) wp[m.ply] = mine ? m.wpBefore : 100 - m.wpBefore
+    if (m.evalBefore !== null) cp[m.ply] = mine ? m.evalBefore : -m.evalBefore
+  }
+  const last = g.moves[n - 1]
+  if (last) {
+    const mine = last.mover === 'me'
+    if (last.wpAfter !== null) wp[n] = mine ? last.wpAfter : 100 - last.wpAfter
+    if (last.evalAfter !== null) cp[n] = mine ? last.evalAfter : -last.evalAfter
+    if (g.terminationHow === 'checkmate') {
+      wp[n] = g.score === 1 ? 100 : 0
+      cp[n] = g.score === 1 ? 10000 : -10000
+    }
+  }
+  return { wp, cp }
 }

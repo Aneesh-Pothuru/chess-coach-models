@@ -13,7 +13,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { Chess } from 'chess.js'
 import { CHESS_DIR, chess, privateDir, resultsDir } from '../../bridge/lib/chess.mjs'
-import { archiveGames, bandOf, playerGames, records, share } from './lib.mjs'
+import { archiveGames, bandOf, playerGames, records, sample, share } from './lib.mjs'
 
 const K = await chess('src/services/knowledge/index.ts')
 const C = await chess('src/core/chess/index.ts')
@@ -146,24 +146,6 @@ function report(s, nMisses, nOffers) {
     misses: nMisses,
     offers: nOffers,
   }
-}
-
-/** A seeded shuffle (mulberry32), so a sample is the same on every run. */
-function sample(list, n, seed) {
-  let a = seed >>> 0
-  const rnd = () => {
-    a = (a + 0x6d2b79f5) >>> 0
-    let t = a
-    t = Math.imul(t ^ (t >>> 15), t | 1)
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
-  const xs = [...list]
-  for (let i = xs.length - 1; i > 0; i--) {
-    const j = Math.floor(rnd() * (i + 1))
-    ;[xs[i], xs[j]] = [xs[j], xs[i]]
-  }
-  return n >= xs.length ? xs : xs.slice(0, n)
 }
 
 /** The cheapest attacker's capture of `square` in `fen`, as UCI. */
