@@ -41,6 +41,89 @@ the app's own board code, imported through the bridge.
   `private/book-advice/` at run time, writes its per-position rows there, and
   commits counts only.
 
+## 1a. The move after their mistake
+
+The books warn that a piece offered for free may be a trap (taking a rook
+that abandons a pawn's guard, and getting mated), and that the usual process
+applies after the opponent's mistake: check what changed, look at the
+forcing moves, test the reply. The app's "Punish their mistakes" goal
+(`punish.rate`, at least 55% at stage 2) drills hanging-piece puzzles.
+
+**The rule, fixed before the run.**
+
+- **The event.** A player's move right after the opponent's serious error:
+  the move facts' `afterOppError` (the opponent's move was a mistake or a
+  blunder by the review reader, from the evals), with both moves' `lossPct`
+  known. Player-games in his band and the band above, and his games.
+- **The outcome**, one per event, in this order:
+  - *other*: the player had one legal move;
+  - *punished*: the reply kept at least half of the gift, the app's own
+    test (`punish.rate`: `lossPct` at most half the opponent's);
+  - *trap*: not punished, and the reply was a capture the reader judged a
+    mistake or a blunder;
+  - *missed*: not punished and not a trap.
+  The failures are the traps and the misses. Shares carry 95% Wilson
+  intervals.
+- **Traps are a real share** when at least one failure in ten is a trap in
+  his band's games, or in his own games with the interval's lower end at
+  10% or more. Then the app gets a "take it or not" drill that mixes real
+  gifts with traps, and the review tags a poisoned capture.
+- **Misses dominate** when at least two failures in three are misses in his
+  band's games. Then the goal's practice adds the punishments it lacks, by
+  the next step.
+- **What the misses missed.** A seeded random sample of up to 2,000 misses
+  in each band, and every miss in his games: the app's Node engine service
+  (one thread, the `best` budget the app names moves with, 600,000 nodes)
+  finds the best reply in the position the opponent's error left, and the
+  knowledge service's `themeOfBest` names it. The goal adds a kind of
+  punishment beyond the hanging piece when its theme names at least one
+  sampled miss in ten in his band: mates (`mateIn1`, `backRankMate`), forks,
+  and pins, skewers and discovered attacks. The labeller has no trapped
+  piece; those land under the phase words with the rest it cannot name.
+- **Also reported**, without a rule:
+  - the same split on the app's `punish.rate` population (gifts of 20 win%
+    or more);
+  - *offered material*: the player's move right after an opponent move that
+    left one of the opponent's knights, bishops, rooks or queens hanging by
+    the knowledge service's `hangingPieces` when it was not before. In a
+    seeded sample of up to 3,000 such moves in each band, and every one in
+    his games, the engine (`best` budget) reads the position and the capture
+    of that piece by its cheapest attacker, and the knowledge service's
+    `judgeMove` judges the capture: a *trap* when a mistake or a blunder, a
+    *gift* otherwise. How many offers are traps, how often the players took
+    a trap, and how often they left a gift;
+  - after a punished reply, how often the player's next move is a serious
+    error, beside the rate on the player's other moves at 75 win% or more.
+
+## 1f. The conversion target
+
+The books' informal target is converting a decisive advantage at least 70%
+of the time, with no centipawn definition. The app measures conversion as
+`conversion.sustained`: of the games where the player stood at +3 or
+better for three plies in a row, the share won. Its tripwire fires under 65%
+over the trailing 30 games, and its stage goals are 78% (stage 1, chess.com
+1000 to 1150), 82% (stage 3, 1300 to 1450) and 85% (stage 4, 1450 to 1600).
+
+**The rule, fixed before the run.**
+
+- **The measure.** `conversion.sustained` as the metrics registry defines
+  it (its population and its game test), on every player-game, by the
+  player's Lichess rating: the six 200-point bands of band-above (850 to
+  2049), the three stages' bands and the bands 200 points above them, and
+  his games. 95% Wilson intervals.
+- **The stage goals.** A stage's band on Lichess is its chess.com range plus
+  250 (stage 1: 1250 to 1399; stage 3: 1550 to 1699; stage 4: 1700 to 1849),
+  and what players 200 points above reach is the rate of player-games 200
+  points above that band. A goal stays when it lies inside that rate's
+  interval; otherwise it moves to that rate, rounded to a whole percent.
+- **The tripwire.** It should fire when he converts no better than players
+  200 points below him (Lichess 1050 to 1249). It stays when 65% lies inside
+  that band's interval; otherwise it moves to that rate, rounded to a whole
+  percent.
+- **Also reported**, without a rule: the books' 70% against each band; how
+  many of his last 30 games reach a sustained +3, against the metric's
+  minimum of 20 (a thinner estimate never trips the wire).
+
 ## 1g. The twelve planning positions against the 45 cp rule
 
 The guess-the-plan drill shows a quiet position from his games with the
