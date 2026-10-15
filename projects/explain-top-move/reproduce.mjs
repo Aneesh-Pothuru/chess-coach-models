@@ -37,6 +37,7 @@ import { join } from 'node:path';
 import { CHESS_DIR, LAB_DIR, privateDir, projectDir, records, resultsDir } from '../../bridge/lib/chess.mjs';
 import { DRIFT_RULE, lengthCheck, longerPicked, roundControl } from './judge/controls/score.mjs';
 import { score } from './judge/pairwise.mjs';
+import { draw } from './judge/sample.mjs';
 import { rates, summarize } from './summarize.mjs';
 
 const FLOW = 'explain-top-move';
@@ -44,6 +45,9 @@ const KEPT = 'v8';
 const DIMS = ['faithful', 'concrete', 'named_deep', 'faithfulAll'];
 // The judge rounds as the records keep them. Round 6 made no run of its own:
 // it re-read round 5's judgments on the moments whose texts v6 changes from v4.
+// Round 17's judges read a seeded sample of the moments it changed
+// (round17/sample.json, drawn from round17/changed.json), and its score counts
+// that sample alone.
 const ROUNDS = [
   { round: '3', dirs: ['round3'] },
   { round: '4', dirs: ['round4'] },
@@ -59,6 +63,9 @@ const ROUNDS = [
   { round: '13', dirs: ['round13'] },
   { round: '15', dirs: ['round15'] },
   { round: '16', dirs: ['round16'] },
+  { round: '17', dirs: ['round17'], sample: 'round17' },
+  { round: '17b', dirs: ['round17b'], sample: 'round17' },
+  { round: '17 and 17b', dirs: ['round17', 'round17b'], sample: 'round17' },
 ];
 // The rounds judged before the length check, whose streak of longer texts it tested.
 const BEFORE_CHECK = ['3', '4', '5', '7', '7b', '8', '9'];
@@ -80,12 +87,13 @@ const appDefends = () => existsSync(join(CHESS_DIR, 'src', 'services', 'review',
  * Which kept rounds after the kept variant the pinned app carries, each read
  * from a mark its change left in the app's source: round 10's "an even trade",
  * round 11's `takesBack`, round 12's defense searches, round 14's
- * `materialChange`, round 15's `quietDefense`, round 16's `pawnRuns`.
+ * `materialChange`, round 15's `quietDefense`, round 16's `pawnRuns`, round
+ * 17's `stakesSentence`.
  */
 function appCarries() {
   const lessonFile = join(CHESS_DIR, 'src', 'services', 'knowledge', 'detectors', 'lesson.ts');
   const lesson = existsSync(lessonFile) ? readFileSync(lessonFile, 'utf8') : '';
-  return { v10: lesson.includes('an even trade'), v11: /\btakesBack\b/.test(lesson), v12: appDefends(), v14: /\bmaterialChange\b/.test(lesson), v15: /\bquietDefense\b/.test(lesson), v16: /\bpawnRuns\b/.test(lesson) };
+  return { v10: lesson.includes('an even trade'), v11: /\btakesBack\b/.test(lesson), v12: appDefends(), v14: /\bmaterialChange\b/.test(lesson), v15: /\bquietDefense\b/.test(lesson), v16: /\bpawnRuns\b/.test(lesson), v17b: /\bstakesSentence\b/.test(lesson) };
 }
 
 function rerun(dir) {
@@ -136,14 +144,31 @@ function main() {
   const judgeDir = join(records(), 'evals', FLOW, 'judge');
   const textHashes = v => new Map(jsonl(join(recorded, v, 'results.jsonl')).map(m => [m.id, m.textHash]));
   const reasons = new Map([...state.rounds, ...state.rounds_not_kept].map(r => [String(r.round), r.why]));
-  const judge = ROUNDS.map(({ round, dirs, changed }) => {
-    let only = null;
+  const judge = ROUNDS.map(({ round, dirs, changed, sample }) => {
+    let only = null, sampled = null;
     if (changed) {
       const [from, to] = changed.map(textHashes);
       only = new Set([...to].filter(([id, h]) => h !== from.get(id)).map(([id]) => id));
     }
+    if (sample) {
+      const drawn = JSON.parse(readFileSync(join(judgeDir, sample, 'sample.json'), 'utf8'));
+      const all = JSON.parse(readFileSync(join(judgeDir, sample, 'changed.json'), 'utf8'));
+      const judgedIds = new Set(dirs.flatMap(d => Object.keys(JSON.parse(readFileSync(join(judgeDir, d, 'key-r1.json'), 'utf8')))));
+      only = new Set(drawn.counted);
+      sampled = {
+        of: Object.values(all).flat().length,
+        drawn: drawn.counted.length,
+        judged: drawn.counted.filter(id => judgedIds.has(id)).length,
+        per: drawn.per,
+        seed: drawn.seed,
+        reproduced: Object.entries(all).every(([cell, ids]) => drawn.cells[cell]?.of === ids.length && canonical(draw(ids, drawn.seed, drawn.per)) === canonical(drawn.cells[cell].drawn))
+          && Object.keys(drawn.cells).length === Object.keys(all).length,
+        extras: drawn.extras.filter(id => judgedIds.has(id)).length,
+        extrasTally: score(dirs.map(d => join(judgeDir, d)), new Set(drawn.extras)).tally,
+      };
+    }
     const { tally, keep } = score(dirs.map(d => join(judgeDir, d)), only);
-    return { round, judged: dirs.join(' then '), moments: only?.size ?? null, tally, keepByRule: keep, recordedReason: reasons.get(round.split(' ')[0]) ?? null };
+    return { round, judged: dirs.join(' then '), moments: sampled ? sampled.judged : only?.size ?? null, sample: sampled, tally, keepByRule: keep, recordedReason: reasons.get(round.split(' ')[0]) ?? null };
   });
 
   // The judge's controls, recomputed from their answers; the length check's
@@ -194,10 +219,11 @@ function main() {
     }
     let endgames = null;
     if (existsSync(join(recorded, v, 'rebuilt', 'endgames'))) {
-      const set = JSON.parse(readFileSync(join(recorded, v, 'endgame-set.json'), 'utf8'));
+      const own = join(recorded, v, 'endgame-set.json');
+      const set = JSON.parse(readFileSync(existsSync(own) ? own : join(records(), state.endgame_set.file), 'utf8'));
       const setSplit = new Map(set.games.map(g => [String(g.id), g.split]));
       const shared = set.games.filter(g => split.has(String(g.id))).length;
-      if (shared) throw new Error(`${v}/endgame-set.json: ${shared} of its games are among the 60`);
+      if (shared) throw new Error(`${v}: ${shared} of the endgame set's games are among the 60`);
       const { splits: setSplits, sameMoments: setSame, gradesEqual: setEqual } = compared(join(recorded, v, 'rebuilt', 'endgames'), v, setSplit);
       endgames = {
         seed: set.seed,
@@ -217,6 +243,10 @@ function main() {
   const probes = JSON.parse(readFileSync(join(dir, 'probes.json'), 'utf8'));
   const defensesFile = join(dir, 'defenses.json');
   const defenses = existsSync(defensesFile) ? JSON.parse(readFileSync(defensesFile, 'utf8')) : null;
+  // The rerun's texts beside the last kept round's, recorded on the 60 games' rebuilt documents.
+  const last = [...state.rounds].reverse().map(r => r.variant).find(v => existsSync(join(recorded, v, 'rebuilt', `${v}.results.jsonl`)));
+  const lastTexts = last ? new Map(jsonl(join(recorded, last, 'rebuilt', `${last}.results.jsonl`)).map(m => [m.id, m.textHash])) : null;
+  const textsMatch = lastTexts && { variant: last, of: lastTexts.size, same: [...lastTexts].filter(([id, h]) => app.get(id)?.textHash === h).length };
 
   const rows = [];
   for (const which of ['test', 'train']) {
@@ -248,6 +278,7 @@ function main() {
       probes: { budget: probes.budget, kept: Object.values(probes.games ?? {}).flat().length },
       defenses: defenses && { budget: defenses.budget, kept: Object.values(defenses.games ?? {}).flat().length },
       evidence: { documents: provenance.length, versions: [...new Set(provenance.map(p => p.evidenceVersion))], builds: [...new Set(provenance.map(p => p.build))] },
+      textsMatch,
     },
     judge,
     controls,
@@ -321,6 +352,12 @@ function renderCarries(report) {
   return `Of the kept rounds after ${report.kept}, the pinned app carries ${carries}, each read from a mark its change left in the app's source.`;
 }
 
+/** What a judge row read: a sample of the round's changed moments, part of one, or the moments a round changed. */
+function judgedNote(j) {
+  if (j.sample) return j.sample.judged === j.sample.drawn ? ` (a seeded sample of ${j.sample.drawn} of the ${j.sample.of} moments the round changed)` : ` (${j.sample.judged} of that sample's ${j.sample.drawn})`;
+  return j.moments != null ? ` (the ${j.moments} moments the round changed)` : '';
+}
+
 function render(report) {
   const f = r => `${r.est.toFixed(1)} [${r.lo.toFixed(1)}, ${r.hi.toFixed(1)}]`;
   const L = [
@@ -338,8 +375,12 @@ function render(report) {
     '',
     '| round | judged | train | test | the rule says |',
     '|---|---|---|---|---|',
-    ...report.judge.map(j => `| ${j.round} | ${j.judged}${j.moments != null ? ` (the ${j.moments} moments the round changed)` : ''} | ${j.tally.train.new}–${j.tally.train.old} (${j.tally.train.same}) | ${j.tally.test.new}–${j.tally.test.old} (${j.tally.test.same}) | ${j.keepByRule ? 'keep' : 'do not keep'} |`),
+    ...report.judge.map(j => `| ${j.round} | ${j.judged}${judgedNote(j)} | ${j.tally.train.new}–${j.tally.train.old} (${j.tally.train.same}) | ${j.tally.test.new}–${j.tally.test.old} (${j.tally.test.same}) | ${j.keepByRule ? 'keep' : 'do not keep'} |`),
     '',
+    ...[...new Map(report.judge.filter(j => j.sample).map(j => [j.round.split(' ')[0].replace(/[a-z]$/, ''), j])).values()].flatMap(j => [
+      `Round ${j.round.split(' ')[0].replace(/[a-z]$/, '')}'s sample, ${j.sample.per} moments in each set and split with seed ${j.sample.seed}, ${j.sample.reproduced ? 'is' : 'is not'} the draw its list of changed moments reproduces. The ${j.sample.extras} moments judged beside it and not counted went ${j.sample.extrasTally.train.new + j.sample.extrasTally.test.new}–${j.sample.extrasTally.train.old + j.sample.extrasTally.test.old} (${j.sample.extrasTally.train.same + j.sample.extrasTally.test.same}) in ${j.judged}.`,
+      '',
+    ]),
     'The reasons the records give for each round, to read beside the table:',
     '',
     ...[...new Map(report.judge.filter(j => j.recordedReason).map(j => [j.round.split(' ')[0], j.recordedReason])).entries()].map(([r, why]) => `- Round ${r}: ${why}`),
@@ -351,6 +392,7 @@ function render(report) {
     `The pinned app's explanations, rebuilt from engine evidence the lab rebuilt (${report.rerun.evidence.documents} games, ${report.rerun.evidence.versions.join(', ')}, ${report.rerun.evidence.builds.join(', ')}), with the capture searches redone on that evidence (${report.rerun.probes.kept} kept)${report.rerun.defenses ? ` and the defense searches (${report.rerun.defenses.kept} kept)` : '; the pinned app makes no defense searches'}. ${report.rerun.moments} key moments.`,
     '',
     renderCarries(report),
+    ...(report.rerun.textsMatch ? ['', `Its texts equal ${report.rerun.textsMatch.variant}'s, recorded on the 60 games' rebuilt documents, on ${report.rerun.textsMatch.same} of those ${report.rerun.textsMatch.of} moments.`] : []),
     '',
     '| split | grade | recorded baseline | recorded ' + report.kept + ' | pinned app, rerun |',
     '|---|---|---|---|---|',

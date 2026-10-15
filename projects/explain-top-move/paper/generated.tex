@@ -49,9 +49,9 @@
 \newcommand{\KeptTrainConcreteVsBase}{+6.8 [3.2, 10.6]}
 \newcommand{\KeptTrainTextsChanged}{87}
 \newcommand{\KeptVariant}{v8}
-\newcommand{\RoundCount}{16}
-\newcommand{\RoundCountCap}{16}
-\newcommand{\KeptRoundCount}{13}
+\newcommand{\RoundCount}{17}
+\newcommand{\RoundCountCap}{17}
+\newcommand{\KeptRoundCount}{14}
 \newcommand{\UnjudgedKept}{1, 2, 11 and 14}
 \newcommand{\RoundsTable}{%
 \begin{tabularx}{\textwidth}{l L rrrr r r}
@@ -78,13 +78,14 @@ v13 & Leave out the moves the defense sentence does not need (\emph{not kept}) &
 v14 & Say an amount in the pieces it is made of & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} &  \\
 v15 & Say what a quiet reply defends & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 22--1 / 8--0 \\
 v16 & Tell an endgame's passed pawns' story & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 37--2 / 18--3 \\
+v17b & Say where each move leaves the game & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 73--0 / 76--0 \\
 \bottomrule
 \end{tabularx}
 }
 \newcommand{\JudgeTable}{%
 \begin{tabular}{l l rr l}
 \toprule
-round & judged & train new--old (same) & test new--old (same) & the rule says \\
+round & judged & train & test & the rule says \\
 \midrule
 3 & round 3 & 22--0 (0) & 18--2 (0) & keep \\
 4 & round 4 & 8--0 (0) & 6--0 (0) & keep \\
@@ -100,6 +101,9 @@ round & judged & train new--old (same) & test new--old (same) & the rule says \\
 13 & round 13 & 0--16 (0) & 4--24 (0) & do not keep \\
 15 & round 15 & 22--1 (1) & 8--0 (0) & keep \\
 16 & round 16 & 37--2 (3) & 18--3 (1) & keep \\
+17 & round 17 (80 moments) & 72--0 (8) & 74--0 (6) & keep \\
+17b & round 17b (49 moments) & 52--0 (0) & 46--0 (0) & keep \\
+17 and 17b & round 17 then round 17b (80 moments) & 73--0 (7) & 76--0 (4) & keep \\
 \bottomrule
 \end{tabular}
 }
@@ -122,8 +126,16 @@ v15 & test & 153 & 153 & 127 / 128 & 144 & 152 & 4 \\
 v15 & train & 180 & 179 & 149 / 152 & 166 & 179 & 12 \\
 v16 & test & 153 & 153 & 128 / 129 & 144 & 152 & 8 \\
 v16 & train & 180 & 179 & 152 & 166 & 179 & 2 \\
+v17 & test & 153 & 153 & 129 & 144 & 152 & 65 \\
+v17 & train & 180 & 179 & 152 & 166 & 179 & 72 \\
+v17b & test & 153 & 153 & 129 & 144 & 152 & 65 \\
+v17b & train & 180 & 179 & 152 & 166 & 179 & 72 \\
 v16, endgame set & test & 184 & 181 & 162 & 158 & 180 & 3 \\
 v16, endgame set & train & 219 & 213 & 170 / 172 & 204 & 213 & 19 \\
+v17, endgame set & test & 184 & 181 & 162 & 158 & 180 & 94 \\
+v17, endgame set & train & 219 & 213 & 172 & 204 & 213 & 116 \\
+v17b, endgame set & test & 184 & 181 & 162 & 158 & 180 & 94 \\
+v17b, endgame set & train & 219 & 213 & 172 & 204 & 213 & 116 \\
 \bottomrule
 \end{tabular}
 }
@@ -223,6 +235,29 @@ the five of Table~\ref{tab:defects} & 0 & 0 \\
 \newcommand{\RoundSixteenTestNew}{18}
 \newcommand{\RoundSixteenTestOld}{3}
 \newcommand{\RoundSixteenTestSame}{1}
+\newcommand{\RoundSeventeenQuoteBehind}{You are behind either way: losing after Rb5 ($-$8.1), much worse after Rxb2+ ($-$4.4).}
+\newcommand{\RoundSeventeenQuoteAhead}{You stay ahead either way: much better after Re7 (+4.1), winning after Rdf1 (+5.0).}
+\newcommand{\RoundSeventeenQuoteCrossing}{After Kg4 you are losing ($-$7.0). After Nxb6 you would be winning (+7.0).}
+\newcommand{\RoundSeventeenChanged}{347}
+\newcommand{\RoundSeventeenChangedTrain}{188}
+\newcommand{\RoundSeventeenChangedTest}{159}
+\newcommand{\RoundSeventeenSampled}{80}
+\newcommand{\RoundSeventeenPer}{20}
+\newcommand{\RoundSeventeenSeed}{20261015}
+\newcommand{\RoundSeventeenRejudged}{49}
+\newcommand{\RoundSeventeenExtras}{five}
+\newcommand{\RoundSeventeenExtrasNew}{10}
+\newcommand{\RoundSeventeenExtrasN}{10}
+\newcommand{\RoundSeventeenFirstTrainNew}{72}
+\newcommand{\RoundSeventeenFirstTrainSame}{8}
+\newcommand{\RoundSeventeenFirstTestNew}{74}
+\newcommand{\RoundSeventeenFirstTestSame}{6}
+\newcommand{\RoundSeventeenTrainNew}{73}
+\newcommand{\RoundSeventeenTrainOld}{0}
+\newcommand{\RoundSeventeenTrainSame}{7}
+\newcommand{\RoundSeventeenTestNew}{76}
+\newcommand{\RoundSeventeenTestOld}{0}
+\newcommand{\RoundSeventeenTestSame}{4}
 \newcommand{\LongerPicked}{305}
 \newcommand{\LongerDecided}{326}
 \newcommand{\LongerRounds}{3, 4, 5, 7, 7b, 8 and 9}
@@ -249,6 +284,10 @@ the five of Table~\ref{tab:defects} & 0 & 0 \\
 \newcommand{\PadSixteenN}{20}
 \newcommand{\PadSixteenUnchanged}{14}
 \newcommand{\PadSixteenSame}{6}
+\newcommand{\PadSeventeenDecoy}{0}
+\newcommand{\PadSeventeenN}{20}
+\newcommand{\PadSeventeenUnchanged}{0}
+\newcommand{\PadSeventeenSame}{20}
 \newcommand{\ControlsTable}{%
 \begin{tabularx}{\textwidth}{L l l}
 \toprule
@@ -264,6 +303,7 @@ padding control, round 12: the decoy preferred & 0 of 20 (20 the shorter text, 0
 trim control, round 13: the decoy preferred & 1 of 20 (16 the full text, 3 same) & no drift \\
 padding control, round 15: the decoy preferred & 0 of 20 (17 the shorter text, 3 same) & no drift \\
 padding control, round 16: the decoy preferred & 0 of 20 (14 the shorter text, 6 same) & no drift \\
+padding control, round 17: the decoy preferred & 0 of 20 (0 the shorter text, 20 same) & no drift \\
 \bottomrule
 \end{tabularx}
 }
@@ -301,11 +341,12 @@ padding control, round 16: the decoy preferred & 0 of 20 (14 the shorter text, 6
 \newcommand{\ReproLinesMatched}{27}
 \newcommand{\ReproLines}{27}
 \newcommand{\AppCommit}{\texttt{d6e155b}}
-\newcommand{\RecordsCommit}{\texttt{5d348c3}}
+\newcommand{\RecordsCommit}{\texttt{3429b1e}}
 \newcommand{\RerunSearches}{the capture searches on it (88 kept) and the defense searches (51 kept)}
 \newcommand{\RerunEvidence}{review-evidence/6}
+\newcommand{\RerunTextsSentence}{Its texts equal the recorded texts of v17b, the last kept round, on 196 of the 333 moments of round 17's documents.}
 \newcommand{\AppKeptThrough}{16}
-\newcommand{\AppKeptSentence}{The app at that commit carries every kept round.}
+\newcommand{\AppKeptSentence}{The app at that commit carries the kept rounds through round 16; round 17 is not in it yet.}
 \newcommand{\RerunTestMoments}{153}
 \newcommand{\RerunTestShared}{146}
 \newcommand{\RerunTestSameGrades}{129}

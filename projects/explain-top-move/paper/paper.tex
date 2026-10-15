@@ -108,7 +108,10 @@ played move allowed that named the reply and said nothing about it, which the pl
 calibration answers had pointed to, so the judge decides it. Round 16 tells an endgame's passed
 pawns' story, which the player's calibration answers asked for in his rook endings; the \Games{}
 games hold too few endgame moments to decide it, so it is also graded and judged on an endgame set
-of \EndgameGames{} more games (Section~\ref{sec:results}), and the judge decides it.
+of \EndgameGames{} more games (Section~\ref{sec:results}), and the judge decides it. Round 17
+says where each move leaves the game, which the player's third set of calibration answers asked
+about; it changes \RoundSeventeenChanged{} moments, more than a judge can read, so the judge reads
+a seeded sample of them and decides it.
 
 \begin{table}[!htbp]
 \centering\footnotesize
@@ -197,6 +200,16 @@ says so (``it blocks their passed b-pawn on b7''); and a king's walk to a passed
 closer, is named with its moves (``your king walks over to their c-pawn: Kb2, Kc3 and Kxc4''). The
 shown lines run on to the promotion or the walk's last move. The round was graded on the documents
 round 15 was and on the endgame set (Section~\ref{sec:results}).
+\item[Round 17: where each move leaves the game.] On an inaccuracy, mistake, miss or blunder, the
+section on the difference ends with where the played move and the better one leave the mover, in
+the words and the number the app gives a score, from the mover's side. When both moves leave the
+mover ahead (much better or winning) or behind (much worse or losing), it says so
+(``\RoundSeventeenQuoteBehind''); on a mistake, miss or blunder whose better move leaves a better
+standing, it says where each leaves the mover (``\RoundSeventeenQuoteCrossing''). It says nothing
+when both moves leave the game open, from worse to better. Round 17 first wrote the second form as
+one sentence joined by a semicolon, which the app's rules for its words forbid; round 17b writes it
+as two. The round was graded on the documents round 16 was, in both sets
+(Section~\ref{sec:results}).
 \end{description}
 
 \begin{table}[!htbp]
@@ -204,7 +217,8 @@ round 15 was and on the endgame set (Section~\ref{sec:results}).
 \JudgeTable
 \caption{The judge rounds, pooled over both runs: new--old preferred, with the same-answers in
 parentheses. Round 6 made no run of its own: it reads round 5's judgments on the moments whose
-texts round 6 changes.}
+texts round 6 changes. Round 17's judges read a seeded sample of the moments it changed; round 17b
+judged again the sampled moments whose wording it changed, and round 17 is decided on both.}
 \label{tab:judge}
 \end{table}
 
@@ -240,7 +254,10 @@ comparisons (\PadFifteenUnchanged{} the shorter text, \PadFifteenSame{} same). R
 several sections of the card at once, so its padding control adds a sentence of filler after the
 difference, as long as the round's median growth of the whole card, on endgame moments the round
 leaves unchanged; the decoy won \PadSixteenDecoy{} of \PadSixteenN{} comparisons
-(\PadSixteenUnchanged{} the shorter text, \PadSixteenSame{} same).
+(\PadSixteenUnchanged{} the shorter text, \PadSixteenSame{} same). Round 17 adds one sentence at
+the end of the difference, so its padding control does as round 16's did, on moments of the endgame
+set the round leaves unchanged; the decoy won \PadSeventeenDecoy{} of \PadSeventeenN{} comparisons
+(\PadSeventeenUnchanged{} the shorter text, \PadSeventeenSame{} same).
 
 \begin{table}[!htbp]
 \centering\footnotesize
@@ -373,12 +390,32 @@ with \RoundSixteenTrainSame{} same, and \RoundSixteenTestNew--\RoundSixteenTestO
 walk the lesson names comes in the better line too, so it does not tell the moves apart; in the
 other the ``walk'' is a king stepping out of checks and taking back a queen.
 
+Round 17 was graded on the same documents in both sets, against the texts of the app then pinned,
+which carry round 16, after the grader learned to check its sentence against the stored scores
+apart from the app's code and graded the base exactly as before. It changes the texts of
+\RoundSeventeenChangedTrain{} train and \RoundSeventeenChangedTest{} test moments across the two
+sets, and no grade moves (Table~\ref{tab:rebuilt}): every one of its sentences reads true. That is
+more moments than a judge can read, so the judges read a sample drawn from the changed moments' ids
+alone, before any was read: in each set and split, \RoundSeventeenPer{} taken by a seeded shuffle
+(seed \RoundSeventeenSeed), \RoundSeventeenSampled{} in all. On round 17's first wording the judge
+preferred the new texts in every comparison it decided, \RoundSeventeenFirstTrainNew{} on train,
+with \RoundSeventeenFirstTrainSame{} same, and \RoundSeventeenFirstTestNew{} on test, with
+\RoundSeventeenFirstTestSame{} same. Round 17b judged again the \RoundSeventeenRejudged{} sampled
+moments whose wording it changes, and on the final texts the judge preferred the new ones
+\RoundSeventeenTrainNew--\RoundSeventeenTrainOld{} on train, with \RoundSeventeenTrainSame{} same,
+and \RoundSeventeenTestNew--\RoundSeventeenTestOld{} on test, with \RoundSeventeenTestSame{} same.
+Every same-answer is on the form that says both moves leave the mover ahead or behind, and all came
+from the second run's judges, who found the sentence true but no help in seeing why the better move
+is better. The player's \RoundSeventeenExtras{} third-set moments the draw left out were judged in
+the same batches and are not counted: the new text won \RoundSeventeenExtrasNew{} of their
+\RoundSeventeenExtrasN{} comparisons.
+
 \begin{table}[!htbp]
 \centering\footnotesize
 \RebuiltTable
 \caption{A round graded on rebuilt documents, beside its base on the same documents: moments graded
-1, with one number where the round and its base agree. The rows marked endgame set are round 16 on
-its second set.}
+1, with one number where the round and its base agree. The rows marked endgame set are rounds 16
+and 17 on the second set; v17 is round 17's first wording and v17b its last.}
 \label{tab:rebuilt}
 \end{table}
 
@@ -412,7 +449,7 @@ round 6 later kept; the decision is the same, since a tie on train is not a majo
 
 \paragraph{Rerun.} The lab rebuilt the engine evidence for the same games on the app as it now runs
 (\AppCommit, evidence \RerunEvidence), redid \RerunSearches, and
-graded the app's texts. \AppKeptSentence{} The rebuilt evidence is not the hill-climb's: the review pipeline changed
+graded the app's texts. \AppKeptSentence{} \RerunTextsSentence{} The rebuilt evidence is not the hill-climb's: the review pipeline changed
 after the rounds, so engine lines differ in detail and some key moments move (on test,
 \RerunTestShared{} of \RerunTestMoments{} moments are the same moments; on train
 \RerunTrainShared{} of \RerunTrainMoments). Every rate lies within the recorded \KeptVariant's 95\%
@@ -443,6 +480,11 @@ nearly as likely, the lesson leaves it unanswered.
 \item Round 16 names a king's walk in one line without asking whether the other line makes it too;
 where both do, the point does not tell the moves apart. What separates such moves is often a king
 cut off along a file, which no reading names yet.
+\item Round 17's judges read a sample of the moments it changed, \RoundSeventeenSampled{} of
+\RoundSeventeenChanged, so its verdict is the sample's. Its sentence that both moves leave the mover
+ahead or behind is the one the judges did not always prefer.
+\item The app's folded note on how a grade was made rounds a score's tenth differently from round
+17's sentence, so on some scores the card gives a move two numbers a tenth apart.
 \item \Games{} games of one player. The split keeps the claims honest about that player, not
 about players in general.
 \end{itemize}

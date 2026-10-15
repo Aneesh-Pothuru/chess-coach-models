@@ -93,7 +93,9 @@ const roundRows = variants.map(v => {
   return `${v} & ${esc(changeLine(v) ?? (v === 'baseline' ? 'the app before the rounds' : ''))}${decision && decision !== 'kept' ? ` (\\emph{${decision}})` : ''} & ${pct(t.faithful.est)} & ${pct(t.concrete.est)} & ${pct(tr.faithful.est)} & ${pct(tr.concrete.est)} & ${t.textsChanged ?? ''}${tr.textsChanged != null ? `, ${tr.textsChanged}` : ''} & ${tally(judge)} \\\\`;
 });
 // The judge read every kept round but those that fix errors, and preferred each one on both halves.
-const verdictOf = r => judgeOf.get(r.variant === 'v7b' ? '7 and 7b' : String(r.round));
+// A round whose final texts are a "b" variant is decided on both its judgings together.
+const judgeKey = (round, variant) => (/b$/.test(variant) ? `${round} and ${round}b` : String(round));
+const verdictOf = r => judgeOf.get(judgeKey(r.round, r.variant));
 const unjudged = state.rounds.filter(r => !verdictOf(r)).map(r => r.round);
 claim(unjudged.join() === '1,2,11,14', 'the judge read every kept round but rounds 1, 2, 11 and 14');
 claim(state.rounds.filter(verdictOf).every(r => verdictOf(r).keepByRule), 'every kept round the judge read was preferred on both halves');
@@ -105,8 +107,10 @@ g.def('UnjudgedKept', listed(unjudged.map(String)));
 const rebuilt = new Map(repro.rebuilt.map(r => [r.variant, r]));
 const roundOf = v => kept.get(v) ?? notKept.get(v);
 for (const v of [...kept.keys(), ...notKept.keys()].filter(v => rebuilt.has(v) && !variants.includes(v)).sort((a, b) => roundOf(a) - roundOf(b))) {
-  const judge = judgeOf.get(String(roundOf(v)));
-  roundRows.push(`${v} & ${esc(changeLine(v) ?? '')}${kept.has(v) ? '' : ' (\\emph{not kept})'} & \\multicolumn{5}{c}{\\emph{graded on rebuilt documents (Table~\\ref{tab:rebuilt})}} & ${tally(judge)} \\\\`);
+  const judge = judgeOf.get(judgeKey(roundOf(v), v));
+  // A "b" variant only rewords its round, whose own change names the idea.
+  const named = /b$/.test(v) && changeLine(v.slice(0, -1)) ? v.slice(0, -1) : v;
+  roundRows.push(`${v} & ${esc(changeLine(named) ?? '')}${kept.has(v) ? '' : ' (\\emph{not kept})'} & \\multicolumn{5}{c}{\\emph{graded on rebuilt documents (Table~\\ref{tab:rebuilt})}} & ${tally(judge)} \\\\`);
 }
 g.block('RoundsTable', [
   '\\begin{tabularx}{\\textwidth}{l L rrrr r r}', '\\toprule',
@@ -118,7 +122,7 @@ g.block('RoundsTable', [
 
 // ---- the judge rounds, as reproduce.mjs recomputed them
 g.block('JudgeTable', [
-  '\\begin{tabular}{l l rr l}', '\\toprule', 'round & judged & train new--old (same) & test new--old (same) & the rule says \\\\', '\\midrule',
+  '\\begin{tabular}{l l rr l}', '\\toprule', 'round & judged & train & test & the rule says \\\\', '\\midrule',
   ...repro.judge.map(j => `${esc(j.round)} & ${esc(j.judged.replace(/round/g, 'round '))}${j.moments != null ? ` (${j.moments} moments)` : ''} & ${j.tally.train.new}--${j.tally.train.old} (${j.tally.train.same}) & ${j.tally.test.new}--${j.tally.test.old} (${j.tally.test.same}) & ${j.keepByRule ? 'keep' : 'do not keep'} \\\\`),
   '\\bottomrule', '\\end{tabular}',
 ].join('\n'));
@@ -360,6 +364,59 @@ g.def('EndgameGames', String(E.games.train + E.games.test)).def('EndgameGamesTra
   .def('RoundSixteenTrainNew', String(r16.tally.train.new)).def('RoundSixteenTrainOld', String(r16.tally.train.old)).def('RoundSixteenTrainSame', String(r16.tally.train.same))
   .def('RoundSixteenTestNew', String(r16.tally.test.new)).def('RoundSixteenTestOld', String(r16.tally.test.old)).def('RoundSixteenTestSame', String(r16.tally.test.same));
 
+// ---- round 17: where each move leaves the game, on round 16's documents and the endgame set, judged on a seeded sample
+const seventeen = rebuilt.get('v17b'), seventeenFirst = rebuilt.get('v17');
+claim([seventeen, seventeenFirst].every(r => r?.sameMoments && r.gradesEqual && r.endgames?.sameMoments && r.endgames.gradesEqual), "round 17's grades equal its base's in both sets, in its first wording and its last");
+const seventeenSplit = (set, s) => set.splits.find(x => x.split === s);
+const changedOf = (r, s) => seventeenSplit(r, s).textsChanged + seventeenSplit(r.endgames, s).textsChanged;
+claim(['train', 'test'].every(s => changedOf(seventeen, s) === changedOf(seventeenFirst, s)), 'round 17b changes the texts of the moments round 17 changed');
+const seventeenPatch = readFileSync(join(flow, 'v17', 'change.patch'), 'utf8');
+// The sentences the paper quotes, as round 17's tests pin them, with a real minus sign.
+const SEVENTEEN_QUOTES = {
+  Behind: 'You are behind either way: losing after Rb5 (-8.1), much worse after Rxb2+ (-4.4).',
+  Ahead: 'You stay ahead either way: much better after Re7 (+4.1), winning after Rdf1 (+5.0).',
+  Crossing: 'After Kg4 you are losing (-7.0). After Nxb6 you would be winning (+7.0).',
+};
+claim(Object.values(SEVENTEEN_QUOTES).every(q => seventeenPatch.includes(q)), "round 17's tests pin the sentences the paper quotes");
+for (const [k, q] of Object.entries(SEVENTEEN_QUOTES)) g.def(`RoundSeventeenQuote${k}`, esc(q.replace(/\(-(\d)/g, '(−$1')));
+const r17 = judgeOf.get('17'), r17b = judgeOf.get('17b'), r17final = judgeOf.get('17 and 17b');
+claim(r17?.keepByRule && r17final?.keepByRule, 'the judge preferred round 17 on both halves, in its first wording and its last');
+claim(r17final.sample.reproduced, "round 17's sample is the seeded draw from the moments it changed");
+claim(r17final.sample.of === changedOf(seventeen, 'train') + changedOf(seventeen, 'test'), "round 17's sample was drawn from every moment it changed");
+claim([r17, r17b, r17final].every(j => j.tally.train.old === 0 && j.tally.test.old === 0), 'no judge of round 17 preferred the old text');
+{
+  // The same-answers on the final texts, each judged moment counted by the last round that read it.
+  const counted = new Set(read(join(judgeDir, 'round17', 'sample.json')).counted);
+  const dirs = ['round17', 'round17b'];
+  const owner = new Map(dirs.flatMap(d => Object.keys(read(join(judgeDir, d, 'key-r1.json'))).map(id => [id, d])));
+  const sames = [];
+  for (const d of dirs) for (const r of ['r1', 'r2']) {
+    const key = read(join(judgeDir, d, `key-${r}.json`));
+    const items = new Map(read(join(judgeDir, d, `items-${r}.json`)).items.map(i => [i.id, i]));
+    for (const a of read(join(judgeDir, d, `out-${r}.judge.json`)).answers) {
+      if (owner.get(a.id) !== d || !counted.has(a.id) || a.choice !== 'same') continue;
+      const item = items.get(a.id);
+      const after = key[a.id].X === 'new' ? item.versionX : item.versionY;
+      sames.push({ run: r, eitherWay: after.some(x => x.heading === 'The difference' && /either way:/.test(x.text)) });
+    }
+  }
+  claim(sames.length === r17final.tally.train.same + r17final.tally.test.same, "round 17's same-answers are counted once each");
+  claim(sames.every(x => x.eitherWay), "every same-answer on round 17's final texts is on the either-way form");
+  claim(sames.every(x => x.run === 'r2'), "every same-answer on round 17's final texts came from the second run");
+}
+const extras = r17final.sample.extrasTally;
+g.def('RoundSeventeenChanged', String(changedOf(seventeen, 'train') + changedOf(seventeen, 'test')))
+  .def('RoundSeventeenChangedTrain', String(changedOf(seventeen, 'train'))).def('RoundSeventeenChangedTest', String(changedOf(seventeen, 'test')))
+  .def('RoundSeventeenSampled', String(r17final.sample.drawn)).def('RoundSeventeenPer', String(r17final.sample.per)).def('RoundSeventeenSeed', String(r17final.sample.seed))
+  .def('RoundSeventeenRejudged', String(r17b.sample.judged))
+  .def('RoundSeventeenExtras', word(r17final.sample.extras))
+  .def('RoundSeventeenExtrasNew', String(extras.train.new + extras.test.new))
+  .def('RoundSeventeenExtrasN', String(['new', 'old', 'same'].reduce((n, k) => n + extras.train[k] + extras.test[k], 0)))
+  .def('RoundSeventeenFirstTrainNew', String(r17.tally.train.new)).def('RoundSeventeenFirstTrainSame', String(r17.tally.train.same))
+  .def('RoundSeventeenFirstTestNew', String(r17.tally.test.new)).def('RoundSeventeenFirstTestSame', String(r17.tally.test.same))
+  .def('RoundSeventeenTrainNew', String(r17final.tally.train.new)).def('RoundSeventeenTrainOld', String(r17final.tally.train.old)).def('RoundSeventeenTrainSame', String(r17final.tally.train.same))
+  .def('RoundSeventeenTestNew', String(r17final.tally.test.new)).def('RoundSeventeenTestOld', String(r17final.tally.test.old)).def('RoundSeventeenTestSame', String(r17final.tally.test.same));
+
 // ---- the judge's controls, as reproduce.mjs recomputed them
 const c = repro.controls;
 claim(c.length.matchesRecorded, 'the length check recomputed from its answers matches the score the records keep');
@@ -390,6 +447,10 @@ const pad16 = c.perRound.find(p => p.round === '16');
 claim(pad16?.kind === 'padding', 'round 16 carried a padding control');
 g.def('PadSixteenDecoy', String(pad16.decoy)).def('PadSixteenN', String(pad16.comparisons))
   .def('PadSixteenUnchanged', String(pad16.unchanged)).def('PadSixteenSame', String(pad16.same));
+const pad17 = c.perRound.find(p => p.round === '17');
+claim(pad17?.kind === 'padding', 'round 17 carried a padding control');
+g.def('PadSeventeenDecoy', String(pad17.decoy)).def('PadSeventeenN', String(pad17.comparisons))
+  .def('PadSeventeenUnchanged', String(pad17.unchanged)).def('PadSeventeenSame', String(pad17.same));
 const won = t => `${t.long} of ${t.long + t.decoy}`;
 g.block('ControlsTable', [
   '\\begin{tabularx}{\\textwidth}{L l l}', '\\toprule', 'check & result & verdict \\\\', '\\midrule',
@@ -488,6 +549,8 @@ claim(later.every(v => typeof repro.chess.carries?.[v] === 'boolean'), `the repr
 const carried = later.filter(v => repro.chess.carries[v]);
 claim(carried.every((v, i) => v === later[i]), `the pinned app carries the kept rounds after ${KEPT} in order`);
 const pending = later.slice(carried.length).map(v => String(kept.get(v)));
+const tm = repro.rerun.textsMatch;
+g.def('RerunTextsSentence', tm ? `Its texts equal the recorded texts of ${tm.variant}, the last kept round, on ${tm.same === tm.of ? `all ${tm.of}` : `${tm.same} of the ${tm.of}`} moments of round ${kept.get(tm.variant)}'s documents.` : '');
 g.def('AppKeptThrough', String(kept.get(carried.at(-1) ?? KEPT)))
   .def('AppKeptSentence', pending.length
     ? `The app at that commit carries the kept rounds through round ${kept.get(carried.at(-1) ?? KEPT)}; ${pending.length > 1 ? 'rounds' : 'round'} ${listed(pending)} ${pending.length > 1 ? 'are' : 'is'} not in it yet.`

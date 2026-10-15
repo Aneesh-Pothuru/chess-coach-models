@@ -2,14 +2,15 @@
   "eval": "explain-top-move reproduction",
   "chess": {
     "pinned_commit": "d6e155bc8ece019c0a9bfe6ed2ac31b34ab2c3ed",
-    "records_commit": "5d348c323afb1f5ef778d921ff9a73577942be21",
+    "records_commit": "3429b1ec66ff609670b5943d5acb5b061727f359",
     "carries": {
       "v10": true,
       "v11": true,
       "v12": true,
       "v14": true,
       "v15": true,
-      "v16": true
+      "v16": true,
+      "v17b": false
     }
   },
   "recomputed": {
@@ -39,6 +40,11 @@
       "builds": [
         "stockfish@18.0.8/stockfish-18-lite-single/nn-9067e33176e8"
       ]
+    },
+    "textsMatch": {
+      "variant": "v17b",
+      "of": 333,
+      "same": 196
     }
   },
   "judge": [
@@ -46,6 +52,7 @@
       "round": "3",
       "judged": "round3",
       "moments": null,
+      "sample": null,
       "tally": {
         "train": {
           "new": 22,
@@ -65,6 +72,7 @@
       "round": "4",
       "judged": "round4",
       "moments": null,
+      "sample": null,
       "tally": {
         "train": {
           "new": 8,
@@ -84,6 +92,7 @@
       "round": "5",
       "judged": "round5",
       "moments": null,
+      "sample": null,
       "tally": {
         "train": {
           "new": 6,
@@ -103,6 +112,7 @@
       "round": "6",
       "judged": "round5",
       "moments": 17,
+      "sample": null,
       "tally": {
         "train": {
           "new": 4,
@@ -122,6 +132,7 @@
       "round": "7",
       "judged": "round7",
       "moments": null,
+      "sample": null,
       "tally": {
         "train": {
           "new": 48,
@@ -141,6 +152,7 @@
       "round": "7b",
       "judged": "round7b",
       "moments": null,
+      "sample": null,
       "tally": {
         "train": {
           "new": 20,
@@ -160,6 +172,7 @@
       "round": "7 and 7b",
       "judged": "round7 then round7b",
       "moments": null,
+      "sample": null,
       "tally": {
         "train": {
           "new": 51,
@@ -179,6 +192,7 @@
       "round": "8",
       "judged": "round8",
       "moments": null,
+      "sample": null,
       "tally": {
         "train": {
           "new": 50,
@@ -198,6 +212,7 @@
       "round": "9",
       "judged": "round9",
       "moments": null,
+      "sample": null,
       "tally": {
         "train": {
           "new": 1,
@@ -217,6 +232,7 @@
       "round": "10",
       "judged": "round10",
       "moments": null,
+      "sample": null,
       "tally": {
         "train": {
           "new": 18,
@@ -236,6 +252,7 @@
       "round": "12",
       "judged": "round12",
       "moments": null,
+      "sample": null,
       "tally": {
         "train": {
           "new": 19,
@@ -255,6 +272,7 @@
       "round": "13",
       "judged": "round13",
       "moments": null,
+      "sample": null,
       "tally": {
         "train": {
           "new": 0,
@@ -274,6 +292,7 @@
       "round": "15",
       "judged": "round15",
       "moments": null,
+      "sample": null,
       "tally": {
         "train": {
           "new": 22,
@@ -293,6 +312,7 @@
       "round": "16",
       "judged": "round16",
       "moments": null,
+      "sample": null,
       "tally": {
         "train": {
           "new": 37,
@@ -307,6 +327,126 @@
       },
       "keepByRule": true,
       "recordedReason": "an endgame lesson tells its passed pawns' story, only when the position before the move is an endgame by the divider and neither line ends in mate: the pawn that queens after the played move and not after the better one, or the mover's pawn that queens after the better move, opens \"The difference\" with its steps and its fate in the other line (\"After Kg4, their b-pawn queens: b7 and b8=Q in the engine's line. Nxb6 takes it first.\"); the reply that pushes that pawn says it goes on to queen; a better move that takes a passed pawn or blocks one past the middle says so; a king's walk to a passed pawn in either line is named (\"their king walks up to its b-pawn: Kd3 and Kc3 in the engine's line\"); measured on a new endgame set of 160 archive games (403 endgame moments) and on the 60 games: 32 moments change (21 train, 11 test), no grade falls in either set, concrete rises on three moments (the player's 50...Rh2+ among them), and all 86 new claims are graded true; judge model, pairwise and blind, two runs with the order reversed, both sets pooled: the new text preferred 37 to 2 on train (3 same) and 18 to 3 on test (1 same), with a 10-moment padding control in the same batches, padded after \"The difference\" by the round's median growth of the whole card, whose decoy was preferred in none of its 20 comparisons (v16/change.md)"
+    },
+    {
+      "round": "17",
+      "judged": "round17",
+      "moments": 80,
+      "sample": {
+        "of": 347,
+        "drawn": 80,
+        "judged": 80,
+        "per": 20,
+        "seed": 20261015,
+        "reproduced": true,
+        "extras": 5,
+        "extrasTally": {
+          "train": {
+            "new": 10,
+            "old": 0,
+            "same": 0
+          },
+          "test": {
+            "new": 0,
+            "old": 0,
+            "same": 0
+          }
+        }
+      },
+      "tally": {
+        "train": {
+          "new": 72,
+          "old": 0,
+          "same": 8
+        },
+        "test": {
+          "new": 74,
+          "old": 0,
+          "same": 6
+        }
+      },
+      "keepByRule": true,
+      "recordedReason": "where each move leaves the game: on an inaccuracy, mistake, miss or blunder, \"The difference\" ends with the standing each move leaves the mover in, in evalWords' words and evalFor's number from the mover's side (\"You are behind either way: losing after Rb5 (-8.1), much worse after Rxb2+ (-4.4).\"; on a mistake, miss or blunder whose better move leaves a better standing, \"After b5 you are losing (-5.0). After Nc4 you would be slightly worse (-1.0).\"), and nothing when both moves leave the game open; 347 moments change on the 60 games and the endgame set (188 train, 159 test), no grade changes and all 347 sentences are graded true; judge model, pairwise and blind, two runs with the order reversed, on a seeded sample of 80 changed moments (20 per set and split) with a 10-moment padding control in the same batches: round 17's runs 72 to 0 on train (8 same) and 74 to 0 on test (6 same), the decoy preferred in none of its 20 comparisons; the crossing's semicolon, which the app's voice rules forbid, became two sentences in v17b, judged again on the 53 judged moments it changes; on the final texts 73 to 0 on train (7 same) and 76 to 0 on test (4 same) (v17/change.md, v17b/change.md)"
+    },
+    {
+      "round": "17b",
+      "judged": "round17b",
+      "moments": 49,
+      "sample": {
+        "of": 347,
+        "drawn": 80,
+        "judged": 49,
+        "per": 20,
+        "seed": 20261015,
+        "reproduced": true,
+        "extras": 4,
+        "extrasTally": {
+          "train": {
+            "new": 8,
+            "old": 0,
+            "same": 0
+          },
+          "test": {
+            "new": 0,
+            "old": 0,
+            "same": 0
+          }
+        }
+      },
+      "tally": {
+        "train": {
+          "new": 52,
+          "old": 0,
+          "same": 0
+        },
+        "test": {
+          "new": 46,
+          "old": 0,
+          "same": 0
+        }
+      },
+      "keepByRule": true,
+      "recordedReason": null
+    },
+    {
+      "round": "17 and 17b",
+      "judged": "round17 then round17b",
+      "moments": 80,
+      "sample": {
+        "of": 347,
+        "drawn": 80,
+        "judged": 80,
+        "per": 20,
+        "seed": 20261015,
+        "reproduced": true,
+        "extras": 5,
+        "extrasTally": {
+          "train": {
+            "new": 10,
+            "old": 0,
+            "same": 0
+          },
+          "test": {
+            "new": 0,
+            "old": 0,
+            "same": 0
+          }
+        }
+      },
+      "tally": {
+        "train": {
+          "new": 73,
+          "old": 0,
+          "same": 7
+        },
+        "test": {
+          "new": 76,
+          "old": 0,
+          "same": 4
+        }
+      },
+      "keepByRule": true,
+      "recordedReason": "where each move leaves the game: on an inaccuracy, mistake, miss or blunder, \"The difference\" ends with the standing each move leaves the mover in, in evalWords' words and evalFor's number from the mover's side (\"You are behind either way: losing after Rb5 (-8.1), much worse after Rxb2+ (-4.4).\"; on a mistake, miss or blunder whose better move leaves a better standing, \"After b5 you are losing (-5.0). After Nc4 you would be slightly worse (-1.0).\"), and nothing when both moves leave the game open; 347 moments change on the 60 games and the endgame set (188 train, 159 test), no grade changes and all 347 sentences are graded true; judge model, pairwise and blind, two runs with the order reversed, on a seeded sample of 80 changed moments (20 per set and split) with a 10-moment padding control in the same batches: round 17's runs 72 to 0 on train (8 same) and 74 to 0 on test (6 same), the decoy preferred in none of its 20 comparisons; the crossing's semicolon, which the app's voice rules forbid, became two sentences in v17b, judged again on the 53 judged moments it changes; on the final texts 73 to 0 on train (7 same) and 76 to 0 on test (4 same) (v17/change.md, v17b/change.md)"
     }
   ],
   "controls": {
@@ -525,6 +665,17 @@
         "same": 6,
         "decoyShareOfAll": 0,
         "decoyShareOfDecided": 0,
+        "drifted": false
+      },
+      {
+        "round": "17",
+        "kind": "padding",
+        "comparisons": 20,
+        "decoy": 0,
+        "unchanged": 0,
+        "same": 20,
+        "decoyShareOfAll": 0,
+        "decoyShareOfDecided": null,
         "drifted": false
       }
     ],
@@ -908,6 +1059,180 @@
         ],
         "sameMoments": true,
         "gradesEqual": false
+      }
+    },
+    {
+      "variant": "v17",
+      "sameMoments": true,
+      "splits": [
+        {
+          "split": "test",
+          "moments": 153,
+          "base": {
+            "faithful": 153,
+            "concrete": 129,
+            "named_deep": 144,
+            "faithfulAll": 152
+          },
+          "variant": {
+            "faithful": 153,
+            "concrete": 129,
+            "named_deep": 144,
+            "faithfulAll": 152
+          },
+          "textsChanged": 65
+        },
+        {
+          "split": "train",
+          "moments": 180,
+          "base": {
+            "faithful": 179,
+            "concrete": 152,
+            "named_deep": 166,
+            "faithfulAll": 179
+          },
+          "variant": {
+            "faithful": 179,
+            "concrete": 152,
+            "named_deep": 166,
+            "faithfulAll": 179
+          },
+          "textsChanged": 72
+        }
+      ],
+      "gradesEqual": true,
+      "defects": null,
+      "endgames": {
+        "seed": 20261014,
+        "games": {
+          "test": 80,
+          "train": 80
+        },
+        "splits": [
+          {
+            "split": "test",
+            "moments": 184,
+            "base": {
+              "faithful": 181,
+              "concrete": 162,
+              "named_deep": 158,
+              "faithfulAll": 180
+            },
+            "variant": {
+              "faithful": 181,
+              "concrete": 162,
+              "named_deep": 158,
+              "faithfulAll": 180
+            },
+            "textsChanged": 94
+          },
+          {
+            "split": "train",
+            "moments": 219,
+            "base": {
+              "faithful": 213,
+              "concrete": 172,
+              "named_deep": 204,
+              "faithfulAll": 213
+            },
+            "variant": {
+              "faithful": 213,
+              "concrete": 172,
+              "named_deep": 204,
+              "faithfulAll": 213
+            },
+            "textsChanged": 116
+          }
+        ],
+        "sameMoments": true,
+        "gradesEqual": true
+      }
+    },
+    {
+      "variant": "v17b",
+      "sameMoments": true,
+      "splits": [
+        {
+          "split": "test",
+          "moments": 153,
+          "base": {
+            "faithful": 153,
+            "concrete": 129,
+            "named_deep": 144,
+            "faithfulAll": 152
+          },
+          "variant": {
+            "faithful": 153,
+            "concrete": 129,
+            "named_deep": 144,
+            "faithfulAll": 152
+          },
+          "textsChanged": 65
+        },
+        {
+          "split": "train",
+          "moments": 180,
+          "base": {
+            "faithful": 179,
+            "concrete": 152,
+            "named_deep": 166,
+            "faithfulAll": 179
+          },
+          "variant": {
+            "faithful": 179,
+            "concrete": 152,
+            "named_deep": 166,
+            "faithfulAll": 179
+          },
+          "textsChanged": 72
+        }
+      ],
+      "gradesEqual": true,
+      "defects": null,
+      "endgames": {
+        "seed": 20261014,
+        "games": {
+          "test": 80,
+          "train": 80
+        },
+        "splits": [
+          {
+            "split": "test",
+            "moments": 184,
+            "base": {
+              "faithful": 181,
+              "concrete": 162,
+              "named_deep": 158,
+              "faithfulAll": 180
+            },
+            "variant": {
+              "faithful": 181,
+              "concrete": 162,
+              "named_deep": 158,
+              "faithfulAll": 180
+            },
+            "textsChanged": 94
+          },
+          {
+            "split": "train",
+            "moments": 219,
+            "base": {
+              "faithful": 213,
+              "concrete": 172,
+              "named_deep": 204,
+              "faithfulAll": 213
+            },
+            "variant": {
+              "faithful": 213,
+              "concrete": 172,
+              "named_deep": 204,
+              "faithfulAll": 213
+            },
+            "textsChanged": 116
+          }
+        ],
+        "sameMoments": true,
+        "gradesEqual": true
       }
     }
   ],
