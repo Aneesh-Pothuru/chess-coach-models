@@ -49,9 +49,9 @@
 \newcommand{\KeptTrainConcreteVsBase}{+6.8 [3.2, 10.6]}
 \newcommand{\KeptTrainTextsChanged}{87}
 \newcommand{\KeptVariant}{v8}
-\newcommand{\RoundCount}{17}
-\newcommand{\RoundCountCap}{17}
-\newcommand{\KeptRoundCount}{14}
+\newcommand{\RoundCount}{18}
+\newcommand{\RoundCountCap}{18}
+\newcommand{\KeptRoundCount}{15}
 \newcommand{\UnjudgedKept}{1, 2, 11 and 14}
 \newcommand{\RoundsTable}{%
 \begin{tabularx}{\textwidth}{l L rrrr r r}
@@ -79,6 +79,7 @@ v14 & Say an amount in the pieces it is made of & \multicolumn{5}{c}{\emph{grade
 v15 & Say what a quiet reply defends & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 22--1 / 8--0 \\
 v16 & Tell an endgame's passed pawns' story & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 37--2 / 18--3 \\
 v17c & Say where each move leaves the game & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 73--0 / 76--0 \\
+v18 & A better check is said by the guard it takes off a square & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 20--0 / 13--1 \\
 \bottomrule
 \end{tabularx}
 }
@@ -104,6 +105,7 @@ round & judged & train & test & the rule says \\
 17 & round 17 (80 moments) & 72--0 (8) & 74--0 (6) & keep \\
 17b & round 17b (49 moments) & 52--0 (0) & 46--0 (0) & keep \\
 17 and 17b & round 17 then round 17b (80 moments) & 73--0 (7) & 76--0 (4) & keep \\
+18 & round 18 & 20--0 (0) & 13--1 (0) & keep \\
 \bottomrule
 \end{tabular}
 }
@@ -132,6 +134,8 @@ v17b & test & 153 & 153 & 129 & 144 & 152 & 65 \\
 v17b & train & 180 & 179 & 152 & 166 & 179 & 72 \\
 v17c & test & 153 & 153 & 129 & 144 & 152 & 26 \\
 v17c & train & 180 & 179 & 152 & 166 & 179 & 34 \\
+v18 & test & 153 & 153 & 129 & 144 & 152 & 2 \\
+v18 & train & 180 & 179 & 152 & 166 & 179 & 0 \\
 v16, endgame set & test & 184 & 181 & 162 & 158 & 180 & 3 \\
 v16, endgame set & train & 219 & 213 & 170 / 172 & 204 & 213 & 19 \\
 v17, endgame set & test & 184 & 181 & 162 & 158 & 180 & 94 \\
@@ -140,6 +144,10 @@ v17b, endgame set & test & 184 & 181 & 162 & 158 & 180 & 94 \\
 v17b, endgame set & train & 219 & 213 & 172 & 204 & 213 & 116 \\
 v17c, endgame set & test & 184 & 181 & 162 & 158 & 180 & 29 \\
 v17c, endgame set & train & 219 & 213 & 172 & 204 & 213 & 41 \\
+v18, endgame set & test & 572 & 561 & 481 & 529 & 560 & 1 \\
+v18, endgame set & train & 612 & 598 & 491 & 573 & 598 & 8 \\
+v18, second endgame set & test & 494 & 490 & 407 & 458 & 490 & 4 \\
+v18, second endgame set & train & 517 & 509 & 420 & 468 & 509 & 2 \\
 \bottomrule
 \end{tabular}
 }
@@ -266,6 +274,20 @@ the five of Table~\ref{tab:defects} & 0 & 0 \\
 \newcommand{\RoundSeventeenCDefectsEnd}{16}
 \newcommand{\RoundSeventeenCDefects}{30}
 \newcommand{\RoundSeventeenCChanged}{130}
+\newcommand{\RoundEighteenHeldNothing}{four}
+\newcommand{\RoundEighteenJudged}{17}
+\newcommand{\EndgameTwoGames}{130}
+\newcommand{\EndgameTwoGamesTrain}{65}
+\newcommand{\EndgameTwoGamesTest}{65}
+\newcommand{\EndgameTwoMoments}{1011}
+\newcommand{\EndgameAllMoments}{1184}
+\newcommand{\RoundEighteenQuote}{Rd8+ is a check with a reason: after Kh7, their king no longer guards f8, and Rf8 follows.}
+\newcommand{\RoundEighteenChangedTrain}{10}
+\newcommand{\RoundEighteenChangedTest}{7}
+\newcommand{\RoundEighteenTrainNew}{20}
+\newcommand{\RoundEighteenTrainOld}{0}
+\newcommand{\RoundEighteenTestNew}{13}
+\newcommand{\RoundEighteenTestOld}{1}
 \newcommand{\LongerPicked}{305}
 \newcommand{\LongerDecided}{326}
 \newcommand{\LongerRounds}{3, 4, 5, 7, 7b, 8 and 9}
@@ -296,6 +318,10 @@ the five of Table~\ref{tab:defects} & 0 & 0 \\
 \newcommand{\PadSeventeenN}{20}
 \newcommand{\PadSeventeenUnchanged}{0}
 \newcommand{\PadSeventeenSame}{20}
+\newcommand{\PadEighteenDecoy}{0}
+\newcommand{\PadEighteenN}{20}
+\newcommand{\PadEighteenUnchanged}{0}
+\newcommand{\PadEighteenSame}{20}
 \newcommand{\ControlsTable}{%
 \begin{tabularx}{\textwidth}{L l l}
 \toprule
@@ -312,6 +338,7 @@ trim control, round 13: the decoy preferred & 1 of 20 (16 the full text, 3 same)
 padding control, round 15: the decoy preferred & 0 of 20 (17 the shorter text, 3 same) & no drift \\
 padding control, round 16: the decoy preferred & 0 of 20 (14 the shorter text, 6 same) & no drift \\
 padding control, round 17: the decoy preferred & 0 of 20 (0 the shorter text, 20 same) & no drift \\
+padding control, round 18: the decoy preferred & 0 of 20 (0 the shorter text, 20 same) & no drift \\
 \bottomrule
 \end{tabularx}
 }
@@ -348,12 +375,12 @@ padding control, round 17: the decoy preferred & 0 of 20 (0 the shorter text, 20
 \newcommand{\ExampleCount}{8}
 \newcommand{\ReproLinesMatched}{27}
 \newcommand{\ReproLines}{27}
-\newcommand{\AppCommit}{\texttt{50de20c}}
-\newcommand{\RecordsCommit}{\texttt{51b4956}}
+\newcommand{\AppCommit}{\texttt{cec5d69}}
+\newcommand{\RecordsCommit}{\texttt{b7aea66}}
 \newcommand{\RerunSearches}{the capture searches on it (88 kept) and the defense searches (51 kept)}
 \newcommand{\RerunEvidence}{review-evidence/7}
-\newcommand{\RerunTextsSentence}{Its texts equal the recorded texts of v17c, the last kept round, on all 333 moments of round 17's documents.}
-\newcommand{\AppKeptThrough}{17}
+\newcommand{\RerunTextsSentence}{Its texts equal the recorded texts of v18, the last kept round, on all 333 moments of round 18's documents.}
+\newcommand{\AppKeptThrough}{18}
 \newcommand{\AppKeptSentence}{The app at that commit carries every kept round.}
 \newcommand{\RerunTestMoments}{153}
 \newcommand{\RerunTestShared}{146}

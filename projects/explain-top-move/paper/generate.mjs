@@ -10,6 +10,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { Chess } from 'chess.js';
 import { records, resultsDir } from '../../../bridge/lib/lab.mjs';
 import { Generated, board, esc, fixed, movesTex, sansOf, ucisOf, word } from '../../paper.mjs';
 import { summarize } from '../summarize.mjs';
@@ -134,6 +135,7 @@ g.block('RebuiltTable', [
   'variant & split & moments & faithful & concrete & named\\_deep & faithfulAll & texts changed \\\\', '\\midrule',
   ...repro.rebuilt.flatMap(r => r.splits.map(s => `${r.variant} & ${s.split} & ${s.moments} & ${DIMS.map(d => both(s, d)).join(' & ')} & ${s.textsChanged} \\\\`)),
   ...repro.rebuilt.filter(r => r.endgames).flatMap(r => r.endgames.splits.map(s => `${r.variant}, endgame set & ${s.split} & ${s.moments} & ${DIMS.map(d => both(s, d)).join(' & ')} & ${s.textsChanged} \\\\`)),
+  ...repro.rebuilt.filter(r => r.endgames2).flatMap(r => r.endgames2.splits.map(s => `${r.variant}, second endgame set & ${s.split} & ${s.moments} & ${DIMS.map(d => both(s, d)).join(' & ')} & ${s.textsChanged} \\\\`)),
   '\\bottomrule', '\\end{tabular}',
 ].join('\n'));
 const ten = rebuilt.get('v10');
@@ -431,6 +433,51 @@ g.def('RoundSeventeenCDefectsGames', String(C.base.gradeScoreDiffers)).def('Roun
   .def('RoundSeventeenCDefects', String(C.base.gradeScoreDiffers + C.endgames.base.gradeScoreDiffers))
   .def('RoundSeventeenCChanged', String(changedOf(seventeenC, 'train') + changedOf(seventeenC, 'test')));
 
+// ---- round 18: a check with a reason, on round 17's documents, every key moment of the endgame set and a second endgame set
+const eighteen = rebuilt.get('v18');
+const eighteenSets = [eighteen, eighteen?.endgames, eighteen?.endgames2];
+claim(eighteenSets.every(r => r?.sameMoments && r.gradesEqual), "round 18's grades equal its base's in all three sets");
+const splitOf = (set, s) => set.splits.find(x => x.split === s);
+const momentsOf = set => splitOf(set, 'train').moments + splitOf(set, 'test').moments;
+const eighteenChanged = s => eighteenSets.reduce((n, set) => n + splitOf(set, s).textsChanged, 0);
+const EIGHTEEN_QUOTE = 'Rd8+ is a check with a reason: after Kh7, their king no longer guards f8, and Rf8 follows.';
+claim([EIGHTEEN_QUOTE, 'and Rxf1+ takes the rook there.'].every(q => readFileSync(join(flow, 'v18', 'change.patch'), 'utf8').includes(q)), "round 18's tests pin the phrases the paper quotes");
+claim(momentsOf(eighteen.endgames) > momentsOf(sixteen.endgames), 'round 18 reads more of the endgame set than its endgame moments');
+const r18 = judgeOf.get('18');
+claim(r18?.keepByRule, 'the judge preferred round 18 on both halves');
+{
+  const dir = join(judgeDir, 'round18');
+  const items = read(join(dir, 'items-r1.json')).items;
+  const keys = ['r1', 'r2'].map(r => read(join(dir, `key-${r}.json`)));
+  const answers = ['r1', 'r2'].map(r => new Map(read(join(dir, `out-${r}.judge.json`)).answers.map(a => [a.id, a.choice])));
+  claim(items.length === eighteenChanged('train') + eighteenChanged('test'), 'the judges read every moment round 18 changed');
+  const REASON = / is a check with a reason: after \S+, (?:their|your) king no longer guards ([a-h][1-8]), and /;
+  // The king's guard held nothing where, after the check, another of the mover's pieces covered the square and the piece that lands there is not a king.
+  const heldNothing = new Set(items.filter(item => {
+    const after = keys[0][item.id].X === 'new' ? item.versionX : item.versionY;
+    const square = after.find(x => x.heading === 'The difference')?.text.match(REASON)?.[1];
+    if (!square) throw new Error('round 18: a judged moment without its sentence');
+    const [check, reply, next] = sansOf(item.engine.bestLine);
+    const position = new Chess(item.fenBefore);
+    const given = position.move(check);
+    const covers = position.attackers(square, given.color);
+    position.move(reply);
+    const lands = position.move(next);
+    return lands.to === square && lands.piece !== 'k' && covers.some(from => from !== lands.from);
+  }).map(item => item.id));
+  const against = Object.keys(keys[0]).filter(id => [0, 1].some(i => keys[i][id][answers[i].get(id)] === 'old'));
+  claim(r18.tally.train.old + r18.tally.test.old === 1, 'the judges gave one answer against round 18');
+  claim(heldNothing.size > 0 && against.length === 1 && heldNothing.has(against[0]), "the answer against round 18 is on a sentence whose king's guard held nothing");
+  g.def('RoundEighteenHeldNothing', word(heldNothing.size)).def('RoundEighteenJudged', String(items.length));
+}
+const E2 = eighteen.endgames2;
+g.def('EndgameTwoGames', String(E2.games.train + E2.games.test)).def('EndgameTwoGamesTrain', String(E2.games.train)).def('EndgameTwoGamesTest', String(E2.games.test))
+  .def('EndgameTwoMoments', String(momentsOf(E2))).def('EndgameAllMoments', String(momentsOf(eighteen.endgames)))
+  .def('RoundEighteenQuote', esc(EIGHTEEN_QUOTE))
+  .def('RoundEighteenChangedTrain', String(eighteenChanged('train'))).def('RoundEighteenChangedTest', String(eighteenChanged('test')))
+  .def('RoundEighteenTrainNew', String(r18.tally.train.new)).def('RoundEighteenTrainOld', String(r18.tally.train.old))
+  .def('RoundEighteenTestNew', String(r18.tally.test.new)).def('RoundEighteenTestOld', String(r18.tally.test.old));
+
 // ---- the judge's controls, as reproduce.mjs recomputed them
 const c = repro.controls;
 claim(c.length.matchesRecorded, 'the length check recomputed from its answers matches the score the records keep');
@@ -465,6 +512,10 @@ const pad17 = c.perRound.find(p => p.round === '17');
 claim(pad17?.kind === 'padding', 'round 17 carried a padding control');
 g.def('PadSeventeenDecoy', String(pad17.decoy)).def('PadSeventeenN', String(pad17.comparisons))
   .def('PadSeventeenUnchanged', String(pad17.unchanged)).def('PadSeventeenSame', String(pad17.same));
+const pad18 = c.perRound.find(p => p.round === '18');
+claim(pad18?.kind === 'padding', 'round 18 carried a padding control');
+g.def('PadEighteenDecoy', String(pad18.decoy)).def('PadEighteenN', String(pad18.comparisons))
+  .def('PadEighteenUnchanged', String(pad18.unchanged)).def('PadEighteenSame', String(pad18.same));
 const won = t => `${t.long} of ${t.long + t.decoy}`;
 g.block('ControlsTable', [
   '\\begin{tabularx}{\\textwidth}{L l l}', '\\toprule', 'check & result & verdict \\\\', '\\midrule',

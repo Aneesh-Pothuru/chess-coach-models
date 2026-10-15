@@ -24,7 +24,9 @@
 // (judge/controls/score.mjs), and the grades of a round graded on documents rebuilt
 // for it (<variant>/rebuilt/ in the records) beside its base's on the same
 // documents; a round that also ran on the endgame set keeps those grades in
-// <variant>/rebuilt/endgames/, split by the games in <variant>/endgame-set.json.
+// <variant>/rebuilt/endgames/, split by the games in <variant>/endgame-set.json,
+// and one that ran on the second endgame set too in <variant>/rebuilt/endgames2/,
+// split by the games in <variant>/endgame-set2.json (the state's endgame_set2).
 // A round that fixes text defects keeps their counts in the records
 // (<variant>/defects.json, written by defects.mjs over both variants' texts when
 // the round ran, with the endgame set's under "endgames" where it ran there too);
@@ -66,6 +68,7 @@ const ROUNDS = [
   { round: '17', dirs: ['round17'], sample: 'round17' },
   { round: '17b', dirs: ['round17b'], sample: 'round17' },
   { round: '17 and 17b', dirs: ['round17', 'round17b'], sample: 'round17' },
+  { round: '18', dirs: ['round18'] },
 ];
 // The rounds judged before the length check, whose streak of longer texts it tested.
 const BEFORE_CHECK = ['3', '4', '5', '7', '7b', '8', '9'];
@@ -88,12 +91,13 @@ const appDefends = () => existsSync(join(CHESS_DIR, 'src', 'services', 'review',
  * from a mark its change left in the app's source: round 10's "an even trade",
  * round 11's `takesBack`, round 12's defense searches, round 14's
  * `materialChange`, round 15's `quietDefense`, round 16's `pawnRuns`, round
- * 17's `stakesSentence`.
+ * 17's `stakesSentence`, round 17c's score rounding, round 18's
+ * `checkWithReason`.
  */
 function appCarries() {
   const lessonFile = join(CHESS_DIR, 'src', 'services', 'knowledge', 'detectors', 'lesson.ts');
   const lesson = existsSync(lessonFile) ? readFileSync(lessonFile, 'utf8') : '';
-  return { v10: lesson.includes('an even trade'), v11: /\btakesBack\b/.test(lesson), v12: appDefends(), v14: /\bmaterialChange\b/.test(lesson), v15: /\bquietDefense\b/.test(lesson), v16: /\bpawnRuns\b/.test(lesson), v17b: /\bstakesSentence\b/.test(lesson), v17c: /\bmateDistance\(score\.cp\b/.test(lesson) };
+  return { v10: lesson.includes('an even trade'), v11: /\btakesBack\b/.test(lesson), v12: appDefends(), v14: /\bmaterialChange\b/.test(lesson), v15: /\bquietDefense\b/.test(lesson), v16: /\bpawnRuns\b/.test(lesson), v17b: /\bstakesSentence\b/.test(lesson), v17c: /\bmateDistance\(score\.cp\b/.test(lesson), v18: /\bcheckWithReason\b/.test(lesson) };
 }
 
 function rerun(dir) {
@@ -205,21 +209,29 @@ function main() {
   };
   const rebuilt = readdirSync(recorded).filter(v => existsSync(join(recorded, v, 'rebuilt'))).sort(roundOrder).map((v) => {
     const { after, splits, sameMoments, gradesEqual } = compared(join(recorded, v, 'rebuilt'), v, split);
-    let endgames = null, setAfter = null;
-    if (existsSync(join(recorded, v, 'rebuilt', 'endgames'))) {
-      const own = join(recorded, v, 'endgame-set.json');
-      const set = JSON.parse(readFileSync(existsSync(own) ? own : join(records(), state.endgame_set.file), 'utf8'));
+    // An endgame set the round ran on: its grades beside the base's, split by the set's games, none of them among the games `outside` lists.
+    const onSet = (sub, own, stateKey, outside) => {
+      if (!existsSync(join(recorded, v, 'rebuilt', sub))) return null;
+      const file = join(recorded, v, own);
+      const set = JSON.parse(readFileSync(existsSync(file) ? file : join(records(), state[stateKey].file), 'utf8'));
       const setSplit = new Map(set.games.map(g => [String(g.id), g.split]));
-      const shared = set.games.filter(g => split.has(String(g.id))).length;
-      if (shared) throw new Error(`${v}: ${shared} of the endgame set's games are among the 60`);
-      const setCompared = compared(join(recorded, v, 'rebuilt', 'endgames'), v, setSplit);
-      setAfter = setCompared.after;
-      endgames = {
-        seed: set.seed,
-        games: Object.fromEntries(['test', 'train'].map(which => [which, set.games.filter(g => g.split === which).length])),
-        splits: setCompared.splits, sameMoments: setCompared.sameMoments, gradesEqual: setCompared.gradesEqual,
+      const shared = set.games.filter(g => outside.has(String(g.id))).length;
+      if (shared) throw new Error(`${v}: ${shared} of ${sub}'s games are in an earlier set`);
+      const setCompared = compared(join(recorded, v, 'rebuilt', sub), v, setSplit);
+      return {
+        after: setCompared.after,
+        summary: {
+          seed: set.seed,
+          games: Object.fromEntries(['test', 'train'].map(which => [which, set.games.filter(g => g.split === which).length])),
+          splits: setCompared.splits, sameMoments: setCompared.sameMoments, gradesEqual: setCompared.gradesEqual,
+        },
       };
-    }
+    };
+    const first = onSet('endgames', 'endgame-set.json', 'endgame_set', split);
+    const setAfter = first?.after ?? null, endgames = first?.summary ?? null;
+    const firstGames = new Set(JSON.parse(readFileSync(join(records(), state.endgame_set.file), 'utf8')).games.map(g => String(g.id)));
+    const second = onSet('endgames2', 'endgame-set2.json', 'endgame_set2', new Set([...split.keys(), ...firstGames]));
+    const endgames2 = second?.summary ?? null;
     const defectsFile = join(recorded, v, 'defects.json');
     let defects = null;
     if (existsSync(defectsFile)) {
@@ -237,7 +249,7 @@ function main() {
         defects.endgames = { base: side(recordedDefects.endgames, 'base', setAfter, 'endgame set '), variant: side(recordedDefects.endgames, v, setAfter, 'endgame set ') };
       }
     }
-    return { variant: v, sameMoments, splits, gradesEqual, defects, endgames };
+    return { variant: v, sameMoments, splits, gradesEqual, defects, endgames, endgames2 };
   });
 
   // Rerun on the pinned app.
@@ -335,9 +347,11 @@ function renderRebuilt(rebuilt) {
     '|---|---|---|---|---|---|---|---|',
     ...rebuilt.flatMap(r => r.splits.map(s => `| ${r.variant} | ${s.split} | ${s.moments} | ${DIMS.map(d => cell(s, d)).join(' | ')} | ${s.textsChanged} |`)),
     ...rebuilt.filter(r => r.endgames).flatMap(r => r.endgames.splits.map(s => `| ${r.variant}, endgame set | ${s.split} | ${s.moments} | ${DIMS.map(d => cell(s, d)).join(' | ')} | ${s.textsChanged} |`)),
+    ...rebuilt.filter(r => r.endgames2).flatMap(r => r.endgames2.splits.map(s => `| ${r.variant}, second endgame set | ${s.split} | ${s.moments} | ${DIMS.map(d => cell(s, d)).join(' | ')} | ${s.textsChanged} |`)),
     '',
     ...rebuilt.map(r => `${r.variant}: ${r.sameMoments ? 'the same moments as its base' : 'not the same moments as its base'}; its grades ${r.gradesEqual ? 'equal' : 'differ from'} the base's.`),
     ...rebuilt.filter(r => r.endgames).map(r => `${r.variant} on the endgame set (${r.endgames.games.train + r.endgames.games.test} games outside the 60, ${r.endgames.games.train} train and ${r.endgames.games.test} test, drawn with seed ${r.endgames.seed}): ${r.endgames.sameMoments ? 'the same moments as its base' : 'not the same moments as its base'}; its grades ${r.endgames.gradesEqual ? 'equal' : 'differ from'} the base's.`),
+    ...rebuilt.filter(r => r.endgames2).map(r => `${r.variant} on the second endgame set (${r.endgames2.games.train + r.endgames2.games.test} games outside the 60 and the first set, ${r.endgames2.games.train} train and ${r.endgames2.games.test} test, drawn with seed ${r.endgames2.seed}): ${r.endgames2.sameMoments ? 'the same moments as its base' : 'not the same moments as its base'}; its grades ${r.endgames2.gradesEqual ? 'equal' : 'differ from'} the base's.`),
     '',
     ...rebuilt.filter(r => r.defects).flatMap(r => {
       const set = r.defects.endgames;

@@ -13,8 +13,8 @@
 \begin{abstract}
 At each key moment of a game review, the coaching app explains what the move played allowed,
 what the engine's better move does instead, and the difference between them. We measured
-those explanations on the \Moments{} key moments of \Games{} of the player's games, and an
-endgame round also on \EndgameMoments{} endgame moments of \EndgameGames{} more, with three
+those explanations on the \Moments{} key moments of \Games{} of the player's games, and the
+later rounds also on endgame sets of \EndgameGames{} and \EndgameTwoGames{} more games, with three
 grades checked against the board, and changed the code that writes them one idea per round,
 keeping a round only when no grade fell on either half of the games (one round fixed five
 text defects at once). Where a change wrote
@@ -113,7 +113,10 @@ says where each move leaves the game, which the player's third set of calibratio
 about; it changes \RoundSeventeenChanged{} moments, more than a judge can read, so the judge reads
 a seeded sample of them and decides it. Round 17c makes the card's folded note on how its grade was
 made give each move the number round 17's sentence gives it; the judge does not see that note, so
-the round counts its defect as rounds 11 and 14 did.
+the round counts its defect as rounds 11 and 14 did. Round 18 says what a better check does, which
+the player's answers to the coach's questions on what a lesson should explain asked about; the
+first two sets change few moments with it, so it is also graded and judged on a second endgame set,
+and the judge decides it.
 
 \begin{table}[!htbp]
 \centering\footnotesize
@@ -214,6 +217,11 @@ as two. The round was graded on the documents round 16 was, in both sets
 (Section~\ref{sec:results}). The card's folded note on how its grade was made gives the same two
 scores, and it rounded them to a tenth its own way, so the note and the new sentence could give a
 move numbers a tenth apart; round 17c gives the note the sentence's numbers.
+\item[Round 18: a check with a reason.] When the better move gives check, the king's reply in its
+line steps off a square the king guarded, and the mover's next move lands there, the section on the
+difference says so: ``\RoundEighteenQuote'' (``and Rxf1+ takes the rook there'' when that move
+captures). The round was graded on the documents round 17 was, on every key moment of the endgame
+set, and on a second endgame set (Section~\ref{sec:results}).
 \end{description}
 
 \begin{table}[!htbp]
@@ -261,7 +269,9 @@ leaves unchanged; the decoy won \PadSixteenDecoy{} of \PadSixteenN{} comparisons
 (\PadSixteenUnchanged{} the shorter text, \PadSixteenSame{} same). Round 17 adds one sentence at
 the end of the difference, so its padding control does as round 16's did, on moments of the endgame
 set the round leaves unchanged; the decoy won \PadSeventeenDecoy{} of \PadSeventeenN{} comparisons
-(\PadSeventeenUnchanged{} the shorter text, \PadSeventeenSame{} same).
+(\PadSeventeenUnchanged{} the shorter text, \PadSeventeenSame{} same). Round 18 adds one sentence
+to the difference, so its padding control does the same; the decoy won \PadEighteenDecoy{} of
+\PadEighteenN{} comparisons (\PadEighteenUnchanged{} the shorter text, \PadEighteenSame{} same).
 
 \begin{table}[!htbp]
 \centering\footnotesize
@@ -421,13 +431,29 @@ set); after it, none do. It changes \RoundSeventeenCChanged{} texts, and no grad
 (Table~\ref{tab:rebuilt}). The judge sees no such note, so the round made no run, and round 17's
 verdict stands for its texts.
 
+Round 18 was graded on round 17's documents, against the texts of the app then pinned, which carry
+round 17c, and on two endgame sets. The first two sets hold few of the checks it names, so it reads
+every key moment of the endgame set, \EndgameAllMoments{} rather than its \EndgameMoments{}
+endgame ones, and a second endgame set drawn for it: \EndgameTwoGames{} more games from the
+archive, outside the \Games{} and the first set, that reach the endgame by the first set's rule,
+drawn by the same seeded shuffle and split by game, \EndgameTwoGamesTrain{} train and
+\EndgameTwoGamesTest{} test, whose \EndgameTwoMoments{} key moments were built at that app after
+the round's plan was written. The grader learned the sentence first, checked on the board apart
+from the app's code, and graded the base exactly as before in every set. The round changes the
+texts of \RoundEighteenChangedTrain{} train and \RoundEighteenChangedTest{} test moments across the
+three sets, and no grade moves (Table~\ref{tab:rebuilt}): every one of its sentences reads true.
+The judges read all \RoundEighteenJudged, each in its own set's split, and preferred the new texts
+\RoundEighteenTrainNew--\RoundEighteenTrainOld{} on train and
+\RoundEighteenTestNew--\RoundEighteenTestOld{} on test.
+
 \begin{table}[!htbp]
 \centering\footnotesize
 \RebuiltTable
 \caption{A round graded on rebuilt documents, beside its base on the same documents: moments graded
 1, with one number where the round and its base agree. The rows marked endgame set are rounds 16
-and 17 on the second set; v17 is round 17's first wording, v17b its last, and v17c the last with
-the folded note's numbers.}
+to 18 on the endgame set (round 18 on all its key moments, the others on its endgame moments), and
+those marked second endgame set round 18 on the set drawn for it; v17 is round 17's first wording,
+v17b its last, and v17c the last with the folded note's numbers.}
 \label{tab:rebuilt}
 \end{table}
 
@@ -495,6 +521,10 @@ cut off along a file, which no reading names yet.
 \item Round 17's judges read a sample of the moments it changed, \RoundSeventeenSampled{} of
 \RoundSeventeenChanged, so its verdict is the sample's. Its sentence that both moves leave the mover
 ahead or behind is the one the judges did not always prefer.
+\item Round 18 names the square a check takes from the king without asking whether another of the
+mover's pieces already covers it; on \RoundEighteenHeldNothing{} of its sentences one does, so the
+king's guard there held nothing, and the one answer the judges gave against the round was on such
+a sentence.
 \item \Games{} games of one player. The split keeps the claims honest about that player, not
 about players in general.
 \end{itemize}
