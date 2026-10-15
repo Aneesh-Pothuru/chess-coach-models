@@ -373,10 +373,15 @@ named move each (two preferred, one rejected).
 
 From the lab's root, after think-time-rapid's games and band-above's builds
 (`projects/README.md`). Each step reads what the steps above it wrote; the
-engine passes resume where they stopped.
+engine passes resume where they stopped. Every result names the app commit it
+measured, and the paper refuses results from two commits: when the pin moves
+before the last step, run the rest with `CHESS_DIR` at the commit the first
+steps measured.
 
 ```bash
-# No engine: 1f, 1a's split, and the positions 1b to 1e draw.
+# No engine: the budgets the tests name, 1f, 1a's split, and the positions 1b
+# to 1e draw.
+bridge/run.sh projects/book-advice/budgets.mjs
 bridge/run.sh projects/book-advice/conversion.mjs
 bridge/run.sh projects/book-advice/after-error.mjs facts
 bridge/run.sh projects/book-advice/scan.mjs

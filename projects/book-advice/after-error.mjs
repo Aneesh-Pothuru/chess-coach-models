@@ -235,7 +235,7 @@ async function engine() {
       byPiece: Object.fromEntries(['n', 'b', 'r', 'q'].map((p) => [p, share(os.filter((r) => r.piece === p && trap(r)).length, os.filter((r) => r.piece === p).length)])),
     }
   }
-  summary.engine = { budget: 'best', seconds: Math.round((Date.now() - t0) / 1000), sample: SAMPLE, seed: SEED }
+  summary.engine = { app: CHESS_DIR.split('/').pop(), budget: 'best', seconds: Math.round((Date.now() - t0) / 1000), sample: SAMPLE, seed: SEED }
   writeFileSync(RESULTS, JSON.stringify(summary, null, 2) + '\n')
   console.log(JSON.stringify(summary, null, 2))
 }

@@ -15,7 +15,7 @@
 // results/king-notes.json.
 import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { chess, privateDir, resultsDir } from '../../bridge/lib/chess.mjs'
+import { CHESS_DIR, chess, privateDir, resultsDir } from '../../bridge/lib/chess.mjs'
 import { MONTH, archiveGames, bandOf, playerGames, records, sample, share } from './lib.mjs'
 import { signsOf } from './signs.mjs'
 
@@ -155,6 +155,6 @@ for (const [set, warned] of [['spoken', spoken], ['all', WARNINGS]]) {
     notes[set].groups[group] = report(games, scored)
   }
 }
-const summary = { month: MONTH, warnings: WARNINGS, bar: king.bar, spoken, sample: { his: LICHESS_GAMES, seed: SEED }, bookReach, byPly: byPly(), notes }
+const summary = { app: CHESS_DIR.split('/').pop(), month: MONTH, warnings: WARNINGS, bar: king.bar, spoken, sample: { his: LICHESS_GAMES, seed: SEED }, bookReach, byPly: byPly(), notes }
 writeFileSync(join(resultsDir('book-advice'), 'king-notes.json'), JSON.stringify(summary, null, 2) + '\n')
 console.log(JSON.stringify({ spoken, after: Object.fromEntries(WARNINGS.map((w) => [w, bookReach.groups.his.after.signs[w]])) }, null, 2))
