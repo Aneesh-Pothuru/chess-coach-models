@@ -1,25 +1,106 @@
 # Chess Coach Models
 
-**Thesis: a chess coaching product cannot be built on engine output alone.**
-Stockfish reports the objectively best move; coaching requires knowing whether
-an opponent at a given rating will find the punishment, how likely the player
-was to blunder *before* they moved, and which openings actually score for
-humans at that level. This repository builds three Elo-conditioned models on
-top of Stockfish and Maia2 and evaluates them with committed, reproducible
-metrics. It makes four claims, each with its evidence in a section below:
+The research lab for a personal chess coaching app. The app, in a private repository
+([Aneesh-Pothuru/chess](https://github.com/Aneesh-Pothuru/chess)), reviews one player's rapid
+games, coaches at that player's level, and runs daily, weekly and monthly Claude Code routines over
+the games. This repository measures the app: how it judges a move, explains it, prices a mistake
+and chooses what to train. A change that wins here goes to the app as its own pull request.
 
-1. **The human model transfers.** Maia2's Elo-conditioned move prediction
-   holds up on a month of games it provably never trained on (§2).
-2. **Blunder risk is predictable before the move** — and the engine evaluation
-   used as a standalone ranking signal carries almost none of that
-   predictability (§3).
-3. **Opening value is population-dependent.** Lines the engine dislikes win
-   at low ratings, and honest sample-size gates matter more than breadth (§4).
-4. **Human concept vocabulary is decodable from the human model.** A small
-   head on frozen Maia2 activations names tactical motifs far above chance
-   (§5).
+Two kinds of work live here:
 
-## Headline results
+- **Research projects** ([`projects/`](projects/)). Each is one question put to the app's own code,
+  with the scripts that answer it, the aggregates they wrote and a short LaTeX paper.
+- **Models trained on public Lichess games** ([`src/`](src/), [`scripts/`](scripts/),
+  [`reports/`](reports/)). The lab's first work: what a coach can learn about human play beyond the
+  engine's best move.
+
+## Research projects
+
+### Game Review's judgments
+
+| Project | The question | What the app took |
+|---|---|---|
+| [accuracy-vs-chesscom](projects/accuracy-vs-chesscom/) ([paper](projects/accuracy-vs-chesscom/paper/paper.pdf)) | How far is Game Review's accuracy from chess.com's for the same game, and what closes the gap? | Shipped: Game Review's accuracy instrument |
+| [explain-top-move](projects/explain-top-move/) ([paper](projects/explain-top-move/paper/paper.pdf)) | Does Game Review explain the engine's better move truthfully, and say why it is better? | Shipped: every kept round's explanation is in the app |
+| [maia-punish](projects/maia-punish/) ([paper](projects/maia-punish/paper/paper.pdf)) | Can Maia-2's odds that the opponent finds the punishing reply be trusted on the player's games? | Shipped: Game Review prices each error by these odds |
+| [judge-in-context](projects/judge-in-context/) ([paper](projects/judge-in-context/paper/paper.pdf)) | Should a move's verdict read win% on a curve fitted to the mover's rating? | Not adopted: the judge did not prefer the fitted verdicts |
+| [phone-vs-routine](projects/phone-vs-routine/) ([paper](projects/phone-vs-routine/paper/paper.pdf)) | Does Game Review on the player's phone name the same mistakes and blunders as the routine's review of the same game? | Not yet: each device differs from the routine on about one serious error in eleven, near the line between a mistake and an inaccuracy. Game Review shows the coach's review beside the device's, and a second look that starts with the engine's memory cleared is the next round |
+| [winprob-parity](projects/winprob-parity/) ([paper](projects/winprob-parity/paper/paper.pdf)) | Does the lab compute the same win% as the app? | A check: the same curve within ±1000 cp; past that, the lab's clamp parts from the app's |
+
+### Maia-2, the human model
+
+| Project | The question | What the app took |
+|---|---|---|
+| [maia-rating-offset](projects/maia-rating-offset/) ([paper](projects/maia-rating-offset/paper/paper.pdf)) | Which chess.com-to-Lichess rating offset makes Maia-2 most likely to play the moves in the player's games? | Confirmed: the app's +250 stays |
+| [maia-calibration](projects/maia-calibration/) ([paper](projects/maia-calibration/paper/paper.pdf)) | Does a temperature for each Maia band, fitted on Lichess, make its probabilities truer on the player's games? | Not adopted: it helps on Lichess and hurts on the player's games, where Maia-2 is already about as confident as it is right |
+
+### The coach and the training
+
+| Project | The question | What the app took |
+|---|---|---|
+| [think-time-rapid](projects/think-time-rapid/) ([paper](projects/think-time-rapid/paper/paper.pdf)) | In 10-minute games at the player's level, where does a long think cut serious errors, and do the app's long-think triggers mark those moments? | Not yet: no trigger shows that a long think pays, and as written the triggers ask for most of the clock |
+| [band-above](projects/band-above/) ([paper](projects/band-above/paper/paper.pdf)) | Where do players 200 points above the player's level give away fewer points a game, and how much of a point given away shows in the result? | Not yet: tense positions and the move after the opponent's error separate the bands, and the leak ledger's 0.6 discount stays |
+| [focus-backtest](projects/focus-backtest/) ([paper](projects/focus-backtest/paper/paper.pdf)) | Does the weekly focus's grade tell a real improvement from none? | Shipped (chess PR 74): the focus is graded by a permutation test over a longer window |
+| [detector-themes](projects/detector-themes/) ([paper](projects/detector-themes/paper/paper.pdf)) | Do the app's motif labels name the tactic a position holds, judged on public puzzles? | Shipped (chess PR 81): a miss is filed under its pin, skewer or discovered attack |
+| [drill-decks](projects/drill-decks/) ([paper](projects/drill-decks/paper/paper.pdf)) | Do the misses deck's theme words and the plan quiz ask what they say they ask? | In part: the misses' motif words came with chess PR 81, and the threat search and plan questions with one right answer are still candidates |
+| [praise-gate](projects/praise-gate/) ([paper](projects/praise-gate/paper/paper.pdf)) | Does the live coach, holding its instant praise for the engine's verdict, praise only the moves that earn it? | Shipped with chess PR 73. About one praised move in sixteen still gave away 2 win% or more, narrowly short of the study's one in twenty, so a stricter 1 win% bar is the next round |
+| [learner-solve-chance](projects/learner-solve-chance/) ([paper](projects/learner-solve-chance/paper/paper.pdf)) | When the learner gives a solve chance for a puzzle, how often does the player solve it, and should a set aim from the player's record in its theme rather than the headline rating? | Adopted on the owner's call (chess PRs 78 and 79): sets aim from the theme's record, and round 2 decides whether that stays |
+
+Each project's README states its question, the rule that decides it (written before the first
+number) and how to run it. [`projects/README.md`](projects/README.md) says where the data comes from,
+gives the order that reproduces every project, and says how to start a new one.
+
+## How a question is measured
+
+- **On the app's own code.** A study imports the app's instruments through the bridge and never
+  re-implements one. A lab instrument that should agree with the app's gets a parity eval, like
+  [winprob-parity](projects/winprob-parity/).
+- **The rule comes first.** The metric, the train and held-out split and what counts as better are
+  written down before a run. A round changes one thing and is kept only when train and held-out
+  both improve beyond the noise, by a paired bootstrap.
+- **Model judges get controls.** A model judge compares two texts blind and in both orders, and a
+  streak of wins is checked against the same text on both sides and a decoy of the same length
+  that says nothing new.
+- **Scripts write the numbers.** A report is written by its script and names the app commit and the data
+  it measured. A paper's `paper/generate.*` writes every number, table and position into
+  `paper/generated.tex` and refuses to write when a claim the paper makes no longer holds.
+- **A winner is ported, then measured again.** The port is its own pull request on the app, with
+  this repository's report as its evidence; the app's code and docs never cite the lab. Once the
+  port merges, `bridge/chess.json` moves to the merge commit and the study reruns there.
+
+## The bridge to the app
+
+[`bridge/chess.json`](bridge/chess.json) pins the app commit every study measures, and the commit of
+the research records the app's repository keeps.
+
+| Command | What it does |
+|---|---|
+| `bridge/checkout.sh` | Fetches the pinned app once into `.cache/chess/<sha>`, runs `npm ci` there and prints the directory. `bridge/checkout.sh records` does the same for the records. `CHESS_DIR` or `CHESS_RECORDS_DIR` overrides either. |
+| `bridge/candidate.sh <name> <app path>=<file> ...` | Prints a candidate: a copy of the pinned app with those files replaced. A study measures it by running with `CHESS_DIR` pointed at it. |
+| `bridge/run.sh projects/<project>/<script>.mjs` | Runs a script under the app's own tsx, where `chess(path)` from `bridge/lib/chess.mjs` imports any app module by its path, such as `src/core/score/index.ts`. |
+
+From Python, `chess_coach_models.bridge.run_eval(script, payload)` sends JSON on stdin and reads JSON
+from stdout. The app's repository is private, so the bridge needs read access to it: bridge studies
+run locally or in a Claude session, and this repository's CI runs none of them.
+
+## The player's data stays private
+
+This repository is public, and the app serves one player. That player's games, notes, calibration
+answers and profile stay in the app's repository, or under `private/` here, which git ignores. A
+study reads them at run time, writes anything per game under `private/<project>/` and commits only
+aggregates. A paper may show a few positions from the player's games, as boards with their moves,
+FEN and UCI, but never a link to a game, a game id or the account name.
+[`scripts/check_private.py`](scripts/check_private.py) fails CI on the shapes that data takes, with
+extra patterns from a repository secret.
+
+## Models trained on Lichess games
+
+These models learn from the [Lichess Open Database](https://database.lichess.org/) (CC0). The
+scorer, the hazard model and the repertoire optimizer read rated games from April 2019, in one
+seeded stream that stops at configured caps, so the archive is never stored; the benchmark reads
+June 2025, and the concept tagger the puzzle database. A move's quality is the win% it gives away on Lichess's published conversion, a blunder
+gives away more than 20 points, splits keep each game whole within its rating band, and ratings are
+Lichess's.
 
 <!-- RESULTS_START -->
 | Model | Result |
@@ -31,289 +112,95 @@ metrics. It makes four claims, each with its evidence in a section below:
 | Concept tagger | Macro-AP 0.469 vs prevalence baseline 0.047 across 35 puzzle themes |
 <!-- RESULTS_END -->
 
-Every number in this document is read from a committed artifact under
-[`reports/`](reports/); `make reports` regenerates this table and all report
-pages from those artifacts.
+`make reports` writes this table and every page under [`reports/`](reports/) from the committed
+metrics.
 
-## 1. Data, labels, and protocol
+- **Maia-2 benchmark** ([report](reports/maia_benchmark.md)). Maia-2's rating-conditioned move
+  prediction, scored on rated rapid games from June 2025, well after its training data ends, with
+  Maia's own evaluation filters. Its accuracy lands near the published figures. On Lichess its
+  confidence runs a little above its accuracy; on the player's games, at the app's rating offset, it
+  does not ([maia-calibration](projects/maia-calibration/)).
+- **Graded-opponent scorer** ([report](reports/graded_opponent.md)). Stockfish finds the moves that
+  give away more than 10 points of win%, and Maia-2 gives the chance that a player at a band, or 200
+  points above it, finds the refutation.
+- **Blunder hazard** ([report](reports/blunder_hazard.md)). A LightGBM model over board features
+  (material, phase, checks, mobility, a hanging-piece proxy, passed pawns, king pressure, castling
+  rights, rating and the current eval) that predicts, before a move, whether it will be a blunder,
+  calibrated on validation games. Ranking positions by the size of the eval alone does no better than
+  chance. Features from Maia-2 added too little to justify a Torch dependency.
+- **Repertoire optimizer** ([below 1100](reports/repertoire_lt1100.md),
+  [1100 to 1400](reports/repertoire_1100-1400.md)). An opening tree of the first 12 plies of 300,000
+  rated games, with each line's score, Wilson interval, popularity, early trap density and Maia-2
+  findability, recommending only lines played at least 2,000 times. Below 1400, lines the engine
+  rates level or worse can score well above their band's average
+  ([`reports/SUMMARY.md`](reports/SUMMARY.md) names two).
+- **Concept tagger** ([report](reports/concept_tagger.md)). A small head on frozen Maia-2
+  activations, trained on Lichess puzzle themes, names tactical motifs far above their base rates.
+  Endgame types and named mates come easiest; relational motifs such as deflection and clearance
+  come hardest.
 
-Training and the committed evaluations use the
-[Lichess Open Database](https://database.lichess.org/) (CC0), April 2019, via
-a single seeded stream that is terminated at configured caps — the 9.87 GB
-archive is never stored. The committed run recorded 300,039 games read,
-300,000 opening games and 19,554 eval-annotated games retained, and 50,000
-labeled positions drawn by seeded reservoir sampling from 1,202,165 eligible
-adjacent-eval positions, with zero parse errors. The deployed platform reads
-chess.com Published-Data PGNs at runtime; those contain no engine evals and a
-different clock format, so runtime positions are scored by Stockfish directly.
+The app runs Maia-2 itself, in the browser, and prices an error by whether a player at the
+player's level finds the punishment: the scorer's idea, which [maia-punish](projects/maia-punish/)
+measured on the player's games. The hazard model, the repertoire optimizer and the concept tagger
+are not in the app.
 
-Labels use Lichess's published win-probability conversion with centipawns
-clamped to ±1000 and mate mapped to ±10000:
+## Running it
 
-```text
-Win% = 50 + 50 * (2 / (1 + exp(-0.00368208 * cp)) - 1)
-```
-
-Move quality is Win% before minus Win% after from the mover's perspective
-(evals are always White-perspective; the code flips for Black, and tests cover
-it). A blunder loses **more than 20 Win%**. Labels are only formed from
-*adjacent* eval annotations — an eval gap never bridges two human moves.
-Train/validation/test splits hash whole game IDs within rating-band strata, so
-a game can never leak positions across splits.
-
-Rating bands are `<1100`, `1100–1400`, `1400–1700`, `1700–2000`, `2000+` in
-Lichess Glicko-2, which runs roughly 200–400 points above chess.com at the low
-end. That mapping is documented as an assumption, not solved (§5).
-
-## 2. Claim 1 — the human model transfers
-
-The product leans on Maia2 for "will a player at this rating find this move?",
-so the first thing to establish is that Maia2's published accuracy is real on
-data it cannot have memorized. The released `rapid` weights were trained on
-Lichess rapid games from May 2018 through November 2023 (excluding December
-2019) and frozen in October 2024; the benchmark therefore samples **June
-2025** — 25,000 moves, 5,000 per band, using the published Maia evaluation
-filters (first 10 plies excluded, positions with either player under 30
-seconds excluded, rated rapid only, no bots, ≤8 moves per player-game).
-
-![Maia2 benchmark accuracy by band](reports/maia_benchmark_accuracy.png)
-
-| Band | Moves | Top-1 accuracy | Wilson 95% CI |
-|---|---:|---:|---|
-| <1100 | 5,000 | 46.6% | 45.3–48.0% |
-| 1100–1400 | 5,000 | 51.1% | 49.7–52.4% |
-| 1400–1700 | 5,000 | 52.4% | 51.0–53.7% |
-| 1700–2000 | 5,000 | 53.7% | 52.4–55.1% |
-| 2000+ | 5,000 | 53.7% | 52.3–55.1% |
-| **Overall** | **25,000** | **51.5%** | 50.9–52.1% |
-
-**Analysis.** Regrouped into the Maia2 paper's skill bins, the accuracies land
-within ~2 points of the published Cross-skill figures (49.6/53.6/53.7 vs
-51.72/54.15/53.87), so the integration reproduces the paper's behavior rather
-than a degraded copy of it. The earlier 2,500-move smoke test (charted above
-in orange) had suggested a worrying non-monotonic dip at 1400–1700; the
-independent benchmark shows that dip was an artifact of the smoke protocol —
-eval-annotated games only, opening plies included, no clock filter — and its
-±4.4 pp per-band noise. The real trend rises through the middle bands and
-plateaus above 1700; only `<1100` vs `1100–1400` is separated at the 95%
-level. One caution stands: Maia2's mean top-1 confidence exceeds its measured
-accuracy by 3–4 points in every band
-([#7](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/7)), so the
-product treats its probabilities as rankings, not calibrated chances. Full
-protocol and cluster-bootstrap intervals:
-[reports/maia_benchmark.md](reports/maia_benchmark.md).
-
-The graded-opponent scorer builds directly on this: Stockfish MultiPV 3 finds
-moves losing more than 10 Win%, and Maia2 reports the probability that the
-best refutation is found at the player's band and at band +200. Sample
-annotated games: [reports/graded_opponent.md](reports/graded_opponent.md).
-
-## 3. Claim 2 — blunder risk is predictable before the move
-
-`hazard(fen, elo) → probability` must answer "how dangerous is this position
-for this player?" *before* the move is made. The shipped v0 is a
-class-balanced LightGBM over hand-engineered features (material, phase,
-checks, mobility, hanging-piece proxy, passed pawns, king pressure, castling
-rights, rating, current eval), trained on 50,000 positions from 17,264 games
-and calibrated by a Platt layer fit only on validation games.
-
-| Band | N (test) | Base rate | ROC-AUC | PR-AUC | PR-AUC, abs-eval baseline | Brier |
-|---|---:|---:|---:|---:|---:|---:|
-| <1100 | 842 | 9.1% | 0.839 | 0.303 | 0.106 | 0.073 |
-| 1100–1400 | 2,089 | 6.7% | 0.787 | 0.177 | 0.074 | 0.059 |
-| 1400–1700 | 2,448 | 5.4% | 0.805 | 0.199 | 0.050 | 0.048 |
-| 1700–2000 | 1,557 | 4.1% | 0.834 | 0.160 | 0.038 | 0.037 |
-| 2000+ | 713 | 2.8% | 0.774 | 0.091 | 0.035 | 0.027 |
-| **Overall** | **7,649** | **5.7%** | **0.817** | **0.197** | **0.055** | **0.049** |
-
-![Hazard calibration](reports/hazard_calibration.png)
-
-![Hazard feature importance](reports/hazard_feature_importance.png)
-
-**Analysis.** The success bar — beat the absolute-eval baseline on PR-AUC —
-is passed by a factor of 3.6 (0.197 vs 0.055). The baseline's ROC-AUC of
-0.502 is the sharpest statement of the thesis: ranking positions by |eval|
-alone is no better than chance at predicting an upcoming blunder. The eval is
-not useless — the learned model's highest-gain feature is the current win
-probability — but it only becomes predictive in interaction with material,
-phase, and rating context, which is exactly what a learned hazard model adds
-over raw engine output. The calibration plot shows predicted probabilities
-tracking observed blunder rates across the probability range, which is what
-makes the output usable as a number rather than a score. A controlled v1
-experiment added Maia2-derived features (policy entropy, top-1 probability,
-P(best move | Maia2)) on a matched 5,000-position subset: PR-AUC 0.224 vs
-0.213 for hand features alone. That +0.011 does not justify a Torch dependency
-at runtime, so v0 remains the product model — a deliberate scope decision, not
-an omission. Full tables: [reports/blunder_hazard.md](reports/blunder_hazard.md).
-
-## 4. Claim 3 — opening value is Elo-conditioned
-
-The repertoire optimizer aggregates the first 12 plies of 300,000 rated games
-into an opening tree keyed by move prefix, storing N, score, Wilson 95% CI,
-popularity, continuations, early trap density (from eval-annotated games
-only), and Maia2 findability of the critical line for the target band.
-Recommendations never relax the N≥2,000 gate: the committed run yields 7
-qualifying lines below 1100 and 12 at 1100–1400, and sections honestly show
-fewer than five rows where the capped sample cannot support more.
-
-**Analysis.** The population effect the thesis predicts shows up directly in
-the committed run. Below 1100, **Queen's Gambit Refused: Marshall Defense**
-scores +10.9 points above the band average (N=128) while its eight-ply line
-evaluates at −5 cp — an engine-neutral line that wins because of how humans
-misplay it. At 1100–1400, **King's Gambit Accepted: Schallopp Defense**
-scores +13.8 points above average (N=72) at −60 cp for White: the engine
-mildly dislikes it and it wins anyway. Engine-approved advice would never
-surface either line for these bands. The strongest strict-N lines are
-conventional (1.e4 e5 2.Nf3 at 50.9%, N=5,326 below 1100; 1.d4 d5 2.c4 at
-54.3%, N=3,309 at 1100–1400), which is itself a useful sanity check — the
-model is not gambit-crazed, it simply refuses to pretend the engine's
-preferences describe sub-1400 outcomes. Full tables:
-[reports/repertoire_lt1100.md](reports/repertoire_lt1100.md),
-[reports/repertoire_1100-1400.md](reports/repertoire_1100-1400.md).
-
-## 5. Claim 4 — concepts are decodable from the human model
-
-Coaching needs names: "you missed a *fork*" travels, a centipawn delta does
-not. The concept tagger is a 1024→256→35 multi-label head on frozen Maia2
-`last_ln` activations, supervised by Lichess puzzle themes: 100,000 puzzles
-sampled uniformly from 3.3M eligible rows (≥200 plays), with the setup move
-applied so the tagged position is the one the solver actually faces, and
-splits grouped by source game.
-
-![Concept tagger AP vs prevalence](reports/concept_ap_vs_prevalence.png)
-
-On 14,881 held-out positions, macro average precision is **0.469** against a
-prevalence baseline of 0.047 — a 10× lift — and micro-AP is **0.638**. All 35
-themes score at least twice their prevalence.
-
-**Analysis.** What the head finds easy and hard is itself evidence about the
-encoder. Endgame types are nearly solved (pawnEndgame AP 0.995, rookEndgame
-0.931) — material signatures are trivially present in the representation.
-Named mate patterns decode strongly despite rarity (backRankMate 0.773,
-smotheredMate 0.769 at 0.6% prevalence — a 126× lift), and `mate` itself
-reaches 0.897: the human model's representation knows when a king hunt is on.
-The hardest themes are the relational ones — deflection (0.174), clearance
-(0.070), capturingDefender (0.121) — motifs defined by *why* a move works
-rather than by what the board looks like. That gradient matches the spec's
-caveat: puzzle themes carry tactical vocabulary well, and positional concepts
-will need the probe-reuse path (the CSSLab maia2 repo ships Elo-conditioned
-linear probes over 172 formal concepts) or new annotation. Product surface:
-`concepts(fen)` plus `scripts/tag_concepts.py`; on the position before
-Scholar's mate, the tagger returns `mate` 1.00 and `attackingF2F7` 0.99.
-Full per-theme table: [reports/concept_tagger.md](reports/concept_tagger.md).
-
-## 6. Is this usable in a product today?
-
-| Model | Verdict | What it needs before full deployment |
-|---|---|---|
-| Blunder hazard v0 | **Yes**, behind a Lichess-rating interface | chess.com recalibration and rating mapping ([#2](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/2)) |
-| Graded-opponent scorer | **Yes**, for offline/batch annotation | Maia2 probability calibration for absolute numbers ([#7](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/7)) |
-| Repertoire optimizer | **Partially** — `<1100` and `1100–1400` only | Production-scale sample for upper bands and deeper lines ([#3](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/3)) |
-| Concept tagger | **Yes**, for tactical vocabulary | Positional concepts via probe reuse or annotation; quiet-position validation |
-
-The hazard model is the closest to product-ready: it is a small joblib
-artifact with no Torch dependency, its ranking quality clearly beats the
-engine-only alternative, and its probabilities are calibrated on held-out
-games. The scorer runs today as a batch annotator (Stockfish plus two Maia2
-lookups per candidate move, CPU-viable); its punishment probabilities are now
-independently validated but should be consumed as rankings until #7 lands.
-The repertoire optimizer is trustworthy precisely where it has data — it
-refuses to recommend beyond its sample, so upper bands need the scaled run.
-The concept tagger can label tactical moments in user games today (its worst
-theme still doubles chance), but it was trained on tactics-dense puzzle
-positions, so its behavior on quiet positions is extrapolation until
-validated — and positional vocabulary is not in its label set at all.
-The one assumption that gates *all three* for the chess.com deployment is the
-rating mapping: every model is conditioned on Lichess Glicko-2, and the
-200–400 point low-end offset is documented but unvalidated until
-[#2](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/2) is done.
-
-## 7. Reproduce from a fresh clone
-
-Prerequisites: macOS or Linux, Python 3.11–3.13, `zstd`, and Stockfish. Apple
-Silicon is the reference environment; the pipeline also runs on commodity
-Linux CPU (the 2025-06 benchmark was produced on 4 cores). The committed
-batch eval pins Maia2 to CPU: MPS worked interactively but segfaulted on the
-5,000-position batch. Evaluation stages run in isolated Python processes
-because mixing LightGBM's OpenMP pool and Torch inference in one process can
-stall on macOS. Both workarounds preserve the configured sample sizes.
+Python 3.11 to 3.13, `zstd` and Stockfish (`brew install zstd stockfish`, or
+`apt-get install zstd stockfish`). The bridge needs Node and read access to the app's repository,
+and the papers need TeX Live with `latexmk` (`projects/README.md` names the collections).
 
 ```bash
-brew install zstd stockfish   # or apt-get install zstd stockfish
-make setup
-make test
-make data        # stream Lichess 2019-04, stop at configured caps
-make eval        # train + evaluate all three models
-make reports     # regenerate reports/ and this README's results table
-make benchmark   # independent Maia2 benchmark on the configured 2025-06 month
-make concepts    # stream the puzzle DB, train and evaluate the concept tagger
+make setup     # the full environment in .venv: Torch, LightGBM, Maia2
+make test      # every test; CI runs the ones that need no models or data
+make chess     # the pinned app with its npm dependencies, and the research records
+make parity    # the lab's win% against the app's
+make papers    # every project's generated.tex, then its PDF
 ```
 
-All tunables live in [`configs/config.yaml`](configs/config.yaml): source
-months, rating bands, sample caps, thresholds, Stockfish budget, device
-choices. Useful direct commands:
+[`projects/README.md`](projects/README.md) has every project's reproduction, in order. The Lichess
+models:
 
 ```bash
-.venv/bin/python scripts/score_pgn.py my_games.pgn --output scored.json
+make data        # stream Lichess 2019-04 and stop at the configured caps
+make eval        # train and evaluate the scorer, the hazard model and the repertoire optimizer
+make reports     # regenerate reports/ and the results table above
+make benchmark   # the Maia2 benchmark on the configured 2025-06 month
+make concepts    # stream the puzzle database, then train and evaluate the concept tagger
+
+.venv/bin/python scripts/score_pgn.py games.pgn --output scored.json
 .venv/bin/python scripts/mine_hazard.py --fen "$FEN" --elo 1250
-.venv/bin/python scripts/mine_hazard.py --pgn my_games.pgn --top-n 20
-.venv/bin/python scripts/build_repertoire.py --query-pgn my_games.pgn \
-  --band 1100-1400 --perspective white
+.venv/bin/python scripts/build_repertoire.py --query-pgn games.pgn --band 1100-1400 --perspective white
+.venv/bin/python scripts/tag_concepts.py --fen "$FEN"
 ```
 
-Downloaded PGNs, Parquet datasets, Maia2 weights, and trained binaries are
-gitignored; reports, plots, metrics JSON, code, config, and tiny PGN fixtures
-are committed. 29 pytest tests cover mate parsing, Black-side flips, clocks,
-labels, splits, features, Wilson intervals, opening-tree counts, the
-benchmark's protocol filters, and the puzzle semantics and head training of
-the concept tagger.
+Every setting lives in [`configs/config.yaml`](configs/config.yaml): source months, rating bands,
+sample caps, thresholds, the Stockfish budget and devices. The committed evaluations run Maia2 on the
+CPU, because Apple's MPS crashed on a 5,000-position batch, and run each stage in its own process,
+because LightGBM's OpenMP pool and Torch can stall together on macOS. Downloaded games, datasets,
+model weights and trained binaries are gitignored; code, configs, reports, aggregates and papers are
+committed.
 
-## 8. The lab and the app
+## Open issues
 
-This repository is the research lab for the coaching app
-([Aneesh-Pothuru/chess](https://github.com/Aneesh-Pothuru/chess), private): a
-change is measured here, and one that wins is ported to the app. Evals import
-the app's own TypeScript through a bridge pinned to one app commit, so they
-measure the code the app runs.
+- [#2](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/2): calibrate the hazard model
+  for chess.com ratings (the rating offset for Maia-2 is settled by maia-rating-offset).
+- [#3](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/3): scale the Lichess run to
+  production sample caps.
+- [#4](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/4): the neural hazard head, kept
+  out until it beats LightGBM on an independent sample.
+- [#5](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/5): replace the hanging-piece
+  proxy with a full exchange search.
+- [#6](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/6): Maia2 batch stability on
+  Apple's MPS.
+- [#7](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/7): Maia2's calibration by rating
+  band (maia-calibration answers it for the player's games).
+- [#8](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/8): sample the Maia2 benchmark
+  from more than one stream offset or month.
 
-```bash
-make chess    # fetch the pinned app, its npm dependencies and the research records (needs read access)
-make parity   # the lab's win% against the app's
-```
+## Licenses
 
-Each question put to the app is a project under [`projects/`](projects/),
-with its scripts, its results and a short paper:
-[`projects/README.md`](projects/README.md) lists them (accuracy against
-chess.com, explaining the better move, which mistakes get punished, verdicts
-in context, and win% parity) and the order that reproduces them.
-[`projects/winprob-parity/results/parity_winprob.md`](projects/winprob-parity/results/parity_winprob.md)
-is the parity eval's report: within ±1000 cp the lab and the app compute the
-same curve, and past it the lab's clamp parts from the app's.
-[`CLAUDE.md`](CLAUDE.md) covers the bridge, the data rule (this repository is
-public, so the player's games are read at run time and only aggregates and a
-few example positions are committed) and how a winner is ported.
-
-## Data and software licenses
-
-- [Lichess Open Database](https://database.lichess.org/) exports are **CC0**.
-- [`maia2`](https://pypi.org/project/maia2/) is MIT-licensed; weights download
-  locally on first use. Original Maia-1 weights are GPL and are not used here.
-- This repository's code is MIT-licensed.
-
-## Limitations and open threads
-
-- Eval-annotated Lichess games are not a random sample of all play; hazard
-  results characterize the sampled annotated population.
-- The committed run is laptop-sized; config scales unchanged on a larger box
-  ([#3](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/3)).
-- The independent benchmark samples the first hours of June 1, 2025
-  ([#8](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/8) tracks
-  multi-offset sampling).
-- The hanging-piece feature is a fast SEE proxy, not a full exchange search
-  ([#5](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/5)).
-- chess.com recalibration is required before deployment claims
-  ([#2](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/2));
-  Maia2 MPS batch stability is tracked in
-  ([#6](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/6)); the
-  neural hazard head remains deferred until it can beat LightGBM on an
-  independent sample ([#4](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/4)).
+- The [Lichess Open Database](https://database.lichess.org/) exports are CC0.
+- [`maia2`](https://pypi.org/project/maia2/) is MIT-licensed; its weights download on first use. The
+  original Maia-1 weights are GPL and are not used here.
+- This repository's code is MIT-licensed ([`LICENSE`](LICENSE)).

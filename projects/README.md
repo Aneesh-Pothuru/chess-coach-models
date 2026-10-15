@@ -11,23 +11,8 @@ everything that answers it:
   when a claim the paper makes no longer holds; `paper/paper.tex` says what
   they mean; `paper/paper.pdf` is the compiled paper.
 
-| Project | The question | In the app |
-|---|---|---|
-| [accuracy-vs-chesscom](accuracy-vs-chesscom/) | How far is Game Review's accuracy from chess.com's for the same game, and what closes the gap? | Shipped: the review's accuracy instrument |
-| [explain-top-move](explain-top-move/) | Does the review explain the engine's better move truthfully, and say why it is better? | Shipped: the kept rounds' explanation code |
-| [maia-punish](maia-punish/) | Can Maia-2's odds of the reply that punishes an error be trusted on the player's games? | Shipped: every error is priced with these odds |
-| [judge-in-context](judge-in-context/) | Should a move's verdict read win% on a curve fitted to the mover's rating? | Not adopted |
-| [winprob-parity](winprob-parity/) | Does the lab compute the same win% as the app? | A check: nothing to port |
-| [maia-rating-offset](maia-rating-offset/) | Which chess.com to Lichess offset makes Maia-2 most likely to play the moves in the player's games? | Confirmed: the app's 250 stays |
-| [maia-calibration](maia-calibration/) | Does a temperature for each Maia band, fitted on Lichess, make its probabilities truer on the player's games? | Not adopted |
-| [think-time-rapid](think-time-rapid/) | In 10-minute games at his level, where does a long think cut serious errors, and do the app's long-think triggers mark those moments? | Not yet ported: no trigger shows a long think pays, and as written they ask for most of the clock |
-| [focus-backtest](focus-backtest/) | Does the weekly focus's grade tell a real improvement from none? | Port open: the candidate grade (a permutation test of points per move over 120 games), waiting on the owner's review |
-| [detector-themes](detector-themes/) | Do the app's motif labels name the tactic a position holds, judged on public puzzles? | Not yet ported: the describe-first candidate gained on both pools and waits its turn |
-| [drill-decks](drill-decks/) | Do the misses deck's theme words and the plan quiz ask what they say they ask? | Not yet ported: the threat search and the quiet positions' plan questions are the candidates |
-| [praise-gate](praise-gate/) | Does the live coach, holding its instant praise for the engine's verdict, praise only the moves that earn it? | Measured on the change before it lands: narrowly short of its bar; the next round tests a stricter one |
-| [band-above](band-above/) | Where do players 200 points above his level give away fewer points a game than players at his level, by the leak ledger's own causes, and how much of a point given away shows in the result? | Not yet ported: tense positions and the move after the opponent's error separate the bands; a point given away costs about a point of result, so the 0.6 stays |
-| [phone-vs-routine](phone-vs-routine/) | Does Game Review on his phone name the same mistakes and blunders as the routine's review of the same game? | Not yet ported: both devices differ, about one serious error in eleven, at the line between a mistake and an inaccuracy, because the second look does not repeat across profiles; Game Review keeps a device's review even once the routine's exists, and a look with the engine's memory cleared is the next round |
-| [learner-solve-chance](learner-solve-chance/) | When the learner gives a solve chance for a puzzle, how often does he solve it, and should a set aim from the view of its own channel instead of the headline rating? | Adopted on the owner's call, not by the rule: round 1's record kept only his solves; on the app's own log the rating serving read gave him about half a chance on puzzles he solves nearly always, so the app now aims sets from the themed view (chess PR 78), or from the stored totals where a bucket has no view (PR 79), and round 2 decides whether the view stays |
+The [lab's README](../README.md#research-projects) lists every project with
+its question and what the app took from it.
 
 `paper.mjs` holds the helpers the generators share (boards, moves in SAN, UCI
 and FEN, number formats), and `preamble.tex` the LaTeX every paper loads.
@@ -148,7 +133,8 @@ texlive-pictures texlive-plain-generic`; on macOS, MacTeX).
 
 A new project takes the same shape: a folder under `projects/`, scripts that
 write per-game data only under `private/<project>/`, a `results/` that only
-its scripts write, and a README with the question, the rule that decides it
-(written before the first number), and how to run it. Once there is a result,
+its scripts write, a README with the question, the rule that decides it
+(written before the first number), and how to run it, and a row in the
+[lab's README](../README.md#research-projects). Once there is a result,
 it gets a paper whose generator checks every claim the paper makes. A winner
 is ported to the app as its own pull request (see [`CLAUDE.md`](../CLAUDE.md)).

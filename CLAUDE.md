@@ -9,12 +9,14 @@ are measured and improved, and a change that wins here is ported to the app.
 
 - Models trained on public data (the Lichess database, CC0): the
   graded-opponent scorer, the Maia2 benchmark, the blunder hazard model, the
-  repertoire optimizer and the concept tagger (README sections 1 to 5).
+  repertoire optimizer and the concept tagger (the README's "Models trained
+  on Lichess games").
 - Research projects under `projects/<project>/` that measure the app's own
   code through the bridge: each folder holds one question's scripts, the
   aggregates they write (`results/`) and a paper (`paper/`).
-  [`projects/README.md`](projects/README.md) lists them and the order that
-  reproduces them all.
+  [`README.md`](README.md) lists them with what the app took from each, and
+  [`projects/README.md`](projects/README.md) gives the order that reproduces
+  them all.
 
 ## The data rule
 
