@@ -226,6 +226,7 @@ const today = learner
 
 // Round 2 scores what the profile records after its last attempt here.
 shape.lastAttempt = ptDayKey(Math.max(...(held.attempts ?? []).map((a) => a.at), ...(held.events ?? []).filter(isAttempt).map((e) => e.at)))
+shape.syncedOn = ptDayKey(now)
 const pin = JSON.parse(fs.readFileSync(join(LAB_DIR, 'bridge', 'chess.json'), 'utf8'))
 const dir = privateDir('learner-solve-chance')
 fs.writeFileSync(join(dir, 'rows.jsonl'), rows.map((r) => JSON.stringify(r)).join('\n') + '\n')

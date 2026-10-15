@@ -38,8 +38,9 @@ map's next difficulty reads the same estimate. Round 2 decides whether it
 stays. Since chess PR 79 (merged as `5c846e2`), a bucket with no attempt logged
 in its own set aims from its stored totals read alone instead of the
 headline; round 2 scores no attempt in such a bucket. The study reruns each
-time the lab's pin moves, and its numbers have not changed since `ae69a3e`.
-The numbers are in the paper, [`paper/paper.pdf`](paper/paper.pdf), and the
+time the lab's pin moves. Round 1's numbers have not changed since `ae69a3e`;
+the table of today's estimates reads his profile as of its last sync, so its
+deviations widen while he logs no puzzles. The numbers are in the paper, [`paper/paper.pdf`](paper/paper.pdf), and the
 script's report, [`results/solve.md`](results/solve.md), which names the app
 commit it measured.
 

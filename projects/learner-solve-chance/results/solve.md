@@ -1,6 +1,6 @@
 # The learner's solve chances: results
 
-Written by fit.mjs. App commit d6e155bc8ece019c0a9bfe6ed2ac31b34ab2c3ed. Bootstrap: 1000 draws over days, seed 7.
+Written by fit.mjs. App commit ec6af10b4cf72c2bbafc1062cdf35bb2da896d23. Bootstrap: 1000 draws over days, seed 7.
 
 ## Round 1, on the rebuilt record
 
@@ -44,17 +44,17 @@ The headline's mean solve chance was 58.0% (gap +38.0, 95% interval +31.3 to +42
 
 The learner's own self-check on this profile: 40 held-out attempts, Brier 0.0751 against 0.0704 for its constant, log loss 0.2878 against 0.2946; mean predicted 0.8525, observed 0.925.
 
-## What each estimate would aim a set at today
+## What each estimate would aim a set at on 2026-10-14, the profile's last sync
 
 | Bucket | Phase | Headline | Its target | Themed view | Its target | The app aims from | Its target | Hardest in the bank |
 |---|---|---:|---:|---:|---:|---|---:|---:|
 | planning | core | 918 ± 222 | 725 | 1123 ± 94 (n=25) | 930 | view, 1123 ± 94 | 930 | 1878 |
-| hangingPiece | core | 1608 ± 245 | 1415 | 1797 ± 108 (n=17) | 1604 | view, 1797 ± 108 | 1604 | 1899 |
+| hangingPiece | core | 1608 ± 245 | 1415 | 1797 ± 109 (n=17) | 1604 | view, 1797 ± 109 | 1604 | 1899 |
 | defensiveMove | core | 1096 ± 246 | 903 | none | n/a | totals, 1182 ± 70 | 989 | 1898 |
 | mateIn1 | core | 1587 ± 247 | 1394 | 1833 ± 82 (n=38) | 1640 | view, 1833 ± 82 | 1640 | 1896 |
 | fork | core | 1006 ± 280 | 813 | 1282 ± 119 (n=12) | 1089 | view, 1282 ± 119 | 1089 | 1897 |
-| mateIn2 | core | 796 ± 290 | 603 | 1083 ± 118 (n=12) | 890 | view, 1083 ± 118 | 890 | 1897 |
-| mateIn3 | core | 1066 ± 314 | 873 | 1084 ± 212 (n=2) | 891 | view, 1084 ± 212 | 891 | 1899 |
+| mateIn2 | core | 796 ± 290 | 603 | 1083 ± 119 (n=12) | 890 | view, 1083 ± 119 | 890 | 1897 |
+| mateIn3 | core | 1066 ± 315 | 873 | 1084 ± 212 (n=2) | 891 | view, 1084 ± 212 | 891 | 1899 |
 | pawnEndgame | core | 1223 ± 318 | 1030 | none | n/a | totals, 1418 ± 112 | 1225 | 1887 |
 | discoveredAttack | core | 1056 ± 328 | 863 | none | n/a | totals, 1362 ± 112 | 1169 | 1899 |
 | op:london | core | 1056 ± 328 | 863 | none | n/a | totals, 1362 ± 112 | 1169 | 1494 |

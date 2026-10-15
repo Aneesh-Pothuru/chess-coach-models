@@ -152,6 +152,7 @@ const report = {
     span: state.shape.span,
     heldPuzzleTotals: state.shape.heldPuzzleTotals,
     lastAttempt: state.shape.lastAttempt,
+    syncedOn: state.shape.syncedOn,
   },
   // A miss comes back as a redemption card, so the cards reviewed once, the
   // only ones round 1's record keeps, hold almost none of the misses.
@@ -211,7 +212,7 @@ const md = [
   '',
   `The learner's own self-check on this profile: ${report.selfCheck.n} held-out attempts, Brier ${report.selfCheck.brier} against ${report.selfCheck.baseline.brier} for its constant, log loss ${report.selfCheck.logLoss} against ${report.selfCheck.baseline.logLoss}; mean predicted ${report.selfCheck.meanPredicted}, observed ${report.selfCheck.meanObserved}.`,
   '',
-  '## What each estimate would aim a set at today',
+  `## What each estimate would aim a set at on ${report.record.syncedOn}, the profile's last sync`,
   '',
   '| Bucket | Phase | Headline | Its target | Themed view | Its target | The app aims from | Its target | Hardest in the bank |',
   '|---|---|---:|---:|---:|---:|---|---:|---:|',
