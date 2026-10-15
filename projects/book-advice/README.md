@@ -158,6 +158,16 @@ than defenders near the king. The app gives no such warning yet.
   give back material, and when mate is near, counterattack only with moves
   forcing enough to interrupt it. A sign that misses the bar is not shown.
 
+**After the result.** Inside the first 12 plies the signs carried nothing
+(the uncastled king, boxed in by its own pieces, shows "no safe squares" from
+the first move), and in a game from the start the app can only tell the book
+is over by waiting out those plies. `king-notes.mjs` applies the same bar
+again to the positions after them, where a warning would speak: only the signs
+that clear it there warn. It reports beside it each sign's danger against what
+the ply alone predicts (each 13-to-20, 21-to-30, 31-to-40 and later bin's base
+rate), and how often a warning would speak a game. This step came after the
+result, so it can take signs away, never add one.
+
 ## 1c. The coach's "good trade" praise
 
 When the player is ahead and the Won-Game Protocol is on, the live coach
