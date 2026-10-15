@@ -1280,6 +1280,36 @@ function checkGuardLeft([x, k, whose, sq, y, piece], e) {
 }
 
 /**
+ * "After X, your P no longer guards S, and Y follows" (or "Y takes the Q
+ * there"): X is the played move, made by that P, which attacked S before it,
+ * and after it no piece of the mover's attacks S; Y, the engine's reply to X,
+ * lands on S, a square other than the one X moved to, taking that piece when
+ * the text says so; and the guard held something: Y is a king's move, or Y's
+ * piece is worth more than P, or after Y nothing of Y's side covers S.
+ */
+function checkGuardGivenUp([x, whose, piece, sq, y, taken], e) {
+  const { M, surface, shown, whole } = e
+  const out = [e.san(x, M.F0, M.playedUci)]
+  const fail = (why) => [...out, claim('guard_given_up', surface, shown, whole, F(why))]
+  const mv = M.attPlayed?.mv
+  if (!mv) return fail('the move does not replay')
+  if (ownerOf(whose, M) !== mv.color) return fail(`the piece ${mv.san} moves is not ${whose}`)
+  if (mv.piece !== TYPE_OF_WORD[piece]) return fail(`${mv.san} moves a ${WORD_OF_TYPE[mv.piece]}, not a ${piece}`)
+  if (sq === mv.to) return fail(`${sq} is the square ${mv.san} moves to`)
+  if (!load(M.F0).attackers(sq, mv.color).includes(mv.from)) return fail(`the ${piece} on ${mv.from} did not guard ${sq}`)
+  const still = mv.board.attackers(sq, mv.color)
+  if (still.length) return fail(`after ${mv.san}, ${still.join(' and ')} still guard${still.length === 1 ? 's' : ''} ${sq}`)
+  out.push(e.san(y, mv.afterFen, M.replyPvUci[0]))
+  const reply = moveAt(mv.afterFen, M.replyPvUci[0])
+  if (!reply || reply.to !== sq) return fail(`the engine's reply to ${mv.san} does not land on ${sq}`)
+  if (taken && reply.captured !== TYPE_OF_WORD[taken]) return fail(`${reply.san} does not take a ${taken} on ${sq}`)
+  const worth = { p: 1, n: 3, b: 3, r: 5, q: 9 }
+  const covered = reply.board.attackers(sq, reply.color).length > 0
+  if (reply.piece !== 'k' && covered && (mv.piece === 'k' || worth[reply.piece] <= worth[mv.piece])) return fail(`the guard held nothing: after ${reply.san} the ${WORD_OF_TYPE[reply.piece]} on ${sq} is covered, and taking it with the ${piece} would not gain`)
+  return [...out, claim('guard_given_up', surface, shown, whole, T(`the ${piece} on ${mv.from} guarded ${sq}, nothing of the mover's does after ${mv.san}, and the reply ${reply.san} lands there`))]
+}
+
+/**
  * An answer to "why not just take it?": "if they take it with X, [M1 M2 ..., then] Y ...".
  * "It" is the piece the better move moved (the best line, or a searched capture
  * of it) or the reply moved (the played line). The text's moves must be the
@@ -1906,6 +1936,11 @@ const LESSON_TEMPLATES = [
   {
     re: new RegExp(String.raw`\b${TOKR} is a check with a reason: after ${TOKR}, (their|your) king no longer guards ${SQ}, and ${TOKR} (?:follows|takes the ${PIECE} there)\.`, 'g'),
     run: (g, e) => checkGuardLeft(g, e),
+  },
+  // The guard a played move gives up: the square its piece left unguarded, where the reply lands.
+  {
+    re: new RegExp(String.raw`\bAfter ${TOKR}, (their|your) ${PIECE} no longer guards ${SQ}, and ${TOKR} (?:follows|takes the ${PIECE} there)\.`, 'g'),
+    run: (g, e) => checkGuardGivenUp(g, e),
   },
   // "Why not take it?": the capture of the move's piece and what follows, on the engine line.
   {
@@ -2906,6 +2941,18 @@ function runCorruption(cases) {
   if (tt) results.push(corruptionRow('the piece a better check wins named as another', tt, swapIn(tt, takesThere, (_, p) => `takes the ${p === 'queen' ? 'rook' : 'queen'} there.`), /is a check with a reason/))
   const fo = pick(inDiff((d) => freed.test(d) && / follows\.$/.test(d)))
   if (fo) results.push(corruptionRow('a quiet follow-up said to take a queen', fo, swapIn(fo, / follows\.$/, ' takes the queen there.'), /is a check with a reason/))
+  // The guard a played move gives up: the square, the piece that moved, the piece taken there, a quiet reply.
+  const gave = /\bAfter (\S+), (their|your) (pawn|knight|bishop|rook|queen|king) no longer guards ([a-h])([1-8]), and /
+  const guardClaim = /^After \S+, (?:their|your) \w+ no longer guards/
+  const gv = pick(inDiff((d) => gave.test(d)))
+  if (gv) {
+    results.push(corruptionRow('the square a played move stops guarding, one file over', gv, swapIn(gv, gave, (_, x, w, p, f, r) => `After ${x}, ${w} ${p} no longer guards ${nextFile(f)}${r}, and `), guardClaim))
+    results.push(corruptionRow('the piece that stops guarding named as another', gv, swapIn(gv, gave, (_, x, w, p, f, r) => `After ${x}, ${w} ${p === 'rook' ? 'bishop' : 'rook'} no longer guards ${f}${r}, and `), guardClaim))
+  }
+  const gt = pick(inDiff((d) => gave.test(d) && takesThere.test(d)))
+  if (gt) results.push(corruptionRow('the piece the reply takes there named as another', gt, swapIn(gt, new RegExp(`^(${gave.source.slice(2)}\\S+ )${takesThere.source}`), (_, head, ...g) => `${head}takes the ${g[5] === 'queen' ? 'rook' : 'queen'} there.`), guardClaim))
+  const gf = pick(inDiff((d) => gave.test(d) && / follows\.$/.test(d)))
+  if (gf) results.push(corruptionRow('a quiet reply on the unguarded square said to take a queen', gf, swapIn(gf, new RegExp(`^(${gave.source.slice(2)}\\S+) follows\\.$`), (_, head) => `${head} takes the queen there.`), guardClaim))
   return results
 }
 
