@@ -1309,6 +1309,68 @@ function checkGuardGivenUp([x, whose, piece, sq, y, taken], e) {
   return [...out, claim('guard_given_up', surface, shown, whole, T(`the ${piece} on ${mv.from} guarded ${sq}, nothing of the mover's does after ${mv.san}, and the reply ${reply.san} lands there`))]
 }
 
+/** From `fen`, with `by` to move instead, some legal capture on `sq` that no legal move takes back. */
+function takenFree(fen, by, sq) {
+  const parts = fen.split(' ')
+  parts[1] = by
+  parts[3] = '-'
+  const g = load(parts.join(' '))
+  if (!g) return false
+  return g.moves({ verbose: true }).some((m) => {
+    if (m.to !== sq || !m.captured) return false
+    const h = load(g.fen())
+    if (!playUci(h, m.from + m.to + (m.promotion ?? ''))) return false
+    return !h.moves({ verbose: true }).some((r) => r.to === sq && r.captured)
+  })
+}
+
+/**
+ * "X attacks their P on S, but it escapes to T" (or "escapes by taking your Q
+ * on T"), "with check", ", where it (also) attacks your R on U (and your R2
+ * on U2)": X is the played move and gives no check; after it the piece X
+ * moved attacks S, which holds that P of the other side, and did not attack it
+ * before X; the attack threatens P: the moved piece is worth less, or some
+ * capture on S has no answer that takes back; the engine's reply to X moves P
+ * from S to T, taking the piece named there when one is named and nothing
+ * when none is, giving check when the text says so; and from T, P attacks each
+ * square named, which holds that piece of the mover's, and it did not attack
+ * that square from S.
+ */
+function checkChasedEscape([x, whose, piece, sq, to, takenWhose, taken, takenSq, check, , w1, p1, s1, w2, p2, s2], e) {
+  const { M, surface, shown, whole } = e
+  const out = [e.san(x, M.F0, M.playedUci)]
+  const fail = (why) => [...out, claim('chased_escape', surface, shown, whole, F(why))]
+  const mv = M.attPlayed?.mv
+  if (!mv) return fail('the move does not replay')
+  if (mv.board.inCheck()) return fail(`${mv.san} gives check`)
+  const them = other(mv.color)
+  if (ownerOf(whose, M) !== them) return fail(`the ${piece} on ${sq} is not ${whose}`)
+  const at = mv.board.get(sq)
+  if (!at || at.color !== them || at.type !== TYPE_OF_WORD[piece]) return fail(`after ${mv.san}, ${sq} holds no ${piece} of the other side`)
+  if (!mv.board.attackers(sq, mv.color).includes(mv.to)) return fail(`the ${WORD_OF_TYPE[mv.piece]} on ${mv.to} does not attack ${sq}`)
+  const start = load(M.F0)
+  if (start.attackers(sq, mv.color).includes(mv.from) && start.get(sq)?.type === at.type) return fail(`the ${WORD_OF_TYPE[mv.piece]} on ${mv.from} already attacked ${sq}`)
+  const worth = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 100 }
+  if (!(worth[mv.piece] < worth[at.type]) && !takenFree(mv.afterFen, mv.color, sq)) return fail(`the attack threatens nothing: the ${piece} on ${sq} is worth no more than the ${WORD_OF_TYPE[mv.piece]} and is defended`)
+  const reply = moveAt(mv.afterFen, M.replyPvUci[0])
+  if (!reply || reply.from !== sq) return fail(`the engine's reply to ${mv.san} does not move the ${piece} on ${sq}`)
+  const dest = to ?? takenSq
+  if (reply.to !== dest) return fail(`${reply.san} goes to ${reply.to}, not ${dest}`)
+  if (taken) {
+    if (ownerOf(takenWhose, M) !== mv.color) return fail(`the ${taken} on ${dest} is not ${takenWhose}`)
+    if (reply.captured !== TYPE_OF_WORD[taken]) return fail(`${reply.san} does not take a ${taken} on ${dest}`)
+  } else if (reply.captured) return fail(`${reply.san} takes a ${WORD_OF_TYPE[reply.captured]}, which the text leaves out`)
+  if (check && !reply.board.inCheck()) return fail(`${reply.san} gives no check`)
+  for (const [w, p, s] of [[w1, p1, s1], [w2, p2, s2]]) {
+    if (!s) continue
+    const there = reply.board.get(s)
+    if (ownerOf(w, M) !== mv.color || !there || there.color !== mv.color || there.type !== TYPE_OF_WORD[p]) return fail(`after ${reply.san}, ${s} holds no ${w} ${p}`)
+    if (!reply.board.attackers(s, reply.color).includes(reply.to)) return fail(`from ${reply.to} the ${piece} does not attack ${s}`)
+    if (mv.board.attackers(s, them).includes(sq) && mv.board.get(s)?.type === there.type) return fail(`the ${piece} already attacked ${s} from ${sq}`)
+  }
+  return [...out, claim('chased_escape', surface, shown, whole, T(`${mv.san} attacks the ${piece} on ${sq}, and the reply ${reply.san} moves it to ${reply.to}`))]
+}
+
 /**
  * An answer to "why not just take it?": "if they take it with X, [M1 M2 ..., then] Y ...".
  * "It" is the piece the better move moved (the best line, or a searched capture
@@ -1941,6 +2003,11 @@ const LESSON_TEMPLATES = [
   {
     re: new RegExp(String.raw`\bAfter ${TOKR}, (their|your) ${PIECE} no longer guards ${SQ}, and ${TOKR} (?:follows|takes the ${PIECE} there)\.`, 'g'),
     run: (g, e) => checkGuardGivenUp(g, e),
+  },
+  // A chased piece that escapes: the played move's attack, the reply that moves the piece away, and what it does from there.
+  {
+    re: new RegExp(String.raw`\b${TOKR} attacks (their|your) ${PIECE} on ${SQ}, but it escapes (?:to ${SQ}|by taking (their|your) ${PIECE} on ${SQ})( with check)?(?:, where it (also )?attacks (their|your) ${PIECE} on ${SQ}(?: and (their|your) ${PIECE} on ${SQ})?)?\.`, 'g'),
+    run: (g, e) => checkChasedEscape(g, e),
   },
   // "Why not take it?": the capture of the move's piece and what follows, on the engine line.
   {
@@ -2953,6 +3020,25 @@ function runCorruption(cases) {
   if (gt) results.push(corruptionRow('the piece the reply takes there named as another', gt, swapIn(gt, new RegExp(`^(${gave.source.slice(2)}\\S+ )${takesThere.source}`), (_, head, ...g) => `${head}takes the ${g[5] === 'queen' ? 'rook' : 'queen'} there.`), guardClaim))
   const gf = pick(inDiff((d) => gave.test(d) && / follows\.$/.test(d)))
   if (gf) results.push(corruptionRow('a quiet reply on the unguarded square said to take a queen', gf, swapIn(gf, new RegExp(`^(${gave.source.slice(2)}\\S+) follows\\.$`), (_, head) => `${head} takes the queen there.`), guardClaim))
+  // A chased piece that escapes: the square it stood on, the piece, where it goes, what it takes, what it attacks, the check.
+  const chase = /\b(\S+) attacks (their|your) (pawn|knight|bishop|rook|queen) on ([a-h])([1-8]), but it escapes /
+  const chaseClaim = /^\S+ attacks (?:their|your) \w+ on [a-h][1-8], but it escapes/
+  const ch = pick(inDiff((d) => chase.test(d)))
+  if (ch) {
+    results.push(corruptionRow('the square a chased piece stood on, one file over', ch, swapIn(ch, chase, (_, x, w, p, f, r) => `${x} attacks ${w} ${p} on ${nextFile(f)}${r}, but it escapes `), chaseClaim))
+    results.push(corruptionRow('the chased piece named as another', ch, swapIn(ch, chase, (_, x, w, p, f, r) => `${x} attacks ${w} ${p === 'rook' ? 'bishop' : 'rook'} on ${f}${r}, but it escapes `), chaseClaim))
+  }
+  const escapesTo = /, but it escapes to ([a-h])([1-8])/
+  const et = pick(inDiff((d) => chase.test(d) && escapesTo.test(d)))
+  if (et) results.push(corruptionRow('the square a chased piece escapes to, one file over', et, swapIn(et, escapesTo, (_, f, r) => `, but it escapes to ${nextFile(f)}${r}`), chaseClaim))
+  const byTaking = /, but it escapes by taking (their|your) (pawn|knight|bishop|rook|queen) on /
+  const bt = pick(inDiff((d) => chase.test(d) && byTaking.test(d)))
+  if (bt) results.push(corruptionRow('the piece a chased piece takes named as another', bt, swapIn(bt, byTaking, (_, w, p) => `, but it escapes by taking ${w} ${p === 'knight' ? 'bishop' : 'knight'} on `), chaseClaim))
+  const whereHits = /, where it (also )?attacks (their|your) (pawn|knight|bishop|rook|queen) on ([a-h])([1-8])/
+  const wh = pick(inDiff((d) => chase.test(d) && whereHits.test(d)))
+  if (wh) results.push(corruptionRow('the piece a chased piece attacks from its new square, one file over', wh, swapIn(wh, whereHits, (_, also, w, p, f, r) => `, where it ${also ?? ''}attacks ${w} ${p} on ${nextFile(f)}${r}`), chaseClaim))
+  const quiet = pick(inDiff((d) => chase.test(d) && !/ with check/.test(d) && escapesTo.test(d)))
+  if (quiet) results.push(corruptionRow('a quiet escape said to come with check', quiet, swapIn(quiet, escapesTo, (_, f, r) => `, but it escapes to ${f}${r} with check`), chaseClaim))
   return results
 }
 
