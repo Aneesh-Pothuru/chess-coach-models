@@ -1,0 +1,375 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Does the books' advice hold at his level?\\[0.3em]
+\large Seven rules from two chess books, tested against Stockfish and Maia-2 on Lichess 10-minute
+games and his own}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Two chess books for club players answered twenty questions the coaching app raised. Where an answer
+suggests a rule the app could follow or a number it could aim at, this paper tests it before the app
+acts on it, each under a rule written down and committed before its run, on \GamesRead{} rated
+10-minute Lichess games and his \ArchiveGames. After the opponent's serious error, \OneAHisPunishedShare\% of
+replies at his level punish it; \OneAHisTrapShare\% of the failures take material that is a trap, enough
+for a drill that mixes gifts with traps, and the rest are misses whose best reply is rarely a fork, a
+mate or a pin, so the punish goal's practice stays on hanging pieces. Four of eight warning signs of danger
+to one's own king clear the bar at his level, but past the first \BookPlies{} plies, where a warning
+in a game can speak, only two hold: the enemy queen on the king's exits and a king with no safe
+square (lifts \KingLateQueenOnExits{} and \KingLateNoSafeSquares); the rook lift and two more attackers
+than defenders mostly mark a later stage of the game. The coach's ``good trade'' praise is faulted
+on \TradeHisFaulted{} of praised trades at his level, and no case the books warn about makes it
+worse. Backward moves are not the moves his level misses most: a quiet backward best move is missed
+less often than a quiet forward one, and Maia-2 finds it more likely. In lost positions, Maia-2 is not a fair judge of which move sets the most
+problems, so the review keeps naming the engine's top move. The books' \BooksTarget\% conversion
+target is already passed by players at his level; the app's three conversion goals were above what
+players \LookAbove{} points above each stage convert, and move down to those rates. On the books'
+twelve planning positions, the guess-the-plan drill's \PlanMargin{} cp rule agrees with every
+verdict at its own budget.
+\end{abstract}
+
+\section{The question}
+
+Levy Rozman's \emph{How to Win at Chess} (2023) and \emph{How to Win at Chess: Next Level} (2026)
+answered twenty questions about the app's coaching. Most answers are qualitative. Seven suggest a
+rule or a number, and each became a test (Table~\ref{tab:verdicts}):
+\begin{enumerate}[nosep,label=\textbf{1\alph*}]
+\item After the opponent's serious error, how often do players at his level punish it, miss it, or
+take material that is a trap?
+\item Which warning signs of danger to one's own king does the engine bear out?
+\item How often does the coach's ``good trade'' praise land on a trade the books would not praise?
+\item Are retreats, and backward knight moves above all, the best moves his level misses most, and
+the hardest for Maia to find?
+\item When every move loses, does the move whose winning reply is hardest to find save more games
+than the engine's top move?
+\item What share of decisive advantages do players at his level and \LookAbove{} points above
+convert, against the app's goals?
+\item Does the guess-the-plan drill's \PlanMargin{} cp rule agree with the books' verdicts on their
+twelve planning positions?
+\end{enumerate}
+No model judges anything here. Every verdict comes from Stockfish, Maia-2 or the app's own board
+code, imported through the lab's bridge at app commit \texttt{\AppCommit}, and each test's rule, its
+bar and what the app does when it passes were committed before its run (the project's
+\texttt{README.md}).
+
+\begin{table}[h]
+\centering
+\small\VerdictTable
+\caption{The seven tests, what each rule decided, and what the app took.}
+\label{tab:verdicts}
+\end{table}
+
+\section{The data}
+
+The games are the \GamesRead{} rated 10-minute Lichess games of \Month{} (CC0) that the
+think-time study keeps, with Lichess's evaluation on every move and the clock. Each gives two
+player-games, one for each player, read the app's way. A player-game's band is the player's own
+Lichess rating. His chess.com rapid rating comes to the middle of his band, \HisLo--\HisHi, by the
+app's conversion; the band above is \AboveLo--\AboveHi. His band holds \HisPlayerGames{}
+player-games and the band above \AbovePlayerGames. His games are his \ArchiveGames{} 10-minute games
+in the app's archive at that commit; only aggregates are committed. The engine is the app's Node
+engine service (Stockfish 18 lite, one thread a search), at the app's own budgets, and Maia-2 comes
+through the same service. The books' positions (test 1g) are not in this repository: the test reads
+them at run time and commits counts only.
+
+Shares carry 95\% Wilson intervals.
+
+\section{1a. The move after their mistake}
+
+The books warn that a piece offered for free may be a trap, and that the usual process applies after
+the opponent's mistake: check what changed, look at the forcing moves, test the reply. The app's
+``Punish their mistakes'' goal drills hanging-piece puzzles.
+
+\textbf{The rule.} The event is a player's move right after the opponent's serious error (a mistake
+or a blunder by the review reader). The reply \emph{punished} it when it kept at least half of the
+gift, the app's own test; it took a \emph{trap} when it did not and was a capture the reader judged a
+mistake or a blunder; otherwise it \emph{missed}. Traps are a real share when at least one failure
+in ten is a trap in his band, or in his games with the interval's lower end there or above; then the
+app gets a ``take it or not'' drill and the review tags a poisoned capture. Misses dominate when at
+least two failures in three are misses in his band; then the goal's practice adds the punishments it
+lacks, by what the misses missed.
+
+\textbf{The split.} Both hold (Table~\ref{tab:onea}). At his level \OneAHisPunished\% of replies
+punish the error. Of the failures, \OneAHisTrapOfFailures{} are a trap taken and
+\OneAHisMissedOfFailures{} a miss; his own games split the same way (\OneAArchiveTrapOfFailures{}
+traps). On the punish goal's own population, gifts of \GiftFloor{} win\% or more, traps are a larger share
+of the failures (\OneAHisGiftTrapOfFailures{} at his level). After a punished reply, the player's next
+move is a serious error \OneAHisNextSerious{} of the time, against \OneAHisHighOtherSerious{} on his
+other moves at \HighWp{} win\% or more: the books' ``success is not permission to stop looking''.
+
+\begin{table}[h]
+\centering
+\scriptsize\OneATable
+\caption{The reply to the opponent's serious error.}
+\label{tab:onea}
+\end{table}
+
+\textbf{What the misses missed.} The engine (\BestNodes{} nodes) found the best reply in a seeded
+sample of \OneAHisMissesSearched{} misses in each band and in all \OneAArchiveMissesSearched{} of
+his, and the app's labeller named it (Table~\ref{tab:oneakinds}). No kind of punishment beyond the
+hanging piece names one miss in ten in his band: a mate \OneAHisKindMate, a fork \OneAHisKindFork,
+a pin, skewer or discovered attack \OneAHisKindPinSkewerDiscovered. The punish goal keeps its
+hanging-piece practice. The free piece itself is the best reply in \OneAHisKindHangingPiece{} of the
+misses and saving a loose piece of the player's own in \OneAHisKindDefensiveMove; the labeller does
+not name the rest (\OneAHisKindUnnamed).
+
+\begin{table}[h]
+\centering
+\scriptsize\OneAKindsTable
+\caption{The engine's best reply in the position the opponent's serious error left, where the player
+missed the punishment, as the app's labeller names it.}
+\label{tab:oneakinds}
+\end{table}
+
+\textbf{Offered material.} In his band, \OneAHisOfferedSearched{} sampled replies came right after
+the opponent's move left one of their knights, bishops, rooks or queens newly hanging. Taking it with
+the cheapest attacker was a trap, a mistake or a blunder by the app's judge, in
+\OneAHisOfferedTraps{} of them, most often for a knight, \OneAHisOfferedTrapKnight, and least
+often for a queen, \OneAHisOfferedTrapQueen. The players took \OneAHisTookTrap{} of the traps and left
+\OneAHisLeftGift{} of the real gifts, so leaving a gift was the commoner failure. In his games
+\OneAArchiveOfferedTraps{} of \OneAArchiveOfferedSearched{} offers were traps.
+
+\section{1b. Danger to his own king}\label{sec:king}
+
+The books list warning signs that come before a mate is on the board: a king with no safe squares,
+an enemy queen covering its exits, a bishop aimed into the shelter, an approaching knight, a rook
+lift, a hook pawn, a pawn storm when the kings stand on opposite wings, and at least two more
+effective attackers than defenders near the king (\emph{plus two}).
+
+\textbf{The rule.} The positions are one position before a player's move from each of \KingHisPositions{}
+player-games in each band, past the book, not in check and not an endgame by the app's phase divider,
+and up to ten from each of his games. A position is \emph{dangerous} when the engine finds a forced
+mate for the opponent with the opponent to move (\CheckNodes{} nodes), or the game's own evals put
+the player \SwingWp{} win\% or more lower within \SwingPlies{} plies. Each sign is board code over the app's board kernel,
+over the king's zone (its square, the eight around it and the three squares two ranks in front). A
+sign becomes a warning when, in his band, it shows in at least \KingShowsBar\% of positions, lifts the
+danger rate at least \KingLiftBar{} times, and its precision's interval starts at \KingFloorBar{}
+times the base rate or more.
+
+\textbf{The result.} \KingClearedCap{} signs clear the bar (Table~\ref{tab:king}). The queen on the exits
+lifts the danger rate most. The opposite-side storm lifts it \KingStormLift{} times, but its interval
+starts at \KingStormLow\%, under the floor of \KingFloor\%. No safe squares foretells mate threats
+(lift \KingNoSafeMateLift) and not swings (\KingNoSafeSwingLift).
+
+\begin{table}[h]
+\centering
+\scriptsize\KingTable
+\caption{The eight signs in his band's positions (base rate: mate threats \KingHisMateBase\%, swings
+\KingHisSwingBase\%), with each sign's lift in the band above and in his games.}
+\label{tab:king}
+\end{table}
+
+\textbf{Where a warning can speak.} A step taken after the result. Inside the first \BookPlies{}
+plies the signs say nothing: any sign was dangerous \KingEarlyAny{} of the time against a base of
+\KingEarlyBase\% (\KingEarlyPositions{} positions), since the uncastled king, boxed in by its own
+pieces, shows ``no safe squares'' from the first move. A practice game from the start can only tell
+the book is over by waiting out those plies, so the same bar was applied again to the
+\KingLatePositions{} positions after them (Table~\ref{tab:kinglate}). Danger rises with the ply, from
+\KingBinFirst\% in plies \KingBinFirstPlies{} to \KingBinLast\% from ply \KingBinLastFrom, and the rook lift and plus two mostly
+marked that rise: past the book their lifts are \KingLateRookLift{} and \KingLatePlusTwo, and against
+the danger each ply bin predicts they lift it little. Only the queen on the exits and no safe squares
+clear the bar there, and they keep a lift of \KingLiftBar{} or more against the ply alone in every group. This
+step could take signs away, never add one.
+
+\begin{table}[h]
+\centering
+\scriptsize\KingLateTable
+\caption{The four signs that cleared the bar, on his band's positions after the first \BookPlies{}
+plies. ``Against the ply alone'' is the danger observed over the danger expected from the base rate of
+each ply bin (\KingBins).}
+\label{tab:kinglate}
+\end{table}
+
+In his games, after the first \BookPlies{} plies, a warning on the two signs, said when a sign appears
+that the position before his last move did not show, would speak \KingNotesPerGame{} times a game
+(none in \KingNotesSilent\% of games; \KingNotesHisBand{} in his band's). Danger follows it
+\KingOnsetDanger{} of the time, against \KingNoneDanger{} where no sign shows. On all four signs it
+would speak \KingNotesAllPerGame{} times a game, followed by danger \KingAllOnsetDanger{} of the time.
+
+\section{1c. The coach's ``good trade'' praise}
+
+When the player is ahead, the live coach praises an even trade: ``Good trade: knight for knight keeps
+you up a piece, and with fewer pieces left that lead counts for more.'' The books qualify the advice:
+do not give a more active piece for a less active one, nor a piece one's attack needs, nor the queens
+while attacking, and judge the ending the trade leads to.
+
+\textbf{The rule.} Every move where the coach's trade rule fires in his games, and a sample of
+\TradeHisTrades{} in each band, is read as the praise gate reads it, at the coach's own budgets; the
+praised trades are the population. A case tightens the gate when it holds for at least one praised
+trade in twenty (\TradeShareBar\%) in his band or in his games, and the game's own eval faults its
+praised trades (a loss of \TradeFaultBar{} win\% or more) at least as often as the others. A piece is
+\emph{more active} when it has \TradeMobilityGap{} more legal moves or more. A trade leads to a \emph{worse
+ending} when the player's next move is in the endgame and the game's own eval faults the trade, so
+every trade in that case is faulted and only its share can decide.
+
+\textbf{The result.} No case tightens the praise (Table~\ref{tab:trades}). The coach praises
+\TradeHisPraised\% of the trades its rule finds at his level, and the game's eval faults
+\TradeHisFaulted{} of them (\TradeHisFaultedCount); in his games \TradeArchiveFaulted{}
+(\TradeArchiveFaultedCount). Giving the more active piece is common, \TradeActiveShare\% of the
+praised trades, but those are faulted less often than the rest (\TradeActiveFaulted\% against
+\TradeActiveOthers\%). Queens off while attacking is faulted more (\TradeQueensFaulted\%), on
+\TradeQueensShare\% of praised trades, under the one in twenty the rule asks. The review's
+missed-trade line fires on \TradeLineFires{} of his \TradeLineFaultedAhead{} faulted moves while
+ahead; the best move's trade gives the more active piece on \TradeLineActive, trades an attacker on
+\TradeLineAttacker{} and takes the queens off while attacking on \TradeLineQueens.
+
+\begin{table}[h]
+\centering
+\scriptsize\TradeTable
+\caption{The books' cases among the coach's praised trades: each case's share, how often the game's
+own eval faults the praised trades in it, and the other praised trades.}
+\label{tab:trades}
+\end{table}
+
+\section{1d. Backward moves}
+
+The books call backward knight moves among the hardest moves to notice, and ask the solver to check
+whether a retreat helps one or two moves later.
+
+\textbf{The rule.} The positions are the position before a player's move, past the book, with at
+least two legal moves: up to ten from each of \RetreatsDrawGames{} player-games in each band, and
+\RetreatsDrawArchive{} from his games. Only \emph{must-find} positions count, where the engine
+(\CheckNodes{} nodes, two lines) finds a best move at least \RetreatsMustFind{} win\% better than the
+second, so that missing it is at least a mistake by the app's judge. The player \emph{found} it when
+he played the engine's best move. A best move is \emph{backward} when it ends on a rank nearer the
+mover's own back rank, \emph{forward} when nearer the opponent's, and \emph{sideways} otherwise;
+castling is left out. The tests compare \emph{quiet} best moves (no capture, no promotion), since a
+capture is seen as a capture whichever way it goes. Backward moves are \emph{missed more often} when,
+in his band, the miss rate of backward quiet best moves exceeds that of forward ones with the
+difference's interval (Newcombe's) above zero. They are \emph{harder for Maia at the same value} when
+Maia-2's probability for the best move, at the player's band against the opponent's, averages lower
+for backward than for forward quiet best moves within each of three bins of the best move's margin
+over the second (\RetreatsBins{} win\%), and the difference, weighted by the backward moves in each
+bin, has a bootstrap interval below zero. When both hold, the scan adds ``look at backward moves
+too'' and the review names a missed retreat.
+
+\textbf{The result.} Neither half holds, and both point the other way (Table~\ref{tab:retreats}). In
+his band a quiet backward best move was missed \RetreatsHisBackward{} of the time, against
+\RetreatsHisForward{} for a quiet forward one, a difference of \RetreatsHisDiff{} points. The band
+above is the same, and in his games the two are missed about equally. Backward knight moves were
+missed \RetreatsHisKnightBack{} of the time against \RetreatsHisKnightFwd{} for forward knight moves,
+inside the noise. Maia-2 gives a backward best move more probability than a forward one at the same
+margin, not less (Table~\ref{tab:retreatsmaia}), in the two bins that hold
+\RetreatsFirstBinsBackward{} of the \RetreatsHisQuietBackward{} backward moves; only in the last,
+with \RetreatsLastBinBackward{} of them, does it give less. With captures counted, backward and
+forward best moves are missed about equally (\RetreatsHisAllBackward{} against
+\RetreatsHisAllForward), since only \RetreatsFwdQuietShare\% of forward best moves are quiet against
+\RetreatsBackQuietShare\% of backward ones, and a capture is found more often. The move his level
+misses most is the quiet move forward. The scan and the review stay as they are.
+
+\begin{table}[h]
+\centering
+\scriptsize\RetreatsTable
+\caption{How often the player missed a must-find best move, by the direction of a quiet best move.
+Differences are in points, with Newcombe's interval.}
+\label{tab:retreats}
+\end{table}
+
+\begin{table}[h]
+\centering
+\scriptsize\RetreatsMaiaTable
+\caption{Maia-2's mean probability for the best move in his band, by the best move's margin over the
+second, with the bootstrap interval of the weighted difference.}
+\label{tab:retreatsmaia}
+\end{table}
+
+\section{1e. Practical tries when every move loses}
+
+The books say that in a lost position the defender should make the opponent's task hard. Where every
+move leaves the player behind and he picked a worse one, the review says ``You are behind either
+way'' and names the engine's top move.
+
+\textbf{The rule.} One position from each player-game where the game's own eval puts the player
+\PracticalBehind{} cp or more behind (\PracticalHisPositions{} in each band, every one in his games),
+kept when the engine's top move still loses. The candidates are the engine's lines within
+\PracticalWithin{} cp of the top move. For each, Maia-2 at the opponent's level gives the opponent's
+likeliest replies (up to \PracticalMost, until they cover \PracticalCover\%), and the engine scores
+them; a reply \emph{throws the win away} when it leaves the player no longer behind. A candidate's
+\emph{chance} is Maia's probability on those replies, and the \emph{practical try} is the candidate
+with the highest chance. The practical try saves more games when Maia is a fair instrument (the
+replies that throw the win away rise from the lowest third of Maia's chance to the highest, and the
+predicted chance lies inside the observed share in at least two thirds), it differs from the top
+move in at least \PracticalDiffersBar\% of his band's positions, and its extra saves average at
+least \PracticalExtraBar{} games per 100 there.
+
+\textbf{The result.} It does not. Maia is not a fair instrument here (Table~\ref{tab:practical}): in
+two thirds of the positions it gives no chance at all, yet some replies there do throw the win away;
+in the top third it is right. The practical try differs from the top move in \PracticalHisDiffers{}
+of his band's \PracticalHisKept{} positions, under the bar. Where it differs, its extra saves would be
+\PracticalHisExtra{} games per 100, from a mean chance of \PracticalChanceTry\% against
+\PracticalChanceTop\% for the top move. The game's own outcomes agree in direction: players who
+played the practical try were saved \PracticalSavedTry{} of the time (\PracticalSavedTryCount), the
+top move \PracticalSavedTop, any other move \PracticalSavedOther. Where it differs, the practical try
+gives a check in \PracticalCheck\% of positions, keeps pieces on in \PracticalPiecesOn\%, pushes a
+passed pawn in \PracticalPassed\% and stalemates in \PracticalStalemate\%.
+
+\begin{table}[h]
+\centering
+\scriptsize\PracticalCalibration
+\caption{Maia's chance that the opponent's reply throws the win away, by third of the predicted
+chance, against the share of actual replies that did.}
+\label{tab:practical}
+\end{table}
+
+\section{1f. The conversion target}
+
+The books' informal target is converting a decisive advantage at least \BooksTarget\% of the time.
+The app measures conversion as \texttt{conversion.sustained}: of the games where the player stood at
++3 or better for three plies in a row, the share won. Its tripwire fires under \TripwireWas\% over
+the trailing \TripwireWindow{} games, and its three stage goals ask for \GoalsWas.
+
+\textbf{The rule.} A stage goal stays when it lies inside the interval of what players \LookAbove{}
+points above that stage's band convert, and otherwise moves to that rate; the tripwire should fire
+when he converts no better than players \LookAbove{} points below him.
+
+\textbf{The result.} All four move (Table~\ref{tab:conversion}). Each goal was above what players
+\LookAbove{} points above its stage convert, and the stage 4 goal asked for more than Lichess players
+at \ConvTopBand{} convert, \ConvTop. Players at his level already pass the books' \BooksTarget\%,
+converting \ConvHis, and the band above converts \ConvAbove. In his \ConvArchiveGames{} games with a sustained +3 he won \ConvArchive.
+His last \ConvWindow{} games at that commit hold \ConvWindowSustained{} with a sustained +3,
+under the metric's minimum of \ConvWindowMin, so the tripwire stays quiet until it has the games.
+
+\begin{table}[h]
+\centering
+\scriptsize\ConversionTable
+\caption{The conversion goals and the tripwire, the band each is read from, and what it moves to.}
+\label{tab:conversion}
+\end{table}
+
+\section{1g. The twelve planning positions}
+
+The guess-the-plan drill shows a quiet position with the engine's three best moves and counts any
+option within \PlanMargin{} cp of the best as right. Next Level's last chapter gives twelve positions
+with the author's preferred, sound and rejected moves: \PlanRejected{} rejected and \PlanSound{}
+preferred or sound over \PlanPositions{} positions, and one that asks for an evaluation.
+
+\textbf{The rule.} Each position is searched at the drill's own budget (\PlanNodes{} nodes) and at
+\DeepNodes{} nodes. A
+disagreement is a rejected move the rule counts as right, or a preferred or sound move it counts as
+wrong, and it holds when both budgets give it.
+
+\textbf{The result.} None holds. At the drill's budget the rule counts \PlanRejectedRightPlan{}
+rejected moves as right and \PlanSoundWrongPlan{} preferred or sound moves as wrong; the deep check
+alone gives \PlanRejectedRightDeep{} and \PlanSoundWrongDeep. Of the rejected moves,
+\PlanRejectedTopThree{} is among the drill's three options at all. The evaluation position, which the books call equal
+without saying who is to move, the engine reads at \DeepNodes{} nodes as \PlanEvalWhite{} for White
+with White to move and \PlanEvalBlack{} for White with Black to move, so it \PlanEvalAgreement. The
+margin stays.
+
+\section{Limits}
+
+The bands are other players, in games against their own level: their numbers say where the books'
+rules hold at his level, not what he would gain by following them. Danger in 1b is read from Lichess's
+evaluations six plies on and a mate search at a modest budget, so it misses slow attacks. The step
+after 1b's result applied a bar fixed before the run to a population chosen after it; it only took
+signs away. In 1a the labeller names one theme per best reply, has no trapped piece, and calls what
+it cannot name by the phase. Maia-2's probabilities in 1e cover the likeliest
+replies only, which is where it fails the test. His Lichess level is the app's conversion of his chess.com rating, and his games come from
+the app's reviews, with another engine and depth.
+
+\end{document}

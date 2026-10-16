@@ -1,0 +1,424 @@
+% Written by projects/book-advice/paper/generate.mjs; do not edit by hand.
+
+\newcommand{\AppCommit}{50de20ccbf}
+\newcommand{\Month}{September 2026}
+\newcommand{\PlayerGamesRead}{148,000}
+\newcommand{\GamesRead}{74,000}
+\newcommand{\ArchiveGames}{639}
+\newcommand{\HisPlayerGames}{39,903}
+\newcommand{\AbovePlayerGames}{34,973}
+\newcommand{\HisLo}{1250}
+\newcommand{\HisHi}{1449}
+\newcommand{\AboveLo}{1450}
+\newcommand{\AboveHi}{1649}
+\newcommand{\CheckNodes}{120,000}
+\newcommand{\BestNodes}{600,000}
+\newcommand{\VerifyNodes}{750,000}
+\newcommand{\GradeNodes}{250,000}
+\newcommand{\PlanNodes}{600,000}
+\newcommand{\GiftFloor}{20}
+\newcommand{\HighWp}{75}
+\newcommand{\SwingPlies}{six}
+\newcommand{\SwingWp}{30}
+\newcommand{\OneAHisEvents}{144,404}
+\newcommand{\OneAHisPunished}{62.0}
+\newcommand{\OneAHisTrap}{6.4}
+\newcommand{\OneAHisMissed}{31.1}
+\newcommand{\OneAHisTrapOfFailures}{17.1\% {\footnotesize (16.8--17.4)}}
+\newcommand{\OneAHisMissedOfFailures}{82.9\% {\footnotesize (82.5--83.2)}}
+\newcommand{\OneAHisGiftTrapOfFailures}{21.8\% {\footnotesize (21.3--22.4)}}
+\newcommand{\OneAHisGiftPunished}{65.9}
+\newcommand{\OneAHisNextSerious}{21.7\% {\footnotesize (21.5--22.0)}}
+\newcommand{\OneAHisHighOtherSerious}{9.6\% {\footnotesize (9.5--9.7)}}
+\newcommand{\OneAAboveEvents}{121,595}
+\newcommand{\OneAAbovePunished}{63.4}
+\newcommand{\OneAAboveTrap}{6.0}
+\newcommand{\OneAAboveMissed}{30.2}
+\newcommand{\OneAAboveTrapOfFailures}{16.7\% {\footnotesize (16.3--17.0)}}
+\newcommand{\OneAAboveMissedOfFailures}{83.3\% {\footnotesize (83.0--83.7)}}
+\newcommand{\OneAAboveGiftTrapOfFailures}{21.5\% {\footnotesize (20.9--22.1)}}
+\newcommand{\OneAAboveGiftPunished}{67.0}
+\newcommand{\OneAAboveNextSerious}{20.5\% {\footnotesize (20.2--20.8)}}
+\newcommand{\OneAAboveHighOtherSerious}{9.1\% {\footnotesize (9.0--9.2)}}
+\newcommand{\OneAArchiveEvents}{1,927}
+\newcommand{\OneAArchivePunished}{65.3}
+\newcommand{\OneAArchiveTrap}{6.4}
+\newcommand{\OneAArchiveMissed}{27.6}
+\newcommand{\OneAArchiveTrapOfFailures}{18.9\% {\footnotesize (16.1--22.1)}}
+\newcommand{\OneAArchiveMissedOfFailures}{81.1\% {\footnotesize (77.9--83.9)}}
+\newcommand{\OneAArchiveGiftTrapOfFailures}{24.6\% {\footnotesize (19.3--30.9)}}
+\newcommand{\OneAArchiveGiftPunished}{72.8}
+\newcommand{\OneAArchiveNextSerious}{18.0\% {\footnotesize (15.9--20.3)}}
+\newcommand{\OneAArchiveHighOtherSerious}{8.9\% {\footnotesize (8.0--9.9)}}
+\newcommand{\OneATable}{%
+\begin{tabular}{lrrrrll}
+\toprule
+ & & \multicolumn{3}{c}{share of the replies} & \multicolumn{2}{c}{share of the failures} \\
+\cmidrule(lr){3-5}\cmidrule(lr){6-7}
+players & replies & punished & a trap taken & missed & a trap taken & missed \\
+\midrule
+his band & 144,404 & 62.0\% & 6.4\% & 31.1\% & 17.1\% {\footnotesize (16.8--17.4)} & 82.9\% {\footnotesize (82.5--83.2)} \\
+the band above & 121,595 & 63.4\% & 6.0\% & 30.2\% & 16.7\% {\footnotesize (16.3--17.0)} & 83.3\% {\footnotesize (83.0--83.7)} \\
+his games & 1,927 & 65.3\% & 6.4\% & 27.6\% & 18.9\% {\footnotesize (16.1--22.1)} & 81.1\% {\footnotesize (77.9--83.9)} \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\OneASampleMisses}{2,000}
+\newcommand{\OneASampleOffers}{3,000}
+\newcommand{\OneAHisMissesSearched}{2,000}
+\newcommand{\OneAHisKindHangingPiece}{10.3\% {\footnotesize (9.1--11.8)}}
+\newcommand{\OneAHisKindMate}{0.8\% {\footnotesize (0.5--1.3)}}
+\newcommand{\OneAHisKindFork}{1.6\% {\footnotesize (1.1--2.2)}}
+\newcommand{\OneAHisKindPinSkewerDiscovered}{5.7\% {\footnotesize (4.8--6.8)}}
+\newcommand{\OneAHisKindStrike}{0.2\% {\footnotesize (0.1--0.5)}}
+\newcommand{\OneAHisKindDefensiveMove}{19.6\% {\footnotesize (17.9--21.3)}}
+\newcommand{\OneAHisKindUnnamed}{61.9\% {\footnotesize (59.7--63.9)}}
+\newcommand{\OneAHisOfferedSearched}{3,000}
+\newcommand{\OneAHisOfferedTraps}{12.6\% {\footnotesize (11.5--13.8)}}
+\newcommand{\OneAHisTookTrap}{27.8\% {\footnotesize (23.5--32.5)}}
+\newcommand{\OneAHisLeftGift}{34.1\% {\footnotesize (32.3--35.9)}}
+\newcommand{\OneAHisOfferedTrapKnight}{17.5\% {\footnotesize (15.3--20.0)}}
+\newcommand{\OneAHisOfferedTrapBishop}{13.3\% {\footnotesize (11.1--15.9)}}
+\newcommand{\OneAHisOfferedTrapRook}{10.0\% {\footnotesize (8.1--12.2)}}
+\newcommand{\OneAHisOfferedTrapQueen}{3.2\% {\footnotesize (1.9--5.6)}}
+\newcommand{\OneAAboveMissesSearched}{2,000}
+\newcommand{\OneAAboveKindHangingPiece}{9.5\% {\footnotesize (8.3--10.9)}}
+\newcommand{\OneAAboveKindMate}{0.6\% {\footnotesize (0.3--1.1)}}
+\newcommand{\OneAAboveKindFork}{1.7\% {\footnotesize (1.2--2.4)}}
+\newcommand{\OneAAboveKindPinSkewerDiscovered}{5.0\% {\footnotesize (4.1--6.0)}}
+\newcommand{\OneAAboveKindStrike}{0.1\% {\footnotesize (0.0--0.4)}}
+\newcommand{\OneAAboveKindDefensiveMove}{16.4\% {\footnotesize (14.9--18.1)}}
+\newcommand{\OneAAboveKindUnnamed}{66.7\% {\footnotesize (64.6--68.7)}}
+\newcommand{\OneAAboveOfferedSearched}{3,000}
+\newcommand{\OneAAboveOfferedTraps}{14.3\% {\footnotesize (13.1--15.6)}}
+\newcommand{\OneAAboveTookTrap}{23.8\% {\footnotesize (20.0--28.1)}}
+\newcommand{\OneAAboveLeftGift}{32.7\% {\footnotesize (30.9--34.5)}}
+\newcommand{\OneAAboveOfferedTrapKnight}{19.1\% {\footnotesize (16.8--21.6)}}
+\newcommand{\OneAAboveOfferedTrapBishop}{16.9\% {\footnotesize (14.3--19.8)}}
+\newcommand{\OneAAboveOfferedTrapRook}{11.0\% {\footnotesize (9.1--13.3)}}
+\newcommand{\OneAAboveOfferedTrapQueen}{4.9\% {\footnotesize (3.2--7.3)}}
+\newcommand{\OneAArchiveMissesSearched}{531}
+\newcommand{\OneAArchiveKindHangingPiece}{10.9\% {\footnotesize (8.6--13.9)}}
+\newcommand{\OneAArchiveKindMate}{1.5\% {\footnotesize (0.8--2.9)}}
+\newcommand{\OneAArchiveKindFork}{2.5\% {\footnotesize (1.4--4.1)}}
+\newcommand{\OneAArchiveKindPinSkewerDiscovered}{3.8\% {\footnotesize (2.5--5.8)}}
+\newcommand{\OneAArchiveKindStrike}{0.0\% {\footnotesize (0.0--0.7)}}
+\newcommand{\OneAArchiveKindDefensiveMove}{19.4\% {\footnotesize (16.3--23.0)}}
+\newcommand{\OneAArchiveKindUnnamed}{62.0\% {\footnotesize (57.8--66.0)}}
+\newcommand{\OneAArchiveOfferedSearched}{228}
+\newcommand{\OneAArchiveOfferedTraps}{13.6\% {\footnotesize (9.8--18.6)}}
+\newcommand{\OneAArchiveTookTrap}{29.0\% {\footnotesize (16.1--46.6)}}
+\newcommand{\OneAArchiveLeftGift}{29.4\% {\footnotesize (23.5--36.1)}}
+\newcommand{\OneAArchiveOfferedTrapKnight}{15.1\% {\footnotesize (9.0--24.2)}}
+\newcommand{\OneAArchiveOfferedTrapBishop}{14.0\% {\footnotesize (6.6--27.3)}}
+\newcommand{\OneAArchiveOfferedTrapRook}{9.0\% {\footnotesize (4.2--18.2)}}
+\newcommand{\OneAArchiveOfferedTrapQueen}{18.8\% {\footnotesize (8.9--35.3)}}
+\newcommand{\OneAHisTrapShare}{17}
+\newcommand{\OneAHisPunishedShare}{62}
+\newcommand{\OneAKindsTable}{%
+\begin{tabular}{llll}
+\toprule
+the engine's best reply & his band & the band above & his games \\
+\midrule
+misses searched & 2,000 & 2,000 & 531 \\
+\midrule
+the hanging piece & 10.3\% {\footnotesize (9.1--11.8)} & 9.5\% {\footnotesize (8.3--10.9)} & 10.9\% {\footnotesize (8.6--13.9)} \\
+a mate & 0.8\% {\footnotesize (0.5--1.3)} & 0.6\% {\footnotesize (0.3--1.1)} & 1.5\% {\footnotesize (0.8--2.9)} \\
+a fork & 1.6\% {\footnotesize (1.1--2.2)} & 1.7\% {\footnotesize (1.2--2.4)} & 2.5\% {\footnotesize (1.4--4.1)} \\
+a pin, skewer or discovered attack & 5.7\% {\footnotesize (4.8--6.8)} & 5.0\% {\footnotesize (4.1--6.0)} & 3.8\% {\footnotesize (2.5--5.8)} \\
+the f2 or f7 strike & 0.2\% {\footnotesize (0.1--0.5)} & 0.1\% {\footnotesize (0.0--0.4)} & 0.0\% {\footnotesize (0.0--0.7)} \\
+saving a loose piece of his own & 19.6\% {\footnotesize (17.9--21.3)} & 16.4\% {\footnotesize (14.9--18.1)} & 19.4\% {\footnotesize (16.3--23.0)} \\
+a move it does not name & 61.9\% {\footnotesize (59.7--63.9)} & 66.7\% {\footnotesize (64.6--68.7)} & 62.0\% {\footnotesize (57.8--66.0)} \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\KingShowsBar}{2}
+\newcommand{\KingLiftBar}{1.5}
+\newcommand{\KingFloorBar}{1.25}
+\newcommand{\KingHisPositions}{8,000}
+\newcommand{\KingHisBase}{12.4\% {\footnotesize (11.7--13.2)}}
+\newcommand{\KingAbovePositions}{8,000}
+\newcommand{\KingAboveBase}{10.8\% {\footnotesize (10.2--11.6)}}
+\newcommand{\KingArchivePositions}{6,215}
+\newcommand{\KingArchiveBase}{9.3\% {\footnotesize (8.6--10.0)}}
+\newcommand{\KingHisMateBase}{2.3}
+\newcommand{\KingHisSwingBase}{10.3}
+\newcommand{\KingTable}{%
+\begin{tabular}{lrlrcrr}
+\toprule
+ & \multicolumn{4}{c}{his band} & above & his games \\
+\cmidrule(lr){2-5}
+sign & shows & dangerous when shown & lift & clears & lift & lift \\
+\midrule
+every position & & 12.4\% {\footnotesize (11.7--13.2)} & & & & \\
+\midrule
+no safe squares & 3.6\% & 20.7\% {\footnotesize (16.4--25.7)} & 1.66 & yes & 1.80 & 2.55 \\
+queen on the exits & 6.2\% & 30.3\% {\footnotesize (26.4--34.5)} & 2.43 & yes & 2.43 & 3.15 \\
+bishop aimed in & 47.3\% & 14.4\% {\footnotesize (13.4--15.6)} & 1.16 & no & 1.19 & 1.01 \\
+approaching knight & 72.2\% & 12.1\% {\footnotesize (11.3--12.9)} & 0.97 & no & 0.94 & 0.96 \\
+rook lift & 24.1\% & 18.8\% {\footnotesize (17.1--20.6)} & 1.51 & yes & 1.58 & 1.72 \\
+hook pawn & 57.8\% & 10.8\% {\footnotesize (9.9--11.7)} & 0.87 & no & 0.83 & 0.86 \\
+opposite-side storm & 3.6\% & 19.3\% {\footnotesize (15.1--24.3)} & 1.55 & no & 1.43 & 1.85 \\
+plus two & 6.5\% & 21.1\% {\footnotesize (17.9--24.9)} & 1.70 & yes & 1.60 & 2.19 \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\KingCleared}{four}
+\newcommand{\KingClearedCap}{Four}
+\newcommand{\KingStormLift}{1.55}
+\newcommand{\KingStormLow}{15.1}
+\newcommand{\KingFloor}{15.6}
+\newcommand{\KingNoSafeMateLift}{5.1}
+\newcommand{\KingNoSafeSwingLift}{0.93}
+\newcommand{\BookPlies}{12}
+\newcommand{\KingEarlyPositions}{1,755}
+\newcommand{\KingEarlyBase}{6.0}
+\newcommand{\KingEarlyAny}{7.6\% {\footnotesize (4.2--13.4)}}
+\newcommand{\KingEarlyNoSafeShows}{6.2}
+\newcommand{\KingLatePositions}{6,245}
+\newcommand{\KingLateBase}{14.3\% {\footnotesize (13.4--15.2)}}
+\newcommand{\KingLateTable}{%
+\begin{tabular}{lrlrcrrr}
+\toprule
+ & \multicolumn{4}{c}{his band, after ply 12} & \multicolumn{3}{c}{against the ply alone} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-8}
+sign & shows & dangerous when shown & lift & clears & his band & above & his games \\
+\midrule
+every position & & 14.3\% {\footnotesize (13.4--15.2)} & & & & & \\
+\midrule
+no safe squares & 2.9\% & 29.1\% {\footnotesize (23.0--36.1)} & 2.04 & yes & 1.88 & 2.01 & 2.71 \\
+queen on the exits & 7.6\% & 31.1\% {\footnotesize (27.1--35.4)} & 2.18 & yes & 1.95 & 1.79 & 2.26 \\
+rook lift & 30.7\% & 18.8\% {\footnotesize (17.1--20.6)} & 1.31 & no & 1.17 & 1.14 & 1.16 \\
+plus two & 8.3\% & 21.3\% {\footnotesize (18.0--25.1)} & 1.49 & no & 1.32 & 1.17 & 1.44 \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\KingBinFirst}{11.1}
+\newcommand{\KingBinLast}{18.7}
+\newcommand{\KingBins}{13--20, 21--30, 31--40 and 41 and later}
+\newcommand{\KingBinFirstPlies}{13 to 20}
+\newcommand{\KingBinLastFrom}{41}
+\newcommand{\KingLateNoSafeSquares}{2.04}
+\newcommand{\KingLateQueenOnExits}{2.18}
+\newcommand{\KingLateRookLift}{1.31}
+\newcommand{\KingLatePlusTwo}{1.49}
+\newcommand{\KingNotesPerGame}{0.46}
+\newcommand{\KingNotesSilent}{65}
+\newcommand{\KingNotesHisBand}{0.53}
+\newcommand{\KingNotesAllPerGame}{1.61}
+\newcommand{\KingOnsetDanger}{26.7\% {\footnotesize (20.5--33.9)}}
+\newcommand{\KingNoneDanger}{9.7\% {\footnotesize (8.8--10.6)}}
+\newcommand{\KingAllOnsetDanger}{16.4\% {\footnotesize (13.4--19.9)}}
+\newcommand{\TradeShareBar}{5}
+\newcommand{\TradeFaultBar}{2}
+\newcommand{\TradeMobilityGap}{three}
+\newcommand{\TradeHisTrades}{1,500}
+\newcommand{\TradeHisPraised}{73}
+\newcommand{\TradeHisFaulted}{2.8\% {\footnotesize (2.0--4.0)}}
+\newcommand{\TradeHisFaultedCount}{31 of 1,094}
+\newcommand{\TradeAboveTrades}{1,500}
+\newcommand{\TradeAbovePraised}{73}
+\newcommand{\TradeAboveFaulted}{2.8\% {\footnotesize (2.0--4.0)}}
+\newcommand{\TradeAboveFaultedCount}{31 of 1,096}
+\newcommand{\TradeArchiveTrades}{89}
+\newcommand{\TradeArchivePraised}{79}
+\newcommand{\TradeArchiveFaulted}{5.7\% {\footnotesize (2.2--13.8)}}
+\newcommand{\TradeArchiveFaultedCount}{4 of 70}
+\newcommand{\TradeTable}{%
+\begin{tabular}{lrllrll}
+\toprule
+ & \multicolumn{3}{c}{his band} & \multicolumn{3}{c}{his games} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+case & share & faulted & others faulted & share & faulted & others faulted \\
+\midrule
+active for passive & 28.1\% & 1.6\% & 3.3\% & 32.9\% & 1 of 23 & 3 of 47 \\
+an attacker traded & 2.8\% & 0.0\% & 2.9\% & 4.3\% & 0 of 3 & 4 of 67 \\
+queens off while attacking & 3.3\% & 11.1\% & 2.5\% & 2.9\% & 0 of 2 & 4 of 68 \\
+a worse ending & 1.3\% & all & 1.6\% & 4.3\% & all & 1 of 67 \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\TradeActiveShare}{28}
+\newcommand{\TradeActiveFaulted}{1.6}
+\newcommand{\TradeActiveOthers}{3.3}
+\newcommand{\TradeQueensFaulted}{11.1}
+\newcommand{\TradeQueensShare}{3.3}
+\newcommand{\TradeLineFires}{32}
+\newcommand{\TradeLineFaultedAhead}{840}
+\newcommand{\TradeLineActive}{7 of 32}
+\newcommand{\TradeLineAttacker}{2 of 32}
+\newcommand{\TradeLineQueens}{2 of 32}
+\newcommand{\RetreatsDrawGames}{3,000}
+\newcommand{\RetreatsDrawArchive}{6,000}
+\newcommand{\RetreatsMustFind}{10}
+\newcommand{\RetreatsBins}{10 to 20, 20 to 40 and 40 or more}
+\newcommand{\RetreatsHisPositions}{29,887}
+\newcommand{\RetreatsHisMustFindPositions}{3,101}
+\newcommand{\RetreatsHisBackward}{36.5\% {\footnotesize (30.7--42.7)}}
+\newcommand{\RetreatsHisForward}{46.7\% {\footnotesize (43.0--50.3)}}
+\newcommand{\RetreatsHisDiff}{$-$10.2 {\footnotesize ($-$17.0 to $-$3.0)}}
+\newcommand{\RetreatsHisKnightBack}{32.8\% {\footnotesize (22.1--45.6)}}
+\newcommand{\RetreatsHisKnightFwd}{45.0\% {\footnotesize (36.6--53.6)}}
+\newcommand{\RetreatsHisAllBackward}{30.8\% {\footnotesize (26.4--35.6)}}
+\newcommand{\RetreatsHisAllForward}{27.9\% {\footnotesize (26.1--29.7)}}
+\newcommand{\RetreatsHisMaiaDiff}{6.8}
+\newcommand{\RetreatsHisMaiaCi}{2.4 to 11.3}
+\newcommand{\RetreatsAbovePositions}{29,904}
+\newcommand{\RetreatsAboveMustFindPositions}{3,050}
+\newcommand{\RetreatsAboveBackward}{36.3\% {\footnotesize (30.7--42.4)}}
+\newcommand{\RetreatsAboveForward}{47.2\% {\footnotesize (43.4--51.0)}}
+\newcommand{\RetreatsAboveDiff}{$-$10.8 {\footnotesize ($-$17.6 to $-$3.7)}}
+\newcommand{\RetreatsAboveKnightBack}{40.0\% {\footnotesize (28.6--52.6)}}
+\newcommand{\RetreatsAboveKnightFwd}{42.0\% {\footnotesize (34.2--50.1)}}
+\newcommand{\RetreatsAboveAllBackward}{30.7\% {\footnotesize (26.4--35.4)}}
+\newcommand{\RetreatsAboveAllForward}{27.1\% {\footnotesize (25.3--28.9)}}
+\newcommand{\RetreatsAboveMaiaDiff}{10.0}
+\newcommand{\RetreatsAboveMaiaCi}{5.3 to 14.6}
+\newcommand{\RetreatsArchivePositions}{6,000}
+\newcommand{\RetreatsArchiveMustFindPositions}{607}
+\newcommand{\RetreatsArchiveBackward}{40.0\% {\footnotesize (27.6--53.8)}}
+\newcommand{\RetreatsArchiveForward}{40.2\% {\footnotesize (31.9--49.0)}}
+\newcommand{\RetreatsArchiveDiff}{$-$0.2 {\footnotesize ($-$15.4 to 15.9)}}
+\newcommand{\RetreatsArchiveKnightBack}{46.2\% {\footnotesize (23.2--70.9)}}
+\newcommand{\RetreatsArchiveKnightFwd}{23.8\% {\footnotesize (10.6--45.1)}}
+\newcommand{\RetreatsArchiveAllBackward}{31.1\% {\footnotesize (22.5--41.3)}}
+\newcommand{\RetreatsArchiveAllForward}{25.7\% {\footnotesize (21.7--30.1)}}
+\newcommand{\RetreatsArchiveMaiaDiff}{8.8}
+\newcommand{\RetreatsArchiveMaiaCi}{$-$1.8 to 19.6}
+\newcommand{\RetreatsTable}{%
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrllll}
+\toprule
+ & & \multicolumn{3}{c}{quiet best moves missed} & \\
+\cmidrule(lr){3-5}
+players & must-find & backward & sideways & forward & backward $-$ forward \\
+\midrule
+his band & 3,101 & 36.5\% {\footnotesize (30.7--42.7)} & 37.8\% {\footnotesize (31.4--44.7)} & 46.7\% {\footnotesize (43.0--50.3)} & $-$10.2 {\footnotesize ($-$17.0 to $-$3.0)} \\
+the band above & 3,050 & 36.3\% {\footnotesize (30.7--42.4)} & 40.4\% {\footnotesize (34.0--47.2)} & 47.2\% {\footnotesize (43.4--51.0)} & $-$10.8 {\footnotesize ($-$17.6 to $-$3.7)} \\
+his games & 607 & 40.0\% {\footnotesize (27.6--53.8)} & 35.4\% {\footnotesize (23.4--49.6)} & 40.2\% {\footnotesize (31.9--49.0)} & $-$0.2 {\footnotesize ($-$15.4 to 15.9)} \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\RetreatsMaiaTable}{%
+\begin{tabular}{lrrrr}
+\toprule
+ & \multicolumn{2}{c}{backward} & \multicolumn{2}{c}{forward} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+best move's margin (win\%) & positions & Maia-2 & positions & Maia-2 \\
+\midrule
+10--20 & 147 & 51.1\% & 466 & 43.8\% \\
+20--40 & 88 & 64.4\% & 206 & 57.0\% \\
+40 or more & 9 & 61.5\% & 44 & 70.9\% \\
+\midrule
+weighted by the backward moves & & \multicolumn{3}{l}{backward $-$ forward: 6.8 points (2.4 to 11.3)} \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\RetreatsLastBinBackward}{nine}
+\newcommand{\RetreatsLastBinFrom}{40}
+\newcommand{\RetreatsFirstBinsBackward}{235}
+\newcommand{\RetreatsHisQuietBackward}{244}
+\newcommand{\RetreatsFwdQuietShare}{31}
+\newcommand{\RetreatsBackQuietShare}{63}
+\newcommand{\PracticalBehind}{250}
+\newcommand{\PracticalWithin}{100}
+\newcommand{\PracticalCover}{85}
+\newcommand{\PracticalMost}{six}
+\newcommand{\PracticalDiffersBar}{25}
+\newcommand{\PracticalExtraBar}{3}
+\newcommand{\PracticalHisPositions}{800}
+\newcommand{\PracticalHisKept}{653}
+\newcommand{\PracticalHisSOne}{67.1\% {\footnotesize (55.9--76.6)}}
+\newcommand{\PracticalHisSZero}{18.0\% {\footnotesize (15.1--21.4)}}
+\newcommand{\PracticalHisDiffers}{19.4\% {\footnotesize (16.6--22.7)}}
+\newcommand{\PracticalHisExtra}{10.0}
+\newcommand{\PracticalAbovePositions}{800}
+\newcommand{\PracticalAboveKept}{626}
+\newcommand{\PracticalAboveSOne}{56.3\% {\footnotesize (44.8--67.3)}}
+\newcommand{\PracticalAboveSZero}{17.9\% {\footnotesize (14.9--21.3)}}
+\newcommand{\PracticalAboveDiffers}{20.9\% {\footnotesize (17.9--24.3)}}
+\newcommand{\PracticalAboveExtra}{9.1}
+\newcommand{\PracticalArchivePositions}{347}
+\newcommand{\PracticalArchiveKept}{314}
+\newcommand{\PracticalArchiveSOne}{64.3\% {\footnotesize (51.2--75.5)}}
+\newcommand{\PracticalArchiveSZero}{22.4\% {\footnotesize (17.7--28.0)}}
+\newcommand{\PracticalArchiveDiffers}{22.0\% {\footnotesize (17.8--26.9)}}
+\newcommand{\PracticalArchiveExtra}{7.7}
+\newcommand{\PracticalCalibration}{%
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llrlrlr}
+\toprule
+ & \multicolumn{2}{c}{his band} & \multicolumn{2}{c}{the band above} & \multicolumn{2}{c}{his games} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+third of Maia's chance & observed & predicted & observed & predicted & observed & predicted \\
+\midrule
+lowest & 2.8\% {\footnotesize (1.3--5.9)} & 0.0\% & 1.0\% {\footnotesize (0.3--3.5)} & 0.0\% & 1.9\% {\footnotesize (0.5--6.8)} & 0.0\% \\
+middle & 0.9\% {\footnotesize (0.3--3.3)} & 0.0\% & 1.0\% {\footnotesize (0.3--3.5)} & 0.0\% & 3.9\% {\footnotesize (1.5--9.6)} & 0.3\% \\
+highest & 31.5\% {\footnotesize (25.7--38.0)} & 32.2\% & 32.4\% {\footnotesize (26.4--39.0)} & 32.3\% & 48.1\% {\footnotesize (38.7--57.6)} & 34.5\% \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\PracticalSavedTop}{28.6\% {\footnotesize (23.0--34.9)}}
+\newcommand{\PracticalSavedTry}{46.7\% {\footnotesize (30.2--63.9)}}
+\newcommand{\PracticalSavedTryCount}{14 of 30}
+\newcommand{\PracticalSavedOther}{19.2\% {\footnotesize (15.7--23.3)}}
+\newcommand{\PracticalChanceTop}{14.0}
+\newcommand{\PracticalChanceTry}{18.0}
+\newcommand{\PracticalCheck}{4}
+\newcommand{\PracticalPiecesOn}{12}
+\newcommand{\PracticalPassed}{2}
+\newcommand{\PracticalStalemate}{0}
+\newcommand{\LookAbove}{200}
+\newcommand{\TripwireWas}{65}
+\newcommand{\TripwireWindow}{30}
+\newcommand{\GoalsWas}{78\%, 82\% and 85\%}
+\newcommand{\ConversionTable}{%
+\begin{tabular}{llllrr}
+\toprule
+ & chess.com & the band it reads (Lichess) & converts & was & now \\
+\midrule
+stage 1 goal & 1000--1150 & 1450--1599, 200 above & 74.5\% {\footnotesize (73.9--75.2)} & 78\% & 75\% \\
+stage 3 goal & 1300--1450 & 1750--1899, 200 above & 75.9\% {\footnotesize (74.7--77.0)} & 82\% & 76\% \\
+stage 4 goal & 1450--1600 & 1900--2049, 200 above & 77.9\% {\footnotesize (76.6--79.0)} & 85\% & 78\% \\
+tripwire & & 1050--1249, 200 below him & 71.4\% {\footnotesize (70.6--72.2)} & 65\% & 71\% \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\BooksTarget}{70}
+\newcommand{\ConvHis}{72.9\% {\footnotesize (72.4--73.5)}}
+\newcommand{\ConvAbove}{74.7\% {\footnotesize (74.1--75.3)}}
+\newcommand{\ConvTopBand}{1900--2049}
+\newcommand{\ConvTop}{77.9\% {\footnotesize (76.6--79.0)}}
+\newcommand{\ConvArchive}{74.5\% {\footnotesize (69.6--78.8)}}
+\newcommand{\ConvArchiveGames}{337}
+\newcommand{\ConvWindow}{30}
+\newcommand{\ConvWindowSustained}{18}
+\newcommand{\ConvWindowMin}{20}
+\newcommand{\PlanMargin}{45}
+\newcommand{\PlanPositions}{eleven}
+\newcommand{\DeepNodes}{32 million}
+\newcommand{\PlanRejected}{5}
+\newcommand{\PlanSound}{14}
+\newcommand{\PlanRejectedRightPlan}{zero}
+\newcommand{\PlanSoundWrongPlan}{zero}
+\newcommand{\PlanRejectedRightDeep}{one}
+\newcommand{\PlanSoundWrongDeep}{one}
+\newcommand{\PlanRejectedTopThree}{one}
+\newcommand{\PlanEvalAgreement}{disagrees}
+\newcommand{\PlanEvalWhite}{``about even''}
+\newcommand{\PlanEvalBlack}{``much worse''}
+\newcommand{\VerdictTable}{%
+\begin{tabular}{lp{0.42\textwidth}p{0.42\textwidth}}
+\toprule
+test & what the rule found & what the app took \\
+\midrule
+1a & Traps are a real share of the failures, and misses dominate & A ``take it or not'' drill (chess PR 109); the punish goal keeps its hanging-piece practice: no other kind reaches one miss in ten \\
+1b & Four of eight signs warn; past the book, two & Practice games warn on their reply (chess PR 111) \\
+1c & No case tightens the praise & Nothing: the praise stays \\
+1d & Backward moves are missed less often, not more, and are not harder for Maia & Nothing \\
+1e & Maia is not a fair judge here; the practical try does not save more & Nothing: the review names the top move \\
+1f & All four conversion numbers move & The goals and the tripwire (chess PR 108) \\
+1g & No disagreement holds & Nothing: the margin stays \\
+\bottomrule
+\end{tabular}
+}
