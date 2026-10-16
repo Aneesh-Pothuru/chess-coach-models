@@ -116,7 +116,11 @@ made give each move the number round 17's sentence gives it; the judge does not 
 the round counts its defect as rounds 11 and 14 did. Round 18 says what a better check does, which
 the player's answers to the coach's questions on what a lesson should explain asked about; the
 first two sets change few moments with it, so it is also graded and judged on a second endgame set,
-and the judge decides it.
+and the judge decides it. Rounds 19 and 20 come from the same answers: round 19 says the guard a
+played move gives up, and round 20 says when the piece a move attacks escapes to a better square.
+Each changes more moments than a judge can read, so the judge reads a seeded sample of them, as in
+round 17, and decides it. Round 20's first version failed its grades before any judge ran, and its
+variant 20b is the round judged.
 
 \begin{table}[!htbp]
 \centering\footnotesize
@@ -222,6 +226,19 @@ line steps off a square the king guarded, and the mover's next move lands there,
 difference says so: ``\RoundEighteenQuote'' (``and Rxf1+ takes the rook there'' when that move
 captures). The round was graded on the documents round 17 was, on every key moment of the endgame
 set, and on a second endgame set (Section~\ref{sec:results}).
+\item[Round 19: the guard a played move gives up.] When the piece the played move moved guarded the
+square the engine's reply lands on, nothing of the mover's guards it after the move, and the guard
+held something, the section on the difference says so: ``\RoundNineteenQuote'' (``\RoundNineteenQuoteKing''
+when the reply takes nothing). The round was graded on round 18's three sets
+(Section~\ref{sec:results}).
+\item[Round 20: the chased piece that escapes.] When the played move gives no check and newly
+attacks a piece with a threat, and the engine's reply moves that piece away to take something,
+give check or attack something new, the section on the difference says so: ``\RoundTwentyQuote''
+(``\RoundTwentyQuoteTakes'' when it escapes by taking). A reply that takes the attacker, a trade
+and the better line's own answer do not count. The first version took any attacker worth less than
+the piece as a threat, and the app counts a king as worth nothing, so it called a king's attack on
+a guarded piece a threat; round 20b counts a king's attack only on an unguarded piece. The round
+was graded on round 19's three sets (Section~\ref{sec:results}).
 \end{description}
 
 \begin{table}[!htbp]
@@ -230,7 +247,8 @@ set, and on a second endgame set (Section~\ref{sec:results}).
 \caption{The judge rounds, pooled over both runs: new--old preferred, with the same-answers in
 parentheses. Round 6 made no run of its own: it reads round 5's judgments on the moments whose
 texts round 6 changes. Round 17's judges read a seeded sample of the moments it changed; round 17b
-judged again the sampled moments whose wording it changed, and round 17 is decided on both.}
+judged again the sampled moments whose wording it changed, and round 17 is decided on both. Rounds
+19 and 20b were judged on seeded samples too; round 20's first version was not judged.}
 \label{tab:judge}
 \end{table}
 
@@ -272,6 +290,10 @@ set the round leaves unchanged; the decoy won \PadSeventeenDecoy{} of \PadSevent
 (\PadSeventeenUnchanged{} the shorter text, \PadSeventeenSame{} same). Round 18 adds one sentence
 to the difference, so its padding control does the same; the decoy won \PadEighteenDecoy{} of
 \PadEighteenN{} comparisons (\PadEighteenUnchanged{} the shorter text, \PadEighteenSame{} same).
+Rounds 19 and 20b each add one sentence to the difference as well, and their padding controls do
+as round 18's did: the decoy won \PadNineteenDecoy{} of \PadNineteenN{} comparisons in round 19
+(\PadNineteenUnchanged{} the shorter text, \PadNineteenSame{} same) and \PadTwentyDecoy{} of
+\PadTwentyN{} in round 20b (\PadTwentyUnchanged{} the shorter text, \PadTwentySame{} same).
 
 \begin{table}[!htbp]
 \centering\footnotesize
@@ -446,14 +468,32 @@ The judges read all \RoundEighteenJudged, each in its own set's split, and prefe
 \RoundEighteenTrainNew--\RoundEighteenTrainOld{} on train and
 \RoundEighteenTestNew--\RoundEighteenTestOld{} on test.
 
+Round 19 was graded on round 18's three sets, by a grader that learned its sentence first, checked
+on the board apart from the app's code, and graded the base exactly as before in every set. It
+changes the texts of \RoundNineteenChangedTrain{} train and \RoundNineteenChangedTest{} test
+moments, and no grade moves (Table~\ref{tab:rebuilt}). The judges read a seeded sample of
+\RoundNineteenSampled{} of the \RoundNineteenChanged{} changed moments, up to \RoundNineteenPer{}
+from each set and split (seed \RoundNineteenSeed), and preferred the new texts
+\RoundNineteenTrainNew--\RoundNineteenTrainOld{} on train and
+\RoundNineteenTestNew--\RoundNineteenTestOld{} on test.
+
+Round 20 was graded on round 19's three sets the same way, and failed its rule on one test moment,
+the king's attack on a guarded piece. Round 20b's plan was written after that and before any judge
+ran. It changes the texts of \RoundTwentyChangedTrain{} train and \RoundTwentyChangedTest{} test
+moments; no grade falls, and concrete rises on \RoundTwentyConcreteUp{} of them
+(Table~\ref{tab:rebuilt}). The judges read a seeded sample of \RoundTwentySampled{} of the
+\RoundTwentyChanged{} changed moments (seed \RoundTwentySeed) and preferred the new texts
+\RoundTwentyTrainNew--\RoundTwentyTrainOld{} on train and
+\RoundTwentyTestNew--\RoundTwentyTestOld{} on test.
+
 \begin{table}[!htbp]
 \centering\footnotesize
 \RebuiltTable
 \caption{A round graded on rebuilt documents, beside its base on the same documents: moments graded
 1, with one number where the round and its base agree. The rows marked endgame set are rounds 16
-to 18 on the endgame set (round 18 on all its key moments, the others on its endgame moments), and
-those marked second endgame set round 18 on the set drawn for it; v17 is round 17's first wording,
-v17b its last, and v17c the last with the folded note's numbers.}
+to 20b on the endgame set (rounds 18 to 20b on all its key moments, the others on its endgame
+moments), and those marked second endgame set rounds 18 to 20b on the set drawn for round 18; v17
+is round 17's first wording, v17b its last, and v17c the last with the folded note's numbers.}
 \label{tab:rebuilt}
 \end{table}
 
@@ -525,6 +565,14 @@ ahead or behind is the one the judges did not always prefer.
 mover's pieces already covers it; on \RoundEighteenHeldNothing{} of its sentences one does, so the
 king's guard there held nothing, and the one answer the judges gave against the round was on such
 a sentence.
+\item Round 19 names the guard a played move gives up without asking whether the better move gives
+it up too; on \RoundNineteenBothLeave{} of its \RoundNineteenJudged{} judged sentences nothing of
+the mover's guards the square after the better move either, and the one answer the judges gave
+against the round was on such a sentence.
+\item Round 20b calls the attacked piece's move an escape even where the mover can take it at once
+on its new square, a sacrifice rather than an escape: \RoundTwentyHangs{} of its
+\RoundTwentyJudged{} judged sentences are such, and two of the three moments the judges held
+against the round among them.
 \item \Games{} games of one player. The split keeps the claims honest about that player, not
 about players in general.
 \end{itemize}

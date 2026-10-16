@@ -49,9 +49,9 @@
 \newcommand{\KeptTrainConcreteVsBase}{+6.8 [3.2, 10.6]}
 \newcommand{\KeptTrainTextsChanged}{87}
 \newcommand{\KeptVariant}{v8}
-\newcommand{\RoundCount}{18}
-\newcommand{\RoundCountCap}{18}
-\newcommand{\KeptRoundCount}{15}
+\newcommand{\RoundCount}{20}
+\newcommand{\RoundCountCap}{20}
+\newcommand{\KeptRoundCount}{17}
 \newcommand{\UnjudgedKept}{1, 2, 11 and 14}
 \newcommand{\RoundsTable}{%
 \begin{tabularx}{\textwidth}{l L rrrr r r}
@@ -80,6 +80,8 @@ v15 & Say what a quiet reply defends & \multicolumn{5}{c}{\emph{graded on rebuil
 v16 & Tell an endgame's passed pawns' story & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 37--2 / 18--3 \\
 v17c & Say where each move leaves the game & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 73--0 / 76--0 \\
 v18 & A better check is said by the guard it takes off a square & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 20--0 / 13--1 \\
+v19 & The guard a played move gives up & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 96--1 / 90--0 \\
+v20b & The chased piece that escapes to a better square & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 87--3 / 84--2 \\
 \bottomrule
 \end{tabularx}
 }
@@ -106,6 +108,8 @@ round & judged & train & test & the rule says \\
 17b & round 17b (49 moments) & 52--0 (0) & 46--0 (0) & keep \\
 17 and 17b & round 17 then round 17b (80 moments) & 73--0 (7) & 76--0 (4) & keep \\
 18 & round 18 & 20--0 (0) & 13--1 (0) & keep \\
+19 & round 19 (94 moments) & 96--1 (1) & 90--0 (0) & keep \\
+20b & round 20b (88 moments) & 87--3 (0) & 84--2 (0) & keep \\
 \bottomrule
 \end{tabular}
 }
@@ -136,6 +140,10 @@ v17c & test & 153 & 153 & 129 & 144 & 152 & 26 \\
 v17c & train & 180 & 179 & 152 & 166 & 179 & 34 \\
 v18 & test & 153 & 153 & 129 & 144 & 152 & 2 \\
 v18 & train & 180 & 179 & 152 & 166 & 179 & 0 \\
+v19 & test & 153 & 153 & 129 & 144 & 152 & 5 \\
+v19 & train & 180 & 179 & 152 & 166 & 179 & 9 \\
+v20b & test & 153 & 153 & 129 / 130 & 144 & 152 & 6 \\
+v20b & train & 180 & 179 & 152 & 166 & 179 & 6 \\
 v16, endgame set & test & 184 & 181 & 162 & 158 & 180 & 3 \\
 v16, endgame set & train & 219 & 213 & 170 / 172 & 204 & 213 & 19 \\
 v17, endgame set & test & 184 & 181 & 162 & 158 & 180 & 94 \\
@@ -146,8 +154,16 @@ v17c, endgame set & test & 184 & 181 & 162 & 158 & 180 & 29 \\
 v17c, endgame set & train & 219 & 213 & 172 & 204 & 213 & 41 \\
 v18, endgame set & test & 572 & 561 & 481 & 529 & 560 & 1 \\
 v18, endgame set & train & 612 & 598 & 491 & 573 & 598 & 8 \\
+v19, endgame set & test & 572 & 561 & 481 & 529 & 560 & 43 \\
+v19, endgame set & train & 612 & 598 & 491 & 573 & 598 & 38 \\
+v20b, endgame set & test & 572 & 561 & 481 / 482 & 529 & 560 & 19 \\
+v20b, endgame set & train & 612 & 598 & 491 / 493 & 573 & 598 & 22 \\
 v18, second endgame set & test & 494 & 490 & 407 & 458 & 490 & 4 \\
 v18, second endgame set & train & 517 & 509 & 420 & 468 & 509 & 2 \\
+v19, second endgame set & test & 494 & 490 & 407 & 458 & 490 & 36 \\
+v19, second endgame set & train & 517 & 509 & 420 & 468 & 509 & 20 \\
+v20b, second endgame set & test & 494 & 490 & 407 / 408 & 458 & 490 & 18 \\
+v20b, second endgame set & train & 517 & 509 & 420 / 425 & 468 & 509 & 19 \\
 \bottomrule
 \end{tabular}
 }
@@ -288,6 +304,35 @@ the five of Table~\ref{tab:defects} & 0 & 0 \\
 \newcommand{\RoundEighteenTrainOld}{0}
 \newcommand{\RoundEighteenTestNew}{13}
 \newcommand{\RoundEighteenTestOld}{1}
+\newcommand{\RoundNineteenBothLeave}{five}
+\newcommand{\RoundNineteenJudged}{94}
+\newcommand{\RoundNineteenQuote}{After Qe1, your queen no longer guards d3, and Rxd3 takes the bishop there.}
+\newcommand{\RoundNineteenQuoteKing}{After Kc1, your king no longer guards c3, and Kc3 follows.}
+\newcommand{\RoundNineteenChanged}{151}
+\newcommand{\RoundNineteenChangedTrain}{67}
+\newcommand{\RoundNineteenChangedTest}{84}
+\newcommand{\RoundNineteenSampled}{94}
+\newcommand{\RoundNineteenPer}{20}
+\newcommand{\RoundNineteenSeed}{20261019}
+\newcommand{\RoundNineteenTrainNew}{96}
+\newcommand{\RoundNineteenTrainOld}{1}
+\newcommand{\RoundNineteenTestNew}{90}
+\newcommand{\RoundNineteenTestOld}{0}
+\newcommand{\RoundTwentyConcreteUp}{10}
+\newcommand{\RoundTwentyHangs}{five}
+\newcommand{\RoundTwentyJudged}{88}
+\newcommand{\RoundTwentyQuote}{Ne5 attacks their bishop on g4, but it escapes to f5, where it attacks your queen on d3.}
+\newcommand{\RoundTwentyQuoteTakes}{Nf3 attacks their queen on h4, but it escapes by taking your bishop on f4.}
+\newcommand{\RoundTwentyChanged}{90}
+\newcommand{\RoundTwentyChangedTrain}{47}
+\newcommand{\RoundTwentyChangedTest}{43}
+\newcommand{\RoundTwentySampled}{88}
+\newcommand{\RoundTwentyPer}{20}
+\newcommand{\RoundTwentySeed}{20261020}
+\newcommand{\RoundTwentyTrainNew}{87}
+\newcommand{\RoundTwentyTrainOld}{3}
+\newcommand{\RoundTwentyTestNew}{84}
+\newcommand{\RoundTwentyTestOld}{2}
 \newcommand{\LongerPicked}{305}
 \newcommand{\LongerDecided}{326}
 \newcommand{\LongerRounds}{3, 4, 5, 7, 7b, 8 and 9}
@@ -322,6 +367,14 @@ the five of Table~\ref{tab:defects} & 0 & 0 \\
 \newcommand{\PadEighteenN}{20}
 \newcommand{\PadEighteenUnchanged}{0}
 \newcommand{\PadEighteenSame}{20}
+\newcommand{\PadNineteenDecoy}{0}
+\newcommand{\PadNineteenN}{20}
+\newcommand{\PadNineteenUnchanged}{10}
+\newcommand{\PadNineteenSame}{10}
+\newcommand{\PadTwentyDecoy}{0}
+\newcommand{\PadTwentyN}{20}
+\newcommand{\PadTwentyUnchanged}{4}
+\newcommand{\PadTwentySame}{16}
 \newcommand{\ControlsTable}{%
 \begin{tabularx}{\textwidth}{L l l}
 \toprule
@@ -339,6 +392,8 @@ padding control, round 15: the decoy preferred & 0 of 20 (17 the shorter text, 3
 padding control, round 16: the decoy preferred & 0 of 20 (14 the shorter text, 6 same) & no drift \\
 padding control, round 17: the decoy preferred & 0 of 20 (0 the shorter text, 20 same) & no drift \\
 padding control, round 18: the decoy preferred & 0 of 20 (0 the shorter text, 20 same) & no drift \\
+padding control, round 19: the decoy preferred & 0 of 20 (10 the shorter text, 10 same) & no drift \\
+padding control, round 20b: the decoy preferred & 0 of 20 (4 the shorter text, 16 same) & no drift \\
 \bottomrule
 \end{tabularx}
 }
@@ -375,18 +430,18 @@ padding control, round 18: the decoy preferred & 0 of 20 (0 the shorter text, 20
 \newcommand{\ExampleCount}{8}
 \newcommand{\ReproLinesMatched}{27}
 \newcommand{\ReproLines}{27}
-\newcommand{\AppCommit}{\texttt{cec5d69}}
-\newcommand{\RecordsCommit}{\texttt{b7aea66}}
+\newcommand{\AppCommit}{\texttt{e441218}}
+\newcommand{\RecordsCommit}{\texttt{d77d7a3}}
 \newcommand{\RerunSearches}{the capture searches on it (88 kept) and the defense searches (51 kept)}
 \newcommand{\RerunEvidence}{review-evidence/7}
-\newcommand{\RerunTextsSentence}{Its texts equal the recorded texts of v18, the last kept round, on all 333 moments of round 18's documents.}
-\newcommand{\AppKeptThrough}{18}
+\newcommand{\RerunTextsSentence}{Its texts equal the recorded texts of v20b, the last kept round, on all 333 moments of round 20's documents.}
+\newcommand{\AppKeptThrough}{20}
 \newcommand{\AppKeptSentence}{The app at that commit carries every kept round.}
 \newcommand{\RerunTestMoments}{153}
 \newcommand{\RerunTestShared}{146}
-\newcommand{\RerunTestSameGrades}{129}
+\newcommand{\RerunTestSameGrades}{128}
 \newcommand{\RerunTestFaithful}{100.0}
-\newcommand{\RerunTestConcrete}{84.3}
+\newcommand{\RerunTestConcrete}{85.0}
 \newcommand{\RerunTrainMoments}{180}
 \newcommand{\RerunTrainShared}{170}
 \newcommand{\RerunTrainSameGrades}{157}
@@ -398,7 +453,7 @@ padding control, round 18: the decoy preferred & 0 of 20 (0 the shorter text, 20
 split & grade & recorded baseline & recorded v8 & pinned app, rerun \\
 \midrule
 test & faithful & 90.1 [84.2, 95.9] & 100.0 [100.0, 100.0] & 100.0 [100.0, 100.0] \\
-test & concrete & 75.0 [65.3, 83.6] & 82.9 [72.0, 91.4] & 84.3 [76.7, 91.0] \\
+test & concrete & 75.0 [65.3, 83.6] & 82.9 [72.0, 91.4] & 85.0 [78.1, 91.1] \\
 test & named\_deep & 94.1 [89.7, 97.9] & 94.1 [89.7, 97.9] & 94.1 [89.7, 97.9] \\
 test & faithfulAll & 89.5 [83.3, 95.2] & 99.3 [97.8, 100.0] & 99.3 [97.8, 100.0] \\
 train & faithful & 87.6 [83.0, 91.7] & 99.4 [98.1, 100.0] & 99.4 [98.2, 100.0] \\

@@ -49,7 +49,8 @@ const DIMS = ['faithful', 'concrete', 'named_deep', 'faithfulAll'];
 // it re-read round 5's judgments on the moments whose texts v6 changes from v4.
 // Round 17's judges read a seeded sample of the moments it changed
 // (round17/sample.json, drawn from round17/changed.json), and its score counts
-// that sample alone.
+// that sample alone; so do round 19's and round 20b's. Round 20 failed its
+// grades before any judge ran, so its variant 20b is the round judged.
 const ROUNDS = [
   { round: '3', dirs: ['round3'] },
   { round: '4', dirs: ['round4'] },
@@ -69,6 +70,8 @@ const ROUNDS = [
   { round: '17b', dirs: ['round17b'], sample: 'round17' },
   { round: '17 and 17b', dirs: ['round17', 'round17b'], sample: 'round17' },
   { round: '18', dirs: ['round18'] },
+  { round: '19', dirs: ['round19'], sample: 'round19' },
+  { round: '20b', dirs: ['round20b'], sample: 'round20b' },
 ];
 // The rounds judged before the length check, whose streak of longer texts it tested.
 const BEFORE_CHECK = ['3', '4', '5', '7', '7b', '8', '9'];
@@ -92,12 +95,12 @@ const appDefends = () => existsSync(join(CHESS_DIR, 'src', 'services', 'review',
  * round 11's `takesBack`, round 12's defense searches, round 14's
  * `materialChange`, round 15's `quietDefense`, round 16's `pawnRuns`, round
  * 17's `stakesSentence`, round 17c's score rounding, round 18's
- * `checkWithReason`.
+ * `checkWithReason`, round 19's `guardGivenUp`, round 20b's `chasedAway`.
  */
 function appCarries() {
   const lessonFile = join(CHESS_DIR, 'src', 'services', 'knowledge', 'detectors', 'lesson.ts');
   const lesson = existsSync(lessonFile) ? readFileSync(lessonFile, 'utf8') : '';
-  return { v10: lesson.includes('an even trade'), v11: /\btakesBack\b/.test(lesson), v12: appDefends(), v14: /\bmaterialChange\b/.test(lesson), v15: /\bquietDefense\b/.test(lesson), v16: /\bpawnRuns\b/.test(lesson), v17b: /\bstakesSentence\b/.test(lesson), v17c: /\bmateDistance\(score\.cp\b/.test(lesson), v18: /\bcheckWithReason\b/.test(lesson) };
+  return { v10: lesson.includes('an even trade'), v11: /\btakesBack\b/.test(lesson), v12: appDefends(), v14: /\bmaterialChange\b/.test(lesson), v15: /\bquietDefense\b/.test(lesson), v16: /\bpawnRuns\b/.test(lesson), v17b: /\bstakesSentence\b/.test(lesson), v17c: /\bmateDistance\(score\.cp\b/.test(lesson), v18: /\bcheckWithReason\b/.test(lesson), v19: /\bguardGivenUp\b/.test(lesson), v20b: /\bchasedAway\b/.test(lesson) };
 }
 
 function rerun(dir) {
@@ -147,7 +150,7 @@ function main() {
   // The judge rounds, recomputed from the judge's answers and each run's order key.
   const judgeDir = join(records(), 'evals', FLOW, 'judge');
   const textHashes = v => new Map(jsonl(join(recorded, v, 'results.jsonl')).map(m => [m.id, m.textHash]));
-  const reasons = new Map([...state.rounds, ...state.rounds_not_kept].map(r => [String(r.round), r.why]));
+  const reasons = new Map([...state.rounds, ...state.rounds_not_kept].flatMap(r => [[String(r.round), r.why], ...(r.variant ? [[r.variant.slice(1), r.why]] : [])]));
   const judge = ROUNDS.map(({ round, dirs, changed, sample }) => {
     let only = null, sampled = null;
     if (changed) {

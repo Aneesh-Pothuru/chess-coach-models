@@ -95,8 +95,9 @@ const roundRows = variants.map(v => {
 });
 // The judge read every kept round but those that fix errors, and preferred each one on both halves.
 // A round whose final texts are a lettered variant is decided on its first judging and its "b"
-// judging together; a later letter changes nothing the judge reads (17c, the grade note's numbers).
-const judgeKey = (round, variant) => (/^v\d+[b-z]$/.test(variant) ? `${round} and ${round}b` : String(round));
+// judging together, or on its "b" judging alone when its first version failed before any judge
+// ran (20b); a later letter changes nothing the judge reads (17c, the grade note's numbers).
+const judgeKey = (round, variant) => (/^v\d+[b-z]$/.test(variant) ? (judgeOf.has(`${round} and ${round}b`) ? `${round} and ${round}b` : `${round}b`) : String(round));
 const verdictOf = r => judgeOf.get(judgeKey(r.round, r.variant));
 const unjudged = state.rounds.filter(r => !verdictOf(r)).map(r => r.round);
 claim(unjudged.join() === '1,2,11,14', 'the judge read every kept round but rounds 1, 2, 11 and 14');
@@ -110,8 +111,10 @@ const rebuilt = new Map(repro.rebuilt.map(r => [r.variant, r]));
 const roundOf = v => kept.get(v) ?? notKept.get(v);
 for (const v of [...kept.keys(), ...notKept.keys()].filter(v => rebuilt.has(v) && !variants.includes(v)).sort((a, b) => roundOf(a) - roundOf(b))) {
   const judge = judgeOf.get(judgeKey(roundOf(v), v));
-  // A lettered variant only rewords or corrects its round, whose own change names the idea.
-  const named = /^v\d+[b-z]$/.test(v) && changeLine(v.slice(0, -1)) ? v.slice(0, -1) : v;
+  // A lettered variant only rewords or corrects its round, whose own change names the idea,
+  // unless that round's first version was not kept: then the variant's own change names it.
+  const first = /^v\d+[b-z]$/.test(v) ? changeLine(v.slice(0, -1)) : null;
+  const named = first && !/\(not kept\)$/.test(first) ? v.slice(0, -1) : v;
   roundRows.push(`${v} & ${esc(changeLine(named) ?? '')}${kept.has(v) ? '' : ' (\\emph{not kept})'} & \\multicolumn{5}{c}{\\emph{graded on rebuilt documents (Table~\\ref{tab:rebuilt})}} & ${tally(judge)} \\\\`);
 }
 g.block('RoundsTable', [
@@ -478,6 +481,103 @@ g.def('EndgameTwoGames', String(E2.games.train + E2.games.test)).def('EndgameTwo
   .def('RoundEighteenTrainNew', String(r18.tally.train.new)).def('RoundEighteenTrainOld', String(r18.tally.train.old))
   .def('RoundEighteenTestNew', String(r18.tally.test.new)).def('RoundEighteenTestOld', String(r18.tally.test.old));
 
+// ---- rounds 19 and 20b: the moments a judged round's sentence names, read from its judge items
+const judgedRound = (round, re) => {
+  const dir = join(judgeDir, round);
+  const items = read(join(dir, 'items-r1.json')).items;
+  const keys = ['r1', 'r2'].map(r => read(join(dir, `key-${r}.json`)));
+  const answers = ['r1', 'r2'].map(r => new Map(read(join(dir, `out-${r}.judge.json`)).answers.map(a => [a.id, a.choice])));
+  const sentence = item => {
+    const after = keys[0][item.id].X === 'new' ? item.versionX : item.versionY;
+    const m = after.find(x => x.heading === 'The difference')?.text.match(re);
+    if (!m) throw new Error(`${round}: a judged moment without its sentence`);
+    return m;
+  };
+  const against = Object.keys(keys[0]).filter(id => [0, 1].some(i => keys[i][id][answers[i].get(id)] === 'old'));
+  return { items, sentence, against };
+};
+const changedIn = (sets, s) => sets.reduce((n, set) => n + splitOf(set, s).textsChanged, 0);
+const sampledDefs = (name, j, sets) => g.def(`${name}Changed`, String(changedIn(sets, 'train') + changedIn(sets, 'test')))
+  .def(`${name}ChangedTrain`, String(changedIn(sets, 'train'))).def(`${name}ChangedTest`, String(changedIn(sets, 'test')))
+  .def(`${name}Sampled`, String(j.sample.drawn)).def(`${name}Per`, String(j.sample.per)).def(`${name}Seed`, String(j.sample.seed))
+  .def(`${name}TrainNew`, String(j.tally.train.new)).def(`${name}TrainOld`, String(j.tally.train.old))
+  .def(`${name}TestNew`, String(j.tally.test.new)).def(`${name}TestOld`, String(j.tally.test.old));
+const sampledFully = (j, sets) => j?.sample?.reproduced && j.sample.of === changedIn(sets, 'train') + changedIn(sets, 'test') && j.sample.judged === j.sample.drawn && j.sample.extras === 0;
+
+// ---- round 19: the guard a played move gives up, on round 18's three sets, judged on a seeded sample
+const nineteen = rebuilt.get('v19');
+const nineteenSets = [nineteen, nineteen?.endgames, nineteen?.endgames2];
+claim(nineteenSets.every(r => r?.sameMoments && r.gradesEqual), "round 19's grades equal its base's in all three sets");
+const NINETEEN_QUOTES = { Quote: 'After Qe1, your queen no longer guards d3, and Rxd3 takes the bishop there.', QuoteKing: 'After Kc1, your king no longer guards c3, and Kc3 follows.' };
+claim(Object.values(NINETEEN_QUOTES).every(q => readFileSync(join(flow, 'v19', 'change.patch'), 'utf8').includes(q)), "round 19's tests pin the sentences the paper quotes");
+const r19 = judgeOf.get('19');
+claim(r19?.keepByRule, 'the judge preferred round 19 on both halves');
+claim(sampledFully(r19, nineteenSets), "round 19's judges read the whole seeded draw from every moment it changed");
+{
+  const { items, sentence, against } = judgedRound('round19', /After \S+, (?:their|your) \w+ no longer guards ([a-h][1-8]), and /);
+  // The better move leaves the square unguarded too where, after it, nothing of the mover's attacks the square.
+  const bothLeave = new Set(items.filter(item => {
+    const square = sentence(item)[1];
+    const position = new Chess(item.fenBefore);
+    const mover = position.turn();
+    position.move(sansOf(item.engine.bestLine)[0]);
+    return position.attackers(square, mover).length === 0;
+  }).map(item => item.id));
+  claim(items.length === r19.sample.judged, 'the judge items of round 19 are its judged moments');
+  claim(r19.tally.train.old + r19.tally.test.old === 1 && against.length === 1, 'the judges gave one answer against round 19');
+  claim(bothLeave.has(against[0]), 'the answer against round 19 is on a sentence whose better move leaves the square unguarded too');
+  g.def('RoundNineteenBothLeave', word(bothLeave.size)).def('RoundNineteenJudged', String(items.length));
+}
+for (const [k, q] of Object.entries(NINETEEN_QUOTES)) g.def(`RoundNineteen${k}`, esc(q));
+sampledDefs('RoundNineteen', r19, nineteenSets);
+
+// ---- round 20: the chased piece that escapes, on round 19's three sets; its first version failed its
+// grades before any judge ran, and its variant 20b is the round judged, on a seeded sample
+const twenty = rebuilt.get('v20b');
+const twentySets = [twenty, twenty?.endgames, twenty?.endgames2];
+claim(twentySets.every(r => r?.sameMoments), "round 20b was graded on every moment of round 19's three sets");
+claim(/\bv20 failed its grades on one test moment\b/.test(state.rounds.find(r => r.variant === 'v20b')?.why ?? ''), 'round 20 failed its grades on one test moment');
+{
+  const jsonlOf = path => readFileSync(path, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l));
+  let up = 0, other = 0, down = 0;
+  for (const sub of [[], ['endgames'], ['endgames2']]) {
+    const [before, after] = ['base', 'v20b'].map(v => new Map(jsonlOf(join(flow, 'v20b', 'rebuilt', ...sub, `${v}.results.jsonl`)).map(m => [m.id, m])));
+    for (const [id, m] of after) for (const d of DIMS) {
+      const x = Number(before.get(id)[d]), y = Number(m[d]);
+      if (y < x) down++;
+      else if (y > x) d === 'concrete' ? up++ : other++;
+    }
+  }
+  claim(down === 0 && other === 0 && up > 0, 'round 20b lowers no grade and raises only concrete');
+  g.def('RoundTwentyConcreteUp', String(up));
+}
+const TWENTY_QUOTES = { Quote: 'Ne5 attacks their bishop on g4, but it escapes to f5, where it attacks your queen on d3.', QuoteTakes: 'Nf3 attacks their queen on h4, but it escapes by taking your bishop on f4.' };
+claim(Object.values(TWENTY_QUOTES).every(q => readFileSync(join(flow, 'v20b', 'change.patch'), 'utf8').includes(q)), "round 20b's tests pin the sentences the paper quotes");
+const r20 = judgeOf.get('20b');
+claim(r20?.keepByRule, 'the judge preferred round 20b on both halves');
+claim(sampledFully(r20, twentySets), "round 20b's judges read the whole seeded draw from every moment it changed");
+{
+  const { items, sentence, against } = judgedRound('round20b', /attacks (?:their|your) \w+ on ([a-h][1-8]), but it escapes (?:to ([a-h][1-8])|by taking (?:their|your) \w+ on ([a-h][1-8]))/);
+  const WORTH = { p: 1, n: 3, b: 3, r: 5, q: 9 };
+  // The escape hands the piece back where the mover can take it at once on its new square: nothing of
+  // theirs guards the square, or something of the mover's worth less than the piece attacks it.
+  const hangs = new Set(items.filter(item => {
+    const [, from, to, takenOn] = sentence(item);
+    const position = new Chess(item.fenBefore);
+    const played = position.move(sansOf(item.move)[0]);
+    const escape = position.move({ from, to: to ?? takenOn });
+    const guarded = position.attackers(escape.to, escape.color).length > 0;
+    return position.attackers(escape.to, played.color).map(sq => position.get(sq))
+      .some(p => !guarded || (p.type !== 'k' && WORTH[p.type] < WORTH[escape.piece]));
+  }).map(item => item.id));
+  claim(items.length === r20.sample.judged, 'the judge items of round 20b are its judged moments');
+  claim(against.length === 3, 'the judges held three moments against round 20b');
+  claim(against.filter(id => hangs.has(id)).length === 2, 'two of the moments held against round 20b are escapes the mover can take at once');
+  g.def('RoundTwentyHangs', word(hangs.size)).def('RoundTwentyJudged', String(items.length));
+}
+for (const [k, q] of Object.entries(TWENTY_QUOTES)) g.def(`RoundTwenty${k}`, esc(q));
+sampledDefs('RoundTwenty', r20, twentySets);
+
 // ---- the judge's controls, as reproduce.mjs recomputed them
 const c = repro.controls;
 claim(c.length.matchesRecorded, 'the length check recomputed from its answers matches the score the records keep');
@@ -516,6 +616,12 @@ const pad18 = c.perRound.find(p => p.round === '18');
 claim(pad18?.kind === 'padding', 'round 18 carried a padding control');
 g.def('PadEighteenDecoy', String(pad18.decoy)).def('PadEighteenN', String(pad18.comparisons))
   .def('PadEighteenUnchanged', String(pad18.unchanged)).def('PadEighteenSame', String(pad18.same));
+for (const [round, name] of [['19', 'Nineteen'], ['20b', 'Twenty']]) {
+  const pad = c.perRound.find(p => p.round === round);
+  claim(pad?.kind === 'padding', `round ${round} carried a padding control`);
+  g.def(`Pad${name}Decoy`, String(pad.decoy)).def(`Pad${name}N`, String(pad.comparisons))
+    .def(`Pad${name}Unchanged`, String(pad.unchanged)).def(`Pad${name}Same`, String(pad.same));
+}
 const won = t => `${t.long} of ${t.long + t.decoy}`;
 g.block('ControlsTable', [
   '\\begin{tabularx}{\\textwidth}{L l l}', '\\toprule', 'check & result & verdict \\\\', '\\midrule',
