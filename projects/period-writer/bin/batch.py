@@ -149,6 +149,11 @@ def may_start(kind, rep, run, configs):
     need = owed(configs, kind, rep, run)
     if spent() + need > CAP:
         return f'cap: spent {spent()} + owed {round(need, 2)} would pass {CAP}'
+    return room()
+
+
+def room():
+    """Why no model call should start now, or None: the live routines' hours and the usage bars."""
     if quiet_hours():
         return 'quiet hours around the live routines'
     w = probe() or latest_windows() or {}
@@ -159,6 +164,19 @@ def may_start(kind, rep, run, configs):
     if w['five_hour'] >= FIVE_HOUR_BAR:
         return f"five-hour window at {w['five_hour']} (bar {FIVE_HOUR_BAR})"
     return None
+
+
+def wait_room(tag, what):
+    """Waits until a grading call may start; False when the seven-day window says stop."""
+    while True:
+        why = room()
+        if why is None:
+            return True
+        if why.startswith('seven-day'):
+            log(tag, f'{what}: not started, {why}')
+            return False
+        log(tag, f'{what}: waiting, {why}')
+        time.sleep(600)
 
 
 def run_dir(config, i, rep):
@@ -234,11 +252,13 @@ def cmd_audit(args):
     configs = (opt('--configs', argv=args) or opt('--config', argv=args)).split(',')
     jobs = int(opt('--jobs', 3, argv=args))
     ids = positional(args) or IDS
-    work = [(c, i, r) for c in configs for i in ids for r in sorted(os.listdir(os.path.join(RUNS, c, i))) if os.path.isdir(os.path.join(RUNS, c, i))
-            and os.path.exists(os.path.join(RUNS, c, i, r, 'grade.json')) and not os.path.exists(os.path.join(RUNS, c, i, r, 'audit.json'))] if all(os.path.isdir(os.path.join(RUNS, c)) for c in configs) else []
+    work = [(c, i, r) for c in configs for i in ids if os.path.isdir(os.path.join(RUNS, c, i)) for r in sorted(os.listdir(os.path.join(RUNS, c, i)))
+            if os.path.exists(os.path.join(RUNS, c, i, r, 'grade.json')) and not os.path.exists(os.path.join(RUNS, c, i, r, 'audit.json'))]
 
     def one(item):
         c, i, r = item
+        if not wait_room(c, f'{i} {r} audit'):
+            return
         a = subprocess.run([sys.executable, os.path.join(BIN, 'audit.py'), os.path.join(CASES, i), os.path.join(RUNS, c, i, r)], capture_output=True, text=True)
         log(c, f'{i} {r}: audit {a.stdout.strip() or a.stderr.strip()[-300:]}')
 
@@ -261,6 +281,8 @@ def cmd_judge(args):
 
     def one(item):
         i, a, b = item
+        if not wait_room(config, f'{i} {os.path.basename(a)} judge'):
+            return
         j = subprocess.run([sys.executable, os.path.join(BIN, 'judge.py'), os.path.join(CASES, i), a, '--against', b], capture_output=True, text=True)
         log(config, f'{i} {os.path.basename(a)} vs {other} {os.path.basename(b)}: {j.stdout.strip() or j.stderr.strip()[-300:]}')
 
@@ -283,7 +305,7 @@ def cmd_controls(args):
         cand = run_dir(config, i, 1)
         ann_b = load(os.path.join(base, 'out', 'coach-log', 'review-annotations', f'{i}.json'))
         ann_c = load(os.path.join(cand, 'out', 'coach-log', 'review-annotations', f'{i}.json'))
-        if not ann_b:
+        if not ann_b or not wait_room(other, f'{i} controls'):
             continue
         if not os.path.exists(os.path.join(base, 'judge-control-same.json')):
             j = subprocess.run([sys.executable, os.path.join(BIN, 'judge.py'), os.path.join(CASES, i), base, '--control', 'same'], capture_output=True, text=True)
