@@ -128,6 +128,12 @@ bridge/run.sh projects/book-advice/king-notes.mjs
 bridge/run.sh projects/book-advice/capstones.mjs
 bridge/run.sh projects/book-advice/after-gain.mjs
 bridge/run.sh projects/book-advice/lost-trades.mjs
+# 6b's recheck, on August's games streamed and built the same way.
+python3 projects/think-time-rapid/stream.py --month 2026-08
+for i in 0 1 2 3; do
+  bridge/run.sh projects/band-above/primary.mjs --month 2026-08 --shard $i/4 --check 200 &
+done; wait
+BOOK_ADVICE_MONTH=2026-08 bridge/run.sh projects/book-advice/lost-trades.mjs --no-archive
 
 # The learner's solve chances: his puzzle attempts replayed through the app's
 # learner, on a record rebuilt from the memory cards and on the profile as the

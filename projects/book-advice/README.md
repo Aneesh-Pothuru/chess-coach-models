@@ -495,10 +495,10 @@ and built as September's were (think-time-rapid's `stream.py`, band-above's
 - **It holds** when, over his band and the band above together in August's
   games, the plain trade's difference has an interval below zero and a drop of
   at least 3 saved games per 100, with at least 300 plain trades. Then the app
-  says so where the engine agrees: Play's coach, when he is behind and takes an
-  even trade of pieces that the engine scores no better than a move that keeps
-  them, and the review's explanations (sent to the review's explanations).
-  When it does not hold, nothing changes.
+  says so where the engine agrees: in Play's coach, when he is behind and takes
+  an even trade of pieces that the engine scores no better than a move that
+  keeps them, and in the review's explanations. When it does not hold, nothing
+  changes.
 - **Also reported:** the rule's own measure (the win% before the move) on
   August's games, each band, and the kinds counted apart.
 
@@ -536,6 +536,13 @@ bridge/run.sh projects/book-advice/capstones.mjs
 # 6a and 6b: no engine, the games' own evals and the app's board code.
 bridge/run.sh projects/book-advice/after-gain.mjs
 bridge/run.sh projects/book-advice/lost-trades.mjs
+
+# 6b after its result: August's games, streamed and built as September's.
+python3 projects/think-time-rapid/stream.py --month 2026-08
+for i in 0 1 2 3; do
+  bridge/run.sh projects/band-above/primary.mjs --month 2026-08 --shard $i/4 --check 200 &
+done; wait
+BOOK_ADVICE_MONTH=2026-08 bridge/run.sh projects/book-advice/lost-trades.mjs --no-archive
 
 bridge/run.sh projects/book-advice/paper/generate.mjs
 ```

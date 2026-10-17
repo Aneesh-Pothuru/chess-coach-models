@@ -5,13 +5,15 @@
 //
 // Reads every player-game of both bands and his games, takes the first
 // position in each that qualifies, and writes counts only to
-// results/lost-trades.json.
+// results/lost-trades.json. With BOOK_ADVICE_MONTH set to another month and
+// --no-archive, it reads that month's Lichess games alone and writes
+// results/lost-trades-<month>.json, the run 6b's after-the-result rule names.
 import { writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { join } from 'node:path'
 import { Chess } from 'chess.js'
 import { CHESS_DIR, chess, resultsDir } from '../../bridge/lib/chess.mjs'
-import { archiveGames, bandOf, mulberry32, playerGames, records, share } from './lib.mjs'
+import { MONTH, archiveGames, bandOf, mulberry32, playerGames, records, share } from './lib.mjs'
 
 const K = await chess('src/services/knowledge/index.ts')
 const B = await chess('src/services/metrics/facts/board.ts')
@@ -37,6 +39,8 @@ const arg = (name, d) => {
   return i > 0 ? Number(process.argv[i + 1]) : d
 }
 const LIMIT = arg('limit', Infinity)
+const ARCHIVE = !process.argv.includes('--no-archive')
+const OUT = MONTH === '2026-09' ? 'lost-trades.json' : `lost-trades-${MONTH}.json`
 
 /** The first position of his that qualifies, with the trade bits over the pieces he can take there. */
 function firstPosition(g, fens) {
@@ -185,7 +189,7 @@ for await (const rec of records()) {
   if (++seen % 5000 === 0) console.error(`${seen} games, ${Math.round((Date.now() - t0) / 1000)} s`)
 }
 console.error(`lichess: ${seen} games, ${Math.round((Date.now() - t0) / 1000)} s`)
-const archive = LIMIT === Infinity ? await archiveGames() : { games: [], skipped: {} }
+const archive = LIMIT === Infinity && ARCHIVE ? await archiveGames() : { games: [], skipped: {} }
 for (const x of archive.games) {
   counts.archive.playerGames++
   const fens = K.replayFens(x.g.moves.map((m) => m.san))
@@ -204,16 +208,21 @@ const results = {
 }
 const both = results.both.primary
 const enough = both.trades >= MIN_TRADES
-const holds = enough ? both.ci !== null && both.ci[1] < 0 && both.d <= -DROP : null
+const clears = (x) => x.ci !== null && x.ci[1] < 0 && x.d <= -DROP
+const holds = enough ? clears(both) : null
+const after = results.both.evalAfter
+const holdsAfter = after.trades >= MIN_TRADES ? clears(after) : null
 const summary = {
   app: CHESS_DIR.split('/').pop(),
-  month: process.env.BOOK_ADVICE_MONTH ?? '2026-09',
+  month: MONTH,
+  archive: ARCHIVE,
   rule: { behindCp: BEHIND_CP, down: DOWN, minTrades: MIN_TRADES, drop: DROP, resamples: RESAMPLES, seed: SEED, clockEdge: CLOCK_EDGE },
   seconds: Math.round((Date.now() - t0) / 1000),
   archiveSkipped: archive.skipped,
   enough,
   holds,
+  holdsAfter,
   groups: results,
 }
-if (LIMIT === Infinity) writeFileSync(join(resultsDir('book-advice'), 'lost-trades.json'), JSON.stringify(summary, null, 2) + '\n')
-console.log(JSON.stringify({ enough, holds, both: results.both.primary, his: results.his.primary, above: results.above.primary, archive: results.archive.primary, kinds: results.both.kinds }, null, 2))
+if (LIMIT === Infinity) writeFileSync(join(resultsDir('book-advice'), OUT), JSON.stringify(summary, null, 2) + '\n')
+console.log(JSON.stringify({ enough, holds, holdsAfter, both: results.both.primary, his: results.his.primary, above: results.above.primary, archive: results.archive.primary, kinds: results.both.kinds }, null, 2))
