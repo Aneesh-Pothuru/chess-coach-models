@@ -70,10 +70,14 @@ Interleaved by date, fixed before any run. Train: 2026-W35, 2026-W37,
   board exhibit whether its prose names the threat, the refuting reply and what
   the better move keeps, in that order, and its claims about the board that the
   evidence contradicts. The evidence (`bin/evidence.mts`) is the brief without
-  its bulk, a line per game, the aggregate's digest, and for every exhibit the
-  position as the archive replays it, what was played there and next, the
-  engine's best move and best reply, the board's threats and readings, and what
-  the app's move describer says each move does.
+  its bulk, the clock's turning points, a line per game, the aggregate's
+  digest, the earlier reviews the period's review audits (a week's daily logs,
+  a month's weekly reviews), and for every exhibit the position as the archive
+  replays it, what was played there and next, the engine's best move and best
+  reply, the board's threats and readings, what each piece hits and guards
+  before the move and after each move the exhibit names (chess.js's attack
+  map, pins ignored) with each file's pawn status, and what the app's move
+  describer says each move does.
 - `bin/judge.py`, Sonnet 5.5, blind and pairwise in both orders (a side wins a
   criterion only when both orders agree): truth, explanation, duties, plain,
   overall. Controls (`batch.py controls`): a baseline review against itself,
@@ -110,7 +114,14 @@ kind.
 
 With four or five cases a split, rules 1 and 2 need the candidate to win
 nearly every case; that is the bar. The graders' prompts are settled on the
-baseline's runs alone and committed before any candidate run is graded.
+baseline's runs alone and committed before any candidate run is graded. They
+were settled on the baseline's 2026-W41 run: the audit's first versions listed
+claims that hold and misread pieces' lines from the FEN, which the attack map
+fixed. Opus 5.5 as the auditor, tried on the same run, found as many false
+claims and the same false board claim at about twice the cost, but not the
+same false claims in words, so a review's count is a floor on what it gets
+wrong, compared like for like across the two prompts. The auditor stays Sonnet
+5.5.
 
 ## Spend and usage
 
@@ -138,5 +149,5 @@ bin/batch.py report --config threat-order --vs baseline
 ```
 
 The per-run files (the reviews, the streams, the audits with their quotes)
-hold the player's games and stay out of the repository, under
-`private/period-writer/`. `results/` holds the aggregates the report computes.
+hold the player's games and stay out of the repository, in the eval
+directory. `results/` holds the aggregates the report computes.

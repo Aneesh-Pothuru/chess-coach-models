@@ -55,6 +55,46 @@ function day(date: string): any[] | null {
   return dayRows.get(date) ?? null
 }
 
+const PIECE: Record<string, string> = { p: 'pawn', n: 'knight', b: 'bishop', r: 'rook', q: 'queen', k: 'king' }
+const FILES = 'abcdefgh'
+
+function relations(fen: string): string[] {
+  const c = new Chess(fen)
+  const occupied: Array<{ sq: string; color: string; type: string }> = []
+  for (const row of c.board()) for (const x of row) if (x) occupied.push({ sq: x.square, color: x.color, type: x.type })
+  const out: string[] = []
+  for (const side of ['w', 'b']) {
+    const parts: string[] = []
+    for (const p of occupied.filter((x) => x.color === side)) {
+      const hits: string[] = []
+      const guards: string[] = []
+      for (const t of occupied) {
+        if (t.sq === p.sq || !c.attackers(t.sq, side).includes(p.sq)) continue
+        ;(t.color === side ? guards : hits).push(`${PIECE[t.type]} ${t.sq}`)
+      }
+      parts.push(`${PIECE[p.type]} ${p.sq}${hits.length ? ` hits ${hits.join(', ')}` : ''}${guards.length ? `${hits.length ? ';' : ''} guards ${guards.join(', ')}` : ''}${!hits.length && !guards.length ? ' touches no piece' : ''}`)
+    }
+    out.push(`${side === 'w' ? 'White' : 'Black'}: ${parts.join('. ')}.`)
+  }
+  const files = [...FILES].map((f) => {
+    const w = occupied.some((x) => x.type === 'p' && x.color === 'w' && x.sq[0] === f)
+    const bl = occupied.some((x) => x.type === 'p' && x.color === 'b' && x.sq[0] === f)
+    return `${f} ${!w && !bl ? 'open' : !w ? 'half-open for White' : !bl ? 'half-open for Black' : 'closed'}`
+  })
+  out.push(`Files (pawns only): ${files.join(', ')}.`)
+  return out
+}
+
+function after(fen: string, san: string): string | null {
+  try {
+    const c = new Chess(fen)
+    c.move(san)
+    return c.fen()
+  } catch {
+    return null
+  }
+}
+
 async function board(where: string, b: any): Promise<string[]> {
   const out: string[] = []
   const spec = String(b?.board?.game ?? '')
@@ -111,7 +151,14 @@ async function board(where: string, b: any): Promise<string[]> {
   const asked: Array<[string, string]> = [['the move played', played]]
   if (best && best !== played) asked.push(["the engine's best", best])
   for (const s of own) if (!asked.some(([, x]) => x === s)) asked.push(["the review's better move", s])
+  out.push(`   what each piece hits and guards before the move (by line of sight, pins ignored):`)
+  out.push(...relations(fen).map((l) => `     ${l}`))
   for (const [label, san] of asked) {
+    const next = after(fen, san)
+    if (next) {
+      out.push(`   after ${label} (${san}), position ${next}; what each piece hits and guards then:`)
+      out.push(...relations(next).map((l) => `     ${l}`))
+    }
     const mv = await cli(['knowledge', 'move', '--fen', fen, '--move', san])
     if (!mv) {
       out.push(`   ${label} (${san}) is not a legal move in this position`)

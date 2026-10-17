@@ -156,6 +156,19 @@ def cmd_runs(args):
         config, i, k = item
         run = run_dir(config, i, k)
         kind = kind_of(i)
+        os.makedirs(os.path.dirname(run), exist_ok=True)
+        lock = run + '.lock'
+        try:
+            os.close(os.open(lock, os.O_CREAT | os.O_EXCL))
+        except FileExistsError:
+            log(tag, f'{config} {i} r{k}: another batch has it')
+            return
+        try:
+            go(config, i, k, run, kind)
+        finally:
+            os.remove(lock)
+
+    def go(config, i, k, run, kind):
         while True:
             owed = sum(1 for c, x, r in todo if not os.path.exists(os.path.join(run_dir(c, x, r), 'grade.json')))
             why = may_start(kind, owed)
