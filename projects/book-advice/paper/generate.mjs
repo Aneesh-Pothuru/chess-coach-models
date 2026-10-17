@@ -522,6 +522,21 @@ g.def('LostTradesPassed', word(LB.kinds.passed)).def('LostTradesPawn', word(LB.k
 g.def('LostTradesOther', count(LB.kinds.otherCapture)).def('LostTradesOtherDiff', pointsCi(LB.apart.otherCapture.d, LB.apart.otherCapture.ci))
 const tradesAll = LB.kinds.plain + LB.kinds.check + LB.kinds.passed
 g.def('LostTradesMoveLoses', word(LB.tradesTheMoveLoses)).def('LostTradesAll', count(tradesAll))
+
+const LA = read('lost-trades-2026-08.json')
+const LAG = LA.groups
+const LAB = LAG.both
+claim(LA.app === LATER, "the recheck measured 6a and 6b's app commit")
+claim(LA.month === '2026-08' && LA.month !== LT.month && LA.archive === false, 'the recheck read another month of games, without his')
+claim(same(Object.keys(LA.rule), Object.keys(LTR)) && Object.keys(LTR).every((k) => LA.rule[k] === LTR[k]), 'the recheck ran under the same rule')
+g.def('LostTradesAugGames', count(LAB.playerGames)).def('LostTradesAugPositions', count(LAB.positions)).def('LostTradesAugPlain', count(LAB.evalAfter.trades))
+g.def('LostTradesAugAfterDiff', pointsCi(LAB.evalAfter.d, LAB.evalAfter.ci)).def('LostTradesAugAfterDrop', fixed(-100 * LAB.evalAfter.d, 1)).def('LostTradesAugBeforeDiff', pointsCi(LAB.primary.d, LAB.primary.ci))
+g.def('LostTradesAugHisAfter', pointsCi(LAG.his.evalAfter.d, LAG.his.evalAfter.ci)).def('LostTradesAugAboveAfter', pointsCi(LAG.above.evalAfter.d, LAG.above.evalAfter.ci))
+claim(LA.holdsAfter === true && LAB.evalAfter.trades >= LTR.minTrades && LAB.evalAfter.ci[1] < 0 && LAB.evalAfter.d <= -LTR.drop, "the recheck holds: on August's games a plain trade costs past the bar at the same win% after the move, interval and all")
+claim(LT.holdsAfter === true, "September's after-move measure clears the same bar")
+claim(LA.holds === false && LAB.primary.ci[1] < 0 && LAB.primary.d > -LTR.drop, "on August's games the rule's own measure is below zero but still under the bar")
+claim(['his', 'above'].every((grp) => LAG[grp].evalAfter.ci[1] < 0), 'at the same win% after the move each band is below zero on its own')
+claim(['both', 'his', 'above'].every((grp) => LAG[grp].lossPct.plain < LAG[grp].lossPct.keep), "in August too a plain trade gives away less win% than a move that keeps the pieces")
 g.block(
   'LostTradesTable',
   [
@@ -531,16 +546,18 @@ g.block(
     ' & & & \\multicolumn{2}{c}{saved after} & \\multicolumn{2}{c}{plain trade $-$ keeping, in points} \\\\',
     '\\cmidrule(lr){4-5}\\cmidrule(lr){6-7}',
     'players & positions & traded & a plain trade & keeping the pieces & alike before & alike after \\\\',
-    '\\midrule',
     ...[
-      ['both bands', 'both'],
-      ['his band', 'his'],
-      ['the band above', 'above'],
-      ['his games', 'archive'],
-    ].map(([label, grp]) => {
-      const x = LG[grp]
-      return `${label} & ${count(x.positions)} & ${pc(x.traded, 0)}\\% & ${pc(x.saved.plain)}\\% & ${pc(x.saved.keep)}\\% & ${pointsCi(x.primary.d, x.primary.ci)} & ${pointsCi(x.evalAfter.d, x.evalAfter.ci)} \\\\`
-    }),
+      ['September 2026', LG, ['both', 'his', 'above', 'archive']],
+      ['August 2026, the recheck', LAG, ['both', 'his', 'above']],
+    ].flatMap(([month, groups, keys]) => [
+      '\\midrule',
+      `\\multicolumn{7}{l}{\\emph{${month}}} \\\\`,
+      ...keys.map((grp) => {
+        const x = groups[grp]
+        const label = { both: 'both bands', his: 'his band', above: 'the band above', archive: 'his games' }[grp]
+        return `${label} & ${count(x.positions)} & ${pc(x.traded, 0)}\\% & ${pc(x.saved.plain)}\\% & ${pc(x.saved.keep)}\\% & ${pointsCi(x.primary.d, x.primary.ci)} & ${pointsCi(x.evalAfter.d, x.evalAfter.ci)} \\\\`
+      }),
+    ]),
     '\\bottomrule',
     '\\end{tabular}',
   ].join('\n'),
@@ -568,8 +585,8 @@ const VERDICTS = [
   ['1e', 'Maia is not a fair judge here; the practical try does not save more', 'Nothing: the review names the top move'],
   ['1f', 'All four conversion numbers move', 'The goals and the tripwire (chess PR 108)'],
   ['1g', 'No disagreement holds', 'Nothing: the margin stays'],
-  ['6a', 'Serious errors are rarer, not more common, right after winning material', 'The scan drops its clause on winning material'],
-  ['6b', 'An even trade when lost costs fewer saved games than the bar', 'Nothing'],
+  ['6a', 'Serious errors are rarer, not more common, right after winning material', 'The scan drops its clause on winning material (chess PR 122)'],
+  ['6b', 'An even trade when lost costs fewer saved games than the bar by the eval before the move, and more than it at the same eval after, in a second month too', 'The live coach warns on an even trade of pieces while behind (chess PR 124)'],
 ]
 g.block(
   'VerdictTable',

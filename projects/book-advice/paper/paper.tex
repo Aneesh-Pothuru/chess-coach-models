@@ -34,7 +34,9 @@ verdict at its own budget. Two later tests put the books' warnings about winning
 to the same kind of rule. Serious errors are rarer, not more common, in the three moves after a
 player wins material than in positions alike, so the scan stops singling out that moment. When two
 pawns down and losing, an even trade of pieces saves \LostTradesBothDrop{} fewer games in 100 than
-keeping the pieces, under the bar, so the app says nothing about it.
+keeping the pieces, under the bar. Compared at the same eval after the move it saves
+\LostTradesAugAfterDrop{} fewer, past the bar on a second month of games, so the live coach now says
+so where the engine agrees.
 \end{abstract}
 
 \section{The question}
@@ -88,7 +90,8 @@ engine service (Stockfish 18 lite, one thread a search), at the app's own budget
 through the same service. The books' positions (test 1g) are not in this repository: the test reads
 them at run time and commits counts only. Tests 6a and 6b need no engine: they read the games' own
 evaluations and the app's board code, and at their commit his archive holds \LaterArchiveGames{}
-10-minute games.
+10-minute games. The recheck of 6b reads a second month, August 2026, sampled and built the same
+way: \LostTradesAugGames{} player-games in the two bands.
 
 Shares carry 95\% Wilson intervals.
 
@@ -420,8 +423,8 @@ the player-games.}
 
 The books' chapter on defending discourages even trades when down material, since fewer pieces leave
 fewer chances to resist, and allows the trade that improves the position, makes counterplay or makes
-a passed pawn. The app says nothing about trades when behind; it praises a trade only when ahead
-(1c).
+a passed pawn. Before this test the app said nothing about trades when behind; it praised a trade
+only when ahead (1c).
 
 \textbf{The rule.} In each player-game, the first position where the player, past the book, not in
 check and after an opponent move that captured nothing, stands \LostTradesBehind{} cp or more behind
@@ -447,14 +450,29 @@ trade costs more: \LostTradesAfterDiff{} points, reported without a rule. With t
 further stratum it is \LostTradesClockDiff. Trades with check save about as often as keeping the
 pieces, at \LostTradesCheckDiff{} points, the \LostTradesPawn{} even pawn trades saved fewer, at
 \LostTradesPawnDiff{} points, and the \LostTradesPassed{} trades that made a passed pawn are too few
-to read. His games hold \LostTradesArchivePositions{} such positions, too few to read. Nothing changes.
+to read. His games hold \LostTradesArchivePositions{} such positions, too few to read. By the rule,
+nothing changes.
+
+\textbf{After the result.} The measure at the same eval after the move was not the rule's, so it was
+tested again by a rule fixed before that run, on games the study had not read: the Lichess games of
+August 2026, streamed and built as September's at the same app commit, with the same positions,
+moves and outcome and the strata of that measure (his win\% after the move in five-point bins, the
+material down, his rating, and whether the opponent is rated higher). It holds when, over both
+bands, the interval lies below zero and the drop is at least \LostTradesDropBar{} saved games in
+100, with at least \LostTradesMinTrades{} plain trades. It holds. Over \LostTradesAugPlain{} plain
+trades the difference is \LostTradesAugAfterDiff{} points, \LostTradesAugHisAfter{} in his band and
+\LostTradesAugAboveAfter{} in the band above. The rule's own measure on those games is
+\LostTradesAugBeforeDiff{} points, below zero this time and still under the bar. So the live coach
+now speaks when he is behind and takes an even trade of pieces that the engine scores no better than
+a move that keeps them, and the finding goes to the review's explanations.
 
 \begin{table}[h]
 \centering
 \scriptsize\LostTradesTable
 \caption{At the first position where a player two pawns or more down and losing could trade pieces
 evenly: how often he traded, how often the game was saved, and the difference in positions alike by
-the eval before the move (the rule) and after it.}
+the eval before the move (the rule) and after it, in September's games and in August's, which
+rechecked the measure after the move.}
 \label{tab:losttrades}
 \end{table}
 
@@ -469,8 +487,9 @@ it cannot name by the phase. Maia-2's probabilities in 1e cover the likeliest
 replies only, which is where it fails the test. In 6a the strata match what the app can read; a move
 right after winning material may still be easier in ways they do not hold. In 6b the trade reader
 judges a capture by its square, so \LostTradesMoveLoses{} of the \LostTradesAll{} trades lost
-material as played, and the cost at the same eval after the move would need its own rule and fresh
-games before the app acts on it. His Lichess level is the app's conversion of his chess.com rating,
+material as played. Its measure after the move was chosen after September's result; August's games
+tested it fresh, but both months come from one site and one time control, and the save rate counts
+what players did, not what keeping the pieces would have done for the same player. His Lichess level is the app's conversion of his chess.com rating,
 and his games come from the app's reviews, with another engine and depth.
 
 \end{document}

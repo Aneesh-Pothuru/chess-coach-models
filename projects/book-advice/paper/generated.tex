@@ -491,6 +491,14 @@ his games & 485 & 1,279 & 8.9\% & 11.3\% & 0.79 {\footnotesize (0.63--0.97)} & $
 \newcommand{\LostTradesOtherDiff}{0.2 {\footnotesize ($-$3.0 to 3.5)}}
 \newcommand{\LostTradesMoveLoses}{six}
 \newcommand{\LostTradesAll}{3,836}
+\newcommand{\LostTradesAugGames}{74,800}
+\newcommand{\LostTradesAugPositions}{11,297}
+\newcommand{\LostTradesAugPlain}{2,991}
+\newcommand{\LostTradesAugAfterDiff}{$-$3.9 {\footnotesize ($-$5.6 to $-$2.2)}}
+\newcommand{\LostTradesAugAfterDrop}{3.9}
+\newcommand{\LostTradesAugBeforeDiff}{$-$2.3 {\footnotesize ($-$4.1 to $-$0.6)}}
+\newcommand{\LostTradesAugHisAfter}{$-$4.5 {\footnotesize ($-$6.9 to $-$2.0)}}
+\newcommand{\LostTradesAugAboveAfter}{$-$3.2 {\footnotesize ($-$5.6 to $-$0.6)}}
 \newcommand{\LostTradesTable}{%
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{lrrrrll}
@@ -499,10 +507,16 @@ his games & 485 & 1,279 & 8.9\% & 11.3\% & 0.79 {\footnotesize (0.63--0.97)} & $
 \cmidrule(lr){4-5}\cmidrule(lr){6-7}
 players & positions & traded & a plain trade & keeping the pieces & alike before & alike after \\
 \midrule
+\multicolumn{7}{l}{\emph{September 2026}} \\
 both bands & 11,590 & 33\% & 20.3\% & 22.2\% & $-$1.7 {\footnotesize ($-$3.4 to 0.0)} & $-$3.4 {\footnotesize ($-$5.2 to $-$1.7)} \\
 his band & 6,370 & 33\% & 21.5\% & 23.6\% & $-$1.9 {\footnotesize ($-$4.4 to 0.5)} & $-$3.5 {\footnotesize ($-$6.0 to $-$1.1)} \\
 the band above & 5,220 & 33\% & 18.7\% & 20.5\% & $-$1.4 {\footnotesize ($-$4.0 to 1.1)} & $-$3.4 {\footnotesize ($-$5.9 to $-$0.9)} \\
 his games & 75 & 37\% & 21.7\% & 28.6\% & 2.5 {\footnotesize ($-$27.8 to 29.4)} & 5.1 {\footnotesize ($-$21.3 to 31.7)} \\
+\midrule
+\multicolumn{7}{l}{\emph{August 2026, the recheck}} \\
+both bands & 11,297 & 34\% & 19.2\% & 21.6\% & $-$2.3 {\footnotesize ($-$4.1 to $-$0.6)} & $-$3.9 {\footnotesize ($-$5.6 to $-$2.2)} \\
+his band & 6,245 & 35\% & 19.9\% & 22.4\% & $-$2.6 {\footnotesize ($-$5.0 to $-$0.2)} & $-$4.5 {\footnotesize ($-$6.9 to $-$2.0)} \\
+the band above & 5,052 & 33\% & 18.4\% & 20.7\% & $-$2.0 {\footnotesize ($-$4.3 to 0.7)} & $-$3.2 {\footnotesize ($-$5.6 to $-$0.6)} \\
 \bottomrule
 \end{tabular}
 }
@@ -518,8 +532,8 @@ test & what the rule found & what the app took \\
 1e & Maia is not a fair judge here; the practical try does not save more & Nothing: the review names the top move \\
 1f & All four conversion numbers move & The goals and the tripwire (chess PR 108) \\
 1g & No disagreement holds & Nothing: the margin stays \\
-6a & Serious errors are rarer, not more common, right after winning material & The scan drops its clause on winning material \\
-6b & An even trade when lost costs fewer saved games than the bar & Nothing \\
+6a & Serious errors are rarer, not more common, right after winning material & The scan drops its clause on winning material (chess PR 122) \\
+6b & An even trade when lost costs fewer saved games than the bar by the eval before the move, and more than it at the same eval after, in a second month too & The live coach warns on an even trade of pieces while behind (chess PR 124) \\
 \bottomrule
 \end{tabular}
 }
