@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Writes paper/generated.tex for the book-advice paper from what its seven
+// Writes paper/generated.tex for the book-advice paper from what its nine
 // tests wrote (results/*.json). It refuses to write when a claim the paper
 // makes no longer holds.
 //
@@ -440,6 +440,123 @@ const quoted = (w) => "``" + esc(w) + "''"
 g.def('PlanEvalAgreement', esc(CP.evaluation.agreement)).def('PlanEvalWhite', quoted(CP.evaluation.words[0])).def('PlanEvalBlack', quoted(CP.evaluation.words[1]))
 claim(CP.evaluation.agreement === 'disagrees', 'the engine does not call the evaluation position equal')
 
+// ---- 6a and 6b: the later pair, at their own commit ----
+const AG = read('after-gain.json')
+const LT = read('lost-trades.json')
+const LATER = AG.app
+claim(LT.app === LATER, '6a and 6b measured the same app commit')
+claim(LATER !== APP, '6a and 6b ran at a later commit than 1a to 1g, which the paper names')
+g.def('LaterAppCommit', LATER.slice(0, 10))
+claim(AG.month === scan.month && LT.month === scan.month, '6a and 6b read the same month of games')
+claim(AG.groups.archive.playerGames === LT.groups.archive.playerGames, '6a and 6b read the same games of his')
+g.def('LaterArchiveGames', count(AG.groups.archive.playerGames))
+const points = (x) => fixed(100 * x, 1)
+const pointsCi = (x, ci) => `${points(x)} {\\footnotesize (${points(ci[0])} to ${points(ci[1])})}`
+const liftCi = (x) => `${fixed(x.lift, 2)} {\\footnotesize (${fixed(x.liftCi[0], 2)}--${fixed(x.liftCi[1], 2)})}`
+
+// ---- 6a: errors right after winning material ----
+const AGR = AG.rule
+g.def('AfterGainMin', word(AGR.gain)).def('AfterGainWindow', word(AGR.window)).def('AfterGainLiftBar', fixed(AGR.lift, 1))
+g.def('AfterGainClockLow', String(AGR.clockEdges[0] / 60 === 1 ? 'a minute' : `${AGR.clockEdges[0]} seconds`)).def('AfterGainClockHigh', word(AGR.clockEdges[1] / 60))
+claim(AGR.clockEdges[0] === 60 && AGR.clockEdges[1] % 60 === 0, 'the clock bins are whole minutes')
+const AGG = AG.groups
+for (const grp of GROUPS) {
+  const k = cap(grp)
+  const x = AGG[grp].primary
+  g.def(`AfterGain${k}Events`, count(AGG[grp].events)).def(`AfterGain${k}Window`, count(x.windowMoves))
+  g.def(`AfterGain${k}Rate`, `${percent(x.rate, 1)}\\%`).def(`AfterGain${k}Expected`, `${percent(x.expectedRate, 1)}\\%`).def(`AfterGain${k}Lift`, liftCi(x))
+  g.def(`AfterGain${k}LooseLift`, fixed(AGG[grp].evalAndDanger.lift, 2))
+}
+const GAIN_KEYS = Object.keys(AGG.his.byGain)
+claim(same(GAIN_KEYS, ['2', '3-4', '5+']), 'the material won falls in three bins')
+g.def('AfterGainHisMoves', listed(['1', '2', '3'].map((k) => fixed(AGG.his.byMove[k].lift, 2))))
+g.def('AfterGainHisGains', listed(GAIN_KEYS.map((k) => `${fixed(AGG.his.byGain[k].lift, 2)} for ${k.replace('-', ' or ').replace('+', ' or more')}`)))
+g.block(
+  'AfterGainTable',
+  [
+    '\\setlength{\\tabcolsep}{4pt}',
+    '\\begin{tabular}{lrrllll}',
+    '\\toprule',
+    ' & & & \\multicolumn{2}{c}{serious errors} & & \\\\',
+    '\\cmidrule(lr){4-5}',
+    'players & runs & window moves & in the window & expected & lift & excess (points) \\\\',
+    '\\midrule',
+    ...[
+      ['his band', 'his'],
+      ['the band above', 'above'],
+      ['his games', 'archive'],
+    ].map(([label, grp]) => {
+      const x = AGG[grp].primary
+      return `${label} & ${count(AGG[grp].events)} & ${count(x.windowMoves)} & ${percent(x.rate, 1)}\\% & ${percent(x.expectedRate, 1)}\\% & ${liftCi(x)} & ${pointsCi(x.excess, x.excessCi)} \\\\`
+    }),
+    '\\bottomrule',
+    '\\end{tabular}',
+  ].join('\n'),
+)
+claim(AG.holds === false, '6a does not hold')
+claim(GROUPS.every((grp) => AGG[grp].primary.liftCi[1] < 1 && AGG[grp].primary.excessCi[1] < 0), 'serious errors are rarer in the window than in positions alike, interval and all, in every group')
+claim(AGG.his.primary.droppedWindowMoves === 0, 'in his band every window move has controls in its stratum')
+claim(['1', '2', '3'].every((k) => AGG.his.byMove[k].liftCi[1] < 1), 'in his band each of the three window moves is lower on its own')
+const gainLifts = GAIN_KEYS.map((k) => AGG.his.byGain[k].lift)
+claim(gainLifts.every((x, i) => i === 0 || x < gainLifts[i - 1]), 'in his band the more material won, the lower the lift')
+claim(['his', 'above'].every((grp) => AGG[grp].evalAndDanger.lift > AGG[grp].primary.lift && AGG[grp].evalAndDanger.liftCi[1] < 1), 'on the eval and the two dangers alone the gap is smaller but still there, in both bands')
+claim(GROUPS.every((grp) => AGG[grp].mistakesAndBlunders.rate === AGG[grp].primary.rate && AGG[grp].mistakesAndBlunders.expectedRate === AGG[grp].primary.expectedRate), 'the reader gives these games no miss, so counting mistakes and blunders alone changes nothing')
+
+// ---- 6b: even trades when lost ----
+const LTR = LT.rule
+const LG = LT.groups
+g.def('LostTradesBehind', String(LTR.behindCp)).def('LostTradesDown', word(LTR.down)).def('LostTradesDropBar', fixed(100 * LTR.drop, 0)).def('LostTradesMinTrades', count(LTR.minTrades)).def('LostTradesClockEdge', String(LTR.clockEdge))
+const LGROUPS = ['both', 'his', 'above', 'archive']
+for (const grp of LGROUPS) {
+  const k = cap(grp)
+  const x = LG[grp]
+  g.def(`LostTrades${k}Positions`, count(x.positions)).def(`LostTrades${k}Traded`, pci(x.traded)).def(`LostTrades${k}PlainTrades`, count(x.kinds.plain))
+  g.def(`LostTrades${k}SavedPlain`, pci(x.saved.plain)).def(`LostTrades${k}SavedKeep`, pci(x.saved.keep))
+  if (x.primary.d !== null) g.def(`LostTrades${k}Diff`, pointsCi(x.primary.d, x.primary.ci))
+}
+const LB = LG.both
+g.def('LostTradesBothDrop', fixed(-100 * LB.primary.d, 1)).def('LostTradesAfterDiff', pointsCi(LB.evalAfter.d, LB.evalAfter.ci)).def('LostTradesClockDiff', pointsCi(LB.withClock.d, LB.withClock.ci))
+g.def('LostTradesLossPlain', fixed(LB.lossPct.plain, 1)).def('LostTradesLossKeep', fixed(LB.lossPct.keep, 1))
+g.def('LostTradesCheck', count(LB.kinds.check)).def('LostTradesCheckDiff', pointsCi(LB.apart.check.d, LB.apart.check.ci))
+g.def('LostTradesPassed', word(LB.kinds.passed)).def('LostTradesPawn', word(LB.kinds.pawnTrade)).def('LostTradesPawnDiff', pointsCi(LB.apart.pawnTrade.d, LB.apart.pawnTrade.ci))
+g.def('LostTradesOther', count(LB.kinds.otherCapture)).def('LostTradesOtherDiff', pointsCi(LB.apart.otherCapture.d, LB.apart.otherCapture.ci))
+const tradesAll = LB.kinds.plain + LB.kinds.check + LB.kinds.passed
+g.def('LostTradesMoveLoses', word(LB.tradesTheMoveLoses)).def('LostTradesAll', count(tradesAll))
+g.block(
+  'LostTradesTable',
+  [
+    '\\setlength{\\tabcolsep}{4pt}',
+    '\\begin{tabular}{lrrrrll}',
+    '\\toprule',
+    ' & & & \\multicolumn{2}{c}{saved after} & \\multicolumn{2}{c}{plain trade $-$ keeping, in points} \\\\',
+    '\\cmidrule(lr){4-5}\\cmidrule(lr){6-7}',
+    'players & positions & traded & a plain trade & keeping the pieces & alike before & alike after \\\\',
+    '\\midrule',
+    ...[
+      ['both bands', 'both'],
+      ['his band', 'his'],
+      ['the band above', 'above'],
+      ['his games', 'archive'],
+    ].map(([label, grp]) => {
+      const x = LG[grp]
+      return `${label} & ${count(x.positions)} & ${pc(x.traded, 0)}\\% & ${pc(x.saved.plain)}\\% & ${pc(x.saved.keep)}\\% & ${pointsCi(x.primary.d, x.primary.ci)} & ${pointsCi(x.evalAfter.d, x.evalAfter.ci)} \\\\`
+    }),
+    '\\bottomrule',
+    '\\end{tabular}',
+  ].join('\n'),
+)
+claim(LT.enough === true && LB.primary.trades >= LTR.minTrades, '6b has enough plain trades')
+claim(LT.holds === false, '6b does not hold')
+claim(LB.primary.d < 0 && LB.primary.d > -LTR.drop && LB.primary.ci[1] >= 0, 'a plain trade saves fewer games, by less than the bar, with an interval that reaches zero')
+claim(LB.evalAfter.d < LB.primary.d && LB.evalAfter.ci[1] < 0 && LB.evalAfter.d <= -LTR.drop, 'at the same eval after the move the trade costs more, beyond the bar and interval and all')
+claim(LB.withClock.d > -LTR.drop && LB.withClock.ci[1] < 0, 'with the clocks the drop is clear of zero but under the bar')
+claim(['both', 'his', 'above'].every((grp) => LG[grp].lossPct.plain < LG[grp].lossPct.keep), 'a plain trade gives away less win% than a move that keeps the pieces, in every band')
+claim(inside(0, { ci: LB.apart.check.ci }) && inside(0, { ci: LB.apart.otherCapture.ci }), 'trades with check and other captures save about as often as keeping the pieces')
+claim(LB.apart.pawnTrade.ci[1] < 0 && LB.kinds.pawnTrade < 100, 'the few even pawn trades saved fewer games, interval and all')
+claim(LB.kinds.passed < 100 && inside(0, { ci: LB.apart.passed.ci }), 'trades that make a passed pawn are too few to read')
+claim(LG.archive.positions < 100, 'his games hold too few such positions to read')
+claim(LB.tradesTheMoveLoses / tradesAll < 0.01, 'the trade reader judges a capture by its square, and under one trade in a hundred loses material as played')
+
 // ---- the verdicts ----
 claim(trapsReal && missesDominate, '1a: both of its rules hold')
 const punishPractice = ADDED.length === 0 ? 'the punish goal keeps its hanging-piece practice: no other kind reaches one miss in ten' : `the punish goal's practice adds ${listed(ADDED.map((k) => KIND_NAME[k]))}`
@@ -451,6 +568,8 @@ const VERDICTS = [
   ['1e', 'Maia is not a fair judge here; the practical try does not save more', 'Nothing: the review names the top move'],
   ['1f', 'All four conversion numbers move', 'The goals and the tripwire (chess PR 108)'],
   ['1g', 'No disagreement holds', 'Nothing: the margin stays'],
+  ['6a', 'Serious errors are rarer, not more common, right after winning material', 'The scan drops its clause on winning material'],
+  ['6b', 'An even trade when lost costs fewer saved games than the bar', 'Nothing'],
 ]
 g.block(
   'VerdictTable',

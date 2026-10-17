@@ -3,7 +3,7 @@
 \input{generated}
 
 \title{Does the books' advice hold at his level?\\[0.3em]
-\large Seven rules from two chess books, tested against Stockfish and Maia-2 on Lichess 10-minute
+\large Nine rules from two chess books, tested against Stockfish and Maia-2 on Lichess 10-minute
 games and his own}
 \author{Chess Coach research lab}
 \date{}
@@ -30,7 +30,11 @@ problems, so the review keeps naming the engine's top move. The books' \BooksTar
 target is already passed by players at his level; the app's three conversion goals were above what
 players \LookAbove{} points above each stage convert, and move down to those rates. On the books'
 twelve planning positions, the guess-the-plan drill's \PlanMargin{} cp rule agrees with every
-verdict at its own budget.
+verdict at its own budget. Two later tests put the books' warnings about winning and losing positions
+to the same kind of rule. Serious errors are rarer, not more common, in the three moves after a
+player wins material than in positions alike, so the scan stops singling out that moment. When two
+pawns down and losing, an even trade of pieces saves \LostTradesBothDrop{} fewer games in 100 than
+keeping the pieces, under the bar, so the app says nothing about it.
 \end{abstract}
 
 \section{The question}
@@ -52,15 +56,22 @@ convert, against the app's goals?
 \item Does the guess-the-plan drill's \PlanMargin{} cp rule agree with the books' verdicts on their
 twelve planning positions?
 \end{enumerate}
+A second look at the answers gave two more:
+\begin{enumerate}[nosep,label=\textbf{6\alph*}]
+\item Are serious errors more common in the three moves after a player wins material than in
+positions alike?
+\item When down material and losing, does an even trade of pieces lower the chance of saving the
+game?
+\end{enumerate}
 No model judges anything here. Every verdict comes from Stockfish, Maia-2 or the app's own board
-code, imported through the lab's bridge at app commit \texttt{\AppCommit}, and each test's rule, its
-bar and what the app does when it passes were committed before its run (the project's
-\texttt{README.md}).
+code, imported through the lab's bridge at app commit \texttt{\AppCommit} (6a and 6b, run later, at
+\texttt{\LaterAppCommit}), and each test's rule, its bar and what the app does when it passes were
+committed before its run (the project's \texttt{README.md}).
 
 \begin{table}[h]
 \centering
 \small\VerdictTable
-\caption{The seven tests, what each rule decided, and what the app took.}
+\caption{The nine tests, what each rule decided, and what the app took.}
 \label{tab:verdicts}
 \end{table}
 
@@ -75,7 +86,9 @@ player-games and the band above \AbovePlayerGames. His games are his \ArchiveGam
 in the app's archive at that commit; only aggregates are committed. The engine is the app's Node
 engine service (Stockfish 18 lite, one thread a search), at the app's own budgets, and Maia-2 comes
 through the same service. The books' positions (test 1g) are not in this repository: the test reads
-them at run time and commits counts only.
+them at run time and commits counts only. Tests 6a and 6b need no engine: they read the games' own
+evaluations and the app's board code, and at their commit his archive holds \LaterArchiveGames{}
+10-minute games.
 
 Shares carry 95\% Wilson intervals.
 
@@ -361,6 +374,90 @@ without saying who is to move, the engine reads at \DeepNodes{} nodes as \PlanEv
 with White to move and \PlanEvalBlack{} for White with Black to move, so it \PlanEvalAgreement. The
 margin stays.
 
+\section{6a. Errors right after winning material}
+
+The books warn that a tactical success is no licence to stop looking at the opponent: the author's own
+win of material against a strong player was followed by a forcing reply he overlooked. The app's
+scan ends: ``Before you move: what is wrong with your move, and what is their best answer? Ask it
+hardest right after you win material.''
+
+\textbf{The rule.} A \emph{capture run} is a stretch of consecutive plies that each capture or
+promote. A run \emph{wins material} for a player when he captures or promotes in it and the material
+count (pawn 1, knight and bishop 3, rook 5, queen 9) stands \AfterGainMin{} or more higher for him
+after it than before: a piece for a pawn, the exchange, a free piece or a new queen kept, but not a
+pawn or an even trade. The \emph{window} is his next \AfterGainWindow{} moves after his last
+capture in the run, and the controls are his other moves, all past the book with a choice to make.
+A window move's expected chance of a serious error (the review reader's mistake or blunder) is the
+controls' rate in its stratum: his win\% before the move in ten-point bins, tension (in check, right
+after a capture, or a piece hanging), either of the two signs of danger to his king that Play warns
+on, the phase, and his clock (under \AfterGainClockLow, one to \AfterGainClockHigh{} minutes,
+\AfterGainClockHigh{} or more). It holds when, in his band, the window's serious errors exceed that
+expectation with a bootstrap interval above zero and their ratio, the \emph{lift}, is at least
+\AfterGainLiftBar. Then the routines' brief would get a reading for it; otherwise the scan drops its
+last sentence.
+
+\textbf{The result.} It does not hold, and it points the other way (Table~\ref{tab:aftergain}). In
+his band \AfterGainHisEvents{} runs won material, and \AfterGainHisRate{} of the
+\AfterGainHisWindow{} window moves were serious errors, against \AfterGainHisExpected{} expected in
+positions alike: a lift of \AfterGainHisLift. The band above and his games read the same way. Each
+of the three window moves is lower on its own (lifts \AfterGainHisMoves), and the more material
+won, the lower the lift (\AfterGainHisGains{} pawns won). On the eval and the two dangers alone the
+lift is \AfterGainHisLooseLift: the phase and the clock of the window moves, where errors are more
+common, widen the gap rather than close it. The moment after winning material is not where errors
+gather at his level, so the scan's last step drops ``Ask it hardest right after you win material''
+and keeps its question for every move.
+
+\begin{table}[h]
+\centering
+\scriptsize\AfterGainTable
+\caption{Serious errors in the three moves after a run that wins material, against their expected
+number at the rate of other moves in positions alike. Lift and excess with bootstrap intervals over
+the player-games.}
+\label{tab:aftergain}
+\end{table}
+
+\section{6b. Even trades when lost}
+
+The books' chapter on defending discourages even trades when down material, since fewer pieces leave
+fewer chances to resist, and allows the trade that improves the position, makes counterplay or makes
+a passed pawn. The app says nothing about trades when behind; it praises a trade only when ahead
+(1c).
+
+\textbf{The rule.} In each player-game, the first position where the player, past the book, not in
+check and after an opponent move that captured nothing, stands \LostTradesBehind{} cp or more behind
+by the game's own eval and \LostTradesDown{} pawns or more down in material, with an even trade of
+pieces on offer: a capture of a knight, bishop, rook or queen whose exchange nets nothing, by the
+app's own trade reader. A \emph{plain trade} takes it, without check and without making a passed
+pawn; \emph{keeping the pieces} is a move that captures nothing; trades with check, trades that make
+a passed pawn, even pawn trades and other captures are counted apart. A game is \emph{saved} when the
+player drew or won. Within each stratum (his win\% before the move in five-point bins, the material
+down, his rating in 100-point bins, and whether the opponent is rated higher), the save rate after a
+plain trade minus after keeping the pieces, weighted by the plain trades. It holds when, over both
+bands together, that difference's bootstrap interval lies below zero and the drop is at least
+\LostTradesDropBar{} saved games in 100. Then Play's coach and the review would say so where the
+engine agrees.
+
+\textbf{The result.} It does not hold (Table~\ref{tab:losttrades}). In \LostTradesBothPositions{}
+positions the players traded \LostTradesBothTraded{} of the time. A plain trade saved
+\LostTradesBothSavedPlain{} of its games and keeping the pieces \LostTradesBothSavedKeep; in positions
+alike the difference is \LostTradesBothDiff{} points, under the bar, with an interval that reaches
+zero. The trades themselves gave away less, \LostTradesLossPlain{} win\% against
+\LostTradesLossKeep{} for the moves that keep the pieces, so at the same eval after the move the
+trade costs more: \LostTradesAfterDiff{} points, reported without a rule. With the clocks as a
+further stratum it is \LostTradesClockDiff. Trades with check save about as often as keeping the
+pieces, at \LostTradesCheckDiff{} points, the \LostTradesPawn{} even pawn trades saved fewer, at
+\LostTradesPawnDiff{} points, and the \LostTradesPassed{} trades that made a passed pawn are too few
+to read. His games hold \LostTradesArchivePositions{} such positions, too few to read. Nothing changes.
+
+\begin{table}[h]
+\centering
+\scriptsize\LostTradesTable
+\caption{At the first position where a player two pawns or more down and losing could trade pieces
+evenly: how often he traded, how often the game was saved, and the difference in positions alike by
+the eval before the move (the rule) and after it.}
+\label{tab:losttrades}
+\end{table}
+
 \section{Limits}
 
 The bands are other players, in games against their own level: their numbers say where the books'
@@ -369,7 +466,11 @@ evaluations six plies on and a mate search at a modest budget, so it misses slow
 after 1b's result applied a bar fixed before the run to a population chosen after it; it only took
 signs away. In 1a the labeller names one theme per best reply, has no trapped piece, and calls what
 it cannot name by the phase. Maia-2's probabilities in 1e cover the likeliest
-replies only, which is where it fails the test. His Lichess level is the app's conversion of his chess.com rating, and his games come from
-the app's reviews, with another engine and depth.
+replies only, which is where it fails the test. In 6a the strata match what the app can read; a move
+right after winning material may still be easier in ways they do not hold. In 6b the trade reader
+judges a capture by its square, so \LostTradesMoveLoses{} of the \LostTradesAll{} trades lost
+material as played, and the cost at the same eval after the move would need its own rule and fresh
+games before the app acts on it. His Lichess level is the app's conversion of his chess.com rating,
+and his games come from the app's reviews, with another engine and depth.
 
 \end{document}

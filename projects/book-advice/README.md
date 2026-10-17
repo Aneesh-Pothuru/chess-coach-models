@@ -484,9 +484,9 @@ nothing about trades when behind; it praises a trade only when ahead (1c).
 From the lab's root, after think-time-rapid's games and band-above's builds
 (`projects/README.md`). Each step reads what the steps above it wrote; the
 engine passes resume where they stopped. Every result names the app commit it
-measured, and the paper refuses results from two commits: when the pin moves
-before the last step, run the rest with `CHESS_DIR` at the commit the first
-steps measured.
+measured, and the paper takes two: 1a to 1g share one, and 6a and 6b, run
+later, share another. When the pin moves before a group's last step, run the
+rest of that group with `CHESS_DIR` at the commit its first steps measured.
 
 ```bash
 # No engine: the budgets the tests name, 1f, 1a's split, and the positions 1b

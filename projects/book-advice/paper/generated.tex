@@ -407,6 +407,105 @@ tripwire & & 1050--1249, 200 below him & 71.4\% {\footnotesize (70.6--72.2)} & 6
 \newcommand{\PlanEvalAgreement}{disagrees}
 \newcommand{\PlanEvalWhite}{``about even''}
 \newcommand{\PlanEvalBlack}{``much worse''}
+\newcommand{\LaterAppCommit}{fa07ea1ed8}
+\newcommand{\LaterArchiveGames}{647}
+\newcommand{\AfterGainMin}{two}
+\newcommand{\AfterGainWindow}{three}
+\newcommand{\AfterGainLiftBar}{1.1}
+\newcommand{\AfterGainClockLow}{a minute}
+\newcommand{\AfterGainClockHigh}{three}
+\newcommand{\AfterGainHisEvents}{37,151}
+\newcommand{\AfterGainHisWindow}{94,543}
+\newcommand{\AfterGainHisRate}{8.9\%}
+\newcommand{\AfterGainHisExpected}{12.5\%}
+\newcommand{\AfterGainHisLift}{0.71 {\footnotesize (0.70--0.73)}}
+\newcommand{\AfterGainHisLooseLift}{0.78}
+\newcommand{\AfterGainAboveEvents}{28,081}
+\newcommand{\AfterGainAboveWindow}{71,410}
+\newcommand{\AfterGainAboveRate}{8.4\%}
+\newcommand{\AfterGainAboveExpected}{11.6\%}
+\newcommand{\AfterGainAboveLift}{0.73 {\footnotesize (0.70--0.75)}}
+\newcommand{\AfterGainAboveLooseLift}{0.79}
+\newcommand{\AfterGainArchiveEvents}{485}
+\newcommand{\AfterGainArchiveWindow}{1,279}
+\newcommand{\AfterGainArchiveRate}{8.9\%}
+\newcommand{\AfterGainArchiveExpected}{11.3\%}
+\newcommand{\AfterGainArchiveLift}{0.79 {\footnotesize (0.63--0.97)}}
+\newcommand{\AfterGainArchiveLooseLift}{0.82}
+\newcommand{\AfterGainHisMoves}{0.69, 0.70 and 0.75}
+\newcommand{\AfterGainHisGains}{0.80 for 2, 0.70 for 3 or 4 and 0.56 for 5 or more}
+\newcommand{\AfterGainTable}{%
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrllll}
+\toprule
+ & & & \multicolumn{2}{c}{serious errors} & & \\
+\cmidrule(lr){4-5}
+players & runs & window moves & in the window & expected & lift & excess (points) \\
+\midrule
+his band & 37,151 & 94,543 & 8.9\% & 12.5\% & 0.71 {\footnotesize (0.70--0.73)} & $-$3.6 {\footnotesize ($-$3.8 to $-$3.4)} \\
+the band above & 28,081 & 71,410 & 8.4\% & 11.6\% & 0.73 {\footnotesize (0.70--0.75)} & $-$3.2 {\footnotesize ($-$3.4 to $-$2.9)} \\
+his games & 485 & 1,279 & 8.9\% & 11.3\% & 0.79 {\footnotesize (0.63--0.97)} & $-$2.3 {\footnotesize ($-$4.4 to $-$0.3)} \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\LostTradesBehind}{300}
+\newcommand{\LostTradesDown}{two}
+\newcommand{\LostTradesDropBar}{3}
+\newcommand{\LostTradesMinTrades}{300}
+\newcommand{\LostTradesClockEdge}{30}
+\newcommand{\LostTradesBothPositions}{11,590}
+\newcommand{\LostTradesBothTraded}{33.1\% {\footnotesize (32.3--34.0)}}
+\newcommand{\LostTradesBothPlainTrades}{3,008}
+\newcommand{\LostTradesBothSavedPlain}{20.3\% {\footnotesize (18.9--21.7)}}
+\newcommand{\LostTradesBothSavedKeep}{22.2\% {\footnotesize (21.3--23.2)}}
+\newcommand{\LostTradesBothDiff}{$-$1.7 {\footnotesize ($-$3.4 to 0.0)}}
+\newcommand{\LostTradesHisPositions}{6,370}
+\newcommand{\LostTradesHisTraded}{33.3\% {\footnotesize (32.1--34.5)}}
+\newcommand{\LostTradesHisPlainTrades}{1,657}
+\newcommand{\LostTradesHisSavedPlain}{21.5\% {\footnotesize (19.6--23.5)}}
+\newcommand{\LostTradesHisSavedKeep}{23.6\% {\footnotesize (22.3--25.0)}}
+\newcommand{\LostTradesHisDiff}{$-$1.9 {\footnotesize ($-$4.4 to 0.5)}}
+\newcommand{\LostTradesAbovePositions}{5,220}
+\newcommand{\LostTradesAboveTraded}{32.9\% {\footnotesize (31.6--34.1)}}
+\newcommand{\LostTradesAbovePlainTrades}{1,351}
+\newcommand{\LostTradesAboveSavedPlain}{18.7\% {\footnotesize (16.7--20.9)}}
+\newcommand{\LostTradesAboveSavedKeep}{20.5\% {\footnotesize (19.2--22.0)}}
+\newcommand{\LostTradesAboveDiff}{$-$1.4 {\footnotesize ($-$4.0 to 1.1)}}
+\newcommand{\LostTradesArchivePositions}{75}
+\newcommand{\LostTradesArchiveTraded}{37.3\% {\footnotesize (27.3--48.6)}}
+\newcommand{\LostTradesArchivePlainTrades}{23}
+\newcommand{\LostTradesArchiveSavedPlain}{21.7\% {\footnotesize (9.7--41.9)}}
+\newcommand{\LostTradesArchiveSavedKeep}{28.6\% {\footnotesize (17.2--43.6)}}
+\newcommand{\LostTradesArchiveDiff}{2.5 {\footnotesize ($-$27.8 to 29.4)}}
+\newcommand{\LostTradesBothDrop}{1.7}
+\newcommand{\LostTradesAfterDiff}{$-$3.4 {\footnotesize ($-$5.2 to $-$1.7)}}
+\newcommand{\LostTradesClockDiff}{$-$2.3 {\footnotesize ($-$4.1 to $-$0.5)}}
+\newcommand{\LostTradesLossPlain}{1.4}
+\newcommand{\LostTradesLossKeep}{2.6}
+\newcommand{\LostTradesCheck}{786}
+\newcommand{\LostTradesCheckDiff}{$-$1.7 {\footnotesize ($-$4.7 to 1.4)}}
+\newcommand{\LostTradesPassed}{42}
+\newcommand{\LostTradesPawn}{90}
+\newcommand{\LostTradesPawnDiff}{$-$8.4 {\footnotesize ($-$15.1 to $-$0.9)}}
+\newcommand{\LostTradesOther}{843}
+\newcommand{\LostTradesOtherDiff}{0.2 {\footnotesize ($-$3.0 to 3.5)}}
+\newcommand{\LostTradesMoveLoses}{six}
+\newcommand{\LostTradesAll}{3,836}
+\newcommand{\LostTradesTable}{%
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrrll}
+\toprule
+ & & & \multicolumn{2}{c}{saved after} & \multicolumn{2}{c}{plain trade $-$ keeping, in points} \\
+\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+players & positions & traded & a plain trade & keeping the pieces & alike before & alike after \\
+\midrule
+both bands & 11,590 & 33\% & 20.3\% & 22.2\% & $-$1.7 {\footnotesize ($-$3.4 to 0.0)} & $-$3.4 {\footnotesize ($-$5.2 to $-$1.7)} \\
+his band & 6,370 & 33\% & 21.5\% & 23.6\% & $-$1.9 {\footnotesize ($-$4.4 to 0.5)} & $-$3.5 {\footnotesize ($-$6.0 to $-$1.1)} \\
+the band above & 5,220 & 33\% & 18.7\% & 20.5\% & $-$1.4 {\footnotesize ($-$4.0 to 1.1)} & $-$3.4 {\footnotesize ($-$5.9 to $-$0.9)} \\
+his games & 75 & 37\% & 21.7\% & 28.6\% & 2.5 {\footnotesize ($-$27.8 to 29.4)} & 5.1 {\footnotesize ($-$21.3 to 31.7)} \\
+\bottomrule
+\end{tabular}
+}
 \newcommand{\VerdictTable}{%
 \begin{tabular}{lp{0.42\textwidth}p{0.42\textwidth}}
 \toprule
@@ -419,6 +518,8 @@ test & what the rule found & what the app took \\
 1e & Maia is not a fair judge here; the practical try does not save more & Nothing: the review names the top move \\
 1f & All four conversion numbers move & The goals and the tripwire (chess PR 108) \\
 1g & No disagreement holds & Nothing: the margin stays \\
+6a & Serious errors are rarer, not more common, right after winning material & The scan drops its clause on winning material \\
+6b & An even trade when lost costs fewer saved games than the bar & Nothing \\
 \bottomrule
 \end{tabular}
 }

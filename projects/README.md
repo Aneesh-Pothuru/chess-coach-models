@@ -115,9 +115,9 @@ bridge/run.sh projects/band-above/ledger.mjs --month 2026-09
 bridge/run.sh projects/band-above/ledger.mjs --month 2026-09 --archive
 python3 projects/band-above/analyze.py --month 2026-09
 
-# The books' advice at the player's level: seven tests on the same games. The
+# The books' advice at the player's level: nine tests on the same games. The
 # engine passes resume where they stopped; 1g reads the books' positions from
-# private/book-advice/, copied there at run time.
+# private/book-advice/, copied there at run time. 6a and 6b need no engine.
 bridge/run.sh projects/book-advice/budgets.mjs
 bridge/run.sh projects/book-advice/conversion.mjs
 bridge/run.sh projects/book-advice/after-error.mjs facts
@@ -126,6 +126,8 @@ for t in king trades practical retreats; do bridge/run.sh projects/book-advice/$
 bridge/run.sh projects/book-advice/after-error.mjs engine --pool 4
 bridge/run.sh projects/book-advice/king-notes.mjs
 bridge/run.sh projects/book-advice/capstones.mjs
+bridge/run.sh projects/book-advice/after-gain.mjs
+bridge/run.sh projects/book-advice/lost-trades.mjs
 
 # The learner's solve chances: his puzzle attempts replayed through the app's
 # learner, on a record rebuilt from the memory cards and on the profile as the
