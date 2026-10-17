@@ -6,7 +6,7 @@ name from a review leaves the eval directory.
 
   export.py --config threat-order --vs baseline
 """
-import json, os, sys
+import json, os, re, sys
 
 BIN = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BIN)
@@ -32,13 +32,21 @@ def run_row(config, i, k):
                         'threat': sum(1 for e in ex if e.get('threat')), 'refutation': sum(1 for e in ex if e.get('refutation')),
                         'keeps': sum(1 for e in ex if e.get('keeps')), 'inOrder': sum(1 for e in ex if e.get('inOrder')),
                         'boardClaimsFalse': a['boardClaimsFalse'], 'cost': round(a.get('cost') or 0, 2)}
+    brief = load(os.path.join(CASES, i, 'repo', 'coach-log', 'briefs', f'{i}.json')) or {}
+    k5 = [x['id'] for x in (brief.get('ledger') or {}).get('live') or [] if x.get('concept') == 'K5']
+    ann = load(os.path.join(d, 'out', 'coach-log', 'review-annotations', f'{i}.json'))
+    if k5 == ['R53'] and ann:
+        text = re.sub(r'<[^>]+>', ' ', json.dumps(ann, ensure_ascii=False))
+        lists = [s for s in re.split(r'[.!?"]', text) if re.search(r'pawn breaks?\b', s, re.I) and re.search(r'loose pieces', s, re.I)]
+        row['kingWalkCalledPawnBreak'] = bool(lists)
     kinds = load(os.path.join(d, 'kinds.json'))
     if kinds:
-        tally = {}
+        tally, held = {}, {}
         for x in kinds['claims']:
-            tally.setdefault(x['grade'], {}).setdefault(x['kind'], 0)
-            tally[x['grade']][x['kind']] += 1
-        row['kinds'] = tally
+            into = held if x.get('holds') else tally
+            into.setdefault(x['grade'], {}).setdefault(x['kind'], 0)
+            into[x['grade']][x['kind']] += 1
+        row['kinds'], row['kindsHeld'] = tally, held
     return row
 
 
