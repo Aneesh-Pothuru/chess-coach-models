@@ -65,6 +65,7 @@ const SIDE_NAME = { w: 'White', b: 'Black' }
 // Regex pieces. A SAN token in prose has no spaces, commas, colons, periods or brackets.
 // A SAN token always carries a rank digit (or is a castle): "it", "they" and other words do not match.
 const TOKR = String.raw`((?=[^\s,:.()]*[1-8])[^\s,:.()]+|O-O(?:-O)?)`
+const TOKN = String.raw`(?:(?=[^\s,:.()]*[1-8])[^\s,:.()]+|O-O(?:-O)?)`
 const WHO2 = String.raw`(You|They|you|they)`
 const RESTRAINT = String.raw`(?::\s*it cannot (?:move|advance|leave the line))?`
 const PIECE = String.raw`(pawn|knight|bishop|rook|queen|king)`
@@ -1371,6 +1372,101 @@ function checkChasedEscape([x, whose, piece, sq, to, takenWhose, taken, takenSq,
   return [...out, claim('chased_escape', surface, shown, whole, T(`${mv.san} attacks the ${piece} on ${sq}, and the reply ${reply.san} moves it to ${reply.to}`))]
 }
 
+const onlyKingsAndPawns = (g) => g.board().every((row) => row.every((cell) => !cell || cell.type === 'k' || cell.type === 'p'))
+const pawnCount = (g) => g.board().flat().filter((cell) => cell && cell.type === 'p').length
+
+/** The clauses after "in the engine's line": each king's pawn captures, and a pawn's promotion. */
+function endingClauses(body) {
+  const king = /^(your|their) king takes (their|your) (pawns?) on ([a-h][1-8](?:, [a-h][1-8])*(?: and [a-h][1-8])?)/
+  const promo = /^(your|their) ([a-h])-pawn (queens|promotes) on ([a-h][1-8])/
+  const out = []
+  let rest = body
+  while (rest) {
+    let m = king.exec(rest)
+    if (m) out.push({ kind: 'king', whose: m[1], owner: m[2], plural: m[3] === 'pawns', squares: m[4].split(/, | and /) })
+    else if ((m = promo.exec(rest))) out.push({ kind: 'promo', whose: m[1], file: m[2], queen: m[3] === 'queens', sq: m[4] })
+    else return null
+    rest = rest.slice(m[0].length)
+    if (!rest) break
+    const sep = /^, (?:and )?/.exec(rest)
+    if (!sep) return null
+    rest = rest.slice(sep[0].length)
+  }
+  return out
+}
+
+/**
+ * "After X Y, only kings and pawns are left: in the engine's line your king
+ * takes their pawns on h4 and g2, and their king takes your pawn on e3." (or
+ * "your e-pawn queens on e8", or "only the kings are left: a draw."): X is the
+ * better move or the played move, and X Y are that move's engine line, move by
+ * move; the position before X has a piece other than a king or a pawn, one
+ * remains after every move but the last named, and after the last only kings
+ * and pawns are left (only kings, for the draw). Read on from there, the line's
+ * pawn captures by each king before its first promotion, up to the last thing
+ * the sentence names, are exactly the squares named for that king, in order;
+ * and the promotion named is the line's first after the trade, by that side, on
+ * that square, a queen when the text says "queens".
+ */
+function checkPawnEnding([seq, body], e) {
+  const { M, surface, shown, whole } = e
+  const sans = seq.split(' ')
+  const out = []
+  const fail = (why) => [...out, claim('pawn_ending', surface, shown, whole, F(why))]
+  const first = resolveSan(M.F0, sans[0])
+  const line = first.ok && first.uci === M.bestUci ? (M.bestPv[0] === M.bestUci ? M.bestPv : [M.bestUci]) : first.ok && first.uci === M.playedUci ? [M.playedUci, ...M.replyPvUci] : null
+  if (!line) return fail(`${sans[0]} is neither the better move nor the played move`)
+  const g = load(M.F0)
+  if (onlyKingsAndPawns(g)) return fail('only kings and pawns stand before the move')
+  for (let i = 0; i < sans.length; i++) {
+    out.push(e.san(sans[i], g.fen(), line[i] ?? null))
+    if (onlyKingsAndPawns(g)) return fail(`only kings and pawns are left before ${sans[i]}`)
+    const m = playUci(g, line[i])
+    if (!m || m.san.replace(/[+#]$/, '') !== sans[i].replace(/[+#]$/, '')) return fail(`${sans[i]} is not the engine line's move ${i + 1}`)
+  }
+  if (!onlyKingsAndPawns(g)) return fail(`a piece other than a king or a pawn is left after ${sans.at(-1)}`)
+  if (body === undefined) return [...out, claim('pawn_ending', surface, shown, whole, pawnCount(g) === 0 ? T(`after ${seq} only the kings are left`) : F(`after ${seq} ${pawnCount(g)} pawns are left`))]
+  if (pawnCount(g) === 0) return fail(`after ${seq} no pawn is left`)
+  const parts = endingClauses(body)
+  if (!parts || !parts.length) return fail('the clauses do not read')
+  const takes = { w: [], b: [] }
+  let promoted = null
+  for (let i = sans.length; i < line.length; i++) {
+    const m = playUci(g, line[i])
+    if (!m) break
+    if (m.promotion) {
+      promoted = { ply: i, color: m.color, to: m.to, queen: m.promotion === 'q' }
+      break
+    }
+    if (m.piece === 'k' && m.captured) takes[m.color].push({ ply: i, sq: m.to })
+  }
+  let last = -1
+  const named = { w: null, b: null }
+  for (const p of parts) {
+    const color = ownerOf(p.whose, M)
+    if (p.kind === 'promo') {
+      if (p.file !== p.sq[0]) return fail(`the ${p.file}-pawn is said to promote on ${p.sq}`)
+      if (!promoted || promoted.color !== color || promoted.to !== p.sq || promoted.queen !== p.queen) return fail(promoted ? `the line's first promotion after the trade is ${promoted.queen ? 'a queen' : 'a promotion'} on ${promoted.to}, by ${promoted.color === color ? 'that side' : 'the other side'}` : 'no pawn promotes in the line after the trade')
+      last = Math.max(last, promoted.ply)
+      continue
+    }
+    if (ownerOf(p.owner, M) !== other(color)) return fail(`a king is said to take its own side's pawn`)
+    if (p.plural !== p.squares.length > 1) return fail(`"${p.plural ? 'pawns' : 'pawn'}" with ${p.squares.length} squares`)
+    if (named[color]) return fail('one king is named twice')
+    named[color] = p.squares
+    for (const sq of p.squares) {
+      const hit = takes[color].find((t) => t.sq === sq)
+      if (!hit) return fail(`that king takes no pawn on ${sq} before the line's first promotion`)
+      last = Math.max(last, hit.ply)
+    }
+  }
+  for (const c of ['w', 'b']) {
+    const upTo = takes[c].filter((t) => t.ply <= last).map((t) => t.sq)
+    if (upTo.join(' ') !== (named[c] ?? []).join(' ')) return fail(`up to the last thing named, the ${c === 'w' ? 'white' : 'black'} king takes ${upTo.length ? upTo.join(', ') : 'nothing'}`)
+  }
+  return [...out, claim('pawn_ending', surface, shown, whole, T(`after ${seq} only kings and pawns are left, and the line's captures and promotion up to its ply ${last + 1} are those named`))]
+}
+
 /**
  * An answer to "why not just take it?": "if they take it with X, [M1 M2 ..., then] Y ...".
  * "It" is the piece the better move moved (the best line, or a searched capture
@@ -2008,6 +2104,11 @@ const LESSON_TEMPLATES = [
   {
     re: new RegExp(String.raw`\b${TOKR} attacks (their|your) ${PIECE} on ${SQ}, but it escapes (?:to ${SQ}|by taking (their|your) ${PIECE} on ${SQ})( with check)?(?:, where it (also )?attacks (their|your) ${PIECE} on ${SQ}(?: and (their|your) ${PIECE} on ${SQ})?)?\.`, 'g'),
     run: (g, e) => checkChasedEscape(g, e),
+  },
+  // A trade into a pawn ending: the moves that reach it, then what each king takes and the first promotion, on that line.
+  {
+    re: new RegExp(String.raw`\bAfter (${TOKN}(?: ${TOKN})*), only (?:kings and pawns are left: in the engine's line ([^.]+)|the kings are left: a draw)\.`, 'g'),
+    run: (g, e) => checkPawnEnding(g, e),
   },
   // "Why not take it?": the capture of the move's piece and what follows, on the engine line.
   {
@@ -3039,6 +3140,29 @@ function runCorruption(cases) {
   if (wh) results.push(corruptionRow('the piece a chased piece attacks from its new square, one file over', wh, swapIn(wh, whereHits, (_, also, w, p, f, r) => `, where it ${also ?? ''}attacks ${w} ${p} on ${nextFile(f)}${r}`), chaseClaim))
   const quiet = pick(inDiff((d) => chase.test(d) && !/ with check/.test(d) && escapesTo.test(d)))
   if (quiet) results.push(corruptionRow('a quiet escape said to come with check', quiet, swapIn(quiet, escapesTo, (_, f, r) => `, but it escapes to ${f}${r} with check`), chaseClaim))
+  // A trade into a pawn ending: a king's capture, whose king, a capture left out, the promotion, the trade's last move, the draw.
+  const ending = /^After (\S+(?: \S+)*), only kings and pawns are left: in the engine's line (.+)\.$/
+  const endingClaim = /^After \S+(?: \S+)*, only (?:kings and pawns are|the kings are) left/
+  const kingTakes = /\b(your|their) king takes (their|your) pawns? on ([a-h])([1-8])/
+  const kt = pick(inDiff((d) => ending.test(d) && kingTakes.test(d)))
+  if (kt) {
+    results.push(corruptionRow('a square a king takes on, one file over', kt, swapIn(kt, kingTakes, (_, k, o, f, r) => `${k} king takes ${o} pawn${/pawns/.test(_) ? 's' : ''} on ${nextFile(f)}${r}`), endingClaim))
+    results.push(corruptionRow('the king that takes named as the other side\'s', kt, swapIn(kt, /\b(your|their) king takes (their|your) (pawns?) on/, (_, k, o, n) => `${o} king takes ${k} ${n} on`), endingClaim))
+  }
+  const two = /\b(your|their) king takes (their|your) pawns on ([a-h][1-8]) and ([a-h][1-8])/
+  const tw = pick(inDiff((d) => ending.test(d) && two.test(d)))
+  if (tw) results.push(corruptionRow('a king\'s first capture left out', tw, swapIn(tw, two, (_, k, o, a, b) => `${k} king takes ${o} pawn on ${b}`), endingClaim))
+  const queens = /\b(your|their) ([a-h])-pawn queens on ([a-h])([1-8])/
+  const pq = pick(inDiff((d) => ending.test(d) && queens.test(d)))
+  if (pq) {
+    results.push(corruptionRow('the pawn that queens named on the next file', pq, swapIn(pq, queens, (_, o, f, sf, r) => `${o} ${nextFile(f)}-pawn queens on ${nextFile(sf)}${r}`), endingClaim))
+    results.push(corruptionRow('a queen said to be another promotion', pq, swapIn(pq, queens, (_, o, f, sf, r) => `${o} ${f}-pawn promotes on ${sf}${r}`), endingClaim))
+  }
+  const en = pick(inDiff((d) => ending.test(d)))
+  if (en) {
+    results.push(corruptionRow('the trade cut one move short', en, swapIn(en, /^After (\S+(?: \S+)*) (\S+), only kings and pawns are left/, (_, head) => `After ${head}, only kings and pawns are left`), endingClaim))
+    results.push(corruptionRow('pawns said to be gone', en, swapIn(en, ending, (_, seq) => `After ${seq}, only the kings are left: a draw.`), endingClaim))
+  }
   return results
 }
 
