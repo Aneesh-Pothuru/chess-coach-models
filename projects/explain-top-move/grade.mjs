@@ -1368,6 +1368,59 @@ function checkKeptOut(M, att, whose, sq, span, shown, surface) {
   return claim('kept_out', surface, shown, span, T(`the reply to ${M.san} is ${reply.san}; after ${mv.san} ${cover.join(' and ')} cover${cover.length === 1 ? 's' : ''} ${sq}, and ${whose} king never stands there in the engine's line`))
 }
 
+/** The legal moves of the piece on `sq` in `fen` with `color` to move; null when nothing stands there, or when `color` cannot be to move (the other side is in check). */
+function squaresFrom(fen, color, sq) {
+  const parts = fen.split(' ')
+  if (parts[1] !== color) {
+    const g0 = load(fen)
+    if (!g0 || g0.inCheck()) return null
+    parts[1] = color
+    parts[3] = '-'
+  }
+  const g = load(parts.join(' '))
+  const piece = g?.get(sq)
+  if (!piece || piece.color !== color) return null
+  return g.moves({ square: sq, verbose: true }).length
+}
+
+/** A count the text writes: "none", "one" or digits. */
+const countOf = (w) => (w === 'none' ? 0 : w === 'one' ? 1 : /^\d+$/.test(w) ? +w : null)
+
+/**
+ * "it brings the P on S into play, with N squares to go to instead of M": the
+ * move is the better move, taking nothing, from a position where the mover is
+ * not in check; before it a P of the mover's stands on S and has M legal
+ * moves; after it, from where it then stands (the square the move takes it to
+ * when it is the piece that moves) and with the mover to move, it has N; M is
+ * at most three, and N is at least three more than M and at least three more
+ * than the played move leaves it.
+ */
+function checkIntoPlay(M, att, piece, sq, n, was, span, shown, surface) {
+  const fail = (why) => claim('into_play', surface, shown, span, F(why))
+  if (!M) return claim('into_play', surface, shown, span, U('no moment to read the moves from'))
+  const mv = att?.mv
+  if (!mv) return fail('the move does not replay')
+  if (att !== M.attBest) return fail(`${mv.san} is not the better move`)
+  const start = load(M.F0)
+  if (start.inCheck()) return fail(`the mover is in check before ${mv.san}`)
+  if (mv.captured) return fail(`${mv.san} takes on ${mv.to}`)
+  const there = start.get(sq)
+  if (!there || there.color !== mv.color || there.type !== TYPE_OF_WORD[piece]) return fail(`no ${piece} of the mover's stands on ${sq} before ${mv.san}`)
+  const before = squaresFrom(M.F0, mv.color, sq)
+  const now = mv.from === sq ? mv.to : sq
+  const after = squaresFrom(mv.afterFen, mv.color, now)
+  if (after === null) return fail(`after ${mv.san} the ${piece} from ${sq} has no squares to count with the mover to move`)
+  if (before !== countOf(was)) return fail(`the ${piece} on ${sq} had ${before} squares to go to before ${mv.san}, not ${was}`)
+  if (after !== +n) return fail(`after ${mv.san} the ${piece} has ${after} squares to go to, not ${n}`)
+  if (before > 3) return fail(`the ${piece} on ${sq} had ${before} squares to go to already`)
+  if (after - before < 3) return fail(`${mv.san} gives the ${piece} ${after - before} more squares, fewer than three`)
+  const played = moveAt(M.F0, M.playedUci)
+  const instead = played ? squaresFrom(played.afterFen, mv.color, played.from === sq ? played.to : sq) : null
+  if (instead === null) return fail(`the ${piece} on ${sq} has no squares to count after the played move`)
+  if (after - instead < 3) return fail(`after ${played.san} the ${piece} has ${instead} squares to go to, not three fewer than the ${after} after ${mv.san}`)
+  return claim('into_play', surface, shown, span, T(`the ${piece} on ${sq} has ${before} squares to go to, ${after} after ${mv.san} and ${instead} after ${played.san}`))
+}
+
 /** From `fen`, with `by` to move instead, some legal capture on `sq` that no legal move takes back. */
 function takenFree(fen, by, sq) {
   const parts = fen.split(' ')
@@ -1892,6 +1945,7 @@ function clauseClaims(text, attOf, surface, shown, M = null) {
   take(/\bthe king stands in front of (their|your) passed ([a-h])-pawn\b/g, ([owner, f], whole, att) => checkStopsPassed(att, 'king', owner, f, null, M, whole, shown, surface))
   take(new RegExp(String.raw`\bthe ([a-h])-pawn goes on to (queen|promote) on ${SQ} in the engine's line\b`, 'g'), ([f, kind, sq], whole, att) => checkGoesOn(M, att, f, kind, sq, whole, shown, surface))
   take(new RegExp(String.raw`\b(?:it )?keeps (their|your) king out of ${SQ}`, 'g'), ([whose, sq], whole, att) => checkKeptOut(M, att, whose, sq, whole, shown, surface))
+  take(new RegExp(String.raw`\b(?:it )?brings the (knight|bishop|rook|queen) on ${SQ} into play, with (\d+) squares? to go to instead of (none|one|\d+)`, 'g'), ([piece, sq, n, was], whole, att) => checkIntoPlay(M, att, piece, sq, n, was, whole, shown, surface))
   take(/\b(your|their) king walks (up|over) to (your|their|its) ([a-h])-pawn: ([^.]+?) in the engine's line\b/g, ([whose, dir, owner, f, moves], whole) => checkKingWalk(M, whose, dir, owner, f, moves, whole, shown, surface))
   // A mate the move gives, or the reply gives.
   take(/\bit is checkmate\b/g, (_g, whole, att) => claim('mate_move', surface, shown, whole, att.mv && att.mv.board.isCheckmate() ? T(`${att.mv.san} is checkmate`) : F(`${att.mv ? att.mv.san : att.uci} is not checkmate`)))
@@ -3448,6 +3502,46 @@ function runCorruption(cases) {
   if (notKing) results.push(corruptionRow("the keep-out put where the reply is not the king's step", notKing, added(notKing), keptClaim))
   const reaches = pick((c) => replyStep(c)?.reply.piece === 'k' && replyStep(c).later)
   if (reaches) results.push(corruptionRow('the keep-out put where their king reaches the square later in the better line', reaches, added(reaches), keptClaim))
+  // The piece the better move brings into play: the counts, the square, the piece; and the sentence put where the played move frees it too, or where it was in play already.
+  const intoPlay = /\bbrings the (knight|bishop|rook|queen) on ([a-h])([1-8]) into play, with (\d+) squares to go to instead of (none|one|\d+)/
+  const intoClaim = /brings the (?:knight|bishop|rook|queen) on [a-h][1-8] into play/
+  const ip = pick((c) => c.texts?.lessonFor?.better?.points?.some((p) => intoPlay.test(p)))
+  if (ip) {
+    const up = (w) => (w === 'none' ? 'one' : w === 'one' ? '2' : String(+w + 1))
+    results.push(corruptionRow('the squares the piece has after the better move, one more', ip, swapBetter(ip, intoPlay, (_, p, f, r, n, w) => `brings the ${p} on ${f}${r} into play, with ${+n + 1} squares to go to instead of ${w}`), intoClaim))
+    results.push(corruptionRow('the squares the piece had before, one more', ip, swapBetter(ip, intoPlay, (_, p, f, r, n, w) => `brings the ${p} on ${f}${r} into play, with ${n} squares to go to instead of ${up(w)}`), intoClaim))
+    results.push(corruptionRow('the piece brought into play, one file over', ip, swapBetter(ip, intoPlay, (_, p, f, r, n, w) => `brings the ${p} on ${nextFile(f)}${r} into play, with ${n} squares to go to instead of ${w}`), intoClaim))
+    results.push(corruptionRow('the piece brought into play named as another', ip, swapBetter(ip, intoPlay, (_, p, f, r, n, w) => `brings the ${p === 'knight' ? 'bishop' : 'knight'} on ${f}${r} into play, with ${n} squares to go to instead of ${w}`), intoClaim))
+  }
+  const counts = (c) => {
+    if (c.texts?.cardShows !== 'lesson' || !Array.isArray(c.texts.lessonFor?.better?.points) || !c.fenBefore || !c.uci || !c.bestUci || c.uci === c.bestUci) return []
+    const best = moveAt(c.fenBefore, c.bestUci)
+    const played = moveAt(c.fenBefore, c.uci)
+    if (!best || !played || best.captured || load(c.fenBefore).inCheck()) return []
+    const out = []
+    for (const row of load(c.fenBefore).board()) {
+      for (const p of row) {
+        if (!p || p.color !== best.color || !'nbrq'.includes(p.type)) continue
+        const before = squaresFrom(c.fenBefore, best.color, p.square)
+        const after = squaresFrom(best.afterFen, best.color, best.from === p.square ? best.to : p.square)
+        const instead = squaresFrom(played.afterFen, best.color, played.from === p.square ? played.to : p.square)
+        if (before !== null && after !== null && instead !== null) out.push({ square: p.square, type: p.type, before, after, instead })
+      }
+    }
+    return out
+  }
+  const into = (c, r) => {
+    const copy = structuredClone(c)
+    const was = r.before === 0 ? 'none' : r.before === 1 ? 'one' : String(r.before)
+    copy.texts.lessonFor.better.points = [`it brings the ${WORD_OF_TYPE[r.type]} on ${r.square} into play, with ${r.after} squares to go to instead of ${was}`, ...copy.texts.lessonFor.better.points]
+    return copy
+  }
+  const freesToo = (r) => r.before <= 3 && r.after - r.before >= 3 && r.after - r.instead < 3
+  const inPlay = (r) => r.before > 3 && r.after - r.before >= 3 && r.after - r.instead >= 3
+  const ft = pick((c) => counts(c).some(freesToo))
+  if (ft) results.push(corruptionRow('the into-play point put where the played move frees the piece too', ft, into(ft, counts(ft).find(freesToo)), intoClaim))
+  const ap = pick((c) => counts(c).some(inPlay))
+  if (ap) results.push(corruptionRow('the into-play point put where the piece was in play already', ap, into(ap, counts(ap).find(inPlay)), intoClaim))
   return results
 }
 
