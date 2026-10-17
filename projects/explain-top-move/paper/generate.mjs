@@ -670,6 +670,70 @@ g.def('RoundTwentyTwoRejudged', String(r22b.sample.judged))
   .def('RoundTwentyTwoFirstTrainNew', String(r22.tally.train.new)).def('RoundTwentyTwoFirstTrainOld', String(r22.tally.train.old)).def('RoundTwentyTwoFirstTrainSame', String(r22.tally.train.same))
   .def('RoundTwentyTwoFirstTestNew', String(r22.tally.test.new)).def('RoundTwentyTwoFirstTestOld', String(r22.tally.test.old)).def('RoundTwentyTwoFirstTestSame', String(r22.tally.test.same));
 
+// ---- round 23: the capture that was a trap, on round 22's three sets; its seeded draw takes every moment
+// it changed. Its sentence opens the headline, so the judged cards differ from the base's there alone
+const twentyThree = rebuilt.get('v23');
+const twentyThreeSets = [twentyThree, twentyThree?.endgames, twentyThree?.endgames2];
+claim(twentyThreeSets.every(r => r?.sameMoments && r.gradesEqual), "round 23's grades equal its base's in all three sets");
+const TWENTY_THREE_QUOTES = { Quote: 'Their pawn on c7 looked free, but it was a trap. Qxc7 allows Rxe6, and it wins the rook outright.', QuoteMate: 'Their rook on h7 looked free, but it was a trap. Rxh7 allows mate in 1 with Bf7#. Ng4+ avoids it.' };
+claim(Object.values(TWENTY_THREE_QUOTES).every(q => readFileSync(join(flow, 'v23', 'change.patch'), 'utf8').includes(q)), "round 23's tests pin the sentences the paper quotes");
+const r23 = judgeOf.get('23');
+claim(r23?.keepByRule, 'the judge preferred round 23 on both halves');
+claim(sampledFully(r23, twentyThreeSets) && r23.sample.drawn === r23.sample.of, "round 23's judges read every moment it changed");
+{
+  const dir = join(judgeDir, 'round23');
+  const items = read(join(dir, 'items-r1.json')).items;
+  const keys = ['r1', 'r2'].map(r => read(join(dir, `key-${r}.json`)));
+  const answers = ['r1', 'r2'].map(r => new Map(read(join(dir, `out-${r}.judge.json`)).answers.map(a => [a.id, a.choice])));
+  const verdicts = id => [0, 1].map(i => { const c = answers[i].get(id); return c === 'same' ? 'same' : keys[i][id][c]; });
+  const version = (item, side) => (keys[0][item.id].X === side ? item.versionX : item.versionY);
+  const card = (item, side) => version(item, side).find(x => x.heading === 'On the card')?.text ?? '';
+  const TRAP = /^(?:Their|Your) \w+ on [a-h][1-8] looked free, but it was a trap\. /;
+  claim(items.length === r23.sample.judged && items.every(item => { const m = card(item, 'new').match(TRAP); return Boolean(m) && card(item, 'new') === m[0] + card(item, 'old'); }),
+    "every card round 23's judges read opens with its sentence, and the rest of it is the base's");
+  const played = item => sansOf(item.move)[0];
+  const replyOf = item => {
+    const head = `What ${played(item)} allowed: `;
+    const section = version(item, 'new').find(x => x.heading.startsWith(head));
+    if (!section) throw new Error(`round 23: ${item.id} names no reply`);
+    return section.heading.slice(head.length);
+  };
+  // Had the mover passed instead of capturing, the engine's reply would make the same capture or the same mate.
+  const stood = new Set(items.filter(item => {
+    if (new Chess(item.fenBefore).inCheck()) return false;
+    const after = new Chess(item.fenBefore);
+    after.move(played(item));
+    const hit = after.move(replyOf(item));
+    const fen = item.fenBefore.split(' ');
+    fen[1] = fen[1] === 'w' ? 'b' : 'w';
+    fen[3] = '-';
+    const passed = new Chess(fen.join(' '), { skipValidation: true });
+    let again = null;
+    try { again = passed.move({ from: hit.from, to: hit.to, promotion: hit.promotion }); } catch { again = null; }
+    if (!again) return false;
+    return (after.isCheckmate() && passed.isCheckmate()) || (Boolean(hit.captured) && again.captured === hit.captured && again.to === hit.to);
+  }).map(item => item.id));
+  // The better line plays the same capture one or two of the mover's moves later.
+  const later = new Set(items.filter(item => {
+    const [uci] = ucisOf(item.fenBefore, [played(item)]);
+    return ucisOf(item.fenBefore, sansOf(item.engine.bestLine)).filter((_, i) => i % 2 === 0).slice(1, 3).includes(uci);
+  }).map(item => item.id));
+  const misses = items.filter(item => item.appVerdict === 'Miss');
+  const tallyOn = ids => { const v = ids.flatMap(verdicts); return { n: v.length, new: v.filter(x => x === 'new').length }; };
+  const onStood = tallyOn([...stood]), onRest = tallyOn(items.map(item => item.id).filter(id => !stood.has(id)));
+  const against = items.filter(item => verdicts(item.id).includes('old'));
+  claim(onStood.new * onRest.n < onRest.new * onStood.n, "the judges preferred round 23's texts less often where the reply's capture or mate stood before the capture");
+  claim(misses.length === 1 && verdicts(misses[0].id).every(v => v === 'old'), "round 23's one miss drew both runs' answers against it");
+  claim(misses.every(item => version(item, 'new').some(x => x.heading === 'The difference' && x.text.includes(`After ${played(item)} you are about even`))), "round 23's miss leaves the game about even, its card says");
+  claim(against.filter(item => later.has(item.id)).every(item => stood.has(item.id)), "the answers against round 23 where the better line takes the piece later are on a moment where the reply's capture stood before it too");
+  g.def('RoundTwentyThreeStood', word(stood.size)).def('RoundTwentyThreeLater', word(later.size)).def('RoundTwentyThreeJudged', String(items.length))
+    .def('RoundTwentyThreeStoodNew', String(onStood.new)).def('RoundTwentyThreeStoodAnswers', String(onStood.n))
+    .def('RoundTwentyThreeRestNew', String(onRest.new)).def('RoundTwentyThreeRestAnswers', String(onRest.n))
+    .def('RoundTwentyThreeAgainst', word(against.length));
+}
+for (const [k, q] of Object.entries(TWENTY_THREE_QUOTES)) g.def(`RoundTwentyThree${k}`, esc(q));
+sampledDefs('RoundTwentyThree', r23, twentyThreeSets);
+
 // ---- the judge's controls, as reproduce.mjs recomputed them
 const c = repro.controls;
 claim(c.length.matchesRecorded, 'the length check recomputed from its answers matches the score the records keep');
@@ -708,7 +772,7 @@ const pad18 = c.perRound.find(p => p.round === '18');
 claim(pad18?.kind === 'padding', 'round 18 carried a padding control');
 g.def('PadEighteenDecoy', String(pad18.decoy)).def('PadEighteenN', String(pad18.comparisons))
   .def('PadEighteenUnchanged', String(pad18.unchanged)).def('PadEighteenSame', String(pad18.same));
-for (const [round, name] of [['19', 'Nineteen'], ['20b', 'Twenty'], ['21', 'TwentyOne'], ['22', 'TwentyTwo']]) {
+for (const [round, name] of [['19', 'Nineteen'], ['20b', 'Twenty'], ['21', 'TwentyOne'], ['22', 'TwentyTwo'], ['23', 'TwentyThree']]) {
   const pad = c.perRound.find(p => p.round === round);
   claim(pad?.kind === 'padding', `round ${round} carried a padding control`);
   g.def(`Pad${name}Decoy`, String(pad.decoy)).def(`Pad${name}N`, String(pad.comparisons))

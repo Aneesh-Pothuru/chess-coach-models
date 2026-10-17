@@ -49,9 +49,9 @@
 \newcommand{\KeptTrainConcreteVsBase}{+6.8 [3.2, 10.6]}
 \newcommand{\KeptTrainTextsChanged}{87}
 \newcommand{\KeptVariant}{v8}
-\newcommand{\RoundCount}{22}
-\newcommand{\RoundCountCap}{22}
-\newcommand{\KeptRoundCount}{19}
+\newcommand{\RoundCount}{23}
+\newcommand{\RoundCountCap}{23}
+\newcommand{\KeptRoundCount}{20}
 \newcommand{\UnjudgedKept}{1, 2, 11 and 14}
 \newcommand{\RoundsTable}{%
 \begin{tabularx}{\textwidth}{l L rrrr r r}
@@ -84,6 +84,7 @@ v19 & The guard a played move gives up & \multicolumn{5}{c}{\emph{graded on rebu
 v20b & The chased piece that escapes to a better square & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 87--3 / 84--2 \\
 v21 & The pawn ending a trade leads to & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 10--0 / 11--1 \\
 v22b & What the better line does first & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 20--0 / 26--0 \\
+v23 & A capture that was a trap & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 28--6 / 29--3 \\
 \bottomrule
 \end{tabularx}
 }
@@ -116,6 +117,7 @@ round & judged & train & test & the rule says \\
 22 & round 22 (23 moments) & 20--0 (0) & 24--0 (2) & keep \\
 22b & round 22b (23 moments) & 20--0 (0) & 26--0 (0) & keep \\
 22 and 22b & round 22 then round 22b (23 moments) & 20--0 (0) & 26--0 (0) & keep \\
+23 & round 23 (33 moments) & 28--6 (0) & 29--3 (0) & keep \\
 \bottomrule
 \end{tabular}
 }
@@ -156,6 +158,8 @@ v22 & test & 153 & 153 & 130 & 144 & 152 & 1 \\
 v22 & train & 180 & 179 & 152 & 166 & 179 & 4 \\
 v22b & test & 153 & 153 & 130 & 144 & 152 & 1 \\
 v22b & train & 180 & 179 & 152 & 166 & 179 & 4 \\
+v23 & test & 153 & 153 & 130 & 144 & 152 & 1 \\
+v23 & train & 180 & 179 & 152 & 166 & 179 & 2 \\
 \bottomrule
 \end{tabular}
 }
@@ -184,6 +188,8 @@ v22, endgame set & test & 572 & 561 & 482 & 529 & 560 & 7 \\
 v22, endgame set & train & 612 & 598 & 493 & 573 & 598 & 5 \\
 v22b, endgame set & test & 572 & 561 & 482 & 529 & 560 & 7 \\
 v22b, endgame set & train & 612 & 598 & 493 & 573 & 598 & 5 \\
+v23, endgame set & test & 572 & 561 & 482 & 529 & 560 & 7 \\
+v23, endgame set & train & 612 & 598 & 493 & 573 & 598 & 9 \\
 v18, second endgame set & test & 494 & 490 & 407 & 458 & 490 & 4 \\
 v18, second endgame set & train & 517 & 509 & 420 & 468 & 509 & 2 \\
 v19, second endgame set & test & 494 & 490 & 407 & 458 & 490 & 36 \\
@@ -196,6 +202,8 @@ v22, second endgame set & test & 494 & 490 & 408 & 458 & 490 & 5 \\
 v22, second endgame set & train & 517 & 509 & 425 & 468 & 509 & 1 \\
 v22b, second endgame set & test & 494 & 490 & 408 & 458 & 490 & 5 \\
 v22b, second endgame set & train & 517 & 509 & 425 & 468 & 509 & 1 \\
+v23, second endgame set & test & 494 & 490 & 408 & 458 & 490 & 8 \\
+v23, second endgame set & train & 517 & 509 & 425 & 468 & 509 & 6 \\
 \bottomrule
 \end{tabular}
 }
@@ -403,6 +411,26 @@ the five of Table~\ref{tab:defects} & 0 & 0 \\
 \newcommand{\RoundTwentyTwoFirstTestNew}{24}
 \newcommand{\RoundTwentyTwoFirstTestOld}{0}
 \newcommand{\RoundTwentyTwoFirstTestSame}{2}
+\newcommand{\RoundTwentyThreeStood}{twelve}
+\newcommand{\RoundTwentyThreeLater}{four}
+\newcommand{\RoundTwentyThreeJudged}{33}
+\newcommand{\RoundTwentyThreeStoodNew}{19}
+\newcommand{\RoundTwentyThreeStoodAnswers}{24}
+\newcommand{\RoundTwentyThreeRestNew}{38}
+\newcommand{\RoundTwentyThreeRestAnswers}{42}
+\newcommand{\RoundTwentyThreeAgainst}{seven}
+\newcommand{\RoundTwentyThreeQuote}{Their pawn on c7 looked free, but it was a trap. Qxc7 allows Rxe6, and it wins the rook outright.}
+\newcommand{\RoundTwentyThreeQuoteMate}{Their rook on h7 looked free, but it was a trap. Rxh7 allows mate in 1 with Bf7\#. Ng4+ avoids it.}
+\newcommand{\RoundTwentyThreeChanged}{33}
+\newcommand{\RoundTwentyThreeChangedTrain}{17}
+\newcommand{\RoundTwentyThreeChangedTest}{16}
+\newcommand{\RoundTwentyThreeSampled}{33}
+\newcommand{\RoundTwentyThreePer}{20}
+\newcommand{\RoundTwentyThreeSeed}{20261023}
+\newcommand{\RoundTwentyThreeTrainNew}{28}
+\newcommand{\RoundTwentyThreeTrainOld}{6}
+\newcommand{\RoundTwentyThreeTestNew}{29}
+\newcommand{\RoundTwentyThreeTestOld}{3}
 \newcommand{\LongerPicked}{305}
 \newcommand{\LongerDecided}{326}
 \newcommand{\LongerRounds}{3, 4, 5, 7, 7b, 8 and 9}
@@ -453,6 +481,10 @@ the five of Table~\ref{tab:defects} & 0 & 0 \\
 \newcommand{\PadTwentyTwoN}{20}
 \newcommand{\PadTwentyTwoUnchanged}{0}
 \newcommand{\PadTwentyTwoSame}{20}
+\newcommand{\PadTwentyThreeDecoy}{0}
+\newcommand{\PadTwentyThreeN}{20}
+\newcommand{\PadTwentyThreeUnchanged}{20}
+\newcommand{\PadTwentyThreeSame}{0}
 \newcommand{\ControlsTable}{%
 \begin{tabularx}{\textwidth}{L l l}
 \toprule
@@ -474,6 +506,7 @@ padding control, round 19: the decoy preferred & 0 of 20 (10 the shorter text, 1
 padding control, round 20b: the decoy preferred & 0 of 20 (4 the shorter text, 16 same) & no drift \\
 padding control, round 21: the decoy preferred & 0 of 20 (20 the shorter text, 0 same) & no drift \\
 padding control, round 22: the decoy preferred & 0 of 20 (0 the shorter text, 20 same) & no drift \\
+padding control, round 23: the decoy preferred & 0 of 20 (20 the shorter text, 0 same) & no drift \\
 \bottomrule
 \end{tabularx}
 }
@@ -510,12 +543,12 @@ padding control, round 22: the decoy preferred & 0 of 20 (0 the shorter text, 20
 \newcommand{\ExampleCount}{8}
 \newcommand{\ReproLinesMatched}{27}
 \newcommand{\ReproLines}{27}
-\newcommand{\AppCommit}{\texttt{dd48bbd}}
-\newcommand{\RecordsCommit}{\texttt{2746e47}}
+\newcommand{\AppCommit}{\texttt{ad7fa98}}
+\newcommand{\RecordsCommit}{\texttt{ec90c2b}}
 \newcommand{\RerunSearches}{the capture searches on it (88 kept) and the defense searches (51 kept)}
 \newcommand{\RerunEvidence}{review-evidence/7}
-\newcommand{\RerunTextsSentence}{Its texts equal the recorded texts of v22b, the last kept round, on all 333 moments of round 22's documents.}
-\newcommand{\AppKeptThrough}{22}
+\newcommand{\RerunTextsSentence}{Its texts equal the recorded texts of v23, the last kept round, on all 333 moments of round 23's documents.}
+\newcommand{\AppKeptThrough}{23}
 \newcommand{\AppKeptSentence}{The app at that commit carries every kept round.}
 \newcommand{\RerunTestMoments}{153}
 \newcommand{\RerunTestShared}{146}

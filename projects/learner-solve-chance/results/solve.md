@@ -1,6 +1,6 @@
 # The learner's solve chances: results
 
-Written by fit.mjs. App commit dd48bbdb66fa3edc0c985156555d7a384ed03f73, reading the profile at d8b771238c11c84d0c4b2a8010bb75f5f756b8d9, the commit round 1 measured. Bootstrap: 1000 draws over days, seed 7.
+Written by fit.mjs. App commit ad7fa98cee3c7cbf6cb0a70ffcd0e9d6ec459495, reading the profile at d8b771238c11c84d0c4b2a8010bb75f5f756b8d9, the commit round 1 measured. Bootstrap: 1000 draws over days, seed 7.
 
 ## Round 1, on the rebuilt record
 

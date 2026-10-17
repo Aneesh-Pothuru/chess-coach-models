@@ -49,8 +49,8 @@ const DIMS = ['faithful', 'concrete', 'named_deep', 'faithfulAll'];
 // it re-read round 5's judgments on the moments whose texts v6 changes from v4.
 // Round 17's judges read a seeded sample of the moments it changed
 // (round17/sample.json, drawn from round17/changed.json), and its score counts
-// that sample alone; so do round 19's, round 20b's, round 21's and round 22's,
-// whose draws take every moment they changed. Round 20 failed its grades before
+// that sample alone; so do round 19's, round 20b's, round 21's, round 22's and
+// round 23's, whose draws take every moment they changed. Round 20 failed its grades before
 // any judge ran, so its variant 20b is the round judged. Round 22b judged again
 // every moment round 22's judges read, on its final wording, so round 22 is
 // decided on both, as round 17 is.
@@ -79,6 +79,7 @@ const ROUNDS = [
   { round: '22', dirs: ['round22'], sample: 'round22' },
   { round: '22b', dirs: ['round22b'], sample: 'round22' },
   { round: '22 and 22b', dirs: ['round22', 'round22b'], sample: 'round22' },
+  { round: '23', dirs: ['round23'], sample: 'round23' },
 ];
 // The rounds judged before the length check, whose streak of longer texts it tested.
 const BEFORE_CHECK = ['3', '4', '5', '7', '7b', '8', '9'];
@@ -108,7 +109,7 @@ const appDefends = () => existsSync(join(CHESS_DIR, 'src', 'services', 'review',
 function appCarries() {
   const lessonFile = join(CHESS_DIR, 'src', 'services', 'knowledge', 'detectors', 'lesson.ts');
   const lesson = existsSync(lessonFile) ? readFileSync(lessonFile, 'utf8') : '';
-  return { v10: lesson.includes('an even trade'), v11: /\btakesBack\b/.test(lesson), v12: appDefends(), v14: /\bmaterialChange\b/.test(lesson), v15: /\bquietDefense\b/.test(lesson), v16: /\bpawnRuns\b/.test(lesson), v17b: /\bstakesSentence\b/.test(lesson), v17c: /\bmateDistance\(score\.cp\b/.test(lesson), v18: /\bcheckWithReason\b/.test(lesson), v19: /\bguardGivenUp\b/.test(lesson), v20b: /\bchasedAway\b/.test(lesson), v21: /\bpawnEnding\b/.test(lesson), v22b: /\borderReason\b/.test(lesson) };
+  return { v10: lesson.includes('an even trade'), v11: /\btakesBack\b/.test(lesson), v12: appDefends(), v14: /\bmaterialChange\b/.test(lesson), v15: /\bquietDefense\b/.test(lesson), v16: /\bpawnRuns\b/.test(lesson), v17b: /\bstakesSentence\b/.test(lesson), v17c: /\bmateDistance\(score\.cp\b/.test(lesson), v18: /\bcheckWithReason\b/.test(lesson), v19: /\bguardGivenUp\b/.test(lesson), v20b: /\bchasedAway\b/.test(lesson), v21: /\bpawnEnding\b/.test(lesson), v22b: /\borderReason\b/.test(lesson), v23: /\btrapTaken\b/.test(lesson) };
 }
 
 function rerun(dir) {

@@ -1,8 +1,8 @@
 {
   "eval": "explain-top-move reproduction",
   "chess": {
-    "pinned_commit": "dd48bbdb66fa3edc0c985156555d7a384ed03f73",
-    "records_commit": "2746e47417d46a40616efd7be90c97a1b75fb601",
+    "pinned_commit": "ad7fa98cee3c7cbf6cb0a70ffcd0e9d6ec459495",
+    "records_commit": "ec90c2bf2fea802b9e98ccc5bd73d0edc9e27a1d",
     "carries": {
       "v10": true,
       "v11": true,
@@ -16,7 +16,8 @@
       "v19": true,
       "v20b": true,
       "v21": true,
-      "v22b": true
+      "v22b": true,
+      "v23": true
     }
   },
   "recomputed": {
@@ -48,7 +49,7 @@
       ]
     },
     "textsMatch": {
-      "variant": "v22b",
+      "variant": "v23",
       "of": 333,
       "same": 333
     }
@@ -713,6 +714,46 @@
       },
       "keepByRule": true,
       "recordedReason": "what the better line does first: when the better line plays the played move one or two of the mover's moves later and the engine's reply to the played move captures, not en passant, \"The difference\" says, right after the order sentence, the first of these the line does before the played move: the mover's capture of the reply's capturing piece, the opponent's move of that piece off its square after the mover's move whose piece attacks it, or the mover's move of the piece the reply takes (not the better move's own point when the lesson already says it): \"Played now, Bf5 allows dxc5; cxd4 first takes the pawn on d4.\" (\"Qd7 first drives the queen from b5 (Qe2).\", \"Nfd6 first moves your knight on f5 away.\"), when that piece is not taken on the way unless it took the capturing piece, nothing can take it once the played move comes, and round 18's check with a reason is not said; measured on round 21's three sets, it changes 23 moments (10 train, 13 test), no grade changes and all 23 sentences are graded true; judge model, pairwise and blind, two runs with the order reversed, on every changed moment (the seeded sample of 20 per set and split, seed 20261022, takes all) with a 10-moment padding control in the same batches: 20 to 0 on train and 24 to 0 on test with 2 same, the decoy preferred in none of its 20 comparisons; the two same answers say the sentence repeats what the section already says (8...cxd4, 46...Rd7), and counts made after the decision find the section naming the reply before the sentence on 9 of the 23 and a queen trade called a drive on 2; the sentence's semicolon, which the app's voice rules forbid, became two sentences in v22b (\"Played now, Bf5 allows dxc5. cxd4 first takes the pawn on d4.\"), judged again on all 23 moments: on the final texts 20 to 0 on train and 26 to 0 on test (v22/change.md, v22b/change.md)"
+    },
+    {
+      "round": "23",
+      "judged": "round23",
+      "moments": 33,
+      "sample": {
+        "of": 33,
+        "drawn": 33,
+        "judged": 33,
+        "per": 20,
+        "seed": 20261023,
+        "reproduced": true,
+        "extras": 0,
+        "extrasTally": {
+          "train": {
+            "new": 0,
+            "old": 0,
+            "same": 0
+          },
+          "test": {
+            "new": 0,
+            "old": 0,
+            "same": 0
+          }
+        }
+      },
+      "tally": {
+        "train": {
+          "new": 28,
+          "old": 6,
+          "same": 0
+        },
+        "test": {
+          "new": 29,
+          "old": 3,
+          "same": 0
+        }
+      },
+      "keepByRule": true,
+      "recordedReason": "the capture that was a trap: on a mistake, blunder or miss that captures, not en passant, where nothing can take back and the better move lands elsewhere, when the engine's line after it mates the mover, or ends settled two pawns' worth or more down while the better line ends settled two pawns' worth or more better, the headline opens with \"Their pawn on c7 looked free, but it was a trap.\" (\"Your\" on the opponent's move); measured on round 22's three sets, it changes 33 moments (17 train, 16 test), no grade changes and all 33 sentences are graded true; judge model, pairwise and blind, two runs with the order reversed, on every changed moment (the seeded sample of 20 per set and split, seed 20261023, takes all) with a 10-moment padding control in the same batches: 28 to 6 on train and 29 to 3 on test, the decoy preferred in none of its 20 comparisons; the 9 answers against it, on 7 moments, say the capture is not what loses: the reply's threat stood before it (six moments), the better line takes the same pawn later (27...Nxe4) or the capture keeps the game level (26...Qxc2, the one miss); counts made after the decision find the reply's capture or mate standing before the capture on 12 of the 33 and the better line playing the same capture later on 4 (v23/change.md)"
     }
   ],
   "controls": {
@@ -997,6 +1038,17 @@
         "same": 20,
         "decoyShareOfAll": 0,
         "decoyShareOfDecided": null,
+        "drifted": false
+      },
+      {
+        "round": "23",
+        "kind": "padding",
+        "comparisons": 20,
+        "decoy": 0,
+        "unchanged": 20,
+        "same": 0,
+        "decoyShareOfAll": 0,
+        "decoyShareOfDecided": 0,
         "drifted": false
       }
     ],
@@ -2482,6 +2534,138 @@
               "faithfulAll": 509
             },
             "textsChanged": 1
+          }
+        ],
+        "sameMoments": true,
+        "gradesEqual": true
+      }
+    },
+    {
+      "variant": "v23",
+      "sameMoments": true,
+      "splits": [
+        {
+          "split": "test",
+          "moments": 153,
+          "base": {
+            "faithful": 153,
+            "concrete": 130,
+            "named_deep": 144,
+            "faithfulAll": 152
+          },
+          "variant": {
+            "faithful": 153,
+            "concrete": 130,
+            "named_deep": 144,
+            "faithfulAll": 152
+          },
+          "textsChanged": 1
+        },
+        {
+          "split": "train",
+          "moments": 180,
+          "base": {
+            "faithful": 179,
+            "concrete": 152,
+            "named_deep": 166,
+            "faithfulAll": 179
+          },
+          "variant": {
+            "faithful": 179,
+            "concrete": 152,
+            "named_deep": 166,
+            "faithfulAll": 179
+          },
+          "textsChanged": 2
+        }
+      ],
+      "gradesEqual": true,
+      "defects": null,
+      "endgames": {
+        "seed": 20261014,
+        "games": {
+          "test": 80,
+          "train": 80
+        },
+        "splits": [
+          {
+            "split": "test",
+            "moments": 572,
+            "base": {
+              "faithful": 561,
+              "concrete": 482,
+              "named_deep": 529,
+              "faithfulAll": 560
+            },
+            "variant": {
+              "faithful": 561,
+              "concrete": 482,
+              "named_deep": 529,
+              "faithfulAll": 560
+            },
+            "textsChanged": 7
+          },
+          {
+            "split": "train",
+            "moments": 612,
+            "base": {
+              "faithful": 598,
+              "concrete": 493,
+              "named_deep": 573,
+              "faithfulAll": 598
+            },
+            "variant": {
+              "faithful": 598,
+              "concrete": 493,
+              "named_deep": 573,
+              "faithfulAll": 598
+            },
+            "textsChanged": 9
+          }
+        ],
+        "sameMoments": true,
+        "gradesEqual": true
+      },
+      "endgames2": {
+        "seed": 20261014,
+        "games": {
+          "test": 65,
+          "train": 65
+        },
+        "splits": [
+          {
+            "split": "test",
+            "moments": 494,
+            "base": {
+              "faithful": 490,
+              "concrete": 408,
+              "named_deep": 458,
+              "faithfulAll": 490
+            },
+            "variant": {
+              "faithful": 490,
+              "concrete": 408,
+              "named_deep": 458,
+              "faithfulAll": 490
+            },
+            "textsChanged": 8
+          },
+          {
+            "split": "train",
+            "moments": 517,
+            "base": {
+              "faithful": 509,
+              "concrete": 425,
+              "named_deep": 468,
+              "faithfulAll": 509
+            },
+            "variant": {
+              "faithful": 509,
+              "concrete": 425,
+              "named_deep": 468,
+              "faithfulAll": 509
+            },
+            "textsChanged": 6
           }
         ],
         "sameMoments": true,
