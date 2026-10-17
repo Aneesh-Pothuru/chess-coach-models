@@ -578,6 +578,34 @@ claim(sampledFully(r20, twentySets), "round 20b's judges read the whole seeded d
 for (const [k, q] of Object.entries(TWENTY_QUOTES)) g.def(`RoundTwenty${k}`, esc(q));
 sampledDefs('RoundTwenty', r20, twentySets);
 
+// ---- round 21: the pawn ending a trade leads to, on round 20's three sets; its seeded draw takes every moment it changed
+const twentyOne = rebuilt.get('v21');
+const twentyOneSets = [twentyOne, twentyOne?.endgames, twentyOne?.endgames2];
+claim(twentyOneSets.every(r => r?.sameMoments && r.gradesEqual), "round 21's grades equal its base's in all three sets");
+const TWENTY_ONE_QUOTES = { Quote: "After Qxg1+ Kxg1, only kings and pawns are left: in the engine's line your king takes their pawns on h4 and g2, and their king takes your pawn on e3.", QuoteDraw: 'After Qxh2+ Kxh2, only the kings are left: a draw.' };
+claim(Object.values(TWENTY_ONE_QUOTES).every(q => readFileSync(join(flow, 'v21', 'change.patch'), 'utf8').includes(q)), "round 21's tests pin the sentences the paper quotes");
+const r21 = judgeOf.get('21');
+claim(r21?.keepByRule, 'the judge preferred round 21 on both halves');
+claim(sampledFully(r21, twentyOneSets) && r21.sample.drawn === r21.sample.of, "round 21's judges read every moment it changed");
+{
+  const { items, sentence, against } = judgedRound('round21', /After (\S+(?: \S+)*), only (?:kings and pawns are left: in the engine's line ([^.]+)|the kings are left: a draw)\./);
+  const escRe = x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // The played move's line, where the sentence names only the mover's king's captures and the card's closing sentence calls the played move lost.
+  const lostCapture = new Set(items.filter(item => {
+    const [, moves, body] = sentence(item);
+    const played = sansOf(item.move)[0];
+    if (moves.split(' ')[0] !== played || !/^your king takes their pawns? on [a-h][1-8](?:(?:, | and )[a-h][1-8])*$/.test(body ?? '')) return false;
+    const difference = [item.versionX, item.versionY].map(v => v.find(x => x.heading === 'The difference')?.text ?? '');
+    return difference.some(t => new RegExp(`(?:losing after ${escRe(played)} \\(|After ${escRe(played)} you are losing)`).test(t));
+  }).map(item => item.id));
+  claim(items.length === r21.sample.judged, 'the judge items of round 21 are its judged moments');
+  claim(r21.tally.train.old + r21.tally.test.old === 1 && against.length === 1, 'the judges gave one answer against round 21');
+  claim(lostCapture.size === 1 && lostCapture.has(against[0]), "the answer against round 21 is on its one sentence that names only the mover's king's capture in an ending the card calls lost");
+  g.def('RoundTwentyOneLostCapture', word(lostCapture.size)).def('RoundTwentyOneJudged', String(items.length));
+}
+for (const [k, q] of Object.entries(TWENTY_ONE_QUOTES)) g.def(`RoundTwentyOne${k}`, esc(q));
+sampledDefs('RoundTwentyOne', r21, twentyOneSets);
+
 // ---- the judge's controls, as reproduce.mjs recomputed them
 const c = repro.controls;
 claim(c.length.matchesRecorded, 'the length check recomputed from its answers matches the score the records keep');
@@ -616,7 +644,7 @@ const pad18 = c.perRound.find(p => p.round === '18');
 claim(pad18?.kind === 'padding', 'round 18 carried a padding control');
 g.def('PadEighteenDecoy', String(pad18.decoy)).def('PadEighteenN', String(pad18.comparisons))
   .def('PadEighteenUnchanged', String(pad18.unchanged)).def('PadEighteenSame', String(pad18.same));
-for (const [round, name] of [['19', 'Nineteen'], ['20b', 'Twenty']]) {
+for (const [round, name] of [['19', 'Nineteen'], ['20b', 'Twenty'], ['21', 'TwentyOne']]) {
   const pad = c.perRound.find(p => p.round === round);
   claim(pad?.kind === 'padding', `round ${round} carried a padding control`);
   g.def(`Pad${name}Decoy`, String(pad.decoy)).def(`Pad${name}N`, String(pad.comparisons))

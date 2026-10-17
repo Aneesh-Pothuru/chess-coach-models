@@ -1,8 +1,8 @@
 {
   "eval": "explain-top-move reproduction",
   "chess": {
-    "pinned_commit": "e44121884d97c7abe884123216846511944129d8",
-    "records_commit": "d77d7a3240fa24dcd7e183aca071132a153e820f",
+    "pinned_commit": "71d920dd5c68c348c594803ca272341c21e74e0c",
+    "records_commit": "686456435e50ca2214861bd324ad041723f8edc3",
     "carries": {
       "v10": true,
       "v11": true,
@@ -14,7 +14,8 @@
       "v17c": true,
       "v18": true,
       "v19": true,
-      "v20b": true
+      "v20b": true,
+      "v21": true
     }
   },
   "recomputed": {
@@ -46,7 +47,7 @@
       ]
     },
     "textsMatch": {
-      "variant": "v20b",
+      "variant": "v21",
       "of": 333,
       "same": 333
     }
@@ -551,6 +552,46 @@
       },
       "keepByRule": true,
       "recordedReason": "the chased piece that escapes: when the played move gives no check and newly attacks a piece with a threat (it stands unguarded, or the attacker is worth less and is not the king), and the engine's reply moves that piece, not a pawn, elsewhere than onto the attacker, not as the better line's own answer and not as a trade, to take something, give check or newly attack something of the mover's that is unguarded or worth more, \"The difference\" says \"Ne5 attacks their bishop on g4, but it escapes to f5, where it attacks your queen on d3.\", in round 19's place when round 19's guard sentence says nothing; variant v20b, after v20 failed its grades on one test moment (38.Kd1 \"attacks their rook on e2\", which the other rook guards and a king cannot take; the app counts a king as 0), so a king's attack counts only on an unguarded piece; v20's judges did not run; measured on round 19's three sets, it changes 90 moments (47 train, 43 test), all 90 sentences graded true, concrete up on 10 moments and no grade down; judge model, pairwise and blind, two runs with the order reversed, on a seeded sample of 88 changed moments (20 per set and split, seed 20261020) with a 10-moment padding control in the same batches: 87 to 3 on train and 84 to 2 on test, the decoy preferred in none of its 20 comparisons; the answers against it call a sacrifice an escape (15...h6's Nxf7, 16...b5's Bxf7+) and an escape the line undoes later (26.Rc6's Bb5) (v20b/change.md)"
+    },
+    {
+      "round": "21",
+      "judged": "round21",
+      "moments": 11,
+      "sample": {
+        "of": 11,
+        "drawn": 11,
+        "judged": 11,
+        "per": 20,
+        "seed": 20261021,
+        "reproduced": true,
+        "extras": 0,
+        "extrasTally": {
+          "train": {
+            "new": 0,
+            "old": 0,
+            "same": 0
+          },
+          "test": {
+            "new": 0,
+            "old": 0,
+            "same": 0
+          }
+        }
+      },
+      "tally": {
+        "train": {
+          "new": 10,
+          "old": 0,
+          "same": 0
+        },
+        "test": {
+          "new": 11,
+          "old": 1,
+          "same": 0
+        }
+      },
+      "keepByRule": true,
+      "recordedReason": "the pawn ending a trade leads to: when the better move's line or the played move's leaves only kings and pawns within its first 10 plies, from a position with another piece, \"The difference\" plays it on to the 20th ply, up to the first promotion, and names each king's pawn captures (the mover's first) and that promotion: \"After Qxg1+ Kxg1, only kings and pawns are left: in the engine's line your king takes their pawns on h4 and g2, and their king takes your pawn on e3.\" (\"only the kings are left: a draw.\" with no pawn left; the promotion left out when a pawn's story opens the section), after the order sentence and before the stakes, and after a mate lesson's own sentences; measured on round 20's three sets, it changes 11 moments (5 train, 6 test), no grade changes and all 11 sentences are graded true; judge model, pairwise and blind, two runs with the order reversed, on every changed moment (the seeded sample of 20 per set and split, seed 20261021, takes all) with a 10-moment padding control in the same batches: 10 to 0 on train and 11 to 1 on test, the decoy preferred in none of its 20 comparisons; the one answer against it (43.Rb4, better Kc1) and a count made after the decision find 1 of the 11 lines whose first promotion falls past the 20-ply window, so its sentence names only his king's capture in an ending he loses (v21/change.md)"
     }
   ],
   "controls": {
@@ -811,6 +852,17 @@
         "decoy": 0,
         "unchanged": 4,
         "same": 16,
+        "decoyShareOfAll": 0,
+        "decoyShareOfDecided": 0,
+        "drifted": false
+      },
+      {
+        "round": "21",
+        "kind": "padding",
+        "comparisons": 20,
+        "decoy": 0,
+        "unchanged": 20,
+        "same": 0,
         "decoyShareOfAll": 0,
         "decoyShareOfDecided": 0,
         "drifted": false
@@ -1906,6 +1958,138 @@
         ],
         "sameMoments": true,
         "gradesEqual": false
+      }
+    },
+    {
+      "variant": "v21",
+      "sameMoments": true,
+      "splits": [
+        {
+          "split": "test",
+          "moments": 153,
+          "base": {
+            "faithful": 153,
+            "concrete": 130,
+            "named_deep": 144,
+            "faithfulAll": 152
+          },
+          "variant": {
+            "faithful": 153,
+            "concrete": 130,
+            "named_deep": 144,
+            "faithfulAll": 152
+          },
+          "textsChanged": 0
+        },
+        {
+          "split": "train",
+          "moments": 180,
+          "base": {
+            "faithful": 179,
+            "concrete": 152,
+            "named_deep": 166,
+            "faithfulAll": 179
+          },
+          "variant": {
+            "faithful": 179,
+            "concrete": 152,
+            "named_deep": 166,
+            "faithfulAll": 179
+          },
+          "textsChanged": 0
+        }
+      ],
+      "gradesEqual": true,
+      "defects": null,
+      "endgames": {
+        "seed": 20261014,
+        "games": {
+          "test": 80,
+          "train": 80
+        },
+        "splits": [
+          {
+            "split": "test",
+            "moments": 572,
+            "base": {
+              "faithful": 561,
+              "concrete": 482,
+              "named_deep": 529,
+              "faithfulAll": 560
+            },
+            "variant": {
+              "faithful": 561,
+              "concrete": 482,
+              "named_deep": 529,
+              "faithfulAll": 560
+            },
+            "textsChanged": 2
+          },
+          {
+            "split": "train",
+            "moments": 612,
+            "base": {
+              "faithful": 598,
+              "concrete": 493,
+              "named_deep": 573,
+              "faithfulAll": 598
+            },
+            "variant": {
+              "faithful": 598,
+              "concrete": 493,
+              "named_deep": 573,
+              "faithfulAll": 598
+            },
+            "textsChanged": 3
+          }
+        ],
+        "sameMoments": true,
+        "gradesEqual": true
+      },
+      "endgames2": {
+        "seed": 20261014,
+        "games": {
+          "test": 65,
+          "train": 65
+        },
+        "splits": [
+          {
+            "split": "test",
+            "moments": 494,
+            "base": {
+              "faithful": 490,
+              "concrete": 408,
+              "named_deep": 458,
+              "faithfulAll": 490
+            },
+            "variant": {
+              "faithful": 490,
+              "concrete": 408,
+              "named_deep": 458,
+              "faithfulAll": 490
+            },
+            "textsChanged": 4
+          },
+          {
+            "split": "train",
+            "moments": 517,
+            "base": {
+              "faithful": 509,
+              "concrete": 425,
+              "named_deep": 468,
+              "faithfulAll": 509
+            },
+            "variant": {
+              "faithful": 509,
+              "concrete": 425,
+              "named_deep": 468,
+              "faithfulAll": 509
+            },
+            "textsChanged": 2
+          }
+        ],
+        "sameMoments": true,
+        "gradesEqual": true
       }
     }
   ],
