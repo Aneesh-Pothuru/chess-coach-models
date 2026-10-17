@@ -133,14 +133,19 @@ g.block('JudgeTable', [
 ].join('\n'));
 // ---- a round graded on documents rebuilt for it, beside its base on the same documents
 const both = (s, d) => (s.base[d] === s.variant[d] ? String(s.variant[d]) : `${s.base[d]} / ${s.variant[d]}`);
-g.block('RebuiltTable', [
+// Two tables, the 60 games' and the endgame sets', so that each fits on a page.
+const rebuiltRow = (name, s) => `${name} & ${s.split} & ${s.moments} & ${DIMS.map(d => both(s, d)).join(' & ')} & ${s.textsChanged} \\\\`;
+const rebuiltTable = (rows) => [
   '\\begin{tabular}{ll r rrrr r}', '\\toprule',
   'variant & split & moments & faithful & concrete & named\\_deep & faithfulAll & texts changed \\\\', '\\midrule',
-  ...repro.rebuilt.flatMap(r => r.splits.map(s => `${r.variant} & ${s.split} & ${s.moments} & ${DIMS.map(d => both(s, d)).join(' & ')} & ${s.textsChanged} \\\\`)),
-  ...repro.rebuilt.filter(r => r.endgames).flatMap(r => r.endgames.splits.map(s => `${r.variant}, endgame set & ${s.split} & ${s.moments} & ${DIMS.map(d => both(s, d)).join(' & ')} & ${s.textsChanged} \\\\`)),
-  ...repro.rebuilt.filter(r => r.endgames2).flatMap(r => r.endgames2.splits.map(s => `${r.variant}, second endgame set & ${s.split} & ${s.moments} & ${DIMS.map(d => both(s, d)).join(' & ')} & ${s.textsChanged} \\\\`)),
+  ...rows,
   '\\bottomrule', '\\end{tabular}',
-].join('\n'));
+].join('\n');
+g.block('RebuiltTable', rebuiltTable(repro.rebuilt.flatMap(r => r.splits.map(s => rebuiltRow(r.variant, s)))));
+g.block('RebuiltEndgameTable', rebuiltTable([
+  ...repro.rebuilt.filter(r => r.endgames).flatMap(r => r.endgames.splits.map(s => rebuiltRow(`${r.variant}, endgame set`, s))),
+  ...repro.rebuilt.filter(r => r.endgames2).flatMap(r => r.endgames2.splits.map(s => rebuiltRow(`${r.variant}, second endgame set`, s))),
+]));
 const ten = rebuilt.get('v10');
 claim(ten?.sameMoments && ten.gradesEqual, "round 10's grades equal its base's on the documents rebuilt for it");
 const tenSplit = s => ten.splits.find(x => x.split === s);
@@ -606,6 +611,65 @@ claim(sampledFully(r21, twentyOneSets) && r21.sample.drawn === r21.sample.of, "r
 for (const [k, q] of Object.entries(TWENTY_ONE_QUOTES)) g.def(`RoundTwentyOne${k}`, esc(q));
 sampledDefs('RoundTwentyOne', r21, twentyOneSets);
 
+// ---- round 22: what the better line does first, on round 21's three sets; its seeded draw takes every
+// moment it changed. Its first wording joined its two sentences with a semicolon, and round 22b, the
+// same words as two sentences, judged every one of them again
+const twentyTwo = rebuilt.get('v22b'), twentyTwoFirst = rebuilt.get('v22');
+const twentyTwoSets = [twentyTwo, twentyTwo?.endgames, twentyTwo?.endgames2];
+claim([...twentyTwoSets, twentyTwoFirst, twentyTwoFirst?.endgames, twentyTwoFirst?.endgames2].every(r => r?.sameMoments && r.gradesEqual), "round 22's grades equal its base's in all three sets, in its first wording and its last");
+{
+  const changedIds = v => [[], ['endgames'], ['endgames2']].flatMap(sub => {
+    const [before, after] = ['base', v].map(x => jsonl(join(flow, v, 'rebuilt', ...sub, `${x}.results.jsonl`)));
+    const was = new Map(before.map(m => [m.id, m.textHash]));
+    return after.filter(m => m.textHash !== was.get(m.id)).map(m => m.id);
+  }).sort();
+  claim(changedIds('v22b').join() === changedIds('v22').join(), 'round 22b changes the texts of the moments round 22 changed, and no other');
+}
+const TWENTY_TWO_QUOTES = { Quote: 'Played now, Bf5 allows dxc5. cxd4 first takes the pawn on d4.', QuoteDrive: 'Played now, Nc6 allows Qxb7. Qd7 first drives the queen from b5 (Qe2).', QuoteAway: 'Played now, g6 allows Bxf5. Nfd6 first moves your knight on f5 away.' };
+claim(Object.values(TWENTY_TWO_QUOTES).every(q => readFileSync(join(flow, 'v22', 'change.patch'), 'utf8').includes(q)), "round 22's tests pin the sentences the paper quotes, in its final wording");
+const r22 = judgeOf.get('22'), r22b = judgeOf.get('22b'), r22final = judgeOf.get('22 and 22b');
+claim(r22?.keepByRule && r22final?.keepByRule, 'the judge preferred round 22 on both halves, in its first wording and its last');
+claim(sampledFully(r22final, twentyTwoSets) && r22final.sample.drawn === r22final.sample.of, "round 22's judges read every moment it changed");
+claim(r22b.sample.judged === r22final.sample.drawn, 'round 22b judged again every moment round 22 changed');
+claim([r22, r22b, r22final].every(j => j.tally.train.old === 0 && j.tally.test.old === 0), 'no judge of round 22 preferred the old text');
+claim(r22final.tally.train.same + r22final.tally.test.same === 0, 'on the final texts the judges preferred the new text in every comparison');
+{
+  const SENTENCE = /Played now, (\S+) allows (\S+)[;.] (\S+) first (?:takes the \w+ on [a-h][1-8]|drives the (\w+) from [a-h][1-8] \((\S+)\)|moves (?:their|your) \w+ on [a-h][1-8] away)\./;
+  const first = judgedRound('round22', SENTENCE), last = judgedRound('round22b', SENTENCE);
+  claim(first.items.length === r22final.sample.drawn && last.items.length === r22final.sample.drawn, 'the judge items of rounds 22 and 22b are its judged moments');
+  const bare = san => san.replace(/[+#]+$/, '');
+  const toSquare = san => bare(san).match(/([a-h][1-8])(?:=[QRBN])?$/)?.[1];
+  // The difference names the reply before the sentence: its move stands among the words before it.
+  const repeats = new Set(last.items.filter(item => {
+    const m = last.sentence(item);
+    return m.input.slice(0, m.index).split(/[\s(),:;.]+/).some(w => w && bare(w) === bare(m[2]));
+  }).map(item => item.id));
+  // A drive whose driven piece leaves by taking the piece that drove it, on the square that piece went to.
+  const trades = last.items.filter(item => {
+    const m = last.sentence(item);
+    return Boolean(m[5]) && m[5].includes('x') && toSquare(m[5]) === toSquare(m[3]);
+  });
+  const verdicts = round => {
+    const dir = join(judgeDir, round);
+    const keys = ['r1', 'r2'].map(r => read(join(dir, `key-${r}.json`)));
+    const answers = ['r1', 'r2'].map(r => new Map(read(join(dir, `out-${r}.judge.json`)).answers.map(a => [a.id, a.choice])));
+    return id => [0, 1].map(i => { const c = answers[i].get(id); return c === 'same' ? 'same' : keys[i][id][c]; });
+  };
+  const firstVerdicts = verdicts('round22'), lastVerdicts = verdicts('round22b');
+  const sames = first.items.filter(item => firstVerdicts(item.id).includes('same')).map(item => item.id);
+  claim(sames.length === r22.tally.train.same + r22.tally.test.same, "round 22's same-answers are on different moments");
+  claim(sames.length > 0 && sames.every(id => repeats.has(id)), "every same-answer on round 22's first texts is on a sentence whose reply the difference already names");
+  claim(trades.length > 0 && trades.every(item => { const m = last.sentence(item); return m[4] === 'queen' && /^Q/.test(m[3]) && /^Qx/.test(m[5]); }), "round 22's drives that are trades are each a queen taking the queen that drove it");
+  claim(trades.every(item => lastVerdicts(item.id).every(v => v === 'new')), "the judges preferred round 22b's texts on every trade in both runs");
+  g.def('RoundTwentyTwoRepeats', word(repeats.size)).def('RoundTwentyTwoTrades', word(trades.length))
+    .def('RoundTwentyTwoFirstSames', word(sames.length)).def('RoundTwentyTwoJudged', String(last.items.length));
+}
+for (const [k, q] of Object.entries(TWENTY_TWO_QUOTES)) g.def(`RoundTwentyTwo${k}`, esc(q));
+sampledDefs('RoundTwentyTwo', r22final, twentyTwoSets);
+g.def('RoundTwentyTwoRejudged', String(r22b.sample.judged))
+  .def('RoundTwentyTwoFirstTrainNew', String(r22.tally.train.new)).def('RoundTwentyTwoFirstTrainOld', String(r22.tally.train.old)).def('RoundTwentyTwoFirstTrainSame', String(r22.tally.train.same))
+  .def('RoundTwentyTwoFirstTestNew', String(r22.tally.test.new)).def('RoundTwentyTwoFirstTestOld', String(r22.tally.test.old)).def('RoundTwentyTwoFirstTestSame', String(r22.tally.test.same));
+
 // ---- the judge's controls, as reproduce.mjs recomputed them
 const c = repro.controls;
 claim(c.length.matchesRecorded, 'the length check recomputed from its answers matches the score the records keep');
@@ -644,7 +708,7 @@ const pad18 = c.perRound.find(p => p.round === '18');
 claim(pad18?.kind === 'padding', 'round 18 carried a padding control');
 g.def('PadEighteenDecoy', String(pad18.decoy)).def('PadEighteenN', String(pad18.comparisons))
   .def('PadEighteenUnchanged', String(pad18.unchanged)).def('PadEighteenSame', String(pad18.same));
-for (const [round, name] of [['19', 'Nineteen'], ['20b', 'Twenty'], ['21', 'TwentyOne']]) {
+for (const [round, name] of [['19', 'Nineteen'], ['20b', 'Twenty'], ['21', 'TwentyOne'], ['22', 'TwentyTwo']]) {
   const pad = c.perRound.find(p => p.round === round);
   claim(pad?.kind === 'padding', `round ${round} carried a padding control`);
   g.def(`Pad${name}Decoy`, String(pad.decoy)).def(`Pad${name}N`, String(pad.comparisons))

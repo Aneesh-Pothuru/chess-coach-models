@@ -121,7 +121,11 @@ played move gives up, and round 20 says when the piece a move attacks escapes to
 Each changes more moments than a judge can read, so the judge reads a seeded sample of them, as in
 round 17, and decides it. Round 20's first version failed its grades before any judge ran, and its
 variant 20b is the round judged. Round 21 comes from the same answers: it says what decides the pawn
-ending a trade leads to. It changes few moments, so the judge reads every one and decides it.
+ending a trade leads to. It changes few moments, so the judge reads every one and decides it. Round
+22 comes from them too: it says what the better line does first when the order of its moves
+matters. It changes few moments, so the judge reads every one. Its first wording joined two
+sentences with a semicolon, which the app's rules for its words forbid, so its variant 22b says the
+same words as two sentences and was judged again, and round 22 is decided on both.
 
 \begin{table}[!htbp]
 \centering\footnotesize
@@ -245,6 +249,15 @@ move's leaves only kings and pawns within the plies a lesson reads, from a posit
 piece, the section on the difference plays the ending on and says what each king takes and which
 pawn queens first: ``\RoundTwentyOneQuote'' (``\RoundTwentyOneQuoteDraw'' when no pawn is left).
 The round was graded on round 20's three sets (Section~\ref{sec:results}).
+\item[Round 22: what the better line does first.] When the better line plays the played move one or
+two of the mover's moves later and the engine's reply to the played move captures, the section on
+the difference says which capture the played move, made now, allows, and what the line does first
+to stop it: it takes the capturing piece (``\RoundTwentyTwoQuote''), drives it off with an attack
+(``\RoundTwentyTwoQuoteDrive''), or moves the target away (``\RoundTwentyTwoQuoteAway''). It says
+so only when the target is not taken on the way and nothing can take it once the played move comes.
+Round 22 first joined the two sentences with a semicolon, which the app's rules for its words
+forbid; round 22b writes them as two. The round was graded on round 21's three sets
+(Section~\ref{sec:results}).
 \end{description}
 
 \begin{table}[!htbp]
@@ -254,8 +267,9 @@ The round was graded on round 20's three sets (Section~\ref{sec:results}).
 parentheses. Round 6 made no run of its own: it reads round 5's judgments on the moments whose
 texts round 6 changes. Round 17's judges read a seeded sample of the moments it changed; round 17b
 judged again the sampled moments whose wording it changed, and round 17 is decided on both. Rounds
-19, 20b and 21 were judged on seeded samples too, round 21's taking every moment it changed;
-round 20's first version was not judged.}
+19, 20b, 21 and 22 were judged on seeded samples too, round 21's and round 22's taking every moment
+they changed; round 22b judged every moment round 22 changed again, on its final wording, and round
+22 is decided on both, as round 17 is. Round 20's first version was not judged.}
 \label{tab:judge}
 \end{table}
 
@@ -297,12 +311,14 @@ set the round leaves unchanged; the decoy won \PadSeventeenDecoy{} of \PadSevent
 (\PadSeventeenUnchanged{} the shorter text, \PadSeventeenSame{} same). Round 18 adds one sentence
 to the difference, so its padding control does the same; the decoy won \PadEighteenDecoy{} of
 \PadEighteenN{} comparisons (\PadEighteenUnchanged{} the shorter text, \PadEighteenSame{} same).
-Rounds 19, 20b and 21 each add one sentence to the difference as well, and their padding controls
-do as round 18's did: the decoy won \PadNineteenDecoy{} of \PadNineteenN{} comparisons in round 19
-(\PadNineteenUnchanged{} the shorter text, \PadNineteenSame{} same), \PadTwentyDecoy{} of
-\PadTwentyN{} in round 20b (\PadTwentyUnchanged{} the shorter text, \PadTwentySame{} same) and
+Rounds 19, 20b, 21 and 22 each add one sentence to the difference as well, and their padding
+controls do as round 18's did: the decoy won \PadNineteenDecoy{} of \PadNineteenN{} comparisons in
+round 19 (\PadNineteenUnchanged{} the shorter text, \PadNineteenSame{} same), \PadTwentyDecoy{} of
+\PadTwentyN{} in round 20b (\PadTwentyUnchanged{} the shorter text, \PadTwentySame{} same),
 \PadTwentyOneDecoy{} of \PadTwentyOneN{} in round 21 (\PadTwentyOneUnchanged{} the shorter text,
-\PadTwentyOneSame{} same).
+\PadTwentyOneSame{} same) and \PadTwentyTwoDecoy{} of \PadTwentyTwoN{} in round 22
+(\PadTwentyTwoUnchanged{} the shorter text, \PadTwentyTwoSame{} same). Round 22b adds no length to
+round 22's texts, so it carries no control of its own.
 
 \begin{table}[!htbp]
 \centering\footnotesize
@@ -428,7 +444,7 @@ as before in both sets. The round changes the texts of \RoundSixteenChangedEndga
 and \RoundSixteenChangedEndgameTest{} test moments of the endgame set and of
 \RoundSixteenChangedSixtyTrain{} train and \RoundSixteenChangedSixtyTest{} test moments of the
 \Games{} games, each graded faithful; no moment loses a grade, and \RoundSixteenRose{} become
-concrete (Table~\ref{tab:rebuilt}). Judging both sets together, each moment in its own set's
+concrete (Tables~\ref{tab:rebuilt} and~\ref{tab:rebuilt-endgames}). Judging both sets together, each moment in its own set's
 split, the judge preferred the new texts \RoundSixteenTrainNew--\RoundSixteenTrainOld{} on train,
 with \RoundSixteenTrainSame{} same, and \RoundSixteenTestNew--\RoundSixteenTestOld{} on test, with
 \RoundSixteenTestSame{} same. \RoundSixteenOldBothCap{} moments lost both runs: in one the king's
@@ -439,7 +455,7 @@ Round 17 was graded on the same documents in both sets, against the texts of the
 which carry round 16, after the grader learned to check its sentence against the stored scores
 apart from the app's code and graded the base exactly as before. It changes the texts of
 \RoundSeventeenChangedTrain{} train and \RoundSeventeenChangedTest{} test moments across the two
-sets, and no grade moves (Table~\ref{tab:rebuilt}): every one of its sentences reads true. That is
+sets, and no grade moves (Tables~\ref{tab:rebuilt} and~\ref{tab:rebuilt-endgames}): every one of its sentences reads true. That is
 more moments than a judge can read, so the judges read a sample drawn from the changed moments' ids
 alone, before any was read: in each set and split, \RoundSeventeenPer{} taken by a seeded shuffle
 (seed \RoundSeventeenSeed), \RoundSeventeenSampled{} in all. On round 17's first wording the judge
@@ -459,7 +475,7 @@ Round 17c was graded on round 17's documents in both sets. Before it, \RoundSeve
 cards gave a move one number in round 17's sentence and another in the folded note
 (\RoundSeventeenCDefectsGames{} on the \Games{} games, \RoundSeventeenCDefectsEnd{} on the endgame
 set); after it, none do. It changes \RoundSeventeenCChanged{} texts, and no grade moves
-(Table~\ref{tab:rebuilt}). The judge sees no such note, so the round made no run, and round 17's
+(Tables~\ref{tab:rebuilt} and~\ref{tab:rebuilt-endgames}). The judge sees no such note, so the round made no run, and round 17's
 verdict stands for its texts.
 
 Round 18 was graded on round 17's documents, against the texts of the app then pinned, which carry
@@ -472,7 +488,7 @@ drawn by the same seeded shuffle and split by game, \EndgameTwoGamesTrain{} trai
 the round's plan was written. The grader learned the sentence first, checked on the board apart
 from the app's code, and graded the base exactly as before in every set. The round changes the
 texts of \RoundEighteenChangedTrain{} train and \RoundEighteenChangedTest{} test moments across the
-three sets, and no grade moves (Table~\ref{tab:rebuilt}): every one of its sentences reads true.
+three sets, and no grade moves (Tables~\ref{tab:rebuilt} and~\ref{tab:rebuilt-endgames}): every one of its sentences reads true.
 The judges read all \RoundEighteenJudged, each in its own set's split, and preferred the new texts
 \RoundEighteenTrainNew--\RoundEighteenTrainOld{} on train and
 \RoundEighteenTestNew--\RoundEighteenTestOld{} on test.
@@ -480,7 +496,7 @@ The judges read all \RoundEighteenJudged, each in its own set's split, and prefe
 Round 19 was graded on round 18's three sets, by a grader that learned its sentence first, checked
 on the board apart from the app's code, and graded the base exactly as before in every set. It
 changes the texts of \RoundNineteenChangedTrain{} train and \RoundNineteenChangedTest{} test
-moments, and no grade moves (Table~\ref{tab:rebuilt}). The judges read a seeded sample of
+moments, and no grade moves (Tables~\ref{tab:rebuilt} and~\ref{tab:rebuilt-endgames}). The judges read a seeded sample of
 \RoundNineteenSampled{} of the \RoundNineteenChanged{} changed moments, up to \RoundNineteenPer{}
 from each set and split (seed \RoundNineteenSeed), and preferred the new texts
 \RoundNineteenTrainNew--\RoundNineteenTrainOld{} on train and
@@ -490,27 +506,46 @@ Round 20 was graded on round 19's three sets the same way, and failed its rule o
 the king's attack on a guarded piece. Round 20b's plan was written after that and before any judge
 ran. It changes the texts of \RoundTwentyChangedTrain{} train and \RoundTwentyChangedTest{} test
 moments; no grade falls, and concrete rises on \RoundTwentyConcreteUp{} of them
-(Table~\ref{tab:rebuilt}). The judges read a seeded sample of \RoundTwentySampled{} of the
+(Tables~\ref{tab:rebuilt} and~\ref{tab:rebuilt-endgames}). The judges read a seeded sample of \RoundTwentySampled{} of the
 \RoundTwentyChanged{} changed moments (seed \RoundTwentySeed) and preferred the new texts
 \RoundTwentyTrainNew--\RoundTwentyTrainOld{} on train and
 \RoundTwentyTestNew--\RoundTwentyTestOld{} on test.
 
 Round 21 was graded on round 20's three sets the same way. It changes the texts of
 \RoundTwentyOneChangedTrain{} train and \RoundTwentyOneChangedTest{} test moments, and no grade
-moves (Table~\ref{tab:rebuilt}). The seeded draw (seed \RoundTwentyOneSeed) takes every one of
+moves (Tables~\ref{tab:rebuilt} and~\ref{tab:rebuilt-endgames}). The seeded draw (seed \RoundTwentyOneSeed) takes every one of
 them, and the judges read all \RoundTwentyOneJudged{} and preferred the new texts
 \RoundTwentyOneTrainNew--\RoundTwentyOneTrainOld{} on train and
 \RoundTwentyOneTestNew--\RoundTwentyOneTestOld{} on test.
 
+Round 22 was graded on round 21's three sets the same way, in its first wording and its last. Each
+changes the texts of the same \RoundTwentyTwoChangedTrain{} train and \RoundTwentyTwoChangedTest{}
+test moments, and no grade moves (Tables~\ref{tab:rebuilt} and~\ref{tab:rebuilt-endgames}). The seeded draw (seed
+\RoundTwentyTwoSeed) takes every one of them. On the first wording the judges preferred the new
+texts \RoundTwentyTwoFirstTrainNew--\RoundTwentyTwoFirstTrainOld{} on train, with
+\RoundTwentyTwoFirstTrainSame{} same, and \RoundTwentyTwoFirstTestNew--\RoundTwentyTwoFirstTestOld{}
+on test, with \RoundTwentyTwoFirstTestSame{} same. Round 22b judged all \RoundTwentyTwoRejudged{}
+again, and on the final texts the judges preferred the new ones in every comparison,
+\RoundTwentyTwoTrainNew--\RoundTwentyTwoTrainOld{} on train and
+\RoundTwentyTwoTestNew--\RoundTwentyTwoTestOld{} on test.
+
 \begin{table}[!htbp]
 \centering\footnotesize
 \RebuiltTable
-\caption{A round graded on rebuilt documents, beside its base on the same documents: moments graded
-1, with one number where the round and its base agree. The rows marked endgame set are rounds 16
-to 21 on the endgame set (rounds 18 to 21 on all its key moments, the others on its endgame
-moments), and those marked second endgame set rounds 18 to 21 on the set drawn for round 18; v17
-is round 17's first wording, v17b its last, and v17c the last with the folded note's numbers.}
+\caption{A round graded on rebuilt documents, beside its base on the same documents, on the
+\Games{} games: moments graded 1, with one number where the round and its base agree. v17 is round
+17's first wording, v17b its last, and v17c the last with the folded note's numbers; v22 is round
+22's first wording and v22b its last. Table~\ref{tab:rebuilt-endgames} has the endgame sets.}
 \label{tab:rebuilt}
+\end{table}
+
+\begin{table}[!htbp]
+\centering\footnotesize
+\RebuiltEndgameTable
+\caption{Table~\ref{tab:rebuilt} on the endgame sets. The rows marked endgame set are rounds 16 to
+22b on the endgame set (rounds 18 to 22b on all its key moments, the others on its endgame moments),
+and those marked second endgame set rounds 18 to 22b on the set drawn for round 18.}
+\label{tab:rebuilt-endgames}
 \end{table}
 
 \begin{table}[!htbp]
@@ -593,6 +628,12 @@ against the round among them.
 \RoundTwentyOneLostCapture{} of its \RoundTwentyOneJudged{} sentences that is the mover's king's
 capture alone, in an ending the card's closing sentence calls lost, and the one answer the judges
 gave against the round was on that sentence.
+\item Round 22 says what the better line does first even where the difference already names the
+reply it stops, as \RoundTwentyTwoRepeats{} of its \RoundTwentyTwoJudged{} sentences do, and the
+\RoundTwentyTwoFirstSames{} same-answers on its first texts were on such sentences. On
+\RoundTwentyTwoTrades{} of them the queen the line drives off leaves by taking the queen that drove
+it, a trade rather than a chase, though the judges preferred those texts in every answer on the
+final texts. It says nothing where no capture explains the order, as when castling comes first.
 \item \Games{} games of one player. The split keeps the claims honest about that player, not
 about players in general.
 \end{itemize}

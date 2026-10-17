@@ -49,9 +49,9 @@
 \newcommand{\KeptTrainConcreteVsBase}{+6.8 [3.2, 10.6]}
 \newcommand{\KeptTrainTextsChanged}{87}
 \newcommand{\KeptVariant}{v8}
-\newcommand{\RoundCount}{21}
-\newcommand{\RoundCountCap}{21}
-\newcommand{\KeptRoundCount}{18}
+\newcommand{\RoundCount}{22}
+\newcommand{\RoundCountCap}{22}
+\newcommand{\KeptRoundCount}{19}
 \newcommand{\UnjudgedKept}{1, 2, 11 and 14}
 \newcommand{\RoundsTable}{%
 \begin{tabularx}{\textwidth}{l L rrrr r r}
@@ -83,6 +83,7 @@ v18 & A better check is said by the guard it takes off a square & \multicolumn{5
 v19 & The guard a played move gives up & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 96--1 / 90--0 \\
 v20b & The chased piece that escapes to a better square & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 87--3 / 84--2 \\
 v21 & The pawn ending a trade leads to & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 10--0 / 11--1 \\
+v22b & What the better line does first & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 20--0 / 26--0 \\
 \bottomrule
 \end{tabularx}
 }
@@ -112,6 +113,9 @@ round & judged & train & test & the rule says \\
 19 & round 19 (94 moments) & 96--1 (1) & 90--0 (0) & keep \\
 20b & round 20b (88 moments) & 87--3 (0) & 84--2 (0) & keep \\
 21 & round 21 (11 moments) & 10--0 (0) & 11--1 (0) & keep \\
+22 & round 22 (23 moments) & 20--0 (0) & 24--0 (2) & keep \\
+22b & round 22b (23 moments) & 20--0 (0) & 26--0 (0) & keep \\
+22 and 22b & round 22 then round 22b (23 moments) & 20--0 (0) & 26--0 (0) & keep \\
 \bottomrule
 \end{tabular}
 }
@@ -148,6 +152,18 @@ v20b & test & 153 & 153 & 129 / 130 & 144 & 152 & 6 \\
 v20b & train & 180 & 179 & 152 & 166 & 179 & 6 \\
 v21 & test & 153 & 153 & 130 & 144 & 152 & 0 \\
 v21 & train & 180 & 179 & 152 & 166 & 179 & 0 \\
+v22 & test & 153 & 153 & 130 & 144 & 152 & 1 \\
+v22 & train & 180 & 179 & 152 & 166 & 179 & 4 \\
+v22b & test & 153 & 153 & 130 & 144 & 152 & 1 \\
+v22b & train & 180 & 179 & 152 & 166 & 179 & 4 \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\RebuiltEndgameTable}{%
+\begin{tabular}{ll r rrrr r}
+\toprule
+variant & split & moments & faithful & concrete & named\_deep & faithfulAll & texts changed \\
+\midrule
 v16, endgame set & test & 184 & 181 & 162 & 158 & 180 & 3 \\
 v16, endgame set & train & 219 & 213 & 170 / 172 & 204 & 213 & 19 \\
 v17, endgame set & test & 184 & 181 & 162 & 158 & 180 & 94 \\
@@ -164,6 +180,10 @@ v20b, endgame set & test & 572 & 561 & 481 / 482 & 529 & 560 & 19 \\
 v20b, endgame set & train & 612 & 598 & 491 / 493 & 573 & 598 & 22 \\
 v21, endgame set & test & 572 & 561 & 482 & 529 & 560 & 2 \\
 v21, endgame set & train & 612 & 598 & 493 & 573 & 598 & 3 \\
+v22, endgame set & test & 572 & 561 & 482 & 529 & 560 & 7 \\
+v22, endgame set & train & 612 & 598 & 493 & 573 & 598 & 5 \\
+v22b, endgame set & test & 572 & 561 & 482 & 529 & 560 & 7 \\
+v22b, endgame set & train & 612 & 598 & 493 & 573 & 598 & 5 \\
 v18, second endgame set & test & 494 & 490 & 407 & 458 & 490 & 4 \\
 v18, second endgame set & train & 517 & 509 & 420 & 468 & 509 & 2 \\
 v19, second endgame set & test & 494 & 490 & 407 & 458 & 490 & 36 \\
@@ -172,6 +192,10 @@ v20b, second endgame set & test & 494 & 490 & 407 / 408 & 458 & 490 & 18 \\
 v20b, second endgame set & train & 517 & 509 & 420 / 425 & 468 & 509 & 19 \\
 v21, second endgame set & test & 494 & 490 & 408 & 458 & 490 & 4 \\
 v21, second endgame set & train & 517 & 509 & 425 & 468 & 509 & 2 \\
+v22, second endgame set & test & 494 & 490 & 408 & 458 & 490 & 5 \\
+v22, second endgame set & train & 517 & 509 & 425 & 468 & 509 & 1 \\
+v22b, second endgame set & test & 494 & 490 & 408 & 458 & 490 & 5 \\
+v22b, second endgame set & train & 517 & 509 & 425 & 468 & 509 & 1 \\
 \bottomrule
 \end{tabular}
 }
@@ -355,6 +379,30 @@ the five of Table~\ref{tab:defects} & 0 & 0 \\
 \newcommand{\RoundTwentyOneTrainOld}{0}
 \newcommand{\RoundTwentyOneTestNew}{11}
 \newcommand{\RoundTwentyOneTestOld}{1}
+\newcommand{\RoundTwentyTwoRepeats}{nine}
+\newcommand{\RoundTwentyTwoTrades}{two}
+\newcommand{\RoundTwentyTwoFirstSames}{two}
+\newcommand{\RoundTwentyTwoJudged}{23}
+\newcommand{\RoundTwentyTwoQuote}{Played now, Bf5 allows dxc5. cxd4 first takes the pawn on d4.}
+\newcommand{\RoundTwentyTwoQuoteDrive}{Played now, Nc6 allows Qxb7. Qd7 first drives the queen from b5 (Qe2).}
+\newcommand{\RoundTwentyTwoQuoteAway}{Played now, g6 allows Bxf5. Nfd6 first moves your knight on f5 away.}
+\newcommand{\RoundTwentyTwoChanged}{23}
+\newcommand{\RoundTwentyTwoChangedTrain}{10}
+\newcommand{\RoundTwentyTwoChangedTest}{13}
+\newcommand{\RoundTwentyTwoSampled}{23}
+\newcommand{\RoundTwentyTwoPer}{20}
+\newcommand{\RoundTwentyTwoSeed}{20261022}
+\newcommand{\RoundTwentyTwoTrainNew}{20}
+\newcommand{\RoundTwentyTwoTrainOld}{0}
+\newcommand{\RoundTwentyTwoTestNew}{26}
+\newcommand{\RoundTwentyTwoTestOld}{0}
+\newcommand{\RoundTwentyTwoRejudged}{23}
+\newcommand{\RoundTwentyTwoFirstTrainNew}{20}
+\newcommand{\RoundTwentyTwoFirstTrainOld}{0}
+\newcommand{\RoundTwentyTwoFirstTrainSame}{0}
+\newcommand{\RoundTwentyTwoFirstTestNew}{24}
+\newcommand{\RoundTwentyTwoFirstTestOld}{0}
+\newcommand{\RoundTwentyTwoFirstTestSame}{2}
 \newcommand{\LongerPicked}{305}
 \newcommand{\LongerDecided}{326}
 \newcommand{\LongerRounds}{3, 4, 5, 7, 7b, 8 and 9}
@@ -401,6 +449,10 @@ the five of Table~\ref{tab:defects} & 0 & 0 \\
 \newcommand{\PadTwentyOneN}{20}
 \newcommand{\PadTwentyOneUnchanged}{20}
 \newcommand{\PadTwentyOneSame}{0}
+\newcommand{\PadTwentyTwoDecoy}{0}
+\newcommand{\PadTwentyTwoN}{20}
+\newcommand{\PadTwentyTwoUnchanged}{0}
+\newcommand{\PadTwentyTwoSame}{20}
 \newcommand{\ControlsTable}{%
 \begin{tabularx}{\textwidth}{L l l}
 \toprule
@@ -421,6 +473,7 @@ padding control, round 18: the decoy preferred & 0 of 20 (0 the shorter text, 20
 padding control, round 19: the decoy preferred & 0 of 20 (10 the shorter text, 10 same) & no drift \\
 padding control, round 20b: the decoy preferred & 0 of 20 (4 the shorter text, 16 same) & no drift \\
 padding control, round 21: the decoy preferred & 0 of 20 (20 the shorter text, 0 same) & no drift \\
+padding control, round 22: the decoy preferred & 0 of 20 (0 the shorter text, 20 same) & no drift \\
 \bottomrule
 \end{tabularx}
 }
@@ -457,12 +510,12 @@ padding control, round 21: the decoy preferred & 0 of 20 (20 the shorter text, 0
 \newcommand{\ExampleCount}{8}
 \newcommand{\ReproLinesMatched}{27}
 \newcommand{\ReproLines}{27}
-\newcommand{\AppCommit}{\texttt{71d920d}}
-\newcommand{\RecordsCommit}{\texttt{6864564}}
+\newcommand{\AppCommit}{\texttt{dd48bbd}}
+\newcommand{\RecordsCommit}{\texttt{2746e47}}
 \newcommand{\RerunSearches}{the capture searches on it (88 kept) and the defense searches (51 kept)}
 \newcommand{\RerunEvidence}{review-evidence/7}
-\newcommand{\RerunTextsSentence}{Its texts equal the recorded texts of v21, the last kept round, on all 333 moments of round 21's documents.}
-\newcommand{\AppKeptThrough}{21}
+\newcommand{\RerunTextsSentence}{Its texts equal the recorded texts of v22b, the last kept round, on all 333 moments of round 22's documents.}
+\newcommand{\AppKeptThrough}{22}
 \newcommand{\AppKeptSentence}{The app at that commit carries every kept round.}
 \newcommand{\RerunTestMoments}{153}
 \newcommand{\RerunTestShared}{146}
