@@ -1081,7 +1081,7 @@ const stepList = (t) => t.split(/, | and /).map((x) => x.trim()).filter(Boolean)
 
 /** "After X, their b-pawn queens: b7 and b8=Q in the engine's line." and what the other line does with that pawn. */
 function checkPawnStory(g, e) {
-  const [x, owner, file, verb, steps, takesTok, fallsAfter, fallsSan, notAfter] = g
+  const [x, owner, file, verb, steps, takesTok, fallsAfter, fallsSan, notAfter, , raceTok, raceOwner, raceFile, raceSq, raceCount, raceGoal, blockOwner, blockPiece, blockSq] = g
   const M = e.M
   const lines = lessonLines(M)
   const onPlayed = x === M.san
@@ -1109,8 +1109,37 @@ function checkPawnStory(g, e) {
     const promotes = !!track?.promoted
     out.push(claim('pawn_fate', e.surface, e.shown, e.whole, !promotes && otherLine.plies > hit.promoted.ply ? T(`the pawn does not promote in the other line's ${otherLine.plies} plies`) : F(promotes ? 'the pawn promotes in the other line too' : `the other line's ${otherLine.plies} plies are no longer than the promotion's ply`)))
   }
+  if (raceTok) out.push(claim('pawn_race', e.surface, e.shown, e.whole, raceLeft(M, line, hit, { raceTok, raceOwner, raceFile, raceSq, raceCount, raceGoal, blockOwner, blockPiece, blockSq })))
   return out
 }
+
+const SQUARES_OF_WORD = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6 }
+
+/** "When h1=R comes, your b-pawn is still on b5, three squares from b8, with your knight on b6 in its way.": on the board right after that promotion, the other side's passed pawn nearest its last rank, how far it is, and the first piece on its path. */
+function raceLeft(M, line, hit, r) {
+  const last = hit.steps[hit.steps.length - 1]
+  if (r.raceTok !== last.san) return F(`the promotion is ${last.san}, not ${r.raceTok}`)
+  const side = ownerOf(r.raceOwner, M)
+  if (side === hit.color) return F('the pawn named is of the side that promotes')
+  const g = load(M.F0)
+  for (let i = 0; i <= hit.promoted.ply; i++) if (!playUci(g, line.ucis[i])) return F('the line does not replay to the promotion')
+  const toGo = (sq) => (side === 'w' ? 8 - +sq[1] : +sq[1] - 1)
+  const passed = []
+  for (const row of g.board()) for (const cell of row) if (cell && cell.type === 'p' && cell.color === side && isPassed(g, cell.square, side)) passed.push(cell.square)
+  const cell = g.get(r.raceSq)
+  if (r.raceSq[0] !== r.raceFile || !cell || cell.type !== 'p' || cell.color !== side) return F(`no pawn of that side on ${r.raceSq} when ${last.san} comes`)
+  if (!passed.includes(r.raceSq)) return F(`the pawn on ${r.raceSq} is not passed`)
+  if (passed.some((sq) => toGo(sq) < toGo(r.raceSq))) return F(`that side has a passed pawn nearer its last rank than ${r.raceSq}`)
+  if (SQUARES_OF_WORD[r.raceCount] !== toGo(r.raceSq)) return F(`the pawn on ${r.raceSq} is ${toGo(r.raceSq)} squares from its last rank`)
+  if (r.raceGoal !== r.raceSq[0] + (side === 'w' ? 8 : 1)) return F(`${r.raceGoal} is not the promotion square of the pawn on ${r.raceSq}`)
+  const stop = pawnPath(r.raceSq, side).find((sq) => g.get(sq))
+  if (!r.blockSq) return stop ? F(`${stop} stands on the pawn's path, unnamed`) : T(`after ${last.san} the pawn on ${r.raceSq} is that side's nearest passed pawn, ${toGo(r.raceSq)} squares from ${r.raceGoal}, with its path clear`)
+  const blocker = stop ? g.get(stop) : null
+  const ok = stop === r.blockSq && blocker && blocker.color === ownerOf(r.blockOwner, M) && blocker.type === KIND_OF_WORD_ALL[r.blockPiece]
+  return ok ? T(`after ${last.san} the pawn on ${r.raceSq} is that side's nearest passed pawn, ${toGo(r.raceSq)} squares from ${r.raceGoal}, and the first piece on its path is the ${r.blockPiece} on ${stop}`) : F(`the first piece on the path of the pawn on ${r.raceSq} is ${blocker ? `a ${blocker.color === 'w' ? 'white' : 'black'} ${blocker.type} on ${stop}` : 'none'}`)
+}
+
+const KIND_OF_WORD_ALL = { queen: 'q', rook: 'r', bishop: 'b', knight: 'n', pawn: 'p', king: 'k' }
 
 /** The squares ahead of a pawn to its promotion square. */
 function pawnPath(sq, color) {
@@ -2198,7 +2227,7 @@ function replayCaptures(fen, ucis) {
 const LESSON_TEMPLATES = [
   // A pawn that promotes in one line and not the other, and what the other line does with it.
   {
-    re: new RegExp(String.raw`\bAfter ${TOKR}, (their|your) ([a-h])-pawn (queens|promotes): ([^.]+?) in the engine's line\.(?: (?:${TOKR} takes it first|After ${TOKR} it falls \(${TOKR}\)|After ${TOKR} it does not (queen|promote) in the engine's line)\.)?`, 'g'),
+    re: new RegExp(String.raw`\bAfter ${TOKR}, (their|your) ([a-h])-pawn (queens|promotes): ([^.]+?) in the engine's line\.(?: (?:${TOKR} takes it first|After ${TOKR} it falls \(${TOKR}\)|After ${TOKR} it does not (queen|promote) in the engine's line)\.)?(?: When ${TOKR} comes, (your|their) ([a-h])-pawn is still on ${SQ}, (one|two|three|four|five|six) squares? from ${SQ}(?:, with (your|their) ${PIECE} on ${SQ} in its way)?\.)?`, 'g'),
     run: (g, e) => checkPawnStory(g, e),
   },
   // The move order: the played move comes in the engine's best line too, one or two of the mover's moves later.
@@ -3343,6 +3372,19 @@ function runCorruption(cases) {
     return !!r?.settled && r.net >= 0 && mateInLine(c.fenBefore, [c.uci, ...(c.replyPvUci ?? [])], m.color).mate !== true
   })
   if (gift) results.push(corruptionRow('the trap sentence on a free capture whose line loses nothing', gift, tagged(gift), trapClaim))
+  // The race: where the other side's pawn stands when the promotion comes, how far it has to go, whose it is, what stands in its way.
+  const race = / When (\S+) comes, (your|their) ([a-h])-pawn is still on ([a-h])([1-8]), (one|two|three|four|five|six) (squares?) from ([a-h][18])(, with (your|their) (pawn|knight|bishop|rook|queen|king) on ([a-h][1-8]) in its way)?\./
+  const raceClaim = /-pawn (?:queens|promotes):/
+  const rc = pick(inDiff((d) => race.test(d)))
+  if (rc) {
+    const words = ['one', 'two', 'three', 'four', 'five', 'six', 'seven']
+    results.push(corruptionRow('the racing pawn, one file over', rc, swapIn(rc, race, (m, x, w, f, sf, r, n, u, goal, block) => ` When ${x} comes, ${w} ${nextFile(f)}-pawn is still on ${nextFile(sf)}${r}, ${n} ${u} from ${nextFile(goal[0])}${goal[1]}${block ?? ''}.`), raceClaim))
+    results.push(corruptionRow('the squares the racing pawn has left, one more', rc, swapIn(rc, race, (m, x, w, f, sf, r, n, u, goal, block) => ` When ${x} comes, ${w} ${f}-pawn is still on ${sf}${r}, ${words[words.indexOf(n) + 1]} squares from ${goal}${block ?? ''}.`), raceClaim))
+    results.push(corruptionRow("the racing pawn said to be the other side's", rc, swapIn(rc, race, (m, x, w, f, sf, r, n, u, goal, block) => ` When ${x} comes, ${w === 'your' ? 'their' : 'your'} ${f}-pawn is still on ${sf}${r}, ${n} ${u} from ${goal}${block ?? ''}.`), raceClaim))
+    results.push(corruptionRow('the promotion the race is read at, named as another move', rc, swapIn(rc, race, (m, x, ...rest) => m.replace(` When ${x} comes`, ` When ${x.includes('=Q') ? x.replace('=Q', '=R') : x.replace(/=[RBN]/, '=Q')} comes`)), raceClaim))
+  }
+  const rb = pick(inDiff((d) => race.test(d) && !!d.match(race)[9]))
+  if (rb) results.push(corruptionRow('the piece in the racing pawn\'s way named as another', rb, swapIn(rb, race, (m, x, w, f, sf, r, n, u, goal, block, bw, bp, bsq) => ` When ${x} comes, ${w} ${f}-pawn is still on ${sf}${r}, ${n} ${u} from ${goal}, with ${bw} ${bp === 'knight' ? 'bishop' : 'knight'} on ${bsq} in its way.`), raceClaim))
   return results
 }
 
