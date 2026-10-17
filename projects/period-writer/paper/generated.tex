@@ -1,0 +1,203 @@
+% Written by projects/period-writer/paper/generate.mjs; do not edit by hand.
+
+\newcommand{\AppCommit}{fa07ea1ed8}
+\newcommand{\Cases}{nine}
+\newcommand{\Weeks}{seven}
+\newcommand{\Months}{two}
+\newcommand{\TrainCases}{week 35, week 37, week 39, week 41 and August}
+\newcommand{\HeldCases}{week 36, week 38, week 40 and September}
+\newcommand{\TrainN}{five}
+\newcommand{\HeldN}{four}
+\newcommand{\WeekGamesMin}{19}
+\newcommand{\WeekGamesMax}{59}
+\newcommand{\MonthGames}{307 and 172}
+\newcommand{\FrozenBriefs}{four}
+\newcommand{\CaseSpan}{weeks 35 to 41 and the months of August and September 2026}
+\newcommand{\CasesCap}{Nine}
+\newcommand{\WriterRuns}{25}
+\newcommand{\FirstRuns}{18}
+\newcommand{\SecondPairCases}{week 35, August and week 36}
+\newcommand{\SecondPairN}{three}
+\newcommand{\BaseOnlySecond}{week 37}
+\newcommand{\MaxReps}{two}
+\newcommand{\CandPairs}{twelve}
+\newcommand{\NullPairs}{four}
+\newcommand{\NullCases}{week 35, week 37, August and week 36}
+\newcommand{\Spent}{225}
+\newcommand{\Cap}{250}
+\newcommand{\WriterSpend}{168}
+\newcommand{\GraderSpend}{58}
+\newcommand{\SevenDayFirst}{12}
+\newcommand{\SevenDayLast}{25}
+\newcommand{\BaseWeekCost}{6.62}
+\newcommand{\BaseMonthCost}{5.78}
+\newcommand{\BaseMinutes}{21}
+\newcommand{\BaseRounds}{5.5}
+\newcommand{\BasePassed}{13}
+\newcommand{\BaseRuns}{13}
+\newcommand{\BaseBoards}{44}
+\newcommand{\BaseMonthBoards}{0, 0 and 1}
+\newcommand{\CandWeekCost}{7.55}
+\newcommand{\CandMonthCost}{5.49}
+\newcommand{\CandMinutes}{20}
+\newcommand{\CandRounds}{6.3}
+\newcommand{\CandPassed}{12}
+\newcommand{\CandRuns}{12}
+\newcommand{\CandBoards}{42}
+\newcommand{\CandMonthBoards}{1, 1 and 2}
+\newcommand{\BaseMonthRuns}{three}
+\newcommand{\BaseExhibits}{44}
+\newcommand{\BaseFullOrder}{32}
+\newcommand{\BaseThreat}{68}
+\newcommand{\BaseRefutation}{70}
+\newcommand{\BaseKeeps}{73}
+\newcommand{\CandExhibits}{42}
+\newcommand{\CandFullOrder}{79}
+\newcommand{\CandThreat}{88}
+\newcommand{\CandRefutation}{79}
+\newcommand{\CandKeeps}{83}
+\newcommand{\TrainTruth}{+0.20 {\footnotesize ($-$0.40 to +0.80)}}
+\newcommand{\TrainExplanation}{+0.40 {\footnotesize ($-$0.40 to +1.00)}}
+\newcommand{\TrainDuties}{+0.10 {\footnotesize ($-$0.50 to +0.60)}}
+\newcommand{\TrainPlain}{0.00 {\footnotesize (0.00 to 0.00)}}
+\newcommand{\TrainOverall}{+0.30 {\footnotesize ($-$0.40 to +0.90)}}
+\newcommand{\TrainNullExplanation}{$-$0.33 {\footnotesize ($-$1.00 to 0.00)}}
+\newcommand{\HeldTruth}{0.00 {\footnotesize (0.00 to 0.00)}}
+\newcommand{\HeldExplanation}{+0.38 {\footnotesize (0.00 to +0.75)}}
+\newcommand{\HeldDuties}{$-$0.13 {\footnotesize ($-$0.38 to 0.00)}}
+\newcommand{\HeldPlain}{0.00 {\footnotesize (0.00 to 0.00)}}
+\newcommand{\HeldOverall}{+0.13 {\footnotesize (0.00 to +0.38)}}
+\newcommand{\HeldNullExplanation}{+1.00 {\footnotesize (+1.00 to +1.00)}}
+\newcommand{\AllTruth}{+0.11 {\footnotesize ($-$0.22 to +0.44)}}
+\newcommand{\AllExplanation}{+0.39 {\footnotesize ($-$0.06 to +0.78)}}
+\newcommand{\AllDuties}{0.00 {\footnotesize ($-$0.33 to +0.33)}}
+\newcommand{\AllPlain}{0.00 {\footnotesize (0.00 to 0.00)}}
+\newcommand{\AllOverall}{+0.22 {\footnotesize ($-$0.17 to +0.56)}}
+\newcommand{\AllNullExplanation}{0.00 {\footnotesize ($-$0.75 to +0.75)}}
+\newcommand{\CandDecided}{eight}
+\newcommand{\ExplWins}{seven}
+\newcommand{\ExplLosses}{one}
+\newcommand{\ExplTies}{four}
+\newcommand{\OverallWins}{five}
+\newcommand{\OverallLosses}{one}
+\newcommand{\OverallTies}{six}
+\newcommand{\Decided}{130}
+\newcommand{\SecondShare}{63}
+\newcommand{\NullDecisive}{two}
+\newcommand{\SameN}{nine}
+\newcommand{\SameBroken}{zero}
+\newcommand{\DecoyN}{nine}
+\newcommand{\DecoyExpl}{zero}
+\newcommand{\DecoyLost}{four}
+\newcommand{\DecoyRatio}{1.21}
+\newcommand{\RuleTable}{%
+\begin{tabular}{lrl}
+\toprule
+Condition & Estimate (95\% interval) & Holds \\
+\midrule
+Explanation on train above 0 & +0.40 {\footnotesize ($-$0.40 to +1.00)} & \textbf{no} \\
+Explanation held out above 0 & +0.38 {\footnotesize (0.00 to +0.75)} & \textbf{no} \\
+Overall not below 0 & +0.22 {\footnotesize ($-$0.17 to +0.56)} & yes \\
+False claims not up & +0.78 {\footnotesize ($-$0.56 to +2.22)} & yes \\
+False board claims not up & +1.22 {\footnotesize ($-$1.11 to +3.56)} & yes \\
+Check passes as often & -- & yes \\
+Controls clean & -- & yes \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\RuleFailed}{explanation on train above 0 and explanation held out above 0}
+\newcommand{\RuleFailedN}{two}
+\newcommand{\HeldTieCases}{week 40 and September}
+\newcommand{\HeldTieN}{two}
+\newcommand{\TrainLossCases}{week 37}
+\newcommand{\TrainFalseDiff}{$-$0.8 {\footnotesize ($-$1.6 to +0.2)}}
+\newcommand{\HeldFalseDiff}{+2.8 {\footnotesize (+1.5 to +4.0)}}
+\newcommand{\BaseFalse}{2.1}
+\newcommand{\BaseUnsupported}{9.9}
+\newcommand{\BaseMisleading}{5.5}
+\newcommand{\BaseBoardFalse}{2.5}
+\newcommand{\CandFalse}{2.9}
+\newcommand{\CandUnsupported}{8.5}
+\newcommand{\CandMisleading}{4.8}
+\newcommand{\CandBoardFalse}{3.6}
+\newcommand{\FalseDiff}{+0.8 {\footnotesize ($-$0.6 to +2.2)}}
+\newcommand{\BoardDiff}{+1.2 {\footnotesize ($-$1.1 to +3.6)}}
+\newcommand{\KindsTable}{%
+\begin{tabular}{lrrrr}
+\toprule
+ & \multicolumn{2}{c}{Today's prompt} & \multicolumn{2}{c}{Candidate} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+ & & Unsupported & & Unsupported \\
+What the claim is about & False & or misleading & False & or misleading \\
+\midrule
+Who stood better, the best move & 0.5 & 1.1 & 0.9 & 1.3 \\
+A skill, metric or focus reading & 0.3 & 3.1 & 0.6 & 1.9 \\
+Habits and trends & 0.2 & 2.3 & 0.5 & 2.1 \\
+Results, records, ratings & 0.4 & 1.5 & 0.3 & 1.2 \\
+What an earlier review said & 0.2 & 2.1 & 0.3 & 1.6 \\
+What a piece does on the board & 0.2 & 1.0 & 0.3 & 0.7 \\
+Counts and tallies & 0.2 & 1.8 & 0.0 & 1.0 \\
+Other & 0.0 & 0.5 & 0.1 & 0.4 \\
+The clock & 0.1 & 0.6 & 0.0 & 0.4 \\
+\midrule
+Every kind & 2.0 & 13.9 & 2.9 & 10.5 \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\TopKind}{who stood better, the best move}
+\newcommand{\SecondKind}{a skill, metric or focus reading}
+\newcommand{\ThirdKind}{results, records, ratings}
+\newcommand{\TopThreeShare}{61}
+\newcommand{\HeldShare}{13}
+\newcommand{\HeldBoard}{33}
+\newcommand{\WalkReviewsCap}{Seven}
+\newcommand{\WalkReviews}{seven}
+\newcommand{\WalkOf}{15}
+\newcommand{\WalkFirst}{36}
+\newcommand{\WalkLast}{41}
+\newcommand{\WalkBase}{five}
+\newcommand{\WalkBaseOf}{eight}
+\newcommand{\WalkCand}{two}
+\newcommand{\WalkCandOf}{seven}
+\newcommand{\WalkFlagged}{five}
+\newcommand{\BaseFalseNotHeld}{2.0}
+\newcommand{\BaseLineFalse}{0.15}
+\newcommand{\CandFalseNotHeld}{2.9}
+\newcommand{\CandLineFalse}{1.00}
+\newcommand{\ExtraFalse}{0.9}
+\newcommand{\ExtraLines}{0.8}
+\newcommand{\BasePlayed}{37}
+\newcommand{\BasePlayedWrong}{six}
+\newcommand{\BasePlayedReviews}{five}
+\newcommand{\BasePlayedShare}{16}
+\newcommand{\CandPlayed}{36}
+\newcommand{\CandPlayedWrong}{eleven}
+\newcommand{\CandPlayedReviews}{seven}
+\newcommand{\CandPlayedShare}{31}
+\newcommand{\LandedPlayed}{27}
+\newcommand{\LandedPlayedWrong}{two}
+\newcommand{\LandedPlayedReviews}{two}
+\newcommand{\LandedPlayedShare}{7}
+\newcommand{\PlayedAll}{73}
+\newcommand{\PlayedWrongAll}{17}
+\newcommand{\PlayedReviewsAll}{twelve}
+\newcommand{\PlayedShareAll}{23}
+\newcommand{\LandedReviews}{seven}
+\newcommand{\CaseTable}{%
+\begin{tabular}{llrrrcc}
+\toprule
+ & & & \multicolumn{2}{c}{Exhibits in order} & \multicolumn{2}{c}{Judge, per pair} \\
+Period & Split & Games & Today & Candidate & Explanation & Overall \\
+\midrule
+Week 35 & train & 55 & 3/9 & 7/9 & + + & + + \\
+Week 37 & train & 19 & 4/9 & 3/4 & $-$ & $-$ \\
+Week 39 & train & 59 & 1/4 & 3/4 & + & + \\
+Week 41 & train & 34 & 3/4 & 3/4 & 0 & 0 \\
+August & train & 307 & 0/0 & 2/2 & + + & 0 + \\
+Week 36 & held out & 32 & 1/8 & 6/8 & 0 + & 0 + \\
+Week 38 & held out & 49 & 0/4 & 3/4 & + & 0 \\
+Week 40 & held out & 33 & 2/5 & 4/5 & 0 & 0 \\
+September & held out & 172 & 0/1 & 2/2 & 0 & 0 \\
+\bottomrule
+\end{tabular}
+}

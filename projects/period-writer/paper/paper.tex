@@ -1,0 +1,222 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Does the books' order make the weekly review explain better?\\[0.3em]
+\large One sentence added to the weekly and monthly routines' prompts, replayed on \Cases{} past
+periods}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The app's weekly and monthly routines have a model write a review from a brief the app's services
+compute. Two chess books explain a position in one order: the threat, then why the tempting move
+fails, then what the better move keeps. One sentence asking for that order was added to the live
+prompts, and both prompts rewrote \Cases{} past periods (\Weeks{} weeks and \Months{} months)
+offline with the app's code at commit \texttt{\AppCommit}: \WriterRuns{} reviews, for \$\Spent{} of
+model calls. The sentence changed the writing: \CandFullOrder\% of the candidate's board exhibits
+gave all three parts in order, against \BaseFullOrder\% under today's prompt. A blind judge, reading
+each pair in both orders, preferred the candidate's explanations in \ExplWins{} of \CandPairs{} pairs
+and today's in \ExplLosses, but its interval reached zero on the train periods and on the held-out
+ones, so the rule fixed before the runs keeps today's prompts. The same judge sided with whichever
+review it read second in \SecondShare\% of the verdicts that picked a side, and two runs of today's
+prompt on one period split on explanation in \NullDecisive{} of \NullPairs{} periods. On the held-out
+periods the candidate's reviews made more false claims, and most of its extra false claims quote a
+line of moves. Two errors do not depend on the prompt. Of the \PlayedAll{} lines the reviews tag
+\emph{Played}, \PlayedWrongAll{} are not what the game played, and the app's checker, which replays
+each line only for legality, lets them through. And the reviews call a rule about the king in a won
+endgame ``the pawn break'', because the rule ledger files it under that concept.
+\end{abstract}
+
+\section{The question}
+
+Levy Rozman's \emph{How to Win at Chess} (2023) and \emph{How to Win at Chess: Next Level} (2026)
+answered twenty questions about the app's coaching. Asked how a coach should explain a better move,
+they gave an order their worked examples share: first the threat on the board, then why the move
+played (or the tempting one) fails, with the reply that refutes it, then what the better move keeps.
+They do not prescribe one sentence order or a length, and their examples start in different places,
+so the candidate tests the order they share most, as one instruction added to step 4 of the weekly
+and monthly prompts, right after the sentence that says to write the annotations by filling the
+brief's slots:
+
+\begin{quote}\small
+Each board that shows a better move explains it in its prose in this order: first the threat on the
+board, the piece and the square it aims at; then why the move played, or the tempting one, fails,
+with the reply that refutes it; then what the better move keeps, the square, piece or line it holds.
+\end{quote}
+
+Nothing else in the prompts changes. Measured beside the comparison, for both prompts: which false
+claims the weekly and monthly reviews make.
+
+\section{The cases and the writer}
+
+The cases are the \Cases{} periods with a review on the app's main branch from its command-line
+era: \CaseSpan. Each is a checkout of the app at
+\texttt{\AppCommit}, with the coach data as main held it just before that period's review landed,
+and the period's brief prepared again by the app's own \texttt{coach weekly prepare} or
+\texttt{coach monthly prepare}, offline. A week holds \WeekGamesMin{} to \WeekGamesMax{} games and
+the months \MonthGames. The split was fixed before any run, interleaved by date: train is
+\TrainCases; held out is \HeldCases.
+
+The writer runs as the routines do: Opus 5.5, headless, with nothing inherited from the session
+that launched it, and a short preamble that names the period, says the brief is ready and stops the
+writer once the strict check passes (no video, publish or commit). Each prompt wrote every case once,
+and again where the budget allowed a second pair (\SecondPairCases); today's prompt also wrote
+\BaseOnlySecond{} twice. Run $k$ of the candidate is judged against run $k$ of today's prompt, and today's two runs
+of a period against each other give the judge's noise floor (\NullCases).
+
+\section{The graders}
+
+A script with no model reads each run: whether the final strict check passes, every check the
+writer ran, commands it should not have run, cost and minutes. Sonnet 5.5 audits each review alone.
+It reads the evidence (the brief without its bulk, a line per game, the clock's turning points, the
+earlier reviews the period's review audits, and for every board exhibit the position as the archive
+replays it, what was played there and next, the engine's best move and reply, and what each piece
+attacks and guards before and after each move the exhibit names) and lists the claims the evidence
+contradicts (\emph{false}), does not carry (\emph{unsupported}) or carries but slants
+(\emph{misleading}). For each exhibit it says whether the prose names the threat, the refuting reply
+and what the better move keeps, in that order, and lists its false claims about the board. Its
+prompts were settled on one run of today's prompt before any candidate run was graded. Opus 5.5,
+tried as the auditor on that run, did not list the same false claims, so a review's count is a floor
+on what it gets wrong, compared like for like.
+
+Sonnet 5.5 also judges each pair blind, in both orders, on five criteria: truth, explanation, the
+prompt's duties, plain words, and overall. A side wins a criterion only when both orders agree.
+Two controls check the judge on every case: a review of today's prompt against itself, and against
+a decoy whose exhibits restate what they already say at the candidate's length, with no square,
+move, piece or number the original does not name.
+
+\section{The rule}
+
+A pair scores $+1$ when the candidate wins a criterion, $-1$ when it loses and $0$ for a tie, and a
+case scores the mean over its pairs; intervals are 95\% percentile bootstrap intervals over cases.
+The candidate replaces the live prompts only when every condition holds
+(Table~\ref{tab:rule}): its explanation interval lies above zero on the train cases and on the
+held-out ones, the overall interval does not lie below zero, neither the false claims nor the false
+board claims per review rise by an interval above zero, the strict check passes as often, and the
+controls are clean. With \HeldN{} or \TrainN{} cases a split, the first two need the candidate to
+win nearly every case; that is the bar. The \RuleFailedN{} that fail are \RuleFailed, so today's prompts stay.
+
+\begin{table}[h]
+\centering
+\small\RuleTable
+\caption{The rule, fixed before the candidate's first run. Explanation and overall are the judge's
+scores per case; the claim rows are the audit's counts per review, candidate minus today's prompt,
+over all \Cases{} cases.}
+\label{tab:rule}
+\end{table}
+
+\section{What the sentence changed}
+
+The writer did what the sentence asks. Pooled over the exhibits, \CandFullOrder\% of the
+candidate's \CandExhibits{} gave all three parts in order, against \BaseFullOrder\% of today's
+\BaseExhibits. The threat was named in \CandThreat\% (today \BaseThreat\%), the refuting reply in
+\CandRefutation\% (\BaseRefutation\%), and what the better move keeps in \CandKeeps\%
+(\BaseKeeps\%). Every review passed the strict check in the end, \BasePassed{} of \BaseRuns{} and
+\CandPassed{} of \CandRuns, after \BaseRounds{} and \CandRounds{} check rounds on average. A weekly
+review cost \$\BaseWeekCost{} under today's prompt and \$\CandWeekCost{} under the candidate, and a
+monthly one \$\BaseMonthCost{} and \$\CandMonthCost; a review took about \BaseMinutes{} minutes
+either way. The monthly reviews show few boards: today's \BaseMonthRuns{} carried
+\BaseMonthBoards{} and the candidate's \CandMonthBoards, so the explanation criterion rests on the weeks
+(Table~\ref{tab:cases}).
+
+\begin{table}[h]
+\centering
+\small\CaseTable
+\caption{Each period: its games, the exhibits that give all three parts in order (over all of a
+prompt's runs of the period), and the judge's verdict on each pair, from the candidate's side ($+$ it
+wins, $-$ it loses, $0$ a tie).}
+\label{tab:cases}
+\end{table}
+
+\section{What the judge saw}
+
+On explanation the judge preferred the candidate in \ExplWins{} of the \CandPairs{} pairs, today's
+prompt in \ExplLosses{} and neither in \ExplTies. That is \TrainExplanation{} over the train cases
+and \HeldExplanation{} over the held-out ones. Today's prompt took \TrainLossCases{} and
+\HeldTieCases{} tied, so neither interval clears zero. Overall the candidate won \OverallWins{}
+pairs, lost \OverallLosses{} and tied \OverallTies{} (\AllOverall{} over all \Cases{} cases), and
+the intervals of truth (\AllTruth), duties (\AllDuties) and plain words (\AllPlain) hold zero.
+
+Two things say the judge is a weak instrument for this question. Today's prompt against itself,
+two runs of one period, gave a decisive explanation verdict in \NullDecisive{} of \NullPairs{}
+periods (\AllNullExplanation), against \CandDecided{} of \CandPairs{} for the candidate's pairs.
+And across all pairs
+and criteria, \SecondShare\% of the \Decided{} single-order verdicts that picked a side picked the
+review it read second; requiring both orders to agree turns most of those into ties. The controls
+are clean: the same review on both sides tied on every criterion in \SameN{} of \SameN{} cases, and
+the decoy, whose exhibits ran \DecoyRatio{} times as long as the original's, won explanation in
+\DecoyExpl{} of \DecoyN{} cases and lost overall in \DecoyLost. The judge does not reward length
+alone, but with \Cases{} cases it cannot tell this sentence from the writer's run-to-run variation.
+
+\section{What the reviews get wrong}
+
+Per review, today's prompt made \BaseFalse{} false claims, \BaseUnsupported{} unsupported and
+\BaseMisleading{} misleading ones, and \BaseBoardFalse{} false board claims; the candidate made
+\CandFalse, \CandUnsupported, \CandMisleading{} and \CandBoardFalse. Candidate minus today's, the
+false claims are \TrainFalseDiff{} on the train cases and \HeldFalseDiff{} on the held-out ones,
+where every case went up; over all \Cases{} they are \FalseDiff, inside rule 4.
+
+A second blind Sonnet call sorted every listed claim by what it is about, and marked an entry whose
+own evidence says the claim holds: \HeldShare\% of the claims listed in words, and \HeldBoard\% of
+the false board claims, which Table~\ref{tab:kinds} leaves out. The false claims are mostly about
+\TopKind, \SecondKind{} and \ThirdKind{} (\TopThreeShare\% of them); the unsupported ones spread over
+the brief's readings, trends and what earlier reviews said, where the evidence the auditor read may
+lack what the writer read.
+
+\begin{table}[h]
+\centering
+\small\KindsTable
+\caption{Claims per review the audit lists, by what they are about, without those whose evidence
+says they hold.}
+\label{tab:kinds}
+\end{table}
+
+\textbf{Lines of moves.} False claims that quote a line of two numbered moves or more run
+\BaseLineFalse{} a review under today's prompt and \CandLineFalse{} under the candidate: \ExtraLines{}
+of the candidate's \ExtraFalse{} extra false claims a review. The sentence asks for the reply that
+refutes the move; the writer answered with lines, and wrote some of them wrong.
+
+\textbf{Lines tagged Played.} A board exhibit carries lines with a tag, most often \emph{Played} and
+\emph{Better}. A script with no model replayed every Played line from the exhibit's position and
+compared it with the game in the archive. Of the \PlayedAll{} Played lines, \PlayedWrongAll{} leave
+the game (\BasePlayedShare\% under today's prompt, \CandPlayedShare\% under the candidate), in
+\PlayedReviewsAll{} of the \WriterRuns{} reviews, and so do \LandedPlayedWrong{} of the
+\LandedPlayed{} in the reviews that landed. The usual shape is the move played followed by the
+engine's refutation, or a later move the game never had. The strict check replays each line for
+legality from the board's position but does not compare a Played line with the game, so none of
+these was refused.
+
+\textbf{The king walk called the pawn break.} The weekly review reports the rule ledger's budget,
+which caps the live rules per concept. In weeks \WalkFirst{} to \WalkLast, the only live rule under
+the concept ``Pawn structure and the break'' is about the king in a won endgame. Of the \WalkOf{}
+weekly reviews of those weeks, \WalkReviews{} (\WalkBase{} of \WalkBaseOf{} under
+today's prompt, \WalkCand{} of \WalkCandOf{} under the candidate) count it as ``the pawn break'', and
+the auditor marks \WalkFlagged{} of them false; the rest say ``pawn structure''. The writer follows
+the prompt, which names a concept by its name. The claim is false because the ledger files the rule
+under a concept it is not about.
+
+\section{What the app takes}
+
+The live weekly and monthly prompts stay. Two fixes do not depend on the prompt: a strict check that
+a line tagged Played follows the game from the board's position (the checker already resolves the
+board's game and replays the line), and the king-walk rule filed under converting, or the
+per-concept count naming each rule by what it says. If the order is tried again, it would want the
+engine's refutation in the brief for each exhibit, so the line the writer shows is one the engine
+played out (an inference from the lines above, not tested), and a judge that compares the same
+exhibit under both prompts, which needs the exhibits fixed before the writer runs.
+
+\section{Limits}
+
+\CasesCap{} cases, and at most \MaxReps{} runs of a prompt on one; the judge's verdicts on the same prompt vary
+nearly as much as between prompts, and it leans to the review it reads second. The audit's counts
+are a floor, and a share of what it lists holds by its own evidence. One writer model wrote every
+review, offline: the level falls back to the profile synced at the time, and the brief is the one
+the services compute at \texttt{\AppCommit}, not always the one the period's routine read. The
+writer eval spent \$\WriterSpend{} and the graders \$\GraderSpend{} at list price; on the owner's
+subscription the seven-day usage window moved from \SevenDayFirst\% to \SevenDayLast\% while it ran.
+
+\end{document}

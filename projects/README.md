@@ -141,6 +141,22 @@ BOOK_ADVICE_MONTH=2026-08 bridge/run.sh projects/book-advice/lost-trades.mjs --n
 bridge/run.sh projects/learner-solve-chance/replay.mjs
 bridge/run.sh projects/learner-solve-chance/fit.mjs
 
+# The weekly and monthly writer: past periods rewritten by two prompts on the
+# owner's subscription, under the eval's cap and outside the routines' hours,
+# then graded and exported. The cases, reviews and audits stay in EVAL_ROOT.
+export EVAL_ROOT=/tmp/period-writer
+for id in 2026-W35 2026-W36 2026-W37 2026-W38 2026-W39 2026-W40 2026-W41 2026-08 2026-09; do
+  projects/period-writer/bin/make-case.sh $id $EVAL_ROOT/cases/$id <app commit>
+done
+projects/period-writer/bin/batch.py runs --configs baseline,threat-order --variant threat-order=projects/period-writer/variants/threat-order.json --reps 2
+projects/period-writer/bin/batch.py audit --configs baseline,threat-order
+projects/period-writer/bin/batch.py judge --config threat-order --vs baseline
+projects/period-writer/bin/batch.py judge --config baseline --vs baseline
+projects/period-writer/bin/batch.py controls --config threat-order --vs baseline
+projects/period-writer/bin/batch.py report --config threat-order --vs baseline
+projects/period-writer/bin/kinds.py --configs baseline,threat-order
+projects/period-writer/bin/export.py --config threat-order --vs baseline
+
 make papers   # each paper's generated.tex, then its PDF
 ```
 

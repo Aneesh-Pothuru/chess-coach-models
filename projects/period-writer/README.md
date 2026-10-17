@@ -4,6 +4,20 @@ The app's weekly and monthly routines write a review from a brief the services
 compute. This project replays past weeks and months through the writer with the
 app's own code, offline, and compares a candidate prompt with the live one.
 
+## Result
+
+Not kept: the live prompts stay ([paper](paper/paper.pdf)). The sentence
+changed the writing (most of the candidate's exhibits give the three parts in
+order, against about a third under today's prompt), but the judge's
+explanation interval reached zero on the train cases and on the held-out ones,
+so rules 1 and 2 fail; rules 3 to 6 hold. On the held-out cases the candidate's
+reviews made more false claims, most of them lines of moves. Two errors do not
+depend on the prompt: lines tagged Played that the game did not play, which the
+strict check lets through (`bin/played-lines.mts` counts them, with no model),
+and the per-concept rule count calling a king-walk rule "the pawn break",
+because the ledger files it under that concept. `results/report.json` names
+the app commit the cases ran on and what was spent.
+
 ## Question
 
 Does the review explain its board exhibits better when the prompt asks for the
@@ -22,8 +36,9 @@ The nine periods with a review on the app's main branch from its CLI-era
 archive: the weeks 2026-W35 to 2026-W41 and the months 2026-08 and 2026-09.
 `bin/make-case.sh <id> <case-dir> <app commit>` builds one:
 
-- a checkout of the app at the commit in `bridge/chess.json` (a git repository
-  with no remote, borrowing the app clone's objects), with the coach data
+- a checkout of the app at the commit `bridge/chess.json` pinned when the
+  cases were built (`results/report.json` names it; a git repository with no
+  remote, borrowing the app clone's objects), with the coach data
   (`coach-log/`, `public/coach/`, `progress/`) as main held it just before the
   period's review landed;
 - `coach <weekly|monthly> prepare` run with that code, so the brief on disk is
@@ -148,8 +163,15 @@ bin/batch.py judge --config threat-order --vs baseline
 bin/batch.py judge --config baseline --vs baseline       # the noise floor: rep 1 against rep 2
 bin/batch.py controls --config threat-order --vs baseline
 bin/batch.py report --config threat-order --vs baseline
+bin/kinds.py --configs baseline,threat-order                # what each audited claim is about
+bin/export.py --config threat-order --vs baseline           # results/, with the Played-line check
+bridge/run.sh projects/period-writer/paper/generate.mjs     # from the lab's root
 ```
 
 The per-run files (the reviews, the streams, the audits with their quotes)
 hold the player's games and stay out of the repository, in the eval
-directory. `results/` holds the aggregates the report computes.
+directory. `results/` holds the aggregates: `report.json` (the rule as
+`batch.py report` computed it, the spend and the usage windows) and
+`runs.json` (each run's numbers, each pair's verdicts, the audits' counts by
+grade and kind, and the Played-line check per review and for each review that
+landed).
