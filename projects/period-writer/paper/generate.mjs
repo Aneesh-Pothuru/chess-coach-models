@@ -249,6 +249,7 @@ g.def('PlayedAll', String(plTotal(both))).def('PlayedWrongAll', String(plWrong(b
 g.def('LandedReviews', word(landed.filter((x) => x.played > 0).length))
 claim(plWrong(played(BASE)) > 0 && plWrong(played(CAND)) > 0 && plWrong(landed) > 0, 'reviews under both prompts, and reviews that landed, tag lines Played that the game did not play')
 claim(plWrong(played(CAND)) / plTotal(played(CAND)) > plWrong(played(BASE)) / plTotal(played(BASE)), "the candidate's Played lines leave the game more often")
+g.def('PlayedCheckPR', '125')
 
 // ---- per case ----
 const mark = { candidate: '+', reference: '$-$', tie: '0' }
