@@ -510,5 +510,9 @@ bridge/run.sh projects/book-advice/king-notes.mjs
 # copied there at run time; they are not in this repository.
 bridge/run.sh projects/book-advice/capstones.mjs
 
+# 6a and 6b: no engine, the games' own evals and the app's board code.
+bridge/run.sh projects/book-advice/after-gain.mjs
+bridge/run.sh projects/book-advice/lost-trades.mjs
+
 bridge/run.sh projects/book-advice/paper/generate.mjs
 ```
