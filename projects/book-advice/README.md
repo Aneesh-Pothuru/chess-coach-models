@@ -479,6 +479,29 @@ nothing about trades when behind; it praises a trade only when ahead (1c).
   keeping the pieces; how often the players traded; and the win% the trades
   and the moves that keep the pieces gave away.
 
+**After the result.** The rule's measure missed the bar (−1.7 points, 95%
+−3.4 to 0.0), but the measure reported beside it, at the same win% after the
+move, came out −3.4 (−5.2 to −1.7): the trades gave away less win% than the
+moves that keep the pieces, and still saved fewer games. A finding the rule did
+not name needs fresh games before the app acts on it, so it is tested again,
+by a rule fixed before that run, on the Lichess games of August 2026, streamed
+and built as September's were (think-time-rapid's `stream.py`, band-above's
+`primary.mjs`, at the same app commit).
+
+- **The measure.** The same positions, moves and outcome, with the strata of
+  the measure reported beside the rule: his win% after the move in five-point
+  bins, the material down, his rating in 100-point bins, and whether the
+  opponent is rated higher.
+- **It holds** when, over his band and the band above together in August's
+  games, the plain trade's difference has an interval below zero and a drop of
+  at least 3 saved games per 100, with at least 300 plain trades. Then the app
+  says so where the engine agrees: Play's coach, when he is behind and takes an
+  even trade of pieces that the engine scores no better than a move that keeps
+  them, and the review's explanations (sent to the review's explanations).
+  When it does not hold, nothing changes.
+- **Also reported:** the rule's own measure (the win% before the move) on
+  August's games, each band, and the kinds counted apart.
+
 ## Running it
 
 From the lab's root, after think-time-rapid's games and band-above's builds
