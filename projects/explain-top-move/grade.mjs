@@ -1339,6 +1339,35 @@ function checkGuardGivenUp([x, whose, piece, sq, y, taken], e) {
   return [...out, claim('guard_given_up', surface, shown, whole, T(`the ${piece} on ${mv.from} guarded ${sq}, nothing of the mover's does after ${mv.san}, and the reply ${reply.san} lands there`))]
 }
 
+/**
+ * "it keeps their king out of S": the move is the better move; the engine's
+ * reply to the played move is that king stepping to S without taking; after
+ * the better move a piece of the mover's covers S; and in the engine's line
+ * after the better move that king never stands on S.
+ */
+function checkKeptOut(M, att, whose, sq, span, shown, surface) {
+  const fail = (why) => claim('kept_out', surface, shown, span, F(why))
+  if (!M) return claim('kept_out', surface, shown, span, U('no moment to read the reply from'))
+  const mv = att?.mv
+  if (!mv) return fail('the move does not replay')
+  if (att !== M.attBest) return fail(`${mv.san} is not the better move`)
+  const king = ownerOf(whose, M)
+  if (king !== other(mv.color)) return fail(`the king ${mv.san} keeps out is not ${whose}`)
+  const reply = M.F1 ? moveAt(M.F1, M.replyPvUci[0]) : null
+  if (!reply || reply.piece !== 'k' || reply.color !== king) return fail(`the engine's reply to ${M.san} is not a move of ${whose} king`)
+  if (reply.to !== sq) return fail(`the engine's reply to ${M.san} steps to ${reply.to}, not ${sq}`)
+  if (reply.captured) return fail(`the engine's reply to ${M.san} takes on ${sq}`)
+  const cover = mv.board.attackers(sq, mv.color)
+  if (!cover.length) return fail(`after ${mv.san} nothing of the mover's covers ${sq}`)
+  const g = load(M.F0)
+  for (const u of M.bestPv) {
+    const m = playUci(g, u)
+    if (!m) break
+    if (m.piece === 'k' && m.color === king && m.to === sq) return fail(`${whose} king reaches ${sq} in the engine's line after ${mv.san} (${m.san})`)
+  }
+  return claim('kept_out', surface, shown, span, T(`the reply to ${M.san} is ${reply.san}; after ${mv.san} ${cover.join(' and ')} cover${cover.length === 1 ? 's' : ''} ${sq}, and ${whose} king never stands there in the engine's line`))
+}
+
 /** From `fen`, with `by` to move instead, some legal capture on `sq` that no legal move takes back. */
 function takenFree(fen, by, sq) {
   const parts = fen.split(' ')
@@ -1862,6 +1891,7 @@ function clauseClaims(text, attOf, surface, shown, M = null) {
   take(new RegExp(String.raw`\b(?:it )?blocks (their|your) passed ([a-h])-pawn on ${SQ}`, 'g'), ([owner, f, sq], whole, att) => checkStopsPassed(att, 'blocks', owner, f, sq, M, whole, shown, surface))
   take(/\bthe king stands in front of (their|your) passed ([a-h])-pawn\b/g, ([owner, f], whole, att) => checkStopsPassed(att, 'king', owner, f, null, M, whole, shown, surface))
   take(new RegExp(String.raw`\bthe ([a-h])-pawn goes on to (queen|promote) on ${SQ} in the engine's line\b`, 'g'), ([f, kind, sq], whole, att) => checkGoesOn(M, att, f, kind, sq, whole, shown, surface))
+  take(new RegExp(String.raw`\b(?:it )?keeps (their|your) king out of ${SQ}`, 'g'), ([whose, sq], whole, att) => checkKeptOut(M, att, whose, sq, whole, shown, surface))
   take(/\b(your|their) king walks (up|over) to (your|their|its) ([a-h])-pawn: ([^.]+?) in the engine's line\b/g, ([whose, dir, owner, f, moves], whole) => checkKingWalk(M, whose, dir, owner, f, moves, whole, shown, surface))
   // A mate the move gives, or the reply gives.
   take(/\bit is checkmate\b/g, (_g, whole, att) => claim('mate_move', surface, shown, whole, att.mv && att.mv.board.isCheckmate() ? T(`${att.mv.san} is checkmate`) : F(`${att.mv ? att.mv.san : att.uci} is not checkmate`)))
@@ -3385,6 +3415,39 @@ function runCorruption(cases) {
   }
   const rb = pick(inDiff((d) => race.test(d) && !!d.match(race)[9]))
   if (rb) results.push(corruptionRow('the piece in the racing pawn\'s way named as another', rb, swapIn(rb, race, (m, x, w, f, sf, r, n, u, goal, block, bw, bp, bsq) => ` When ${x} comes, ${w} ${f}-pawn is still on ${sf}${r}, ${n} ${u} from ${goal}, with ${bw} ${bp === 'knight' ? 'bishop' : 'knight'} on ${bsq} in its way.`), raceClaim))
+  // The square the better move keeps their king out of: the square, whose king; and the sentence put where the reply is no king's step, or where the king gets there later.
+  const keptOut = /\bkeeps (their|your) king out of ([a-h])([1-8])/
+  const keptClaim = /keeps (?:their|your) king out of/
+  const ko = pick((c) => c.texts?.lessonFor?.better?.points?.some((p) => keptOut.test(p)))
+  if (ko) {
+    results.push(corruptionRow('the square their king is kept out of, one file over', ko, swapBetter(ko, keptOut, (_, w, f, r) => `keeps ${w} king out of ${nextFile(f)}${r}`), keptClaim))
+    results.push(corruptionRow("the king kept out said to be the other side's", ko, swapBetter(ko, keptOut, (_, w, f, r) => `keeps ${w === 'their' ? 'your' : 'their'} king out of ${f}${r}`), keptClaim))
+  }
+  const replyStep = (c) => {
+    if (c.texts?.cardShows !== 'lesson' || !c.texts.lessonFor?.better?.points || !c.fenBefore || !c.uci || !c.bestUci || !Array.isArray(c.bestPvUci) || !Array.isArray(c.replyPvUci)) return null
+    const played = moveAt(c.fenBefore, c.uci)
+    const reply = played ? moveAt(played.afterFen, c.replyPvUci[0]) : null
+    const best = moveAt(c.fenBefore, c.bestUci)
+    if (!reply || !best || reply.captured || !best.board.attackers(reply.to, best.color).length) return null
+    const g = load(c.fenBefore)
+    let later = false
+    for (const u of c.bestPvUci) {
+      const m = playUci(g, u)
+      if (!m) break
+      if (m.piece === 'k' && m.color === reply.color && m.to === reply.to) later = true
+    }
+    return { reply, later, whose: reply.color === (c.playerColor ?? c.mover) ? 'your' : 'their' }
+  }
+  const added = (c) => {
+    const r = replyStep(c)
+    const copy = structuredClone(c)
+    copy.texts.lessonFor.better.points = [`it keeps ${r.whose} king out of ${r.reply.to}`, ...copy.texts.lessonFor.better.points]
+    return copy
+  }
+  const notKing = pick((c) => replyStep(c)?.reply.piece !== undefined && replyStep(c).reply.piece !== 'k' && !replyStep(c).later)
+  if (notKing) results.push(corruptionRow("the keep-out put where the reply is not the king's step", notKing, added(notKing), keptClaim))
+  const reaches = pick((c) => replyStep(c)?.reply.piece === 'k' && replyStep(c).later)
+  if (reaches) results.push(corruptionRow('the keep-out put where their king reaches the square later in the better line', reaches, added(reaches), keptClaim))
   return results
 }
 
