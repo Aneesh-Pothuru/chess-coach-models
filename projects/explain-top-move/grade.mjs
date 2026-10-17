@@ -1372,6 +1372,81 @@ function checkChasedEscape([x, whose, piece, sq, to, takenWhose, taken, takenSq,
   return [...out, claim('chased_escape', surface, shown, whole, T(`${mv.san} attacks the ${piece} on ${sq}, and the reply ${reply.san} moves it to ${reply.to}`))]
 }
 
+/**
+ * "Played now, X allows R. M first takes the P on S" (or "B first drives the
+ * P from S (M)", or "M first moves your P on S away"; round 22 first wrote
+ * "R;" for "R."): X is the played move
+ * and R, the engine's reply to it, a capture. The best line plays X one or two
+ * of the mover's moves later, and before X it plays M: the mover's capture of
+ * the P on S, the piece R moves; or B, the mover's move after which its piece
+ * attacks S, answered by M, which moves R's piece, a P, off S; or M, the
+ * mover's move of the P on S that R takes. After the best line through X, R
+ * takes nothing, and a piece M moved stands where nothing can take it.
+ */
+function checkOrderReason([x, r, tM, tP, tS, dB, dP, dS, dM, mM, mW, mP, mS], e) {
+  const { M, surface, shown, whole } = e
+  const out = [e.san(x, M.F0, M.playedUci)]
+  const fail = (why) => [...out, claim('order_reason', surface, shown, whole, F(why))]
+  const mv = M.attPlayed?.mv
+  if (!mv) return fail('the move does not replay')
+  out.push(e.san(r, mv.afterFen, M.replyPvUci[0]))
+  const reply = moveAt(mv.afterFen, M.replyPvUci[0])
+  if (!reply?.captured) return fail(`the engine's reply to ${mv.san} takes nothing`)
+  const k = [2, 4].find((i) => M.bestPv[i] === M.playedUci)
+  if (k === undefined) return fail(`the best line does not play ${mv.san} one or two of the mover's moves later`)
+  const line = []
+  for (let i = 0, fen = M.F0; i <= k; i++) {
+    const m = moveAt(fen, M.bestPv[i])
+    if (!m) return fail('the best line does not replay')
+    line.push(m)
+    fen = m.afterFen
+  }
+  const bare = (s) => s.replace(/[+#]+$/, '')
+  const before = (tok) => line.slice(0, k).findIndex((m) => m.color === mv.color && bare(m.san) === bare(tok))
+  let first = null
+  let moved = null
+  if (tM) {
+    const i = before(tM)
+    if (i < 0) return fail(`the best line plays no ${tM} of the mover's before ${mv.san}`)
+    first = line[i]
+    out.push(e.san(tM, first.fen, first.uci))
+    if (first.to !== tS || first.captured !== TYPE_OF_WORD[tP]) return fail(`${first.san} does not take a ${tP} on ${tS}`)
+    if (reply.from !== tS || reply.piece !== TYPE_OF_WORD[tP]) return fail(`${reply.san} is not made by the ${tP} on ${tS}`)
+  } else if (dB) {
+    const i = before(dB)
+    if (i < 0) return fail(`the best line plays no ${dB} of the mover's before ${mv.san}`)
+    first = line[i]
+    out.push(e.san(dB, first.fen, first.uci))
+    const away = line[i + 1]
+    if (i + 1 >= k || bare(away.san) !== bare(dM)) return fail(`the best line does not answer ${first.san} with ${dM}`)
+    out.push(e.san(dM, away.fen, away.uci))
+    if (reply.from !== dS || reply.piece !== TYPE_OF_WORD[dP]) return fail(`${reply.san} is not made by the ${dP} on ${dS}`)
+    if (away.from !== dS) return fail(`${away.san} does not move the ${dP} from ${dS}`)
+    if (!first.board.attackers(dS, mv.color).includes(first.to)) return fail(`after ${first.san} the ${WORD_OF_TYPE[first.piece]} on ${first.to} does not attack ${dS}`)
+  } else {
+    const i = before(mM)
+    if (i < 0) return fail(`the best line plays no ${mM} of the mover's before ${mv.san}`)
+    first = line[i]
+    out.push(e.san(mM, first.fen, first.uci))
+    if (ownerOf(mW, M) !== mv.color) return fail(`the ${mP} on ${mS} is not ${mW}`)
+    if (first.from !== mS || first.piece !== TYPE_OF_WORD[mP]) return fail(`${first.san} does not move the ${mP} on ${mS}`)
+    if (reply.to !== mS || reply.captured !== TYPE_OF_WORD[mP]) return fail(`${reply.san} does not take the ${mP} on ${mS}`)
+    moved = { sq: first.to, from: i + 1 }
+  }
+  const through = line[k]
+  const again = moveAt(through.afterFen, reply.uci)
+  if (again?.captured) return fail(`after the best line through ${mv.san}, ${again.san} still takes`)
+  if (moved) {
+    let sq = moved.sq
+    for (const m of line.slice(moved.from)) {
+      if (m.color === mv.color && m.from === sq) sq = m.to
+      else if (m.color !== mv.color && m.captured && m.to === sq) return fail(`the ${mP} ${first.san} moves is taken on ${sq} in the best line`)
+    }
+    if (through.board.moves({ verbose: true }).some((m) => m.to === sq && m.captured)) return fail(`after the best line through ${mv.san}, the ${mP} on ${sq} can be taken`)
+  }
+  return [...out, claim('order_reason', surface, shown, whole, T(`the best line plays ${first.san} before ${mv.san}, and after it ${reply.san} takes nothing`))]
+}
+
 const onlyKingsAndPawns = (g) => g.board().every((row) => row.every((cell) => !cell || cell.type === 'k' || cell.type === 'p'))
 const pawnCount = (g) => g.board().flat().filter((cell) => cell && cell.type === 'p').length
 
@@ -2089,6 +2164,11 @@ const LESSON_TEMPLATES = [
   {
     re: new RegExp(String.raw`\b${TOKR} still comes, (a move|two moves) later, in the engine's line\b`, 'g'),
     run: ([x, when], e) => [e.san(x, e.M.F0, e.M.playedUci), checkLater(e.M, when, null, e)],
+  },
+  // Why the order matters: what the best line does first to the capture the played move allows now.
+  {
+    re: new RegExp(String.raw`\bPlayed now, ${TOKR} allows ${TOKR}[;.] (?:${TOKR} first takes the ${PIECE} on ${SQ}|${TOKR} first drives the ${PIECE} from ${SQ} \(${TOKR}\)|${TOKR} first moves (their|your) ${PIECE} on ${SQ} away)\.`, 'g'),
+    run: (g, e) => checkOrderReason(g, e),
   },
   // A check's purpose: the better check takes a guard off a square the line's next move lands on.
   {
@@ -3162,6 +3242,23 @@ function runCorruption(cases) {
   if (en) {
     results.push(corruptionRow('the trade cut one move short', en, swapIn(en, /^After (\S+(?: \S+)*) (\S+), only kings and pawns are left/, (_, head) => `After ${head}, only kings and pawns are left`), endingClaim))
     results.push(corruptionRow('pawns said to be gone', en, swapIn(en, ending, (_, seq) => `After ${seq}, only the kings are left: a draw.`), endingClaim))
+  }
+  // Why the order matters: the square or piece the better line takes, the square a driven piece leaves, the piece moved away.
+  const orderClaim = /^Played now, \S+ allows \S+[;.]/
+  const firstTakes = /([;.]) (\S+) first takes the (pawn|knight|bishop|rook|queen) on ([a-h])([1-8])\.$/
+  const ot = pick(inDiff((d) => firstTakes.test(d)))
+  if (ot) {
+    results.push(corruptionRow('the square the better line takes on, one file over', ot, swapIn(ot, firstTakes, (_, sep, m, p, f, r) => `${sep} ${m} first takes the ${p} on ${nextFile(f)}${r}.`), orderClaim))
+    results.push(corruptionRow('the piece the better line takes named as another', ot, swapIn(ot, firstTakes, (_, sep, m, p, f, r) => `${sep} ${m} first takes the ${p === 'knight' ? 'bishop' : 'knight'} on ${f}${r}.`), orderClaim))
+  }
+  const firstDrives = /([;.]) (\S+) first drives the (pawn|knight|bishop|rook|queen|king) from ([a-h])([1-8]) \((\S+)\)\.$/
+  const dv = pick(inDiff((d) => firstDrives.test(d)))
+  if (dv) results.push(corruptionRow('the square a driven piece leaves, one file over', dv, swapIn(dv, firstDrives, (_, sep, b, p, f, r, m) => `${sep} ${b} first drives the ${p} from ${nextFile(f)}${r} (${m}).`), orderClaim))
+  const firstAway = /([;.]) (\S+) first moves (their|your) (pawn|knight|bishop|rook|queen) on ([a-h])([1-8]) away\.$/
+  const aw = pick(inDiff((d) => firstAway.test(d)))
+  if (aw) {
+    results.push(corruptionRow('the piece the better line moves away, one file over', aw, swapIn(aw, firstAway, (_, sep, m, w, p, f, r) => `${sep} ${m} first moves ${w} ${p} on ${nextFile(f)}${r} away.`), orderClaim))
+    results.push(corruptionRow("the piece moved away said to be the other side's", aw, swapIn(aw, firstAway, (_, sep, m, w, p, f, r) => `${sep} ${m} first moves ${w === 'your' ? 'their' : 'your'} ${p} on ${f}${r} away.`), orderClaim))
   }
   return results
 }
