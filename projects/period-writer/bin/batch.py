@@ -305,7 +305,8 @@ def cmd_controls(args):
         cand = run_dir(config, i, 1)
         ann_b = load(os.path.join(base, 'out', 'coach-log', 'review-annotations', f'{i}.json'))
         ann_c = load(os.path.join(cand, 'out', 'coach-log', 'review-annotations', f'{i}.json'))
-        if not ann_b or not wait_room(other, f'{i} controls'):
+        owed = [f for f in ('judge-control-same.json', 'judge-control-decoy.json') if not os.path.exists(os.path.join(base, f))]
+        if not ann_b or not owed or not wait_room(other, f'{i} controls'):
             continue
         if not os.path.exists(os.path.join(base, 'judge-control-same.json')):
             j = subprocess.run([sys.executable, os.path.join(BIN, 'judge.py'), os.path.join(CASES, i), base, '--control', 'same'], capture_output=True, text=True)
