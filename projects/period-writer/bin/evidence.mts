@@ -14,6 +14,7 @@ const root = process.cwd()
 const req = createRequire(join(root, 'package.json'))
 const { Chess } = req('chess.js')
 const review = await import(pathToFileURL(join(root, 'src/services/review/index.ts')).href)
+const publishing = await import(pathToFileURL(join(root, 'src/services/publishing/index.ts')).href)
 const { runCli } = await import(pathToFileURL(join(root, 'src/cli/cli.ts')).href)
 
 const [id, ...rest] = process.argv.slice(2)
@@ -133,10 +134,26 @@ async function board(where: string, b: any): Promise<string[]> {
 const lines: string[] = []
 if (!boardsOnly) {
   const brief = JSON.parse(readFileSync(join(root, 'coach-log', 'briefs', `${id}.json`), 'utf8'))
-  const { games, scorecards, clock, ...lean } = brief
-  lines.push(`THE BRIEF (every key but games, scorecards and clock, whose citable numbers are in facts):`)
+  const { games, clock, ...lean } = brief
+  const stamps = (xs: any[] | undefined) => (xs || []).map((x: any) => `${x.opponent} ${x.moveNo}${x.ply % 2 === 0 ? '.' : '...'}${x.san} ${x.cls ?? ''} lost ${Math.round(x.lossPct ?? 0)} win%, thought ${x.think ?? '?'}s with ${x.clockBefore ?? '?'}s left${x.sharp ? `, ${x.sharp}` : ''}`)
+  const sc = lean.scorecards?.clock
+  const prevStamps = sc?.prev?.stamps
+  if (sc?.now) delete sc.now.stamps
+  if (sc?.prev) delete sc.prev.stamps
+  lines.push(`THE BRIEF (every key but games and clock, which follow in short form; every citable number is in facts):`)
   lines.push(JSON.stringify(lean))
   lines.push('')
+  if (clock) {
+    const { stamps: now, ...summary } = clock
+    lines.push(`THE CLOCK: ${JSON.stringify(summary)}`)
+    lines.push(`This period's turning points with his think time (opponent, move, class, win% lost, seconds thought, seconds left):`)
+    lines.push(...stamps(now))
+    if (prevStamps?.length) {
+      lines.push(`The period before's turning points, the same way:`)
+      lines.push(...stamps(prevStamps))
+    }
+    lines.push('')
+  }
   lines.push(`THE PERIOD'S GAMES (${(games || []).length}), one line each: day, opponent, his colour, result, his and their accuracy, opening, moves, his turning points (move, class, win% lost):`)
   for (const g of games || []) {
     const m = (g.moments || []).map((x: any) => `${x.moveNo}${x.ply % 2 === 0 ? '.' : '...'}${x.san} ${x.cls} -${Math.round(x.lossPct ?? 0)}`).join(', ')
@@ -148,6 +165,26 @@ if (!boardsOnly) {
     lines.push("THE AGGREGATE'S DIGEST:")
     lines.push(readFileSync(agg, 'utf8'))
   }
+  const days = [...new Set((games || []).map((g: any) => g.ptDay).filter(Boolean))].sort() as string[]
+  if (id.includes('-W')) {
+    lines.push("THE WEEK'S DAILY LOGS, which the weekly audits:")
+    for (const d of days) {
+      const f = join(root, 'coach-log', `${d}.md`)
+      if (existsSync(f)) lines.push(`--- coach-log/${d}.md`, readFileSync(f, 'utf8'))
+    }
+  } else {
+    lines.push("THE MONTH'S WEEKLY REVIEWS, which the monthly audits (headline, summary and each section's title and takeaway):")
+    const dir = join(root, 'coach-log', 'review-annotations')
+    const month = publishing.periodWindow(id)
+    for (const f of (await import('node:fs')).readdirSync(dir).filter((n: string) => /^\d{4}-W\d{2}\.json$/.test(n)).sort()) {
+      const w = publishing.periodWindow(f.replace(/\.json$/, ''))
+      if (!(w.since < month.until && w.until > month.since)) continue
+      const a = JSON.parse(readFileSync(join(dir, f), 'utf8'))
+      lines.push(`--- ${f}: ${a.headline ?? ''}`, `summary: ${JSON.stringify(a.summary ?? {})}`)
+      for (const s of a.sections || []) lines.push(`  ${s.title ?? s.id}: ${s.takeaway ?? ''}`)
+    }
+  }
+  lines.push('')
 }
 for (const { name, file } of named) {
   const ann = JSON.parse(readFileSync(file, 'utf8'))

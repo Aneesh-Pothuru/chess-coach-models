@@ -51,7 +51,9 @@ setting, headless Claude Code with nothing inherited from this session
 (`bin/claude-clean.sh`), in a private `/tmp`. A short preamble fixes the
 period's id, says prepare already ran, and stops the writer after the strict
 check (weekly steps 2 to 6, monthly 2 to 5: no render, publish, commit or
-push). The harness runs the final check itself. One run per case and config.
+push). The harness runs the final check itself. Two runs per case and config:
+rep k of the candidate is judged against rep k of the baseline, and the
+baseline's two runs against each other give the judge's noise floor.
 
 ## Split
 
@@ -81,9 +83,10 @@ Interleaved by date, fixed before any run. Train: 2026-W35, 2026-W37,
 
 ## The rule, fixed before the candidate's first run
 
-Per case, the judge's verdict scores +1 when the candidate wins, -1 when it
-loses and 0 for a tie; intervals are 95% percentile bootstrap intervals over
-cases (each case is one pair of runs). `threat-order` replaces the live
+Per pair, the judge's verdict scores +1 when the candidate wins, -1 when it
+loses and 0 for a tie, and a case's score is the mean over its two pairs; the
+audit's counts are averaged over a case's runs the same way. Intervals are 95%
+percentile bootstrap intervals over cases. `threat-order` replaces the live
 prompts only when all of these hold:
 
 1. Explanation on train: the mean of the explanation criterion has its
@@ -95,8 +98,10 @@ prompts only when all of these hold:
    review nor its false board claims per review, candidate minus baseline, has
    an interval above 0.
 5. The final strict check passes on as many cases as the baseline's.
-6. Controls clean: the same review on both sides ties on every criterion, and
-   the decoy wins the explanation criterion on at most a quarter of the cases.
+6. Controls clean: the same review on both sides ties on every criterion, the
+   decoy wins the explanation criterion on at most a quarter of the cases, and
+   the baseline's two runs judged against each other have an explanation
+   interval that contains 0.
 
 Reported beside the rule, deciding nothing: the share of exhibits that give all
 three parts in order (did the sentence change what the writer does), check
@@ -104,7 +109,8 @@ rounds, cost and minutes, and the claims the baseline's reviews get wrong, by
 kind.
 
 With four or five cases a split, rules 1 and 2 need the candidate to win
-nearly every case; that is the bar.
+nearly every case; that is the bar. The graders' prompts are settled on the
+baseline's runs alone and committed before any candidate run is graded.
 
 ## Spend and usage
 
@@ -123,9 +129,10 @@ run's cost; a baseline run does not depend on the rule.
 ```
 EVAL_ROOT=/tmp/period-writer            # cases, runs, logs and the ledger; never committed
 bin/make-case.sh 2026-W41 $EVAL_ROOT/cases/2026-W41 <commit>    # each of the nine ids
-bin/batch.py runs --config baseline
-bin/batch.py runs --config threat-order --variant variants/threat-order.json
+bin/batch.py runs --configs baseline,threat-order --variant threat-order=variants/threat-order.json --reps 2
+bin/batch.py audit --configs baseline,threat-order
 bin/batch.py judge --config threat-order --vs baseline
+bin/batch.py judge --config baseline --vs baseline       # the noise floor: rep 1 against rep 2
 bin/batch.py controls --config threat-order --vs baseline
 bin/batch.py report --config threat-order --vs baseline
 ```

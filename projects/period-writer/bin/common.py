@@ -90,7 +90,7 @@ def ask(model, system, schema, prompt, label='grader', kind='grader', timeout=12
 
 def evidence(case, rid, named, boards_only=False):
     """bin/evidence.mts run in the case's checkout: named maps a review's label to its annotations file."""
-    repo = os.path.join(case, 'repo')
+    repo = os.path.abspath(os.path.join(case, 'repo'))
     args = [os.path.join(repo, 'node_modules', '.bin', 'tsx'), os.path.join(BIN, 'evidence.mts'), rid]
     if boards_only:
         args.append('--boards-only')

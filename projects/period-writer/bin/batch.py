@@ -104,9 +104,11 @@ def grade_files():
     if os.path.isdir(RUNS):
         for config in os.listdir(RUNS):
             for i in os.listdir(os.path.join(RUNS, config)):
-                p = os.path.join(RUNS, config, i, 'r1', 'grade.json')
-                if os.path.exists(p):
-                    out.append(p)
+                d = os.path.join(RUNS, config, i)
+                for r in os.listdir(d) if os.path.isdir(d) else []:
+                    p = os.path.join(d, r, 'grade.json')
+                    if os.path.exists(p):
+                        out.append(p)
     return out
 
 
@@ -127,69 +129,97 @@ def may_start(kind, owed_runs):
     return None
 
 
+def run_dir(config, i, rep):
+    return os.path.join(RUNS, config, i, f'r{rep}')
+
+
 def cmd_runs(args):
-    config = opt('--config', argv=args)
-    variant = opt('--variant', argv=args)
+    """Writer runs, graded without a model: --configs a,b with --variant b=variants/b.json, interleaved by case and rep."""
+    configs = (opt('--configs', argv=args) or opt('--config', argv=args)).split(',')
+    variants = dict(v.split('=', 1) for v in (opt('--variant', argv=args) or '').split(',') if '=' in v)
+    reps = int(opt('--reps', 1, argv=args))
     jobs = int(opt('--jobs', 2, argv=args))
     ids = [i for i in (positional(args) or IDS) if case_ready(i)]
     prompts = {}
-    if variant:
+    for config, variant in variants.items():
         out = os.path.join(EVAL, 'variants', config)
-        subprocess.run([sys.executable, os.path.join(BIN, 'variant.py'), os.path.join(PROJECT, variant) if not os.path.isabs(variant) else variant, out], check=True)
-        prompts = {k: os.path.join(out, f'{k}.md') for k in ('weekly', 'monthly')}
-    todo = [i for i in ids if not os.path.exists(os.path.join(RUNS, config, i, 'r1', 'grade.json'))]
+        spec = variant if os.path.isabs(variant) else os.path.join(PROJECT, variant)
+        subprocess.run([sys.executable, os.path.join(BIN, 'variant.py'), spec, out], check=True)
+        prompts[config] = {k: os.path.join(out, f'{k}.md') for k in ('weekly', 'monthly')}
+    order = [i for pair in zip(TRAIN, HELD_OUT + [None]) for i in pair if i in ids]
+    todo = [(c, i, k) for k in range(1, reps + 1) for i in order for c in configs
+            if not os.path.exists(os.path.join(run_dir(c, i, k), 'grade.json'))]
+    tag = '+'.join(configs)
+    log(tag, f'{len(todo)} runs to do: ' + ', '.join(f'{c} {i} r{k}' for c, i, k in todo))
 
-    def one(i):
-        run = os.path.join(RUNS, config, i, 'r1')
+    def one(item):
+        config, i, k = item
+        run = run_dir(config, i, k)
         kind = kind_of(i)
         while True:
-            owed = sum(1 for x in todo if not os.path.exists(os.path.join(RUNS, config, x, 'r1', 'grade.json')))
+            owed = sum(1 for c, x, r in todo if not os.path.exists(os.path.join(run_dir(c, x, r), 'grade.json')))
             why = may_start(kind, owed)
             if why is None:
                 break
             if why.startswith('cap') or why.startswith('seven-day'):
-                log(config, f'{i}: not started, {why}')
+                log(tag, f'{config} {i} r{k}: not started, {why}')
                 return
-            log(config, f'{i}: waiting, {why}')
+            log(tag, f'{config} {i} r{k}: waiting, {why}')
             time.sleep(600)
         env = dict(os.environ)
-        if kind in prompts:
-            env['PROMPT'] = prompts[kind]
-        log(config, f'{i}: writing')
+        if config in prompts:
+            env['PROMPT'] = prompts[config][kind]
+        log(tag, f'{config} {i} r{k}: writing')
         p = subprocess.run([os.path.join(BIN, 'run-writer.sh'), os.path.join(CASES, i), run], capture_output=True, text=True, env=env)
-        log(config, f'{i}: {p.stdout.strip()[-200:] or p.stderr.strip()[-300:]}')
+        log(tag, f'{config} {i} r{k}: {p.stdout.strip()[-200:] or p.stderr.strip()[-300:]}')
         g = subprocess.run([sys.executable, os.path.join(BIN, 'grade.py'), os.path.join(CASES, i), run], capture_output=True, text=True)
-        log(config, f'{i}: grade {g.stdout.strip() or g.stderr.strip()[-300:]}')
+        log(tag, f'{config} {i} r{k}: grade {g.stdout.strip() or g.stderr.strip()[-300:]}')
         gr = load(os.path.join(run, 'grade.json')) or {}
-        record('writer', f'{config} {i}', (gr.get('usage') or {}).get('cost'), gr.get('windows') and {k: (v or {}).get('last') for k, v in gr['windows'].items() if k != 'statuses'}, gr.get('model'))
-        if not os.path.exists(os.path.join(run, 'audit.json')):
-            a = subprocess.run([sys.executable, os.path.join(BIN, 'audit.py'), os.path.join(CASES, i), run], capture_output=True, text=True)
-            log(config, f'{i}: audit {a.stdout.strip() or a.stderr.strip()[-300:]}')
+        last = {n: (v or {}).get('last') for n, v in (gr.get('windows') or {}).items() if n != 'statuses'}
+        record('writer', f'{config} {i} r{k}', (gr.get('usage') or {}).get('cost'), last or None, gr.get('model'))
 
     with ThreadPoolExecutor(jobs) as ex:
         list(ex.map(one, todo))
-    for i in ids:
-        run = os.path.join(RUNS, config, i, 'r1')
-        if os.path.exists(os.path.join(run, 'grade.json')) and not os.path.exists(os.path.join(run, 'audit.json')):
-            a = subprocess.run([sys.executable, os.path.join(BIN, 'audit.py'), os.path.join(CASES, i), run], capture_output=True, text=True)
-            log(config, f'{i}: audit {a.stdout.strip() or a.stderr.strip()[-300:]}')
-    log(config, f'batch done, spent {spent()}')
+    log(tag, f'batch done, spent {spent()}')
+
+
+def cmd_audit(args):
+    """The pointwise audit of every graded run of the configs that has none yet."""
+    configs = (opt('--configs', argv=args) or opt('--config', argv=args)).split(',')
+    jobs = int(opt('--jobs', 3, argv=args))
+    ids = positional(args) or IDS
+    work = [(c, i, r) for c in configs for i in ids for r in sorted(os.listdir(os.path.join(RUNS, c, i))) if os.path.isdir(os.path.join(RUNS, c, i))
+            and os.path.exists(os.path.join(RUNS, c, i, r, 'grade.json')) and not os.path.exists(os.path.join(RUNS, c, i, r, 'audit.json'))] if all(os.path.isdir(os.path.join(RUNS, c)) for c in configs) else []
+
+    def one(item):
+        c, i, r = item
+        a = subprocess.run([sys.executable, os.path.join(BIN, 'audit.py'), os.path.join(CASES, i), os.path.join(RUNS, c, i, r)], capture_output=True, text=True)
+        log(c, f'{i} {r}: audit {a.stdout.strip() or a.stderr.strip()[-300:]}')
+
+    with ThreadPoolExecutor(jobs) as ex:
+        list(ex.map(one, work))
 
 
 def cmd_judge(args):
+    """Rep k of a config against rep k of the other; a config against itself pairs rep k with rep k+1 (the noise floor)."""
     config, other = opt('--config', argv=args), opt('--vs', argv=args)
     jobs = int(opt('--jobs', 3, argv=args))
     ids = positional(args) or IDS
+    work = []
+    for i in ids:
+        for k in range(1, 10):
+            a = run_dir(config, i, k)
+            b = run_dir(other, i, k + 1 if other == config else k)
+            if os.path.exists(os.path.join(a, 'grade.json')) and os.path.exists(os.path.join(b, 'grade.json')) and not os.path.exists(os.path.join(a, f'judge-vs-{other}.json')):
+                work.append((i, a, b))
 
-    def one(i):
-        a, b = os.path.join(RUNS, config, i, 'r1'), os.path.join(RUNS, other, i, 'r1')
-        if not (os.path.isdir(a) and os.path.isdir(b)) or os.path.exists(os.path.join(a, f'judge-vs-{other}.json')):
-            return
+    def one(item):
+        i, a, b = item
         j = subprocess.run([sys.executable, os.path.join(BIN, 'judge.py'), os.path.join(CASES, i), a, '--against', b], capture_output=True, text=True)
-        log(config, f'{i} vs {other}: {j.stdout.strip() or j.stderr.strip()[-300:]}')
+        log(config, f'{i} {os.path.basename(a)} vs {other} {os.path.basename(b)}: {j.stdout.strip() or j.stderr.strip()[-300:]}')
 
     with ThreadPoolExecutor(jobs) as ex:
-        list(ex.map(one, ids))
+        list(ex.map(one, work))
 
 
 def words_of_boards(ann):
@@ -203,8 +233,8 @@ def cmd_controls(args):
     config, other = opt('--config', argv=args), opt('--vs', argv=args)
     ids = positional(args) or IDS
     for i in ids:
-        base = os.path.join(RUNS, other, i, 'r1')
-        cand = os.path.join(RUNS, config, i, 'r1')
+        base = run_dir(other, i, 1)
+        cand = run_dir(config, i, 1)
         ann_b = load(os.path.join(base, 'out', 'coach-log', 'review-annotations', f'{i}.json'))
         ann_c = load(os.path.join(cand, 'out', 'coach-log', 'review-annotations', f'{i}.json'))
         if not ann_b:
@@ -237,64 +267,80 @@ def cmd_report(args):
     config, other = opt('--config', argv=args), opt('--vs', argv=args)
     rows = {}
     for i in IDS:
-        a, b = os.path.join(RUNS, config, i, 'r1'), os.path.join(RUNS, other, i, 'r1')
-        rows[i] = {'grade': load(os.path.join(a, 'grade.json')), 'gradeBase': load(os.path.join(b, 'grade.json')),
-                   'audit': load(os.path.join(a, 'audit.json')), 'auditBase': load(os.path.join(b, 'audit.json')),
-                   'judge': load(os.path.join(a, f'judge-vs-{other}.json')),
-                   'same': load(os.path.join(b, 'judge-control-same.json')), 'decoy': load(os.path.join(b, 'judge-control-decoy.json'))}
+        reps = []
+        for k in range(1, 10):
+            a, b = run_dir(config, i, k), run_dir(other, i, k)
+            if not os.path.isdir(a) and not os.path.isdir(b):
+                break
+            reps.append({'grade': load(os.path.join(a, 'grade.json')), 'gradeBase': load(os.path.join(b, 'grade.json')),
+                         'audit': load(os.path.join(a, 'audit.json')), 'auditBase': load(os.path.join(b, 'audit.json')),
+                         'judge': load(os.path.join(a, f'judge-vs-{other}.json')), 'null': load(os.path.join(b, f'judge-vs-{other}.json'))})
+        b1 = run_dir(other, i, 1)
+        rows[i] = {'reps': reps, 'same': load(os.path.join(b1, 'judge-control-same.json')), 'decoy': load(os.path.join(b1, 'judge-control-decoy.json'))}
+
+    def mean(vs):
+        vs = [v for v in vs if v is not None]
+        return sum(vs) / len(vs) if vs else None
 
     def split(ids, f):
+        """f maps one rep to a number or None; a case's value is the mean over its reps."""
         out = {}
         for i in ids:
-            r = rows.get(i)
-            v = f(r) if r else None
+            v = mean([f(r) for r in rows[i]['reps']])
             if v is not None:
                 out[i] = [v]
         return boot(out)
 
-    def judged(c):
-        return lambda r: SCORE[r['judge']['final'][c]] if r['judge'] and 'final' in r['judge'] else None
+    def judged(c, key='judge'):
+        return lambda r: SCORE[r[key]['final'][c]] if r.get(key) and 'final' in r[key] else None
+
+    def audited(r, k):
+        return r[k] and 'counts' in r[k]
 
     def audit_diff(f):
-        return lambda r: (f(r['audit']) - f(r['auditBase'])) if (r['audit'] and r['auditBase'] and 'counts' in r['audit'] and 'counts' in r['auditBase']) else None
+        return lambda r: (f(r['audit']) - f(r['auditBase'])) if audited(r, 'audit') and audited(r, 'auditBase') else None
 
     def rate_full(a):
         return a['exhibitsFullOrder'] / a['exhibits'] if a.get('exhibits') else None
-
-    def per_exhibit_false(a):
-        return a['boardClaimsFalse'] / a['exhibits'] if a.get('exhibits') else 0.0
 
     rep = {'config': config, 'vs': other, 'spent': spent()}
     for name, ids in [('train', TRAIN), ('heldOut', HELD_OUT), ('all', IDS)]:
         part = {}
         for c in ['truth', 'explanation', 'duties', 'plain', 'overall']:
             part[f'judge.{c}'] = split(ids, judged(c))
+            part[f'null.{c}'] = split(ids, judged(c, 'null'))
+        part['audit.false'] = split(ids, lambda r: r['audit']['counts']['false'] if audited(r, 'audit') else None)
+        part['audit.false.base'] = split(ids, lambda r: r['auditBase']['counts']['false'] if audited(r, 'auditBase') else None)
         part['audit.false.minusBase'] = split(ids, audit_diff(lambda a: a['counts']['false']))
-        part['audit.falseOrMisleading.minusBase'] = split(ids, audit_diff(lambda a: a['counts']['false'] + a['counts']['misleading']))
+        part['audit.boardClaimsFalse'] = split(ids, lambda r: r['audit']['boardClaimsFalse'] if audited(r, 'audit') else None)
+        part['audit.boardClaimsFalse.base'] = split(ids, lambda r: r['auditBase']['boardClaimsFalse'] if audited(r, 'auditBase') else None)
         part['audit.boardClaimsFalse.minusBase'] = split(ids, audit_diff(lambda a: a['boardClaimsFalse']))
-        part['audit.fullOrderRate'] = split(ids, lambda r: rate_full(r['audit']) if r['audit'] and 'counts' in r['audit'] else None)
-        part['audit.fullOrderRate.base'] = split(ids, lambda r: rate_full(r['auditBase']) if r['auditBase'] and 'counts' in r['auditBase'] else None)
-        part['pass'] = split(ids, lambda r: 1.0 if r['grade'] and r['grade']['final'].get('ok') else (0.0 if r['grade'] else None))
-        part['pass.base'] = split(ids, lambda r: 1.0 if r['gradeBase'] and r['gradeBase']['final'].get('ok') else (0.0 if r['gradeBase'] else None))
+        part['audit.fullOrderRate'] = split(ids, lambda r: rate_full(r['audit']) if audited(r, 'audit') else None)
+        part['audit.fullOrderRate.base'] = split(ids, lambda r: rate_full(r['auditBase']) if audited(r, 'auditBase') else None)
+        part['pass'] = split(ids, lambda r: (1.0 if r['grade']['final'].get('ok') else 0.0) if r['grade'] else None)
+        part['pass.base'] = split(ids, lambda r: (1.0 if r['gradeBase']['final'].get('ok') else 0.0) if r['gradeBase'] else None)
+        part['rounds'] = split(ids, lambda r: r['grade'].get('rounds') if r['grade'] else None)
+        part['rounds.base'] = split(ids, lambda r: r['gradeBase'].get('rounds') if r['gradeBase'] else None)
         part['cost'] = split(ids, lambda r: (r['grade'].get('usage') or {}).get('cost') if r['grade'] else None)
         part['cost.base'] = split(ids, lambda r: (r['gradeBase'].get('usage') or {}).get('cost') if r['gradeBase'] else None)
+        part['minutes'] = split(ids, lambda r: (r['grade'].get('seconds') or 0) / 60 if r['grade'] else None)
+        part['minutes.base'] = split(ids, lambda r: (r['gradeBase'].get('seconds') or 0) / 60 if r['gradeBase'] else None)
         rep[name] = part
     rep['controls'] = {
         'same': {i: r['same']['final'] for i, r in rows.items() if r['same'] and 'final' in r['same']},
         'decoy': {i: r['decoy']['final'] for i, r in rows.items() if r['decoy'] and 'final' in r['decoy']},
     }
-    expl = lambda part: part.get('judge.explanation')
     above = lambda b: bool(b and b['lo'] > 0)
-    not_above = lambda b: not (b and b['lo'] > 0)
     decoy_wins = sum(1 for f in rep['controls']['decoy'].values() if f.get('explanation') == 'candidate')
     same_wins = sum(1 for f in rep['controls']['same'].values() for c in ('truth', 'explanation', 'duties', 'plain', 'overall') if f.get(c) != 'tie')
+    null = rep['all'].get('null.explanation')
     rep['rule'] = {
-        'explanationTrain': above(expl(rep['train'])),
-        'explanationHeldOut': above(expl(rep['heldOut'])),
-        'overallNotWorse': not (rep['all'].get('judge.overall') and rep['all']['judge.overall']['hi'] < 0),
-        'falseNotUp': not_above(rep['all'].get('audit.false.minusBase')) and not_above(rep['all'].get('audit.boardClaimsFalse.minusBase')),
-        'passNotDown': (rep['all']['pass'] or {}).get('est', 0) >= (rep['all']['pass.base'] or {}).get('est', 0),
-        'controlsClean': same_wins == 0 and decoy_wins <= len(rep['controls']['decoy']) // 4,
+        '1 explanation on train': above(rep['train'].get('judge.explanation')),
+        '2 explanation held out': above(rep['heldOut'].get('judge.explanation')),
+        '3 overall not worse': not (rep['all'].get('judge.overall') and rep['all']['judge.overall']['hi'] < 0),
+        '4 truth not worse': not above(rep['all'].get('audit.false.minusBase')) and not above(rep['all'].get('audit.boardClaimsFalse.minusBase')),
+        '5 check passes as often': (rep['all']['pass'] or {}).get('est', 0) >= (rep['all']['pass.base'] or {}).get('est', 0),
+        '6 controls clean': same_wins == 0 and decoy_wins <= len(rep['controls']['decoy']) // 4 and not (null and (null['lo'] > 0 or null['hi'] < 0)),
     }
     rep['kept'] = all(rep['rule'].values())
     os.makedirs(os.path.join(EVAL, 'reports'), exist_ok=True)
@@ -312,4 +358,4 @@ def cmd_spend(args):
 
 if __name__ == '__main__':
     cmd = sys.argv[1]
-    {'runs': cmd_runs, 'judge': cmd_judge, 'controls': cmd_controls, 'published': cmd_published, 'report': cmd_report, 'spend': cmd_spend}[cmd](sys.argv[2:])
+    {'runs': cmd_runs, 'audit': cmd_audit, 'judge': cmd_judge, 'controls': cmd_controls, 'published': cmd_published, 'report': cmd_report, 'spend': cmd_spend}[cmd](sys.argv[2:])
