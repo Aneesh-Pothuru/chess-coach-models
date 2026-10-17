@@ -1,8 +1,8 @@
 {
   "eval": "explain-top-move reproduction",
   "chess": {
-    "pinned_commit": "ad7fa98cee3c7cbf6cb0a70ffcd0e9d6ec459495",
-    "records_commit": "ec90c2bf2fea802b9e98ccc5bd73d0edc9e27a1d",
+    "pinned_commit": "509dc8603c09e9d966871aad3954b8bd41eb9fd7",
+    "records_commit": "060445cbb3cc32f03ecb7a5017ea3f4c740184b9",
     "carries": {
       "v10": true,
       "v11": true,
@@ -17,7 +17,8 @@
       "v20b": true,
       "v21": true,
       "v22b": true,
-      "v23": true
+      "v23": true,
+      "v24": true
     }
   },
   "recomputed": {
@@ -49,7 +50,7 @@
       ]
     },
     "textsMatch": {
-      "variant": "v23",
+      "variant": "v24",
       "of": 333,
       "same": 333
     }
@@ -754,6 +755,46 @@
       },
       "keepByRule": true,
       "recordedReason": "the capture that was a trap: on a mistake, blunder or miss that captures, not en passant, where nothing can take back and the better move lands elsewhere, when the engine's line after it mates the mover, or ends settled two pawns' worth or more down while the better line ends settled two pawns' worth or more better, the headline opens with \"Their pawn on c7 looked free, but it was a trap.\" (\"Your\" on the opponent's move); measured on round 22's three sets, it changes 33 moments (17 train, 16 test), no grade changes and all 33 sentences are graded true; judge model, pairwise and blind, two runs with the order reversed, on every changed moment (the seeded sample of 20 per set and split, seed 20261023, takes all) with a 10-moment padding control in the same batches: 28 to 6 on train and 29 to 3 on test, the decoy preferred in none of its 20 comparisons; the 9 answers against it, on 7 moments, say the capture is not what loses: the reply's threat stood before it (six moments), the better line takes the same pawn later (27...Nxe4) or the capture keeps the game level (26...Qxc2, the one miss); counts made after the decision find the reply's capture or mate standing before the capture on 12 of the 33 and the better line playing the same capture later on 4 (v23/change.md)"
+    },
+    {
+      "round": "24",
+      "judged": "round24",
+      "moments": 11,
+      "sample": {
+        "of": 11,
+        "drawn": 11,
+        "judged": 11,
+        "per": 20,
+        "seed": 20261024,
+        "reproduced": true,
+        "extras": 0,
+        "extrasTally": {
+          "train": {
+            "new": 0,
+            "old": 0,
+            "same": 0
+          },
+          "test": {
+            "new": 0,
+            "old": 0,
+            "same": 0
+          }
+        }
+      },
+      "tally": {
+        "train": {
+          "new": 8,
+          "old": 6,
+          "same": 0
+        },
+        "test": {
+          "new": 6,
+          "old": 2,
+          "same": 0
+        }
+      },
+      "keepByRule": true,
+      "recordedReason": "where the other side's pawn is when one queens: when the pawn's story tells a pawn that queens in one line and not the other and the other side has a passed pawn at that promotion, it ends with where the one nearest its last rank stands, how many squares it has left and the first piece on its path: \"When h1=R comes, your b-pawn is still on b5, three squares from b8, with your knight on b6 in its way.\" (\"your\" and \"their\" swap on the opponent's move); measured on round 23's three sets, it changes 11 moments (7 train, 4 test), no grade changes and all 11 sentences are graded true; judge model, pairwise and blind, two runs with the order reversed, on every changed moment (the seeded sample of 20 per set and split, seed 20261024, takes all) with a 10-moment padding control in the same batches: 8 to 6 on train and 6 to 2 on test, each moment the same verdict in both runs, the decoy preferred in none of its 20 comparisons; the 8 answers against it, on 4 moments, call the sentence clutter where no race decides: the pawn named is four to six squares from its last rank (35.Qg1, 34.Rb1, 43.Re5) or the better move wins for another reason (44.Nd5); counted after the decision, all 7 preferred moments name a pawn three squares or fewer from its last rank (v24/change.md)"
     }
   ],
   "controls": {
@@ -1047,6 +1088,17 @@
         "decoy": 0,
         "unchanged": 20,
         "same": 0,
+        "decoyShareOfAll": 0,
+        "decoyShareOfDecided": 0,
+        "drifted": false
+      },
+      {
+        "round": "24",
+        "kind": "padding",
+        "comparisons": 20,
+        "decoy": 0,
+        "unchanged": 10,
+        "same": 10,
         "decoyShareOfAll": 0,
         "decoyShareOfDecided": 0,
         "drifted": false
@@ -2666,6 +2718,138 @@
               "faithfulAll": 509
             },
             "textsChanged": 6
+          }
+        ],
+        "sameMoments": true,
+        "gradesEqual": true
+      }
+    },
+    {
+      "variant": "v24",
+      "sameMoments": true,
+      "splits": [
+        {
+          "split": "test",
+          "moments": 153,
+          "base": {
+            "faithful": 153,
+            "concrete": 130,
+            "named_deep": 144,
+            "faithfulAll": 152
+          },
+          "variant": {
+            "faithful": 153,
+            "concrete": 130,
+            "named_deep": 144,
+            "faithfulAll": 152
+          },
+          "textsChanged": 2
+        },
+        {
+          "split": "train",
+          "moments": 180,
+          "base": {
+            "faithful": 179,
+            "concrete": 152,
+            "named_deep": 166,
+            "faithfulAll": 179
+          },
+          "variant": {
+            "faithful": 179,
+            "concrete": 152,
+            "named_deep": 166,
+            "faithfulAll": 179
+          },
+          "textsChanged": 0
+        }
+      ],
+      "gradesEqual": true,
+      "defects": null,
+      "endgames": {
+        "seed": 20261014,
+        "games": {
+          "test": 80,
+          "train": 80
+        },
+        "splits": [
+          {
+            "split": "test",
+            "moments": 572,
+            "base": {
+              "faithful": 561,
+              "concrete": 482,
+              "named_deep": 529,
+              "faithfulAll": 560
+            },
+            "variant": {
+              "faithful": 561,
+              "concrete": 482,
+              "named_deep": 529,
+              "faithfulAll": 560
+            },
+            "textsChanged": 1
+          },
+          {
+            "split": "train",
+            "moments": 612,
+            "base": {
+              "faithful": 598,
+              "concrete": 493,
+              "named_deep": 573,
+              "faithfulAll": 598
+            },
+            "variant": {
+              "faithful": 598,
+              "concrete": 493,
+              "named_deep": 573,
+              "faithfulAll": 598
+            },
+            "textsChanged": 4
+          }
+        ],
+        "sameMoments": true,
+        "gradesEqual": true
+      },
+      "endgames2": {
+        "seed": 20261014,
+        "games": {
+          "test": 65,
+          "train": 65
+        },
+        "splits": [
+          {
+            "split": "test",
+            "moments": 494,
+            "base": {
+              "faithful": 490,
+              "concrete": 408,
+              "named_deep": 458,
+              "faithfulAll": 490
+            },
+            "variant": {
+              "faithful": 490,
+              "concrete": 408,
+              "named_deep": 458,
+              "faithfulAll": 490
+            },
+            "textsChanged": 1
+          },
+          {
+            "split": "train",
+            "moments": 517,
+            "base": {
+              "faithful": 509,
+              "concrete": 425,
+              "named_deep": 468,
+              "faithfulAll": 509
+            },
+            "variant": {
+              "faithful": 509,
+              "concrete": 425,
+              "named_deep": 468,
+              "faithfulAll": 509
+            },
+            "textsChanged": 3
           }
         ],
         "sameMoments": true,

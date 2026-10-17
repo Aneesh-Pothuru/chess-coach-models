@@ -734,6 +734,47 @@ claim(sampledFully(r23, twentyThreeSets) && r23.sample.drawn === r23.sample.of, 
 for (const [k, q] of Object.entries(TWENTY_THREE_QUOTES)) g.def(`RoundTwentyThree${k}`, esc(q));
 sampledDefs('RoundTwentyThree', r23, twentyThreeSets);
 
+// ---- round 24: where the other side's pawn is when one queens, on round 23's three sets; its seeded
+// draw takes every moment it changed. Its sentence ends the pawn's story in the difference
+const twentyFour = rebuilt.get('v24');
+const twentyFourSets = [twentyFour, twentyFour?.endgames, twentyFour?.endgames2];
+claim(twentyFourSets.every(r => r?.sameMoments && r.gradesEqual), "round 24's grades equal its base's in all three sets");
+const TWENTY_FOUR_QUOTES = { Quote: 'When h1=R comes, your b-pawn is still on b5, three squares from b8, with your knight on b6 in its way.', QuoteClear: 'When a1=Q comes, your h-pawn is still on h6, two squares from h8.' };
+claim(Object.values(TWENTY_FOUR_QUOTES).every(q => readFileSync(join(flow, 'v24', 'change.patch'), 'utf8').includes(q)), "round 24's tests pin the sentences the paper quotes");
+const r24 = judgeOf.get('24');
+claim(r24?.keepByRule, 'the judge preferred round 24 on both halves');
+claim(sampledFully(r24, twentyFourSets) && r24.sample.drawn === r24.sample.of, "round 24's judges read every moment it changed");
+{
+  const SQUARES = ['one', 'two', 'three', 'four', 'five', 'six'];
+  const RACE = new RegExp(String.raw` When \S+ comes, (?:their|your) [a-h]-pawn is still on [a-h][1-8], (${SQUARES.join('|')}) squares? from [a-h][18](?:, with (?:their|your) \w+ on [a-h][1-8] in its way)?\.`);
+  const { items, sentence } = judgedRound('round24', RACE);
+  const dir = join(judgeDir, 'round24');
+  const keys = ['r1', 'r2'].map(r => read(join(dir, `key-${r}.json`)));
+  const answers = ['r1', 'r2'].map(r => new Map(read(join(dir, `out-${r}.judge.json`)).answers.map(a => [a.id, a.choice])));
+  const verdicts = id => [0, 1].map(i => { const c = answers[i].get(id); return c === 'same' ? 'same' : keys[i][id][c]; });
+  const version = (item, side) => (keys[0][item.id].X === side ? item.versionX : item.versionY);
+  claim(items.length === r24.sample.judged && items.every(item => {
+    const [before, after] = ['old', 'new'].map(side => version(item, side));
+    const m = sentence(item);
+    return before.length === after.length && after.every((x, i) => x.heading === before[i].heading
+      && (x.text === before[i].text || (x.heading === 'The difference' && x.text.slice(0, m.index) + x.text.slice(m.index + m[0].length) === before[i].text)));
+  }), "every card round 24's judges read differs from the base's by its sentence in the difference alone");
+  // The squares the pawn the sentence names has left to its last rank.
+  const left = item => SQUARES.indexOf(sentence(item)[1]) + 1;
+  claim(items.every(item => new Set(verdicts(item.id)).size === 1), "each moment round 24's judges read drew the same verdict in both runs");
+  const preferred = items.filter(item => verdicts(item.id).every(v => v === 'new'));
+  const against = items.filter(item => verdicts(item.id).includes('old'));
+  const far = against.filter(item => left(item) >= 4);
+  claim(preferred.length + against.length === items.length, 'every answer on round 24 preferred one side');
+  claim(preferred.every(item => left(item) <= 3), 'every moment the judges preferred in round 24 names a pawn three squares or fewer from its last rank');
+  claim(2 * far.length > against.length, 'most moments the judges answered against in round 24 name a pawn four squares or more from its last rank');
+  g.def('RoundTwentyFourJudged', String(items.length)).def('RoundTwentyFourPreferred', word(preferred.length))
+    .def('RoundTwentyFourAgainst', word(against.length)).def('RoundTwentyFourAgainstFar', word(far.length))
+    .def('RoundTwentyFourAgainstAnswers', String(against.flatMap(item => verdicts(item.id)).filter(v => v === 'old').length));
+}
+for (const [k, q] of Object.entries(TWENTY_FOUR_QUOTES)) g.def(`RoundTwentyFour${k}`, esc(q));
+sampledDefs('RoundTwentyFour', r24, twentyFourSets);
+
 // ---- the judge's controls, as reproduce.mjs recomputed them
 const c = repro.controls;
 claim(c.length.matchesRecorded, 'the length check recomputed from its answers matches the score the records keep');
@@ -772,7 +813,7 @@ const pad18 = c.perRound.find(p => p.round === '18');
 claim(pad18?.kind === 'padding', 'round 18 carried a padding control');
 g.def('PadEighteenDecoy', String(pad18.decoy)).def('PadEighteenN', String(pad18.comparisons))
   .def('PadEighteenUnchanged', String(pad18.unchanged)).def('PadEighteenSame', String(pad18.same));
-for (const [round, name] of [['19', 'Nineteen'], ['20b', 'Twenty'], ['21', 'TwentyOne'], ['22', 'TwentyTwo'], ['23', 'TwentyThree']]) {
+for (const [round, name] of [['19', 'Nineteen'], ['20b', 'Twenty'], ['21', 'TwentyOne'], ['22', 'TwentyTwo'], ['23', 'TwentyThree'], ['24', 'TwentyFour']]) {
   const pad = c.perRound.find(p => p.round === round);
   claim(pad?.kind === 'padding', `round ${round} carried a padding control`);
   g.def(`Pad${name}Decoy`, String(pad.decoy)).def(`Pad${name}N`, String(pad.comparisons))
