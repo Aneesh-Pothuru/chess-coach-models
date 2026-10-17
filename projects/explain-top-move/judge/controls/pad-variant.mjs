@@ -4,14 +4,15 @@
 // round's change, in the section the change grows: the better move's points,
 // or with --section allowed, the points of "What X allowed", where the
 // eligible moments are those whose section has no point and the round leaves
-// it so, or with --section difference, a sentence after "The difference". The
+// it so, or with --section difference, a sentence after "The difference", or
+// with --section headline, a sentence before the card's headline. The
 // filler is as long as the round's median growth of that section, or with
 // --growth total, of the whole card, for a round that grows several sections.
 // It writes a variant whose cases differ from the old variant's only in
 // those moments, so pairwise.mjs makes the control's items exactly as it makes
 // the round's, and mix.mjs deals both into the same judges' batches.
 //
-//   node projects/explain-top-move/judge/controls/pad-variant.mjs --old DIR --round ROUND_DIR --out DIR [--moments 10] [--seed N] [--section better|allowed|difference] [--growth section|total]
+//   node projects/explain-top-move/judge/controls/pad-variant.mjs --old DIR --round ROUND_DIR --out DIR [--moments 10] [--seed N] [--section better|allowed|difference|headline] [--growth section|total]
 //
 // Its files name moments, so DIR belongs under private/explain-top-move/.
 //
@@ -32,7 +33,7 @@ const out = resolve(opt('--out'))
 const n = Number(opt('--moments', 10))
 const seed = Number(opt('--seed', 20261014))
 const part = opt('--section', 'better')
-if (!['better', 'allowed', 'difference'].includes(part)) throw new Error(`--section is better, allowed or difference, not ${part}`)
+if (!['better', 'allowed', 'difference', 'headline'].includes(part)) throw new Error(`--section is better, allowed, difference or headline, not ${part}`)
 const measure = opt('--growth', 'section')
 if (measure !== 'section' && measure !== 'total') throw new Error(`--growth is section or total, not ${measure}`)
 const rng = mulberry32(seed)
@@ -41,7 +42,7 @@ const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math
 // The round's change: how much it grows the padded section, median over its items.
 const items = J(join(roundDir, 'items-r1.json')).items
 const key = J(join(roundDir, 'key-r1.json'))
-const headed = part === 'allowed' ? (h) => /^What .* allowed: /.test(h) : part === 'difference' ? (h) => h === 'The difference' : (h) => / does instead$/.test(h)
+const headed = part === 'allowed' ? (h) => /^What .* allowed: /.test(h) : part === 'difference' ? (h) => h === 'The difference' : part === 'headline' ? (h) => h === 'On the card' : (h) => / does instead$/.test(h)
 const section = (v) => v.find((s) => headed(s.heading))?.text ?? ''
 const size = (v) => (measure === 'total' ? v.reduce((a, s) => a + s.heading.length + s.text.length, 0) : section(v).length)
 const growth = items.map((it) => {
@@ -52,7 +53,7 @@ const target = growth[growth.length >> 1]
 
 const cases = J(join(oldDir, 'cases.json'))
 const changed = new Set(Object.keys(key))
-const fits = part === 'allowed' ? (L) => L.allowed?.san && L.allowed.points.length === 0 : part === 'difference' ? (L) => L.difference?.length > 0 : (L) => L.better
+const fits = part === 'allowed' ? (L) => L.allowed?.san && L.allowed.points.length === 0 : part === 'difference' ? (L) => L.difference?.length > 0 : part === 'headline' ? (L) => !!L.headline : (L) => L.better
 const eligible = cases.filter((c) => c.texts?.cardShows === 'lesson' && c.texts?.lessonFor && fits(c.texts.lessonFor) && !changed.has(c.id)).map((c) => c.id)
 const chosen = shuffle(eligible).slice(0, n).sort()
 const kinds = shuffle(chosen.map((_, i) => (i % 2 ? 'restate' : 'generic')))
@@ -63,6 +64,15 @@ const laidOut = (points, line) => [points.join('; '), line ?? ''].filter(Boolean
 for (const [i, id] of chosen.entries()) {
   const c = cases.find((x) => x.id === id)
   const L = c.texts.lessonFor
+  if (part === 'headline') {
+    const ctx = { sectionLine: '', bestLine: L.better?.line ?? '', bestBare: c.bestSan }
+    const best = candidates(kinds[i], 'On the card', ctx)
+      .map((pieces) => { const filler = joined(pieces, false); return { filler, added: filler.length + 1 } })
+      .sort((a, b) => Math.abs(a.added - target) - Math.abs(b.added - target))[0]
+    L.headline = `${best.filler} ${L.headline}`
+    padding.push({ moment: id, kind: kinds[i], added: best.added, target, filler: best.filler })
+    continue
+  }
   if (part === 'difference') {
     const ctx = { sectionLine: '', bestLine: L.better?.line ?? '', bestBare: c.bestSan }
     const best = candidates(kinds[i], 'The difference', ctx)

@@ -1447,6 +1447,51 @@ function checkOrderReason([x, r, tM, tP, tS, dB, dP, dS, dM, mM, mW, mP, mS], e)
   return [...out, claim('order_reason', surface, shown, whole, T(`the best line plays ${first.san} before ${mv.san}, and after it ${reply.san} takes nothing`))]
 }
 
+/**
+ * "Their rook on h7 looked free, but it was a trap.": the played move takes
+ * that side's piece of that kind on that square, not en passant, and after it
+ * nothing can take back there. The best move lands elsewhere, and its line
+ * does not end with the mover mated (nor does the engine's score with it).
+ * The engine's line after the played move ends with the mover mated (or the
+ * engine's score after it is mate against the mover); or, with nothing
+ * pending at its end, it leaves the mover two pawns' worth or more down, and
+ * the best line mates or, with nothing pending, ends two pawns' worth or more
+ * better.
+ */
+function checkTrap([whose, piece, sq], e) {
+  const { M, surface, shown, whole } = e
+  const fail = (why) => [claim('trap', surface, shown, whole, F(why))]
+  const mv = moveAt(M.F0, M.playedUci)
+  if (!mv) return fail('the move does not replay')
+  const mover = mv.color
+  if (ownerOf(whose.toLowerCase(), M) !== other(mover)) return fail(`the piece ${mv.san} takes is not ${whose === 'Your' ? 'yours' : 'theirs'}`)
+  if (mv.captured !== TYPE_OF_WORD[piece] || mv.to !== sq) return fail(`${mv.san} does not take a ${piece} on ${sq}`)
+  if (mv.flags.includes('e')) return fail(`${mv.san} takes en passant, so the pawn it takes is not on ${sq}`)
+  if (mv.board.moves({ verbose: true }).some((m) => m.to === sq && m.captured)) return fail(`after ${mv.san} the ${piece} can be taken back on ${sq}`)
+  if (M.bestUci?.slice(2, 4) === sq) return fail(`the best move also lands on ${sq}`)
+  const bestLine = M.bestPv[0] === M.bestUci ? M.bestPv : [M.bestUci]
+  const matedIn = (line, score) => {
+    const m = mateInLine(M.F0, line, mover)
+    if (m.mate) return m.by !== mover
+    const s = scoreMate(score)
+    return !!s && s.winner !== mover
+  }
+  const matesIn = (line, score) => {
+    const m = mateInLine(M.F0, line, mover)
+    if (m.mate) return m.by === mover
+    const s = scoreMate(score)
+    return !!s && s.winner === mover
+  }
+  if (matedIn(bestLine, M.before)) return fail('the best line mates the mover too')
+  const played = [M.playedUci, ...M.replyPvUci]
+  if (matedIn(played, M.after)) return [claim('trap', surface, shown, whole, T(`after ${mv.san}, nothing takes back on ${sq}, and the engine's line mates the mover`))]
+  const read = windowRead(M.F0, played, mover)
+  const best = windowRead(M.F0, bestLine, mover)
+  if (!read?.settled || read.net > -2) return fail(`the engine's line after ${mv.san} does not end two pawns' worth or more down with nothing pending (${read?.net ?? 'no line'})`)
+  if (!matesIn(bestLine, M.before) && !(best?.settled && best.net - read.net >= 2)) return fail(`the best line does not end two pawns' worth or more better (${best?.net ?? 'no line'} against ${read.net})`)
+  return [claim('trap', surface, shown, whole, T(`after ${mv.san}, nothing takes back on ${sq}; the engine's line ends ${read.net}, the best line ${best?.net ?? 'in mate'}`))]
+}
+
 const onlyKingsAndPawns = (g) => g.board().every((row) => row.every((cell) => !cell || cell.type === 'k' || cell.type === 'p'))
 const pawnCount = (g) => g.board().flat().filter((cell) => cell && cell.type === 'p').length
 
@@ -2164,6 +2209,11 @@ const LESSON_TEMPLATES = [
   {
     re: new RegExp(String.raw`\b${TOKR} still comes, (a move|two moves) later, in the engine's line\b`, 'g'),
     run: ([x, when], e) => [e.san(x, e.M.F0, e.M.playedUci), checkLater(e.M, when, null, e)],
+  },
+  // The capture that looked free and was a trap: nothing takes back, and the engine's line after it loses.
+  {
+    re: new RegExp(String.raw`\b(Their|Your) ${PIECE} on ${SQ} looked free, but it was a trap\.`, 'g'),
+    run: (g, e) => checkTrap(g, e),
   },
   // Why the order matters: what the best line does first to the capture the played move allows now.
   {
@@ -3260,6 +3310,39 @@ function runCorruption(cases) {
     results.push(corruptionRow('the piece the better line moves away, one file over', aw, swapIn(aw, firstAway, (_, sep, m, w, p, f, r) => `${sep} ${m} first moves ${w} ${p} on ${nextFile(f)}${r} away.`), orderClaim))
     results.push(corruptionRow("the piece moved away said to be the other side's", aw, swapIn(aw, firstAway, (_, sep, m, w, p, f, r) => `${sep} ${m} first moves ${w === 'your' ? 'their' : 'your'} ${p} on ${f}${r} away.`), orderClaim))
   }
+  // The capture that was a trap: the square, the piece, its side; and the sentence put on captures it does not fit.
+  const trapSentence = /^(Their|Your) (pawn|knight|bishop|rook|queen) on ([a-h])([1-8]) looked free, but it was a trap\. /
+  const trapClaim = /looked free, but it was a trap/
+  const tp = pick((c) => trapSentence.test(c.texts?.lessonFor?.headline ?? ''))
+  if (tp) {
+    const head = (c, f) => {
+      const copy = structuredClone(c)
+      copy.texts.lessonFor.headline = f(copy.texts.lessonFor.headline)
+      return copy
+    }
+    results.push(corruptionRow('the square of the trap, one file over', tp, head(tp, (h) => h.replace(trapSentence, (_, w, p, f, r) => `${w} ${p} on ${nextFile(f)}${r} looked free, but it was a trap. `)), trapClaim))
+    results.push(corruptionRow('the piece of the trap named as another', tp, head(tp, (h) => h.replace(trapSentence, (_, w, p, f, r) => `${w} ${p === 'knight' ? 'bishop' : 'knight'} on ${f}${r} looked free, but it was a trap. `)), trapClaim))
+    results.push(corruptionRow("the trap's piece said to be the other side's", tp, head(tp, (h) => h.replace(trapSentence, (_, w, p, f, r) => `${w === 'Their' ? 'Your' : 'Their'} ${p} on ${f}${r} looked free, but it was a trap. `)), trapClaim))
+  }
+  const takenOn = (c) => {
+    const m = c.uci && c.fenBefore && c.texts?.lessonFor?.headline ? moveAt(c.fenBefore, c.uci) : null
+    return m?.captured && m.captured !== 'k' && !m.flags.includes('e') && c.bestUci?.slice(2, 4) !== m.to && !trapClaim.test(c.texts.lessonFor.headline) ? m : null
+  }
+  const tagged = (c) => {
+    const m = takenOn(c)
+    const copy = structuredClone(c)
+    copy.texts.lessonFor.headline = `Their ${WORD_OF_TYPE[m.captured]} on ${m.to} looked free, but it was a trap. ${copy.texts.lessonFor.headline}`
+    return copy
+  }
+  const guarded = pick((c) => !!takenOn(c) && takenOn(c).board.moves({ verbose: true }).some((x) => x.to === takenOn(c).to && x.captured))
+  if (guarded) results.push(corruptionRow('the trap sentence on a capture that can be taken back', guarded, tagged(guarded), trapClaim))
+  const gift = pick((c) => {
+    const m = takenOn(c)
+    if (!m || m.board.moves({ verbose: true }).some((x) => x.to === m.to && x.captured)) return false
+    const r = windowRead(c.fenBefore, [c.uci, ...(c.replyPvUci ?? [])], m.color)
+    return !!r?.settled && r.net >= 0 && mateInLine(c.fenBefore, [c.uci, ...(c.replyPvUci ?? [])], m.color).mate !== true
+  })
+  if (gift) results.push(corruptionRow('the trap sentence on a free capture whose line loses nothing', gift, tagged(gift), trapClaim))
   return results
 }
 
