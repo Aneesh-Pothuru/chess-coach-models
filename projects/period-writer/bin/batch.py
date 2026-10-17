@@ -420,7 +420,8 @@ def cmd_spend(args):
     rows = ledger()
     by = {}
     for r in rows:
-        by[r['kind']] = round(by.get(r['kind'], 0) + (r.get('cost') or 0), 2)
+        if r.get('kind') != 'hold':
+            by[r['kind']] = round(by.get(r['kind'], 0) + (r.get('cost') or 0), 2)
     print(json.dumps({'spent': spent(), 'byKind': by, 'cap': CAP, 'windows': latest_windows()}, indent=1))
 
 
