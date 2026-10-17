@@ -1,8 +1,8 @@
 {
   "eval": "explain-top-move reproduction",
   "chess": {
-    "pinned_commit": "509dc8603c09e9d966871aad3954b8bd41eb9fd7",
-    "records_commit": "060445cbb3cc32f03ecb7a5017ea3f4c740184b9",
+    "pinned_commit": "fa07ea1ed8f4a17ec0c3df26cf15d54fea36d3b0",
+    "records_commit": "ad569afca3808d3a531cc8b737defe1c9149e357",
     "carries": {
       "v10": true,
       "v11": true,
@@ -18,7 +18,8 @@
       "v21": true,
       "v22b": true,
       "v23": true,
-      "v24": true
+      "v24": true,
+      "v25": true
     }
   },
   "recomputed": {
@@ -50,7 +51,7 @@
       ]
     },
     "textsMatch": {
-      "variant": "v24",
+      "variant": "v25",
       "of": 333,
       "same": 333
     }
@@ -795,6 +796,46 @@
       },
       "keepByRule": true,
       "recordedReason": "where the other side's pawn is when one queens: when the pawn's story tells a pawn that queens in one line and not the other and the other side has a passed pawn at that promotion, it ends with where the one nearest its last rank stands, how many squares it has left and the first piece on its path: \"When h1=R comes, your b-pawn is still on b5, three squares from b8, with your knight on b6 in its way.\" (\"your\" and \"their\" swap on the opponent's move); measured on round 23's three sets, it changes 11 moments (7 train, 4 test), no grade changes and all 11 sentences are graded true; judge model, pairwise and blind, two runs with the order reversed, on every changed moment (the seeded sample of 20 per set and split, seed 20261024, takes all) with a 10-moment padding control in the same batches: 8 to 6 on train and 6 to 2 on test, each moment the same verdict in both runs, the decoy preferred in none of its 20 comparisons; the 8 answers against it, on 4 moments, call the sentence clutter where no race decides: the pawn named is four to six squares from its last rank (35.Qg1, 34.Rb1, 43.Re5) or the better move wins for another reason (44.Nd5); counted after the decision, all 7 preferred moments name a pawn three squares or fewer from its last rank (v24/change.md)"
+    },
+    {
+      "round": "25",
+      "judged": "round25",
+      "moments": 10,
+      "sample": {
+        "of": 10,
+        "drawn": 10,
+        "judged": 10,
+        "per": 20,
+        "seed": 20261025,
+        "reproduced": true,
+        "extras": 0,
+        "extrasTally": {
+          "train": {
+            "new": 0,
+            "old": 0,
+            "same": 0
+          },
+          "test": {
+            "new": 0,
+            "old": 0,
+            "same": 0
+          }
+        }
+      },
+      "tally": {
+        "train": {
+          "new": 14,
+          "old": 0,
+          "same": 0
+        },
+        "test": {
+          "new": 6,
+          "old": 0,
+          "same": 0
+        }
+      },
+      "keepByRule": true,
+      "recordedReason": "the square the better move keeps their king out of: in an endgame, when the engine's reply to the played move is their king's step, not castling and taking nothing, to a square nothing of the mover's covered, and the better move, giving no check, covers it with the piece it moves while their king never stands there in the better line, the better move's points say \"it keeps their king out of c5\" (\"your king\" on the opponent's move), after the board's readings of priority 3 or less and before the rest, so as the first point it gives the headline's reason (\"Kd6 was better: it keeps their king out of c5. After Kf6, they can answer Kc5, and it attacks the pawn on b5 (undefended).\"); measured on round 24's three sets, it changes 10 moments (7 train, 3 test), no grade changes and all 37 new claims are graded true; judge model, pairwise and blind, two runs with the order reversed, on every changed moment (the seeded sample of 20 per set and split, seed 20261025, takes all) with a 10-moment padding control in the same batches: 14 to 0 on train and 6 to 0 on test, the decoy preferred in none of its 20 comparisons; where the point is first it replaces a reading of the king's shelter, a king's walk or an open file, which the judges call vague beside the square the reply used (v25/change.md)"
     }
   ],
   "controls": {
@@ -1094,6 +1135,17 @@
       },
       {
         "round": "24",
+        "kind": "padding",
+        "comparisons": 20,
+        "decoy": 0,
+        "unchanged": 10,
+        "same": 10,
+        "decoyShareOfAll": 0,
+        "decoyShareOfDecided": 0,
+        "drifted": false
+      },
+      {
+        "round": "25",
         "kind": "padding",
         "comparisons": 20,
         "decoy": 0,
@@ -2850,6 +2902,138 @@
               "faithfulAll": 509
             },
             "textsChanged": 3
+          }
+        ],
+        "sameMoments": true,
+        "gradesEqual": true
+      }
+    },
+    {
+      "variant": "v25",
+      "sameMoments": true,
+      "splits": [
+        {
+          "split": "test",
+          "moments": 153,
+          "base": {
+            "faithful": 153,
+            "concrete": 130,
+            "named_deep": 144,
+            "faithfulAll": 152
+          },
+          "variant": {
+            "faithful": 153,
+            "concrete": 130,
+            "named_deep": 144,
+            "faithfulAll": 152
+          },
+          "textsChanged": 0
+        },
+        {
+          "split": "train",
+          "moments": 180,
+          "base": {
+            "faithful": 179,
+            "concrete": 152,
+            "named_deep": 166,
+            "faithfulAll": 179
+          },
+          "variant": {
+            "faithful": 179,
+            "concrete": 152,
+            "named_deep": 166,
+            "faithfulAll": 179
+          },
+          "textsChanged": 0
+        }
+      ],
+      "gradesEqual": true,
+      "defects": null,
+      "endgames": {
+        "seed": 20261014,
+        "games": {
+          "test": 80,
+          "train": 80
+        },
+        "splits": [
+          {
+            "split": "test",
+            "moments": 572,
+            "base": {
+              "faithful": 561,
+              "concrete": 482,
+              "named_deep": 529,
+              "faithfulAll": 560
+            },
+            "variant": {
+              "faithful": 561,
+              "concrete": 482,
+              "named_deep": 529,
+              "faithfulAll": 560
+            },
+            "textsChanged": 2
+          },
+          {
+            "split": "train",
+            "moments": 612,
+            "base": {
+              "faithful": 598,
+              "concrete": 493,
+              "named_deep": 573,
+              "faithfulAll": 598
+            },
+            "variant": {
+              "faithful": 598,
+              "concrete": 493,
+              "named_deep": 573,
+              "faithfulAll": 598
+            },
+            "textsChanged": 5
+          }
+        ],
+        "sameMoments": true,
+        "gradesEqual": true
+      },
+      "endgames2": {
+        "seed": 20261014,
+        "games": {
+          "test": 65,
+          "train": 65
+        },
+        "splits": [
+          {
+            "split": "test",
+            "moments": 494,
+            "base": {
+              "faithful": 490,
+              "concrete": 408,
+              "named_deep": 458,
+              "faithfulAll": 490
+            },
+            "variant": {
+              "faithful": 490,
+              "concrete": 408,
+              "named_deep": 458,
+              "faithfulAll": 490
+            },
+            "textsChanged": 1
+          },
+          {
+            "split": "train",
+            "moments": 517,
+            "base": {
+              "faithful": 509,
+              "concrete": 425,
+              "named_deep": 468,
+              "faithfulAll": 509
+            },
+            "variant": {
+              "faithful": 509,
+              "concrete": 425,
+              "named_deep": 468,
+              "faithfulAll": 509
+            },
+            "textsChanged": 2
           }
         ],
         "sameMoments": true,

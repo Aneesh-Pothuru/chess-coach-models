@@ -49,9 +49,9 @@
 \newcommand{\KeptTrainConcreteVsBase}{+6.8 [3.2, 10.6]}
 \newcommand{\KeptTrainTextsChanged}{87}
 \newcommand{\KeptVariant}{v8}
-\newcommand{\RoundCount}{24}
-\newcommand{\RoundCountCap}{24}
-\newcommand{\KeptRoundCount}{21}
+\newcommand{\RoundCount}{25}
+\newcommand{\RoundCountCap}{25}
+\newcommand{\KeptRoundCount}{22}
 \newcommand{\UnjudgedKept}{1, 2, 11 and 14}
 \newcommand{\RoundsTable}{%
 \begin{tabularx}{\textwidth}{l L rrrr r r}
@@ -86,6 +86,7 @@ v21 & The pawn ending a trade leads to & \multicolumn{5}{c}{\emph{graded on rebu
 v22b & What the better line does first & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 20--0 / 26--0 \\
 v23 & A capture that was a trap & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 28--6 / 29--3 \\
 v24 & Where the other side's pawn is when one queens & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 8--6 / 6--2 \\
+v25 & The square the better move keeps their king out of & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 14--0 / 6--0 \\
 \bottomrule
 \end{tabularx}
 }
@@ -120,6 +121,7 @@ round & judged & train & test & the rule says \\
 22 and 22b & round 22 then round 22b (23 moments) & 20--0 (0) & 26--0 (0) & keep \\
 23 & round 23 (33 moments) & 28--6 (0) & 29--3 (0) & keep \\
 24 & round 24 (11 moments) & 8--6 (0) & 6--2 (0) & keep \\
+25 & round 25 (10 moments) & 14--0 (0) & 6--0 (0) & keep \\
 \bottomrule
 \end{tabular}
 }
@@ -164,6 +166,8 @@ v23 & test & 153 & 153 & 130 & 144 & 152 & 1 \\
 v23 & train & 180 & 179 & 152 & 166 & 179 & 2 \\
 v24 & test & 153 & 153 & 130 & 144 & 152 & 2 \\
 v24 & train & 180 & 179 & 152 & 166 & 179 & 0 \\
+v25 & test & 153 & 153 & 130 & 144 & 152 & 0 \\
+v25 & train & 180 & 179 & 152 & 166 & 179 & 0 \\
 \bottomrule
 \end{tabular}
 }
@@ -196,6 +200,8 @@ v23, endgame set & test & 572 & 561 & 482 & 529 & 560 & 7 \\
 v23, endgame set & train & 612 & 598 & 493 & 573 & 598 & 9 \\
 v24, endgame set & test & 572 & 561 & 482 & 529 & 560 & 1 \\
 v24, endgame set & train & 612 & 598 & 493 & 573 & 598 & 4 \\
+v25, endgame set & test & 572 & 561 & 482 & 529 & 560 & 2 \\
+v25, endgame set & train & 612 & 598 & 493 & 573 & 598 & 5 \\
 v18, second endgame set & test & 494 & 490 & 407 & 458 & 490 & 4 \\
 v18, second endgame set & train & 517 & 509 & 420 & 468 & 509 & 2 \\
 v19, second endgame set & test & 494 & 490 & 407 & 458 & 490 & 36 \\
@@ -212,6 +218,8 @@ v23, second endgame set & test & 494 & 490 & 408 & 458 & 490 & 8 \\
 v23, second endgame set & train & 517 & 509 & 425 & 468 & 509 & 6 \\
 v24, second endgame set & test & 494 & 490 & 408 & 458 & 490 & 1 \\
 v24, second endgame set & train & 517 & 509 & 425 & 468 & 509 & 3 \\
+v25, second endgame set & test & 494 & 490 & 408 & 458 & 490 & 1 \\
+v25, second endgame set & train & 517 & 509 & 425 & 468 & 509 & 2 \\
 \bottomrule
 \end{tabular}
 }
@@ -456,6 +464,25 @@ the five of Table~\ref{tab:defects} & 0 & 0 \\
 \newcommand{\RoundTwentyFourTrainOld}{6}
 \newcommand{\RoundTwentyFourTestNew}{6}
 \newcommand{\RoundTwentyFourTestOld}{2}
+\newcommand{\RoundTwentyFiveJudged}{10}
+\newcommand{\RoundTwentyFiveFirst}{six}
+\newcommand{\RoundTwentyFiveSecond}{four}
+\newcommand{\PadTwentyFiveShrinks}{six}
+\newcommand{\PadTwentyFiveOf}{ten}
+\newcommand{\PadTwentyFiveFillerMin}{32}
+\newcommand{\PadTwentyFiveFillerMax}{44}
+\newcommand{\RoundTwentyFiveQuote}{it keeps their king out of c5}
+\newcommand{\RoundTwentyFiveQuoteHeadline}{Kd6 was better: it keeps their king out of c5. After Kf6, they can answer Kc5}
+\newcommand{\RoundTwentyFiveChanged}{10}
+\newcommand{\RoundTwentyFiveChangedTrain}{7}
+\newcommand{\RoundTwentyFiveChangedTest}{3}
+\newcommand{\RoundTwentyFiveSampled}{10}
+\newcommand{\RoundTwentyFivePer}{20}
+\newcommand{\RoundTwentyFiveSeed}{20261025}
+\newcommand{\RoundTwentyFiveTrainNew}{14}
+\newcommand{\RoundTwentyFiveTrainOld}{0}
+\newcommand{\RoundTwentyFiveTestNew}{6}
+\newcommand{\RoundTwentyFiveTestOld}{0}
 \newcommand{\LongerPicked}{305}
 \newcommand{\LongerDecided}{326}
 \newcommand{\LongerRounds}{3, 4, 5, 7, 7b, 8 and 9}
@@ -514,6 +541,10 @@ the five of Table~\ref{tab:defects} & 0 & 0 \\
 \newcommand{\PadTwentyFourN}{20}
 \newcommand{\PadTwentyFourUnchanged}{10}
 \newcommand{\PadTwentyFourSame}{10}
+\newcommand{\PadTwentyFiveDecoy}{0}
+\newcommand{\PadTwentyFiveN}{20}
+\newcommand{\PadTwentyFiveUnchanged}{10}
+\newcommand{\PadTwentyFiveSame}{10}
 \newcommand{\ControlsTable}{%
 \begin{tabularx}{\textwidth}{L l l}
 \toprule
@@ -537,6 +568,7 @@ padding control, round 21: the decoy preferred & 0 of 20 (20 the shorter text, 0
 padding control, round 22: the decoy preferred & 0 of 20 (0 the shorter text, 20 same) & no drift \\
 padding control, round 23: the decoy preferred & 0 of 20 (20 the shorter text, 0 same) & no drift \\
 padding control, round 24: the decoy preferred & 0 of 20 (10 the shorter text, 10 same) & no drift \\
+padding control, round 25: the decoy preferred & 0 of 20 (10 the shorter text, 10 same) & no drift \\
 \bottomrule
 \end{tabularx}
 }
@@ -573,12 +605,12 @@ padding control, round 24: the decoy preferred & 0 of 20 (10 the shorter text, 1
 \newcommand{\ExampleCount}{8}
 \newcommand{\ReproLinesMatched}{27}
 \newcommand{\ReproLines}{27}
-\newcommand{\AppCommit}{\texttt{509dc86}}
-\newcommand{\RecordsCommit}{\texttt{060445c}}
+\newcommand{\AppCommit}{\texttt{fa07ea1}}
+\newcommand{\RecordsCommit}{\texttt{ad569af}}
 \newcommand{\RerunSearches}{the capture searches on it (88 kept) and the defense searches (51 kept)}
 \newcommand{\RerunEvidence}{review-evidence/7}
-\newcommand{\RerunTextsSentence}{Its texts equal the recorded texts of v24, the last kept round, on all 333 moments of round 24's documents.}
-\newcommand{\AppKeptThrough}{24}
+\newcommand{\RerunTextsSentence}{Its texts equal the recorded texts of v25, the last kept round, on all 333 moments of round 25's documents.}
+\newcommand{\AppKeptThrough}{25}
 \newcommand{\AppKeptSentence}{The app at that commit carries every kept round.}
 \newcommand{\RerunTestMoments}{153}
 \newcommand{\RerunTestShared}{146}

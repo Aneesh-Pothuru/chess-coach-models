@@ -775,6 +775,40 @@ claim(sampledFully(r24, twentyFourSets) && r24.sample.drawn === r24.sample.of, "
 for (const [k, q] of Object.entries(TWENTY_FOUR_QUOTES)) g.def(`RoundTwentyFour${k}`, esc(q));
 sampledDefs('RoundTwentyFour', r24, twentyFourSets);
 
+// ---- round 25: the square the better move keeps their king out of, on round 24's three sets; its
+// seeded draw takes every moment it changed. Its point stands among the better move's points
+const twentyFive = rebuilt.get('v25');
+const twentyFiveSets = [twentyFive, twentyFive?.endgames, twentyFive?.endgames2];
+claim(twentyFiveSets.every(r => r?.sameMoments && r.gradesEqual), "round 25's grades equal its base's in all three sets");
+const TWENTY_FIVE_QUOTES = { Quote: 'it keeps their king out of c5', QuoteHeadline: 'Kd6 was better: it keeps their king out of c5. After Kf6, they can answer Kc5' };
+claim(Object.values(TWENTY_FIVE_QUOTES).every(q => readFileSync(join(flow, 'v25', 'change.patch'), 'utf8').includes(q)), "round 25's tests and docs pin the words the paper quotes");
+const r25 = judgeOf.get('25');
+claim(r25?.keepByRule, 'the judge preferred round 25 on both halves');
+claim(sampledFully(r25, twentyFiveSets) && r25.sample.drawn === r25.sample.of, "round 25's judges read every moment it changed");
+{
+  const KEPT = /\bit keeps (?:their|your) king out of [a-h][1-8]/;
+  const dir = join(judgeDir, 'round25');
+  const items = read(join(dir, 'items-r1.json')).items;
+  const keys = ['r1', 'r2'].map(r => read(join(dir, `key-${r}.json`)));
+  const answers = ['r1', 'r2'].map(r => new Map(read(join(dir, `out-${r}.judge.json`)).answers.map(a => [a.id, a.choice])));
+  const verdicts = id => [0, 1].map(i => { const c = answers[i].get(id); return c === 'same' ? 'same' : keys[i][id][c]; });
+  const version = (item, side) => (keys[0][item.id].X === side ? item.versionX : item.versionY);
+  const better = (item, side) => version(item, side).find(x => / does instead$/.test(x.heading))?.text ?? '';
+  claim(items.length === r25.sample.judged && items.every(item => KEPT.test(better(item, 'new')) && !KEPT.test(better(item, 'old'))),
+    "every card round 25's judges read names the square in the better move's section, and the base's does not");
+  claim(items.every(item => verdicts(item.id).every(v => v === 'new')), "both runs preferred round 25's texts on every moment its judges read");
+  const first = items.filter(item => better(item, 'new').search(KEPT) === 0);
+  claim(first.every(item => /\bkeeps (?:their|your) king out of [a-h][1-8]/.test(version(item, 'new').find(x => x.heading === 'On the card')?.text ?? '')), "where round 25's point is the first, the card's headline gives it");
+  g.def('RoundTwentyFiveJudged', String(items.length)).def('RoundTwentyFiveFirst', word(first.length)).def('RoundTwentyFiveSecond', word(items.length - first.length));
+  const pad = read(join(judgeDir, 'controls', 'round25', 'padding.json'));
+  const added = pad.padding.map(p => p.added);
+  claim(pad.target < 0 && pad.growth.filter(x => x < 0).length * 2 > pad.growth.length, "round 25 shortens most cards it changes, so its median growth is below zero");
+  g.def('PadTwentyFiveShrinks', word(pad.growth.filter(x => x < 0).length)).def('PadTwentyFiveOf', word(pad.growth.length))
+    .def('PadTwentyFiveFillerMin', String(Math.min(...added))).def('PadTwentyFiveFillerMax', String(Math.max(...added)));
+}
+for (const [k, q] of Object.entries(TWENTY_FIVE_QUOTES)) g.def(`RoundTwentyFive${k}`, esc(q));
+sampledDefs('RoundTwentyFive', r25, twentyFiveSets);
+
 // ---- the judge's controls, as reproduce.mjs recomputed them
 const c = repro.controls;
 claim(c.length.matchesRecorded, 'the length check recomputed from its answers matches the score the records keep');
@@ -813,7 +847,7 @@ const pad18 = c.perRound.find(p => p.round === '18');
 claim(pad18?.kind === 'padding', 'round 18 carried a padding control');
 g.def('PadEighteenDecoy', String(pad18.decoy)).def('PadEighteenN', String(pad18.comparisons))
   .def('PadEighteenUnchanged', String(pad18.unchanged)).def('PadEighteenSame', String(pad18.same));
-for (const [round, name] of [['19', 'Nineteen'], ['20b', 'Twenty'], ['21', 'TwentyOne'], ['22', 'TwentyTwo'], ['23', 'TwentyThree'], ['24', 'TwentyFour']]) {
+for (const [round, name] of [['19', 'Nineteen'], ['20b', 'Twenty'], ['21', 'TwentyOne'], ['22', 'TwentyTwo'], ['23', 'TwentyThree'], ['24', 'TwentyFour'], ['25', 'TwentyFive']]) {
   const pad = c.perRound.find(p => p.round === round);
   claim(pad?.kind === 'padding', `round ${round} carried a padding control`);
   g.def(`Pad${name}Decoy`, String(pad.decoy)).def(`Pad${name}N`, String(pad.comparisons))
