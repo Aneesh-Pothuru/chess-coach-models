@@ -49,9 +49,9 @@
 \newcommand{\KeptTrainConcreteVsBase}{+6.8 [3.2, 10.6]}
 \newcommand{\KeptTrainTextsChanged}{87}
 \newcommand{\KeptVariant}{v8}
-\newcommand{\RoundCount}{25}
-\newcommand{\RoundCountCap}{25}
-\newcommand{\KeptRoundCount}{22}
+\newcommand{\RoundCount}{26}
+\newcommand{\RoundCountCap}{26}
+\newcommand{\KeptRoundCount}{23}
 \newcommand{\UnjudgedKept}{1, 2, 11 and 14}
 \newcommand{\RoundsTable}{%
 \begin{tabularx}{\textwidth}{l L rrrr r r}
@@ -87,6 +87,7 @@ v22b & What the better line does first & \multicolumn{5}{c}{\emph{graded on rebu
 v23 & A capture that was a trap & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 28--6 / 29--3 \\
 v24 & Where the other side's pawn is when one queens & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 8--6 / 6--2 \\
 v25 & The square the better move keeps their king out of & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 14--0 / 6--0 \\
+v26 & The piece the better move brings into play & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 22--0 / 18--0 \\
 \bottomrule
 \end{tabularx}
 }
@@ -122,6 +123,7 @@ round & judged & train & test & the rule says \\
 23 & round 23 (33 moments) & 28--6 (0) & 29--3 (0) & keep \\
 24 & round 24 (11 moments) & 8--6 (0) & 6--2 (0) & keep \\
 25 & round 25 (10 moments) & 14--0 (0) & 6--0 (0) & keep \\
+26 & round 26 (20 moments) & 22--0 (0) & 18--0 (0) & keep \\
 \bottomrule
 \end{tabular}
 }
@@ -168,6 +170,8 @@ v24 & test & 153 & 153 & 130 & 144 & 152 & 2 \\
 v24 & train & 180 & 179 & 152 & 166 & 179 & 0 \\
 v25 & test & 153 & 153 & 130 & 144 & 152 & 0 \\
 v25 & train & 180 & 179 & 152 & 166 & 179 & 0 \\
+v26 & test & 153 & 153 & 130 & 144 & 152 & 4 \\
+v26 & train & 180 & 179 & 152 & 166 & 179 & 3 \\
 \bottomrule
 \end{tabular}
 }
@@ -202,6 +206,8 @@ v24, endgame set & test & 572 & 561 & 482 & 529 & 560 & 1 \\
 v24, endgame set & train & 612 & 598 & 493 & 573 & 598 & 4 \\
 v25, endgame set & test & 572 & 561 & 482 & 529 & 560 & 2 \\
 v25, endgame set & train & 612 & 598 & 493 & 573 & 598 & 5 \\
+v26, endgame set & test & 572 & 561 & 482 & 529 & 560 & 5 \\
+v26, endgame set & train & 612 & 598 & 493 & 573 & 598 & 3 \\
 v18, second endgame set & test & 494 & 490 & 407 & 458 & 490 & 4 \\
 v18, second endgame set & train & 517 & 509 & 420 & 468 & 509 & 2 \\
 v19, second endgame set & test & 494 & 490 & 407 & 458 & 490 & 36 \\
@@ -220,6 +226,8 @@ v24, second endgame set & test & 494 & 490 & 408 & 458 & 490 & 1 \\
 v24, second endgame set & train & 517 & 509 & 425 & 468 & 509 & 3 \\
 v25, second endgame set & test & 494 & 490 & 408 & 458 & 490 & 1 \\
 v25, second endgame set & train & 517 & 509 & 425 & 468 & 509 & 2 \\
+v26, second endgame set & test & 494 & 490 & 408 & 458 & 490 & 0 \\
+v26, second endgame set & train & 517 & 509 & 425 & 468 & 509 & 5 \\
 \bottomrule
 \end{tabular}
 }
@@ -483,6 +491,36 @@ the five of Table~\ref{tab:defects} & 0 & 0 \\
 \newcommand{\RoundTwentyFiveTrainOld}{0}
 \newcommand{\RoundTwentyFiveTestNew}{6}
 \newcommand{\RoundTwentyFiveTestOld}{0}
+\newcommand{\SixCQuiet}{414}
+\newcommand{\SixCNoReason}{87}
+\newcommand{\SixCShare}{21.0}
+\newcommand{\SixCTestQuiet}{376}
+\newcommand{\SixCTestNoReason}{69}
+\newcommand{\SixCTestShare}{18.4}
+\newcommand{\RoundTwentySixOutOfPlay}{three}
+\newcommand{\RoundTwentySixIntoPlay}{three}
+\newcommand{\RoundTwentySixJudged}{20}
+\newcommand{\RoundTwentySixKnights}{nine}
+\newcommand{\RoundTwentySixBishops}{seven}
+\newcommand{\RoundTwentySixRooks}{three}
+\newcommand{\RoundTwentySixQueens}{one}
+\newcommand{\PadTwentySixGrowth}{549}
+\newcommand{\PadTwentySixGrowthMin}{508}
+\newcommand{\PadTwentySixGrowthMax}{565}
+\newcommand{\PadTwentySixFillerMin}{95}
+\newcommand{\PadTwentySixFillerMax}{155}
+\newcommand{\RoundTwentySixQuote}{it brings the bishop on c8 into play, with 5 squares to go to instead of none}
+\newcommand{\RoundTwentySixQuoteHeadline}{d5 was better: it brings the bishop on c8 into play, with 5 squares to go to instead of none.}
+\newcommand{\RoundTwentySixChanged}{20}
+\newcommand{\RoundTwentySixChangedTrain}{11}
+\newcommand{\RoundTwentySixChangedTest}{9}
+\newcommand{\RoundTwentySixSampled}{20}
+\newcommand{\RoundTwentySixPer}{20}
+\newcommand{\RoundTwentySixSeed}{20261026}
+\newcommand{\RoundTwentySixTrainNew}{22}
+\newcommand{\RoundTwentySixTrainOld}{0}
+\newcommand{\RoundTwentySixTestNew}{18}
+\newcommand{\RoundTwentySixTestOld}{0}
 \newcommand{\LongerPicked}{305}
 \newcommand{\LongerDecided}{326}
 \newcommand{\LongerRounds}{3, 4, 5, 7, 7b, 8 and 9}
@@ -545,6 +583,10 @@ the five of Table~\ref{tab:defects} & 0 & 0 \\
 \newcommand{\PadTwentyFiveN}{20}
 \newcommand{\PadTwentyFiveUnchanged}{10}
 \newcommand{\PadTwentyFiveSame}{10}
+\newcommand{\PadTwentySixDecoy}{0}
+\newcommand{\PadTwentySixN}{20}
+\newcommand{\PadTwentySixUnchanged}{20}
+\newcommand{\PadTwentySixSame}{0}
 \newcommand{\ControlsTable}{%
 \begin{tabularx}{\textwidth}{L l l}
 \toprule
@@ -569,6 +611,7 @@ padding control, round 22: the decoy preferred & 0 of 20 (0 the shorter text, 20
 padding control, round 23: the decoy preferred & 0 of 20 (20 the shorter text, 0 same) & no drift \\
 padding control, round 24: the decoy preferred & 0 of 20 (10 the shorter text, 10 same) & no drift \\
 padding control, round 25: the decoy preferred & 0 of 20 (10 the shorter text, 10 same) & no drift \\
+padding control, round 26: the decoy preferred & 0 of 20 (20 the shorter text, 0 same) & no drift \\
 \bottomrule
 \end{tabularx}
 }
@@ -605,12 +648,12 @@ padding control, round 25: the decoy preferred & 0 of 20 (10 the shorter text, 1
 \newcommand{\ExampleCount}{8}
 \newcommand{\ReproLinesMatched}{27}
 \newcommand{\ReproLines}{27}
-\newcommand{\AppCommit}{\texttt{fa07ea1}}
-\newcommand{\RecordsCommit}{\texttt{ad569af}}
+\newcommand{\AppCommit}{\texttt{f4bd63f}}
+\newcommand{\RecordsCommit}{\texttt{aed714a}}
 \newcommand{\RerunSearches}{the capture searches on it (88 kept) and the defense searches (51 kept)}
 \newcommand{\RerunEvidence}{review-evidence/7}
-\newcommand{\RerunTextsSentence}{Its texts equal the recorded texts of v25, the last kept round, on all 333 moments of round 25's documents.}
-\newcommand{\AppKeptThrough}{25}
+\newcommand{\RerunTextsSentence}{Its texts equal the recorded texts of v26, the last kept round, on all 333 moments of round 26's documents.}
+\newcommand{\AppKeptThrough}{26}
 \newcommand{\AppKeptSentence}{The app at that commit carries every kept round.}
 \newcommand{\RerunTestMoments}{153}
 \newcommand{\RerunTestShared}{146}

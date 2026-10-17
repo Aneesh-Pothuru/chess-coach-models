@@ -82,6 +82,7 @@ const ROUNDS = [
   { round: '23', dirs: ['round23'], sample: 'round23' },
   { round: '24', dirs: ['round24'], sample: 'round24' },
   { round: '25', dirs: ['round25'], sample: 'round25' },
+  { round: '26', dirs: ['round26'], sample: 'round26' },
 ];
 // The rounds judged before the length check, whose streak of longer texts it tested.
 const BEFORE_CHECK = ['3', '4', '5', '7', '7b', '8', '9'];
@@ -107,15 +108,15 @@ const appDefends = () => existsSync(join(CHESS_DIR, 'src', 'services', 'review',
  * 17's `stakesSentence`, round 17c's score rounding, round 18's
  * `checkWithReason`, round 19's `guardGivenUp`, round 20b's `chasedAway`,
  * round 21's `pawnEnding`, round 22b's `orderReason`, round 23's `trapTaken`,
- * round 25's `keptOut`; round 24's `raceLeft` is in the pawn runs' detector
- * beside it.
+ * round 25's `keptOut`, round 26's `intoPlay`; round 24's `raceLeft` is in the
+ * pawn runs' detector beside it.
  */
 function appCarries() {
   const lessonFile = join(CHESS_DIR, 'src', 'services', 'knowledge', 'detectors', 'lesson.ts');
   const lesson = existsSync(lessonFile) ? readFileSync(lessonFile, 'utf8') : '';
   const pawnRunsFile = join(CHESS_DIR, 'src', 'services', 'knowledge', 'detectors', 'pawnRuns.ts');
   const pawnRuns = existsSync(pawnRunsFile) ? readFileSync(pawnRunsFile, 'utf8') : '';
-  return { v10: lesson.includes('an even trade'), v11: /\btakesBack\b/.test(lesson), v12: appDefends(), v14: /\bmaterialChange\b/.test(lesson), v15: /\bquietDefense\b/.test(lesson), v16: /\bpawnRuns\b/.test(lesson), v17b: /\bstakesSentence\b/.test(lesson), v17c: /\bmateDistance\(score\.cp\b/.test(lesson), v18: /\bcheckWithReason\b/.test(lesson), v19: /\bguardGivenUp\b/.test(lesson), v20b: /\bchasedAway\b/.test(lesson), v21: /\bpawnEnding\b/.test(lesson), v22b: /\borderReason\b/.test(lesson), v23: /\btrapTaken\b/.test(lesson), v24: /\braceLeft\b/.test(pawnRuns), v25: /\bkeptOut\b/.test(lesson) };
+  return { v10: lesson.includes('an even trade'), v11: /\btakesBack\b/.test(lesson), v12: appDefends(), v14: /\bmaterialChange\b/.test(lesson), v15: /\bquietDefense\b/.test(lesson), v16: /\bpawnRuns\b/.test(lesson), v17b: /\bstakesSentence\b/.test(lesson), v17c: /\bmateDistance\(score\.cp\b/.test(lesson), v18: /\bcheckWithReason\b/.test(lesson), v19: /\bguardGivenUp\b/.test(lesson), v20b: /\bchasedAway\b/.test(lesson), v21: /\bpawnEnding\b/.test(lesson), v22b: /\borderReason\b/.test(lesson), v23: /\btrapTaken\b/.test(lesson), v24: /\braceLeft\b/.test(pawnRuns), v25: /\bkeptOut\b/.test(lesson), v26: /\bintoPlay\b/.test(lesson) };
 }
 
 function rerun(dir) {

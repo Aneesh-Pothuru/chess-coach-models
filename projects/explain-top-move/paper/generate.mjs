@@ -809,6 +809,64 @@ claim(sampledFully(r25, twentyFiveSets) && r25.sample.drawn === r25.sample.of, "
 for (const [k, q] of Object.entries(TWENTY_FIVE_QUOTES)) g.def(`RoundTwentyFive${k}`, esc(q));
 sampledDefs('RoundTwentyFive', r25, twentyFiveSets);
 
+// ---- round 26: the piece the better move brings into play, on round 25's three sets; its seeded
+// draw takes every moment it changed. It comes from a count with a bar written before it (q6c/)
+{
+  const counts = read(join(flow, 'q6c', 'counts.json'));
+  const bar = readFileSync(join(flow, 'q6c', 'bar.md'), 'utf8');
+  const barShare = Number(bar.match(/at least one in five \((\d+)%\)/)?.[1]) / 100;
+  const barLessons = Number(bar.match(/at least (\d+) moments give no reason/)?.[1]);
+  const [train, test] = ['train', 'test'].map(s => counts[s].find(r => r.set === 'pooled'));
+  claim(train.noReason >= barLessons && train.noReason >= barShare * train.quietBest, "the quiet best moves without a reason passed their bar on the training halves");
+  const share = r => pct(r.noReason / r.quietBest);
+  g.def('SixCQuiet', String(train.quietBest)).def('SixCNoReason', String(train.noReason)).def('SixCShare', share(train))
+    .def('SixCTestQuiet', String(test.quietBest)).def('SixCTestNoReason', String(test.noReason)).def('SixCTestShare', share(test));
+}
+const twentySix = rebuilt.get('v26');
+const twentySixSets = [twentySix, twentySix?.endgames, twentySix?.endgames2];
+claim(twentySixSets.every(r => r?.sameMoments && r.gradesEqual), "round 26's grades equal its base's in all three sets");
+const twentySixPatch = readFileSync(join(flow, 'v26', 'change.patch'), 'utf8');
+const TWENTY_SIX_QUOTES = {
+  Quote: 'it brings the bishop on c8 into play, with 5 squares to go to instead of none',
+  QuoteHeadline: 'd5 was better: it brings the bishop on c8 into play, with 5 squares to go to instead of none.',
+};
+claim(Object.values(TWENTY_SIX_QUOTES).every(q => twentySixPatch.includes(q)), "round 26's tests pin the words the paper quotes");
+{
+  const limit = name => Number(twentySixPatch.match(new RegExp(String.raw`^\+const ${name} = (\d+)$`, 'm'))?.[1]);
+  const [outOfPlay, intoPlay] = [limit('OUT_OF_PLAY'), limit('INTO_PLAY')];
+  claim(Number.isInteger(outOfPlay) && Number.isInteger(intoPlay), "round 26's change sets how few squares a piece out of play has and how many it must gain");
+  g.def('RoundTwentySixOutOfPlay', word(outOfPlay)).def('RoundTwentySixIntoPlay', word(intoPlay));
+}
+const r26 = judgeOf.get('26');
+claim(r26?.keepByRule, 'the judge preferred round 26 on both halves');
+claim(sampledFully(r26, twentySixSets) && r26.sample.drawn === r26.sample.of, "round 26's judges read every moment it changed");
+{
+  const INTO = /^it brings the (knight|bishop|rook|queen) on [a-h][1-8] into play, with \d+ squares to go to instead of (?:none|one|\d+)/;
+  const dir = join(judgeDir, 'round26');
+  const items = read(join(dir, 'items-r1.json')).items;
+  const keys = ['r1', 'r2'].map(r => read(join(dir, `key-${r}.json`)));
+  const answers = ['r1', 'r2'].map(r => new Map(read(join(dir, `out-${r}.judge.json`)).answers.map(a => [a.id, a.choice])));
+  const verdicts = id => [0, 1].map(i => { const c = answers[i].get(id); return c === 'same' ? 'same' : keys[i][id][c]; });
+  const version = (item, side) => (keys[0][item.id].X === side ? item.versionX : item.versionY);
+  const part = (item, side, heading) => version(item, side).find(x => heading.test(x.heading))?.text ?? '';
+  const better = (item, side) => part(item, side, / does instead$/);
+  claim(items.length === r26.sample.judged && items.every(item => INTO.test(better(item, 'new')) && !/ into play/.test(better(item, 'old'))),
+    "every card round 26's judges read names the piece in the better move's section, and the base's does not");
+  claim(items.every(item => / was better: it brings the (?:knight|bishop|rook|queen) on [a-h][1-8] into play/.test(part(item, 'new', /^On the card$/))),
+    "on every card round 26's judges read, the headline gives the piece as the better move's reason");
+  claim(items.every(item => verdicts(item.id).every(v => v === 'new')), "both runs preferred round 26's texts on every moment its judges read");
+  const named = piece => items.filter(item => better(item, 'new').match(INTO)?.[1] === piece).length;
+  g.def('RoundTwentySixJudged', String(items.length)).def('RoundTwentySixKnights', word(named('knight'))).def('RoundTwentySixBishops', word(named('bishop')))
+    .def('RoundTwentySixRooks', word(named('rook'))).def('RoundTwentySixQueens', word(named('queen')));
+  const pad = read(join(judgeDir, 'controls', 'round26', 'padding.json'));
+  const added = pad.padding.map(p => p.added);
+  claim(pad.target > Math.max(...added), "round 26's cards grow past the longest filler its control has");
+  g.def('PadTwentySixGrowth', String(pad.target)).def('PadTwentySixGrowthMin', String(Math.min(...pad.growth))).def('PadTwentySixGrowthMax', String(Math.max(...pad.growth)))
+    .def('PadTwentySixFillerMin', String(Math.min(...added))).def('PadTwentySixFillerMax', String(Math.max(...added)));
+}
+for (const [k, q] of Object.entries(TWENTY_SIX_QUOTES)) g.def(`RoundTwentySix${k}`, esc(q));
+sampledDefs('RoundTwentySix', r26, twentySixSets);
+
 // ---- the judge's controls, as reproduce.mjs recomputed them
 const c = repro.controls;
 claim(c.length.matchesRecorded, 'the length check recomputed from its answers matches the score the records keep');
@@ -847,7 +905,7 @@ const pad18 = c.perRound.find(p => p.round === '18');
 claim(pad18?.kind === 'padding', 'round 18 carried a padding control');
 g.def('PadEighteenDecoy', String(pad18.decoy)).def('PadEighteenN', String(pad18.comparisons))
   .def('PadEighteenUnchanged', String(pad18.unchanged)).def('PadEighteenSame', String(pad18.same));
-for (const [round, name] of [['19', 'Nineteen'], ['20b', 'Twenty'], ['21', 'TwentyOne'], ['22', 'TwentyTwo'], ['23', 'TwentyThree'], ['24', 'TwentyFour'], ['25', 'TwentyFive']]) {
+for (const [round, name] of [['19', 'Nineteen'], ['20b', 'Twenty'], ['21', 'TwentyOne'], ['22', 'TwentyTwo'], ['23', 'TwentyThree'], ['24', 'TwentyFour'], ['25', 'TwentyFive'], ['26', 'TwentySix']]) {
   const pad = c.perRound.find(p => p.round === round);
   claim(pad?.kind === 'padding', `round ${round} carried a padding control`);
   g.def(`Pad${name}Decoy`, String(pad.decoy)).def(`Pad${name}N`, String(pad.comparisons))
