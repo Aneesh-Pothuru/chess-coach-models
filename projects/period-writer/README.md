@@ -127,7 +127,9 @@ wrong, compared like for like across the two prompts. The auditor stays Sonnet
 
 The eval stops at $250 of model calls at list price: `ledger.jsonl` in the eval
 directory sums every call's `total_cost_usd`, and `batch.py` starts no writer
-whose expected cost, with what grading still owes, would pass the cap. The
+whose expected cost, with the runs in flight and what grading still owes,
+would pass the cap, and no second run of a case while the first runs every
+case still needs would not fit after it. The
 calls run on the owner's subscription, whose limits the live routines share,
 so `batch.py` also starts no writer while the five-hour window is at 45% or
 more or the seven-day window at 60% or more, or from 11:30 to 14:45 UTC (16:30

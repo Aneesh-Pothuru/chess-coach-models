@@ -32,8 +32,10 @@ LOGS = os.path.join(EVAL, 'logs')
 TRAIN = ['2026-W35', '2026-W37', '2026-W39', '2026-W41', '2026-08']
 HELD_OUT = ['2026-W36', '2026-W38', '2026-W40', '2026-09']
 IDS = TRAIN + HELD_OUT
-RESERVE_PER_RUN = 0.6
-RESERVE_END = 15.0
+GRADE_PER_RUN = {'weekly': 2.0, 'monthly': 3.5}
+RESERVE_END = 10.0
+GRADING = ('grader', 'judge', 'decoy')
+FROZEN = 1792228000
 
 
 def log(config, msg):
@@ -112,9 +114,39 @@ def grade_files():
     return out
 
 
-def may_start(kind, owed_runs):
+def in_flight(skip=None):
+    """The runs a batch holds now: a lock and no grade yet."""
+    out = []
+    if os.path.isdir(RUNS):
+        for config in os.listdir(RUNS):
+            for i in os.listdir(os.path.join(RUNS, config)):
+                d = os.path.join(RUNS, config, i)
+                for f in os.listdir(d) if os.path.isdir(d) else []:
+                    run = os.path.join(d, f[:-5])
+                    if f.endswith('.lock') and run != skip and not os.path.exists(os.path.join(run, 'grade.json')):
+                        out.append((i, run))
+    return out
+
+
+def owed(configs, kind, rep, run):
+    """Room the ledger must keep if this run starts: its writing and grading, the runs in flight, the grading
+    the written runs still owe, and on a later rep every first rep not yet written, so each case gets a pair first."""
+    held = in_flight(skip=run)
+    need = expected_cost(kind) + GRADE_PER_RUN[kind] + RESERVE_END
+    need += sum(expected_cost(kind_of(i)) + GRADE_PER_RUN[kind_of(i)] for i, _ in held)
+    written = sum(GRADE_PER_RUN[kind_of(os.path.basename(os.path.dirname(os.path.dirname(p))))] for p in grade_files())
+    graded = sum(r.get('cost') or 0.0 for r in ledger() if r.get('kind') in GRADING and r.get('t', 0) >= FROZEN)
+    need += max(0.0, written - graded)
+    if rep > 1:
+        busy = {r for _, r in held} | {run}
+        need += sum(expected_cost(kind_of(i)) + GRADE_PER_RUN[kind_of(i)] for c in configs for i in IDS
+                    if run_dir(c, i, 1) not in busy and not os.path.exists(os.path.join(run_dir(c, i, 1), 'grade.json')))
+    return need
+
+
+def may_start(kind, rep, run, configs):
     """Why a writer may not start now, or None."""
-    need = expected_cost(kind) + RESERVE_PER_RUN * owed_runs + RESERVE_END
+    need = owed(configs, kind, rep, run)
     if spent() + need > CAP:
         return f'cap: spent {spent()} + owed {round(need, 2)} would pass {CAP}'
     if quiet_hours():
@@ -164,14 +196,15 @@ def cmd_runs(args):
             log(tag, f'{config} {i} r{k}: another batch has it')
             return
         try:
+            if os.path.exists(os.path.join(run, 'grade.json')):
+                return
             go(config, i, k, run, kind)
         finally:
             os.remove(lock)
 
     def go(config, i, k, run, kind):
         while True:
-            owed = sum(1 for c, x, r in todo if not os.path.exists(os.path.join(run_dir(c, x, r), 'grade.json')))
-            why = may_start(kind, owed)
+            why = may_start(kind, k, run, configs)
             if why is None:
                 break
             if why.startswith('cap') or why.startswith('seven-day'):

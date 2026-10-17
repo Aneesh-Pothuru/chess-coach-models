@@ -40,7 +40,8 @@ def ledger():
 
 
 def spent():
-    return round(sum(r.get('cost') or 0.0 for r in ledger()), 2)
+    """The ledger's spend; a hold row only pauses a batch started before it."""
+    return round(sum(r.get('cost') or 0.0 for r in ledger() if r.get('kind') != 'hold'), 2)
 
 
 def latest_windows():
