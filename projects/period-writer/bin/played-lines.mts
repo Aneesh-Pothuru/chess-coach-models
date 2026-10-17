@@ -1,7 +1,8 @@
 // Whether each line a review's board exhibit tags "Played" follows the game, as
-// the archive replays it, from the exhibit's position: the strict check replays
-// every line for legality but does not compare a Played line with the game. No
-// model reads anything here. Run from a case checkout with its tsx:
+// the archive replays it, from the exhibit's position (found in the game by its
+// FEN, as the app's checker finds it): the strict check replays every line for
+// legality but does not compare a Played line with the game. No model reads
+// anything here. Run from a case checkout with its tsx:
 //   (cd <case>/repo && node_modules/.bin/tsx <bin>/played-lines.mts <annotations.json> ...)
 // Prints one JSON object per file: {file, played, follows, diverges, short}.
 import { createRequire } from 'node:module'
@@ -50,8 +51,10 @@ for (const file of process.argv.slice(2)) {
       const ref = review.splitGameRef(String(b?.board?.game ?? ''))
       const rows = ref.date ? day(ref.date) : null
       const hit = rows ? review.resolveGameRef(rows, ref.which, { date: ref.date }) : null
-      const ply = Number(b?.board?.ply)
-      if (!hit?.game || !Number.isFinite(ply)) continue
+      if (!hit?.game) continue
+      const place = (fen: string) => String(fen).trim().split(/\s+/).slice(0, 2).join(' ')
+      const ply = review.archivedSeries(hit.game).fens.findIndex((f: string) => place(f) === place(b.board.fen))
+      if (ply < 0) continue
       const sans: string[] = (hit.game.sans || []).map(bare)
       for (const l of lines) {
         const said = moves(b.board.fen, String(l.line || ''))
