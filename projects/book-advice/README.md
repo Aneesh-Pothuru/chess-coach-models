@@ -5,8 +5,8 @@ Win at Chess* (2023) and *How to Win at Chess: Next Level* (2026), answered
 twenty questions the app's coaching raised. Most of their answers are
 qualitative; where they suggest a rule the app could follow, or a number it
 could aim at, this project tests it against Stockfish and Maia-2 before the
-app acts on it. Seven tests, each with its own rule, written down and
-committed before its run:
+app acts on it. Nine tests, each with its own rule, written down and
+committed before its run (6a and 6b came from a second look at the answers):
 
 | Test | The question |
 |---|---|
@@ -17,6 +17,8 @@ committed before its run:
 | 1e | When every move loses, does the move whose winning reply is hardest to find save more games than the engine's top move? |
 | 1f | What share of decisive advantages do players at his level and 200 points above convert, against the app's goals? |
 | 1g | Does the guess-the-plan drill's 45 cp rule agree with the books' verdicts on their twelve planning positions? |
+| 6a | Are serious errors more common in the three moves after a player wins material than in positions alike? |
+| 6b | When down material and losing, does an even trade of pieces lower the chance of saving the game? |
 
 No model judges anything here: every verdict comes from an engine, Maia-2 or
 the app's own board code, imported through the bridge.
@@ -368,6 +370,114 @@ named move each (two preferred, one rejected).
 - **What follows.** No port: the margin stays (the books give no
   tie-breaker), and every disagreement goes to the app's plan drills as a
   case for their feedback, never as an answer to copy.
+
+## 6a. Errors right after winning material
+
+The books warn that a tactical success is no licence to stop looking at the
+opponent: the author's own win of material against a strong player was
+followed by a forcing reply he overlooked, and relaxing because the win seems
+easy is one of the two failure modes he names. The app's scan ends: "Before
+you move: what is wrong with your move, and what is their best answer? Ask it
+hardest right after you win material."
+
+**The rule, fixed before the run.**
+
+- **Winning material.** A *capture run* is a stretch of consecutive plies
+  that each capture or promote, between plies that do neither. A run *wins
+  material* for a player when he captures or promotes in it and the material
+  count (the move facts' `material`: pawn 1, knight and bishop 3, rook 5,
+  queen 9) stands two or more higher for him after the run than before it: a
+  piece for a pawn, the exchange, a free piece, a new queen kept; not a pawn,
+  nor an even trade. The *event* is his last capture or promotion in the
+  run. A run that ends the game has no event.
+- **The window.** His next three moves after the event (two, four and six
+  plies on), each counted when graded (the facts' `graded`: past the book,
+  more than one legal move, both evals known). A move in two windows counts
+  once.
+- **The controls.** His other graded moves: in no window, and not a capture
+  or promotion of a run that wins him material.
+- **The outcome.** A serious error, by the facts' `serious` (the review
+  reader's mistake, blunder or miss).
+- **Positions alike.** Every move falls in a stratum by
+  - his win% before it (Lichess's curve, the facts' `wpBefore`), in
+    ten-point bins;
+  - tension (the facts' `tense`: in check, right after a capture, or a piece
+    hanging on either side by the knowledge service's `hangingPieces`);
+  - danger to his king: either sign Play warns on, the queen on the exits or
+    no safe squares (the knowledge service's `kingDanger`, in the position
+    before the move);
+  - the phase, by the app's divider;
+  - his clock before the move: under a minute, one to three minutes, three or
+    more (the game's first move has the whole clock; a move with no clock is
+    left out).
+- **The measure.** A window move's expected rate is the control rate in its
+  stratum; strata with no controls are dropped and counted. The *excess* is
+  the window's serious errors minus their expected number, per window move,
+  and the *lift* is their ratio. 95% intervals from 2,000 seeded bootstrap
+  resamples of the player-games.
+- **It holds** when, in his band, the excess's interval lies above zero and
+  the lift is at least 1.1. Then the routines' brief gets a reading: his
+  serious-error rate over the three moves after he wins material, beside his
+  opponents' in the same games. When it does not hold, the scan's last step
+  drops "Ask it hardest right after you win material" (sent to the thinking
+  drills).
+- **Also reported**, without a rule: the band above and his games; the same
+  measure with the eval and the two dangers alone as strata; the same
+  counting only mistakes and blunders (a miss is a chance not taken, not a
+  flaw in the move); each of the three window moves on its own; and the
+  window by the material won (two, three or four, five or more).
+
+## 6b. Even trades when lost
+
+The books' chapter on defending discourages even trades when down material,
+since fewer pieces leave fewer chances to resist, and allows the trade that
+improves the position, makes counterplay or makes a passed pawn. The app says
+nothing about trades when behind; it praises a trade only when ahead (1c).
+
+**The rule, fixed before the run.**
+
+- **The positions.** The position before a player's move, past the book and
+  graded, not in check, after an opponent move that captured nothing (so the
+  material count is settled), with the game's own eval putting him 300 cp or
+  more behind (the band the trades metrics call behind) and the material
+  count two or more down. An even trade of pieces must be on offer: a capture
+  of a knight, bishop, rook or queen whose exchange nets nothing, by the
+  metrics service's `tradeBits` over those squares with the routine's
+  exchange reader (`facts-deps.cjs`, over the knowledge service's
+  `captureExchange`). The first such position in each player-game: in his
+  band and the band above, and in his games.
+- **The move.** *A trade* captures a knight, bishop, rook or queen and its
+  exchange nets nothing (`tradeBits`' even trade taken). *Keeping the
+  pieces* is a move that captures nothing. A trade *with check* gives check;
+  a trade *that makes a passed pawn* leaves him more passed pawns (the
+  knowledge service's `passedPawns`) after the opponent's reply (or after his
+  move, when the game ended there) than before it. A *plain trade* is
+  neither. Trades with check, trades that make a passed pawn, even pawn
+  trades (the books' reason, fewer pieces, says nothing about pawns) and
+  other captures are counted apart.
+- **Saved**: the game ended in a draw or a win for him.
+- **Positions alike.** Strata by his win% before the move in five-point bins;
+  the material down two, three or four, five or more; his rating in
+  100-point bins (1250 to 1349, 1350 to 1449, 1450 to 1549, 1550 to 1649; his
+  own games are one bin); and whether the opponent is rated higher.
+- **The measure.** Within each stratum, the save rate after a plain trade
+  minus the rate after keeping the pieces, averaged over the strata that hold
+  both, weighted by their plain trades (the rest are dropped and counted). A
+  95% interval from 2,000 seeded bootstrap resamples of the positions. With
+  fewer than 300 plain trades in those strata the result is not enough data.
+- **It holds** when, over his band and the band above together, the
+  difference's interval lies below zero and the drop is at least 3 saved
+  games per 100. Then Play's coach says so when he is behind and takes an
+  even trade of pieces where the engine prefers a move that keeps them, and
+  the review's explanations can give that reason (sent to the review's
+  explanations). When it does not hold, nothing changes.
+- **Also reported**, without a rule: each band and his games; the same
+  measure with his win% after the move in place of before (what the trade
+  costs beyond what the engine already sees), and with the clocks as a
+  further stratum (his against the opponent's: 30 seconds or more ahead,
+  within 30 seconds, 30 or more behind); each kind counted apart against
+  keeping the pieces; how often the players traded; and the win% the trades
+  and the moves that keep the pieces gave away.
 
 ## Running it
 
