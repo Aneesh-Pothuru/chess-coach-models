@@ -2872,7 +2872,7 @@ const COMMENT_TEMPLATES = [
     run: ([y, fact, line], e) => [e.san(y, e.M.F0, e.M.bestUci), fact ? e.clauses(fact, e.M.attBest) : [], line ? checkLine(line.split(' '), e.M.F0, e.shown, e.surface, line) : []],
   },
   { re: new RegExp(String.raw`${TOKR} was the only move that held\.`, 'g'), run: ([y], e) => [e.san(y, e.M.F0, e.M.bestUci), claim('engine_claim', e.surface, e.shown, e.whole, U('only-move verdict: engine, not on the board'))] },
-  { re: /The eval moved to ([^.]*)\./g, run: ([v], e) => [claim('eval', e.surface, e.shown, e.whole, evalCheck(v, e.M.after, e.M.mover))] },
+  { re: /The eval moved to (\S+)\.(?=\s|$)/g, run: ([v], e) => [claim('eval', e.surface, e.shown, e.whole, evalCheck(v, e.M.after, e.M.mover))] },
   { re: new RegExp(String.raw`${TOKR} takes you from ([^.]*?)(?: \(about \d+% of your winning chances\))?\.`, 'g'), run: ([x], e) => [e.san(x, e.M.F0, e.M.playedUci), claim('engine_claim', e.surface, e.shown, e.whole, U('eval words: not on the board'))] },
   { re: new RegExp(String.raw`${TOKR} costs you about \d+% of your winning chances\.`, 'g'), run: ([x], e) => [e.san(x, e.M.F0, e.M.playedUci), claim('percent', e.surface, e.shown, e.whole, U('percentage: excluded'), { excluded: true })] },
   { re: new RegExp(String.raw`${TOKR} is slightly loose(?:: it costs you about \d+% of your winning chances)?\.`, 'g'), run: ([x], e) => [e.san(x, e.M.F0, e.M.playedUci)] },
