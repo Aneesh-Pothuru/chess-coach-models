@@ -201,6 +201,13 @@ allowance for the fanless machine, and cache size extrapolated from the slice.
 This is a projection, not a sustained thermal benchmark. Other projects
 share this machine, so the full run may take longer; worker count stays at two.
 
+`run-phase2.mjs` runs the stages below in order, records their elapsed time,
+and checks that the analysis source and inputs stay fixed. Its private state
+and worker journals let an interrupted run resume without starting another
+pair beside surviving workers. It writes aggregate runtime reports after the
+fit. The controller and journal recovery were added before the full run;
+they do not change the instruments or the rule.
+
 The review timing invocation also lowered the coordinator's priority before
 its workers ran `nice -n 10`; that reduced their priority twice. The commands
 below leave the lightweight coordinator at its normal priority and apply
@@ -255,6 +262,7 @@ check helps expose that selection but cannot remove it.
 | `evidence.mjs`, `review-one.mts`, `events.mjs` | Rebuild routine evidence through the app service and extract the predecessor's event definition. |
 | `count.mjs` | Writes aggregate counts, timing and cost, without scoring effects. |
 | `fit.mjs` | Phase 2 only: applies the fixed rule, after an explicit `--phase2`. |
+| `run-phase2.mjs` | Runs phase 2 in order with two heavy workers, resumable private state and aggregate stage timings. |
 | `tests.mjs` | Synthetic checks for side mapping, ties, Holm, event weighting and the guard; never reads the player's data. |
 | `call-sites.md` | Conversion callers and later port scope. |
 | `paper/` | Protocol paper and checked number generator; no TeX build here. |
@@ -277,6 +285,14 @@ bridge/run.sh projects/maia-player-offsets/tests.mjs
 ```
 
 Phase 2, after review of this commit (no new grid choices):
+
+The controller runs the commands below and resumes them after interruption:
+
+```bash
+bridge/run.sh projects/maia-player-offsets/run-phase2.mjs --run
+```
+
+Its read-only status is available with `--status`. The equivalent stages are:
 
 ```bash
 for k in 0 1; do
