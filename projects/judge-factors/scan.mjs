@@ -2,13 +2,12 @@ import { appendFileSync, existsSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { Chess } from 'chess.js'
 import { chess, privateDir } from '../../bridge/lib/chess.mjs'
-import { DRILL_FACTORS, PROJECT, READINGS, WORST_PIECE_LEAN, argOf, mulberry32, readJsonl, seedOf, shardOf } from './lib.mjs'
+import { DRILL_FACTORS, MIN_LEGAL_MOVES, PROJECT, READINGS, WORST_PIECE_LEAN, argOf, mulberry32, readJsonl, seedOf, shardOf } from './lib.mjs'
 
 const D = await chess('src/services/publishing/decks/evalDeck.ts')
 const { LEAN_CP } = await chess('src/services/exercises/families/judge.ts')
 const K = await chess('src/services/knowledge/index.ts')
 
-const MIN_LEGAL_MOVES = 4
 const month = argOf('--month')
 if (!month) throw new Error('--month is required')
 const { i: shard, n: shards } = shardOf(argOf('--shard', '0/1'))

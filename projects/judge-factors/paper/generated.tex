@@ -1,0 +1,322 @@
+% Written by projects/judge-factors/paper/generate.mjs; do not edit by hand.
+
+\newcommand{\AppCommit}{f4bd63f19b}
+\newcommand{\LeanCp}{80}
+\newcommand{\TwiceLeanCp}{160}
+\newcommand{\WorstLean}{three}
+\newcommand{\TwiceWorstLean}{six}
+\newcommand{\LevelCp}{50}
+\newcommand{\ClearCp}{150}
+\newcommand{\PlyFloor}{12}
+\newcommand{\TacticBar}{one}
+\newcommand{\BudgetNodes}{250,000}
+\newcommand{\Cap}{3,000}
+\newcommand{\MinHeldout}{200}
+\newcommand{\ReliablePct}{67}
+\newcommand{\BandLow}{1250--1449}
+\newcommand{\BandHigh}{1450--1649}
+\newcommand{\RatingLow}{1250}
+\newcommand{\RatingHigh}{1649}
+\newcommand{\WShield}{25}
+\newcommand{\WRingAttacker}{12}
+\newcommand{\WHalfOpenFile}{20}
+\newcommand{\WOpenFile}{30}
+\newcommand{\WMobility}{4}
+\newcommand{\WSpace}{4}
+\newcommand{\WDoubled}{15}
+\newcommand{\WIsolated}{20}
+\newcommand{\WPassed}{20}
+\newcommand{\WPassedRank}{12}
+\newcommand{\GamesPerMonth}{8,000}
+\newcommand{\Minutes}{10}
+\newcommand{\MinPlies}{30}
+\newcommand{\TrainRead}{247,185}
+\newcommand{\HeldRead}{215,414}
+\newcommand{\TrainRapid}{34,809}
+\newcommand{\HeldRapid}{35,069}
+\newcommand{\TrainPositions}{566,133}
+\newcommand{\HeldPositions}{570,663}
+\newcommand{\TrainLater}{470,133}
+\newcommand{\HeldLater}{474,663}
+\newcommand{\TrainQualifying}{103,668}
+\newcommand{\HeldQualifying}{105,341}
+\newcommand{\TrainQualifyingPct}{22}
+\newcommand{\HeldQualifyingPct}{22}
+\newcommand{\TrainLevelDrop}{62}
+\newcommand{\HeldLevelDrop}{62}
+\newcommand{\TrainTactical}{28,750}
+\newcommand{\HeldTactical}{29,422}
+\newcommand{\Rows}{23,253}
+\newcommand{\Unique}{21,266}
+\newcommand{\KingTrainKept}{1,852}
+\newcommand{\KingHeldKept}{1,919}
+\newcommand{\KingTrainLeans}{1,852}
+\newcommand{\KingHeldLeans}{1,919}
+\newcommand{\KingVerdict}{tells who is better}
+\newcommand{\KingTrain}{77.2 (74.1--80.1)}
+\newcommand{\KingTrainN}{747}
+\newcommand{\KingTrainPct}{77.2}
+\newcommand{\KingTrainLevel}{29}
+\newcommand{\KingTrainClear}{40}
+\newcommand{\KingHeld}{81.2 (78.1--83.8)}
+\newcommand{\KingHeldN}{732}
+\newcommand{\KingHeldPct}{81.2}
+\newcommand{\KingHeldLevel}{30}
+\newcommand{\KingHeldClear}{38}
+\newcommand{\ActivityTrainKept}{3,000}
+\newcommand{\ActivityHeldKept}{3,000}
+\newcommand{\ActivityTrainLeans}{3,667}
+\newcommand{\ActivityHeldLeans}{3,634}
+\newcommand{\ActivityVerdict}{tells who is better}
+\newcommand{\ActivityTrain}{81.7 (78.8--84.3)}
+\newcommand{\ActivityTrainN}{776}
+\newcommand{\ActivityTrainPct}{81.7}
+\newcommand{\ActivityTrainLevel}{35}
+\newcommand{\ActivityTrainClear}{26}
+\newcommand{\ActivityHeld}{82.3 (79.6--84.8)}
+\newcommand{\ActivityHeldN}{826}
+\newcommand{\ActivityHeldPct}{82.3}
+\newcommand{\ActivityHeldLevel}{37}
+\newcommand{\ActivityHeldClear}{28}
+\newcommand{\StructureTrainKept}{723}
+\newcommand{\StructureHeldKept}{759}
+\newcommand{\StructureTrainLeans}{723}
+\newcommand{\StructureHeldLeans}{759}
+\newcommand{\StructureVerdict}{tells who is better}
+\newcommand{\StructureTrain}{63.0 (58.1--67.7)}
+\newcommand{\StructureTrainN}{384}
+\newcommand{\StructureTrainPct}{63.0}
+\newcommand{\StructureTrainLevel}{26}
+\newcommand{\StructureTrainClear}{53}
+\newcommand{\StructureHeld}{68.9 (64.2--73.2)}
+\newcommand{\StructureHeldN}{405}
+\newcommand{\StructureHeldPct}{68.9}
+\newcommand{\StructureHeldLevel}{25}
+\newcommand{\StructureHeldClear}{53}
+\newcommand{\LooseTrainKept}{3,000}
+\newcommand{\LooseHeldKept}{3,000}
+\newcommand{\LooseTrainLeans}{4,548}
+\newcommand{\LooseHeldLeans}{4,599}
+\newcommand{\LooseVerdict}{tells who is better}
+\newcommand{\LooseTrain}{92.6 (91.1--93.9)}
+\newcommand{\LooseTrainN}{1,409}
+\newcommand{\LooseTrainPct}{92.6}
+\newcommand{\LooseTrainLevel}{21}
+\newcommand{\LooseTrainClear}{47}
+\newcommand{\LooseHeld}{92.9 (91.5--94.2)}
+\newcommand{\LooseHeldN}{1,388}
+\newcommand{\LooseHeldPct}{92.9}
+\newcommand{\LooseHeldLevel}{20}
+\newcommand{\LooseHeldClear}{46}
+\newcommand{\WorstTrainKept}{3,000}
+\newcommand{\WorstHeldKept}{3,000}
+\newcommand{\WorstTrainLeans}{3,168}
+\newcommand{\WorstHeldLeans}{3,206}
+\newcommand{\WorstVerdict}{tells who is better}
+\newcommand{\WorstTrain}{71.5 (68.7--74.1)}
+\newcommand{\WorstTrainN}{1,055}
+\newcommand{\WorstTrainPct}{71.5}
+\newcommand{\WorstTrainLevel}{34}
+\newcommand{\WorstTrainClear}{35}
+\newcommand{\WorstHeld}{74.2 (71.4--76.8)}
+\newcommand{\WorstHeldN}{1,023}
+\newcommand{\WorstHeldPct}{74.2}
+\newcommand{\WorstHeldLevel}{35}
+\newcommand{\WorstHeldClear}{34}
+\newcommand{\RuleTable}{%
+\begin{table}[ht]\centering\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{llrrrrll}
+\toprule
+ & & \multicolumn{2}{c}{Train} & \multicolumn{2}{c}{Held out} & & \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+Reading & Leans at & Clear & Agreement, \% & Clear & Agreement, \% & Verdict & Reliable \\
+\midrule
+King safety & 80 cp & 747 & 77.2 (74.1--80.1) & 732 & 81.2 (78.1--83.8) & tells who is better & yes \\
+Activity and space & 80 cp & 776 & 81.7 (78.8--84.3) & 826 & 82.3 (79.6--84.8) & tells who is better & yes \\
+Pawn structure & 80 cp & 384 & 63.0 (58.1--67.7) & 405 & 68.9 (64.2--73.2) & tells who is better & no \\
+Something loose & 80 cp & 1,409 & 92.6 (91.1--93.9) & 1,388 & 92.9 (91.5--94.2) & tells who is better & yes \\
+The worst piece & 3 moves & 1,055 & 71.5 (68.7--74.1) & 1,023 & 74.2 (71.4--76.8) & tells who is better & yes \\
+\bottomrule
+\end{tabular}
+\caption{Each reading's agreement with the engine: of its positions with a clear verdict (\emph{Clear}), the share where the side the reading favours is the side Stockfish says is better, with the 95\% Wilson interval. The verdict, and whether the reading is reliable on its own, are the rule's, fixed before any position was scored.}
+\label{tab:rule}
+\end{table}
+}
+\newcommand{\DescTable}{%
+\begin{table}[ht]\centering\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ & \multicolumn{2}{c}{Engine's verdict} & \multicolumn{2}{c}{Band} & \multicolumn{3}{c}{Phase} & \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-8}
+Reading & Level & Clear & 1250--1449 & 1450--1649 & Opening & Middle & End & Twice the lean \\
+\midrule
+King safety & 30 & 38 & 81 (340) & 82 (392) & 78 (136) & 82 (541) & 82 (55) & 97 (32) \\
+Activity and space & 37 & 28 & 80 (389) & 84 (437) & 79 (248) & 84 (473) & 84 (105) & -- (18) \\
+Pawn structure & 25 & 53 & 65 (182) & 72 (223) & -- (6) & 65 (122) & 71 (277) & 69 (49) \\
+Something loose & 20 & 46 & 94 (621) & 92 (767) & 92 (338) & 93 (737) & 94 (313) & -- (0) \\
+The worst piece & 35 & 34 & 75 (449) & 74 (574) & -- (11) & 76 (630) & 71 (382) & 74 (148) \\
+\bottomrule
+\end{tabular}
+\caption{Held-out positions only. \emph{Level} and \emph{Clear}: the share of a reading's positions the engine calls level or clear. The other columns give the agreement, with the number of clear positions in brackets, by the band of the two players' mean rating, by the divider's phase, and where the reading is at least twice its lean; a cell with fewer than 30 clear positions shows only its count. These were named before the run and carry no rule.}
+\label{tab:desc}
+\end{table}
+}
+\newcommand{\ResultTable}{%
+\begin{table}[ht]\centering\small
+\begin{tabular}{lrrr}
+\toprule
+Reading & Decisive games & Reading's side won & Engine's side won \\
+\midrule
+King safety & 700 & 64 (60--67) & 69 (65--72) \\
+Activity and space & 790 & 64 (61--68) & 70 (67--73) \\
+Pawn structure & 375 & 65 (60--69) & 78 (74--82) \\
+Something loose & 1,318 & 67 (64--69) & 70 (67--72) \\
+The worst piece & 975 & 63 (60--66) & 72 (69--75) \\
+\bottomrule
+\end{tabular}
+\caption{Held-out positions with a clear verdict from games that ended in a win: how often the side the reading favours won the game, beside how often the side the engine favours won it, with 95\% Wilson intervals.}
+\label{tab:result}
+\end{table}
+}
+\newcommand{\SumTrain}{82.5 (81.3--83.7)}
+\newcommand{\SumHeld}{83.8 (82.6--84.9)}
+\newcommand{\SumTrainN}{3,838}
+\newcommand{\SumHeldN}{3,813}
+\newcommand{\LogTrain}{84.5}
+\newcommand{\LogHeld}{85.6}
+\newcommand{\LogTrainN}{3,848}
+\newcommand{\LogHeldN}{3,820}
+\newcommand{\KingWeight}{0.96}
+\newcommand{\ActivityWeight}{1.48}
+\newcommand{\StructureWeight}{0.52}
+\newcommand{\LooseWeight}{2.41}
+\newcommand{\WorstWeight}{0.06}
+\newcommand{\Ranked}{something loose (\LooseHeldPct\%), activity and space (\ActivityHeldPct\%), king safety (\KingHeldPct\%), the worst piece (\WorstHeldPct\%), then pawn structure (\StructureHeldPct\%)}
+\newcommand{\LevelMin}{20}
+\newcommand{\LevelMax}{37}
+\newcommand{\KingTwiceHeld}{97}
+\newcommand{\KingTwiceHeldN}{32}
+\newcommand{\ActivityTwiceHeld}{94}
+\newcommand{\ActivityTwiceHeldN}{18}
+\newcommand{\StructureTwiceHeld}{69}
+\newcommand{\StructureTwiceHeldN}{49}
+\newcommand{\WorstTwiceHeld}{74}
+\newcommand{\WorstTwiceHeldN}{148}
+\newcommand{\WonMin}{63}
+\newcommand{\WonMax}{67}
+\newcommand{\StructureWon}{65}
+\newcommand{\StructureEngineWon}{78}
+\newcommand{\MoverTrain}{64.1 (62.0--66.1)}
+\newcommand{\MoverHeld}{65.8 (63.7--67.8)}
+\newcommand{\MoverHeldN}{2,074}
+\newcommand{\WhiteHeld}{58}
+\newcommand{\MoverHeldPct}{66}
+\newcommand{\ForMoverMin}{90}
+\newcommand{\ForMoverMax}{98}
+\newcommand{\KingForOther}{61}
+\newcommand{\KingForOtherTrain}{58}
+\newcommand{\KingAlone}{78}
+\newcommand{\ActivityForOther}{65}
+\newcommand{\ActivityForOtherTrain}{65}
+\newcommand{\ActivityAlone}{82}
+\newcommand{\StructureForOther}{45}
+\newcommand{\StructureForOtherTrain}{39}
+\newcommand{\StructureAlone}{75}
+\newcommand{\LooseForOther}{--}
+\newcommand{\LooseForOtherTrain}{--}
+\newcommand{\LooseAlone}{95}
+\newcommand{\WorstForOther}{51}
+\newcommand{\WorstForOtherTrain}{51}
+\newcommand{\WorstAlone}{74}
+\newcommand{\SideTable}{%
+\begin{table}[ht]\centering\small
+\begin{tabular}{lrrrr}
+\toprule
+ & & \multicolumn{3}{c}{Agreement, \%} \\
+\cmidrule(lr){3-5}
+Reading & Favours the mover & For the mover & For the other side & Only sign \\
+\midrule
+King safety & 42 & 96 (93--97) & 61 (55--66) & 78 (74--82) \\
+Activity and space & 38 & 98 (96--99) & 65 (60--69) & 82 (79--85) \\
+Pawn structure & 47 & 90 (85--93) & 45 (38--52) & 75 (69--80) \\
+Something loose & 100 & 93 (91--94) & -- & 95 (94--97) \\
+The worst piece & 43 & 93 (91--95) & 51 (47--56) & 74 (69--78) \\
+\bottomrule
+\end{tabular}
+\caption{Added after the run; held-out positions. \emph{Favours the mover}: the share of a reading's positions where it favours the side to move. The agreement, with 95\% Wilson intervals, when it favours the side to move, when it favours the side that just moved, and when no other drill factor leans.}
+\label{tab:side}
+\end{table}
+}
+\newcommand{\LooseOverStructure}{81}
+\newcommand{\LooseOverStructureN}{101}
+\newcommand{\LooseOverStructureTrain}{85}
+\newcommand{\LooseOverActivity}{66}
+\newcommand{\LooseOverActivityN}{96}
+\newcommand{\LooseOverActivityTrain}{65}
+\newcommand{\LooseOverWorst}{81}
+\newcommand{\LooseOverWorstN}{166}
+\newcommand{\LooseOverWorstTrain}{77}
+\newcommand{\LooseOverKing}{64}
+\newcommand{\LooseOverKingN}{88}
+\newcommand{\LooseOverKingTrain}{60}
+\newcommand{\ActivityOverStructure}{75}
+\newcommand{\ActivityOverStructureN}{24}
+\newcommand{\ActivityOverStructureTrain}{82}
+\newcommand{\ConflictTable}{%
+\begin{table}[ht]\centering\small
+\begin{tabular}{llrrrr}
+\toprule
+ & & \multicolumn{2}{c}{Train} & \multicolumn{2}{c}{Held out} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+First & against & $n$ & Sides with the first & $n$ & Sides with the first \\
+\midrule
+King safety & activity and space & 33 & 36 (22--53) & 32 & 44 (28--61) \\
+King safety & pawn structure & 19 & 79 (57--91) & 9 & 56 (27--81) \\
+King safety & something loose & 83 & 40 (30--51) & 88 & 36 (27--47) \\
+King safety & the worst piece & 66 & 56 (44--67) & 55 & 64 (50--75) \\
+Activity and space & pawn structure & 34 & 82 (66--92) & 24 & 75 (55--88) \\
+Activity and space & something loose & 111 & 35 (27--44) & 96 & 34 (26--44) \\
+Activity and space & the worst piece & 9 & 89 (56--98) & 8 & 75 (41--93) \\
+Pawn structure & something loose & 114 & 15 (10--23) & 101 & 19 (12--28) \\
+Pawn structure & the worst piece & 138 & 49 (41--58) & 120 & 50 (41--59) \\
+Something loose & the worst piece & 163 & 77 (70--83) & 166 & 81 (75--87) \\
+\bottomrule
+\end{tabular}
+\caption{Added after the run. The distinct positions with a clear verdict where both readings lean, in opposite directions: the share where the engine sides with the first, with 95\% Wilson intervals.}
+\label{tab:conflict}
+\end{table}
+}
+\newcommand{\MoveLogTrain}{86.1}
+\newcommand{\MoveLogHeld}{87.7}
+\newcommand{\MinLegal}{four}
+\newcommand{\EaFen}{\fen{1r2k2r/p1p2ppp/4b3/2b1p3/3n1q2/3P1B1P/PPP2P2/RN1QK1NR w KQk - 0 13}}
+\newcommand{\EaMover}{White}
+\newcommand{\EaOther}{Black}
+\newcommand{\EaPawns}{3.9}
+\newcommand{\EaBetter}{Black}
+\newcommand{\EaValue}{204}
+\newcommand{\EaFavours}{Black}
+\newcommand{\EaLine}{13.~b3 e4 14.~\symbishop{}xe4 \symknight{}xb3}
+\newcommand{\EaBoard}{%
+\chessboard[setfen={1r2k2r/p1p2ppp/4b3/2b1p3/3n1q2/3P1B1P/PPP2P2/RN1QK1NR w KQk - 0 13}, boardfontsize=14pt]
+}
+\newcommand{\EaWhiteMoves}{25}
+\newcommand{\EaBlackMoves}{61}
+\newcommand{\EaWhiteSpace}{5}
+\newcommand{\EaBlackSpace}{20}
+\newcommand{\EbFen}{\fen{8/8/4p1k1/p5pp/1P2N3/6K1/8/8 w - - 0 36}}
+\newcommand{\EbMover}{White}
+\newcommand{\EbOther}{Black}
+\newcommand{\EbPawns}{5.9}
+\newcommand{\EbBetter}{White}
+\newcommand{\EbValue}{211}
+\newcommand{\EbFavours}{Black}
+\newcommand{\EbLine}{36.~bxa5 \symking{}f5 37.~a6 h4+}
+\newcommand{\EbBoard}{%
+\chessboard[setfen={8/8/4p1k1/p5pp/1P2N3/6K1/8/8 w - - 0 36}, boardfontsize=14pt]
+}
+\newcommand{\EbPassers}{three}
+\newcommand{\EbMoverPassers}{zero}
+\newcommand{\EbMoverIsolated}{one}

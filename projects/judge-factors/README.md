@@ -8,8 +8,23 @@ loose), each scored by board code in centipawns. When material is level, does
 each of the other readings point to the side Stockfish says is better, in the
 positions players at his level reach?
 
-**The answer.** Not run yet. The rule below was committed before any position
-was scored.
+**The answer.** Yes, all five. With material level, each reading points to the
+side Stockfish says is better on both months, so by the rule below each tells
+who is better, and no factor's sign is backwards. Something loose, activity and
+space, king safety and the worst piece are also reliable on their own; pawn
+structure, right about two times in three, falls short of that bar. Weighed
+together they name the better side in most positions with a clear verdict.
+
+Added after the run: whose move it is matters too. Where nothing is loose, the
+side to move is the better side in about two clear positions in three. A
+reading that favours the side to move is nearly always right, while pawn
+structure and the worst piece are no better than a coin when they favour the
+side that just moved. When two readings disagree, a loose pawn usually wins and
+pawn structure usually loses. So the drill keeps its factors, can teach pawn
+structure as a tie-breaker, and could name the move as a reason, which needs
+its own round on his cards. The numbers are in
+[`results/judge-factors.md`](results/judge-factors.md) and the
+[paper](paper/paper.pdf).
 
 A reading that points to the better side is worth teaching as a reason, in the
 drill and in the review. One that does not would teach him to trust a sign
@@ -105,6 +120,23 @@ adds to material by construction.
   the train month, with its held-out accuracy and each reading's weight. It
   only describes.
 
+## Added after the run
+
+Once the verdicts were read, `analyze.mjs` gained descriptions the list above
+did not name. They describe these positions and test nothing:
+
+- the share of clear positions where the engine's side is White, and where it
+  is the side to move when something loose does not lean;
+- for each reading, how often it favours the side to move, and its agreement
+  when it does, when it favours the side that just moved, and when no other
+  drill factor leans;
+- for each pair of readings that lean opposite ways, the share where the engine
+  sides with each;
+- the logistic model again, with the side to move as a sixth input.
+
+The rule's verdicts and the descriptions named before the run are unchanged by
+them.
+
 ## Caveats
 
 - **Not his games.** The positions are Lichess players at his band and the
@@ -132,7 +164,9 @@ model judges anything here.
 | `stream.py` | Streams a month of the Lichess database and keeps the games that enter (`private/judge-factors/games-<month>.jsonl.gz`), with a summary beside them. |
 | `scan.mjs` | Replays each game through the app's code, reads every position of the drill's population and draws each reading's position for the game (`private/judge-factors/positions-<month>-<i>-of-<n>.jsonl`). |
 | `verdict.mjs` | Scores each distinct position with Stockfish through the app's engine service, one shard at a time, resuming where a shard stopped (`private/judge-factors/verdicts-<i>-of-<n>.jsonl`). |
-| `analyze.mjs` | Applies the rule and the descriptions; writes `results/judge-factors.json` and `results/judge-factors.md`. |
+| `analyze.mjs` | Applies the rule and the descriptions, and those added after the run; writes `results/judge-factors.json` and `results/judge-factors.md`. |
+| `paper/generate.mjs` | Writes every number, table and position the paper prints into `paper/generated.tex`, from the results, the private rows and the app's constants, and refuses when a claim no longer holds. It asks the engine again for the two positions' lines. |
+| `paper/paper.tex` | The paper; `paper/paper.pdf` is compiled from it. |
 
 ## Running it
 
@@ -145,4 +179,6 @@ for m in 2026-08 2026-09; do
 done
 for i in 0 1 2 3; do bridge/run.sh projects/judge-factors/verdict.mjs --shard $i/4 & done; wait
 bridge/run.sh projects/judge-factors/analyze.mjs
+bridge/run.sh projects/judge-factors/paper/generate.mjs
+(cd projects/judge-factors/paper && latexmk -pdf paper.tex)
 ```

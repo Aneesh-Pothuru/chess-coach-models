@@ -115,14 +115,14 @@ const drillSum = Object.fromEntries(
 const FEATURES = READINGS
 const scaleOf = (f) => (f === 'worstPiece' ? 1 : 100)
 const xOf = (r) => [1, ...FEATURES.map((f) => (r.readings[f] ?? 0) / scaleOf(f))]
-function fitLogistic(list, l2 = 1e-3, iterations = 50) {
-  const k = FEATURES.length + 1
+function fitLogistic(list, features = xOf, l2 = 1e-3, iterations = 50) {
+  const k = features(list[0]).length
   let w = new Array(k).fill(0)
   for (let it = 0; it < iterations; it++) {
     const g = new Array(k).fill(0)
     const h = Array.from({ length: k }, () => new Array(k).fill(0))
     for (const r of list) {
-      const x = xOf(r)
+      const x = features(r)
       const y = r.verdict === 'white' ? 1 : 0
       const p = 1 / (1 + Math.exp(-x.reduce((t, xi, i) => t + xi * w[i], 0)))
       for (let i = 0; i < k; i++) {
@@ -155,8 +155,8 @@ function solve(a, b) {
   }
   return m.map((row, i) => row[n] / row[i])
 }
-const accuracy = (w, list) => {
-  const right = list.filter((r) => (xOf(r).reduce((t, xi, i) => t + xi * w[i], 0) > 0 ? 'white' : 'black') === r.verdict).length
+const accuracy = (w, list, features = xOf) => {
+  const right = list.filter((r) => (features(r).reduce((t, xi, i) => t + xi * w[i], 0) > 0 ? 'white' : 'black') === r.verdict).length
   return { k: right, n: list.length, share: round(right / list.length) }
 }
 const weights = fitLogistic(clearUnique('train'))
@@ -166,6 +166,53 @@ const logistic = {
   intercept: round(weights[0]),
   weights: Object.fromEntries(FEATURES.map((f, i) => [f, round(weights[i + 1])])),
   accuracy: Object.fromEntries(SPLITS.map((s) => [s, accuracy(weights, clearUnique(s))])),
+}
+
+const sideOf = (r) => (r.fen.split(' ')[1] === 'w' ? 'white' : 'black')
+const sideFor = (x) => (x > 0 ? 'white' : 'black')
+const leansIn = (r, f) => (f === 'worstPiece' ? r.readings.worstPiece !== null && Math.abs(r.readings.worstPiece) >= WORST_PIECE_LEAN : Math.abs(r.readings[f]) >= LEAN_CP)
+const isClear = (r) => r.verdict === 'white' || r.verdict === 'black'
+const pack = (w) => ({ k: w.k, n: w.n, share: round(w.share), ci: w.ci ? w.ci.map((x) => round(x)) : null })
+const agreeOn = (list, f) => pack(wilson(list.filter((r) => r.verdict === sideFor(r.readings[f])).length, list.length))
+const xMove = (r) => [...xOf(r), sideOf(r) === 'white' ? 1 : -1]
+const weightsMove = fitLogistic(clearUnique('train'), xMove)
+const added = {
+  note: 'Added after the run, once the verdicts were read: not among the descriptions the README named before it.',
+  baseline: Object.fromEntries(
+    SPLITS.map((s) => {
+      const clear = clearUnique(s)
+      const quiet = clear.filter((r) => !leansIn(r, 'threats'))
+      return [s, { white: pack(wilson(clear.filter((r) => r.verdict === 'white').length, clear.length)), sideToMoveWhenNothingLoose: pack(wilson(quiet.filter((r) => r.verdict === sideOf(r)).length, quiet.length)) }]
+    }),
+  ),
+  bySideToMove: Object.fromEntries(
+    READINGS.map((f) => [
+      f,
+      Object.fromEntries(
+        SPLITS.map((s) => {
+          const mineRows = rows.filter((r) => r.reading === f && r.split === s)
+          const clear = mineRows.filter(isClear)
+          return [s, { favoursMover: round(mineRows.filter((r) => sideFor(r.value) === sideOf(r)).length / mineRows.length), forMover: agreeOn(clear.filter((r) => sideFor(r.value) === sideOf(r)), f), forOther: agreeOn(clear.filter((r) => sideFor(r.value) !== sideOf(r)), f) }]
+        }),
+      ),
+    ]),
+  ),
+  alone: Object.fromEntries(
+    READINGS.map((f) => [f, Object.fromEntries(SPLITS.map((s) => [s, agreeOn(rows.filter((r) => r.reading === f && r.split === s && isClear(r) && DRILL_FACTORS.filter((g) => g !== f).every((g) => !leansIn(r, g))), f)]))]),
+  ),
+  conflicts: READINGS.flatMap((f, i) =>
+    READINGS.slice(i + 1).map((g) => ({
+      first: f,
+      second: g,
+      ...Object.fromEntries(SPLITS.map((s) => [s, agreeOn(clearUnique(s).filter((r) => leansIn(r, f) && leansIn(r, g) && sideFor(r.readings[f]) !== sideFor(r.readings[g])), f)])),
+    })),
+  ),
+  logisticWithMove: {
+    features: [...FEATURES, 'whiteToMove'],
+    intercept: round(weightsMove[0]),
+    weights: Object.fromEntries([...FEATURES, 'whiteToMove'].map((f, i) => [f, round(weightsMove[i + 1])])),
+    accuracy: Object.fromEntries(SPLITS.map((s) => [s, accuracy(weightsMove, clearUnique(s), xMove)])),
+  },
 }
 
 const scans = Object.fromEntries(
@@ -193,6 +240,7 @@ const report = {
   readings: perReading,
   drillSum,
   logistic,
+  added,
 }
 writeFileSync(join(results, 'judge-factors.json'), JSON.stringify(report, null, 2) + '\n')
 
@@ -218,6 +266,18 @@ const md = [
   }),
   `- The drill's sum of the four factors favours the engine's side in ${ci(drillSum.train)} of train positions and ${ci(drillSum.heldout)} held out.`,
   `- A logistic model of the clear verdict on all five readings, fitted on train: accuracy ${pct(logistic.accuracy.train.share)} on train and ${pct(logistic.accuracy.heldout.share)} held out; weights ${FEATURES.map((f) => `${NAMES[f].toLowerCase()} ${logistic.weights[f]} ${logistic.scale[f]}`).join(', ')}.`,
+  '',
+  '## Added after the run',
+  '',
+  `${added.note} Held-out positions.`,
+  '',
+  `- The engine's side is White in ${ci(added.baseline.heldout.white)} of clear positions, and the side to move in ${ci(added.baseline.heldout.sideToMoveWhenNothingLoose)} of those where something loose does not lean.`,
+  ...READINGS.map((r) => {
+    const x = added.bySideToMove[r].heldout
+    return `- ${NAMES[r]} favours the side to move in ${pct(x.favoursMover)} of its positions; agreement when it does ${ci(x.forMover)}, when it favours the other side ${ci(x.forOther)}; when no other drill factor leans ${ci(added.alone[r].heldout)}.`
+  }),
+  ...added.conflicts.filter((c) => c.heldout.n > 0).map((c) => `- ${NAMES[c.first]} against ${NAMES[c.second].toLowerCase()}, both leaning opposite ways: the engine sides with ${NAMES[c.first].toLowerCase()} in ${ci(c.heldout)}.`),
+  `- With the side to move as a sixth input, the logistic model's accuracy is ${pct(added.logisticWithMove.accuracy.train.share)} on train and ${pct(added.logisticWithMove.accuracy.heldout.share)} held out; the move weighs ${added.logisticWithMove.weights.whiteToMove} for White to move.`,
   '',
 ]
 writeFileSync(join(results, 'judge-factors.md'), md.join('\n'))

@@ -1,0 +1,1765 @@
+{
+  "question": "With material level, does each of the Judge the position drill's other readings point to the side Stockfish says is better, on Lichess 10-minute games at his band and the band above?",
+  "app": {
+    "commit": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a"
+  },
+  "design": {
+    "months": {
+      "train": "2026-08",
+      "heldout": "2026-09"
+    },
+    "budget": "grade",
+    "leanCp": 80,
+    "worstPieceLean": 3,
+    "cap": 3000,
+    "levelCp": 50,
+    "clearCp": 150,
+    "minHeldout": 200,
+    "reliable": 0.6667
+  },
+  "scans": {
+    "train": {
+      "month": "2026-08",
+      "games": 8000,
+      "gamesRead": 247185,
+      "positions": 566133,
+      "qualifying": 103668,
+      "drops": {
+        "notPlayable": 47446,
+        "materialNotLevel": 290269,
+        "tactical": 28750,
+        "noRead": 0,
+        "tooEarly": 96000
+      },
+      "gamesWithLean": {
+        "kingSafety": 1852,
+        "activity": 3667,
+        "structure": 723,
+        "threats": 4548,
+        "worstPiece": 3168
+      },
+      "kept": {
+        "kingSafety": 1852,
+        "activity": 3000,
+        "structure": 723,
+        "threats": 3000,
+        "worstPiece": 3000
+      }
+    },
+    "heldout": {
+      "month": "2026-09",
+      "games": 8000,
+      "gamesRead": 215414,
+      "positions": 570663,
+      "qualifying": 105341,
+      "drops": {
+        "notPlayable": 47754,
+        "materialNotLevel": 292146,
+        "tactical": 29422,
+        "noRead": 0,
+        "tooEarly": 96000
+      },
+      "gamesWithLean": {
+        "kingSafety": 1919,
+        "activity": 3634,
+        "structure": 759,
+        "threats": 4599,
+        "worstPiece": 3206
+      },
+      "kept": {
+        "kingSafety": 1919,
+        "activity": 3000,
+        "structure": 759,
+        "threats": 3000,
+        "worstPiece": 3000
+      }
+    }
+  },
+  "positions": {
+    "rows": 23253,
+    "unique": 21266
+  },
+  "readings": {
+    "kingSafety": {
+      "lean": 80,
+      "verdict": "tells who is better",
+      "reliable": true,
+      "agreement": {
+        "train": {
+          "k": 577,
+          "n": 747,
+          "share": 0.7724,
+          "ci": [
+            0.741,
+            0.8011
+          ]
+        },
+        "heldout": {
+          "k": 594,
+          "n": 732,
+          "share": 0.8115,
+          "ci": [
+            0.7815,
+            0.8382
+          ]
+        }
+      },
+      "verdicts": {
+        "train": {
+          "n": 1852,
+          "level": 0.2894,
+          "clear": 0.4033,
+          "neither": 0.3072
+        },
+        "heldout": {
+          "n": 1919,
+          "level": 0.2986,
+          "clear": 0.3814,
+          "neither": 0.32
+        }
+      },
+      "byBand": {
+        "train": {
+          "1250-1449": {
+            "k": 270,
+            "n": 353,
+            "share": 0.7649,
+            "ci": [
+              0.7179,
+              0.8061
+            ]
+          },
+          "1450-1649": {
+            "k": 307,
+            "n": 394,
+            "share": 0.7792,
+            "ci": [
+              0.7356,
+              0.8173
+            ]
+          }
+        },
+        "heldout": {
+          "1250-1449": {
+            "k": 274,
+            "n": 340,
+            "share": 0.8059,
+            "ci": [
+              0.7605,
+              0.8444
+            ]
+          },
+          "1450-1649": {
+            "k": 320,
+            "n": 392,
+            "share": 0.8163,
+            "ci": [
+              0.775,
+              0.8515
+            ]
+          }
+        }
+      },
+      "byPhase": {
+        "train": {
+          "endgame": {
+            "k": 67,
+            "n": 94,
+            "share": 0.7128,
+            "ci": [
+              0.6144,
+              0.7945
+            ]
+          },
+          "middlegame": {
+            "k": 393,
+            "n": 501,
+            "share": 0.7844,
+            "ci": [
+              0.7463,
+              0.8182
+            ]
+          },
+          "opening": {
+            "k": 117,
+            "n": 152,
+            "share": 0.7697,
+            "ci": [
+              0.6967,
+              0.8295
+            ]
+          }
+        },
+        "heldout": {
+          "endgame": {
+            "k": 45,
+            "n": 55,
+            "share": 0.8182,
+            "ci": [
+              0.6967,
+              0.8981
+            ]
+          },
+          "middlegame": {
+            "k": 443,
+            "n": 541,
+            "share": 0.8189,
+            "ci": [
+              0.7842,
+              0.849
+            ]
+          },
+          "opening": {
+            "k": 106,
+            "n": 136,
+            "share": 0.7794,
+            "ci": [
+              0.7026,
+              0.8409
+            ]
+          }
+        }
+      },
+      "atTwiceLean": {
+        "train": {
+          "k": 23,
+          "n": 26,
+          "share": 0.8846,
+          "ci": [
+            0.7102,
+            0.96
+          ]
+        },
+        "heldout": {
+          "k": 31,
+          "n": 32,
+          "share": 0.9688,
+          "ci": [
+            0.8426,
+            0.9945
+          ]
+        }
+      },
+      "result": {
+        "train": {
+          "reading": {
+            "k": 457,
+            "n": 715,
+            "share": 0.6392,
+            "ci": [
+              0.6033,
+              0.6735
+            ]
+          },
+          "engine": {
+            "k": 490,
+            "n": 715,
+            "share": 0.6853,
+            "ci": [
+              0.6504,
+              0.7183
+            ]
+          }
+        },
+        "heldout": {
+          "reading": {
+            "k": 448,
+            "n": 700,
+            "share": 0.64,
+            "ci": [
+              0.6038,
+              0.6747
+            ]
+          },
+          "engine": {
+            "k": 482,
+            "n": 700,
+            "share": 0.6886,
+            "ci": [
+              0.6533,
+              0.7218
+            ]
+          }
+        }
+      }
+    },
+    "activity": {
+      "lean": 80,
+      "verdict": "tells who is better",
+      "reliable": true,
+      "agreement": {
+        "train": {
+          "k": 634,
+          "n": 776,
+          "share": 0.817,
+          "ci": [
+            0.7883,
+            0.8426
+          ]
+        },
+        "heldout": {
+          "k": 680,
+          "n": 826,
+          "share": 0.8232,
+          "ci": [
+            0.7958,
+            0.8477
+          ]
+        }
+      },
+      "verdicts": {
+        "train": {
+          "n": 3000,
+          "level": 0.3533,
+          "clear": 0.2587,
+          "neither": 0.388
+        },
+        "heldout": {
+          "n": 3000,
+          "level": 0.3693,
+          "clear": 0.2753,
+          "neither": 0.3553
+        }
+      },
+      "byBand": {
+        "train": {
+          "1250-1449": {
+            "k": 305,
+            "n": 369,
+            "share": 0.8266,
+            "ci": [
+              0.7846,
+              0.8618
+            ]
+          },
+          "1450-1649": {
+            "k": 329,
+            "n": 407,
+            "share": 0.8084,
+            "ci": [
+              0.7673,
+              0.8436
+            ]
+          }
+        },
+        "heldout": {
+          "1250-1449": {
+            "k": 313,
+            "n": 389,
+            "share": 0.8046,
+            "ci": [
+              0.7623,
+              0.841
+            ]
+          },
+          "1450-1649": {
+            "k": 367,
+            "n": 437,
+            "share": 0.8398,
+            "ci": [
+              0.8025,
+              0.8712
+            ]
+          }
+        }
+      },
+      "byPhase": {
+        "train": {
+          "endgame": {
+            "k": 94,
+            "n": 104,
+            "share": 0.9038,
+            "ci": [
+              0.832,
+              0.9469
+            ]
+          },
+          "middlegame": {
+            "k": 381,
+            "n": 454,
+            "share": 0.8392,
+            "ci": [
+              0.8026,
+              0.8701
+            ]
+          },
+          "opening": {
+            "k": 159,
+            "n": 218,
+            "share": 0.7294,
+            "ci": [
+              0.6668,
+              0.784
+            ]
+          }
+        },
+        "heldout": {
+          "endgame": {
+            "k": 88,
+            "n": 105,
+            "share": 0.8381,
+            "ci": [
+              0.7559,
+              0.8964
+            ]
+          },
+          "middlegame": {
+            "k": 395,
+            "n": 473,
+            "share": 0.8351,
+            "ci": [
+              0.799,
+              0.8658
+            ]
+          },
+          "opening": {
+            "k": 197,
+            "n": 248,
+            "share": 0.7944,
+            "ci": [
+              0.7397,
+              0.84
+            ]
+          }
+        }
+      },
+      "atTwiceLean": {
+        "train": {
+          "k": 16,
+          "n": 17,
+          "share": 0.9412,
+          "ci": [
+            0.7302,
+            0.9895
+          ]
+        },
+        "heldout": {
+          "k": 17,
+          "n": 18,
+          "share": 0.9444,
+          "ci": [
+            0.7424,
+            0.9901
+          ]
+        }
+      },
+      "result": {
+        "train": {
+          "reading": {
+            "k": 450,
+            "n": 739,
+            "share": 0.6089,
+            "ci": [
+              0.5733,
+              0.6435
+            ]
+          },
+          "engine": {
+            "k": 493,
+            "n": 739,
+            "share": 0.6671,
+            "ci": [
+              0.6324,
+              0.7002
+            ]
+          }
+        },
+        "heldout": {
+          "reading": {
+            "k": 509,
+            "n": 790,
+            "share": 0.6443,
+            "ci": [
+              0.6103,
+              0.6769
+            ]
+          },
+          "engine": {
+            "k": 552,
+            "n": 790,
+            "share": 0.6987,
+            "ci": [
+              0.6658,
+              0.7297
+            ]
+          }
+        }
+      }
+    },
+    "structure": {
+      "lean": 80,
+      "verdict": "tells who is better",
+      "reliable": false,
+      "agreement": {
+        "train": {
+          "k": 242,
+          "n": 384,
+          "share": 0.6302,
+          "ci": [
+            0.5809,
+            0.677
+          ]
+        },
+        "heldout": {
+          "k": 279,
+          "n": 405,
+          "share": 0.6889,
+          "ci": [
+            0.6422,
+            0.732
+          ]
+        }
+      },
+      "verdicts": {
+        "train": {
+          "n": 723,
+          "level": 0.2559,
+          "clear": 0.5311,
+          "neither": 0.213
+        },
+        "heldout": {
+          "n": 759,
+          "level": 0.2516,
+          "clear": 0.5336,
+          "neither": 0.2148
+        }
+      },
+      "byBand": {
+        "train": {
+          "1250-1449": {
+            "k": 107,
+            "n": 168,
+            "share": 0.6369,
+            "ci": [
+              0.5619,
+              0.7058
+            ]
+          },
+          "1450-1649": {
+            "k": 135,
+            "n": 216,
+            "share": 0.625,
+            "ci": [
+              0.5588,
+              0.6868
+            ]
+          }
+        },
+        "heldout": {
+          "1250-1449": {
+            "k": 119,
+            "n": 182,
+            "share": 0.6538,
+            "ci": [
+              0.5822,
+              0.7191
+            ]
+          },
+          "1450-1649": {
+            "k": 160,
+            "n": 223,
+            "share": 0.7175,
+            "ci": [
+              0.6551,
+              0.7725
+            ]
+          }
+        }
+      },
+      "byPhase": {
+        "train": {
+          "endgame": {
+            "k": 167,
+            "n": 259,
+            "share": 0.6448,
+            "ci": [
+              0.5848,
+              0.7006
+            ]
+          },
+          "middlegame": {
+            "k": 67,
+            "n": 114,
+            "share": 0.5877,
+            "ci": [
+              0.4959,
+              0.6738
+            ]
+          },
+          "opening": {
+            "k": 8,
+            "n": 11,
+            "share": 0.7273,
+            "ci": [
+              0.4344,
+              0.9025
+            ]
+          }
+        },
+        "heldout": {
+          "endgame": {
+            "k": 198,
+            "n": 277,
+            "share": 0.7148,
+            "ci": [
+              0.659,
+              0.7648
+            ]
+          },
+          "middlegame": {
+            "k": 79,
+            "n": 122,
+            "share": 0.6475,
+            "ci": [
+              0.5594,
+              0.7266
+            ]
+          },
+          "opening": {
+            "k": 2,
+            "n": 6,
+            "share": 0.3333,
+            "ci": [
+              0.0968,
+              0.7
+            ]
+          }
+        }
+      },
+      "atTwiceLean": {
+        "train": {
+          "k": 32,
+          "n": 50,
+          "share": 0.64,
+          "ci": [
+            0.5014,
+            0.7586
+          ]
+        },
+        "heldout": {
+          "k": 34,
+          "n": 49,
+          "share": 0.6939,
+          "ci": [
+            0.5547,
+            0.8048
+          ]
+        }
+      },
+      "result": {
+        "train": {
+          "reading": {
+            "k": 209,
+            "n": 353,
+            "share": 0.5921,
+            "ci": [
+              0.5401,
+              0.6421
+            ]
+          },
+          "engine": {
+            "k": 268,
+            "n": 353,
+            "share": 0.7592,
+            "ci": [
+              0.712,
+              0.8009
+            ]
+          }
+        },
+        "heldout": {
+          "reading": {
+            "k": 242,
+            "n": 375,
+            "share": 0.6453,
+            "ci": [
+              0.5957,
+              0.6921
+            ]
+          },
+          "engine": {
+            "k": 293,
+            "n": 375,
+            "share": 0.7813,
+            "ci": [
+              0.7368,
+              0.8202
+            ]
+          }
+        }
+      }
+    },
+    "threats": {
+      "lean": 80,
+      "verdict": "tells who is better",
+      "reliable": true,
+      "agreement": {
+        "train": {
+          "k": 1305,
+          "n": 1409,
+          "share": 0.9262,
+          "ci": [
+            0.9113,
+            0.9387
+          ]
+        },
+        "heldout": {
+          "k": 1290,
+          "n": 1388,
+          "share": 0.9294,
+          "ci": [
+            0.9147,
+            0.9417
+          ]
+        }
+      },
+      "verdicts": {
+        "train": {
+          "n": 3000,
+          "level": 0.206,
+          "clear": 0.4697,
+          "neither": 0.3243
+        },
+        "heldout": {
+          "n": 3000,
+          "level": 0.2007,
+          "clear": 0.4627,
+          "neither": 0.3367
+        }
+      },
+      "byBand": {
+        "train": {
+          "1250-1449": {
+            "k": 585,
+            "n": 639,
+            "share": 0.9155,
+            "ci": [
+              0.8914,
+              0.9347
+            ]
+          },
+          "1450-1649": {
+            "k": 720,
+            "n": 770,
+            "share": 0.9351,
+            "ci": [
+              0.9154,
+              0.9504
+            ]
+          }
+        },
+        "heldout": {
+          "1250-1449": {
+            "k": 583,
+            "n": 621,
+            "share": 0.9388,
+            "ci": [
+              0.9171,
+              0.9551
+            ]
+          },
+          "1450-1649": {
+            "k": 707,
+            "n": 767,
+            "share": 0.9218,
+            "ci": [
+              0.9006,
+              0.9387
+            ]
+          }
+        }
+      },
+      "byPhase": {
+        "train": {
+          "endgame": {
+            "k": 292,
+            "n": 313,
+            "share": 0.9329,
+            "ci": [
+              0.8996,
+              0.9557
+            ]
+          },
+          "middlegame": {
+            "k": 698,
+            "n": 760,
+            "share": 0.9184,
+            "ci": [
+              0.8968,
+              0.9358
+            ]
+          },
+          "opening": {
+            "k": 315,
+            "n": 336,
+            "share": 0.9375,
+            "ci": [
+              0.9063,
+              0.9588
+            ]
+          }
+        },
+        "heldout": {
+          "endgame": {
+            "k": 293,
+            "n": 313,
+            "share": 0.9361,
+            "ci": [
+              0.9034,
+              0.9583
+            ]
+          },
+          "middlegame": {
+            "k": 685,
+            "n": 737,
+            "share": 0.9294,
+            "ci": [
+              0.9086,
+              0.9458
+            ]
+          },
+          "opening": {
+            "k": 312,
+            "n": 338,
+            "share": 0.9231,
+            "ci": [
+              0.8897,
+              0.947
+            ]
+          }
+        }
+      },
+      "atTwiceLean": {
+        "train": {
+          "k": 0,
+          "n": 0,
+          "share": null,
+          "ci": null
+        },
+        "heldout": {
+          "k": 0,
+          "n": 0,
+          "share": null,
+          "ci": null
+        }
+      },
+      "result": {
+        "train": {
+          "reading": {
+            "k": 886,
+            "n": 1332,
+            "share": 0.6652,
+            "ci": [
+              0.6394,
+              0.69
+            ]
+          },
+          "engine": {
+            "k": 939,
+            "n": 1332,
+            "share": 0.705,
+            "ci": [
+              0.6799,
+              0.7288
+            ]
+          }
+        },
+        "heldout": {
+          "reading": {
+            "k": 880,
+            "n": 1318,
+            "share": 0.6677,
+            "ci": [
+              0.6418,
+              0.6926
+            ]
+          },
+          "engine": {
+            "k": 922,
+            "n": 1318,
+            "share": 0.6995,
+            "ci": [
+              0.6742,
+              0.7237
+            ]
+          }
+        }
+      }
+    },
+    "worstPiece": {
+      "lean": 3,
+      "verdict": "tells who is better",
+      "reliable": true,
+      "agreement": {
+        "train": {
+          "k": 754,
+          "n": 1055,
+          "share": 0.7147,
+          "ci": [
+            0.6867,
+            0.7411
+          ]
+        },
+        "heldout": {
+          "k": 759,
+          "n": 1023,
+          "share": 0.7419,
+          "ci": [
+            0.7143,
+            0.7678
+          ]
+        }
+      },
+      "verdicts": {
+        "train": {
+          "n": 3000,
+          "level": 0.3397,
+          "clear": 0.3517,
+          "neither": 0.3087
+        },
+        "heldout": {
+          "n": 3000,
+          "level": 0.3543,
+          "clear": 0.341,
+          "neither": 0.3047
+        }
+      },
+      "byBand": {
+        "train": {
+          "1250-1449": {
+            "k": 328,
+            "n": 457,
+            "share": 0.7177,
+            "ci": [
+              0.6748,
+              0.757
+            ]
+          },
+          "1450-1649": {
+            "k": 426,
+            "n": 598,
+            "share": 0.7124,
+            "ci": [
+              0.6748,
+              0.7472
+            ]
+          }
+        },
+        "heldout": {
+          "1250-1449": {
+            "k": 337,
+            "n": 449,
+            "share": 0.7506,
+            "ci": [
+              0.7085,
+              0.7883
+            ]
+          },
+          "1450-1649": {
+            "k": 422,
+            "n": 574,
+            "share": 0.7352,
+            "ci": [
+              0.6976,
+              0.7696
+            ]
+          }
+        }
+      },
+      "byPhase": {
+        "train": {
+          "endgame": {
+            "k": 240,
+            "n": 366,
+            "share": 0.6557,
+            "ci": [
+              0.6057,
+              0.7026
+            ]
+          },
+          "middlegame": {
+            "k": 502,
+            "n": 676,
+            "share": 0.7426,
+            "ci": [
+              0.7083,
+              0.7741
+            ]
+          },
+          "opening": {
+            "k": 12,
+            "n": 13,
+            "share": 0.9231,
+            "ci": [
+              0.6669,
+              0.9863
+            ]
+          }
+        },
+        "heldout": {
+          "endgame": {
+            "k": 272,
+            "n": 382,
+            "share": 0.712,
+            "ci": [
+              0.6647,
+              0.7552
+            ]
+          },
+          "middlegame": {
+            "k": 478,
+            "n": 630,
+            "share": 0.7587,
+            "ci": [
+              0.7238,
+              0.7905
+            ]
+          },
+          "opening": {
+            "k": 9,
+            "n": 11,
+            "share": 0.8182,
+            "ci": [
+              0.523,
+              0.9486
+            ]
+          }
+        }
+      },
+      "atTwiceLean": {
+        "train": {
+          "k": 83,
+          "n": 119,
+          "share": 0.6975,
+          "ci": [
+            0.6098,
+            0.7728
+          ]
+        },
+        "heldout": {
+          "k": 109,
+          "n": 148,
+          "share": 0.7365,
+          "ci": [
+            0.6602,
+            0.8008
+          ]
+        }
+      },
+      "result": {
+        "train": {
+          "reading": {
+            "k": 609,
+            "n": 994,
+            "share": 0.6127,
+            "ci": [
+              0.582,
+              0.6425
+            ]
+          },
+          "engine": {
+            "k": 715,
+            "n": 994,
+            "share": 0.7193,
+            "ci": [
+              0.6906,
+              0.7464
+            ]
+          }
+        },
+        "heldout": {
+          "reading": {
+            "k": 613,
+            "n": 975,
+            "share": 0.6287,
+            "ci": [
+              0.5979,
+              0.6585
+            ]
+          },
+          "engine": {
+            "k": 704,
+            "n": 975,
+            "share": 0.7221,
+            "ci": [
+              0.6931,
+              0.7493
+            ]
+          }
+        }
+      }
+    }
+  },
+  "drillSum": {
+    "train": {
+      "k": 3166,
+      "n": 3838,
+      "share": 0.8249,
+      "ci": [
+        0.8126,
+        0.8366
+      ]
+    },
+    "heldout": {
+      "k": 3195,
+      "n": 3813,
+      "share": 0.8379,
+      "ci": [
+        0.8259,
+        0.8493
+      ]
+    }
+  },
+  "logistic": {
+    "features": [
+      "kingSafety",
+      "activity",
+      "structure",
+      "threats",
+      "worstPiece"
+    ],
+    "scale": {
+      "kingSafety": "per 100 centipawns",
+      "activity": "per 100 centipawns",
+      "structure": "per 100 centipawns",
+      "threats": "per 100 centipawns",
+      "worstPiece": "per move"
+    },
+    "intercept": 0.1717,
+    "weights": {
+      "kingSafety": 0.9601,
+      "activity": 1.4767,
+      "structure": 0.5228,
+      "threats": 2.406,
+      "worstPiece": 0.0552
+    },
+    "accuracy": {
+      "train": {
+        "k": 3252,
+        "n": 3848,
+        "share": 0.8451
+      },
+      "heldout": {
+        "k": 3269,
+        "n": 3820,
+        "share": 0.8558
+      }
+    }
+  },
+  "added": {
+    "note": "Added after the run, once the verdicts were read: not among the descriptions the README named before it.",
+    "baseline": {
+      "train": {
+        "white": {
+          "k": 2249,
+          "n": 3848,
+          "share": 0.5845,
+          "ci": [
+            0.5688,
+            0.5999
+          ]
+        },
+        "sideToMoveWhenNothingLoose": {
+          "k": 1332,
+          "n": 2079,
+          "share": 0.6407,
+          "ci": [
+            0.6198,
+            0.661
+          ]
+        }
+      },
+      "heldout": {
+        "white": {
+          "k": 2201,
+          "n": 3820,
+          "share": 0.5762,
+          "ci": [
+            0.5604,
+            0.5918
+          ]
+        },
+        "sideToMoveWhenNothingLoose": {
+          "k": 1365,
+          "n": 2074,
+          "share": 0.6581,
+          "ci": [
+            0.6375,
+            0.6783
+          ]
+        }
+      }
+    },
+    "bySideToMove": {
+      "kingSafety": {
+        "train": {
+          "favoursMover": 0.4174,
+          "forMover": {
+            "k": 384,
+            "n": 416,
+            "share": 0.9231,
+            "ci": [
+              0.8934,
+              0.945
+            ]
+          },
+          "forOther": {
+            "k": 193,
+            "n": 331,
+            "share": 0.5831,
+            "ci": [
+              0.5293,
+              0.6349
+            ]
+          }
+        },
+        "heldout": {
+          "favoursMover": 0.4242,
+          "forMover": {
+            "k": 406,
+            "n": 424,
+            "share": 0.9575,
+            "ci": [
+              0.9339,
+              0.973
+            ]
+          },
+          "forOther": {
+            "k": 188,
+            "n": 308,
+            "share": 0.6104,
+            "ci": [
+              0.5549,
+              0.6632
+            ]
+          }
+        }
+      },
+      "activity": {
+        "train": {
+          "favoursMover": 0.3817,
+          "forMover": {
+            "k": 392,
+            "n": 401,
+            "share": 0.9776,
+            "ci": [
+              0.9579,
+              0.9881
+            ]
+          },
+          "forOther": {
+            "k": 242,
+            "n": 375,
+            "share": 0.6453,
+            "ci": [
+              0.5957,
+              0.6921
+            ]
+          }
+        },
+        "heldout": {
+          "favoursMover": 0.3837,
+          "forMover": {
+            "k": 430,
+            "n": 440,
+            "share": 0.9773,
+            "ci": [
+              0.9587,
+              0.9876
+            ]
+          },
+          "forOther": {
+            "k": 250,
+            "n": 386,
+            "share": 0.6477,
+            "ci": [
+              0.5988,
+              0.6937
+            ]
+          }
+        }
+      },
+      "structure": {
+        "train": {
+          "favoursMover": 0.4896,
+          "forMover": {
+            "k": 166,
+            "n": 191,
+            "share": 0.8691,
+            "ci": [
+              0.8139,
+              0.9097
+            ]
+          },
+          "forOther": {
+            "k": 76,
+            "n": 193,
+            "share": 0.3938,
+            "ci": [
+              0.3276,
+              0.4641
+            ]
+          }
+        },
+        "heldout": {
+          "favoursMover": 0.469,
+          "forMover": {
+            "k": 192,
+            "n": 213,
+            "share": 0.9014,
+            "ci": [
+              0.854,
+              0.9346
+            ]
+          },
+          "forOther": {
+            "k": 87,
+            "n": 192,
+            "share": 0.4531,
+            "ci": [
+              0.3843,
+              0.5238
+            ]
+          }
+        }
+      },
+      "threats": {
+        "train": {
+          "favoursMover": 1,
+          "forMover": {
+            "k": 1305,
+            "n": 1409,
+            "share": 0.9262,
+            "ci": [
+              0.9113,
+              0.9387
+            ]
+          },
+          "forOther": {
+            "k": 0,
+            "n": 0,
+            "share": null,
+            "ci": null
+          }
+        },
+        "heldout": {
+          "favoursMover": 1,
+          "forMover": {
+            "k": 1290,
+            "n": 1388,
+            "share": 0.9294,
+            "ci": [
+              0.9147,
+              0.9417
+            ]
+          },
+          "forOther": {
+            "k": 0,
+            "n": 0,
+            "share": null,
+            "ci": null
+          }
+        }
+      },
+      "worstPiece": {
+        "train": {
+          "favoursMover": 0.4107,
+          "forMover": {
+            "k": 485,
+            "n": 529,
+            "share": 0.9168,
+            "ci": [
+              0.8902,
+              0.9375
+            ]
+          },
+          "forOther": {
+            "k": 269,
+            "n": 526,
+            "share": 0.5114,
+            "ci": [
+              0.4688,
+              0.5539
+            ]
+          }
+        },
+        "heldout": {
+          "favoursMover": 0.431,
+          "forMover": {
+            "k": 523,
+            "n": 561,
+            "share": 0.9323,
+            "ci": [
+              0.9084,
+              0.9503
+            ]
+          },
+          "forOther": {
+            "k": 236,
+            "n": 462,
+            "share": 0.5108,
+            "ci": [
+              0.4653,
+              0.5561
+            ]
+          }
+        }
+      }
+    },
+    "alone": {
+      "kingSafety": {
+        "train": {
+          "k": 283,
+          "n": 385,
+          "share": 0.7351,
+          "ci": [
+            0.6888,
+            0.7767
+          ]
+        },
+        "heldout": {
+          "k": 302,
+          "n": 387,
+          "share": 0.7804,
+          "ci": [
+            0.7365,
+            0.8187
+          ]
+        }
+      },
+      "activity": {
+        "train": {
+          "k": 424,
+          "n": 513,
+          "share": 0.8265,
+          "ci": [
+            0.7913,
+            0.8568
+          ]
+        },
+        "heldout": {
+          "k": 430,
+          "n": 524,
+          "share": 0.8206,
+          "ci": [
+            0.7855,
+            0.8511
+          ]
+        }
+      },
+      "structure": {
+        "train": {
+          "k": 161,
+          "n": 227,
+          "share": 0.7093,
+          "ci": [
+            0.6471,
+            0.7645
+          ]
+        },
+        "heldout": {
+          "k": 180,
+          "n": 241,
+          "share": 0.7469,
+          "ci": [
+            0.6884,
+            0.7976
+          ]
+        }
+      },
+      "threats": {
+        "train": {
+          "k": 933,
+          "n": 990,
+          "share": 0.9424,
+          "ci": [
+            0.9261,
+            0.9553
+          ]
+        },
+        "heldout": {
+          "k": 913,
+          "n": 957,
+          "share": 0.954,
+          "ci": [
+            0.9388,
+            0.9656
+          ]
+        }
+      },
+      "worstPiece": {
+        "train": {
+          "k": 289,
+          "n": 408,
+          "share": 0.7083,
+          "ci": [
+            0.6624,
+            0.7503
+          ]
+        },
+        "heldout": {
+          "k": 278,
+          "n": 377,
+          "share": 0.7374,
+          "ci": [
+            0.6907,
+            0.7793
+          ]
+        }
+      }
+    },
+    "conflicts": [
+      {
+        "first": "kingSafety",
+        "second": "activity",
+        "train": {
+          "k": 12,
+          "n": 33,
+          "share": 0.3636,
+          "ci": [
+            0.2219,
+            0.5338
+          ]
+        },
+        "heldout": {
+          "k": 14,
+          "n": 32,
+          "share": 0.4375,
+          "ci": [
+            0.2817,
+            0.6067
+          ]
+        }
+      },
+      {
+        "first": "kingSafety",
+        "second": "structure",
+        "train": {
+          "k": 15,
+          "n": 19,
+          "share": 0.7895,
+          "ci": [
+            0.5667,
+            0.9149
+          ]
+        },
+        "heldout": {
+          "k": 5,
+          "n": 9,
+          "share": 0.5556,
+          "ci": [
+            0.2667,
+            0.8112
+          ]
+        }
+      },
+      {
+        "first": "kingSafety",
+        "second": "threats",
+        "train": {
+          "k": 33,
+          "n": 83,
+          "share": 0.3976,
+          "ci": [
+            0.2991,
+            0.5052
+          ]
+        },
+        "heldout": {
+          "k": 32,
+          "n": 88,
+          "share": 0.3636,
+          "ci": [
+            0.2708,
+            0.4679
+          ]
+        }
+      },
+      {
+        "first": "kingSafety",
+        "second": "worstPiece",
+        "train": {
+          "k": 37,
+          "n": 66,
+          "share": 0.5606,
+          "ci": [
+            0.4408,
+            0.6737
+          ]
+        },
+        "heldout": {
+          "k": 35,
+          "n": 55,
+          "share": 0.6364,
+          "ci": [
+            0.5042,
+            0.7507
+          ]
+        }
+      },
+      {
+        "first": "activity",
+        "second": "structure",
+        "train": {
+          "k": 28,
+          "n": 34,
+          "share": 0.8235,
+          "ci": [
+            0.6649,
+            0.9165
+          ]
+        },
+        "heldout": {
+          "k": 18,
+          "n": 24,
+          "share": 0.75,
+          "ci": [
+            0.551,
+            0.88
+          ]
+        }
+      },
+      {
+        "first": "activity",
+        "second": "threats",
+        "train": {
+          "k": 39,
+          "n": 111,
+          "share": 0.3514,
+          "ci": [
+            0.2689,
+            0.4438
+          ]
+        },
+        "heldout": {
+          "k": 33,
+          "n": 96,
+          "share": 0.3438,
+          "ci": [
+            0.2564,
+            0.4431
+          ]
+        }
+      },
+      {
+        "first": "activity",
+        "second": "worstPiece",
+        "train": {
+          "k": 8,
+          "n": 9,
+          "share": 0.8889,
+          "ci": [
+            0.565,
+            0.9801
+          ]
+        },
+        "heldout": {
+          "k": 6,
+          "n": 8,
+          "share": 0.75,
+          "ci": [
+            0.4093,
+            0.9285
+          ]
+        }
+      },
+      {
+        "first": "structure",
+        "second": "threats",
+        "train": {
+          "k": 17,
+          "n": 114,
+          "share": 0.1491,
+          "ci": [
+            0.0952,
+            0.2259
+          ]
+        },
+        "heldout": {
+          "k": 19,
+          "n": 101,
+          "share": 0.1881,
+          "ci": [
+            0.1239,
+            0.2752
+          ]
+        }
+      },
+      {
+        "first": "structure",
+        "second": "worstPiece",
+        "train": {
+          "k": 68,
+          "n": 138,
+          "share": 0.4928,
+          "ci": [
+            0.4107,
+            0.5752
+          ]
+        },
+        "heldout": {
+          "k": 60,
+          "n": 120,
+          "share": 0.5,
+          "ci": [
+            0.4119,
+            0.5881
+          ]
+        }
+      },
+      {
+        "first": "threats",
+        "second": "worstPiece",
+        "train": {
+          "k": 126,
+          "n": 163,
+          "share": 0.773,
+          "ci": [
+            0.7028,
+            0.8306
+          ]
+        },
+        "heldout": {
+          "k": 135,
+          "n": 166,
+          "share": 0.8133,
+          "ci": [
+            0.7471,
+            0.8652
+          ]
+        }
+      }
+    ],
+    "logisticWithMove": {
+      "features": [
+        "kingSafety",
+        "activity",
+        "structure",
+        "threats",
+        "worstPiece",
+        "whiteToMove"
+      ],
+      "intercept": 0.1815,
+      "weights": {
+        "kingSafety": 1.0531,
+        "activity": 1.8613,
+        "structure": 0.5636,
+        "threats": 1.6711,
+        "worstPiece": 0.0546,
+        "whiteToMove": 1.1952
+      },
+      "accuracy": {
+        "train": {
+          "k": 3312,
+          "n": 3848,
+          "share": 0.8607
+        },
+        "heldout": {
+          "k": 3349,
+          "n": 3820,
+          "share": 0.8767
+        }
+      }
+    }
+  }
+}

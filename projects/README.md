@@ -142,6 +142,17 @@ bridge/run.sh projects/findable-move/positions.mjs
 for i in 0 1 2 3; do bridge/run.sh projects/findable-move/rollouts.mjs --shard $i/4 & done; wait
 bridge/run.sh projects/findable-move/analyze.mjs
 
+# The Judge the position factors: Lichess 10-minute games at his band and the
+# band above, one position drawn per game and reading, each scored by
+# Stockfish. The verdicts resume where they stopped.
+python3 projects/judge-factors/stream.py --month 2026-08
+python3 projects/judge-factors/stream.py --month 2026-09
+for m in 2026-08 2026-09; do
+  for i in 0 1 2 3; do bridge/run.sh projects/judge-factors/scan.mjs --month $m --shard $i/4 & done; wait
+done
+for i in 0 1 2 3; do bridge/run.sh projects/judge-factors/verdict.mjs --shard $i/4 & done; wait
+bridge/run.sh projects/judge-factors/analyze.mjs
+
 # The learner's solve chances: his puzzle attempts replayed through the app's
 # learner, on a record rebuilt from the memory cards and on the profile as the
 # app holds it.

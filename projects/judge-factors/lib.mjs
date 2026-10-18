@@ -8,6 +8,7 @@ export const MONTHS = { train: '2026-08', heldout: '2026-09' }
 export const READINGS = ['kingSafety', 'activity', 'structure', 'threats', 'worstPiece']
 export const DRILL_FACTORS = ['kingSafety', 'activity', 'structure', 'threats']
 export const WORST_PIECE_LEAN = 3
+export const MIN_LEGAL_MOVES = 4
 export const CAP = 3000
 export const BUDGET = 'grade'
 export const MIN_HELDOUT = 200

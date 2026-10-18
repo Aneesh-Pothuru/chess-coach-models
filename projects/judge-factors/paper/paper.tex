@@ -1,0 +1,249 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Do the Judge the position factors tell who is better?\\[0.3em]
+\large Five board readings against Stockfish, with material level, in 10-minute games at the
+player's band}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The app's Judge the position drill explains who is better with factors its board code scores in
+centipawns. With material level, does each factor beyond material, and the worst piece, point to
+the side Stockfish says is better? In \Unique{} positions from Lichess games at \Minutes{}
+minutes between players at the player's band and the band above, all five do on both months, so
+by the rule fixed before the run each \emph{tells who is better}. Ranked by held-out agreement:
+\Ranked. All but pawn structure are right at least \ReliablePct\% of the time on their own.
+Weighed together by a logistic model, the readings name the better side in \LogHeld\% of the
+held-out positions with a clear verdict. Added after the run: whose move it is matters too.
+Where nothing is loose, the side to move is the better side in \MoverHeldPct\%
+of clear positions. A reading that favours the side to move is right \ForMoverMin\% to
+\ForMoverMax\% of the time, while pawn structure and the worst piece, when they favour the side
+that just moved, are no better than a coin. When two readings disagree, a loose pawn usually
+wins and pawn structure usually loses.
+\end{abstract}
+
+\section{The question}
+
+A coach judges a position before choosing a move: count the material, then look at the kings,
+the pieces and the pawns. The app's Judge the position drill teaches that habit. It shows a
+position from the player's game, asks who is better, and explains the engine's answer with five
+factors the board code scores in centipawns: material, king safety, activity and space, pawn
+structure, and something loose. The drill keeps a card only when the largest factor agrees with
+the engine, so on its own cards a factor is right by construction. What its cards cannot show is
+whether a factor points to the better side in the positions he will meet, which is what the habit
+needs.
+
+This study asks it of each factor beyond material, and of a sixth reading the app teaches
+elsewhere, the worst piece, in positions where material is level. A reading that points to the
+better side is worth teaching as a reason. One that does not would teach him to trust a sign that
+tells him nothing, and one that points the wrong way is a bug in the board code.
+
+\section{How it was measured}
+
+\paragraph{The readings.} All are the app's, at commit \texttt{\AppCommit}, each from White's side
+(positive when it favours White):
+
+\begin{itemize}[nosep]
+\item \textbf{King safety}: each king's danger is \WShield{} for each pawn missing from its
+  shelter, \WRingAttacker{} for each point of weight of the enemy pieces attacking the squares
+  around it, and \WOpenFile{} for each open file beside it (\WHalfOpenFile{} if half open); Black's
+  danger minus White's, scaled down as the pieces come off.
+\item \textbf{Activity and space}: \WMobility{} for each legal move more than the other side
+  (counting each side's moves as if it were to move), and \WSpace{} for each square more it
+  attacks in the other side's half.
+\item \textbf{Pawn structure}: each side loses \WDoubled{} for a doubled pawn and \WIsolated{} for
+  an isolated one, and gains \WPassed{} for a passed pawn and \WPassedRank{} for each rank it has
+  advanced past its third, the passers counting up to twice as much as the pieces come off;
+  White's sum minus Black's.
+\item \textbf{Something loose}: the best capture balance of the side to move, less part of the
+  other side's, each counted only when it wins material. In these positions, where neither side
+  can win more than \TacticBar{} pawn by a capture, it leans only when the side to move can win a
+  pawn and the other side has nothing to take, and it then favours the side to move.
+\item \textbf{The worst piece}: the legal moves of White's least mobile piece (not a pawn or the
+  king) minus those of Black's. ``Feed your laziest piece'' is one of the app's lessons; the drill
+  folds it into activity.
+\end{itemize}
+
+A reading \emph{leans} when it is at least the drill's \LeanCp{} centipawns, or \WorstLean{}
+moves for the worst piece, and it favours the side its sign names.
+
+\paragraph{The games.} Lichess's rated games (the database's August 2026 file for training and
+September 2026 held out) at \Minutes{} minutes with no increment, the player's time control, that
+ended normally or on time after at least \MinPlies{} plies, with both players rated
+\RatingLow{} to \RatingHigh: his band on Lichess (\BandLow) and the band above (\BandHigh). The
+first \GamesPerMonth{} such games of each month enter.
+
+\paragraph{The positions.} The drill's own population: after at least \PlyFloor{} plies, not over
+and not in check, with at least \MinLegal{} legal moves, material exactly level, and no tactic
+(no mate in one for either side, and no capture that wins more than \TacticBar{} pawn for either).
+Either side may be to move. Of the \TrainLater{} positions after the first \PlyFloor{} plies in
+the train games, \TrainQualifying{} (\TrainQualifyingPct\%) qualify, and \TrainLevelDrop\% fail because
+material is not level. The held-out games give \HeldQualifying{} of \HeldLater{}
+(\HeldQualifyingPct\%). For each reading, a game gives at most one position: one drawn at random,
+seeded by the game and the reading, among its positions where the reading leans. Each reading
+keeps up to \Cap{} positions a month, in file order: \Rows{} rows over the five readings,
+\Unique{} distinct positions.
+
+\paragraph{The verdict.} Stockfish through the app's engine service at the drill's grading budget
+(\BudgetNodes{} nodes), with its hash cleared before each position and no tablebase. On the
+drill's own scale, a position is \emph{level} within \LevelCp{} centipawns and \emph{clear} at
+\ClearCp{} or more; a mate is clear. A reading's \emph{agreement} is the share of its positions
+with a clear verdict where the side it favours is the side the engine says is better. Each
+position comes from a different game, so its interval is the 95\% Wilson interval.
+
+\paragraph{The rule, fixed before any position was scored.} For each reading, on each month
+separately: it \emph{tells who is better} when its agreement's interval lies above 50\% on both;
+it is \emph{reliable on its own} when the interval lies above \ReliablePct\% on both; it
+\emph{points the wrong way} when the interval lies below 50\% on both; and there is \emph{no
+signal} otherwise. Under \MinHeldout{} held-out positions with a clear verdict, the verdict is
+\emph{not enough data}. Material is level in every position, so a reading that tells who is
+better adds to material by construction.
+
+\section{The verdict}
+
+\RuleTable
+
+All five readings tell who is better (Table~\ref{tab:rule}). On both months each agreement's
+interval lies above 50\%, and the readings rank in the same order on both: \Ranked{} held out.
+All but pawn structure are also reliable on their own, with intervals above \ReliablePct\%;
+pawn structure falls short of that bar on both months. No reading points the wrong way, so the
+board code has no factor whose sign is backwards.
+
+\section{What the positions describe}
+
+\DescTable
+
+\paragraph{A lean is a sign, not a verdict.} The engine calls between \LevelMin\% and
+\LevelMax\% of a reading's held-out positions level (Table~\ref{tab:desc}). The size of a lean
+matters for the kings and the pieces: at twice its lean, king safety agrees in
+\KingTwiceHeld\% of \KingTwiceHeldN{} held-out positions and activity in \ActivityTwiceHeld\% of
+\ActivityTwiceHeldN, though these are few. Pawn structure and the worst piece gain nothing at
+twice their lean. Something loose never reaches it here, since no capture wins more than a pawn.
+
+\ResultTable
+
+\paragraph{The result.} In the decisive games, the side a reading favours won \WonMin\% to
+\WonMax\% of the time, on both months less often than the side the engine favours
+(Table~\ref{tab:result}). Pawn structure trails the engine most: its side won \StructureWon\% of
+these games, the engine's \StructureEngineWon\%.
+
+\paragraph{Together.} The drill adds its factors as they come, in centipawns. That plain sum
+favours the engine's side in \SumHeld\% of \SumHeldN{} held-out positions (\SumTrain\% on
+train). A logistic model fitted on the train month, which weighs each reading, does a little
+better: \LogTrain\% on train and \LogHeld\% held out. Per 100 centipawns it weighs something
+loose most (\LooseWeight{} in log-odds), then activity (\ActivityWeight), king safety
+(\KingWeight) and pawn structure (\StructureWeight). The worst piece, at \WorstWeight{} a move,
+moves the model less at its lean than any drill factor does at its own, so beside the other four
+it adds little.
+
+\section{Whose move it is}
+
+\SideTable
+
+These descriptions were added once the verdicts were read; none was named before the run. They
+change how the agreement above should be read.
+
+\paragraph{The move.} Where nothing is loose, the side to move is the engine's better side in
+\MoverHeld\% of the \MoverHeldN{} clear held-out positions (\MoverTrain\% on train). With material
+level, a clear edge at this level is usually something the side to move can act on at once.
+Every reading but something loose favours the side that just moved more often than the side to
+move (Table~\ref{tab:side}), so for them the move works against agreement, not for it: the move
+alone would put each below half. Something loose always favours the side to move, and agrees far
+more often than the move alone would.
+
+\paragraph{For the mover and against.} A reading that favours the side to move agrees
+\ForMoverMin\% to \ForMoverMax\% of the time. One that favours the side that just moved still
+agrees more often than not for king safety (\KingForOther\%) and activity (\ActivityForOther\%),
+but pawn structure (\StructureForOther\%) and the worst piece (\WorstForOther\%) are then no
+better than a coin on either month. When it is the only drill factor that leans, every reading
+agrees well, pawn structure included (\StructureAlone\%).
+
+\ConflictTable
+
+\paragraph{When two disagree.} Where two readings lean opposite ways (Table~\ref{tab:conflict}),
+the engine sides with something loose over activity (\LooseOverActivity\%), pawn structure
+(\LooseOverStructure\%) and the worst piece (\LooseOverWorst\%) on both months, and over king
+safety (\LooseOverKing\%) on the held-out month; and with activity over pawn structure
+(\ActivityOverStructure\% of \ActivityOverStructureN). Pawn structure and the worst piece split
+their disagreements. The other pairs are too few or too close to call.
+
+\paragraph{The move as a reading.} With the side to move as a sixth input, the logistic model's
+accuracy rises to \MoveLogTrain\% on train and \MoveLogHeld\% held out, and the move weighs more
+than king safety at its lean and less than activity at its lean.
+
+\section{Two positions}
+
+Two held-out positions show a reading at work and the move outweighing one
+(Figure~\ref{fig:examples}). They illustrate; they test nothing.
+
+\begin{figure}[ht]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\EaBoard\\[0.4em]
+{\footnotesize FEN \EaFen}
+\caption{\EaMover{} to move, in the middlegame. Only activity and space leans: \EaValue{}
+centipawns for \EaFavours, who has \EaBlackMoves{} legal moves to \EaMover's \EaWhiteMoves{} and
+attacks \EaBlackSpace{} squares in \EaMover's half to \EaWhiteSpace{} in \EaFavours's. Material is
+level and no capture wins more than a pawn, yet the engine makes \EaBetter{} \EaPawns{} pawns better:
+\EaLine.}
+\label{fig:active}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\EbBoard\\[0.4em]
+{\footnotesize FEN \EbFen}
+\caption{\EbMover{} to move, in the endgame. Only pawn structure leans: \EbValue{} centipawns
+for \EbFavours, who has \EbPassers{} passed pawns to none. But each side has a pawn to take and
+\EbMover{} takes first, so the engine makes \EbBetter{} \EbPawns{} pawns better:
+\EbLine.}
+\label{fig:move}
+\end{subfigure}
+\caption{Held-out positions. Left: of the middlegame positions where activity and space is the
+only drill factor that leans and the engine agrees with it, the one where it leans most. Right:
+of the positions where pawn structure is the only drill factor that leans, favouring the side
+that just moved, and the engine says the side to move is clearly better, the one where it leans
+most. Each line is the engine's, at the grading budget.}
+\label{fig:examples}
+\end{figure}
+
+\section{What the app can take}
+
+\begin{itemize}[nosep]
+\item \textbf{Keep the drill's factors.} Each points to the better side at his level, and none
+  points the wrong way.
+\item \textbf{Teach pawn structure as a tie-breaker.} On its own it is usually right, but when a
+  loose pawn or the pieces say otherwise the engine sides with them, and when it favours the side
+  that just moved it is no better than a coin.
+\item \textbf{Name whose move it is.} The drill always shows a position with him to move, and the
+  deck drops a card whose largest factor disagrees with the engine. Where the factors are quiet
+  or favour his opponent, the engine often still says he is better because it is his move. The
+  move as a sixth reason is a candidate for the drill, to be tested on his own cards with its
+  rule fixed first.
+\item \textbf{The worst piece is mostly activity.} Beside the four factors it adds little, so the
+  drill is right to fold it in.
+\end{itemize}
+
+\section{Caveats}
+
+\begin{itemize}[nosep]
+\item \textbf{Not his games.} The positions are Lichess players' at his band and the band above;
+  the drill's cards come from his own games.
+\item \textbf{The engine's verdict, not his.} Whether a reading helps him choose moves is a later
+  study's question, on his own answers.
+\item \textbf{One reading at a time.} The readings move together, so a reading's agreement says it
+  points the right way, not that it adds to the others. The logistic models describe that, and
+  only describe.
+\item \textbf{Added after the run.} The side to move, the readings alone and the disagreements
+  were looked at once the verdicts were in. They describe these positions; a rule built on them
+  needs positions this study did not see.
+\item \textbf{Pawn breaks} are a plan rather than a standing edge, so they are tested as a rule of
+  thumb, not here.
+\end{itemize}
+
+\end{document}
