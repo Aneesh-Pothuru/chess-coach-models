@@ -11,6 +11,27 @@ corrected on Lichess and priced by Stockfish}
 \begin{document}
 \maketitle
 
+\begin{abstract}
+Which kinds of move does he play more often, or less often, than players \Above{} points above
+him would in his own positions, and which of those differences cost him? Over \Positions{} of his
+moves in \Games{} 10-minute games, Maia-2 at the band above, corrected for its bias on
+\LichessPositions{} positions of Lichess players, gives the expected count of each of \Kinds{}
+kinds of move, and Stockfish prices each difference. By the rule fixed before any position was
+scored, the study gives no verdict, because its known-fault control failed. He leaves a piece
+hanging no more often than the band above would ($R$ \HangsRFirst{} and \HangsRSecond{} on the two
+halves, both intervals holding 1), and less often than players at his own rating would
+(\HangsRhisFirst{} and \HangsRhisSecond, both intervals below 1). When he does leave one and the
+band above would not, it costs him \HangsRelFirst{} and \HangsRelSecond{} win\% more than his
+other differences. The null control passed. Without a verdict, four differences show on both
+halves: he plays pawn breaks about half again as often as the band above ($R$ \BreakRFirst{} and
+\BreakRSecond), retreats less often (\RetreatRFirst{} and \RetreatRSecond), and gives check
+(\CheckRFirst{} and \CheckRSecond) and doubles or isolates his own pawns (\WeakRFirst{} and
+\WeakRSecond) more often. None of the four costs him more than his other differences. Added after
+the run: among Lichess players, retreats rise and checks fall with rating while pawn breaks show
+no trend, so his pawn breaks look like his own way of playing, and his fewer retreats and extra
+checks like the level he is climbing from.
+\end{abstract}
+
 \section{The question}
 
 A coach who has watched a player for a while can say what he does differently from stronger
@@ -25,7 +46,7 @@ habit.
 
 The comparison needs a stand-in for the stronger players in his own positions. Maia-2, the app's
 model of human moves, was trained on Lichess games to predict the move a player at a rating band
-makes; at the band above his it gives each legal move a probability, so it says how often players
+makes. At the band above his it gives each legal move a probability, so it says how often players
 \Above{} points above him would play each kind of move in exactly his positions. A model's
 probabilities are not players' choices, so the study first measures, on Lichess games at those
 bands, how often players play each kind against how often Maia-2 predicts, and corrects for the
@@ -39,20 +60,24 @@ difference. Stockfish then prices each difference.
 moves enters when the position is past the opening by the app's divider, he is not in check and
 has at least two legal moves, his win\% before the move is between \WinLow{} and \WinHigh{} by
 the archive's evaluation (the game is still open), and his clock shows at least \ClockFloor{}
-seconds. That leaves \Positions{} positions, \PositionsFirst{} in the first half and
-\PositionsSecond{} in the second; most of the rest are opening moves (\SkipOpening), moves in
-check (\SkipCheck) or moves in decided games (\SkipDecided).
+seconds. That leaves \Positions{} positions from \GamesWithPositions{} games, \PositionsFirst{} in
+the first half and \PositionsSecond{} in the second. Most of the rest are opening moves
+(\SkipOpening), moves in check (\SkipCheck) or moves in decided games (\SkipDecided).
 
 \paragraph{The bands.} Maia-2, the app's model of human moves, gives every legal move a
 probability at a rating band, conditioned on the opponent's band. His band is his rating at the
-game with the app's offset of \Offset{} points to Lichess; the band above is his rating plus
-\Above{}, the same way. His band ran from \HisBandsFirst{} in the first half and
-\HisBandsSecond{} in the second, the band above from \AboveBandsFirst{} and \AboveBandsSecond.
+game with the app's offset of \Offset{} points to Lichess, and the band above is his rating plus
+\Above{}, the same way. His band was \HisBandsFirst{} in the first half and \HisBandsSecond{} in
+the second, and the band above \AboveBandsFirst{} and \AboveBandsSecond. Maia-2's lowest band
+holds every rating below 1100, so in \OneStepGames{} of his earliest games the band above is one
+band up rather than two.
 
 \paragraph{The kinds of move.} Every legal move in every position is read by the app's code
-(Table~\ref{tab:kinds}). \MoveKinds{} kinds come from the move itself, \IdeaKinds{} from the
-insights the app reads for a move as the board shows it, and one, a move that leaves a piece
-standing to be taken, is the control. A move can be of several kinds.
+(Table~\ref{tab:kinds}). Of the \Kinds{} kinds, \MoveKinds{} come from the move itself,
+\IdeaKinds{} from the insights the app reads for a move as the board shows it, and one, a move
+that leaves a piece standing to be taken, is the control. A move can be of several kinds. A pawn left to be taken
+does not count as hanging, and a capture of a knight or more that nothing takes back counts as a
+tactic even when it recaptures in a trade.
 
 \KindTable
 
@@ -61,8 +86,8 @@ expected count sums, over his positions, the probability it gives at the band ab
 of that kind. Maia-2 is a model, so it may predict a kind more or less often than players at its
 band play it. To correct for that, \LichessMonth's Lichess games at 10 minutes give the first
 \PerBand{} player-games at each band from \BandLowest{} to \BandHighest{} (the lowest band counted
-from \LichessFloor), and \PerPlayer{} positions from each, drawn among those that pass his filters,
-the win\% filter by Stockfish at \FilterNodes{} nodes, with at most \Tries{} tried:
+from \LichessFloor), and up to \PerPlayer{} positions from each, drawn among those that pass his
+filters, the win\% filter by Stockfish at \FilterNodes{} nodes, with at most \Tries{} tried:
 \LichessPositions{} positions from \LichessWithPositions{} player-games. At each band, $\kappa$ is
 the number of moves of the kind those players played over the number Maia-2 at that band
 expected. His expected count $E$ multiplies each position's predicted share by $\kappa$ at that
@@ -94,18 +119,174 @@ either half, or, for the cost, when it has fewer than \MinCount{} instances in e
 \emph{not measurable} when the correction averaged over a half's positions lies outside
 \KappaLow{} to \KappaHigh.
 
-\section{The verdict}
+\section{The controls}
 
-\VerdictTable
+\paragraph{The known fault fails.} He leaves a piece hanging, by the app's reading, in
+\HisHangsFirst\% of his positions in the first half and \HisHangsSecond\% in the second:
+\HangsNFirst{} and \HangsNSecond{} moves. Against the band above, $R$ is \HangsRFirst{}
+(\HangsRFirstCi) and \HangsRSecond{} (\HangsRSecondCi). Both intervals hold 1, so the control fails
+on both halves, and by the rule the study gives no verdict on any kind. The cost half of the
+control holds: where he leaves a piece hanging and the band above's most likely move does not,
+his move gives up \HangsOverDFirst{} and \HangsOverDSecond{} win\% on average, \HangsRelFirst{}
+(\HangsRelFirstCi) and \HangsRelSecond{} (\HangsRelSecondCi) more than his other differences.
+
+\paragraph{Why it fails.} The control assumed he leaves pieces hanging more often than stronger
+players, and he does not. Against Maia-2 at his own band, corrected the same way, $R$ is
+\HangsRhisFirst{} (\HangsRhisFirstCi) and \HangsRhisSecond{} (\HangsRhisSecondCi), both below 1:
+he leaves a piece hanging less often than players at his rating would in his positions. The
+reading itself follows rating. Added after the run, Lichess players leave a piece hanging in
+\LiHangsLow\% of their positions at \BandLowest{} and \LiHangsHigh\% at \BandHighest{}
+(Table~\ref{tab:trend}). The control also asked for more than this sample can show. In his
+positions the expected count at his band is \StepFirst{} times the band above's in the first half
+and \StepSecond{} times in the second, while $R$'s interval spans about $\pm$\SpreadFirst\% and
+$\pm$\SpreadSecond\% of $R$. A player who left pieces hanging exactly as often as players at his
+band would have shown $R$ near \StepFirst{} in the first half, and an interval as wide as his
+around it would still hold 1.
+
+\paragraph{The null passes.} A player who plays a move drawn from Maia-2's policy at the band
+above in each of his positions shows no kind over- or under-used on both halves. On single
+halves, \NullMisses{} of the \NullIntervals{} intervals miss 1, about what chance gives at 95\%.
 
 \section{What the positions describe}
 
-\LevelTable
+With no verdict, this section describes; nothing in it is a habit by the rule.
 
-\CostTable
+\VerdictTable
+
+\paragraph{Four differences on both halves.} Four kinds lie on one side of 1 on both halves
+(Table~\ref{tab:verdicts}). He plays pawn breaks about half again as often as the band above:
+$R$ is \BreakRFirst{} (\BreakRFirstCi) and \BreakRSecond{} (\BreakRSecondCi). He retreats less
+often (\RetreatRFirst{} and \RetreatRSecond), and he gives check (\CheckRFirst{} and \CheckRSecond)
+and doubles or isolates his own pawns (\WeakRFirst{} and \WeakRSecond) more often. None of the
+four costs him more than his other differences: each relative cost's interval holds 0 on both
+halves. On average his extra checks give up \CheckDFirst{} and \CheckDSecond{} win\% against the
+band above's move, against \DiffDFirst{} and \DiffDSecond{} for his other differences, though the
+interval of the difference holds 0. Captures, pawn pushes, even trades and tactics, \OneHalf{}
+more kinds, differ on one half only.
+
+\paragraph{His level or his own.} Against Maia-2 at his own band (Table~\ref{tab:level}), pawn
+breaks (\BreakRhisFirst{} and \BreakRhisSecond), his own pawn weaknesses (\WeakRhisFirst{} and
+\WeakRhisSecond) and even trades (\TradeRhisFirst{} and \TradeRhisSecond) are more frequent on both
+halves, so they set him apart from players at his rating as well. Retreats and checks do not:
+against his own band each is within the noise on one half. Even trades stand out against the band
+above only in the second half, where $R$ is \TradeRSecond{} (\TradeRSecondCi).
+
+\LevelTable
 
 \PhaseTable
 
+\paragraph{By phase.} His fewer retreats are a middlegame difference: $R$ is \RetreatMid{}
+(\RetreatMidCi) in the middlegame and \RetreatEnd{} (\RetreatEndCi) in the endgame. He also moves
+his king less often in the middlegame, castling aside, at \KingMid{} (\KingMidCi). His pawn breaks
+stand out in both phases, at \BreakMid{} and \BreakEnd{} (Table~\ref{tab:phase}).
+
+\CostTable
+
+\paragraph{The cost of each difference.} Table~\ref{tab:cost} gives the instances in each
+direction. His move is the band above's most likely move in \TopAboveFirst\% and
+\TopAboveSecond\% of his positions; where it is not, it gives up \DiffDFirst{} and \DiffDSecond{}
+win\% on average. Where he plays a pawn break and the band above would not, his move gives up
+\BreakDFirst{} and \BreakDSecond{} win\%, \BreakPerGameFirst{} and \BreakPerGameSecond{} times a
+game; where the band above would retreat and he does not, \RetreatDFirst{} and \RetreatDSecond,
+\RetreatPerGameFirst{} and \RetreatPerGameSecond{} times a game. Neither is far from his other
+differences.
+
 \KappaTable
+
+\paragraph{Maia-2's bias.} Maia-2 is close to the players at its bands. Where a band had enough
+moves of a kind, $\kappa$ lies between \KappaMin{} and \KappaMax{} (Table~\ref{tab:kappa}); in
+\KappaPooled{} of the \KappaCells{} cells the pooled bias stands in. Averaged over a half, the
+correction lies between \CorrMin{} and \CorrMax, so every kind is measurable.
+
+\section{Added after the run}
+
+These descriptions were added once the rule had been applied; none was named before the run.
+
+\TrendTable
+
+\paragraph{The bands on Lichess.} Among Lichess players (Table~\ref{tab:trend}), retreats rise
+from \LiRetreatLow\% of positions at \BandLowest{} to \LiRetreatHigh\% at \BandHighest, and checks
+fall from \LiCheckLow\% to \LiCheckHigh\%: both move with rating, the way his differences point.
+Pawn breaks show no trend, between \LiBreakMin\% and \LiBreakMax\% at every band, while he plays
+one in \HisBreakFirst\% and \HisBreakSecond\% of his positions, where Maia-2 at the band above
+expects \MaiaBreakFirst\% and \MaiaBreakSecond\%. His pawn breaks look like his own way of
+playing, and his fewer retreats and extra checks like the level he is climbing from.
+
+\paragraph{Whose moves his are.} Maia-2 at his own band gives his moves a little more probability
+than at the band above, on both halves: \LikeFirst\% and \LikeSecond\% less a move at the band
+above, both intervals clear of zero. His move is his own band's most likely move \TopHisFirst\%
+and \TopHisSecond\% of the time, and the band above's \TopAboveFirst\% and \TopAboveSecond\%. He
+plays like his band, with fewer pieces left hanging.
+
+\section{Two positions}
+
+Two of his positions show a pawn break the band above would not play and a retreat it would
+(Figure~\ref{fig:examples}). They illustrate; they test nothing.
+
+\begin{figure}[ht]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\EaBoard\\[0.4em]
+{\footnotesize FEN \EaFen}
+\caption{He is \EaMover{}, in the \EaPhase{} at \EaWpBefore\% to win. He played the pawn break
+\EaPlayed{} (red), which Maia-2 at \EaBand{} gives \EaPPlus\%; it rates \EaTop{} (green) most
+likely, at \EaTPlus\%. Stockfish: after \EaLineP{} he has \EaWpP\%, after \EaLineT{} \EaWpT\%.
+$D$ is \EaD, near the median of these instances (\EaMedian).}
+\label{fig:break}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\EbBoard\\[0.4em]
+{\footnotesize FEN \EbFen}
+\caption{He is \EbMover{}, in the \EbPhase{} at \EbWpBefore\% to win. Maia-2 at \EbBand{} rates
+the retreat \EbTop{} (green) most likely, at \EbTPlus\%; he played \EbPlayed{} (red), which it
+gives \EbPPlus\%. Stockfish: after \EbLineP{} he has \EbWpP\%, after \EbLineT{} \EbWpT\%. $D$ is
+\EbD, near the median of these instances (\EbMedian).}
+\label{fig:retreat}
+\end{subfigure}
+\caption{His second-half positions. Of the middlegame instances where neither move captures or
+gives check, the one whose $D$ is nearest the median $D$ of all the second half's instances: left,
+a pawn break he played and the band above would not; right, a retreat the band above would play
+and he did not. Each line is the engine's, at \CostNodes{} nodes.}
+\label{fig:examples}
+\end{figure}
+
+\section{What the app can take}
+
+\begin{itemize}[nosep]
+\item \textbf{Nothing yet.} With the known fault failing, no difference here is a habit by the
+  rule, so the coach does not write to any of them.
+\item \textbf{A control he has.} A next round needs a positive control that shows the method
+  finds a difference of the size it reports: a fault he is known to have against stronger
+  players, or a planted one, a player made to play a kind more often by a set factor. Its rule is
+  fixed first.
+\item \textbf{The candidates.} Pawn breaks, the clearest difference on both halves and against
+  his own band, and retreats in the middlegame, the difference that moves with rating on Lichess.
+  Neither costs him more than his other differences here, so either would be his style rather
+  than a fault unless a next round says otherwise.
+\item \textbf{A model of him.} A network trained on his own games, the plan's next step, needs a
+  GPU.
+\end{itemize}
+
+\section{Caveats}
+
+\begin{itemize}[nosep]
+\item \textbf{Maia-2 stands in for the players above him.} $\kappa$ corrects its average bias for
+  each kind of move, measured in Lichess players' positions, not in his.
+\item \textbf{The most likely move stands for what the band above plays} when the cost is
+  measured.
+\item \textbf{The halves are at different ratings.} He climbed through the archive, so a
+  difference that shows in both halves held as he improved; one that shows in only one may have
+  come or gone.
+\item \textbf{A kind of move is a description, not a mistake.} Playing it more often than the
+  band above is a difference; the cost says whether it matters.
+\item \textbf{The app's readings at the pinned commit.} The kinds are the app's readings as the
+  board shows them, without an engine. A piece the reading calls hanging may be defended by a
+  tactic, and a recapture can count as a tactic.
+\item \textbf{Added after the run.} The Lichess rates by band, the likelihood of his moves at each
+  band, the size of the step between bands and the two positions were looked at once the rule had
+  been applied. They describe; a rule built on them needs games this study did not see.
+\end{itemize}
 
 \end{document}

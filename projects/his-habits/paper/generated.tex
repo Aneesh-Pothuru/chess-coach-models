@@ -1,0 +1,460 @@
+% Written by projects/his-habits/paper/generate.mjs; do not edit by hand.
+
+\newcommand{\AppCommit}{f4bd63f19b}
+\newcommand{\Above}{200}
+\newcommand{\Offset}{250}
+\newcommand{\WinLow}{10}
+\newcommand{\WinHigh}{90}
+\newcommand{\ClockFloor}{30}
+\newcommand{\CostNodes}{250,000}
+\newcommand{\FilterNodes}{120,000}
+\newcommand{\PerBand}{2,000}
+\newcommand{\PerPlayer}{two}
+\newcommand{\Tries}{six}
+\newcommand{\LichessFloor}{900}
+\newcommand{\MinCount}{30}
+\newcommand{\Draws}{2,000}
+\newcommand{\KappaLow}{2/3}
+\newcommand{\KappaHigh}{3/2}
+\newcommand{\Kinds}{22}
+\newcommand{\MoveKinds}{ten}
+\newcommand{\IdeaKinds}{eleven}
+\newcommand{\BandLowest}{1000}
+\newcommand{\BandHighest}{1600}
+\newcommand{\LichessMonth}{September 2026}
+\newcommand{\Games}{647}
+\newcommand{\GamesFirst}{324}
+\newcommand{\GamesSecond}{323}
+\newcommand{\FirstFrom}{July 22}
+\newcommand{\FirstTo}{August 23}
+\newcommand{\SecondFrom}{August 23}
+\newcommand{\SecondTo}{October 15}
+\newcommand{\Positions}{9,052}
+\newcommand{\PositionsFirst}{4,600}
+\newcommand{\PositionsSecond}{4,452}
+\newcommand{\SkipOpening}{6,974}
+\newcommand{\SkipCheck}{1,614}
+\newcommand{\SkipDecided}{2,518}
+\newcommand{\SkipClock}{51}
+\newcommand{\LichessRead}{121,107}
+\newcommand{\LichessKept}{7,962}
+\newcommand{\LichessPlayerGames}{14,000}
+\newcommand{\LichessWithPositions}{12,256}
+\newcommand{\LichessPositions}{23,832}
+\newcommand{\HisBandsFirst}{1000 to 1300}
+\newcommand{\HisBandsSecond}{1100 to 1400}
+\newcommand{\AboveBandsFirst}{1100 to 1500}
+\newcommand{\AboveBandsSecond}{1300 to 1600}
+\newcommand{\KindTable}{%
+\begin{table}[ht]
+\centering\small
+\begin{tabularx}{\textwidth}{@{}lL@{}}
+\toprule
+Kind & The move \\
+\midrule
+Capture & captures \\
+Check & gives check \\
+Pawn push & moves a pawn without capturing \\
+Retreat & steps a knight, bishop, rook or queen back toward its own side, without capturing \\
+King move & moves the king, castling aside \\
+Queen move & moves the queen \\
+Even trade & captures a piece in an exchange the app scores level \\
+Worst piece moves & moves the piece the app names his worst \\
+Thins his shelter & thins his own king's pawn shelter \\
+New threat & leaves him a new capture that wins material, or a new mate in one \\
+\midrule
+Open file & puts a rook or queen on an open or half-open file \\
+Battery & lines up two pieces on a line \\
+King pressure & attacks more of the squares around the enemy king, at least three \\
+Pawn break & strikes at an enemy pawn chain or centre pawn with a pawn \\
+Passed pawn & leaves the moved pawn passed, or promotes it \\
+Outpost & settles a knight or bishop on a pawn-guarded square no enemy pawn can attack \\
+Seventh rank & lands a rook on the seventh rank against pawns or the king \\
+Active king & brings the king forward in an endgame \\
+Gives the bishop pair & takes a knight with a bishop and gives up the pair \\
+Weakens his pawns & doubles or isolates his own pawns \\
+Tactic & forks, pins, skewers, traps a piece or takes one that nothing takes back \\
+\midrule
+Hangs a piece & leaves a knight, bishop, rook or queen of his standing to be taken, without capturing \\
+\bottomrule
+\end{tabularx}
+\caption{The 22 kinds of move. The first ten are read from the move itself, the next eleven from the insights the app reads for a move, and the last is the control, a known fault at his level.}
+\label{tab:kinds}
+\end{table}
+}
+\newcommand{\VerdictTable}{%
+\begin{table}[ht]
+\centering\footnotesize
+\setlength{\tabcolsep}{1.5pt}
+\begin{tabular}{@{}lllllr@{}}
+\toprule
+& \multicolumn{2}{c}{$R$} & \multicolumn{2}{c}{Relative cost (win\%)} & \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Kind & First half & Second half & First half & Second half & Both halves \\
+\midrule
+Capture & 1.00 {\scriptsize(0.96, 1.03)} & 1.08 {\scriptsize(1.05, 1.12)} & 2.2 {\scriptsize(0.3, 4.1)} & $-$0.9 {\scriptsize($-$2.7, 0.8)} & -- \\
+Check & 1.18 {\scriptsize(1.10, 1.26)} & 1.12 {\scriptsize(1.03, 1.22)} & $-$2.0 {\scriptsize($-$5.0, 1.0)} & $-$1.8 {\scriptsize($-$4.6, 1.3)} & more often, costs no more \\
+Pawn push & 1.11 {\scriptsize(1.04, 1.18)} & 0.96 {\scriptsize(0.89, 1.04)} & 0.4 {\scriptsize($-$1.0, 1.9)} & 0.0 {\scriptsize($-$1.2, 1.2)} & -- \\
+Retreat & 0.86 {\scriptsize(0.80, 0.92)} & 0.88 {\scriptsize(0.81, 0.95)} & 0.5 {\scriptsize($-$1.4, 2.5)} & 0.5 {\scriptsize($-$1.6, 2.6)} & less often, costs no more \\
+King move & 0.91 {\scriptsize(0.78, 1.02)} & 0.96 {\scriptsize(0.83, 1.11)} & 0.2 {\scriptsize($-$2.0, 2.8)} & 0.7 {\scriptsize($-$2.6, 4.8)} & -- \\
+Queen move & 0.99 {\scriptsize(0.94, 1.03)} & 0.98 {\scriptsize(0.92, 1.03)} & 2.0 {\scriptsize(0.0, 4.1)} & 0.2 {\scriptsize($-$1.7, 2.2)} & -- \\
+Even trade & 1.08 {\scriptsize(0.97, 1.20)} & 1.18 {\scriptsize(1.05, 1.32)} & $-$0.8 {\scriptsize($-$5.5, 4.2)} & $-$3.7 {\scriptsize($-$6.9, $-$0.6)} & -- \\
+Worst piece moves & 0.98 {\scriptsize(0.92, 1.05)} & 1.06 {\scriptsize(0.98, 1.13)} & $-$0.2 {\scriptsize($-$2.4, 2.1)} & 0.2 {\scriptsize($-$1.3, 1.8)} & -- \\
+Thins his shelter & 1.11 {\scriptsize(0.97, 1.28)} & 1.02 {\scriptsize(0.87, 1.18)} & 2.7 {\scriptsize($-$0.0, 5.5)} & 0.9 {\scriptsize($-$1.0, 2.8)} & -- \\
+New threat & 0.99 {\scriptsize(0.95, 1.02)} & 0.98 {\scriptsize(0.94, 1.02)} & $-$0.0 {\scriptsize($-$1.4, 1.3)} & 0.3 {\scriptsize($-$1.0, 1.6)} & -- \\
+\midrule
+Open file & 1.05 {\scriptsize(0.98, 1.13)} & 0.95 {\scriptsize(0.86, 1.04)} & $-$1.8 {\scriptsize($-$3.3, $-$0.1)} & $-$2.2 {\scriptsize($-$4.0, $-$0.5)} & -- \\
+Battery & 1.04 {\scriptsize(0.92, 1.18)} & 0.91 {\scriptsize(0.79, 1.06)} & 0.1 {\scriptsize($-$2.7, 3.2)} & 1.3 {\scriptsize($-$1.3, 4.2)} & -- \\
+King pressure & 0.95 {\scriptsize(0.85, 1.08)} & 1.08 {\scriptsize(0.94, 1.25)} & $-$1.6 {\scriptsize($-$5.0, 1.5)} & $-$0.4 {\scriptsize($-$4.4, 3.4)} & -- \\
+Pawn break & 1.60 {\scriptsize(1.30, 1.97)} & 1.51 {\scriptsize(1.21, 1.94)} & 1.7 {\scriptsize($-$0.6, 4.1)} & 0.7 {\scriptsize($-$1.1, 2.6)} & more often, costs no more \\
+Passed pawn & 1.15 {\scriptsize(0.97, 1.33)} & 1.01 {\scriptsize(0.84, 1.20)} & $-$0.7 {\scriptsize($-$5.5, 3.9)} & $-$1.9 {\scriptsize($-$5.4, 1.3)} & -- \\
+Outpost & 0.75 {\scriptsize(0.51, 1.02)} & 0.65 {\scriptsize(0.45, 1.05)} & 3.6 {\scriptsize($-$0.5, 8.0)} & $-$0.9 {\scriptsize($-$3.1, 1.7)} & -- \\
+Seventh rank & 1.16 {\scriptsize(0.93, 1.46)} & 1.23 {\scriptsize(0.90, 1.59)} & $-$4.7 {\scriptsize($-$8.3, $-$1.8)} & 0.6 {\scriptsize($-$4.7, 7.2)} & -- \\
+Active king & 1.01 {\scriptsize(0.80, 1.35)} & 1.00 {\scriptsize(0.71, 1.46)} & 1.0 {\scriptsize($-$6.1, 11.5)} & $-$3.8 {\scriptsize($-$6.4, $-$1.8)} & -- \\
+Gives the bishop pair & 1.04 {\scriptsize(0.78, 1.36)} & 1.11 {\scriptsize(0.87, 1.49)} & 1.0 {\scriptsize($-$4.4, 7.8)} & $-$1.4 {\scriptsize($-$6.5, 3.9)} & too few ($E=29.9$) \\
+Weakens his pawns & 1.13 {\scriptsize(1.02, 1.25)} & 1.28 {\scriptsize(1.16, 1.43)} & 0.5 {\scriptsize($-$1.8, 3.0)} & 0.9 {\scriptsize($-$1.8, 3.7)} & more often, costs no more \\
+Tactic & 1.03 {\scriptsize(0.97, 1.08)} & 0.94 {\scriptsize(0.89, 1.00)} & $-$2.6 {\scriptsize($-$5.9, 0.4)} & 0.2 {\scriptsize($-$2.1, 2.7)} & -- \\
+\midrule
+Hangs a piece & 0.90 {\scriptsize(0.73, 1.09)} & 0.93 {\scriptsize(0.70, 1.20)} & 13.8 {\scriptsize(9.3, 18.6)} & 14.1 {\scriptsize(9.1, 19.4)} & -- \\
+\bottomrule
+\end{tabular}
+\caption{Each kind of move against Maia-2 at the band above. $R$ is his count over the expected count corrected by Maia-2's bias on Lichess, with its 95\% interval. The relative cost is the mean win\% his instances give up against the band above's most likely move, minus the same over his other differences: for a kind he plays more often on both halves, or with no such reading where the first half's $R$ is at least 1, the positions where he plays it and the band above would not; otherwise the positions where the band above would and he does not. For the control, the direction it tests: he leaves a piece hanging and the band above would not. The last column is what the rule would have read had the controls passed: the kinds whose $R$ lies on one side of 1 on both halves, and their cost. The known fault failed, so none of it is a verdict.}
+\label{tab:verdicts}
+\end{table}
+}
+\newcommand{\LevelTable}{%
+\begin{table}[ht]
+\centering\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lllll@{}}
+\toprule
+& \multicolumn{2}{c}{$R$ against his own band} & \multicolumn{2}{c}{Maia-2's correction} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Kind & First half & Second half & First half & Second half \\
+\midrule
+Capture & 1.02 {\scriptsize(0.99, 1.05)} & 1.06 {\scriptsize(1.02, 1.10)} & 0.99 & 0.98 \\
+Check & 1.19 {\scriptsize(1.11, 1.27)} & 1.06 {\scriptsize(0.97, 1.15)} & 1.02 & 1.00 \\
+Pawn push & 1.05 {\scriptsize(0.98, 1.12)} & 0.90 {\scriptsize(0.82, 0.97)} & 1.05 & 1.03 \\
+Retreat & 0.92 {\scriptsize(0.85, 0.99)} & 0.93 {\scriptsize(0.85, 1.02)} & 0.91 & 0.91 \\
+King move & 1.01 {\scriptsize(0.86, 1.16)} & 1.02 {\scriptsize(0.88, 1.17)} & 1.00 & 1.06 \\
+Queen move & 1.01 {\scriptsize(0.96, 1.06)} & 1.00 {\scriptsize(0.95, 1.06)} & 0.97 & 0.97 \\
+Even trade & 1.16 {\scriptsize(1.03, 1.29)} & 1.13 {\scriptsize(1.01, 1.27)} & 1.01 & 0.99 \\
+Worst piece moves & 0.97 {\scriptsize(0.90, 1.04)} & 1.03 {\scriptsize(0.95, 1.11)} & 0.98 & 0.96 \\
+Thins his shelter & 1.08 {\scriptsize(0.94, 1.24)} & 0.93 {\scriptsize(0.80, 1.09)} & 1.01 & 1.00 \\
+New threat & 0.99 {\scriptsize(0.96, 1.03)} & 0.99 {\scriptsize(0.95, 1.04)} & 1.02 & 1.02 \\
+\midrule
+Open file & 1.03 {\scriptsize(0.96, 1.11)} & 0.99 {\scriptsize(0.91, 1.08)} & 1.00 & 1.02 \\
+Battery & 1.06 {\scriptsize(0.94, 1.22)} & 0.98 {\scriptsize(0.84, 1.14)} & 0.93 & 0.95 \\
+King pressure & 0.90 {\scriptsize(0.80, 1.01)} & 1.11 {\scriptsize(0.97, 1.29)} & 0.95 & 0.97 \\
+Pawn break & 1.38 {\scriptsize(1.14, 1.67)} & 1.45 {\scriptsize(1.14, 1.86)} & 0.96 & 0.97 \\
+Passed pawn & 1.16 {\scriptsize(0.99, 1.35)} & 1.24 {\scriptsize(1.02, 1.51)} & 0.97 & 1.18 \\
+Outpost & 0.79 {\scriptsize(0.55, 1.13)} & 0.82 {\scriptsize(0.55, 1.12)} & 0.99 & 1.22 \\
+Seventh rank & 1.13 {\scriptsize(0.93, 1.44)} & 1.15 {\scriptsize(0.88, 1.52)} & 1.01 & 0.92 \\
+Active king & 1.16 {\scriptsize(0.94, 1.50)} & 0.85 {\scriptsize(0.58, 1.16)} & 1.17 & 1.06 \\
+Gives the bishop pair & 1.07 {\scriptsize(0.81, 1.44)} & 1.13 {\scriptsize(0.90, 1.44)} & 1.08 & 1.10 \\
+Weakens his pawns & 1.18 {\scriptsize(1.07, 1.30)} & 1.25 {\scriptsize(1.13, 1.38)} & 0.99 & 0.96 \\
+Tactic & 1.05 {\scriptsize(0.99, 1.11)} & 1.01 {\scriptsize(0.95, 1.07)} & 0.99 & 1.06 \\
+\midrule
+Hangs a piece & 0.77 {\scriptsize(0.63, 0.93)} & 0.67 {\scriptsize(0.52, 0.86)} & 1.13 & 0.97 \\
+\bottomrule
+\end{tabular}
+\caption{Each kind against Maia-2 at his own band, corrected the same way, and the correction itself: the corrected expected count at the band above over Maia-2's own. A correction above 1 means players at those bands play the kind more often than Maia-2 predicts.}
+\label{tab:level}
+\end{table}
+}
+\newcommand{\CostTable}{%
+\begin{table}[ht]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrrrrrrr@{}}
+\toprule
+& \multicolumn{4}{c}{He plays it, the band above would not} & \multicolumn{4}{c}{The band above would, he does not} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}
+& \multicolumn{2}{c}{First half} & \multicolumn{2}{c}{Second half} & \multicolumn{2}{c}{First half} & \multicolumn{2}{c}{Second half} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
+Kind & A game & $D$ & A game & $D$ & A game & $D$ & A game & $D$ \\
+\midrule
+Capture & 0.40 & 3.7 & 0.51 & 4.9 & 1.49 & 5.1 & 0.95 & 2.3 \\
+Check & 0.48 & 1.6 & 0.34 & 1.5 & 0.50 & 4.3 & 0.44 & 4.4 \\
+Pawn push & 1.44 & 4.0 & 1.12 & 3.2 & 0.85 & 3.2 & 0.84 & 3.4 \\
+Retreat & 0.62 & 3.4 & 0.60 & 2.9 & 0.73 & 4.0 & 0.86 & 3.7 \\
+King move & 0.27 & 6.6 & 0.24 & 3.6 & 0.24 & 3.6 & 0.14 & 3.9 \\
+Queen move & 0.71 & 4.7 & 0.79 & 4.5 & 0.67 & 5.2 & 0.78 & 3.3 \\
+Even trade & 0.16 & 2.6 & 0.20 & $-$0.3 & 0.42 & 5.3 & 0.33 & 0.9 \\
+Worst piece moves & 0.70 & 3.1 & 0.71 & 2.8 & 0.79 & 3.4 & 0.80 & 3.5 \\
+Thins his shelter & 0.41 & 6.0 & 0.28 & 4.0 & 0.26 & 4.3 & 0.19 & 4.1 \\
+New threat & 1.28 & 3.6 & 1.13 & 3.9 & 1.95 & 3.3 & 1.74 & 2.9 \\
+\midrule
+Open file & 0.86 & 1.9 & 0.94 & 1.0 & 0.66 & 4.4 & 0.90 & 5.1 \\
+Battery & 0.30 & 3.7 & 0.37 & 4.3 & 0.36 & 2.3 & 0.54 & 5.0 \\
+King pressure & 0.21 & 4.2 & 0.23 & 2.9 & 0.35 & 2.0 & 0.25 & 2.8 \\
+Pawn break & 0.30 & 5.2 & 0.28 & 3.9 & 0.12 & $-$0.2 & 0.14 & 2.7 \\
+Passed pawn & 0.18 & 2.8 & 0.16 & 1.3 & 0.24 & 5.9 & 0.14 & 5.3 \\
+Outpost & 0.02 & $-$7.0 & 0.02 & 0.7 & 0.08 & 7.1 & 0.06 & 2.3 \\
+Seventh rank & 0.07 & $-$1.1 & 0.08 & 3.8 & 0.07 & 2.7 & 0.14 & 3.6 \\
+Active king & 0.09 & 4.5 & 0.03 & $-$0.6 & 0.08 & 3.8 & 0.04 & 4.8 \\
+Gives the bishop pair & 0.05 & 4.5 & 0.07 & 1.8 & 0.06 & 3.0 & 0.05 & 5.5 \\
+Weakens his pawns & 0.19 & 3.9 & 0.17 & 4.1 & 0.29 & 5.2 & 0.14 & 4.8 \\
+Tactic & 0.32 & 0.8 & 0.29 & 3.5 & 0.42 & 7.4 & 0.40 & 3.2 \\
+\midrule
+Hangs a piece & 0.31 & 16.9 & 0.22 & 16.9 & 0.07 & $-$7.2 & 0.08 & $-$4.5 \\
+\bottomrule
+\end{tabular}
+\caption{The instances of each kind in each direction: how many a game, and their mean $D$, the win\% his move gives up against the band above's most likely move. Over all the positions where his move is not that move, his move gives up 3.5 win\% on average in the first half and 3.2 in the second; a kind's reference is those positions less the ones where either move is of the kind.}
+\label{tab:cost}
+\end{table}
+}
+\newcommand{\KappaTable}{%
+\begin{table}[ht]
+\centering\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+Kind & 1000\textsuperscript{a} & 1100 & 1200 & 1300 & 1400 & 1500 & 1600 \\
+\midrule
+Capture & 0.96 & 0.97 & 1.03 & 0.99 & 0.98 & 0.98 & 0.99 \\
+Check & 1.06 & 0.99 & 1.05 & 1.05 & 0.98 & 1.01 & 1.04 \\
+Pawn push & 1.05 & 1.04 & 1.06 & 1.06 & 1.04 & 1.03 & 1.08 \\
+Retreat & 0.85 & 0.96 & 0.86 & 0.89 & 0.93 & 0.90 & 0.96 \\
+King move & 0.92 & 0.92 & 1.00 & 1.02 & 1.06 & 1.06 & 0.90 \\
+Queen move & 0.98 & 0.97 & 0.95 & 0.96 & 1.00 & 0.96 & 0.98 \\
+Even trade & 0.99 & 0.96 & 1.05 & 1.00 & 1.02 & 0.98 & 1.03 \\
+Worst piece moves & 1.07 & 0.96 & 0.97 & 0.99 & 0.99 & 0.95 & 0.96 \\
+Thins his shelter & 1.05 & 1.06 & 0.90 & 1.10 & 0.95 & 1.00 & 1.02 \\
+New threat & 1.02 & 1.04 & 0.98 & 1.01 & 1.03 & 1.02 & 1.02 \\
+\midrule
+Open file & 1.12 & 0.98 & 1.01 & 1.01 & 0.99 & 1.02 & 0.99 \\
+Battery & 1.03 & 0.87 & 0.91 & 0.91 & 1.01 & 0.93 & 0.98 \\
+King pressure & 1.03 & 1.00 & 1.03 & 0.91 & 0.92 & 0.98 & 0.99 \\
+Pawn break & 1.17 & 0.83 & 1.14 & 0.90 & 1.06 & 0.95 & 1.10 \\
+Passed pawn & 0.93 & 0.94 & 0.93 & 0.95 & 1.05 & 1.21 & 1.01 \\
+Outpost & 0.99\textsuperscript{b} & 0.99\textsuperscript{b} & 0.99\textsuperscript{b} & 0.99\textsuperscript{b} & 0.99\textsuperscript{b} & 1.25 & 0.90 \\
+Seventh rank & 1.14 & 1.01\textsuperscript{b} & 1.01\textsuperscript{b} & 0.99 & 1.07 & 0.88 & 1.05 \\
+Active king & 1.06\textsuperscript{b} & 1.06\textsuperscript{b} & 1.18 & 1.27 & 1.04 & 1.06\textsuperscript{b} & 1.02 \\
+Gives the bishop pair & 1.05\textsuperscript{b} & 1.05\textsuperscript{b} & 1.15 & 1.05\textsuperscript{b} & 1.09 & 1.11 & 0.90 \\
+Weakens his pawns & 0.88 & 0.96 & 1.04 & 0.99 & 0.95 & 0.97 & 0.98 \\
+Tactic & 1.00 & 0.96 & 0.99 & 0.98 & 1.03 & 1.06 & 1.01 \\
+\midrule
+Hangs a piece & 1.17 & 1.07 & 1.15 & 1.22 & 1.04 & 0.95 & 1.01 \\
+\bottomrule
+\end{tabular}
+\caption{$\kappa$, Maia-2's bias at each band on Lichess: the moves of a kind players at the band played over those Maia-2 at the band expected. \textsuperscript{a}Maia-2's band below 1100, here from 900. \textsuperscript{b}Maia-2's expected count at that band is under 30, so the bias pooled over the bands stands in.}
+\label{tab:kappa}
+\end{table}
+}
+\newcommand{\PhaseTable}{%
+\begin{table}[ht]
+\centering\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+Kind & Middlegame & Endgame \\
+\midrule
+Capture & 1.05 {\scriptsize(1.02, 1.08)} & 1.00 {\scriptsize(0.96, 1.05)} \\
+Check & 1.18 {\scriptsize(1.10, 1.27)} & 1.12 {\scriptsize(1.05, 1.20)} \\
+Pawn push & 1.00 {\scriptsize(0.94, 1.06)} & 1.13 {\scriptsize(1.04, 1.22)} \\
+Retreat & 0.83 {\scriptsize(0.78, 0.89)} & 0.94 {\scriptsize(0.87, 1.02)} \\
+King move & 0.70 {\scriptsize(0.55, 0.86)} & 1.00 {\scriptsize(0.90, 1.10)} \\
+Queen move & 0.98 {\scriptsize(0.94, 1.02)} & 0.98 {\scriptsize(0.93, 1.03)} \\
+Even trade & 1.15 {\scriptsize(1.05, 1.24)} & 1.02 {\scriptsize(0.80, 1.25)} \\
+Worst piece moves & 1.04 {\scriptsize(0.97, 1.12)} & 1.00 {\scriptsize(0.95, 1.06)} \\
+Thins his shelter & 1.04 {\scriptsize(0.92, 1.17)} & 1.12 {\scriptsize(0.97, 1.29)} \\
+New threat & 0.99 {\scriptsize(0.96, 1.02)} & 0.96 {\scriptsize(0.91, 1.01)} \\
+\midrule
+Open file & 1.01 {\scriptsize(0.94, 1.08)} & 0.98 {\scriptsize(0.91, 1.05)} \\
+Battery & 0.95 {\scriptsize(0.85, 1.05)} & 1.03 {\scriptsize(0.89, 1.18)} \\
+King pressure & 1.07 {\scriptsize(0.95, 1.20)} & 0.96 {\scriptsize(0.86, 1.09)} \\
+Pawn break & 1.56 {\scriptsize(1.33, 1.84)} & 1.53 {\scriptsize(1.11, 2.09)} \\
+Passed pawn & 0.97 {\scriptsize(0.83, 1.14)} & 1.16 {\scriptsize(1.01, 1.33)} \\
+Outpost & 0.74 {\scriptsize(0.56, 1.03)} & 0.58 {\scriptsize(0.30, 1.01)} \\
+Seventh rank & 1.07 {\scriptsize(0.81, 1.33)} & 1.30 {\scriptsize(1.04, 1.59)} \\
+Active king & -- & 1.00 {\scriptsize(0.84, 1.28)} \\
+Gives the bishop pair & 1.08 {\scriptsize(0.88, 1.35)} & 1.41 \\
+Weakens his pawns & 1.21 {\scriptsize(1.12, 1.31)} & 1.15 {\scriptsize(1.02, 1.31)} \\
+Tactic & 0.98 {\scriptsize(0.93, 1.02)} & 1.00 {\scriptsize(0.93, 1.06)} \\
+\midrule
+Hangs a piece & 0.92 {\scriptsize(0.76, 1.09)} & 0.88 {\scriptsize(0.63, 1.18)} \\
+\bottomrule
+\end{tabular}
+\caption{$R$ against the band above by the divider's phase of the position, both halves together.}
+\label{tab:phase}
+\end{table}
+}
+\newcommand{\HangsRFirst}{0.90}
+\newcommand{\HangsRSecond}{0.93}
+\newcommand{\HangsRFirstCi}{0.73 to 1.09}
+\newcommand{\HangsRSecondCi}{0.70 to 1.20}
+\newcommand{\HangsRhisFirst}{0.77}
+\newcommand{\HangsRhisSecond}{0.67}
+\newcommand{\HangsRhisFirstCi}{0.63 to 0.93}
+\newcommand{\HangsRhisSecondCi}{0.52 to 0.86}
+\newcommand{\HangsNFirst}{111}
+\newcommand{\HangsNSecond}{82}
+\newcommand{\HangsOverDFirst}{16.9}
+\newcommand{\HangsOverDSecond}{16.9}
+\newcommand{\HangsRelFirst}{13.8}
+\newcommand{\HangsRelSecond}{14.1}
+\newcommand{\HangsRelFirstCi}{9.3 to 18.6}
+\newcommand{\HangsRelSecondCi}{9.1 to 19.4}
+\newcommand{\StepFirst}{1.17}
+\newcommand{\StepSecond}{1.37}
+\newcommand{\SpreadFirst}{19}
+\newcommand{\SpreadSecond}{27}
+\newcommand{\NullMisses}{three}
+\newcommand{\NullIntervals}{44}
+\newcommand{\TopAboveFirst}{51}
+\newcommand{\TopAboveSecond}{52}
+\newcommand{\TopHisFirst}{51}
+\newcommand{\TopHisSecond}{53}
+\newcommand{\DiffShareFirst}{49}
+\newcommand{\DiffShareSecond}{48}
+\newcommand{\DiffDFirst}{3.5}
+\newcommand{\DiffDSecond}{3.2}
+\newcommand{\OneHalf}{four}
+\newcommand{\BreakRFirst}{1.60}
+\newcommand{\BreakRSecond}{1.51}
+\newcommand{\BreakRFirstCi}{1.30 to 1.97}
+\newcommand{\BreakRSecondCi}{1.21 to 1.94}
+\newcommand{\BreakRhisFirst}{1.38}
+\newcommand{\BreakRhisSecond}{1.45}
+\newcommand{\BreakRhisFirstCi}{1.14 to 1.67}
+\newcommand{\BreakRhisSecondCi}{1.14 to 1.86}
+\newcommand{\RetreatRFirst}{0.86}
+\newcommand{\RetreatRSecond}{0.88}
+\newcommand{\RetreatRFirstCi}{0.80 to 0.92}
+\newcommand{\RetreatRSecondCi}{0.81 to 0.95}
+\newcommand{\RetreatRhisFirst}{0.92}
+\newcommand{\RetreatRhisSecond}{0.93}
+\newcommand{\RetreatRhisFirstCi}{0.85 to 0.99}
+\newcommand{\RetreatRhisSecondCi}{0.85 to 1.02}
+\newcommand{\CheckRFirst}{1.18}
+\newcommand{\CheckRSecond}{1.12}
+\newcommand{\CheckRFirstCi}{1.10 to 1.26}
+\newcommand{\CheckRSecondCi}{1.03 to 1.22}
+\newcommand{\CheckRhisFirst}{1.19}
+\newcommand{\CheckRhisSecond}{1.06}
+\newcommand{\CheckRhisFirstCi}{1.11 to 1.27}
+\newcommand{\CheckRhisSecondCi}{0.97 to 1.15}
+\newcommand{\WeakRFirst}{1.13}
+\newcommand{\WeakRSecond}{1.28}
+\newcommand{\WeakRFirstCi}{1.02 to 1.25}
+\newcommand{\WeakRSecondCi}{1.16 to 1.43}
+\newcommand{\WeakRhisFirst}{1.18}
+\newcommand{\WeakRhisSecond}{1.25}
+\newcommand{\WeakRhisFirstCi}{1.07 to 1.30}
+\newcommand{\WeakRhisSecondCi}{1.13 to 1.38}
+\newcommand{\TradeRFirst}{1.08}
+\newcommand{\TradeRSecond}{1.18}
+\newcommand{\TradeRFirstCi}{0.97 to 1.20}
+\newcommand{\TradeRSecondCi}{1.05 to 1.32}
+\newcommand{\TradeRhisFirst}{1.16}
+\newcommand{\TradeRhisSecond}{1.13}
+\newcommand{\TradeRhisFirstCi}{1.03 to 1.29}
+\newcommand{\TradeRhisSecondCi}{1.01 to 1.27}
+\newcommand{\BreakDFirst}{5.2}
+\newcommand{\BreakDSecond}{3.9}
+\newcommand{\BreakPerGameFirst}{0.30}
+\newcommand{\BreakPerGameSecond}{0.28}
+\newcommand{\RetreatDFirst}{4.0}
+\newcommand{\RetreatDSecond}{3.7}
+\newcommand{\RetreatPerGameFirst}{0.73}
+\newcommand{\RetreatPerGameSecond}{0.86}
+\newcommand{\CheckDFirst}{1.6}
+\newcommand{\CheckDSecond}{1.5}
+\newcommand{\RetreatMid}{0.83}
+\newcommand{\RetreatMidCi}{0.78 to 0.89}
+\newcommand{\RetreatEnd}{0.94}
+\newcommand{\RetreatEndCi}{0.87 to 1.02}
+\newcommand{\BreakMid}{1.56}
+\newcommand{\BreakEnd}{1.53}
+\newcommand{\KingMid}{0.70}
+\newcommand{\KingMidCi}{0.55 to 0.86}
+\newcommand{\KappaMin}{0.83}
+\newcommand{\KappaMax}{1.27}
+\newcommand{\KappaPooled}{13}
+\newcommand{\KappaCells}{154}
+\newcommand{\CorrMin}{0.91}
+\newcommand{\CorrMax}{1.22}
+\newcommand{\LiHangsLow}{3.9}
+\newcommand{\LiHangsHigh}{1.9}
+\newcommand{\LiRetreatLow}{9.3}
+\newcommand{\LiRetreatHigh}{12.2}
+\newcommand{\LiCheckLow}{10.4}
+\newcommand{\LiCheckHigh}{7.8}
+\newcommand{\LiBreakMin}{1.4}
+\newcommand{\LiBreakMax}{2.2}
+\newcommand{\HisBreakFirst}{2.9}
+\newcommand{\HisBreakSecond}{2.7}
+\newcommand{\MaiaBreakFirst}{1.9}
+\newcommand{\MaiaBreakSecond}{1.8}
+\newcommand{\LikeFirst}{0.9}
+\newcommand{\LikeSecond}{2.1}
+\newcommand{\HisHangsFirst}{2.4}
+\newcommand{\HisHangsSecond}{1.8}
+\newcommand{\MaiaHangsHisFirst}{2.8}
+\newcommand{\MaiaHangsHisSecond}{2.3}
+\newcommand{\MaiaHangsAboveFirst}{2.4}
+\newcommand{\MaiaHangsAboveSecond}{2.0}
+\newcommand{\TrendTable}{%
+\begin{table}[ht]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrrrrrrrr@{}}
+\toprule
+& \multicolumn{7}{c}{Lichess players at each band} & \multicolumn{2}{c}{Him} \\
+\cmidrule(lr){2-8}\cmidrule(lr){9-10}
+Kind & 1000\textsuperscript{a} & 1100 & 1200 & 1300 & 1400 & 1500 & 1600 & First & Second \\
+\midrule
+Pawn break & 2.1 & 1.4 & 1.9 & 1.7 & 1.8 & 1.8 & 2.2 & 2.9 & 2.7 \\
+Retreat & 9.3 & 11.1 & 9.8 & 10.2 & 11.4 & 11.5 & 12.2 & 10.5 & 12.1 \\
+Check & 10.4 & 8.8 & 9.2 & 9.3 & 8.5 & 7.9 & 7.8 & 12.3 & 10.4 \\
+Weakens his pawns & 4.7 & 5.1 & 5.0 & 4.7 & 4.6 & 4.6 & 4.1 & 5.3 & 5.3 \\
+Even trade & 3.8 & 4.8 & 4.9 & 5.1 & 5.4 & 5.2 & 5.4 & 5.0 & 5.5 \\
+Hangs a piece & 3.9 & 2.8 & 3.0 & 3.0 & 2.0 & 1.9 & 1.9 & 2.4 & 1.8 \\
+\bottomrule
+\end{tabular}
+\caption{Added after the run. The share of positions, in \%, in which players play each kind: Lichess players at each band in their own positions, and him in his. The positions differ, so the columns compare the bands with each other, not with him. \textsuperscript{a}Maia-2's band below 1100, here from 900.}
+\label{tab:trend}
+\end{table}
+}
+\newcommand{\OneStepGames}{62}
+\newcommand{\GamesWithPositions}{601}
+\newcommand{\EaFen}{\fen{5rk1/4qppp/4p3/3p3b/3P4/3QP3/Pr3PPP/R3R1K1 w - - 0 22}}
+\newcommand{\EaMover}{White}
+\newcommand{\EaPhase}{middlegame}
+\newcommand{\EaPlayed}{22.~e4}
+\newcommand{\EaTop}{22.~a4}
+\newcommand{\EaPlayedUci}{\uci{e3e4}}
+\newcommand{\EaTopUci}{\uci{a2a4}}
+\newcommand{\EaLineP}{22.~e4 \symqueen{}f6 23.~\symqueen{}e3 dxe4}
+\newcommand{\EaLineT}{22.~a4 \symqueen{}f6 23.~\symqueen{}f1 \symbishop{}g6}
+\newcommand{\EaWpBefore}{22}
+\newcommand{\EaWpP}{21}
+\newcommand{\EaWpT}{24}
+\newcommand{\EaD}{3.2}
+\newcommand{\EaPPlus}{16}
+\newcommand{\EaTPlus}{28}
+\newcommand{\EaBand}{1500}
+\newcommand{\EaBoard}{%
+\chessboard[setfen={5rk1/4qppp/4p3/3p3b/3P4/3QP3/Pr3PPP/R3R1K1 w - - 0 22}, boardfontsize=14pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={e3-e4}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={a2-a4}]
+}
+\newcommand{\EbFen}{\fen{3q1rk1/2n2p1p/1p1p1npQ/1PpPp3/2P1P3/r1N2B1P/5PP1/2R2RK1 b - - 2 22}}
+\newcommand{\EbMover}{Black}
+\newcommand{\EbPhase}{middlegame}
+\newcommand{\EbPlayed}{22\ldots{}\symrook{}b3}
+\newcommand{\EbTop}{22\ldots{}\symknight{}ce8}
+\newcommand{\EbPlayedUci}{\uci{a3b3}}
+\newcommand{\EbTopUci}{\uci{c7e8}}
+\newcommand{\EbLineP}{22\ldots{}\symrook{}b3 23.~\symqueen{}e3 \symrook{}a3 24.~\symrook{}a1}
+\newcommand{\EbLineT}{22\ldots{}\symknight{}ce8 23.~\symqueen{}d2 \symqueen{}a8 24.~\symqueen{}b2}
+\newcommand{\EbWpBefore}{54}
+\newcommand{\EbWpP}{48}
+\newcommand{\EbWpT}{49}
+\newcommand{\EbD}{1.2}
+\newcommand{\EbPPlus}{9}
+\newcommand{\EbTPlus}{39}
+\newcommand{\EbBand}{1500}
+\newcommand{\EbBoard}{%
+\chessboard[setfen={3q1rk1/2n2p1p/1p1p1npQ/1PpPp3/2P1P3/r1N2B1P/5PP1/2R2RK1 b - - 2 22}, boardfontsize=14pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={a3-b3}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={c7-e8}]
+}
+\newcommand{\EaMedian}{3.1}
+\newcommand{\EbMedian}{1.2}

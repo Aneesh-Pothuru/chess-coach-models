@@ -6,8 +6,30 @@ in front of his own king. Which kinds of move does he play more often, or less
 often, than players 200 points above him would in the same positions, and which
 of those differences cost him?
 
-**The answer.** Not yet run. The rule below was committed before any position
-was scored.
+**The answer.** No verdict, by the rule below, which was committed before any
+position was scored. The known-fault control failed on both halves: he does not
+leave a piece hanging more often than Maia-2 says players 200 points above would
+in his positions, and against his own band he leaves one hanging less often.
+When he does leave one and the band above would not, it costs him far more than
+his other differences, so the cost half of the control held; only the frequency
+did not. The null control passed. Without a verdict, four differences show on
+both halves, and none costs him more than his other differences: he plays pawn
+breaks about half again as often as the band above, retreats less often (a
+middlegame difference), gives check more often, and doubles or isolates his own
+pawns more often.
+
+Added after the rule was applied: among Lichess players, retreats rise and
+checks fall with rating while pawn breaks show no trend, so his pawn breaks look
+like his own way of playing and his fewer retreats and extra checks like his
+level. Maia-2 at his own band reads his moves a little better than at the band
+above. The control asked for more than this sample can show: the band above is
+expected to leave a piece hanging only a little less often than his band, by
+less than the width of his interval. A next round needs a positive control that
+shows the method finds a difference of the size it reports, a fault he is known
+to have or a planted one, with its rule fixed first. The numbers are in
+[`results/his-habits.md`](results/his-habits.md), written by `analyze.mjs`,
+[`results/descriptions.md`](results/descriptions.md), written by
+`describe.mjs`, and the paper, [`paper/paper.pdf`](paper/paper.pdf).
 
 A difference that shows in both halves of his games and costs him more than his
 other differences is a habit worth coaching. One that shows but costs no more is
