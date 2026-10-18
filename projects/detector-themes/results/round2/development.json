@@ -1,0 +1,88 @@
+{
+  "project": "detector-themes",
+  "round": 2,
+  "set": "app",
+  "app": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+  "datasetSha256": "005f31596fae53c51d76916faca5de4b02850d2beaea693e21e99ff574b40f85",
+  "puzzles": 4630,
+  "baseline": {
+    "agree": 2269,
+    "disagree": 1058,
+    "puzzleSeconds": 3.451010803000004
+  },
+  "candidates": {
+    "best-deflection": {
+      "agree": 2308,
+      "disagree": 1044,
+      "agreeAdded": 39,
+      "agreeLost": 0,
+      "disagreeAdded": 12,
+      "disagreeLost": 26,
+      "changed": 57,
+      "bestWords": {
+        "mateIn1": 1069,
+        "endgame": 996,
+        "defensiveMove": 692,
+        "middlegame": 244,
+        "hangingPiece": 682,
+        "skewer": 138,
+        "fork": 389,
+        "deflection": 57,
+        "attackingF2F7": 30,
+        "discoveredAttack": 203,
+        "opening": 38,
+        "pin": 92
+      },
+      "concept": {
+        "tp": 39,
+        "fp": 18,
+        "fn": 96,
+        "precision": 0.6842105263157895,
+        "precisionCi": [
+          0.555202251973548,
+          0.7899571243157648
+        ],
+        "recall": 0.28888888888888886,
+        "recallCi": [
+          0.21911242318401133,
+          0.3703473789581373
+        ]
+      },
+      "puzzleSeconds": 4.057651925000003,
+      "sourceSha256": {
+        "src/services/knowledge/detectors/theme.ts": "a38f16820f4bd1eaa5ca861ec11e0ad848637d9c8de0a696a6ddcbdc65caeb60",
+        "src/services/knowledge/detectors/motifs.ts": "a716f4cc7be9d25ed372c489d9a1320f07d341daba9ca2bb230744b6688e5385",
+        "src/services/knowledge/catalogue/vocabulary.ts": "3c3278f44a93d8b03d2612fed19fb76e20f0038d52c14cc9bd9e7edc2fd2096b"
+      },
+      "status": "finalized for held-out test; no keep verdict"
+    }
+  },
+  "sample": {
+    "app": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+    "app_pool_sha256": "ccdecf3d5b20c1c7873e61cc3c29eaf1fbfaac52dfa289def17070b4ee77dfac",
+    "source": "data/raw/lichess_db_puzzle.csv.zst",
+    "source_url": "https://database.lichess.org/lichess_db_puzzle.csv.zst",
+    "source_bytes": 307234795,
+    "source_sha256": "76335bfa7d7c4a7f93c1366d81549e53951ebb79dd43d34904cab8f22d962f8d",
+    "data": "data/processed/detector-themes-heldout.json",
+    "data_sha256": "98c6777e6dbc7b81e0a7763d8005f3c12eb5ccc01da41a208103fa036614037a",
+    "eligible": 4682966,
+    "sampled": 20000,
+    "seed": 20261014,
+    "ratings": [
+      400,
+      1899
+    ],
+    "excluded_app_ids": 4630,
+    "source_hash_seconds": 0.127,
+    "sampling_seconds": 13.094,
+    "total_seconds": 13.302,
+    "restart": "A completed sample is reused only when its hashes match. An interrupted stream restarts deterministically; final files are replaced atomically."
+  },
+  "estimatedHeldout": {
+    "puzzles": 20000,
+    "processes": 2,
+    "scoringSeconds": 16.217414099352066,
+    "basis": "sum of app-pool per-puzzle wall times, scaled to the sample and divided by two; excludes launch, copy and comparison overhead"
+  }
+}
