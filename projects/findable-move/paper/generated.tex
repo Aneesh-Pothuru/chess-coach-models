@@ -1,0 +1,125 @@
+% Written by projects/findable-move/paper/generate.mjs; do not edit by hand.
+
+\newcommand{\AppCommit}{f4bd63f19b}
+\newcommand{\Offset}{250}
+\newcommand{\Window}{3}
+\newcommand{\Rollouts}{16}
+\newcommand{\Plies}{12}
+\newcommand{\HalfPlies}{six}
+\newcommand{\HalfRollouts}{8}
+\newcommand{\BudgetNodes}{120,000}
+\newcommand{\Margin}{one}
+\newcommand{\DecoyDrop}{10}
+\newcommand{\NegMargin}{$-$1}
+\newcommand{\Draws}{2,000}
+\newcommand{\Games}{647}
+\newcommand{\TrainGames}{431}
+\newcommand{\HeldoutGames}{216}
+\newcommand{\Examined}{2,013}
+\newcommand{\WithTwo}{2,011}
+\newcommand{\SameAsBest}{1,468}
+\newcommand{\SameAsBestPct}{73}
+\newcommand{\Entering}{543}
+\newcommand{\Turning}{363}
+\newcommand{\Plans}{180}
+\newcommand{\TrainPositions}{352}
+\newcommand{\HeldoutPositions}{191}
+\newcommand{\RolloutCount}{22,784}
+\newcommand{\DecoyTrainN}{189}
+\newcommand{\DecoyHeldN}{113}
+\newcommand{\Verdict}{unclear}
+\newcommand{\DFTrain}{$-$0.93 ($-$2.18 to 0.28)}
+\newcommand{\DFHeld}{$-$1.88 ($-$3.37 to $-$0.46)}
+\newcommand{\RuleTable}{%
+\begin{table}[ht]\centering\small
+\begin{tabular}{lrr}
+\toprule
+ & Train & Held out \\
+\midrule
+Games & 228 & 135 \\
+Positions & 352 & 191 \\
+Null: B's two halves & $-$0.32 ($-$1.62 to 1.02) & 0.63 ($-$1.00 to 2.31) \\
+Decoy: his errors against B, $D_P$ & $-$15.80 ($-$18.20 to $-$13.37) & $-$18.71 ($-$21.82 to $-$15.67) \\
+\textbf{$D_F = V(F) - V(B)$} & \textbf{$-$0.93 ($-$2.18 to 0.28)} & \textbf{$-$1.88 ($-$3.37 to $-$0.46)} \\
+\bottomrule
+\end{tabular}
+\caption{The controls and the verdict's measure, in win\% with 95\% intervals from 2,000 bootstrap draws over games. The decoy rows are the turning points where his move lost at least 10 win\% and is neither B nor F.}
+\label{tab:rule}
+\end{table}
+}
+\newcommand{\DFAll}{$-$1.27 ($-$2.21 to $-$0.34)}
+\newcommand{\MinusDF}{1.27 (0.34 to 2.21)}
+\newcommand{\RootGap}{1.01 (0.94 to 1.08)}
+\newcommand{\FAheadPct}{44}
+\newcommand{\PBestPct}{9}
+\newcommand{\PFindPct}{33}
+\newcommand{\FOverP}{14.64 (12.81 to 16.44)}
+\newcommand{\FOverPN}{338}
+\newcommand{\NullWidth}{2.1}
+\newcommand{\SplitTable}{%
+\begin{table}[ht]\centering\small
+\begin{tabular}{lrrr}
+\toprule
+ & Positions & Games & $D_F$, win\% \\
+\midrule
+All & 543 & 363 & $-$1.27 ($-$2.21 to $-$0.34) \\
+\midrule
+B quiet & 448 & 321 & $-$0.85 ($-$1.85 to 0.16) \\
+B forcing (a capture or a check) & 95 & 83 & $-$3.24 ($-$6.17 to $-$0.44) \\
+\midrule
+Turning points & 363 & 280 & $-$1.55 ($-$2.86 to $-$0.29) \\
+Plan checkpoints & 180 & 164 & $-$0.68 ($-$2.05 to 0.66) \\
+\midrule
+Opening & 133 & 124 & $-$0.10 ($-$1.93 to 1.63) \\
+Middlegame & 272 & 210 & $-$1.57 ($-$2.93 to $-$0.21) \\
+Endgame & 138 & 104 & $-$1.78 ($-$3.92 to 0.11) \\
+\bottomrule
+\end{tabular}
+\caption{$D_F$ over both sets, by the kind of the engine's best, by the kind of position and by the divider's phase. These splits were named before the run but carry no rule: they describe.}
+\label{tab:splits}
+\end{table}
+}
+\newcommand{\QuietN}{448}
+\newcommand{\ForcingN}{95}
+\newcommand{\HalvesMedian}{7.8}
+\newcommand{\HalvesNinety}{21.0}
+\newcommand{\QuietGap}{1.5}
+\newcommand{\ForcingGap}{2}
+\newcommand{\ExKind}{a plan checkpoint}
+\newcommand{\ExPhase}{opening}
+\newcommand{\ExSide}{Black}
+\newcommand{\ExBest}{11\ldots{}\symking{}f8}
+\newcommand{\ExBestUci}{\uci{e8f8}}
+\newcommand{\ExFind}{11\ldots{}\symknight{}e7}
+\newcommand{\ExFindUci}{\uci{g8e7}}
+\newcommand{\ExPlayed}{11\ldots{}\symknight{}e7}
+\newcommand{\ExPlayedUci}{\uci{g8e7}}
+\newcommand{\ExPBest}{3}
+\newcommand{\ExPFind}{79}
+\newcommand{\ExGap}{2.0}
+\newcommand{\ExVBest}{51.3}
+\newcommand{\ExVFind}{76.1}
+\newcommand{\ExDF}{24.9}
+\newcommand{\ExFen}{\fen{r2qk1nr/1p3ppp/p1nb4/3p4/B7/5Q2/PPPP1PPP/R1B1R1K1 b kq - 1 11}}
+\newcommand{\ExBoard}{%
+\chessboard[setfen={r2qk1nr/1p3ppp/p1nb4/3p4/B7/5Q2/PPPP1PPP/R1B1R1K1 b kq - 1 11}, boardfontsize=14pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=blue!60!black, markmoves={e8-f8}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={g8-e7}]
+}
+\newcommand{\EyKind}{a turning point}
+\newcommand{\EyPhase}{opening}
+\newcommand{\EySide}{Black}
+\newcommand{\EyBest}{8\ldots{}\symbishop{}xf3}
+\newcommand{\EyBestUci}{\uci{g4f3}}
+\newcommand{\EyFind}{8\ldots{}\symbishop{}b4}
+\newcommand{\EyFindUci}{\uci{f8b4}}
+\newcommand{\EyPlayed}{8\ldots{}\symknight{}xd4}
+\newcommand{\EyPlayedUci}{\uci{c6d4}}
+\newcommand{\EyPBest}{12}
+\newcommand{\EyPFind}{29}
+\newcommand{\EyGap}{1.9}
+\newcommand{\EyVBest}{55.6}
+\newcommand{\EyVFind}{42.0}
+\newcommand{\EyDF}{$-$13.6}
+\newcommand{\EyFen}{\fen{r2qkbnr/pp3ppp/2n1p3/3pP3/2PB2b1/2N2N2/PP3PPP/R2QKB1R b KQkq - 0 8}}
+\newcommand{\EyBoard}{%
+\chessboard[setfen={r2qkbnr/pp3ppp/2n1p3/3pP3/2PB2b1/2N2N2/PP3PPP/R2QKB1R b KQkq - 0 8}, boardfontsize=14pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=blue!60!black, markmoves={g4-f3}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={f8-b4}]
+}

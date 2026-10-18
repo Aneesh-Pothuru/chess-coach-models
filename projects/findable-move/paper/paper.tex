@@ -1,0 +1,196 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Does a move he would find hold up as well as the engine's best?\\[0.3em]
+\large Maia-2 plays on from the player's turning points and plan checkpoints}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Game Review's better move is always the engine's top line. A human coach often shows another
+move instead: one the player would find, nearly as good. In the player's 10-minute games, at
+\SameAsBestPct\% of turning points and plan checkpoints the sound move players at his band would
+most likely play is already the engine's best. In the other \Entering{} positions, each move was
+played on \Rollouts{} times by Maia-2 at both players' bands for \Plies{} plies, and the ends were
+scored by Stockfish. Both controls held. Against the engine's best, the move he would find scored
+\DFTrain{} win\% on the train games and \DFHeld{} on the held-out games, so by the rule fixed
+before the run the verdict is \emph{\Verdict}: a cost of more than \Margin{} win\% is neither
+ruled out nor shown. Over both sets it cost \MinusDF{} win\% in human hands, against the
+\RootGap{} the engine's own evaluation says it gives up: no hidden practical edge, and no hidden
+trap. The cost is clearest when the engine's best is forcing and may be nothing when it is quiet.
+At his turning points the move he would find scores \FOverP{} win\% above the move he played.
+\end{abstract}
+
+\section{The question}
+
+Game Review names the engine's top line as the better move. A coach who knows the player
+often shows a different one: a move he would find, close to the best, with a follow-up he can
+play. The review's own window already treats a move within \Window{} win\% of the best as sound,
+so such a move is never called an error. What the window cannot say is how the move fares when
+people at his level play on from it. A move the engine rates a little lower may be easier to
+handle, and score better in practice; or the engine's best may hold something the natural move
+gives away, which shows only later.
+
+In each position, three moves:
+
+\begin{itemize}[nosep]
+\item \textbf{B}, the engine's best;
+\item \textbf{F}, the move he would find: the sound move Maia-2 rates most likely at his band;
+\item \textbf{P}, the move he played.
+\end{itemize}
+
+The question is whether F, played on by people at these bands, scores as well as B.
+
+\section{How it was measured}
+
+\paragraph{The positions.} His 10-minute games (no increment) in the app's archive at commit
+\texttt{\AppCommit}: \Games{} games, in order of their end time, the earlier two thirds
+(\TrainGames) for training and the later third (\HeldoutGames) held out. Nothing is fitted, so
+the two sets are two replications. Two kinds of position, both with him to move: the review's
+turning points, with up to five engine lines from the routine's deep search, and its plan
+checkpoints, with up to three. The candidates are the first moves of those lines, each with its
+stored evaluation; a position needs two. A candidate is \emph{sound} when it gives up no more
+than \Window{} win\% against B, the review's own window. His band is the Maia-2 level of his
+rating at the game with the app's offset (+\Offset), and the opponent's band the same of the
+opponent's rating. F is the sound candidate Maia-2 rates most likely at his band, conditioned on
+the opponent's band.
+
+Of the \Examined{} positions examined, \WithTwo{} have two candidates or more, and in
+\SameAsBest{} of those (\SameAsBestPct\%) F is B: the move his band would most likely play among
+the sound ones is the engine's best. The other \Entering{} enter the study: \Turning{} turning
+points and \Plans{} plan checkpoints, \TrainPositions{} in the train games and
+\HeldoutPositions{} held out.
+
+\paragraph{The rollouts.} Each entering position plays out B and F, and P at a turning point when
+it is neither. Each move gets \Rollouts{} rollouts. A rollout plays the move, then \Plies{} more
+plies (\HalfPlies{} by each side), each sampled from Maia-2's policy for the side to move: his
+band for his moves, the opponent's band for the opponent's, each conditioned on the other's.
+Sampling is seeded by the position and the rollout. A rollout stops early when the game ends. Its
+end is scored as his win\% by Stockfish through the app's engine service at the check budget
+(\BudgetNodes{} nodes); a mate scores 100 or 0 and a draw 50. \RolloutCount{} rollouts in all.
+
+$V(m)$ is the mean of a move's \Rollouts{} rollouts, and the measures are paired by position:
+$D_F = V(F) - V(B)$, what the move he would find costs or gains in the hands of players at these
+bands, and $D_P = V(P) - V(B)$, the same for his move. Intervals are the 95\% percentiles of
+\Draws{} bootstrap draws over games.
+
+\paragraph{The rule, fixed before any rollout was scored.} The controls come first, and if
+either fails on either set there is no verdict. \emph{The null}: B's rollouts split into the
+first \HalfRollouts{} and the last \HalfRollouts, and the mean difference's interval must cover
+zero. \emph{The decoy}: at the turning points where his move lost at least \DecoyDrop{} win\%
+and is neither B nor F, the interval of the mean $D_P$ must lie below zero; rollouts that cannot
+see his known errors cannot judge F either. Then the verdict on F, from the mean $D_F$ on each
+set: it \emph{holds up} when the interval's lower end is above \NegMargin{} win\% on both sets (\Margin{} win\%
+is a third of the review's window); it is \emph{better in his hands} when the lower end is above
+zero on both; \emph{the engine's best is worth the trouble} when the upper end is below \NegMargin{} on
+both; and it is \emph{unclear} otherwise.
+
+\section{The controls and the verdict}
+
+\RuleTable
+
+Both controls held on both sets (Table~\ref{tab:rule}). Two halves of the same move's rollouts
+agree within noise, and the rollouts see his errors clearly: at his turning points where he lost
+at least \DecoyDrop{} win\% (\DecoyTrainN{} train, \DecoyHeldN{} held out), his move scores far
+below B in human hands too.
+
+The move he would find scored a little below the engine's best on both sets. On the train games
+the interval reaches above zero; on the held-out games it lies below zero but not below \NegMargin.
+Neither set rules out a cost of more than \Margin{} win\%, and neither shows one, so the verdict
+is \emph{\Verdict}.
+
+\section{What the rollouts describe}
+
+\SplitTable
+
+These numbers describe; none of them carries a rule.
+
+\paragraph{The cost is about what the engine says.} Over both sets the move he would find
+gives up \MinusDF{} win\% in human hands. The engine's own evaluation of the same moves says it
+gives up \RootGap. The interval of the first covers the second: in the hands of players at these
+bands, the engine's gap neither closes nor opens. F scored above B in \FAheadPct\% of positions,
+as a cost near zero with noisy rollouts would give.
+
+\paragraph{F is the move people play.} At his band Maia-2 plays B \PBestPct\% of the time and F
+\PFindPct\% of the time, on average over the entering positions.
+
+\paragraph{The cost sits with forcing moves.} When B is quiet (\QuietN{} positions) the cost's
+interval reaches zero. When B is a capture or a check (\ForcingN), F costs more, and the interval
+lies below zero. The cost is larger at turning points than at plan checkpoints, and larger in the
+middlegame and endgame than in the opening (Table~\ref{tab:splits}).
+
+\paragraph{What costs him points is elsewhere.} At the \FOverPN{} turning points where he played
+neither B nor F, F scores \FOverP{} win\% above the move he played. Choosing the natural sound
+move over the engine's best costs about a point; missing both costs many.
+
+\section{Two positions}
+
+One position's rollouts are noisy: two halves of the same move's rollouts differ by a median of
+\HalvesMedian{} win\%, and by \HalvesNinety{} or more in one position in ten. The two positions
+below illustrate the summary; they do not test anything.
+
+\begin{figure}[ht]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\ExBoard\\[0.4em]
+{\footnotesize FEN \ExFen}
+\caption{\ExSide{} to move, \ExKind{} in the \ExPhase, in check. The engine's best (blue) is
+\ExBest{} (\ExBestUci), which his band plays \ExPBest\% of the time; the move he would find
+(green) blocks, \ExFind{} (\ExFindUci), at \ExPFind\%. The engine sees a gap of \ExGap{} win\%;
+in the rollouts F scored \ExVFind{} and B \ExVBest, a difference of \ExDF. He played
+\ExPlayed.}
+\label{fig:held}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\EyBoard\\[0.4em]
+{\footnotesize FEN \EyFen}
+\caption{\EySide{} to move, \EyKind{} in the \EyPhase. The engine's best (blue) is the capture
+\EyBest{} (\EyBestUci), which his band plays \EyPBest\% of the time; the move he would find
+(green) is \EyFind{} (\EyFindUci), at \EyPFind\%. The engine sees a gap of \EyGap{} win\%; in
+the rollouts B scored \EyVBest{} and F \EyVFind, a difference of \EyDF. He played \EyPlayed{}
+(\EyPlayedUci).}
+\label{fig:cost}
+\end{subfigure}
+\caption{Left: of the positions where both moves are quiet, the engine sees a gap of at least
+\QuietGap{} win\% and F scored at least as well as B, the one where Maia-2 rates F most above B.
+Right: of the positions where B is forcing, F is quiet and the engine's gap is at most
+\ForcingGap{} win\%, the one where F scored furthest below B.}
+\label{fig:examples}
+\end{figure}
+
+\section{What the app can take}
+
+\begin{itemize}[nosep]
+\item The review can show the move he would find beside the engine's best when the best is quiet,
+  as what it is: a sound move he would find, costing about what the review's window says. The
+  study does not show it is better.
+\item When the engine's best is a capture or a check, the review should keep pointing to it:
+  there the move he would find costs more in human hands.
+\item The larger gain is in the moves he plays that are neither. Coaching him toward a sound move
+  he would find, whichever it is, is worth far more than coaching him from that move to the
+  engine's.
+\end{itemize}
+
+\section{Caveats}
+
+\begin{itemize}[nosep]
+\item \textbf{Maia-2 plays both sides.} The rollouts model players at these bands, not him or
+  this opponent. A model of him is a later study.
+\item \textbf{\Plies{} plies.} The end is scored by Stockfish, so what comes after counts only as
+  far as the engine sees it then.
+\item \textbf{Only the stored lines.} F is the most natural of the two to five moves the review
+  kept, not of every legal move.
+\item \textbf{Near a decided game the window is wide.} Win\% flattens close to a win or a loss, so
+  moves the window admits can differ by more than their win\% shows; the rollouts see it, the
+  window does not.
+\item \textbf{The splits describe.} A second round could test quiet best moves alone, on positions
+  this round did not see, with its margin fixed first.
+\end{itemize}
+
+\end{document}

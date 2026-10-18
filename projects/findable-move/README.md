@@ -8,11 +8,24 @@ rarely play, while another move within the review's window is far more
 natural. When players at his level play on from each, does the move he would
 find score as well as the engine's best?
 
-**The answer.** Not run yet. The rule below was committed before any rollout
-was scored.
+**The answer.** Unclear, by the rule below, which was committed before any
+rollout was scored. Both controls passed on both sets. Played on by Maia-2 at
+the two players' bands, the move he would find scored a little below the
+engine's best on both sets, by about as much as the engine's own evaluation
+says it gives up: in human hands it gains no hidden practical edge, and hides
+no trap the engine missed. Neither "holds up" (a cost above one win% is not
+ruled out) nor "the engine's best is worth the trouble" (a cost above one win%
+is not shown) was met. The cost is clearest when the engine's best is forcing,
+a capture or a check, and may be nothing when it is quiet, a split described
+but not tested. At his turning points, the move he would find scores far above
+the move he played. The numbers are in
+[`results/findable-move.md`](results/findable-move.md), written by
+`analyze.mjs`, and the paper, [`paper/paper.pdf`](paper/paper.pdf).
 
-If it holds up, the review can show that move beside the engine's best: a
-sound move he would find, instead of only a move he would not.
+So the review can show that move beside the engine's best as what it is: a
+sound move he would find, costing about what the review's window says, not a
+better one. When the engine's best is forcing, the forcing move is worth the
+calculation.
 
 ## The positions
 
@@ -127,6 +140,8 @@ committed (`results/`), written by the scripts, then the paper.
 | `positions.mjs` | Reads his archive at the pinned commit and writes the entering positions with B, F and P (`private/findable-move/positions.jsonl`) and their counts (`results/positions.json`). |
 | `rollouts.mjs` | Plays each move's rollouts with Maia-2 and scores their ends with Stockfish, one shard at a time, resuming where a shard stopped (`private/findable-move/rollouts-<i>-of-<n>.jsonl`). |
 | `analyze.mjs` | Applies the rule and the descriptions; writes `results/findable-move.json` and `results/findable-move.md`. |
+| `paper/generate.mjs` | Writes `paper/generated.tex`: every number, table and position the paper prints, refusing to write when a claim the paper makes no longer holds. |
+| `paper/paper.tex` | The paper; `paper/paper.pdf` is it compiled. |
 
 ## Running it
 
@@ -135,4 +150,6 @@ make chess
 bridge/run.sh projects/findable-move/positions.mjs
 for i in 0 1 2 3; do bridge/run.sh projects/findable-move/rollouts.mjs --shard $i/4 & done; wait
 bridge/run.sh projects/findable-move/analyze.mjs
+bridge/run.sh projects/findable-move/paper/generate.mjs
+(cd projects/findable-move/paper && latexmk -pdf paper.tex)
 ```

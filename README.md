@@ -26,6 +26,7 @@ Two kinds of work live here:
 | [judge-in-context](projects/judge-in-context/) ([paper](projects/judge-in-context/paper/paper.pdf)) | Should a move's verdict read win% on a curve fitted to the mover's rating? | Not adopted: the judge did not prefer the fitted verdicts |
 | [phone-vs-routine](projects/phone-vs-routine/) ([paper](projects/phone-vs-routine/paper/paper.pdf)) | Does Game Review on the player's phone name the same mistakes and blunders as the routine's review of the same game? | Not yet: each device differs from the routine on about one serious error in eleven, near the line between a mistake and an inaccuracy. Game Review shows the coach's review beside the device's, and a second look that starts with the engine's memory cleared is the next round |
 | [winprob-parity](projects/winprob-parity/) ([paper](projects/winprob-parity/paper/paper.pdf)) | Does the lab compute the same win% as the app? | A check: the same curve within ±1000 cp; past that, the lab's clamp parts from the app's |
+| [findable-move](projects/findable-move/) ([paper](projects/findable-move/paper/paper.pdf)) | When the sound move players at the player's level would find is not the engine's best, does it hold up as well when they play on from it? | Not yet: unclear by its rule. It costs about what the engine says, a little, and more when the engine's best is a capture or a check, so the review could show it beside the best as a sound move he would find, not a better one |
 
 ### Maia-2, the human model
 

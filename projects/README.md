@@ -135,6 +135,13 @@ for i in 0 1 2 3; do
 done; wait
 BOOK_ADVICE_MONTH=2026-08 bridge/run.sh projects/book-advice/lost-trades.mjs --no-archive
 
+# The move he would find: his turning points and plan checkpoints, each move
+# played on by Maia-2 and scored by Stockfish. The rollouts resume where they
+# stopped.
+bridge/run.sh projects/findable-move/positions.mjs
+for i in 0 1 2 3; do bridge/run.sh projects/findable-move/rollouts.mjs --shard $i/4 & done; wait
+bridge/run.sh projects/findable-move/analyze.mjs
+
 # The learner's solve chances: his puzzle attempts replayed through the app's
 # learner, on a record rebuilt from the memory cards and on the profile as the
 # app holds it.
