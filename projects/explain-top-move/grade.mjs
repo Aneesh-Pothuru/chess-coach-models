@@ -2411,6 +2411,16 @@ const LESSON_TEMPLATES = [
     re: new RegExp(String.raw`\b${TOKR} mates in (\d+)\b`, 'g'),
     run: ([p, n], e) => [e.san(p, e.M.F0, e.M.playedUci), e.mate(e.M.mover, +n, e.M.F0, e.M.lineUcis, null, e.whole)],
   },
+  // This form names the better move. Match it before the played-move form,
+  // which otherwise consumes its prefix through the mate count.
+  {
+    re: new RegExp(String.raw`\bAfter ${TOKR}, ${WHO} mate in (\d+) too\b`, 'g'),
+    run: ([x, who, n], e) => {
+      const side = who === 'you' ? e.M.mover : other(e.M.mover)
+      const after = e.M.attBest?.mv?.afterFen ?? null
+      return [e.san(x, e.M.F0, e.M.bestUci), e.mate(side, +n, after, e.M.bestPv.slice(1), null, e.whole)]
+    },
+  },
   // After the played move: the reply mates (counted from the position after it).
   {
     re: new RegExp(String.raw`\bAfter ${TOKR}, ${WHO} mate in (\d+)(?: \(([^)]*)\))?( instead)?`, 'g'),
@@ -2489,14 +2499,6 @@ const LESSON_TEMPLATES = [
   },
   {
     re: new RegExp(String.raw`\b${TOKR} holds out longer, but ${WHO} still mate in (\d+)\b`, 'g'),
-    run: ([x, who, n], e) => {
-      const side = who === 'you' ? e.M.mover : other(e.M.mover)
-      const after = e.M.attBest?.mv?.afterFen ?? null
-      return [e.san(x, e.M.F0, e.M.bestUci), e.mate(side, +n, after, e.M.bestPv.slice(1), null, e.whole)]
-    },
-  },
-  {
-    re: new RegExp(String.raw`\bAfter ${TOKR}, ${WHO} mate in (\d+) too\b`, 'g'),
     run: ([x, who, n], e) => {
       const side = who === 'you' ? e.M.mover : other(e.M.mover)
       const after = e.M.attBest?.mv?.afterFen ?? null

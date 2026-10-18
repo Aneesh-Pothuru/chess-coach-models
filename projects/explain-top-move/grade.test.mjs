@@ -4,6 +4,7 @@ import { chess } from '../../bridge/lib/chess.mjs'
 import { gradeMoment } from './grade.mjs'
 
 const { evalFor } = await chess('src/core/score/index.ts')
+const { teachMove } = await chess('src/services/knowledge/index.ts')
 const start = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 
 function gradeEval(after, text = evalFor(after, 'w')) {
@@ -44,5 +45,39 @@ test('a wrong decimal or mate evaluation still fails', () => {
     const grade = gradeEval(after, text)
     assert.equal(grade.faithful, 0)
     assert.equal(grade.claims.find((c) => c.type === 'eval').verdict, 'false')
+  }
+})
+
+function matedEitherWay(change = (lesson) => lesson) {
+  const args = {
+    fenBefore: '6k1/5p1p/5PpQ/8/8/8/7K/r7 b - - 0 1',
+    uci: 'g6g5', bestUci: 'a1b1',
+    bestPv: ['a1b1', 'h6g7'], replyPv: ['h6g7'],
+    cls: 'inaccuracy', lossPct: 0,
+    bestScore: { cp: null, mate: 1 }, playedScore: { cp: null, mate: 1 },
+    playerMove: true,
+  }
+  // The app reads both legal lines to checkmate and supplies the entire lesson.
+  const lesson = teachMove(args)
+  assert.match(lesson.headline, /After Rb1, they mate in 1 too\./)
+  return gradeMoment({
+    ...args, san: 'g5', bestSan: 'Rb1', mover: 'b', playerColor: 'b',
+    before: args.bestScore, after: args.playedScore,
+    bestPvUci: args.bestPv, replyPvUci: args.replyPv,
+    texts: { cardShows: 'lesson', lessonFor: change(lesson) },
+  })
+}
+
+test('a mate after the better move is checked against that move', () => {
+  const grade = matedEitherWay()
+  assert.equal(grade.faithful, 1)
+  assert.ok(grade.claims.some((c) => c.type === 'mate' && c.text === 'After Rb1, they mate in 1 too' && c.verdict === 'true'))
+})
+
+test('the better-move mate sentence still rejects a wrong count or move', () => {
+  for (const text of ['After Rb1, they mate in 2 too.', 'After Rc1, they mate in 1 too.']) {
+    const grade = matedEitherWay((lesson) => ({ ...lesson, headline: text, difference: [] }))
+    assert.equal(grade.faithful, 0, text)
+    assert.ok(grade.claims.some((c) => c.verdict === 'false' && (c.type === 'mate' || c.type === 'san')))
   }
 })
