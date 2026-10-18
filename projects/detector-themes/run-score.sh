@@ -5,6 +5,9 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$root"
 set_name="${1:?usage: run-score.sh app|heldout [candidate]}"
 case "$set_name" in app|heldout) ;; *) exit 2;; esac
+if [ "$set_name" = heldout ]; then
+  CHESS_DIR="$(env -u CHESS_DIR bridge/checkout.sh)" nice -n 10 .venv/bin/python projects/detector-themes/sample.py --round2 >&2
+fi
 if [ -n "${2:-}" ]; then
   export CANDIDATE="$2"
   export CHESS_DIR

@@ -13,6 +13,13 @@ import { Chess } from 'chess.js'
 import { LAB_DIR, resultsDir } from '../../../bridge/lib/chess.mjs'
 import { Generated, board, esc, fixed, line, movesTex } from '../../paper.mjs'
 
+// The later sample is deliberately not substituted into the historical boards.
+// This branch reads only the frozen historical artifact and app-pool aggregates.
+if (process.argv.includes('--round2')) {
+  await import('./generate-round2.mjs')
+  process.exit(0)
+}
+
 const HERE = dirname(fileURLToPath(import.meta.url))
 const json = (path) => JSON.parse(readFileSync(path, 'utf8'))
 const score = { app: json(join(resultsDir('detector-themes'), 'score-app.json')), heldout: json(join(resultsDir('detector-themes'), 'score-heldout.json')) }

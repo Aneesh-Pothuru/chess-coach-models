@@ -8,7 +8,8 @@ Data: 4630 unique shipped puzzles; SHA256 005f31596fae53c51d76916faca5de4b02850d
 |---|---:|---:|---:|---:|---:|---:|
 | pinned | 2269 | 1058 | — | — | — | 3.451 |
 | best-deflection | 2308 | 1044 | 57 | 39 / 0 | 12 / 26 | 4.058 |
+| best-trapped | 2376 | 1044 | 107 | 107 / 0 | 0 / 14 | 3.360 |
 
 Held-out labels were not read. No keep verdict is computed. The sample has 20000 puzzles from 4682966 eligible rows.
 
-Estimated held-out scoring at two processes: 16.2 seconds, excluding launch, copy and comparison overhead.
+Estimated held-out scoring at two processes: 23.5 seconds, excluding launch, copy and comparison overhead.

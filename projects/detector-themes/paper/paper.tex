@@ -10,6 +10,10 @@
 \begin{document}
 \maketitle
 
+\noindent The main text records the earlier study at commit \texttt{\AppCommit}.
+Its results and examples are preserved. The appendix reports the later app-pool
+development phase at a different pin; it contains no new held-out result.
+
 \begin{abstract}
 Three of the app's board readers put a motif word on a position: the theme of the best move the
 player missed (it files the misses deck, the puzzle buckets and the rule ledger, and the learner
@@ -173,5 +177,47 @@ Lichess's tags are another tagger's, and a puzzle has as many tags as that tagge
 correct app word with no matching tag counts as wrong. Puzzles are tactics by construction; the
 misses deck is built from the player's own mistakes, where a defensive move is more common, which
 the drill-decks project measures on the deck itself.
+
+\appendix
+\section{App-pool development at the later pin}
+
+This phase measures commit \texttt{\RTwoAppCommit} on the \RTwoPuzzles{} unique
+puzzles shipped by that app. Each candidate starts from that pin and changes one
+labeller. The app's existing readers supply the board claims. Candidates are
+developed on this pool, finalized, and committed before the held-out test.
+
+The new sample contains \RTwoSampled{} puzzles drawn uniformly from
+\RTwoEligible{} eligible database rows, rated \RTwoRatingLow{} through
+\RTwoRatingHigh{}, with the app pool excluded and seed \RTwoSeed. Only its sample
+metadata is read here. The app-pool data hash is
+\texttt{\RTwoPoolHash}; the sample hash is \texttt{\RTwoSampleHash}, and its
+database hash is \texttt{\RTwoDatabaseHash}.
+
+\begin{table}[htbp]
+\centering
+\small
+\RTwoTable
+\caption{Development counts on the app pool. Agrees and disagrees count puzzles;
+changed counts a different best-move word. The last columns count puzzles where
+the candidate's new word matches a tag or does not. These are development counts,
+not a keep verdict.}
+\end{table}
+
+Agreement increases on the app pool for every finalized candidate in the table.
+That is only the development screen. The keep rule remains unchanged: on both
+the app pool and held-out set, the paired agreement difference must have its
+\RTwoConfidence\% interval wholly above zero, and the disagreement difference's
+upper endpoint must be at most \RTwoDisagreementLimit{} percentage point.
+The test uses \RTwoDraws{} bootstrap draws of puzzles, with replacement, and
+seed \RTwoBootstrapSeed{} restarted for each set. There is no multiple-comparison
+correction in this fixed rule. No held-out labeller or candidate comparison was
+run in this phase, so none of these candidates is yet kept.
+
+The app-pool work summed to \RTwoAppSeconds{} seconds of recorded per-puzzle
+wall time across the baseline and candidates. Scaling that work to the sample
+at \RTwoProcesses{} processes estimates \RTwoHeldSeconds{} seconds for scoring.
+This excludes process launch, candidate copies and comparison. The local sample
+pass took \RTwoSampleSeconds{} seconds; downloading its database is separate.
+The estimate is a planning figure, not a timed held-out run.
 
 \end{document}

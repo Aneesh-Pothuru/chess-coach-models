@@ -10,7 +10,7 @@ what a move does, and the explanations are written from it. Judged on public
 puzzles that an independent tagger has labelled, how often is each word right
 when it is said, and how often is it said when it is right?
 
-**The answer.** Fork is named well by all three. Beyond it, the misses deck's
+**The earlier answer.** Fork is named well by all three. Beyond it, the misses deck's
 labeller has no word for pins, skewers, discovered attacks, deflections or
 trapped pieces, and files most of those puzzles as a defensive move, a word
 the puzzles' tagger rarely agrees with. The review scan tags a hanging piece
@@ -63,7 +63,7 @@ checkmate is given by the score passed in, so its row is not a test.
 | `candidates/` | Each candidate's replacement files. |
 | `paper/` | The paper. |
 
-## Running it
+## Running the earlier round
 
 ```bash
 make chess
@@ -91,6 +91,7 @@ disagreement does not rise (the interval's upper end at or below one point).
 |---|---|---|
 | `describe-first` | `best` | Before the defensive fallback, name a skewer, a discovered attack or a pin when the move describer finds one for the mover. |
 | `best-deflection` | `best` | Before defence or phase, name the existing line reader's deflection when the supplied solution begins with this move. |
+| `best-trapped` | `best` | Before defence or phase, name the describer's trapped piece when the supplied line wins that same piece after costs. |
 
 ## The next round: app pool first
 
@@ -190,10 +191,12 @@ nice -n 10 curl --fail --location --continue-at - --retry 3 \
 CHESS_DIR=$(bridge/checkout.sh) nice -n 10 .venv/bin/python projects/detector-themes/sample.py --round2
 projects/detector-themes/run-score.sh app
 projects/detector-themes/run-score.sh app best-deflection
-nice -n 10 bridge/run.sh projects/detector-themes/development.mjs best-deflection
+projects/detector-themes/run-score.sh app best-trapped
+nice -n 10 bridge/run.sh projects/detector-themes/development.mjs best-deflection best-trapped
+nice -n 10 bridge/run.sh projects/detector-themes/paper/generate.mjs --round2
 
 candidate=$(projects/detector-themes/candidate.sh best-deflection)
-(cd "$candidate" && nice -n 10 node_modules/.bin/vitest run --project fast --maxWorkers 1 src/services/knowledge/detectors/theme.test.ts src/services/knowledge/detectors/tactics/tactics.test.ts tests/architecture)
+(cd "$candidate" && nice -n 10 node_modules/.bin/vitest run --project fast --maxWorkers 1 src/services/knowledge/detectors/theme.test.ts src/services/knowledge/detectors/tactics/tactics.test.ts src/services/publishing/decks/themeLine.test.ts tests/architecture)
 (cd "$candidate" && nice -n 10 node_modules/.bin/tsc -p tsconfig.app.json --noEmit --incremental false)
 ```
 
@@ -211,10 +214,78 @@ it caches those rows without writing a partial score aggregate.
 ```bash
 projects/detector-themes/run-score.sh heldout
 projects/detector-themes/run-score.sh heldout best-deflection
+projects/detector-themes/run-score.sh heldout best-trapped
 nice -n 10 bridge/run.sh projects/detector-themes/compare.mjs best-deflection best --round2
+nice -n 10 bridge/run.sh projects/detector-themes/compare.mjs best-trapped best --round2
 ```
 
 The comparison checks exact puzzle pairing, labels, truth, vocabulary,
 source hashes and the pinned app before it applies the unchanged bootstrap.
-Do not tune again after those commands. The old paper remains the report of
-the earlier pin; this phase's new evidence is the app-only development report.
+Do not tune again after those commands. The original paper sections remain the report of
+the earlier pin. The new appendix is app-only development evidence. Its
+`--round2` generator verifies the frozen historical macros and aggregates,
+then writes the new numbers into `paper/generated.tex` without reading new
+held-out labels. It refuses a phase-one appendix after comparison results
+exist; phase two must then update the paper to its tested claims. No TeX was
+installed or run. `paper.pdf` is still the historical PDF.
+
+### The trapped-piece design, before its app-pool score
+
+`best-trapped` starts from the pin, without the deflection change. It uses
+the move describer's gain finding for `trapped-piece`, with the existing
+named tactics still taking priority. The finding's square names an enemy
+piece attacked by the best move: the app's reader says both staying there
+and every legal escape lose it. Pawns and kings are not candidates.
+
+The same optional full UCI solution must start with the best move. Track
+that identified piece through the supplied legal line until the solver
+captures it; a capture of another piece is not evidence. Require the app's
+`captureExchangeByMove` for that actual capture to be positive, and the
+app's `materialFor` change through the prefix plus that capture-war result
+to be positive. This keeps an earlier investment from swallowing the gain.
+There is no chosen ply cutoff beyond the supplied line. Missing evidence,
+an illegal prefix or a line stopping before collection says no new word.
+This is a proof along the supplied prefix and local capture war, not a
+search of every opponent reply or a verdict on unrelated later play.
+
+
+### The trapped-piece candidate and where this phase stops
+
+`best-trapped` is final for the held-out test. Its tests cover a piece staying
+put, the same piece moving before capture, another piece being won instead,
+an investment that costs more than the target, a safe escape and missing or
+invalid evidence. Both candidates also test that the misses publisher passes
+a numbered SAN line to the reader and handles a broken continuation.
+The new publisher test is copied into the candidate beside `mistakes.ts`;
+the bridge replaces the existing source and theme test files.
+
+A `trappedPiece` miss files under that word and resolves to `trapped-piece`
+in the catalogue. It too lacks a `THEME_COMPETENCY` entry and credits the
+existing `calc.scan` fallback. The puzzle bucket already exists in K1, but
+the older `WORD_CONCEPTS` map has no trapped-piece entry. Review motifs and
+weakness counts are unchanged by this best-move candidate. These mapping
+limits are reported rather than silently bundled into a labeller change.
+
+The next proposed change is interpreted literally as restricting the old
+`defensiveMove` fallback to moves answering a named threat. An old defensive
+word can stay or disappear; no new agreeing word can appear. Its agreement
+difference is therefore never positive. It cannot pass this round's fixed
+rule and is not worth adding code for here. A broader replacement that also
+finds new defensive moves would be another design. Following the brief's
+ordered stop, no defensive candidate or hanging-piece candidate is built or
+scored in this phase. The latter is deferred, not rejected on data.
+
+The deflection reader covers a material target collected on its next turn;
+it does not cover every deflected guard of a mating square or a longer
+combination. Neither candidate makes Lichess's tagger a chess authority.
+The tags measure agreement; the app's board readers supply the chess facts.
+The timing estimate scales app-pool work to the held-out count. Position
+mix, process startup, copying and bootstrapping can change the actual time.
+
+To repeat the trapped-piece checks:
+
+```bash
+candidate=$(projects/detector-themes/candidate.sh best-trapped)
+(cd "$candidate" && nice -n 10 node_modules/.bin/vitest run --project fast --maxWorkers 1 src/services/knowledge/detectors/theme.test.ts src/services/knowledge/detectors/insights/insights.test.ts src/services/publishing/decks/themeLine.test.ts tests/architecture)
+(cd "$candidate" && nice -n 10 node_modules/.bin/tsc -p tsconfig.app.json --noEmit --incremental false)
+```

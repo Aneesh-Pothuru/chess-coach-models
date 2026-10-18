@@ -15,8 +15,12 @@ if [ ! -f "$CHESS_CACHE/$sha/.git/bridge-ready" ]; then
   cp -al "$app/." "$CHESS_CACHE/$sha.partial/"
   mv "$CHESS_CACHE/$sha.partial" "$CHESS_CACHE/$sha"
 fi
-exec "$root/bridge/candidate.sh" "detector-$name" \
+candidate="$("$root/bridge/candidate.sh" "detector-$name" \
   "src/services/knowledge/detectors/theme.ts=$files/theme.ts" \
   "src/services/knowledge/detectors/theme.test.ts=$files/theme.test.ts" \
   "src/services/knowledge/README.md=$files/knowledge-README.md" \
-  "src/services/publishing/decks/mistakes.ts=$files/mistakes.ts"
+  "src/services/publishing/decks/mistakes.ts=$files/mistakes.ts")"
+if [ -f "$files/mistakes.test.ts" ]; then
+  cp "$files/mistakes.test.ts" "$candidate/src/services/publishing/decks/themeLine.test.ts"
+fi
+printf '%s\n' "$candidate"
