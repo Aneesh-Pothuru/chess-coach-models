@@ -12,7 +12,8 @@ LAB = PROJECT.parents[1]
 MANIFEST = PROJECT / 'phase2-manifest.json'
 FILES = ('stream.py', 'detect.mjs', 'positions.mjs', 'score.mjs', 'analyze.py',
          'freeze.py', 'run_phase2.py', 'phase2.sh', 'implementation-notes.md',
-         'test_stream.py', 'tests-positions.mjs', 'tests-score.mjs', 'test_analysis.py')
+         'test_stream.py', 'tests-positions.mjs', 'tests-score.mjs', 'test_analysis.py',
+         'backfill.mjs', 'prepare_amendment.py', 'migration-manifest.json', 'test_runner.py')
 
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -23,8 +24,8 @@ def rule_digest():
 
 def snapshot():
     pin = json.loads((LAB / 'bridge/chess.json').read_text())
-    return {'schema': 1, 'app': pin['commit'], 'records': pin['records'],
-            'datasetKind': 'literal', 'alternativeScoringAuthorized': False,
+    return {'schema': 2, 'app': pin['commit'], 'records': pin['records'],
+            'datasetKind': 'amended',
             'rule': {'path': 'README.md', 'scope': 'before ## Files', 'sha256': rule_digest()},
             'files': {name: digest(PROJECT / name) for name in FILES}}
 

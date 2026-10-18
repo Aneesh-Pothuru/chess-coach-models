@@ -1,8 +1,10 @@
-# Reviewed readings for the literal scan
+# Reviewed readings for the amended scan
 
-The README's rule is unchanged. The reviewer accepted the phase-one
-readings with the changes below and authorized the literal full run with
-two heavy workers. The rule's owner has not amended the detector filter.
+The rule's owner amended the README before any position was scored. The
+reviewer accepted the phase-one readings with the changes below and
+authorized the amended full run with two heavy workers. The README is the
+rule; its content hash and the implementation hashes are frozen before
+the resumed run.
 
 The game-rule draw spans both players. It is one uniform index in that
 rule's chronological eligible positions, using FNV-1a followed by
@@ -13,20 +15,35 @@ availability describes the whole scan. July and August are pooled for
 train. September is separate.
 
 The move's finding is matched by `conceptId`, actor equal to the mover and
-exactly `tone: gain`. `describeMove` receives only FEN and UCI. No optional
-engine evidence is supplied. At this pin, the technique readers for
-`outside-passer`, `lucena`, `philidor` and `bishop-pair` return `note`;
-`king-shelter` needs best-move evidence and returns `concession`. Those
-findings cannot pass the registered filter. The app can also suppress a
-technique when the moved piece hangs. The tests preserve the app's output;
-they do not add positive findings to make these rules available. The
-owner will decide whether to amend this definition. The availability scan
-also records mover-actor note findings for the four note-only concepts at
-every eligible position. Their seeded draws and monthly caps are kept in
-separate alternative files. Only literal gain rows are scored and analyzed.
-No alternative row may enter the analysis without a committed README
-amendment and a new frozen content manifest. King-shelter has no alternative
-definition in this run.
+`tone: gain`, except for the README's three note rules. Outside-passer
+counts its mover-actor note. Lucena counts its note for the side with the
+pawn, and Philidor for the side without it. The note describes the child
+board; the app's side-material reading on that board supplies the pawn's
+side. Bishop-pair and king-shelter
+have no rows or verdicts in this round. `describeMove` receives only FEN and
+UCI. No optional engine evidence is supplied.
+
+Trade-when-ahead uses the app's `techniqueInsights(fen, uci)` and its `good`
+tone, without engine evidence. Only captures of a piece worth at least
+three points reach that reader. The app's board supplies the captured piece
+and its value. The owner's constructed trade is a synthetic instrument
+test: `describeMove` omits it and the amended reader returns it. No study
+measure is computed by that check.
+
+The stopped scan had recorded literal gains and mover-actor notes at every
+eligible position. Those journals are archived privately and frozen by
+content hashes in `migration-manifest.json`. The backfill reads only
+qualifying trade captures and the pawn-side condition on saved Lucena and
+Philidor notes. It promotes the saved outside-passer notes and reuses all
+unchanged move sets. It never calls `describeMove` for an archived game.
+Each amended draw uses the same seeded sampler and chronological positions.
+Saved splits are reused; a newly selected position whose splits were never
+saved gets those descriptors from the app. Completed backfill games are
+durable, and the ordinary scan starts after each shard's migrated prefix.
+There is one amended population and no alternative output. The report's
+separate historical availability comparison counts positions gained or
+lost by each amendment, including the two removed definitions, without
+scoring them.
 
 `worst-piece` uses the piece and tie-breaking already chosen by
 `ActivityFacts`. Its after-move mobility is the app's `squaresToGo` on the
@@ -136,10 +153,16 @@ summed worker elapsed time, including waits, not a cloud charge. No packages wer
 
 The phase-two runner streams the months in one background process, which
 may overlap the two availability or scoring workers. It completes all
-availability scans before scoring the literal rows. Each stage logs its
+backfills and availability scans before scoring the amended rows. Each stage logs its
 start, completion or failure and elapsed wall time privately. A completed
 stage with unchanged output hashes is not repeated. Streaming retries a
 failed invocation up to three times, resuming durable chunks. A referee
 failure stops the run after its bounded probe retries, preserving all
-completed rows for inspection and resume. The answer and paper remain
+completed rows for inspection and resume. The launch detaches the driver
+into its own session with standard input closed and output in private log
+files. Each stage has its own process group; stopping the driver terminates
+its active groups, and failed groups are cleaned up before a restart. The
+reviewer's earlier SIGTERM is recorded as an intentional interruption. Its
+exact elapsed wall time was not captured, so that duration is unknown;
+completed games retain their measured worker times. The answer and paper remain
 unwritten until the rule's owner reviews the aggregate results.

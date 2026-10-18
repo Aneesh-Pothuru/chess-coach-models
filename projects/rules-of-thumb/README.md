@@ -210,32 +210,33 @@ scripts, then the paper. No language model judges anything here.
 | `stream.py` | Streams the fixed game filter and checkpoints compact games under `private/rules-of-thumb/<run>/`. |
 | `detect.mjs` | Reads rule availability and the board splits through the app; implements the seeded draw and caps. |
 | `positions.mjs` | Scans every eligible position, resumes game shards and merges the kept rows in file order. |
+| `backfill.mjs` | Reuses the stopped scan's readings and resumes a cheap pass for the amendments, without calling describeMove again. |
+| `prepare_amendment.py`, `migration-manifest.json` | Archive the stopped journals and freeze their content hashes for backfill. |
 | `score.mjs` | Reads Maia, the engine and tablebase through the app; resumes score shards. Its timing mode writes counts and times only. |
 | `analyze.py` | Checks complete full-run inputs and writes the fixed measures, verdicts, splits and descriptions to `results/rules.json` and `results/rules.md`. |
-| `test_stream.py`, `tests-positions.mjs`, `tests-score.mjs`, `test_analysis.py` | Synthetic filter, detector, sampling, referee, bootstrap and decision checks. |
-| `implementation-notes.md` | Readings that need review before the full scan. |
-| `phase1.py` | Writes `results/phase1.json` and `results/phase1.md` from July counts and timings. |
+| `test_stream.py`, `tests-positions.mjs`, `tests-score.mjs`, `test_analysis.py`, `test_runner.py` | Synthetic filter, detector, sampling, migration, referee, bootstrap, decision and process-control checks. |
+| `implementation-notes.md` | Reviewed readings and the amended scan's resume procedure. |
+| `phase1.py` | The historical timing report generator, from before the amendments. |
 | `freeze.py`, `phase2-manifest.json` | Freeze and verify the rule and code by content hashes that survive rebasing. |
-| `run_phase2.py` | Runs resumable stages with private logs, one stream process and two heavy workers. |
-| `phase2.sh` | The full-run commands, after review, with two heavy workers at a time. |
+| `run_phase2.py` | Runs resumable stages with private logs, one stream process and two heavy workers; detaches the driver and cleans up stopped stage groups. |
+| `phase2.sh` | Launches the reviewed full run with detached file logging and two heavy workers at a time. |
 | `paper/` | The deferred paper scaffold and its checked generator. |
 
 ## Running it
 
-From the lab's root. The timing run reads July only. All per-game and
-per-position files stay under `private/rules-of-thumb/`.
+From the lab's root. All per-game and per-position files stay under
+`private/rules-of-thumb/`. The original timing report is retained as a
+record of the instrument check before the amendments.
 
 ```bash
 nice -n 10 .venv/bin/python -m unittest discover -s projects/rules-of-thumb -p 'test_*.py'
 nice -n 10 bridge/run.sh projects/rules-of-thumb/tests-positions.mjs
 nice -n 10 bridge/run.sh projects/rules-of-thumb/tests-score.mjs
 
-nice -n 10 .venv/bin/python projects/rules-of-thumb/stream.py --run slice --month 2026-07 --games 300
-nice -n 10 bridge/run.sh projects/rules-of-thumb/positions.mjs --run slice --month 2026-07 --pool 2
-nice -n 10 bridge/run.sh projects/rules-of-thumb/score.mjs --run slice --month 2026-07 --timing --limit 60 --pool 1
-.venv/bin/python projects/rules-of-thumb/phase1.py
-nice -n 10 bridge/run.sh projects/rules-of-thumb/paper/generate.mjs
-
-# Only after the reviewer answers implementation-notes.md:
+# Verify the committed content hashes, then launch or resume:
+.venv/bin/python projects/rules-of-thumb/freeze.py
 projects/rules-of-thumb/phase2.sh --reviewed
+
+# The launcher returns its PID and private driver log path.
+cat private/rules-of-thumb/full/driver.json
 ```

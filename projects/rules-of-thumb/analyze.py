@@ -35,9 +35,12 @@ MONTHS = ("2026-07", "2026-08", "2026-09")
 RULES = (
     "active-king", "opposition", "square-rule", "rook-behind-passer", "cut-off-king",
     "outside-passer", "trade-when-ahead", "lucena", "philidor", "open-file",
-    "rook-on-the-seventh", "outpost", "pawn-break", "passed-pawn", "bishop-pair",
-    "king-shelter", "worst-piece",
+    "rook-on-the-seventh", "outpost", "pawn-break", "passed-pawn", "worst-piece",
 )
+ORIGINAL_RULES = (*RULES[:-1], "bishop-pair", "king-shelter", "worst-piece")
+COMPARISON_FIELDS = ("originalGainPositions", "amendedPositions", "gainedPositions", "lostPositions")
+SIDE_FILTER_FIELDS = ("rawNotePositions", "sideFilteredPositions", "removedPositions")
+SIDE_FILTER_MOVE_FIELDS = ("rawNoteMoves", "sideFilteredMoves", "removedMoves")
 BANDS = (1300, 1500)
 DRAWS = 2000
 SEED = 20261018
@@ -266,16 +269,84 @@ def availability(manifests, rule):
     return {**group(), "byBand": {str(band): group(band) for band in BANDS}}
 
 
+def amendment_report(manifests):
+    """Only board-availability counts, including removed definitions for audit.
+
+    The two removed definitions never enter soundness, verdicts or trees.
+    The raw-note counts are an audit of the side filter, not another scored
+    population or a comparison selected after seeing outcomes.
+    """
+    def checked(source, denominator, active):
+        require(set(active) == set(RULES), "availability includes a removed or unregistered rule")
+        require(set(source["rules"]) == set(ORIGINAL_RULES), "incomplete amendment comparison")
+        require(set(source["noteSideFilter"]) == {"lucena", "philidor"}, "incomplete note side-filter audit")
+        result = {"rules": {}, "noteSideFilter": {}}
+        for rule in ORIGINAL_RULES:
+            counts = {key: source["rules"][rule][key] for key in COMPARISON_FIELDS}
+            require(all(type(value) is int and 0 <= value <= denominator for value in counts.values()),
+                    "invalid amendment availability count")
+            original, amended, gained, lost = (counts[key] for key in COMPARISON_FIELDS)
+            require(original + gained - lost == amended and lost <= original and gained <= denominator - original,
+                    "amendment gains and losses do not reconcile")
+            require(amended == (active[rule] if rule in RULES else 0), "amendment count differs from current availability")
+            result["rules"][rule] = counts
+        for rule in ("lucena", "philidor"):
+            counts = {key: source["noteSideFilter"][rule][key] for key in SIDE_FILTER_FIELDS}
+            require(all(type(value) is int and 0 <= value <= denominator for value in counts.values()),
+                    "invalid side-filter availability count")
+            require(counts["rawNotePositions"] - counts["removedPositions"] == counts["sideFilteredPositions"],
+                    "side-filter removals do not reconcile")
+            require(counts["sideFilteredPositions"] == active[rule], "side-filter result differs from current availability")
+            raw_moves, filtered_moves = (source["noteSideFilter"][rule][field] for field in SIDE_FILTER_MOVE_FIELDS[:2])
+            require(type(raw_moves) is int and type(filtered_moves) is int and 0 <= filtered_moves <= raw_moves,
+                    "invalid side-filter move count")
+            require(raw_moves >= counts["rawNotePositions"] and filtered_moves >= counts["sideFilteredPositions"],
+                    "side-filter move counts do not cover their available positions")
+            counts.update(rawNoteMoves=raw_moves, sideFilteredMoves=filtered_moves, removedMoves=raw_moves - filtered_moves)
+            result["noteSideFilter"][rule] = counts
+        return result
+
+    months = {}
+    for manifest in manifests:
+        source = manifest["amendmentComparison"]
+        current = manifest["availability"]
+        result = checked(source, manifest["positions"], current["all"]["rules"])
+        if "byBand" in source:
+            require(set(source["byBand"]) == {str(band) for band in BANDS}, "amendment comparison has missing bands")
+            result["byBand"] = {str(band): checked(source["byBand"][str(band)], current["byBand"][str(band)]["positions"],
+                                                   current["byBand"][str(band)]["rules"]) for band in BANDS}
+            for section, fields in (("rules", COMPARISON_FIELDS), ("noteSideFilter", SIDE_FILTER_FIELDS + SIDE_FILTER_MOVE_FIELDS)):
+                for rule in result[section]:
+                    for field in fields:
+                        require(sum(result["byBand"][str(band)][section][rule][field] for band in BANDS) == result[section][rule][field],
+                                "amendment comparison bands do not reconcile")
+        months[manifest["month"]] = result
+
+    def summed(parts):
+        total = {section: {rule: {field: sum(part[section][rule][field] for part in parts) for field in fields}
+                           for rule in (ORIGINAL_RULES if section == "rules" else ("lucena", "philidor"))}
+                 for section, fields in (("rules", COMPARISON_FIELDS), ("noteSideFilter", SIDE_FILTER_FIELDS + SIDE_FILTER_MOVE_FIELDS))}
+        if parts and all("byBand" in part for part in parts):
+            total["byBand"] = {str(band): summed([part["byBand"][str(band)] for part in parts]) for band in BANDS}
+        return total
+
+    return {"all": summed(list(months.values())), "train": summed([months[m] for m in MONTHS[:2]]),
+            "heldout": summed([months[MONTHS[2]]]), "byMonth": months,
+            "comparison": "Amended availability versus the original gain-only definition; Lucena and Philidor also versus raw mover-note availability before the side filter.",
+            "removedFromScoring": [rule for rule in ORIGINAL_RULES if rule not in RULES]}
+
+
 def analyze(rows, manifests, app, draws=DRAWS, stage_events=None):
     """Aggregate already validated rows. Production calls always use 2000 draws.
 
     This function is also exercised with explicit synthetic rows by tests.
     Do not call it with phase-one timing data.
     """
-    require(all(row.get("datasetKind") == "literal" for row in rows), "only the literal fixed-rule dataset can be analyzed")
-    require(all(m.get("datasetKind") == "literal" for m in manifests), "only literal position manifests can be analyzed")
+    require(all(row.get("datasetKind") == "amended" for row in rows), "only the amended fixed-rule dataset can be analyzed")
+    require(all(m.get("datasetKind") == "amended" for m in manifests), "only amended position manifests can be analyzed")
+    require(all(row["rule"] in RULES for row in rows), "a row belongs to a removed or unregistered rule")
     out = {
-        "app": app, "datasetKind": "literal", "data": {"source": "Lichess rated standard 600+0", "license": "CC0",
+        "app": app, "datasetKind": "amended", "data": {"source": "Lichess rated standard 600+0", "license": "CC0",
             "train": list(MONTHS[:2]), "heldout": MONTHS[2], "bands": {"1300": [1250, 1449], "1500": [1450, 1649]},
             "gamesByMonth": {m["month"]: m["games"] for m in manifests},
             "positionsByMonth": {m["month"]: m["positions"] for m in manifests}},
@@ -290,8 +361,9 @@ def analyze(rows, manifests, app, draws=DRAWS, stage_events=None):
         "operations": {"byMonth": {m["month"]: m.get("stageTotals") for m in manifests},
             "stageAttempts": stage_attempts(stage_events),
             "stageEventsRecorded": stage_events is not None,
-            "timingDefinition": "Worker seconds sum process time across workers and resumes; stage seconds sum completed/stopped invocation wall times. Completed-row instrument time excludes failed attempts, which are reported separately.",
+            "timingDefinition": "Worker seconds sum elapsed worker time across workers and resumes; stage seconds sum completed/stopped invocation wall times. Completed-row instrument time excludes failed attempts, which are reported separately. Unknown stopped durations remain unknown; known elapsed portions are reported separately.",
             "missing": "null means the instrument did not report this count or time"},
+        "amendmentAvailability": amendment_report(manifests),
         "rules": {},
     }
     for rule in RULES:
@@ -338,7 +410,8 @@ def measurement_versions():
     return {
         "streamVersion": hashlib.sha256((PROJECT / "stream.py").read_bytes()).hexdigest(),
         "scannerVersion": hashlib.sha256((PROJECT / "positions.mjs").read_bytes()
-                                          + (PROJECT / "detect.mjs").read_bytes()).hexdigest(),
+                                          + (PROJECT / "detect.mjs").read_bytes()
+                                          + (PROJECT / "backfill.mjs").read_bytes()).hexdigest(),
         "scorerVersion": hashlib.sha256((PROJECT / "score.mjs").read_bytes()).hexdigest(),
     }
 
@@ -364,12 +437,14 @@ def stage_attempts(events):
         return groups.setdefault(stage, {}).setdefault(month, {
             "attempts": 0, "completedJobs": 0, "stoppedJobs": 0, "unfinishedJobs": 0,
             "completedSeconds": 0.0, "stoppedSeconds": 0.0, "cumulativeFinishedInvocationSeconds": 0.0,
+            "knownStoppedSeconds": 0.0, "knownFinishedInvocationSeconds": 0.0, "unknownStoppedDurations": 0,
+            "stopReasonCounts": {},
             "alreadyCompleteChecks": 0, "restartBackoffs": 0, "restartBackoffSeconds": 0.0,
         })
 
     for event in events:
         stage, month = event["stage"], event.get("month") or "all"
-        require(stage in ("stream", "positions", "score", "analysis"), "unknown stage event")
+        require(stage in ("stream", "positions", "backfill", "score", "analysis"), "unknown stage event")
         require(month in (*MONTHS, "all"), "unknown stage month")
         if stage == "analysis":
             continue
@@ -392,9 +467,12 @@ def stage_attempts(events):
         else:
             require(key in attempts and attempts[key]["status"] == "started", "stage terminal event has no unique start")
             seconds = event.get("seconds")
-            require(isinstance(seconds, (int, float)) and not isinstance(seconds, bool)
-                    and math.isfinite(seconds) and seconds >= 0, "invalid stage elapsed time")
-            attempts[key] = {"status": event["event"], "seconds": seconds}
+            unknown_stop = event["event"] == "stopped" and seconds is None and event.get("terminationTimeKnown") is False
+            require(unknown_stop or (isinstance(seconds, (int, float)) and not isinstance(seconds, bool)
+                    and math.isfinite(seconds) and seconds >= 0), "invalid stage elapsed time")
+            reason = event.get("stopReason")
+            controlled_reason = reason if reason in ("reviewer-amendment-sigterm", "signal", "stage-failure") else "other-or-unrecorded"
+            attempts[key] = {"status": event["event"], "seconds": seconds, "stopReason": controlled_reason}
     for (stage, month, _), attempt in attempts.items():
         group = group_for(stage, month)
         group["attempts"] += 1
@@ -405,9 +483,20 @@ def stage_attempts(events):
             group["completedSeconds"] += attempt["seconds"]
         else:
             group["stoppedJobs"] += 1
-            group["stoppedSeconds"] += attempt["seconds"]
+            reason = attempt["stopReason"]
+            group["stopReasonCounts"][reason] = group["stopReasonCounts"].get(reason, 0) + 1
+            if attempt["seconds"] is None:
+                group["unknownStoppedDurations"] += 1
+                group["stoppedSeconds"] = None
+                group["cumulativeFinishedInvocationSeconds"] = None
+            else:
+                group["knownStoppedSeconds"] += attempt["seconds"]
+                if group["stoppedSeconds"] is not None:
+                    group["stoppedSeconds"] += attempt["seconds"]
         if attempt["seconds"] is not None:
-            group["cumulativeFinishedInvocationSeconds"] += attempt["seconds"]
+            group["knownFinishedInvocationSeconds"] += attempt["seconds"]
+            if group["cumulativeFinishedInvocationSeconds"] is not None:
+                group["cumulativeFinishedInvocationSeconds"] += attempt["seconds"]
     return groups
 
 
@@ -426,12 +515,16 @@ def stage_totals(stream, scan, scores):
                     "tablebaseRetries", "tablebaseRetrySeconds", "newGameCalls")
     completed = [score.get("totals", {}) for score in scores]
     failed = [score.get("failedAttemptTotals", {}) for score in scores]
+    migration = scan.get("migration") or {}
     return {
         "stream": {"cumulativeCheckpointedSeconds": stream.get("seconds"), "gamesRead": stream.get("gamesRead"),
                    "gamesKept": stream["kept"]},
         "positions": {"completedGameTiming": {name: scan.get("timing", {}).get(name) for name in
-                       ("seconds", "describeMoveSeconds", "worstPieceSeconds", "splitsSeconds")},
+                       ("seconds", "describeMoveSeconds", "worstPieceSeconds", "splitsSeconds", "tradeReaderSeconds",
+                        "tradeReaderCalls", "noteSideSeconds", "backfillSeconds", "backfilledGames", "backfilledPositions",
+                        "describeMoveCallsReused", "freshDescribeMoveCalls", "splitsRead", "splitsReused")},
                       "lastInvocationWallSeconds": scan.get("wallSeconds"),
+                      "migration": {key: migration.get(key) for key in ("backfilledGames", "backfilledPositions")},
                       "describeMoveCalls": scan.get("describeMoveCalls"), "legalMoves": scan.get("legalMoves")},
         "score": {"workers": len(scores), "cumulativeWorkerSeconds": sum_reported(scores, "workerSeconds"),
                   "stoppedWorkerJobs": sum_reported(scores, "stoppedJobs"),
@@ -453,7 +546,7 @@ def load_full(directory, app):
     for month in MONTHS:
         stream = json.loads((directory / f"games-{month}.json").read_text())
         scan = json.loads((directory / f"positions-{month}.json").read_text())
-        require(scan.get("datasetKind") == "literal", f"{month}: nonliteral position dataset")
+        require(scan.get("datasetKind") == "amended", f"{month}: non-amended position dataset")
         require(stream.get("streamVersion") == versions["streamVersion"], f"{month}: stream code changed")
         require(scan.get("scannerVersion") == versions["scannerVersion"], f"{month}: position scanner code changed")
         for label, manifest in (("stream", stream), ("positions", scan)):
@@ -481,12 +574,13 @@ def load_full(directory, app):
         require(scan.get("outputSha256") == input_sha, f"{month}: positions changed after scan")
         require(scan.get("capPerRule") == 4000, f"{month}: position cap changed")
         require(scan.get("keptPositions") == len(expected_rows), f"{month}: position total mismatch")
+        require(set(scan["kept"]) == set(RULES), f"{month}: kept counts include removed or unregistered rules")
         counts = Counter(row["rule"] for row in expected_rows)
         require(set(counts).issubset(RULES), f"{month}: unknown rule")
         for rule in RULES:
             require(counts[rule] == scan["kept"][rule] <= 4000, f"{month}: kept cap/count mismatch")
         for row in expected_rows:
-            require(row.get("datasetKind") == "literal", "nonliteral position row")
+            require(row.get("datasetKind") == "amended", "non-amended position row")
             require(row["month"] == month, "position month mismatch")
             require(row["game"] in source_games, "position from a game outside the stream")
         shard_manifests = sorted(directory.glob(f"scored-{month}-*-of-*.json"))
@@ -500,7 +594,7 @@ def load_full(directory, app):
         require(len(loaded_shards) == shards, f"{month}: repeated score shard")
         scored = {}
         for path, manifest in zip(shard_manifests, loaded_shards):
-            require(manifest.get("datasetKind") == "literal", f"{path.name}: nonliteral score dataset")
+            require(manifest.get("datasetKind") == "amended", f"{path.name}: non-amended score dataset")
             require(manifest.get("complete") is True and manifest.get("run") == "full" and manifest.get("timing") is False, f"{path.name}: incomplete or phase one")
             require(manifest.get("app") == app and manifest.get("month") == month, f"{path.name}: provenance mismatch")
             require(manifest.get("scorerVersion") == versions["scorerVersion"], f"{path.name}: scorer code changed")
@@ -513,7 +607,7 @@ def load_full(directory, app):
             shard_rows = read_jsonl(path.with_suffix(".jsonl"))
             require(len(shard_rows) == manifest["rows"], f"{path.name}: row count mismatch")
             for row in shard_rows:
-                require(row.get("datasetKind") == "literal", "nonliteral scored row")
+                require(row.get("datasetKind") == "amended", "non-amended scored row")
                 key = row_key(row)
                 require(key in allowed and key not in scored, f"{path.name}: unexpected or duplicate row")
                 source = expected[key]
@@ -575,6 +669,19 @@ def markdown(report):
         for month, counts in result["countsByMonth"].items():
             values = [number(counts[key]) for key in ("availablePositions", "gamesWithAvailability", "retainedPositions", "scoredPositions")]
             lines.append(f"| {rule} | {month} | " + " | ".join(values) + " |")
+    lines.extend(["", "## Availability after the amendments", "",
+                  "These counts compare board availability before sampling. The removed definitions appear only in this audit and receive no score or verdict.", "",
+                  "| Definition | Month | Original gain-only positions | Amended positions | Gained positions | Lost positions |",
+                  "|---|---|---:|---:|---:|---:|"])
+    for month, comparison in report["amendmentAvailability"]["byMonth"].items():
+        for rule, counts in comparison["rules"].items():
+            label = rule if rule in RULES else f"{rule} (removed)"
+            lines.append(f"| {label} | {month} | " + " | ".join(number(counts[key]) for key in COMPARISON_FIELDS) + " |")
+    lines.extend(["", "| Position pattern | Month | Earlier raw mover-note positions | Positions for the intended side | Removed positions | Earlier raw mover-note moves | Moves for the intended side | Removed moves |",
+                  "|---|---|---:|---:|---:|---:|---:|---:|"])
+    for month, comparison in report["amendmentAvailability"]["byMonth"].items():
+        for rule, counts in comparison["noteSideFilter"].items():
+            lines.append(f"| {rule} | {month} | " + " | ".join(number(counts[key]) for key in SIDE_FILTER_FIELDS + SIDE_FILTER_MOVE_FIELDS) + " |")
     lines.extend(["", "Worker seconds sum across workers and resumes. Instrument times cover completed rows; failed attempts are separate. Missing timings are not counted as zero.", "",
                   "| Month | Stream checkpointed seconds | Completed availability seconds | Cumulative score worker seconds | Maia seconds | Engine seconds | Tablebase seconds | Completed-row tablebase retries | Failed-attempt tablebase retries |",
                   "|---|---:|---:|---:|---:|---:|---:|---:|---:|"])
@@ -587,16 +694,31 @@ def markdown(report):
                   score["completedRowTotals"]["engineSeconds"], score["completedRowTotals"]["tablebaseSeconds"],
                   score["completedRowTotals"]["tablebaseRetries"], score["failedAttemptTotals"]["tablebaseRetries"]]
         lines.append(f"| {month} | " + " | ".join(number(value) for value in values) + " |")
+    lines.extend(["", "| Month | Backfilled games | Backfilled positions | Backfill seconds | Reused describeMove calls | Fresh describeMove calls | Trade reader calls | Trade reader seconds |",
+                  "|---|---:|---:|---:|---:|---:|---:|---:|"])
+    for month, totals in report["operations"]["byMonth"].items():
+        if totals is None:
+            continue
+        timing = totals["positions"]["completedGameTiming"]
+        values = [timing[key] for key in ("backfilledGames", "backfilledPositions", "backfillSeconds", "describeMoveCallsReused",
+                                          "freshDescribeMoveCalls", "tradeReaderCalls", "tradeReaderSeconds")]
+        lines.append(f"| {month} | " + " | ".join(number(value) for value in values) + " |")
     attempts = report["operations"]["stageAttempts"]
     if attempts is None:
         lines.extend(["", "Supervisor attempts were not recorded; stopped-job counts and cumulative invocation times are unknown."])
     else:
-        lines.extend(["", "| Stage | Month | Attempts | Completed jobs | Stopped jobs | Unfinished jobs | Cumulative finished invocation seconds |",
-                      "|---|---|---:|---:|---:|---:|---:|"])
+        lines.extend(["", "| Stage | Month | Attempts | Completed jobs | Stopped jobs | Unfinished jobs | Stopped durations unknown | Cumulative finished invocation seconds | Known elapsed seconds |",
+                      "|---|---|---:|---:|---:|---:|---:|---:|---:|"])
         for stage, months in attempts.items():
             for month, counts in months.items():
-                values = [counts[key] for key in ("attempts", "completedJobs", "stoppedJobs", "unfinishedJobs", "cumulativeFinishedInvocationSeconds")]
+                values = [counts[key] for key in ("attempts", "completedJobs", "stoppedJobs", "unfinishedJobs", "unknownStoppedDurations",
+                                                  "cumulativeFinishedInvocationSeconds", "knownFinishedInvocationSeconds")]
                 lines.append(f"| {stage} | {month} | " + " | ".join(number(value) for value in values) + " |")
+        lines.extend(["", "| Stage | Month | Stop reason | Jobs |", "|---|---|---|---:|"])
+        for stage, months in attempts.items():
+            for month, counts in months.items():
+                for reason, count in counts["stopReasonCounts"].items():
+                    lines.append(f"| {stage} | {month} | {reason} | {count} |")
         lines.extend(["", "Analysis elapsed seconds are recorded separately. Stage restart backoffs and checks that found a completed stage are in `rules.json`."])
     for rule, result in report["rules"].items():
         lines.extend(["", f"## {rule}", "", "| Period and band | Positions | Sound R | Sound N | Sound A | Lift | Adoption | Maia probability of R at his band |",
@@ -637,8 +759,8 @@ def main(argv=None):
         parser.error("analysis is disabled in phase 1; review is required before the full scan and analysis")
     from freeze import verify_manifest
     frozen = verify_manifest(require_committed=True)
-    require(frozen.get("datasetKind") == "literal" and frozen.get("alternativeScoringAuthorized") is False,
-            "analysis requires the committed literal-rule content manifest")
+    require(frozen.get("datasetKind") == "amended" and frozen.get("schema") == 2,
+            "analysis requires the committed amended-rule content manifest")
     pin = json.loads((LAB / "bridge" / "chess.json").read_text())
     app = pin["commit"]
     require(app == "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a", "the fixed app pin changed")
@@ -652,6 +774,7 @@ def main(argv=None):
     result["seconds"] = time.monotonic() - started
     result["ruleReadmeSha256"] = frozen["rule"]["sha256"]
     result["contentManifestSha256"] = hashlib.sha256((PROJECT / "phase2-manifest.json").read_bytes()).hexdigest()
+    result["migrationManifestSha256"] = frozen["files"].get("migration-manifest.json")
     result["operations"]["currentAnalysisSeconds"] = result["seconds"]
     destination = PROJECT / "results"
     destination.mkdir(exist_ok=True)

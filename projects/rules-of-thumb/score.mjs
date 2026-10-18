@@ -13,6 +13,11 @@ const E = await chess('src/services/engine/index.ts')
 const S = await chess('src/core/score/index.ts')
 const Node = await chess('src/adapters/node/engine/index.ts')
 const PIN = JSON.parse(readFileSync(join(LAB_DIR, 'bridge/chess.json'))).commit
+export const AMENDED_RULES = Object.freeze([
+  'active-king', 'opposition', 'square-rule', 'rook-behind-passer', 'cut-off-king',
+  'outside-passer', 'trade-when-ahead', 'lucena', 'philidor', 'open-file',
+  'rook-on-the-seventh', 'outpost', 'pawn-break', 'passed-pawn', 'worst-piece',
+])
 export const TABLEBASE_RETRY_DELAYS_MS = [1000, 2000, 4000]
 export const emptyTimes = () => ({ maiaSeconds: 0, engineSeconds: 0, tablebaseSeconds: 0, maiaCalls: 0,
   maiaBands: 0, bestCalls: 0, scoreCalls: 0, tablebaseCalls: 0, tablebaseUnavailable: 0,
@@ -51,8 +56,9 @@ export function tablebaseSound(probe, uci) {
   return after === outcome
 }
 
-export function requireLiteral(manifest, rows) {
-  if (manifest.datasetKind !== 'literal' || rows.some(row => row.datasetKind !== 'literal')) throw new Error('scorer accepts only the literal registered population')
+export function requireAmended(manifest, rows) {
+  if (manifest.datasetKind !== 'amended' || rows.some(row => row.datasetKind !== 'amended')) throw new Error('scorer accepts only the amended registered population')
+  if (rows.some(row => !AMENDED_RULES.includes(row.rule))) throw new Error('scorer accepts only the fifteen amended rules')
 }
 
 export function addTimes(totals, times) {
@@ -104,7 +110,7 @@ export async function probeWithRetry(eng, pos, times, options = {}) {
 }
 
 export async function readRow(eng, row, timing, options = {}) {
-  if (!timing && row.datasetKind !== 'literal') throw new Error('scorer accepts only literal position rows')
+  if (!timing) requireAmended({ datasetKind: 'amended' }, [row])
   const pos = C.position(row.fen)
   const board = K.tryBoard(row.fen)
   if (!board) throw new Error('invalid FEN')
@@ -216,7 +222,7 @@ async function main() {
   let rows = gunzipSync(bytes).toString().trim().split('\n').filter(Boolean).map(JSON.parse)
   const positionManifest = JSON.parse(readFileSync(join(dir, `positions-${month}.json`)))
   if (!positionManifest.complete || positionManifest.app !== PIN || positionManifest.run !== run || positionManifest.month !== month || positionManifest.outputSha256 !== sha(bytes)) throw new Error('position build incomplete or provenance mismatch')
-  if (!timing) requireLiteral(positionManifest, rows)
+  if (!timing) requireAmended(positionManifest, rows)
   if (timing) {
     const limit = Number(arg('limit', 60))
     if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error('timing limit must be 1..100')
@@ -227,7 +233,7 @@ async function main() {
   const prefix = `${timing ? 'timing' : 'scored'}-${month}-${shard}-of-${shards}`
   const path = join(dir, `${prefix}.jsonl`), manifestPath = join(dir, `${prefix}.json`)
   const signature = { app: PIN, inputSha256: sha(bytes), timing, month, run, shard, shards, keysSha256: sha(rows.map(rowKey).join('\n')) }
-  if (!timing) Object.assign(signature, { scorerVersion: sha(readFileSync(fileURLToPath(import.meta.url))), datasetKind: 'literal', scannerVersion: positionManifest.scannerVersion,
+  if (!timing) Object.assign(signature, { scorerVersion: sha(readFileSync(fileURLToPath(import.meta.url))), datasetKind: 'amended', scannerVersion: positionManifest.scannerVersion,
     engineHash: 'newGame-before-each-position' })
   let previous = null
   if (existsSync(manifestPath)) {
@@ -238,7 +244,7 @@ async function main() {
   const done = new Set(doneRows.map(r => r.key ?? rowKey(r)))
   const expected = new Set(rows.map(rowKey))
   if (expected.size !== rows.length || done.size !== doneRows.length || doneRows.some(r => !expected.has(r.key ?? rowKey(r)))) throw new Error('duplicate or foreign journal row')
-  if (!timing) requireLiteral(signature, doneRows)
+  if (!timing) requireAmended(signature, doneRows)
   const totals = emptyTimes()
   for (const row of doneRows) addTimes(totals, row.times)
   // A no-op resume preserves the completed run's timings and status.

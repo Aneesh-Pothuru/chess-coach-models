@@ -28,7 +28,7 @@ def estimate(value, lo=None, hi=None):
 
 def row(i=0, month="2026-07", rule="open-file", bad=False, band=1300, **splits):
     return {
-        "datasetKind": "literal",
+        "datasetKind": "amended",
         "game": f"synthetic-{month}-{i}", "month": month, "rule": rule,
         "band": band, "opponentBand": 1300, "R": "a1a2", "N": "a1a2", "A": "a1a2",
         "ruleMoves": ["a1a2"], "fen": "synthetic", "ply": 30,
@@ -41,8 +41,19 @@ def row(i=0, month="2026-07", rule="open-file", bad=False, band=1300, **splits):
 def manifest(month, games=0):
     available = {"positions": games, "rules": {rule: games if rule == "open-file" else 0 for rule in A.RULES}}
     empty = {"positions": 0, "rules": {rule: 0 for rule in A.RULES}}
-    return {"app": "synthetic-app", "month": month, "complete": True, "run": "full", "datasetKind": "literal",
+    def comparison(counts):
+        return {
+            "rules": {rule: {"originalGainPositions": counts.get(rule, 0), "amendedPositions": counts.get(rule, 0),
+                             "gainedPositions": 0, "lostPositions": 0} for rule in A.ORIGINAL_RULES},
+            "noteSideFilter": {rule: {"rawNotePositions": 0, "sideFilteredPositions": 0, "removedPositions": 0,
+                                     "rawNoteMoves": 0, "sideFilteredMoves": 0}
+                               for rule in ("lucena", "philidor")},
+        }
+    amendments = comparison(available["rules"])
+    amendments["byBand"] = {"1300": comparison(available["rules"]), "1500": comparison(empty["rules"])}
+    return {"app": "synthetic-app", "month": month, "complete": True, "run": "full", "datasetKind": "amended",
             "games": games, "positions": games, "kept": dict(available["rules"]),
+            "amendmentComparison": amendments,
             "availability": {"all": available, "byBand": {"1300": deepcopy(available), "1500": empty}}}
 
 
@@ -132,6 +143,9 @@ class RuleTests(unittest.TestCase):
         manifests = [manifest(month, 1) for month in A.MONTHS]
         output = A.analyze(rows, manifests, "synthetic-app", draws=20)
         self.assertEqual(list(output["rules"]), list(A.RULES))
+        self.assertEqual(len(output["rules"]), 15)
+        self.assertNotIn("bishop-pair", output["rules"])
+        self.assertNotIn("king-shelter", output["rules"])
         self.assertEqual(output["rules"]["open-file"]["train"]["positions"], 2)
         self.assertEqual(output["rules"]["open-file"]["heldout"]["positions"], 1)
         self.assertEqual(output["rules"]["open-file"]["countsByMonth"]["2026-07"]["scoredPositions"], 1)
@@ -142,16 +156,23 @@ class RuleTests(unittest.TestCase):
         self.assertNotIn('"fen"', text)
         self.assertIn("open-file", A.markdown(output))
 
-    def test_nonliteral_rows_and_manifests_cannot_be_analyzed(self):
+    def test_old_datasets_and_removed_rules_cannot_be_analyzed(self):
         rows = [row()]
         manifests = [manifest(month, 1) for month in A.MONTHS]
-        rows[0]["datasetKind"] = "alternative"
-        with self.assertRaisesRegex(ValueError, "literal"):
-            A.analyze(rows, manifests, "synthetic-app", draws=10)
-        rows[0]["datasetKind"] = "literal"
-        manifests[1]["datasetKind"] = "alternative"
-        with self.assertRaisesRegex(ValueError, "literal"):
-            A.analyze(rows, manifests, "synthetic-app", draws=10)
+        for kind in ("literal", "alternative", None):
+            rows[0]["datasetKind"] = kind
+            with self.assertRaisesRegex(ValueError, "amended"):
+                A.analyze(rows, manifests, "synthetic-app", draws=10)
+        rows[0]["datasetKind"] = "amended"
+        for kind in ("literal", "alternative", None):
+            manifests[1]["datasetKind"] = kind
+            with self.assertRaisesRegex(ValueError, "amended"):
+                A.analyze(rows, manifests, "synthetic-app", draws=10)
+        manifests[1]["datasetKind"] = "amended"
+        for rule in ("bishop-pair", "king-shelter"):
+            rows[0]["rule"] = rule
+            with self.assertRaisesRegex(ValueError, "removed"):
+                A.analyze(rows, manifests, "synthetic-app", draws=10)
 
 
 class TreeTests(unittest.TestCase):
@@ -216,7 +237,7 @@ class GateTests(unittest.TestCase):
             (directory / f"games-{month}.json").write_text(json.dumps(stream))
             (directory / f"scored-{month}-0-of-1.jsonl").write_text(data)
             signature = {"month": month, "complete": True, "run": "full", "timing": False, "app": "synthetic-app",
-                         "datasetKind": "literal",
+                         "datasetKind": "amended",
                          "shard": 0, "shards": 1, "rows": 1, "expectedRows": 1,
                          "scorerVersion": versions["scorerVersion"],
                          "inputSha256": hashlib.sha256(compressed).hexdigest(),
@@ -294,11 +315,39 @@ class GateTests(unittest.TestCase):
                 content = json.loads(path.read_text())
                 content["datasetKind"] = "alternative"
                 path.write_text(json.dumps(content) + "\n")
-                with self.assertRaisesRegex(ValueError, "nonliteral"):
+                with self.assertRaisesRegex(ValueError, "non-amended"):
                     A.load_full(directory, "synthetic-app")
 
 
 class OperationalTests(unittest.TestCase):
+    def test_prior_reviewer_stop_keeps_unknown_duration_and_backfill_time(self):
+        events = [
+            {"stage": "positions", "month": "2026-07", "attempt": "old", "event": "started"},
+            {"stage": "positions", "month": "2026-07", "attempt": "old", "event": "stopped", "seconds": None,
+             "stopReason": "reviewer-amendment-sigterm", "exitCode": -15, "terminationTimeKnown": False},
+            {"stage": "positions", "month": "2026-07", "attempt": "new", "event": "started"},
+            {"stage": "positions", "month": "2026-07", "attempt": "new", "event": "completed", "seconds": 20},
+            {"stage": "backfill", "month": "2026-07", "attempt": "backfill", "event": "started"},
+            {"stage": "backfill", "month": "2026-07", "attempt": "backfill", "event": "completed", "seconds": 30},
+        ]
+        result = A.stage_attempts(events)
+        stopped = result["positions"]["2026-07"]
+        self.assertEqual(stopped["stoppedJobs"], 1)
+        self.assertEqual(stopped["unknownStoppedDurations"], 1)
+        self.assertEqual(stopped["stopReasonCounts"], {"reviewer-amendment-sigterm": 1})
+        self.assertIsNone(stopped["stoppedSeconds"])
+        self.assertIsNone(stopped["cumulativeFinishedInvocationSeconds"])
+        self.assertEqual(stopped["knownFinishedInvocationSeconds"], 20)
+        self.assertEqual(result["backfill"]["2026-07"]["cumulativeFinishedInvocationSeconds"], 30)
+
+    def test_stop_reasons_cannot_export_uncontrolled_text(self):
+        events = [{"stage": "score", "month": "2026-07", "attempt": "x", "event": "started"},
+                  {"stage": "score", "month": "2026-07", "attempt": "x", "event": "stopped", "seconds": 1,
+                   "stopReason": "a private worker detail"}]
+        result = A.stage_attempts(events)
+        self.assertEqual(result["score"]["2026-07"]["stopReasonCounts"], {"other-or-unrecorded": 1})
+        self.assertNotIn("private", json.dumps(result))
+
     def test_stopped_then_completed_attempts_and_backoffs(self):
         events = [
             {"stage": "stream", "month": "2026-07", "attempt": "first", "event": "started"},
@@ -326,7 +375,8 @@ class OperationalTests(unittest.TestCase):
 
     def test_completed_and_failed_work_stay_separate(self):
         stream = {"kept": 1, "seconds": 3, "gamesRead": 4}
-        scan = {"timing": {"seconds": 10, "describeMoveSeconds": 8}, "wallSeconds": 6, "describeMoveCalls": 12}
+        scan = {"timing": {"seconds": 10, "describeMoveSeconds": 8, "backfillSeconds": 5, "describeMoveCallsReused": 12},
+                "wallSeconds": 6, "describeMoveCalls": 12, "migration": {"backfilledGames": 2, "backfilledPositions": 10}}
         scores = [
             {"rows": 2, "workerSeconds": 30, "totals": {"engineSeconds": 20, "tablebaseRetries": 1},
              "failedAttemptTotals": {"engineSeconds": 4, "tablebaseRetries": 2}},
@@ -338,12 +388,47 @@ class OperationalTests(unittest.TestCase):
         self.assertEqual(report["score"]["completedRowTotals"]["engineSeconds"], 45)
         self.assertEqual(report["score"]["failedAttemptTotals"]["engineSeconds"], 4)
         self.assertEqual(report["score"]["failedAttemptTotals"]["tablebaseRetries"], 2)
+        self.assertEqual(report["positions"]["migration"]["backfilledGames"], 2)
+        self.assertEqual(report["positions"]["completedGameTiming"]["backfillSeconds"], 5)
 
     def test_reused_attempt_identifier_refuses(self):
         event = {"stage": "score", "month": "2026-09", "attempt": "same", "event": "started"}
         with self.assertRaisesRegex(ValueError, "reused"):
             A.stage_attempts([event, event])
 
+
+class AmendmentTests(unittest.TestCase):
+    def test_amendment_gains_losses_and_side_filter_counts(self):
+        manifests = [manifest(month, 10) for month in A.MONTHS]
+        first = manifests[0]
+        groups = [first["amendmentComparison"], first["amendmentComparison"]["byBand"]["1300"]]
+        for group in groups:
+            group["rules"]["outside-passer"] = {"originalGainPositions": 0, "amendedPositions": 4, "gainedPositions": 4, "lostPositions": 0}
+            group["rules"]["bishop-pair"] = {"originalGainPositions": 2, "amendedPositions": 0, "gainedPositions": 0, "lostPositions": 2}
+            group["rules"]["lucena"] = {"originalGainPositions": 0, "amendedPositions": 1, "gainedPositions": 1, "lostPositions": 0}
+            group["noteSideFilter"]["lucena"] = {"rawNotePositions": 3, "sideFilteredPositions": 1, "removedPositions": 2,
+                                                  "rawNoteMoves": 5, "sideFilteredMoves": 2}
+        for available in (first["availability"]["all"], first["availability"]["byBand"]["1300"]):
+            available["rules"]["outside-passer"] = 4
+            available["rules"]["lucena"] = 1
+        result = A.amendment_report(manifests)
+        self.assertEqual(result["all"]["rules"]["outside-passer"]["gainedPositions"], 4)
+        self.assertEqual(result["all"]["rules"]["bishop-pair"]["lostPositions"], 2)
+        self.assertEqual(result["train"]["noteSideFilter"]["lucena"]["removedPositions"], 2)
+        self.assertEqual(result["train"]["noteSideFilter"]["lucena"]["removedMoves"], 3)
+        self.assertEqual(result["heldout"]["noteSideFilter"]["lucena"]["removedPositions"], 0)
+        self.assertEqual(result["removedFromScoring"], ["bishop-pair", "king-shelter"])
+        first["amendmentComparison"]["rules"]["outside-passer"]["gainedPositions"] += 1
+        with self.assertRaisesRegex(ValueError, "reconcile"):
+            A.amendment_report(manifests)
+
+    def test_side_filter_report_must_match_active_availability(self):
+        manifests = [manifest(month, 10) for month in A.MONTHS]
+        manifests[0]["amendmentComparison"]["noteSideFilter"]["lucena"] = {
+            "rawNotePositions": 2, "sideFilteredPositions": 1, "removedPositions": 1,
+            "rawNoteMoves": 2, "sideFilteredMoves": 1}
+        with self.assertRaisesRegex(ValueError, "differs"):
+            A.amendment_report(manifests)
 
 if __name__ == "__main__":
     unittest.main()

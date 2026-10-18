@@ -2,8 +2,8 @@
 // Run with bridge/run.sh projects/rules-of-thumb/tests-score.mjs.
 import assert from 'node:assert/strict'
 import { chess } from '../../bridge/lib/chess.mjs'
-import { addTimes, cumulativeSeconds, emptyTimes, engineSound, pick, probeWithRetry, readRow,
-  requireLiteral, tablebaseSound, TABLEBASE_RETRY_DELAYS_MS } from './score.mjs'
+import { addTimes, AMENDED_RULES, cumulativeSeconds, emptyTimes, engineSound, pick, probeWithRetry, readRow,
+  requireAmended, tablebaseSound, TABLEBASE_RETRY_DELAYS_MS } from './score.mjs'
 
 const K = await chess('src/services/knowledge/index.ts')
 const E = await chess('src/services/engine/index.ts')
@@ -16,7 +16,7 @@ const best = (s = score(0)) => ({ complete: true, partial: false, completion: 'c
 const read = (uci, s = score(0)) => ({ best: uci, pv: [uci], score: s,
   partial: false, completion: 'complete', status: 'exact', coherent: true })
 const legalAt = fen => K.boardOf(fen).movesShared().map(m => m.uci)
-const row = (fen = START, more = {}) => ({ datasetKind: 'literal', month: 'synthetic', game: 'synthetic', rule: 'synthetic',
+const row = (fen = START, more = {}) => ({ datasetKind: 'amended', month: 'synthetic', game: 'synthetic', rule: 'active-king',
   fen, band: 1300, opponentBand: 1500, A: legalAt(fen)[0], ruleMoves: [legalAt(fen)[1]], splits: {}, ...more })
 let checks = 0
 function test(name, fn) {
@@ -199,16 +199,36 @@ await testAsync('a failed hash reset stops before all searches and retains attem
   assert.deepEqual(mock.calls.map(call => call.method), ['humanPolicy', 'newGame'])
 })
 
-test('literal provenance is mandatory on every full manifest and row', () => {
-  requireLiteral({ datasetKind: 'literal' }, [row()])
-  for (const datasetKind of [undefined, 'alternative', 'alternative-note']) {
-    assert.throws(() => requireLiteral({ datasetKind }, [row()]), /literal/)
-    assert.throws(() => requireLiteral({ datasetKind: 'literal' }, [row(START, { datasetKind })]), /literal/)
+test('amended provenance is mandatory on every full manifest and row', () => {
+  requireAmended({ datasetKind: 'amended' }, [row()])
+  for (const datasetKind of [undefined, 'literal', 'alternative', 'alternative-note']) {
+    assert.throws(() => requireAmended({ datasetKind }, [row()]), /amended/)
+    assert.throws(() => requireAmended({ datasetKind: 'amended' }, [row(START, { datasetKind })]), /amended/)
   }
 })
-await testAsync('alternative rows fail before any scoring calls', async () => {
+await testAsync('old literal and alternative rows fail before any scoring calls', async () => {
   const mock = mockEngine(START)
-  await assert.rejects(readRow(mock, row(START, { datasetKind: 'alternative-note' }), false), /literal/)
+  for (const datasetKind of [undefined, 'literal', 'alternative', 'alternative-note']) {
+    await assert.rejects(readRow(mock, row(START, { datasetKind }), false), /amended/)
+  }
+  assert.equal(mock.calls.length, 0)
+})
+test('the amended rule set contains exactly the fifteen registered IDs', () => {
+  assert.deepEqual(AMENDED_RULES, [
+    'active-king', 'opposition', 'square-rule', 'rook-behind-passer', 'cut-off-king',
+    'outside-passer', 'trade-when-ahead', 'lucena', 'philidor', 'open-file',
+    'rook-on-the-seventh', 'outpost', 'pawn-break', 'passed-pawn', 'worst-piece',
+  ])
+  for (const rule of AMENDED_RULES) requireAmended({ datasetKind: 'amended' }, [row(START, { rule })])
+  for (const rule of ['bishop-pair', 'king-shelter', 'unknown']) {
+    assert.throws(() => requireAmended({ datasetKind: 'amended' }, [row(START, { rule })]), /fifteen amended rules/)
+  }
+})
+await testAsync('removed rules cannot reach any scoring call even with an amended marker', async () => {
+  const mock = mockEngine(START)
+  for (const rule of ['bishop-pair', 'king-shelter']) {
+    await assert.rejects(readRow(mock, row(START, { rule }), false), /fifteen amended rules/)
+  }
   assert.equal(mock.calls.length, 0)
 })
 

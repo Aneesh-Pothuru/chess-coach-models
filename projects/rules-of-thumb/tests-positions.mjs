@@ -1,13 +1,15 @@
-// Synthetic board checks only. Expected findings come from the pinned app's
-// technique/insight fixtures, including concepts that emit note or concession.
+// Synthetic board, migration and resume checks. No real games or outcomes.
 import assert from 'node:assert/strict'
-import { appendFileSync, mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs'
-import { join } from 'node:path'
+import { appendFileSync, mkdtempSync, readFileSync, writeFileSync, rmSync, existsSync } from 'node:fs'
+import { join, relative } from 'node:path'
 import { createHash } from 'node:crypto'
 import { gzipSync, gunzipSync } from 'node:zlib'
-import { privateDir } from '../../bridge/lib/chess.mjs'
-import { RULES, ALTERNATIVE_RULES, rulesOfMove, availabilityOf, drawPosition, emptyRules, emptyAlternativeRules, cappedRows, splitsOf, describePosition, bandOf } from './detect.mjs'
-import { sansOf, buildGame, validateRecord, worker, merge } from './positions.mjs'
+import { chess, LAB_DIR, privateDir } from '../../bridge/lib/chess.mjs'
+import { RULES, ORIGINAL_RULES, LEGACY_NOTE_RULES, rulesOfMove, availabilityOf, drawPosition, emptyRules, cappedRows, splitsOf, describePosition, bandOf, sparseMoves } from './detect.mjs'
+import { sansOf, buildGame, validateRecord, worker, merge, shaFile, journalPath, emptyCounts, scannerVersion } from './positions.mjs'
+import { migrateRecord, backfillWorker, mergeBackfill } from './backfill.mjs'
+const K = await chess('src/services/knowledge/index.ts')
+const { squaresToGo } = await chess('src/services/knowledge/facts/activity.ts')
 
 const cases = [
   ['active-king', '8/pp4k1/8/8/8/8/6P1/R5K1 w - - 0 1', 'g1f2', true],
@@ -20,13 +22,13 @@ const cases = [
   ['rook-behind-passer', '6k1/8/5b2/P7/8/8/6K1/7R w - - 0 1', 'h1a1', false],
   ['cut-off-king', '8/6k1/8/1P6/8/8/3K4/R6r w - - 0 1', 'a1e1', true],
   ['cut-off-king', '8/4p1k1/8/1P6/8/8/3K4/R6r w - - 0 1', 'a1e1', false],
-  ['outside-passer', '8/6k1/8/1p6/P7/8/4PP2/6K1 w - - 0 1', 'a4b5', false],
+  ['outside-passer', '8/6k1/8/1p6/P7/8/4PP2/6K1 w - - 0 1', 'a4b5', true],
   ['outside-passer', '8/6k1/8/1p6/P7/8/4PP2/6K1 w - - 0 1', 'e2e3', false],
-  ['trade-when-ahead', 'r3k3/pp3ppp/2n5/1B6/8/8/PP3PPP/R3K2R w KQq - 0 1', 'b5c6', false],
+  ['trade-when-ahead', '3rk3/1p6/2n5/8/3N4/8/8/3RK2R w K - 0 1', 'd4c6', true],
   ['trade-when-ahead', 'r3k2r/pp3ppp/2n5/1B6/8/8/PP3PPP/R3K2R w KQkq - 0 1', 'b5c6', false],
-  ['lucena', '1K6/2P1k3/8/8/8/8/r7/3R4 w - - 0 1', 'b8c8', false],
+  ['lucena', '1K6/2P1k3/8/8/8/8/r7/3R4 w - - 0 1', 'b8c8', true],
   ['lucena', '2K5/2P2k2/8/8/8/8/r7/3R4 w - - 0 1', 'd1d2', false],
-  ['philidor', '4k3/r7/8/4K3/4P3/8/8/7R b - - 0 1', 'a7a6', false],
+  ['philidor', '4k3/r7/8/4K3/4P3/8/8/7R b - - 0 1', 'a7a6', true],
   ['philidor', '4k3/8/r7/4K3/4P3/8/8/7R b - - 0 1', 'a6b6', false],
   ['open-file', '4k3/pp3ppp/8/8/8/8/PP3PPP/R3K3 w - - 0 1', 'a1d1', true],
   ['open-file', '4k3/pp3ppp/8/8/8/8/PP3PPP/R3K3 w - - 0 1', 'a1b1', false],
@@ -38,40 +40,29 @@ const cases = [
   ['pawn-break', 'rnbqkbnr/pppp1ppp/8/4p3/8/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2', 'f2f4', false],
   ['passed-pawn', '4k3/7p/8/8/P7/8/8/4K3 w - - 0 1', 'a4a5', true],
   ['passed-pawn', '4k3/p7/8/8/P7/8/8/4K3 w - - 0 1', 'a4a5', false],
-  ['bishop-pair', 'r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1', 'b5c6', false],
-  ['bishop-pair', 'r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1', 'b5a4', false],
-  ['king-shelter', '6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1', 'h2h4', false],
-  ['king-shelter', '6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1', 'h2h3', false],
   ['worst-piece', '7k/8/8/8/8/8/4P3/N5K1 w - - 0 1', 'a1b3', true],
   ['worst-piece', '8/8/8/2k5/8/8/4P3/N5K1 w - - 0 1', 'a1b3', false],
+  ['lucena', '2K5/2P5/3k4/8/8/8/r7/3R4 b - - 0 1', 'd6e6', false],
+  ['philidor', '4k3/8/r3K3/8/4P3/8/8/7R w - - 0 1', 'e6e5', false],
 ]
 for (const [rule, fen, uci, expected] of cases) assert.equal(rulesOfMove(fen, uci).includes(rule), expected, `${rule}: ${fen} ${uci}`)
 assert.deepEqual(new Set(cases.map((x) => x[0])), new Set(RULES))
-
-// Confirm note-tone examples are genuinely recognized but fail the gain gate.
-const { chess } = await import('../../bridge/lib/chess.mjs')
-const K = await chess('src/services/knowledge/index.ts')
-for (const rule of ALTERNATIVE_RULES) {
-  const [, fen, uci] = cases.find((x) => x[0] === rule)
-  const mover = describePosition(fen).turn
-  assert(K.describeMove(fen, uci).findings.some((f) => f.conceptId === rule && f.actor === mover && f.tone === 'note'))
-  const both = availabilityOf(fen)
-  assert.equal(both.ruleMoves[rule].length, 0)
-  assert(both.alternativeRuleMoves[rule].includes(uci))
-  for (const [id, moves] of Object.entries(both.alternativeRuleMoves)) {
-    assert(ALTERNATIVE_RULES.includes(id))
-    for (const move of moves) assert(K.describeMove(fen, move).findings.some((f) => f.conceptId === id && f.actor === mover && f.tone === 'note'))
-  }
-  const [, negativeFen, negativeUci] = cases.filter((x) => x[0] === rule)[1]
-  assert(!availabilityOf(negativeFen).alternativeRuleMoves[rule].includes(negativeUci))
+assert.equal(RULES.length, 15)
+for (const removed of ['bishop-pair', 'king-shelter']) assert(!RULES.includes(removed))
+for (const rule of ['lucena', 'philidor']) {
+  const [, fen, uci] = cases.filter((x) => x[0] === rule).at(-1)
+  assert(K.describeMove(fen, uci).findings.some((f) => f.conceptId === rule && f.actor === K.boardOf(fen).turn && f.tone === 'note'))
+  const full = availabilityOf(fen)
+  assert(!full.ruleMoves[rule].includes(uci))
+  assert(full.audit.noteSideFilter[rule].rawMoves > full.audit.noteSideFilter[rule].keptMoves)
 }
-assert(!ALTERNATIVE_RULES.includes('king-shelter'))
-assert(!Object.hasOwn(availabilityOf(cases.find((x) => x[0] === 'king-shelter')[1]).alternativeRuleMoves, 'king-shelter'))
+const ownerTrade = cases.find((x) => x[0] === 'trade-when-ahead')
+assert(!K.describeMove(ownerTrade[1], ownerTrade[2]).findings.some((f) => f.conceptId === 'trade-when-ahead'))
+assert(availabilityOf(ownerTrade[1]).ruleMoves['trade-when-ahead'].includes(ownerTrade[2]))
 const full = availabilityOf('7k/8/8/8/8/8/4P3/N5K1 w - - 0 1')
 assert.equal(full.legalMoves, describePosition('7k/8/8/8/8/8/4P3/N5K1 w - - 0 1').board.movesShared().length)
 assert(full.ruleMoves['worst-piece'].includes('a1b3'))
 for (const [rule, moves] of Object.entries(full.ruleMoves)) for (const move of moves) assert(rulesOfMove('7k/8/8/8/8/8/4P3/N5K1 w - - 0 1', move).includes(rule))
-
 const options = Array.from({ length: 100 }, (_, ply) => ({ ply }))
 const one = drawPosition('synthetic-game', 'active-king', options)
 assert.equal(drawPosition('synthetic-game', 'active-king', options), one)
@@ -79,7 +70,6 @@ assert.equal(drawPosition('synthetic-game', 'active-king', []), null)
 assert.equal(drawPosition('synthetic-game', 'active-king', [options[0]]), options[0])
 assert.notEqual(drawPosition('synthetic-game', 'opposition', options).ply, one.ply)
 assert.notEqual(drawPosition('synthetic-other', 'active-king', options).ply, one.ply)
-// Independently reproduce the uniform-index selection from the named PRNG.
 assert.equal(one.ply, 88)
 const cap = emptyRules()
 const rows = Array.from({ length: 4002 }, (_, gameIndex) => ({ gameIndex, rule: 'active-king' }))
@@ -89,94 +79,113 @@ assert.equal(kept.at(-1).gameIndex, 3999)
 assert.equal(cappedRows([{ rule: 'opposition' }], cap).length, 1)
 assert.equal(cappedRows(rows, cap).length, 0)
 assert.equal(cappedRows(rows, emptyRules()).length, 4000)
-const alternativeCap = emptyAlternativeRules()
-assert.equal(cappedRows(Array.from({ length: 4002 }, (_, gameIndex) => ({ gameIndex, rule: 'lucena', datasetKind: 'alternative' })), alternativeCap).length, 4000)
-assert.equal(cap.lucena, 0)
-assert.equal(cappedRows([{ rule: 'lucena', datasetKind: 'literal' }], cap).length, 1)
-
-assert.equal(bandOf(1249), null)
-assert.equal(bandOf(1250), 1300)
-assert.equal(bandOf(1449), 1300)
-assert.equal(bandOf(1450), 1500)
-assert.equal(bandOf(1649), 1500)
-assert.equal(bandOf(1650), null)
+assert.throws(() => cappedRows([{ rule: 'bishop-pair' }], cap), /removed/)
+for (const [rating, band] of [[1249, null], [1250, 1300], [1449, 1300], [1450, 1500], [1649, 1500], [1650, null]]) assert.equal(bandOf(rating), band)
 assert.equal(splitsOf('6k1/5ppp/8/8/8/8/5PPP/R5K1 w - - 0 1').material, 'ahead')
 assert.equal(splitsOf('6k1/5ppp/8/8/8/8/5PPP/R5K1 b - - 0 1').material, 'behind')
 assert.equal(splitsOf('6k1/5ppp/8/8/8/8/5PPP/6K1 w - - 0 1').material, 'level')
-assert.equal(splitsOf('6k1/5ppp/q7/8/8/8/5PPP/6K1 w - - 0 1').kingDanger, true)
 assert.deepEqual(sansOf('1. e4 { [%clk 0:10:00] } 1... e5 2.Nf3?! Nc6 $1 1-0'), ['e4', 'e5', 'Nf3', 'Nc6'])
 
-// A synthetic game confirms all pre-move readings survive JSON persistence,
-// and its two definitions are drawn from their own chronological positions.
+// Produce the old journal definition on synthetic positions using only the
+// same app readers as the original scan. Real journals are never redescribed.
+function oldPosition(fen, ply, game = 'synthetic-old', gameIndex = 0) {
+  const facts = K.describePosition(fen)
+  const literal = Object.fromEntries(ORIGINAL_RULES.map((r) => [r, []]))
+  const alternative = Object.fromEntries(LEGACY_NOTE_RULES.map((r) => [r, []]))
+  for (const move of facts.board.movesShared()) {
+    const findings = K.describeMove(fen, move.uci).findings
+    for (const rule of ORIGINAL_RULES.filter((r) => r !== 'worst-piece')) if (findings.some((f) => f.conceptId === rule && f.actor === facts.turn && f.tone === 'gain')) literal[rule].push(move.uci)
+    for (const rule of LEGACY_NOTE_RULES) if (findings.some((f) => f.conceptId === rule && f.actor === facts.turn && f.tone === 'note')) alternative[rule].push(move.uci)
+    const worst = facts.side[facts.turn].activity.worstPiece
+    if (worst?.square === move.from) {
+      const mobility = squaresToGo(facts.board.child(move), move.to)
+      if (mobility !== null && mobility > worst.moves) literal['worst-piece'].push(move.uci)
+    }
+  }
+  for (const map of [literal, alternative]) for (const moves of Object.values(map)) moves.sort()
+  return { game, gameIndex, month: '2026-07', band: 1300, opponentBand: 1500, fen, ply, A: facts.board.movesShared()[0].uci, legalMoves: facts.board.movesShared().length, literalRuleMoves: sparseMoves(literal), alternativeRuleMoves: sparseMoves(alternative) }
+}
+function oldRecord(positionAvailability) {
+  const { game, gameIndex, month } = positionAvailability[0]
+  return { game, gameIndex, month, positionAvailability, rows: [], alternativeRows: [], counts: { games: 1, plies: 30, positions: positionAvailability.length, legalMoves: positionAvailability.reduce((sum, p) => sum + p.legalMoves, 0), describeMoveCalls: positionAvailability.reduce((sum, p) => sum + p.legalMoves, 0), timing: { seconds: 1, describeMoveSeconds: .8, worstPieceSeconds: .1, splitsSeconds: .1 } } }
+}
+const migrationFixture = oldRecord([ownerTrade[1], cases.find((x) => x[0] === 'outside-passer')[1], ...['lucena', 'philidor'].flatMap((r) => [cases.find((x) => x[0] === r)[1], cases.filter((x) => x[0] === r).at(-1)[1]])].map((fen, ply) => oldPosition(fen, ply)))
+const provenance = { manifestSha256: 'synthetic-manifest', legacyScannerVersion: 'synthetic-old-code', legacyJournalSha256: 'synthetic-journal' }
+const migrated = migrateRecord(migrationFixture, 0, provenance)
+assert.equal(migrated.counts.timing.freshDescribeMoveCalls, 0)
+assert.equal(migrated.counts.timing.describeMoveCallsReused, migrationFixture.counts.legalMoves)
+assert(migrated.counts.timing.tradeReaderCalls > 0)
+assert(migrated.counts.timing.splitsRead > 0)
+assert(migrated.rows.some((r) => r.rule === 'trade-when-ahead'))
+for (const position of migrated.positionAvailability) assert.deepEqual(position.ruleMoves, sparseMoves(availabilityOf(position.fen).ruleMoves))
+const withSplits = structuredClone(migrationFixture)
+withSplits.rows = migrated.rows
+const reused = migrateRecord(withSplits, 0, provenance)
+assert.equal(reused.counts.timing.splitsRead, 0)
+assert.equal(reused.counts.timing.splitsReused, reused.rows.length)
+const missing = structuredClone(migrationFixture)
+delete missing.positionAvailability[0].alternativeRuleMoves
+assert.throws(() => migrateRecord(missing, 0, provenance), /missing its saved definition/)
 const syntheticInput = { id: 'synthetic-game', whiteElo: 1300, blackElo: 1500, initialFen: '7k/8/8/8/8/8/P7/R5K1 w - - 0 1', moves: Array.from({ length: 30 }, (_, i) => ['a1b1', 'h8h7', 'b1a1', 'h7h8'][i % 4]) }
 const synthetic = buildGame(syntheticInput, 0, '2026-07')
 assert.equal(synthetic.positionAvailability.length, 30)
-assert.equal(synthetic.counts.positions, 30)
-assert(synthetic.rows.every((r) => r.datasetKind === 'literal'))
-assert(synthetic.alternativeRows.every((r) => r.datasetKind === 'alternative'))
-assert(synthetic.positionAvailability.every((p) => p.literalRuleMoves && p.alternativeRuleMoves))
 validateRecord(JSON.parse(JSON.stringify(synthetic)), 0)
 assert.throws(() => validateRecord(synthetic, 1), /out-of-order/)
-const missingReadings = structuredClone(synthetic)
-missingReadings.positionAvailability.pop()
-assert.throws(() => validateRecord(missingReadings, 0), /per-position/)
 const wrongKind = structuredClone(synthetic)
-assert(wrongKind.rows.length > 0)
 wrongKind.rows[0].datasetKind = 'alternative'
 assert.throws(() => validateRecord(wrongKind, 0), /saved draw/)
 const wrongDraw = structuredClone(synthetic)
 wrongDraw.rows[0].ply++
 assert.throws(() => validateRecord(wrongDraw, 0), /saved draw/)
-const noteInput = { id: 'synthetic-note', whiteElo: 1300, blackElo: 1500, initialFen: '4k3/1p5p/2n5/1B6/8/8/7P/4KB2 w - - 0 20', moves: ['b5c6', 'b7c6', ...Array.from({ length: 28 }, (_, i) => ['e1f2', 'e8d7', 'f2e1', 'd7e8'][i % 4])] }
-const noteGame = buildGame(noteInput, 2, '2026-07')
-validateRecord(noteGame, 2)
-assert(noteGame.alternativeRows.some((r) => r.rule === 'bishop-pair' && r.ply === 0 && r.ruleMoves.includes('b5c6')))
-assert(!noteGame.rows.some((r) => r.rule === 'bishop-pair'))
-assert.equal(noteGame.counts.alternativeAvailableGames['bishop-pair'], 1)
-assert.equal(noteGame.counts.availableGames['bishop-pair'], 0)
-const mixedRows = structuredClone(noteGame)
-mixedRows.rows.push(mixedRows.alternativeRows[0])
-assert.throws(() => validateRecord(mixedRows, 2), /draw without|saved draw/)
 
-// Exercise the actual journal and merge paths using synthetic games only.
-// Resume repairs an unfinished final line, reuses completed games and keeps
-// the two output streams separate even when shards finish out of order.
+// Resume a partially written migration, then continue normal scanning; no
+// amended prefix is redescribed and no alternative output is generated.
 const testDir = mkdtempSync(join(privateDir('rules-of-thumb'), 'test-positions-'))
 try {
   const input = join(testDir, 'games-2026-07.jsonl.gz')
-  const bytes = gzipSync([syntheticInput, noteInput].map((g) => JSON.stringify(g) + '\n').join(''))
+  const bytes = gzipSync([syntheticInput, { ...syntheticInput, id: 'synthetic-second' }].map((g) => JSON.stringify(g) + '\n').join(''))
   writeFileSync(input, bytes)
-  const config = { dir: testDir, input, inputGames: 2, inputSha256: createHash('sha256').update(bytes).digest('hex'), month: '2026-07', run: 'slice' }
-  await worker(config, 1, 2)
-  await worker(config, 0, 2)
-  const journal = join(testDir, 'availability-2026-07-0of2.jsonl')
+  const archived = join(testDir, 'legacy.jsonl')
+  const legacy = oldRecord(synthetic.positionAvailability.map((p) => oldPosition(p.fen, p.ply, syntheticInput.id, 0)))
+  writeFileSync(archived, JSON.stringify(legacy) + '\n' + '{"incomplete":')
+  const source = { shard: 0, path: relative(LAB_DIR, archived), sha256: await shaFile(archived), games: 1, positions: 30, partialTrailingBytes: 14 }
+  assert.equal(Buffer.byteLength('{"incomplete":'), 14)
+  const config = { dir: testDir, input, inputGames: 2, inputSha256: createHash('sha256').update(bytes).digest('hex'), month: '2026-07', run: 'slice', migrationManifestSha256: 'synthetic-manifest', migrationManifest: { legacyScannerVersion: 'synthetic-old-code', months: { '2026-07': { inputSha256: createHash('sha256').update(bytes).digest('hex'), shards: 2, journals: [source, { shard: 1, path: relative(LAB_DIR, join(testDir, 'empty.jsonl')), sha256: createHash('sha256').update('').digest('hex'), games: 0, positions: 0, partialTrailingBytes: 0 }] } } } }
+  writeFileSync(join(testDir, 'empty.jsonl'), '')
+  await backfillWorker(config, 0, 2)
+  const journal = journalPath(config, 0, 2)
   const original = readFileSync(journal)
   appendFileSync(journal, '{"gameIndex":')
+  const resumed = await backfillWorker(config, 0, 2)
+  assert.equal(resumed.built, 0)
+  assert.equal(resumed.resumed, 1)
+  assert.deepEqual(readFileSync(journal), original)
+  assert.equal(await shaFile(archived), source.sha256)
+  await backfillWorker(config, 1, 2)
+  const backfill = mergeBackfill(config, 2, 0)
+  assert.equal(backfill.games, 1)
+  assert.equal(backfill.positions, 30)
+  assert.equal(backfill.timing.freshDescribeMoveCalls, 0)
+  await worker(config, 1, 2)
   await worker(config, 0, 2)
   assert.deepEqual(readFileSync(journal), original)
-  const resumed = JSON.parse(readFileSync(`${journal}.complete.json`, 'utf8'))
-  assert.equal(resumed.resumed, 1)
-  assert.equal(resumed.built, 0)
+  await backfillWorker(config, 1, 2) // Safe even after fresh games follow.
   await merge(config, 2, 0)
-  const readRows = (file) => gunzipSync(readFileSync(join(testDir, file))).toString().trim().split('\n').filter(Boolean).map(JSON.parse)
-  const literalRows = readRows('positions-2026-07.jsonl.gz')
-  const alternativeRows = readRows('positions-alternative-2026-07.jsonl.gz')
-  assert(literalRows.every((r) => r.datasetKind === 'literal'))
-  assert(alternativeRows.length > 0 && alternativeRows.every((r) => r.datasetKind === 'alternative' && ALTERNATIVE_RULES.includes(r.rule)))
-  assert(literalRows.every((r, i) => i === 0 || r.gameIndex >= literalRows[i - 1].gameIndex))
-  const literalManifest = JSON.parse(readFileSync(join(testDir, 'positions-2026-07.json'), 'utf8'))
-  const alternativeManifest = JSON.parse(readFileSync(join(testDir, 'positions-alternative-2026-07.json'), 'utf8'))
-  assert.equal(literalManifest.datasetKind, 'literal')
-  assert.equal(alternativeManifest.datasetKind, 'alternative')
-  assert.equal(literalManifest.keptPositions, literalRows.length)
-  assert.equal(alternativeManifest.keptPositions, alternativeRows.length)
-  assert.equal(literalManifest.availability.all.positions, 60)
-  assert.equal(alternativeManifest.availability.all.positions, 60)
-  assert.equal(literalManifest.availableGames['bishop-pair'], 0)
-  assert.equal(alternativeManifest.availableGames['bishop-pair'], 1)
-  assert.equal(literalManifest.outputSha256, createHash('sha256').update(readFileSync(join(testDir, 'positions-2026-07.jsonl.gz'))).digest('hex'))
-  assert.equal(alternativeManifest.outputSha256, createHash('sha256').update(readFileSync(join(testDir, 'positions-alternative-2026-07.jsonl.gz'))).digest('hex'))
-} finally {
-  rmSync(testDir, { recursive: true, force: true })
-}
-console.log(JSON.stringify({ synthetic: true, ruleCases: cases.length, rules: RULES.length, alternativeRules: ALTERNATIVE_RULES.length, checks: 'detection, gain and note isolation, every-position persistence, seeded draws, separate caps, journal order and resume, sharded merge, content hashes, bands, splits, movetext' }))
+  const keptRows = gunzipSync(readFileSync(join(testDir, 'positions-2026-07.jsonl.gz'))).toString().trim().split('\n').filter(Boolean).map(JSON.parse)
+  assert(keptRows.every((r) => r.datasetKind === 'amended' && RULES.includes(r.rule)))
+  assert(keptRows.every((r, i) => i === 0 || r.gameIndex >= keptRows[i - 1].gameIndex))
+  const manifest = JSON.parse(readFileSync(join(testDir, 'positions-2026-07.json'), 'utf8'))
+  assert.equal(manifest.datasetKind, 'amended')
+  assert.equal(manifest.keptPositions, keptRows.length)
+  assert.equal(manifest.availability.all.positions, 60)
+  assert.equal(manifest.migration.backfilledGames, 1)
+  assert.equal(manifest.timing.backfilledPositions, 30)
+  assert.equal(manifest.outputSha256, await shaFile(join(testDir, 'positions-2026-07.jsonl.gz')))
+  assert(!existsSync(join(testDir, 'positions-alternative-2026-07.jsonl.gz')))
+  const absent = { ...config, month: '2026-08' }
+  const noSource = await backfillWorker(absent, 0, 2)
+  assert.equal(noSource.complete, true)
+  assert.equal(noSource.games, 0)
+  assert.equal(noSource.positions, 0)
+} finally { rmSync(testDir, { recursive: true, force: true }) }
+console.log(JSON.stringify({ synthetic: true, ruleCases: cases.length, rules: RULES.length, scannerVersion: scannerVersion(), checks: 'amended detectors, wrong-side notes, owner trade, seeded draws, caps, removed-rule rejection, every-position persistence, migration equivalence and split reuse, partial-tail resume, sharded merge, content hashes, absent-month no-op' }))
