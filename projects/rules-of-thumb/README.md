@@ -18,10 +18,14 @@ that does worse misleads.
 
 ## The rules
 
-Seventeen rules. Sixteen are the move detectors (`card.<concept>`) of the
+Fifteen rules. Fourteen are the move detectors (`card.<concept>`) of the
 catalogue's techniques and positional patterns. A move **shows** a rule when
 `describeMove(fen, uci).findings` holds a finding of that concept whose
-`actor` is the mover and whose `tone` is `gain`.
+`actor` is the mover and whose `tone` is `gain`, with three exceptions whose
+readers only ever write a `note` (amended before any position was scored, see
+below): `outside-passer` counts its note; `lucena` counts its note when the
+mover is the side with the pawn, and `philidor` when the mover is the side
+without it, so each counts only for the side the position is for.
 
 | Rule | The catalogue's name |
 |---|---|
@@ -39,16 +43,26 @@ catalogue's techniques and positional patterns. A move **shows** a rule when
 | `outpost` | the outpost |
 | `pawn-break` | the pawn break |
 | `passed-pawn` | the passed pawn |
-| `bishop-pair` | the bishop pair |
-| `king-shelter` | the king shelter |
 
-The seventeenth, `worst-piece` ("Feed your laziest piece", the app's lesson),
+The fifteenth, `worst-piece` ("Feed your laziest piece", the app's lesson),
 has no move detector, so it is defined here from the app's readings: a move by
 the piece `describePosition(fen)` names as the mover's worst piece
 (`ActivityFacts`), after which that piece has more legal moves than before.
 
 Tactics and mates (forks, pins, winning captures, the named mates) are left
 out: they are calculation, which the puzzles train, not rules of thumb.
+
+**The amendment, before any position was scored.** The rule as first
+committed (lab 1006568) had seventeen rules and counted only `gain` findings.
+Timing the scan on 300 July games, with no measure computed, showed that at
+the pinned commit five could never be available that way: the technique
+readers for the outside passed pawn, the Lucena position, the Philidor
+position and the bishop pair only ever write a `note`, and `king-shelter`
+appears only as a fault credited to the other side after a pawn move thins
+the shelter. So the outside passer, Lucena and Philidor count their note as
+above. The bishop pair's note says a bishop that takes a knight gives the pair
+up, a warning rather than a rule to follow, and the king shelter is never a
+move to play, so both leave this round; a rule to avoid needs its own test.
 
 ## The data
 
@@ -134,6 +148,13 @@ with the app's own readings:
 A split is a **failure condition** of a rule when, on both the train months
 and the held-out month, R's soundness in one of its cells is at least 10
 points below the rest, with that difference's 95% interval below zero.
+
+**Readings settled before the run**, none changing the rule: the train set
+pools July and August; a game's one draw per rule spans both players'
+positions; each month's cap pools both bands; the engine is cleared before
+each position, so a reading never depends on the worker; tablebase outcomes
+compare exactly, with cursed wins and blessed losses kept apart; the bootstrap
+draws 2,000 resamples of games with seed 20261018.
 
 ## Also reported, without a rule
 
