@@ -1,0 +1,126 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+\title{Does Maia need a different offset for the player?\\
+\large A fixed protocol and a cost estimate}
+\author{Chess Coach research lab}
+\date{}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The app adds \Base{} points before it converts a chess.com rating to a
+\ModelName{} band. The predecessor kept that offset, but its exploratory
+results differed by side and rating. This phase fixes a comparison of
+separate offsets for the player and his opponents, and a single offset
+function of rating. The archive contributes \Moves{} moves in \Games{}
+games. We rebuilt the input and timed the app's instruments. No candidate
+has been fitted or scored. The projected run takes \FullHours{} hours with
+\Processes{} workers; we allow \PlanningHours{} hours for sustained load.
+\end{abstract}
+
+\section{The data and the question}
+We measure app commit \AppCommit, with records at \RecordsCommit.
+The predecessor's position script is run with only its private output
+directory changed. Moves count from ply \MinPly{} with both clocks at least
+\MinClock{} seconds. Games alternate by end time between \FitGames{}
+fitting games (\FitMoves{} moves) and \HeldGames{} held-out games
+(\HeldMoves{} moves). The \EmptyGames{} games with no counted moves remain
+bootstrap units. Both sides count, at their recorded post-game ratings.
+
+All \FrozenGames{} frozen accuracy cases join to these games without a
+rating or side mismatch. The \GuardGames{} in the held-out half form the
+punish guard. Old recorded evidence has \RecordedEvents{} events there,
+\RecordedExact{} verified; these are coverage counts only. The guard will
+use new routine reviews at the pinned app. It covers a subset, not the
+whole held-out archive.
+
+\section{Candidates and estimation}
+Candidate A jointly fits separate player and opponent offsets over
+\OffsetMin{} to \OffsetMax{} in steps of \OffsetStep{} (\ACount{}
+combinations). Each person's offset follows that person into either input
+of the model. Candidate B uses the app's clamping and rounding on
+$a+b(r-\Anchor)$, with the same intercept grid and slopes
+\SlopeList{} (\BCount{} combinations). A line is the smallest family that
+can follow a rating trend; both slope directions are allowed. Each family
+contains the baseline. Every band is computed by the app's conversion.
+
+Both fits maximize mean natural log probability per fitting move. The
+held-out gain is candidate minus baseline mean log probability. We use
+\Draws{} shared bootstrap draws of held-out games with replacement, seed
+\Seed, taking the ratio of summed differences to move counts. Fits stay
+fixed. Exact fitting ties prefer closeness to the baseline for A and a
+smaller absolute slope for B; the README specifies every further tie-break
+and quantile index.
+
+\section{The fixed decision}
+A candidate needs a positive fitting gain and positive held-out gain after
+Holm across both families at \Alpha. We report \OrdinaryCI\% percentile
+intervals and require the step-down interval to lie above zero: the
+\AdjustedCI\% interval at the first Holm step and \OrdinaryCI\% at the
+second. The second cannot pass when the first fails. The README fixes the
+finite-draw tail p-value and its strict threshold.
+
+A likelihood winner also needs noninferiority of punish odds. The app's
+routine review defines an error as losing at least \ErrorLoss{} points of
+winning chances. A non-book next reply with an engine best move contributes
+an event. The outcome is whether that best reply was played. Maia reads the
+replier's converted band against the same band, as the app currently does.
+The guard changes the conversion and preserves that conditioning.
+
+Use the mean Brier score, candidate minus baseline, on verified replies
+and all non-book replies, separately for each error direction. All
+\GuardCells{} cells must have their \AdjustedCI\% interval upper end at
+most \GuardMargin. This is a conservative correction over both candidate
+guards, with all cells required within each candidate. Missing evidence or
+an empty bootstrap denominator cannot pass. Brier measures calibration and
+resolution together; this is not proof of calibration in every subgroup.
+
+If both candidates qualify, the greater observed held-out gain is selected;
+an exact tie selects B because it needs no owner identity. If neither
+qualifies, \Base{} stays. Side and rating-third gains, first-choice shares
+and probability bins are descriptive. No app port or personal fine-tuning
+is part of this phase.
+
+\section{Work measured in this phase}
+The grids reach \PolicyCalls{} distinct position--band-pair calls. The
+seeded timing slice covers \SampleMoves{} moves and \SampleCalls{} calls.
+The longer worker took \PolicySeconds{} seconds, with up to \Startup{}
+seconds for the first call and about \CallMS{} milliseconds per subsequent
+pair while both workers ran. Routine review timing covers \ReviewGames{}
+games and \ReviewPlies{} plies in \ReviewSeconds{} seconds.
+
+\begin{center}\small\CostTable\end{center}
+
+The projection uses two workers at nice \Nice{} and assumes the measured
+rate holds. Its \Allowance{} multiplier allows for thermal slowdown on the
+fanless laptop and the owner's other work. Policy storage projects to
+\StorageMB{} MB. Preparation and the small aggregation and bootstrap passes
+are outside the inference projection. The \WeightsMB{} MB model was fetched
+and checked against the app's checksum inside this clone. No packages were
+installed and no Python replacement was used.
+The review timing lowered priority in the coordinator and again in its
+workers. Future commands apply the reduction once; the cost keeps the
+measured time.
+
+Reviews use the app's service, with a fresh engine, no tablebase requests,
+no eval cache and no review-store writes. Game files stay in the project's
+private directory. This storage and network configuration differs from the
+predecessor's CLI; the instrument remains the app's routine pipeline.
+
+\section{Limits and the later port}
+The predecessor explored these same games. They are held out from the new
+fit, not independent of the exploration that chose the question. A fresh
+archive is needed for a stronger confirmation. The bootstrap does not model
+serial dependence or repeat opponents. The punish subset is small and its
+verification pass selects partly on outcomes; the all-reply guard checks
+that selection without removing it.
+
+The call-site audit records the person every conversion models. A would
+require both profile offsets and owner identity in review calls. B would
+require a rating function and consistent inverse labels for the bot. The
+punish and defense calls currently ignore the profile offset. The later
+port must preserve their equal-band conditioning, refresh cached learner
+levels, and distinguish the bot's explicit band from its model of the human.
+The present paper supports the protocol and cost only.
+\end{document}

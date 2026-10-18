@@ -1,0 +1,252 @@
+{
+  "phase": 1,
+  "decisionMetricsComputed": false,
+  "app": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+  "records": "aed714ada579782ce73630596e59c8b65e74cb30",
+  "data": {
+    "archived": 648,
+    "games": 648,
+    "moves": 33522,
+    "fit": {
+      "games": 324,
+      "moves": 17055
+    },
+    "held": {
+      "games": 324,
+      "moves": 16467
+    },
+    "skips": {},
+    "zeroMoveGames": 8,
+    "playerMoves": 16766,
+    "opponentMoves": 16756,
+    "frozenCases": {
+      "total": 60,
+      "overlap": {
+        "fit": 32,
+        "held": 28,
+        "unmatched": 0
+      },
+      "ratingMismatch": 0,
+      "sideMismatch": 0
+    },
+    "recordedEvents": {
+      "fit": {
+        "events": 361,
+        "exact": 273,
+        "games": 32,
+        "directions": {
+          "player-err": {
+            "events": 172,
+            "exact": 127,
+            "games": 29
+          },
+          "opp-err": {
+            "events": 189,
+            "exact": 146,
+            "games": 32
+          }
+        }
+      },
+      "held": {
+        "events": 328,
+        "exact": 244,
+        "games": 28,
+        "directions": {
+          "player-err": {
+            "events": 162,
+            "exact": 116,
+            "games": 28
+          },
+          "opp-err": {
+            "events": 166,
+            "exact": 128,
+            "games": 28
+          }
+        }
+      },
+      "unmatched": {
+        "events": 0,
+        "exact": 0,
+        "games": 0,
+        "directions": {
+          "player-err": {
+            "events": 0,
+            "exact": 0,
+            "games": 0
+          },
+          "opp-err": {
+            "events": 0,
+            "exact": 0,
+            "games": 0
+          }
+        }
+      }
+    },
+    "benchmarkEvents": {
+      "games": 2,
+      "events": 19,
+      "exact": 12,
+      "directions": {
+        "player-err": {
+          "all": 9,
+          "exact": 6
+        },
+        "opp-err": {
+          "all": 10,
+          "exact": 6
+        }
+      }
+    },
+    "note": "Recorded event counts are coverage estimates from old evidence, not the phase-2 events. New reviews supply the guard."
+  },
+  "design": {
+    "A": 441,
+    "B": 147,
+    "baseline": 250,
+    "offsets": [
+      0,
+      25,
+      50,
+      75,
+      100,
+      125,
+      150,
+      175,
+      200,
+      225,
+      250,
+      275,
+      300,
+      325,
+      350,
+      375,
+      400,
+      425,
+      450,
+      475,
+      500
+    ],
+    "slopes": [
+      -0.75,
+      -0.5,
+      -0.25,
+      0,
+      0.25,
+      0.5,
+      0.75
+    ],
+    "draws": 1000,
+    "seed": 7,
+    "guardMargin": 0.005
+  },
+  "protocol": {
+    "anchor": 1000,
+    "minPly": 11,
+    "minClock": 30,
+    "errorLoss": 5,
+    "ordinaryCI": 95,
+    "adjustedCI": 97.5,
+    "alpha": 0.05,
+    "guardCells": 4,
+    "allowance": 1.5
+  },
+  "work": {
+    "movePolicyCalls": 900016,
+    "byShard": [
+      449999,
+      450017
+    ],
+    "pairsPerMoveHistogram": {
+      "4": 1084,
+      "6": 1187,
+      "9": 2851,
+      "12": 579,
+      "16": 3425,
+      "20": 742,
+      "25": 5135,
+      "30": 1458,
+      "36": 17061
+    },
+    "recordedHeldPunishCalls": 1927,
+    "heldReviewGames": 28,
+    "heldReviewPlies": 1921
+  },
+  "timing": {
+    "positionsSeconds": 5.435503458,
+    "policies": [
+      {
+        "kind": "move",
+        "benchmark": true,
+        "shard": 0,
+        "processes": 2,
+        "rows": 16,
+        "calls": 421,
+        "firstSeconds": 0.364844042,
+        "seconds": 9.145017,
+        "bytes": 394722
+      },
+      {
+        "kind": "move",
+        "benchmark": true,
+        "shard": 1,
+        "processes": 2,
+        "rows": 16,
+        "calls": 469,
+        "firstSeconds": 0.374479375,
+        "seconds": 10.269539125,
+        "bytes": 435005
+      }
+    ],
+    "secondsPerCall": 0.021030667463963964,
+    "startupSeconds": 0.374479375,
+    "review": {
+      "games": 2,
+      "plies": 140,
+      "workerSeconds": 188.632469834,
+      "wallSeconds": 108.404612333,
+      "secondsPerPly": 1.3473747845285715,
+      "gameSecondsRange": {
+        "min": 80.23313195899999,
+        "max": 108.399337875
+      },
+      "priorityNote": "This review timing used nice -n 10 for the coordinator as well as nice -n 10 for its workers; priority was lowered twice. Reproduction commands now lower only worker priority."
+    }
+  },
+  "cost": {
+    "processes": 2,
+    "nice": 10,
+    "moveSeconds": 9464.53235950567,
+    "reviewSeconds": 1294.153480539693,
+    "punishSeconds": 20.63752747652928,
+    "totalHours": 2.9942564909783034,
+    "planningHours": 4.491384736467455,
+    "estimatedPolicyBytes": 840861190.5179775,
+    "excludes": "Small data preparation, streaming aggregation and bootstrap passes; no model inference in fit. Review event workload uses old event counts and may change. Short-slice timing does not measure sustained fanless throttling."
+  },
+  "weights": {
+    "wasCached": false,
+    "bytes": 84945775,
+    "sha256": "f2ded336c9574510468382345ae66e9c4b6de80d6b5c72efbf9610fa612475e8",
+    "seconds": 3.0145296660000005
+  },
+  "packagesInstalled": [],
+  "provenance": {
+    "sourceHashes": {
+      "projects/maia-player-offsets/README.md": "2e3a68eb1d410131d8bc810150eb9a07755a089fb57ee63fb1d189fe5f987b2e",
+      "projects/maia-player-offsets/design.mjs": "17bb2c8256f68ae003d2b91abb97a55cd702b0c210ae642eec56e6061fdfca15",
+      "projects/maia-player-offsets/fit.mjs": "a2f29e0b791424c517c6539b2c60f890bbe174051fd5f101663e668b3daff0c6",
+      "projects/maia-player-offsets/events.mjs": "72b4b1d9feffd0b5eac0ed20149294ccec2853881b2c47b4b872ec1665a679de",
+      "projects/maia-player-offsets/policies.mts": "8f672a69e3f42161c5d4c872b90f99daa6cf04d296d19d7e5d326cd757118bec",
+      "projects/maia-player-offsets/review-one.mts": "938654b26bf058f57d2cfbb755d8a03b7b008664f61c10ac6306eedcc910ee30",
+      "projects/maia-player-offsets/evidence.mjs": "c274c714e3bb30ce6132087e5bd98a841e07d20d05ce969c149789a433fe115f",
+      "projects/maia-player-offsets/count.mjs": "ca4b79d31d8453375ed72dd4609a795b25710c6ac4039307ea495dc6df61e737",
+      "projects/maia-player-offsets/paper/generate.mjs": "fd2e15470e5aacc671117d92f085f510581fa9287970e9cd146b0588e9733022",
+      "projects/maia-player-offsets/paper/paper.tex": "d127614a275583efce70f5b7f2462d02ae95c5c0b20a312d6e7c5b1296b82bfa",
+      "projects/maia-rating-offset/positions.mts": "d8b235192af01a5d512c39a36441018ba0f3f1430399d923e23353f7094976b9"
+    },
+    "prepared": "ba2b4ee6fa1206456caeb43871830029c018706129d3842735ae6c7cb9580e4e",
+    "design": "17bb2c8256f68ae003d2b91abb97a55cd702b0c210ae642eec56e6061fdfca15",
+    "positions": "3229e75cfee305746ff60d74a380caa0f0c03eeebf57f6e4f4f89cec5398d246",
+    "evidence": "faab4b2c21ae6c90f7b8ba33fdcbb6389a3feee01a3099d6122030799066b777"
+  }
+}
