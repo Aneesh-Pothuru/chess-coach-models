@@ -19,6 +19,7 @@ import {
   readJsonl,
   seedOf,
   shardOf,
+  tenMinutes,
   topOf,
 } from './lib.mjs'
 
@@ -34,14 +35,6 @@ const { i: shard, n: shards } = shardOf(argOf('--shard', '0/1'))
 const limit = Number(argOf('--limit', 'Infinity'))
 const dir = privateDir(PROJECT)
 
-function tenMinutes(g) {
-  const tc = parseTimeControl(typeof g.time_control === 'string' ? g.time_control : null)
-  if (tc) return tc.base === 600 && tc.inc === 0
-  if (typeof g.time_control === 'string') return false
-  const clocks = (g.clocks ?? []).filter((c) => typeof c === 'number' && Number.isFinite(c))
-  return clocks.length > 0 && Math.max(...clocks) <= 600
-}
-
 const skipped = {}
 const skip = (why) => {
   skipped[why] = (skipped[why] ?? 0) + 1
@@ -50,7 +43,7 @@ const skip = (why) => {
 const all = loadArchiveGames({ dir: join(CHESS_DIR, ARCHIVE_SUBDIR) })
 const games = all
   .filter((g) => {
-    if (tenMinutes(g)) return true
+    if (tenMinutes(g, parseTimeControl)) return true
     skip('game: not 10 minutes')
     return false
   })

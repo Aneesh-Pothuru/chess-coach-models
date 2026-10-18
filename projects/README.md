@@ -153,6 +153,15 @@ done
 for i in 0 1 2 3; do bridge/run.sh projects/judge-factors/verdict.mjs --shard $i/4 & done; wait
 bridge/run.sh projects/judge-factors/analyze.mjs
 
+# His habits: his 10-minute moves from the archive against Maia-2 at the band
+# above, corrected by Lichess players at each band and priced by Stockfish. Both
+# scorers resume where they stopped.
+python3 projects/his-habits/stream.py
+for i in 0 1 2 3; do bridge/run.sh projects/his-habits/his.mjs --shard $i/4 & done; wait
+for i in 0 1 2 3; do bridge/run.sh projects/his-habits/lichess.mjs --shard $i/4 & done; wait
+bridge/run.sh projects/his-habits/analyze.mjs
+bridge/run.sh projects/his-habits/describe.mjs
+
 # The learner's solve chances: his puzzle attempts replayed through the app's
 # learner, on a record rebuilt from the memory cards and on the profile as the
 # app holds it.

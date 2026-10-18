@@ -1,0 +1,111 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Where do his choices differ from players 200 points above him?\\[0.3em]
+\large Twenty-two kinds of move in his 10-minute games, against Maia-2 at the band above,
+corrected on Lichess and priced by Stockfish}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{The question}
+
+A coach who has watched a player for a while can say what he does differently from stronger
+players: he trades too readily, he rarely retreats, he pushes the pawns in front of his own king.
+That kind of remark changes how a player plays, and it is not an engine's top move. This study
+asks it of his games with the app's own instruments. Which kinds of move does he play more often,
+or less often, than players \Above{} points above him would in the same positions, and which of
+those differences cost him? A difference that shows in both halves of his games and costs him
+more than his other differences is a habit worth coaching. One that shows but costs no more is
+his style, worth knowing but not worth changing, and one that shows in only one half is not a
+habit.
+
+The comparison needs a stand-in for the stronger players in his own positions. Maia-2, the app's
+model of human moves, was trained on Lichess games to predict the move a player at a rating band
+makes; at the band above his it gives each legal move a probability, so it says how often players
+\Above{} points above him would play each kind of move in exactly his positions. A model's
+probabilities are not players' choices, so the study first measures, on Lichess games at those
+bands, how often players play each kind against how often Maia-2 predicts, and corrects for the
+difference. Stockfish then prices each difference.
+
+\section{How it was measured}
+
+\paragraph{His positions.} His \Games{} 10-minute games in the app's archive at commit
+\texttt{\AppCommit}, in order of their end time: the first \GamesFirst{} (\FirstFrom{} to
+\FirstTo) and the last \GamesSecond{} (\SecondFrom{} to \SecondTo) are the two halves. Each of his
+moves enters when the position is past the opening by the app's divider, he is not in check and
+has at least two legal moves, his win\% before the move is between \WinLow{} and \WinHigh{} by
+the archive's evaluation (the game is still open), and his clock shows at least \ClockFloor{}
+seconds. That leaves \Positions{} positions, \PositionsFirst{} in the first half and
+\PositionsSecond{} in the second; most of the rest are opening moves (\SkipOpening), moves in
+check (\SkipCheck) or moves in decided games (\SkipDecided).
+
+\paragraph{The bands.} Maia-2, the app's model of human moves, gives every legal move a
+probability at a rating band, conditioned on the opponent's band. His band is his rating at the
+game with the app's offset of \Offset{} points to Lichess; the band above is his rating plus
+\Above{}, the same way. His band ran from \HisBandsFirst{} in the first half and
+\HisBandsSecond{} in the second, the band above from \AboveBandsFirst{} and \AboveBandsSecond.
+
+\paragraph{The kinds of move.} Every legal move in every position is read by the app's code
+(Table~\ref{tab:kinds}). \MoveKinds{} kinds come from the move itself, \IdeaKinds{} from the
+insights the app reads for a move as the board shows it, and one, a move that leaves a piece
+standing to be taken, is the control. A move can be of several kinds.
+
+\KindTable
+
+\paragraph{The rate.} For a kind and a half, $N$ is the number of his moves of that kind. Maia-2's
+expected count sums, over his positions, the probability it gives at the band above to the moves
+of that kind. Maia-2 is a model, so it may predict a kind more or less often than players at its
+band play it. To correct for that, \LichessMonth's Lichess games at 10 minutes give the first
+\PerBand{} player-games at each band from \BandLowest{} to \BandHighest{} (the lowest band counted
+from \LichessFloor), and \PerPlayer{} positions from each, drawn among those that pass his filters,
+the win\% filter by Stockfish at \FilterNodes{} nodes, with at most \Tries{} tried:
+\LichessPositions{} positions from \LichessWithPositions{} player-games. At each band, $\kappa$ is
+the number of moves of the kind those players played over the number Maia-2 at that band
+expected. His expected count $E$ multiplies each position's predicted share by $\kappa$ at that
+position's band above, and $R = N/E$ is how often he plays the kind relative to players
+\Above{} points above him, in his positions.
+
+\paragraph{The cost.} $T$ is the move Maia-2 at the band above rates most likely and $P$ his move.
+Stockfish through the app's engine service, at \CostNodes{} nodes with its hash cleared and no
+tablebase, scores each, and $D$ is his win\% after $T$ minus after $P$ (zero where they are the
+same move). For a kind he plays too often, the instances are the positions where $P$ is of that
+kind and $T$ is not; for one he plays too rarely, where $T$ is and $P$ is not. The relative cost
+is the mean $D$ over the instances minus the mean $D$ over his other differences, the positions
+where $P$ is not $T$ and neither is of the kind.
+
+\paragraph{Intervals.} \Draws{} bootstrap draws resample his games within each half and the
+Lichess player-games within each band; intervals are the 95\% percentile intervals.
+
+\paragraph{The rule, fixed before any position was scored.} Two controls come first, and if
+either fails on either half the study gives no verdict. The known fault: a move that leaves a
+piece standing to be taken must be over-used on both halves, and cost more than his other
+differences on both. The null: a player who plays a move drawn from Maia-2's own policy at the
+band above, compared with Maia-2's expected count without $\kappa$, must show no kind over- or
+under-used. Then a kind is \emph{over-used} when $R$'s interval lies above 1 on both halves and
+\emph{under-used} when it lies below 1 on both. In that direction it \emph{costs} when the
+relative cost's interval lies above 0 on both halves and is \emph{cheap} when it lies below 0 on
+both. The verdict is a \emph{costly habit}, a \emph{habit that costs no more}, a \emph{cheap
+habit}, or \emph{no habit}. A kind is \emph{not enough data} when $E$ is under \MinCount{} in
+either half, or, for the cost, when it has fewer than \MinCount{} instances in either half, and
+\emph{not measurable} when the correction averaged over a half's positions lies outside
+\KappaLow{} to \KappaHigh.
+
+\section{The verdict}
+
+\VerdictTable
+
+\section{What the positions describe}
+
+\LevelTable
+
+\CostTable
+
+\PhaseTable
+
+\KappaTable
+
+\end{document}

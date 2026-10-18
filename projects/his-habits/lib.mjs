@@ -114,6 +114,14 @@ export function candidateOf(K, fen) {
   return null
 }
 
+export function tenMinutes(g, parseTimeControl) {
+  const tc = parseTimeControl(typeof g.time_control === 'string' ? g.time_control : null)
+  if (tc) return tc.base === START_CLOCK && tc.inc === 0
+  if (typeof g.time_control === 'string') return false
+  const clocks = (g.clocks ?? []).filter((c) => typeof c === 'number' && Number.isFinite(c))
+  return clocks.length > 0 && Math.max(...clocks) <= START_CLOCK
+}
+
 export function kindsReader(K) {
   const targets = (captures) => new Set(captures.map((c) => c.uci.slice(2, 4)))
   return function kindsOf(fen) {

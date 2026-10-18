@@ -210,6 +210,8 @@ model judges anything here.
 | `his.mjs` | Reads his archive at the pinned commit, and for each of his positions writes every legal move's kinds, Maia-2's policy at his band and the band above, his move, the band above's most likely move, the null player's move, and Stockfish's win% after his move and that move, one shard at a time, resuming where a shard stopped (`private/his-habits/his-<i>-of-<n>.jsonl`). |
 | `lichess.mjs` | Takes the first 2,000 player-games at each band, draws their positions, and writes each one's kinds and Maia-2's policy at the player's band (`private/his-habits/lichess-<i>-of-<n>.jsonl`). |
 | `analyze.mjs` | Applies the rule and the descriptions; writes `results/his-habits.json` and `results/his-habits.md`. |
+| `describe.mjs` | Added after the rule was applied: which of Maia-2's bands reads his moves better, his rate of each kind of move beside Maia-2's at his band and the band above, and each kind's rate among Lichess players at each band (`results/descriptions.json` and `.md`). |
+| `paper/generate.mjs` | Writes every number, table and position the paper prints into `paper/generated.tex`, and refuses to write when a claim the paper makes no longer holds. |
 
 ## Running it
 
@@ -219,4 +221,6 @@ python3 projects/his-habits/stream.py
 for i in 0 1 2 3; do bridge/run.sh projects/his-habits/his.mjs --shard $i/4 & done; wait
 for i in 0 1 2 3; do bridge/run.sh projects/his-habits/lichess.mjs --shard $i/4 & done; wait
 bridge/run.sh projects/his-habits/analyze.mjs
+bridge/run.sh projects/his-habits/describe.mjs
+bridge/run.sh projects/his-habits/paper/generate.mjs
 ```
