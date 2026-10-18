@@ -13,10 +13,12 @@ explanation interval reached zero on the train cases and on the held-out ones,
 so rules 1 and 2 fail; rules 3 to 6 hold. On the held-out cases the candidate's
 reviews made more false claims, most of them lines of moves. Two errors do not
 depend on the prompt: lines tagged Played that the game did not play, which the
-strict check let through (`bin/played-lines.mts` counts them, with no model; the
-app's strict check now refuses them, chess PR 125), and the per-concept rule count calling a king-walk rule "the pawn break",
-because the ledger files it under that concept. `results/report.json` names
-the app commit the cases ran on and what was spent.
+strict check let through (`bin/played-lines.mts` counts them, with no model),
+and the per-concept rule count calling a king-walk rule "the pawn break",
+because the ledger filed it under that concept. The app took both: its strict
+check now refuses those lines (chess PR 125), and its ledger files the rule
+under converting (chess PR 126). `results/report.json` names the app commit
+the cases ran on and what was spent.
 
 ## Question
 
