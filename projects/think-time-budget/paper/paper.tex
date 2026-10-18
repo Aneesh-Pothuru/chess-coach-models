@@ -1,0 +1,118 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+\title{Does a larger clock budget make a think pay?\\[0.3em]
+\large A within-player design and its feasibility count}
+\author{Chess Coach research lab}
+\date{}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The earlier think-time study compared positions where players chose long
+and short thinks. This design compares the same players after they chose
+different time controls. The fast budget is \FastControl; the slow budget
+has a base of at least \MinBase{} seconds and base plus \IncrementMultiplier{}
+times increment of at least \MinBudget{} seconds, in games Lichess labels
+rapid. The sampled prefixes contain \PrimaryPlayers{} players in the primary
+rating band with at least \MinimumGames{} analysed games in each budget.
+The app's own instruments built \BuiltGames{} games for selected players.
+This paper reports counts and timings. No budget effect, error rate,
+per-moment think mean, interval or trigger verdict has been computed.
+\end{abstract}
+
+\section{The question and data}
+Does an extra minute spent at one of the app's long-think triggers save
+more serious errors than a minute at an ordinary move? Does another moment
+do better? The triggers come from \texttt{triggerOf} at app commit
+\texttt{\AppCommit}. The data are file-order prefixes of \Months{} from the
+Lichess database. Names, games and player joins stay private. Every move
+must carry a readable evaluation and clock. Games end normally or on time,
+have at least \MinPlies{} plies, and ratings within \RatingGap{} points.
+Unlike the predecessor, a final mate is not exempt from the evaluation
+requirement.
+
+\begin{table}[h]
+\centering\small\SourceTable
+\caption{The actual source prefixes, not whole-month counts.}
+\end{table}
+
+Players need \MinimumGames{} games in each budget. The choice comes from
+counts alone. Their mean rating over kept games determines the primary
+band, from \RatingLo{} inclusive to \RatingHi{} exclusive. All their kept
+games enter. There are no rating quotas.
+
+\section{Measures and matching}
+The reader, classifier, hanging-piece counts, move facts and triggers are
+the app's, imported through the bridge. The book exit and absence of a miss
+ledger follow the predecessor. A serious error is an app-classified
+mistake or blunder. Eligible moves are graded, nontrivial and timed, with
+at least \MinClock{} seconds available before the move in either budget.
+The app already adds the increment when deriving a think. Its flipped
+Black build matched a separate Black build on \BlackChecked{} games.
+
+The nuisance danger model uses \FoldCount{} player folds. A training fold
+excludes both sides of every game involving a held-out player. It learns
+from fast-budget quick moves and omits clocks, opponent think and every
+time-control field. The fixed fit is used here only to count high-danger
+moves and common strata. No performance or error-rate diagnostic is read.
+
+For each moment, danger quintiles of its primary fast moves define the
+strata. Within a player, only strata containing moves in both budgets
+contribute. Their weights are the player's fast move counts. Players then
+receive equal weight. Both the error difference and think difference use
+the same weights. Their ratio is errors saved per extra minute. A moment
+and ordinary moves are compared only on the intersection of their
+supported players.
+
+\section{The fixed rule}
+The README gives the complete specification. There are \Draws{} Poisson
+bootstrap draws over players, seed \Seed, shared by every comparison.
+Scores, strata and support stay fixed. A comparison needs \MinPlayers{}
+matched players and \Coverage\% of its equal-player fast-move weight.
+Both think differences must have a \Confidence\% lower interval endpoint
+of at least \ThinkFloor{} seconds, with every bootstrap denominator positive.
+Otherwise the ratio is not estimated.
+
+The slow budget must reduce errors over all eligible moves, with the
+interval wholly below zero. For moves under \PlaceboSeconds{} seconds in
+both budgets, the entire interval must lie inside plus or minus
+\PlaceboPoints{} percentage point. A failed or inconclusive check blocks
+trigger changes. Given those checks, a trigger is kept when extra time
+cuts its error rate and its saving per minute exceeds ordinary moves
+with Holm-adjusted p below \Alpha. A significant disadvantage removes its
+special priority. The correction covers all \TriggerCount{} triggers.
+The \CandidateCount{} candidates form a separate Holm family; a candidate
+joins only when it cuts errors and exceeds ordinary moves. Otherwise the
+app stays as it is. This does not recalibrate its \DeepSeconds{}-second
+or \BookSeconds{}-second bars.
+
+\section{Counts and cost}
+\begin{table}[h]
+\centering\small\MomentTable
+\caption{Primary eligible moves and players with moves in both budgets.
+Candidates overlap. These are counts, not effect estimates.}
+\end{table}
+
+The overall move-weighted mean think is \FastThink{} seconds at the fast
+budget and \SlowThink{} at the slow budget among primary eligible moves.
+No per-moment think mean is read. The bridge took \BridgeMinutes{} worker
+minutes; ideal elapsed time with \Workers{} processes is
+\BridgeTwoMinutes{} minutes. The fixed danger fit and scoring took
+\DangerSeconds{} seconds with a single worker. These timings describe this
+machine and this sample, not a guaranteed run time.
+
+\section{Limits and the app}
+The budget was chosen before the position, but not at random. A player may
+choose more time when rested or more serious. Both opponents receive the
+larger budget. The board, opponent's errors and survival above the minimum
+clock can already reflect it. Matching those features conditions on part
+of the budget's effect. The ratio is an association with the budget, not
+a causal return to forcing a particular move to take another minute.
+
+Analysed games are selected games; file prefixes need not represent later
+days. A player bootstrap does not capture all dependence between opponents.
+Whole-second clocks limit precision. Slow pools the time controls listed
+in the count report. None of these counts justifies changing the app.
+The later effect pass will apply the committed rule without changing it.
+\end{document}

@@ -1,0 +1,128 @@
+{
+  "phase": 1,
+  "effectsComputed": false,
+  "appCommit": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+  "months": [
+    "2026-09",
+    "2026-08"
+  ],
+  "fingerprint": "aab77f5f1ebb53ad65c7",
+  "players": 5113,
+  "bootstrapDraws": 4000,
+  "countOnlyBootstrapAllocationSeconds": 0.9027315001003444,
+  "countOnlyWeightedKernelSeconds": 0.029369500000029802,
+  "estimatedMeanPasses": 161,
+  "effectPassEstimateSeconds": {
+    "low": 55.74763116963829,
+    "high": 130.36047209268438
+  },
+  "effectPassEstimateCaveat": "Count-only arithmetic and grouping projection; no effect pass has run. Cached danger is reused. Includes descriptions and sensitivities; IO, thermal throttling and table generation vary.",
+  "fromScratchFrozenPrefixEstimateSeconds": {
+    "low": 14100.007340337708,
+    "high": 14174.620181260754
+  },
+  "fromScratchComponentsSeconds": {
+    "sourcePrefixIdealSchedule": 2182.204,
+    "loggedCohortCounts": 1046.604,
+    "finalCohortExport": 98.566,
+    "bridgeIdealTwoProcesses": 10538.7065,
+    "phaseOneLoadAndPrepare": 17.538479208014905,
+    "dangerFitAndScore": 157.6055190009065,
+    "phaseOneCountMatching": 3.035210959147662
+  },
+  "fromScratchCaveat": "Approximate ideal schedule from the frozen source prefixes through the separate phase-one count and phase-two effect passes. Initial source pair overlaps; later sources are sequential. Source active time and bridge chunk work exclude pauses and startup outside the recorded work; two-process projections do not measure elapsed time or add an allowance for launch skew, contention or heat. Cohort count log timings plus the separately rerun final export are included. Optional pilot builds and report generation are excluded; no separate allowance is added for future retries. The phase-two term is projected from outcomes-free arithmetic and grouping only; no effect run has occurred.",
+  "cohortTiming": {
+    "loggedPasses": 43,
+    "loggedSeconds": 1046.604,
+    "finalExportSecondsAddedSeparately": 98.566
+  },
+  "bridgeBenchmark": [
+    {
+      "month": "2026-09",
+      "shard": 0,
+      "shards": 2,
+      "games": 50,
+      "gamesByBudget": {
+        "fast": 25,
+        "slow": 25
+      },
+      "seconds": 10.901,
+      "inputSha256": "e46fe22e42bb453a87003ba8f04a75b45594c8e526567f649a319ab84a1f5307",
+      "blackBuildsChecked": 40,
+      "appCommit": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a"
+    },
+    {
+      "month": "2026-09",
+      "shard": 1,
+      "shards": 2,
+      "games": 50,
+      "gamesByBudget": {
+        "fast": 25,
+        "slow": 25
+      },
+      "seconds": 9.742,
+      "inputSha256": "e46fe22e42bb453a87003ba8f04a75b45594c8e526567f649a319ab84a1f5307",
+      "blackBuildsChecked": 40,
+      "appCommit": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a"
+    }
+  ],
+  "bridgeSliceTwoProcessProjectionSeconds": 8447.838105,
+  "bridgeActualWorkerSeconds": 21077.413,
+  "bridgeActualIdealTwoProcessSeconds": 10538.7065,
+  "bridgeObservedProcesses": {
+    "processes": [
+      {
+        "month": "2026-09",
+        "shard": 0,
+        "shards": 2,
+        "chunksResumed": 50,
+        "workerElapsedSeconds": 1785.205,
+        "processStartedEpochMs": 1792359476373,
+        "processEndedEpochMs": 1792361261578
+      },
+      {
+        "month": "2026-09",
+        "shard": 1,
+        "shards": 2,
+        "chunksResumed": 50,
+        "workerElapsedSeconds": 1770.446,
+        "processStartedEpochMs": 1792359476373,
+        "processEndedEpochMs": 1792361246819
+      },
+      {
+        "month": "2026-08",
+        "shard": 0,
+        "shards": 2,
+        "chunksResumed": 0,
+        "workerElapsedSeconds": 5072.922,
+        "processStartedEpochMs": 1792361261857,
+        "processEndedEpochMs": 1792366334779
+      },
+      {
+        "month": "2026-08",
+        "shard": 1,
+        "shards": 2,
+        "chunksResumed": 0,
+        "workerElapsedSeconds": 5051.58,
+        "processStartedEpochMs": 1792361261857,
+        "processEndedEpochMs": 1792366313437
+      }
+    ],
+    "workerElapsedSeconds": 13680.152999999998,
+    "processSpanSecondsByMonth": {
+      "2026-09": 1785.205,
+      "2026-08": 5072.922
+    },
+    "summedMonthProcessSpansSeconds": 6858.1269999999995,
+    "allRecordedInvocationsBuiltWithoutResuming": false,
+    "caveat": "Observed latest Node worker invocations, including their startup and import time. Monthly spans run from first worker start to last worker end and are summed because months run sequentially. They exclude gaps between months and the bridge shell lookup before Node starts. A resumed summary omits earlier invocations; ideal chunk-work / two is not measured elapsed time."
+  },
+  "dangerMeasuredSeconds": 157.6055190009065,
+  "streamMeasuredWorkerSeconds": 4297.599,
+  "frozenPrefixStreamIdealScheduleSeconds": 2182.204,
+  "fullArchiveStreamProjectionSecondsByMonth": {
+    "2026-09": 4639.7737228363385,
+    "2026-08": 4630.265884443601
+  },
+  "fullArchiveStreamProjectionTwoProcessesSeconds": 4639.7737228363385
+}

@@ -1,0 +1,528 @@
+{
+  "phase": 1,
+  "effectsComputed": false,
+  "appCommit": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+  "months": [
+    "2026-09",
+    "2026-08"
+  ],
+  "fingerprint": "aab77f5f1ebb53ad65c7",
+  "cohortFingerprint": "e9ae68e054e97c736a9d568855ee899c69cdb9da0872355317726e04ee61ddef",
+  "rule": {
+    "primaryLo": 1100,
+    "primaryHiExclusive": 1600,
+    "minClock": 60,
+    "strata": 5,
+    "folds": 5,
+    "draws": 4000,
+    "seed": 20261018,
+    "alpha": 0.05,
+    "minPlayers": 200,
+    "minCoverage": 0.8,
+    "thinkFloorSeconds": 2,
+    "placeboSeconds": 5,
+    "placeboMargin": 0.01,
+    "highDangerQuantile": 0.8,
+    "defendingCp": -300,
+    "earlyOwnMoves": 4,
+    "slowMinBase": 600,
+    "slowMinBudget": 900,
+    "budgetIncrementMultiplier": 40,
+    "foldEncoding": "first 8 hex digits of SHA256(casefold username), modulo 5",
+    "triggers": [
+      "book-end",
+      "conversion",
+      "forcing",
+      "structure"
+    ],
+    "candidates": [
+      "in-check",
+      "after-capture",
+      "own-hanging",
+      "opp-hanging",
+      "after-opp-error",
+      "defending",
+      "early",
+      "high-danger"
+    ],
+    "features": [
+      "rating",
+      "oppRating",
+      "ply",
+      "sinceBook",
+      "evalBefore",
+      "wpBefore",
+      "phaseCode",
+      "material",
+      "legalMoves",
+      "forcing",
+      "hangingOwn",
+      "hangingOpp",
+      "inCheck",
+      "prevCapture",
+      "afterOppError",
+      "afterOwnError",
+      "black"
+    ],
+    "model": {
+      "objective": "binary",
+      "n_estimators": 400,
+      "learning_rate": 0.05,
+      "num_leaves": 31,
+      "min_child_samples": 200,
+      "subsample": 0.8,
+      "subsample_freq": 1,
+      "colsample_bytree": 0.8,
+      "reg_lambda": 1.0,
+      "random_state": 0,
+      "n_jobs": 1,
+      "verbose": -1,
+      "deterministic": true,
+      "force_row_wise": true
+    }
+  },
+  "gamesBuilt": 81847,
+  "timedMoves": 2720022,
+  "bootstrapPlayers": 5113,
+  "blackBuildsChecked": 160,
+  "clockMovesChecked": 5288580,
+  "overall": {
+    "eligible": {
+      "fast": {
+        "moves": 1324733,
+        "players": 5113,
+        "meanThinkSeconds": 10.545476913452148
+      },
+      "slow": {
+        "moves": 899712,
+        "players": 5113,
+        "meanThinkSeconds": 18.566781997680664
+      }
+    },
+    "primary": {
+      "fast": {
+        "moves": 447879,
+        "players": 2019,
+        "meanThinkSeconds": 10.793142318725586
+      },
+      "slow": {
+        "moves": 353496,
+        "players": 2019,
+        "meanThinkSeconds": 17.121234893798828
+      }
+    }
+  },
+  "moments": {
+    "eligible": {
+      "book-end": {
+        "fast": 48470,
+        "slow": 32500,
+        "playersBothBudgets": 5108
+      },
+      "conversion": {
+        "fast": 275064,
+        "slow": 177930,
+        "playersBothBudgets": 4591
+      },
+      "forcing": {
+        "fast": 571338,
+        "slow": 396852,
+        "playersBothBudgets": 5112
+      },
+      "structure": {
+        "fast": 10631,
+        "slow": 6947,
+        "playersBothBudgets": 1845
+      },
+      "none": {
+        "fast": 419230,
+        "slow": 285483,
+        "playersBothBudgets": 5105
+      },
+      "in-check": {
+        "fast": 75038,
+        "slow": 52610,
+        "playersBothBudgets": 4394
+      },
+      "after-capture": {
+        "fast": 329801,
+        "slow": 221193,
+        "playersBothBudgets": 5112
+      },
+      "own-hanging": {
+        "fast": 474462,
+        "slow": 327484,
+        "playersBothBudgets": 5113
+      },
+      "opp-hanging": {
+        "fast": 320072,
+        "slow": 214632,
+        "playersBothBudgets": 5112
+      },
+      "after-opp-error": {
+        "fast": 157513,
+        "slow": 102377,
+        "playersBothBudgets": 5059
+      },
+      "defending": {
+        "fast": 174214,
+        "slow": 134596,
+        "playersBothBudgets": 3874
+      },
+      "early": {
+        "fast": 243290,
+        "slow": 163191,
+        "playersBothBudgets": 5113
+      },
+      "high-danger": {
+        "fast": 259506,
+        "slow": 187855,
+        "playersBothBudgets": 5052
+      },
+      "all": {
+        "fast": 1324733,
+        "slow": 899712,
+        "playersBothBudgets": 5113
+      },
+      "placebo": {
+        "fast": 548274,
+        "slow": 248095,
+        "playersBothBudgets": 5057
+      }
+    },
+    "primary": {
+      "book-end": {
+        "fast": 17442,
+        "slow": 13148,
+        "playersBothBudgets": 2018
+      },
+      "conversion": {
+        "fast": 101281,
+        "slow": 76373,
+        "playersBothBudgets": 1828
+      },
+      "forcing": {
+        "fast": 196223,
+        "slow": 156099,
+        "playersBothBudgets": 2018
+      },
+      "structure": {
+        "fast": 3226,
+        "slow": 2510,
+        "playersBothBudgets": 660
+      },
+      "none": {
+        "fast": 129707,
+        "slow": 105366,
+        "playersBothBudgets": 2016
+      },
+      "in-check": {
+        "fast": 27218,
+        "slow": 21668,
+        "playersBothBudgets": 1736
+      },
+      "after-capture": {
+        "fast": 115677,
+        "slow": 88887,
+        "playersBothBudgets": 2019
+      },
+      "own-hanging": {
+        "fast": 166830,
+        "slow": 132181,
+        "playersBothBudgets": 2019
+      },
+      "opp-hanging": {
+        "fast": 113647,
+        "slow": 86215,
+        "playersBothBudgets": 2018
+      },
+      "after-opp-error": {
+        "fast": 60022,
+        "slow": 44869,
+        "playersBothBudgets": 2007
+      },
+      "defending": {
+        "fast": 67353,
+        "slow": 57195,
+        "playersBothBudgets": 1565
+      },
+      "early": {
+        "fast": 87755,
+        "slow": 66203,
+        "playersBothBudgets": 2019
+      },
+      "high-danger": {
+        "fast": 109366,
+        "slow": 86926,
+        "playersBothBudgets": 2014
+      },
+      "all": {
+        "fast": 447879,
+        "slow": 353496,
+        "playersBothBudgets": 2019
+      },
+      "placebo": {
+        "fast": 174852,
+        "slow": 99747,
+        "playersBothBudgets": 2000
+      }
+    }
+  },
+  "support": {
+    "book-end": {
+      "pairedPlayers": 2015,
+      "supportedPlayers": 1815,
+      "coverage": [
+        0.6255942175395093,
+        0.8533986803017984
+      ],
+      "sufficient": false
+    },
+    "conversion": {
+      "pairedPlayers": 1825,
+      "supportedPlayers": 1805,
+      "coverage": [
+        0.8505143794993755,
+        0.9359666100353314
+      ],
+      "sufficient": true
+    },
+    "forcing": {
+      "pairedPlayers": 2015,
+      "supportedPlayers": 2010,
+      "coverage": [
+        0.9700416515317802,
+        0.9400530516121572
+      ],
+      "sufficient": true
+    },
+    "structure": {
+      "pairedPlayers": 660,
+      "supportedPlayers": 371,
+      "coverage": [
+        0.381750302572671,
+        0.54513228115511
+      ],
+      "sufficient": false
+    },
+    "none": {
+      "pairedPlayers": 2016,
+      "supportedPlayers": 2012,
+      "coverage": [
+        0.940578818947667
+      ],
+      "sufficient": true
+    },
+    "in-check": {
+      "pairedPlayers": 1733,
+      "supportedPlayers": 1562,
+      "coverage": [
+        0.6588229159856159,
+        0.8609570129949115
+      ],
+      "sufficient": false
+    },
+    "after-capture": {
+      "pairedPlayers": 2016,
+      "supportedPlayers": 2012,
+      "coverage": [
+        0.9541335433054806,
+        0.940578818947667
+      ],
+      "sufficient": true
+    },
+    "own-hanging": {
+      "pairedPlayers": 2016,
+      "supportedPlayers": 2012,
+      "coverage": [
+        0.9696569927343658,
+        0.940578818947667
+      ],
+      "sufficient": true
+    },
+    "opp-hanging": {
+      "pairedPlayers": 2015,
+      "supportedPlayers": 2009,
+      "coverage": [
+        0.9396543722650412,
+        0.9400116951191878
+      ],
+      "sufficient": true
+    },
+    "after-opp-error": {
+      "pairedPlayers": 2004,
+      "supportedPlayers": 1982,
+      "coverage": [
+        0.8550466882545804,
+        0.9330236869027173
+      ],
+      "sufficient": true
+    },
+    "defending": {
+      "pairedPlayers": 1563,
+      "supportedPlayers": 1502,
+      "coverage": [
+        0.7955400714039705,
+        0.9211422225149071
+      ],
+      "sufficient": false
+    },
+    "early": {
+      "pairedPlayers": 2016,
+      "supportedPlayers": 2012,
+      "coverage": [
+        0.931669739652155,
+        0.940578818947667
+      ],
+      "sufficient": true
+    },
+    "high-danger": {
+      "pairedPlayers": 2011,
+      "supportedPlayers": 2003,
+      "coverage": [
+        0.939587536657982,
+        0.9393958003749638
+      ],
+      "sufficient": true
+    },
+    "all": {
+      "pairedPlayers": 2019,
+      "supportedPlayers": 2019,
+      "coverage": [
+        0.9978140152560402
+      ],
+      "sufficient": true
+    },
+    "placebo": {
+      "pairedPlayers": 2000,
+      "supportedPlayers": 1998,
+      "coverage": [
+        0.9398707849422822
+      ],
+      "sufficient": true
+    }
+  },
+  "primaryMovesByMonth": {
+    "2026-09": {
+      "fast": 204836,
+      "slow": 170821
+    },
+    "2026-08": {
+      "fast": 243043,
+      "slow": 182675
+    }
+  },
+  "danger": {
+    "folds": [
+      {
+        "fold": 0,
+        "trainMoves": 555861,
+        "scoredMoves": 446935,
+        "invocationSeconds": 32.72481929231435,
+        "fitSeconds": 18.052537125069648,
+        "scoreSeconds": 14.632035832852125
+      },
+      {
+        "fold": 1,
+        "trainMoves": 555898,
+        "scoredMoves": 454349,
+        "invocationSeconds": 31.978687749709934,
+        "fitSeconds": 17.843824666924775,
+        "scoreSeconds": 14.084503792226315
+      },
+      {
+        "fold": 2,
+        "trainMoves": 560019,
+        "scoredMoves": 441418,
+        "invocationSeconds": 31.84815949993208,
+        "fitSeconds": 17.84378229174763,
+        "scoreSeconds": 13.968647208996117
+      },
+      {
+        "fold": 3,
+        "trainMoves": 566808,
+        "scoredMoves": 407062,
+        "invocationSeconds": 30.040911207906902,
+        "fitSeconds": 17.890374625101686,
+        "scoreSeconds": 12.097202416975051
+      },
+      {
+        "fold": 4,
+        "trainMoves": 544164,
+        "scoredMoves": 474681,
+        "invocationSeconds": 31.229569958988577,
+        "fitSeconds": 17.06359783280641,
+        "scoreSeconds": 14.129013208206743
+      }
+    ],
+    "features": [
+      "rating",
+      "oppRating",
+      "ply",
+      "sinceBook",
+      "evalBefore",
+      "wpBefore",
+      "phaseCode",
+      "material",
+      "legalMoves",
+      "forcing",
+      "hangingOwn",
+      "hangingOpp",
+      "inCheck",
+      "prevCapture",
+      "afterOppError",
+      "afterOwnError",
+      "black"
+    ],
+    "params": {
+      "objective": "binary",
+      "n_estimators": 400,
+      "learning_rate": 0.05,
+      "num_leaves": 31,
+      "min_child_samples": 200,
+      "subsample": 0.8,
+      "subsample_freq": 1,
+      "colsample_bytree": 0.8,
+      "reg_lambda": 1.0,
+      "random_state": 0,
+      "n_jobs": 1,
+      "verbose": -1,
+      "deterministic": true,
+      "force_row_wise": true
+    },
+    "invocationSeconds": 159.8653037911281,
+    "seconds": 157.6055190009065
+  },
+  "appConstants": {
+    "appCommit": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+    "RUSHED_SECONDS": 10,
+    "DEEP_THINK_SECONDS": 30,
+    "BOOK_END_SECONDS": 45,
+    "LEVEL_CP": 80,
+    "CLOCK_BUCKETS": [
+      {
+        "label": "0-5s",
+        "maxSeconds": 5
+      },
+      {
+        "label": "6-10s",
+        "maxSeconds": 10
+      },
+      {
+        "label": "11-30s",
+        "maxSeconds": 30
+      },
+      {
+        "label": "30s+",
+        "maxSeconds": null
+      }
+    ],
+    "DEFAULT_LICHESS_OFFSET": 250
+  },
+  "timing": {
+    "loadAndPrepareSeconds": 17.538479208014905,
+    "matchingSeconds": 3.035210959147662,
+    "bridgeWorkerSeconds": 21077.413,
+    "bridgeTwoProcessIdealSeconds": 10538.7065
+  }
+}
