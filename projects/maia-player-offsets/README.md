@@ -208,6 +208,21 @@ pair beside surviving workers. It writes aggregate runtime reports after the
 fit. The controller and journal recovery were added before the full run;
 they do not change the instruments or the rule.
 
+`protocol.md` preserves the approved all-held-games README byte for byte;
+its SHA256 matches the phase-1 report. `protocol-manifest.json` freezes that
+text and the execution sources by content hash. The controller checks each
+hash against the working file and its committed content. Lab branch commit
+ids are not provenance, because review rebases change them. The pinned app
+and records commits remain provenance. The one-time pre-effect migration
+preserves completed policies and timing records, and permits only process
+control and provenance changes to the controller.
+
+Long jobs start in independent OS sessions with output attached directly to
+private log files. `launch.py` detaches the controller; the controller detaches
+its workers. No job depends on an interactive session's output pipe. Resume
+uses the same launcher and first checks the saved worker identities and groups.
+Interrupted attempt time is reported separately from the gap before resuming.
+
 The review timing invocation also lowered the coordinator's priority before
 its workers ran `nice -n 10`; that reduced their priority twice. The commands
 below leave the lightweight coordinator at its normal priority and apply
@@ -263,6 +278,8 @@ check helps expose that selection but cannot remove it.
 | `count.mjs` | Writes aggregate counts, timing and cost, without scoring effects. |
 | `fit.mjs` | Phase 2 only: applies the fixed rule, after an explicit `--phase2`. |
 | `run-phase2.mjs` | Runs phase 2 in order with two heavy workers, resumable private state and aggregate stage timings. |
+| `launch.py` | Starts the controller detached, with a private log and PID record. |
+| `protocol.md`, `protocol-manifest.json`, `freeze.mjs` | Approved rule text and reproducible content hashes; fixed before effects. |
 | `tests.mjs` | Synthetic checks for side mapping, ties, Holm, event weighting and the guard; never reads the player's data. |
 | `call-sites.md` | Conversion callers and later port scope. |
 | `paper/` | Protocol paper and checked number generator; no TeX build here. |
@@ -286,13 +303,20 @@ bridge/run.sh projects/maia-player-offsets/tests.mjs
 
 Phase 2, after review of this commit (no new grid choices):
 
-The controller runs the commands below and resumes them after interruption:
+The controller runs the stages below and resumes them after interruption.
+Start it detached, at normal coordinator priority:
 
 ```bash
-bridge/run.sh projects/maia-player-offsets/run-phase2.mjs --run
+.venv/bin/python projects/maia-player-offsets/launch.py
+bridge/run.sh projects/maia-player-offsets/run-phase2.mjs --status
 ```
 
-Its read-only status is available with `--status`. The equivalent stages are:
+The launcher records the PID and log path in the private `phase2-launch.json`.
+The content-manifest migration, before resuming the interrupted first pass,
+is `bridge/run.sh projects/maia-player-offsets/run-phase2.mjs --migrate-pre-effects`.
+It requires the manifest and source files to be committed and refuses any fit
+attempt or result. The stages below document what the controller executes;
+use the detached launcher for long runs:
 
 ```bash
 for k in 0 1; do
