@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url'
 const PROJECT = 'projects/detector-themes'
 const root = fileURLToPath(new URL('../../', import.meta.url))
 const dir = `${PROJECT}/results/round2`
-const frozenCommit = 'b055ee132c0cde90c2409f52ae9a94c8d9afa0a6'
+const frozenCommit = 'da8a4cb1d3ef23ad4a71703dd09967f072b2e851'
 const variants = {
   'best-deflection': { word: 'deflection', concept: 'deflection' },
   'best-trapped': { word: 'trappedPiece', concept: 'trapped-piece' },

@@ -17,7 +17,7 @@ const claim = (ok, what) => { if (!ok) throw new Error(`the paper's claim no lon
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b)
 const near = (a, b) => Number.isFinite(a) && Number.isFinite(b) && Math.abs(a - b) < 1e-12
 const git = (root, ...args) => execFileSync('git', ['-C', root, ...args])
-const frozen = 'b055ee132c0cde90c2409f52ae9a94c8d9afa0a6'
+const frozen = 'da8a4cb1d3ef23ad4a71703dd09967f072b2e851'
 const names = ['best-deflection', 'best-trapped']
 const sets = ['app', 'heldout']
 

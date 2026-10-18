@@ -1,6 +1,6 @@
 # Detector themes, round 2
 
-The test measures app commit `f4bd63f19b343f686fb97ea4cf70b211c0bddc0a`. The candidates, measurement scripts and app-pool results were frozen at `b055ee132c0cde90c2409f52ae9a94c8d9afa0a6` before the held-out test. The report checked every frozen file against its Git blob.
+The test measures app commit `f4bd63f19b343f686fb97ea4cf70b211c0bddc0a`. The candidates, measurement scripts and app-pool results were frozen at `da8a4cb1d3ef23ad4a71703dd09967f072b2e851` before the held-out test. The report checked every frozen file against its Git blob.
 
 The app pool contains 4630 puzzles. The held-out set contains 20000 other puzzles, sampled with seed 20261014 from 4682966 eligible puzzles rated 400 to 1899. The compressed source has SHA256 `76335bfa7d7c4a7f93c1366d81549e53951ebb79dd43d34904cab8f22d962f8d`; the serialized sample has SHA256 `98c6777e6dbc7b81e0a7763d8005f3c12eb5ccc01da41a208103fa036614037a`.
 

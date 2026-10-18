@@ -235,7 +235,7 @@ The comparison checks exact puzzle pairing, labels, truth, vocabulary,
 source hashes and the pinned app before it applies the unchanged bootstrap.
 The detector code, tests, sample, scoring and comparison scripts, and rule
 were not changed after the held-out results. `report-round2.mjs` verifies the
-measurement files and phase-one aggregates against commit `b055ee1` before
+measurement files and phase-one aggregates against commit `da8a4cb` before
 writing the result. Reporting code and prose are the phase-two changes.
 
 The original paper sections remain the report of the earlier pin. The
