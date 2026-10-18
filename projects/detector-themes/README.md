@@ -21,9 +21,13 @@ three and the one to build the others on. The paper,
 **Round two.** The rule keeps both `best-deflection` and `best-trapped`.
 Both raise agreement on the app pool and the held-out set. Deflection lowers
 disagreement on both sets. Trapped piece has a higher held-out disagreement
-point estimate within the fixed allowance. These are independent candidates
-for the app, not a measured combined change or a shipped port. The script-written
-[result](results/round2/result.md) gives the counts, differences and intervals.
+point estimate within the fixed allowance. The combined
+`best-deflection-trapped` candidate also passes on both sets. It tries trapped
+piece before deflection after the existing tactics. No puzzle in either set
+offered both new words, so this test has no observed overlap winner. The
+combined change is a candidate for the app; it has not shipped. The
+script-written [result](results/round2/result.md) gives the counts, differences
+and intervals.
 
 ## The data
 
@@ -68,7 +72,9 @@ checkmate is given by the score passed in, so its row is not a test.
 | `score.mts` | Scores the three labellers on a set; writes `results/score-<set>.json` (counts) and the per-puzzle labels to `data/processed/`. |
 | `compare.mjs` | Compares a candidate's labels with the pinned app's by the rule under Candidates; writes `results/compare-<candidate>.json`. |
 | `candidates/` | Each candidate's replacement files. |
-| `report-round2.mjs` | Checks the frozen measurement files and writes `results/round2/result.json` and `result.md` from both comparisons. |
+| `report-round2.mjs` | Checks the frozen inputs and all comparisons, writes `results/round2/result.json` and `result.md`, and updates the round-two Candidates rows. |
+| `combined-spec.json`, `freeze-combined.mjs`, `combined-freeze.mjs` | Register the combined order and verify its pre-score content hashes. |
+| `run-combined.sh`, `overlap-combined.mjs` | Run the combined score under that freeze; check every combined label against the independent labels and count overlap. |
 | `paper/` | The earlier paper and the round-two section; `generate.mjs --round2` checks the claims and writes `generated.tex`. |
 
 ## The earlier round
@@ -96,7 +102,7 @@ disagreement does not rise (the interval's upper end at or below one point).
 | `describe-first` | `best` | Kept in the earlier round; shipped | Before the defensive fallback, name a skewer, a discovered attack or a pin when the move describer finds one for the mover. |
 | `best-deflection` | `best` | Kept; candidate for the app | Before defence or phase, name the existing line reader's deflection when the supplied solution begins with this move. |
 | `best-trapped` | `best` | Kept; candidate for the app | Before defence or phase, name the describer's trapped piece when the supplied line wins that same piece after costs. |
-| `best-deflection-trapped` | `best` | Fixed before scoring; awaiting the combined test | Before defence or phase, name the existing trapped-piece proof first, then the deflection proof. |
+| `best-deflection-trapped` | `best` | Kept; candidate for the app | Before defence or phase, name the existing trapped-piece proof first, then the deflection proof. |
 
 ## Round two: development, then the held-out test
 
@@ -130,9 +136,10 @@ duplicate or mismatched puzzle rows invalidate the comparison. There is no
 multiple-comparison correction in the fixed rule; none is added this round.
 The app-pool counts are development evidence, not a held-out verdict.
 
-Each candidate starts independently from the pinned app, rather than
-stacking changes. Consider deflection, trapped piece, named defence, then
-capture-war hanging piece, in that order. Stop adding candidates at the
+Each original candidate starts independently from the pinned app, rather
+than stacking changes. The later combined test is registered below. Consider
+deflection, trapped piece, named defence, then capture-war hanging piece,
+in that order. Stop adding candidates at the
 first change that cannot improve agreement under the fixed rule, or whose
 app-pool agreement does not increase. This is a development stop, not a
 new keep rule. A held-out failure means do not port; a pass permits proposing
@@ -234,9 +241,9 @@ nice -n 10 bridge/run.sh projects/detector-themes/paper/generate.mjs --round2
 
 The comparison checks exact puzzle pairing, labels, truth, vocabulary,
 source hashes and the pinned app before it applies the unchanged bootstrap.
-The detector code, tests, sample, scoring and comparison scripts, and rule
-were not changed after the held-out results. `report-round2.mjs` verifies the
-measurement files and phase-one aggregates against commit `da8a4cb` before
+For the independent test, the detector code, tests, sample, scoring and
+comparison scripts, and rule were not changed after its held-out results.
+`report-round2.mjs` verifies the measurement files and phase-one aggregates against commit `da8a4cb` before
 writing the result. Reporting code and prose are the phase-two changes.
 
 The original paper sections remain the report of the earlier pin. The
@@ -246,7 +253,7 @@ results, the rule's verdicts and the downstream claims before writing every
 new number into `paper/generated.tex`. No TeX was installed or run.
 `paper.pdf` is still the historical PDF.
 
-The scoring commands each use two low-priority workers. During this run the
+The scoring commands each use two low-priority workers. During phase two the
 first comparison briefly overlapped the finishing trapped-piece workers,
 exceeding the requested two-heavy-process cap. All ran at `nice -n 10`.
 The remaining comparison ran on its own. No measurement setting or input
@@ -316,8 +323,9 @@ candidate=$(projects/detector-themes/candidate.sh best-trapped)
 (cd "$candidate" && nice -n 10 node_modules/.bin/tsc -p tsconfig.app.json --noEmit --incremental false)
 ```
 
-## The combined port candidate, fixed before scoring
+## The combined port candidate
 
+The following design was fixed and committed before the combined score.
 Phase three measures `best-deflection-trapped` against the same pinned app,
 on the same app pool and held-out sample, by the unchanged keep rule above.
 The individual results have already been seen. This is the requested test of
@@ -364,5 +372,26 @@ nice -n 10 bridge/run.sh projects/detector-themes/paper/generate.mjs --round2
 ```
 
 `run-combined.sh` verifies the frozen content and binds resumed work to the
-manifest hash. Run each command to completion before the next. Scoring uses the existing
-pair of `nice -n 10` workers; comparison runs after they have both exited.
+manifest hash. Run each command to completion before the next. Scoring uses
+the existing pair of `nice -n 10` workers; comparison runs after they have both exited.
+
+The combined candidate is kept. Its agreement interval is positive on each
+set and its disagreement interval stays within the fixed allowance. There
+is no observed available-word overlap on either set. The synthetic overlap
+test verifies the registered trapped-first choice. The script-written
+[result](results/round2/result.md) reports the counts and intervals and keeps
+the original independent results beside the combined result.
+
+The combined theme, tests, order, measurement scripts and data were unchanged
+after their content freeze. Each score finished before the next command;
+the comparison ran after both held-out workers exited. All heavy processes
+ran at `nice -n 10`. No app port or PDF was made. The shared publisher and
+the downstream skill-credit and weakness limits described above still apply.
+
+To repeat the combined tests:
+
+```bash
+candidate=$(projects/detector-themes/candidate.sh best-deflection-trapped)
+(cd "$candidate" && nice -n 10 node_modules/.bin/vitest run --project fast --maxWorkers 1 src/services/knowledge/detectors/theme.test.ts src/services/knowledge/detectors/tactics/tactics.test.ts src/services/knowledge/detectors/insights/insights.test.ts src/services/publishing/decks/themeLine.test.ts tests/architecture)
+(cd "$candidate" && nice -n 10 node_modules/.bin/tsc -p tsconfig.app.json --noEmit --incremental false)
+```

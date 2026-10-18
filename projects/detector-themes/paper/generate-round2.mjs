@@ -7,6 +7,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { CHESS_DIR, LAB_DIR } from '../../../bridge/lib/chess.mjs'
 import { Generated, esc, fixed } from '../../paper.mjs'
+import { COMBINED, MANIFEST, SPEC, verifyCombined } from '../combined-freeze.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const resultDir = join(here, '../results/round2')
@@ -19,6 +20,7 @@ const near = (a, b) => Number.isFinite(a) && Number.isFinite(b) && Math.abs(a - 
 const git = (root, ...args) => execFileSync('git', ['-C', root, ...args])
 const frozen = 'da8a4cb1d3ef23ad4a71703dd09967f072b2e851'
 const names = ['best-deflection', 'best-trapped']
+const variants = [...names, COMBINED]
 const sets = ['app', 'heldout']
 
 const archive = readFileSync(join(here, 'generated-round1.tex'), 'utf8')
@@ -39,8 +41,15 @@ const sample = json(join(resultDir, 'sample.json'))
 const development = json(join(resultDir, 'development.json'))
 claim(report.project === 'detector-themes' && report.round === 2 && report.frozenCommit === frozen && report.app === pin, 'the completed report names the frozen design and current app pin')
 claim(git(CHESS_DIR, 'rev-parse', 'HEAD').toString().trim() === pin, 'paper source checks use the pinned app')
-claim(same(Object.keys(report.candidates).sort(), [...names].sort()), 'exactly the independently finalized candidates were tested')
+claim(same(Object.keys(report.candidates).sort(), [...variants].sort()), 'the report contains the independent candidates and the registered combination')
 claim(same(report.rule, { draws: 2000, seed: 20261014, confidence: 0.95, agreementLowerAbove: 0, disagreementUpperAtMost: 0.01 }), 'the candidate rule is unchanged')
+const combinedFreeze = verifyCombined()
+claim(report.combinedFreeze.path === MANIFEST && report.combinedFreeze.sha256 === combinedFreeze.sha256 && same(report.combinedFreeze.manifest, combinedFreeze.manifest), 'the report uses the verified combined content freeze')
+const specification = json(join(LAB_DIR, SPEC))
+claim(same(combinedFreeze.manifest.priority, ['trappedPiece', 'deflection']) && same(combinedFreeze.manifest.rule, report.rule), 'the combined tie-break and keep rule are the registered ones')
+claim(specification.priorEvidence.includes('Individual held-out outcomes have already been observed.'), 'the combined test follows observed individual held-out results')
+claim(specification.rationale.includes('extend its describeMove gain stage') && specification.rationale.includes('The pin does not itself rank the two new words.'), 'the combined priority explicitly extends the describer stage')
+claim(specification.decision.includes('Overlap counts are descriptive and add no threshold.'), 'overlap adds no decision rule')
 claim(Object.keys(report.frozenChecksums).length > 0, 'the report carries frozen source checksums')
 for (const [path, record] of Object.entries(report.frozenChecksums)) {
   claim((path === 'bridge/chess.json' || path.startsWith('projects/detector-themes/')) && !path.includes('..'), 'frozen paths name this project or its app pin')
@@ -53,6 +62,13 @@ const frozenSource = (path) => {
   claim(Object.hasOwn(report.frozenChecksums, full), `the report binds ${path} to the pretest commit`)
   return readFileSync(join(LAB_DIR, full), 'utf8')
 }
+const contentSource = (path) => {
+  const full = `projects/detector-themes/${path}`
+  const source = readFileSync(join(LAB_DIR, full), 'utf8')
+  claim(combinedFreeze.manifest.files[full] === digest(source), `the combined content freeze binds ${path}`)
+  return source
+}
+const candidateSource = (name, file) => (name === COMBINED ? contentSource : frozenSource)(`candidates/${name}/${file}`)
 const aggregate = (name) => {
   const path = `projects/detector-themes/results/round2/${name}.json`
   claim(validDigest(report.inputs[path]) && digest(readFileSync(join(LAB_DIR, path))) === report.inputs[path], `report input ${name} is unchanged`)
@@ -86,7 +102,7 @@ const checkedScore = (set, name) => {
   claim(s.project === report.project && s.round === 2 && s.set === set && s.candidate === name && s.app === pin, 'each score has the declared identity')
   claim(s.skipped === 0 && s.puzzles === report.data[set].puzzles && s.datasetSha256 === report.data[set].datasetSha256, 'each score uses every paired puzzle in the declared set')
   claim(s.scorerSha256 === scorerHash && validDigest(s.labelsSha256), 'each score identifies the frozen scorer and labels')
-  claim(s.sourceSha256[sourceKey] === digest(name ? frozenSource(`candidates/${name}/theme.ts`) : pinnedTheme), 'the scored theme reader is the frozen reader')
+  claim(s.sourceSha256[sourceKey] === digest(name ? candidateSource(name, 'theme.ts') : pinnedTheme), 'the scored theme reader is the frozen reader')
   claim(s.sourceSha256[motifKey] === pinnedMotifsHash && s.sourceSha256[vocabularyKey] === digest(vocabulary), 'review motifs and vocabulary are unchanged')
   return s
 }
@@ -97,7 +113,7 @@ for (const set of sets) {
   claim(near(b.agreeRate, b.agreeCount / b.puzzles) && near(b.disagreeRate, b.disagreeCount / b.puzzles), 'baseline rates match their counts')
 }
 claim(report.baseline.app.agreeCount === development.baseline.agree && report.baseline.app.disagreeCount === development.baseline.disagree, 'the app baseline is the pretest result')
-for (const name of names) {
+for (const name of variants) {
   const c = report.candidates[name]
   const comparison = aggregate(`compare-${name}`)
   claim(c.labeller === 'best' && comparison.labeller === 'best' && comparison.candidate === name && comparison.round === 2 && comparison.draws === report.rule.draws && comparison.seed === report.rule.seed, 'each comparison targets the declared labeller under the frozen rule')
@@ -120,17 +136,29 @@ for (const name of names) {
     claim(r.passesRule === (r.agreeCi[0] > report.rule.agreementLowerAbove && r.disagreeCi[1] <= report.rule.disagreementUpperAtMost), 'each set passes exactly the fixed predicate')
   }
   const verdict = sets.every((set) => c.sets[set].passesRule) ? 'keep' : 'drop'
-  claim(c.verdict === verdict && comparison.verdict === verdict && verdict === 'keep', 'both finalized candidates meet the unchanged rule')
-  claim(c.sets.app.candidate.agreeCount === development.candidates[name].agree && c.sets.app.candidate.disagreeCount === development.candidates[name].disagree, 'candidate app counts are unchanged from development')
-  const source = frozenSource(`candidates/${name}/theme.ts`)
+  claim(c.verdict === verdict && comparison.verdict === verdict, 'every candidate verdict follows exactly the unchanged rule')
+  if (name !== COMBINED) {
+    claim(verdict === 'keep', 'both independent candidates meet the unchanged rule')
+    claim(c.sets.app.candidate.agreeCount === development.candidates[name].agree && c.sets.app.candidate.disagreeCount === development.candidates[name].disagree, 'independent app counts are unchanged from development')
+  }
+  const source = candidateSource(name, 'theme.ts')
   claim(source.includes('solutionPv: string[] = []') && source.includes('solutionPv[0] === mv.lan'), 'optional line evidence starts with the named move')
-  claim(source.indexOf('for (const [concept, theme] of DESCRIBED)') < source.lastIndexOf("return '" + c.word + "'"), 'existing named tactics retain priority')
-  const publisher = frozenSource(`candidates/${name}/mistakes.ts`)
+  for (const { word } of c.words ?? [c]) claim(source.indexOf('for (const [concept, theme] of DESCRIBED)') < source.lastIndexOf("return '" + word + "'"), 'existing named tactics retain priority')
+  const publisher = candidateSource(name, 'mistakes.ts')
   claim(publisher.includes("import { replaySans } from '../../../core/chess'") && publisher.includes('theme: themeOfBest(m.fen, best, replaySans('), 'the misses publisher passes its best line through app replay')
 }
 const deflection = frozenSource('candidates/best-deflection/theme.ts')
 const trapped = frozenSource('candidates/best-trapped/theme.ts')
 claim(deflection.includes('detectDeflection(fen, solutionPv)') && !deflection.includes('collectsTrappedPiece') && !trapped.includes('detectDeflection'), 'the candidates are independent changes')
+const combined = candidateSource(COMBINED, 'theme.ts')
+claim(same(report.candidates[COMBINED].words, [{ word: 'deflection', concept: 'deflection' }, { word: 'trappedPiece', concept: 'trapped-piece' }]), 'the combined report names exactly the independently added words')
+const expectedCombined = trapped
+  .replace("import { detectFork } from './fork'", "import { detectFork } from './fork'\nimport { detectDeflection } from './tactics/line'")
+  .replace("| 'pin' | 'trappedPiece'", "| 'pin' | 'trappedPiece' | 'deflection'")
+  .replace("    if (defends(fen, mine, mv, afterFen)) return 'defensiveMove'", "    if (solutionPv[0] === mv.lan && detectDeflection(fen, solutionPv)) return 'deflection'\n    if (defends(fen, mine, mv, afterFen)) return 'defensiveMove'")
+claim(combined === expectedCombined, 'the combination preserves both frozen predicates and inserts only the registered trapped-first order')
+claim(candidateSource(COMBINED, 'mistakes.ts') === candidateSource('best-trapped', 'mistakes.ts'), 'the combined publisher has the same line plumbing')
+claim(pinnedTheme.includes('const gains = new Set((describeMove(') && pinnedTheme.includes('for (const [concept, theme] of DESCRIBED)') && !pinnedTheme.includes("return 'trappedPiece'") && !pinnedTheme.includes("return 'deflection'"), 'the pin has a describer gain stage but neither new theme')
 const lineReader = appSource('src/services/knowledge/detectors/tactics/line.ts')
 claim(lineReader.includes('replayPv(fenPunish, pv, 3)') && lineReader.includes('const forced = afterM1.inCheck() || baited || afterM1.attackers(d, them).includes(m1.to)') && lineReader.includes('if (!winsExchangeOn(r.fens[2], m1.color, p)) return null'), 'deflection reads a forcing departure and the collected target capture war')
 for (const fragment of ["f.conceptId === 'trapped-piece'", 'move.color === piece.color && move.from === target', 'captureExchangeByMove(board.fen, uci)', 'gain > 0 && materialFor(board, mine) - before + gain > 0', 'for (const uci of solutionPv.slice(1))']) claim(trapped.includes(fragment), 'trapped-piece follows the named target and checks its actual capture after prior costs')
@@ -143,6 +171,38 @@ claim(appSource('tools/coach-review/lib/facts-deps.cjs').includes('K.themeOfBest
 claim(appSource('src/features/review/Review.tsx').includes("if (result.motifs.includes('hangingPiece')) bumpWeakness"), 'direct review weakness updates read review motifs')
 const heldTrapped = report.candidates['best-trapped'].sets.heldout
 claim(heldTrapped.disagreeDiff > 0 && heldTrapped.disagreeCi[0] <= 0 && heldTrapped.disagreeCi[1] > 0 && heldTrapped.disagreeCi[1] <= report.rule.disagreementUpperAtMost, 'the trapped held-out disagreement estimate is positive, its interval crosses zero, and it passes the allowance')
+
+const overlap = aggregate(`overlap-${COMBINED}`)
+claim(same(report.overlap, overlap) && overlap.project === report.project && overlap.round === 2 && overlap.phase === 3 && overlap.candidate === COMBINED && overlap.app === pin && overlap.manifestSha256 === combinedFreeze.sha256, 'overlap uses the same report, pin and content freeze')
+claim(same(Object.keys(overlap.sets).sort(), [...sets].sort()), 'overlap covers exactly the app pool and held-out set')
+claim(same(overlap.priority, combinedFreeze.manifest.priority) && overlap.availabilityDefinition === combinedFreeze.manifest.availabilityDefinition, 'overlap uses the registered independent-label availability and priority')
+const overlapSource = contentSource('overlap-combined.mjs')
+for (const fragment of ['const d = paired.deflection.best === wordFor.deflection', 'const t = paired.trapped.best === wordFor.trapped', 'const expected = manifest.priority.find((word) => available.has(word)) ?? base.best', 'assert(actual === expected']) claim(overlapSource.includes(fragment), 'overlap counts available independent labels and enforces composition on every puzzle')
+const groups = ['neither', 'deflectionOnly', 'trappedOnly', 'both']
+const winners = ['baseline', 'deflection', 'trappedPiece', 'other']
+const expectedWinner = { neither: 'baseline', deflectionOnly: 'deflection', trappedOnly: 'trappedPiece', both: 'trappedPiece' }
+const count = (value) => Number.isInteger(value) && value >= 0
+claim(Object.keys(overlap.inputs).length === sets.length * (variants.length + 1), 'overlap records every baseline and candidate score input')
+for (const [path, hash] of Object.entries(overlap.inputs)) claim(report.inputs[path] === hash && validDigest(hash), 'overlap and effects use the same score aggregates')
+for (const set of sets) {
+  const row = overlap.sets[set]
+  claim(row.puzzles === report.data[set].puzzles && row.datasetSha256 === report.data[set].datasetSha256, 'overlap describes the complete scored set')
+  const d = checkedScore(set, 'best-deflection'), t = checkedScore(set, 'best-trapped'), c = checkedScore(set, COMBINED)
+  const labels = { baseline: baseline[set].labelsSha256, deflection: d.labelsSha256, trapped: t.labelsSha256, combined: c.labelsSha256 }
+  claim(same(row.labelsSha256, labels), 'overlap labels are exactly the scored labels')
+  claim(same(Object.keys(row.availability).sort(), [...groups].sort()) && same(Object.keys(row.selection).sort(), [...groups].sort()), 'overlap has every availability class')
+  claim(Object.values(row.availability).every(count) && Object.values(row.availability).reduce((a, b) => a + b, 0) === row.puzzles, 'availability partitions the set')
+  for (const group of groups) {
+    const selected = row.selection[group]
+    claim(same(Object.keys(selected).sort(), [...winners].sort()) && Object.values(selected).every(count) && Object.values(selected).reduce((a, b) => a + b, 0) === row.availability[group], 'winner counts partition each availability class')
+    claim(selected[expectedWinner[group]] === row.availability[group] && selected.other === 0, 'combined selection follows the registered priority')
+  }
+  claim(row.availability.deflectionOnly + row.availability.both === (d.bestWords.deflection ?? 0) && row.availability.trappedOnly + row.availability.both === (t.bestWords.trappedPiece ?? 0), 'overlap availability matches the independent new-word totals')
+  for (const word of combinedFreeze.manifest.priority) claim(groups.reduce((n, group) => n + row.selection[group][word], 0) === (c.bestWords[word] ?? 0), 'overlap selection matches the combined new-word totals')
+}
+claim(sets.every((set) => overlap.sets[set].availability.both === 0 && Object.values(overlap.sets[set].selection.both).every((n) => n === 0)), 'neither measured set has an available-word overlap or an observed overlap winner')
+const combinedTests = candidateSource(COMBINED, 'theme.test.ts')
+for (const fragment of ["expect(trapped?.squares).toEqual(['a1'])", "expect(detectDeflection(fen, pv)).toMatchObject({ kind: 'deflection', defender: 'b8', square: 'e8' })", "expect(themeOfBest(fen, 'Bb2', pv)).toBe('trappedPiece')"]) claim(combinedTests.includes(fragment), 'the synthetic regression covers an app-reader overlap and the registered priority')
 
 const number = (n) => n.toLocaleString('en-US')
 const g = new Generated('projects/detector-themes/paper/generate.mjs --round2')
@@ -172,8 +232,34 @@ g.block('RTwoTable', [
   })), '\\bottomrule', '\\end{tabular}',
 ].join('\n'))
 g.def('RTwoVerdicts', names.map((name) => `\\texttt{${esc(name)}}: ${esc(report.candidates[name].verdict)}`).join('; '))
+g.def('RTwoCombinedManifestHash', combinedFreeze.sha256)
+g.def('RTwoCombinedVerdict', esc(report.candidates[COMBINED].verdict))
+g.def('RTwoCombinedMeaning', report.candidates[COMBINED].verdict === 'keep' ? 'The fixed combination passes on both sets and supports proposing this combined port.' : 'The fixed combination fails the rule and does not support this combined port.')
+g.block('RTwoCombinedCounts', [
+  '\\begin{tabular}{lrr}', '\\toprule', 'set & agrees & disagrees \\\\', '\\midrule',
+  ...sets.map((set) => {
+    const r = report.candidates[COMBINED].sets[set].candidate
+    return `${set === 'app' ? 'app pool' : 'held out'} & ${number(r.agreeCount)} & ${number(r.disagreeCount)} \\\\`
+  }), '\\bottomrule', '\\end{tabular}',
+].join('\n'))
+g.block('RTwoCombinedTable', [
+  '\\begin{tabular}{lrrl}', '\\toprule',
+  'set & agreement change & disagreement change & rule \\\\', '\\midrule',
+  ...sets.map((set) => {
+    const r = report.candidates[COMBINED].sets[set]
+    return `${set === 'app' ? 'app pool' : 'held out'} & ${effect(r.agreeDiff, r.agreeCi)} & ${effect(r.disagreeDiff, r.disagreeCi)} & ${r.passesRule ? 'pass' : 'fail'} \\\\`
+  }), '\\bottomrule', '\\end{tabular}',
+].join('\n'))
+g.block('RTwoOverlap', [
+  '\\begin{tabular}{lrrr}', '\\toprule',
+  'set & both available & trapped piece selected & deflection selected \\\\', '\\midrule',
+  ...sets.map((set) => {
+    const r = overlap.sets[set]
+    return `${set === 'app' ? 'app pool' : 'held out'} & ${number(r.availability.both)} & ${number(r.selection.both.trappedPiece)} & ${number(r.selection.both.deflection)} \\\\`
+  }), '\\bottomrule', '\\end{tabular}',
+].join('\n'))
 const output = join(here, 'generated.tex')
 const temporary = `${output}.partial`
 writeFileSync(temporary, archive + '\n' + g.parts.join('\n') + '\n')
 renameSync(temporary, output)
-console.error('wrote unchanged historical macros and verified round-two held-out results')
+console.error('wrote unchanged historical macros and verified independent, combined and overlap results')

@@ -15,10 +15,6 @@
       "gitBlob": "ae100f250a35b4411ad26324563616e453eaf182",
       "sha256": "88b701326b8d039cb512547af94028b9c24f5d286971358d7f54fbdcecb8ee70"
     },
-    "projects/detector-themes/candidate.sh": {
-      "gitBlob": "416f8fe363e6ca48d3ab58b9c13ba770af152cbd",
-      "sha256": "9c8848f0331907108fe325180e08ec79823dc8838208520d79387fa77126e633"
-    },
     "projects/detector-themes/candidates/best-deflection/knowledge-README.md": {
       "gitBlob": "ef8ff4ae873f49acd858c999e85523378a287ac9",
       "sha256": "f9a403a189c44fb3921e104279e4e26cab537605dd238987fb3f3d4531343efd"
@@ -111,14 +107,203 @@
   "inputs": {
     "projects/detector-themes/results/round2/sample.json": "f662483b89137069f52871c0221b8993b7b24fd805b4b6e73f415448522d5935",
     "projects/detector-themes/results/round2/development.json": "35c80679a015509813361cd3899266ed466b600da9727e840a87611247b4b20e",
+    "projects/detector-themes/results/round2/combined-design.json": "01ee90236bcdf9928e70b827c3fdb9a8697373a4e395980791c6f64c3415c05e",
+    "projects/detector-themes/combined-spec.json": "c7beedbd9bfe26d246424752967ab7929fa591d7201706fafe2d0c3c062aa05b",
     "projects/detector-themes/results/round2/score-app.json": "9c8b7a05e8a197e6ccf810e59a74fb57007e5c4fb9bef69a0136313b5dabe973",
     "projects/detector-themes/results/round2/score-app-best-deflection.json": "3755f42112c504e806e3e919fb85bbb63a8a1be7aa410ea95d1a62c8e4ae2098",
     "projects/detector-themes/results/round2/score-app-best-trapped.json": "e51fd6422501d23035843e5fe3f93a6d56934af93da44828ce110004835fa590",
+    "projects/detector-themes/results/round2/score-app-best-deflection-trapped.json": "a6dccdb7d3eae2ef6438ed16bcbedef33d374faedfd14898a3e680ad866ba2c6",
     "projects/detector-themes/results/round2/score-heldout.json": "ea0e2238b2f67b09ec6f6e2b9842cbde3fba3d010853a2a849306f4b59693fc2",
     "projects/detector-themes/results/round2/score-heldout-best-deflection.json": "ff126d4c03b0c04645e1c41bf33fda0742c7c5950977e65b114193dacafbf708",
     "projects/detector-themes/results/round2/score-heldout-best-trapped.json": "a75f27f1e1e33daed02372a030739ad32dd197553a4f2dd4d11b10020624e0f7",
+    "projects/detector-themes/results/round2/score-heldout-best-deflection-trapped.json": "9ad28a726aeebc0502d5747f105f8a7ebd83ac06ddab32922076017ce52f8e8e",
     "projects/detector-themes/results/round2/compare-best-deflection.json": "cd473b96b81f39c1619f14d692130ce7fe1a43f6a494aa94615b592ba0a6e772",
-    "projects/detector-themes/results/round2/compare-best-trapped.json": "c7c2cdb503c4710d79a0e134c9162d5a2cae85af7d4235efc33fc591c4241530"
+    "projects/detector-themes/results/round2/compare-best-trapped.json": "c7c2cdb503c4710d79a0e134c9162d5a2cae85af7d4235efc33fc591c4241530",
+    "projects/detector-themes/results/round2/compare-best-deflection-trapped.json": "585621678137dad2b3fccfba3bfb56f2daec5f159c81cba9c0283b7fe1ba4a3b",
+    "projects/detector-themes/results/round2/overlap-best-deflection-trapped.json": "77db4ca2c1187c90bf3c37ed778d7bcff894700bc10b67e6354820d30a2e4226"
+  },
+  "combinedFreeze": {
+    "path": "projects/detector-themes/results/round2/combined-design.json",
+    "sha256": "01ee90236bcdf9928e70b827c3fdb9a8697373a4e395980791c6f64c3415c05e",
+    "manifest": {
+      "project": "detector-themes",
+      "round": 2,
+      "phase": 3,
+      "candidate": "best-deflection-trapped",
+      "app": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+      "priority": [
+        "trappedPiece",
+        "deflection"
+      ],
+      "availabilityDefinition": "A new word is available when its independent candidate emits that word for the same puzzle, after the existing higher-priority tactics. Both means best-deflection emits deflection and best-trapped emits trappedPiece. This does not count raw findings hidden by an earlier tactic.",
+      "rule": {
+        "draws": 2000,
+        "seed": 20261014,
+        "confidence": 0.95,
+        "agreementLowerAbove": 0,
+        "disagreementUpperAtMost": 0.01
+      },
+      "files": {
+        "bridge/chess.json": "88b701326b8d039cb512547af94028b9c24f5d286971358d7f54fbdcecb8ee70",
+        "projects/detector-themes/candidate.sh": "b02352e9e16957930c364d93ae05fcb59210df19a744b697273d8f7af440085f",
+        "projects/detector-themes/candidates/best-deflection-trapped/knowledge-README.md": "338f1b11bcc90b1e492f37c9fe67e0c420cfe4f08463a5f1af71bc1e712a80c9",
+        "projects/detector-themes/candidates/best-deflection-trapped/mistakes.test.ts": "6726e56d904caaf4d8976439f7c6378f75ac503b7a008b611a9671bc81bf36b8",
+        "projects/detector-themes/candidates/best-deflection-trapped/mistakes.ts": "9529faabe8d437cd2d4a78eab708c28d523f444175c3e193be54758376b9f6a6",
+        "projects/detector-themes/candidates/best-deflection-trapped/theme.test.ts": "e1cd8ff946d0a3fb9f4856550eaf6adecc3ce7727115638db17b1df5d75798a8",
+        "projects/detector-themes/candidates/best-deflection-trapped/theme.ts": "7c07cc9421896a5d5a4464bf65d0de8ca5d5dadb91821f635e404f6f2f96f9c0",
+        "projects/detector-themes/candidates/best-deflection/knowledge-README.md": "f9a403a189c44fb3921e104279e4e26cab537605dd238987fb3f3d4531343efd",
+        "projects/detector-themes/candidates/best-deflection/mistakes.test.ts": "02b1483899595680ffaf19b99f995bca84bcfed87fc514e8a4b51b489cd8e4e8",
+        "projects/detector-themes/candidates/best-deflection/mistakes.ts": "9529faabe8d437cd2d4a78eab708c28d523f444175c3e193be54758376b9f6a6",
+        "projects/detector-themes/candidates/best-deflection/theme.test.ts": "3500f5632730a841b9d2d7d49653bdf54945e05bd2129e802e4de53d63afcc48",
+        "projects/detector-themes/candidates/best-deflection/theme.ts": "a38f16820f4bd1eaa5ca861ec11e0ad848637d9c8de0a696a6ddcbdc65caeb60",
+        "projects/detector-themes/candidates/best-trapped/knowledge-README.md": "50648d35b079fc697f6d085e36b2b98bba5a5da7c6698ce66e062c1b3a8bea7e",
+        "projects/detector-themes/candidates/best-trapped/mistakes.test.ts": "863cf8c6ec53679b60ff68c011e7fbadf17e3d550fcdd393b7b2ee4ec104d34b",
+        "projects/detector-themes/candidates/best-trapped/mistakes.ts": "9529faabe8d437cd2d4a78eab708c28d523f444175c3e193be54758376b9f6a6",
+        "projects/detector-themes/candidates/best-trapped/theme.test.ts": "9adff3685dedfa9db148251a21993665cc69bb1e9c79f185a7acf6e4d0ea402d",
+        "projects/detector-themes/candidates/best-trapped/theme.ts": "04cec97e1dfdc87a38327d7b5d6cc195b933ebbbdfdbc8b27c45320d3dc997f5",
+        "projects/detector-themes/combined-freeze.mjs": "342c59f815e6087ec2ad78dd2e48ef40a64acb0d42676db0baf3114e76c2df26",
+        "projects/detector-themes/combined-spec.json": "c7beedbd9bfe26d246424752967ab7929fa591d7201706fafe2d0c3c062aa05b",
+        "projects/detector-themes/compare.mjs": "d2205a832f19fd8463399384e565af59152bfc08882dd1eb34d47c5ba2afa9a5",
+        "projects/detector-themes/development.mjs": "de8af8d0482b3d52248bffa6df31063368db8e18ad21fcba0d158f5921f7bee7",
+        "projects/detector-themes/freeze-combined.mjs": "5d9046bf043681c09ec8a299e32409948795899a0a244e55dcfd21f38daca7f2",
+        "projects/detector-themes/overlap-combined.mjs": "3d9ff090a87b2776538315db713f3e529038535a1e575b13a4d4ac23e3b3cc64",
+        "projects/detector-themes/results/round2/compare-best-deflection.json": "cd473b96b81f39c1619f14d692130ce7fe1a43f6a494aa94615b592ba0a6e772",
+        "projects/detector-themes/results/round2/compare-best-trapped.json": "c7c2cdb503c4710d79a0e134c9162d5a2cae85af7d4235efc33fc591c4241530",
+        "projects/detector-themes/results/round2/development.json": "35c80679a015509813361cd3899266ed466b600da9727e840a87611247b4b20e",
+        "projects/detector-themes/results/round2/development.md": "0533a518d746b762a6895418eb2a23dec55ad62373f8935fc9ffcede3d01cd0e",
+        "projects/detector-themes/results/round2/sample.json": "f662483b89137069f52871c0221b8993b7b24fd805b4b6e73f415448522d5935",
+        "projects/detector-themes/results/round2/score-app-best-deflection.json": "3755f42112c504e806e3e919fb85bbb63a8a1be7aa410ea95d1a62c8e4ae2098",
+        "projects/detector-themes/results/round2/score-app-best-trapped.json": "e51fd6422501d23035843e5fe3f93a6d56934af93da44828ce110004835fa590",
+        "projects/detector-themes/results/round2/score-app.json": "9c8b7a05e8a197e6ccf810e59a74fb57007e5c4fb9bef69a0136313b5dabe973",
+        "projects/detector-themes/results/round2/score-heldout-best-deflection.json": "ff126d4c03b0c04645e1c41bf33fda0742c7c5950977e65b114193dacafbf708",
+        "projects/detector-themes/results/round2/score-heldout-best-trapped.json": "a75f27f1e1e33daed02372a030739ad32dd197553a4f2dd4d11b10020624e0f7",
+        "projects/detector-themes/results/round2/score-heldout.json": "ea0e2238b2f67b09ec6f6e2b9842cbde3fba3d010853a2a849306f4b59693fc2",
+        "projects/detector-themes/run-combined.sh": "caf33b4f58eb1f398f50f64b88e715a1daa5837c17e08940cbecdf2686f7e423",
+        "projects/detector-themes/run-score.sh": "1a1fcfe3fd8764d7049597d4970d7fcd1799de0ef29916b62cd9cd098ddcc45d",
+        "projects/detector-themes/sample.py": "be4b0100768881e83b6389afb77048b4b8718d43945519c0660539ddfa165298",
+        "projects/detector-themes/score.mts": "3b44ef74ab2999d4ddafd1edd5a06fab042f4441bee8eab9749cbc4cc77aeef6"
+      },
+      "datasets": {
+        "app": {
+          "puzzles": 4630,
+          "datasetSha256": "005f31596fae53c51d76916faca5de4b02850d2beaea693e21e99ff574b40f85"
+        },
+        "heldout": {
+          "puzzles": 20000,
+          "datasetSha256": "d68b10c1e799fd21762c894473c467246d0701d718a62e28d7dab8dcd86d54b5",
+          "serializedSha256": "98c6777e6dbc7b81e0a7763d8005f3c12eb5ccc01da41a208103fa036614037a"
+        }
+      }
+    }
+  },
+  "overlap": {
+    "project": "detector-themes",
+    "round": 2,
+    "phase": 3,
+    "candidate": "best-deflection-trapped",
+    "app": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+    "manifestSha256": "01ee90236bcdf9928e70b827c3fdb9a8697373a4e395980791c6f64c3415c05e",
+    "priority": [
+      "trappedPiece",
+      "deflection"
+    ],
+    "availabilityDefinition": "A new word is available when its independent candidate emits that word for the same puzzle, after the existing higher-priority tactics. Both means best-deflection emits deflection and best-trapped emits trappedPiece. This does not count raw findings hidden by an earlier tactic.",
+    "inputs": {
+      "projects/detector-themes/results/round2/score-app.json": "9c8b7a05e8a197e6ccf810e59a74fb57007e5c4fb9bef69a0136313b5dabe973",
+      "projects/detector-themes/results/round2/score-app-best-deflection.json": "3755f42112c504e806e3e919fb85bbb63a8a1be7aa410ea95d1a62c8e4ae2098",
+      "projects/detector-themes/results/round2/score-app-best-trapped.json": "e51fd6422501d23035843e5fe3f93a6d56934af93da44828ce110004835fa590",
+      "projects/detector-themes/results/round2/score-app-best-deflection-trapped.json": "a6dccdb7d3eae2ef6438ed16bcbedef33d374faedfd14898a3e680ad866ba2c6",
+      "projects/detector-themes/results/round2/score-heldout.json": "ea0e2238b2f67b09ec6f6e2b9842cbde3fba3d010853a2a849306f4b59693fc2",
+      "projects/detector-themes/results/round2/score-heldout-best-deflection.json": "ff126d4c03b0c04645e1c41bf33fda0742c7c5950977e65b114193dacafbf708",
+      "projects/detector-themes/results/round2/score-heldout-best-trapped.json": "a75f27f1e1e33daed02372a030739ad32dd197553a4f2dd4d11b10020624e0f7",
+      "projects/detector-themes/results/round2/score-heldout-best-deflection-trapped.json": "9ad28a726aeebc0502d5747f105f8a7ebd83ac06ddab32922076017ce52f8e8e"
+    },
+    "sets": {
+      "app": {
+        "puzzles": 4630,
+        "datasetSha256": "005f31596fae53c51d76916faca5de4b02850d2beaea693e21e99ff574b40f85",
+        "labelsSha256": {
+          "baseline": "b01ac7988e692d447aabdedde1421a565e087860950812a180660f6ef835248b",
+          "deflection": "c64a9ec7110695d43c655e049fe1281a374f7f55a29ecbf72beba5a18af30831",
+          "trapped": "8602950bca9d005be5b51af311d34890f5410bab600b8f84137001aa1c8e629c",
+          "combined": "125dd314e91c557fbd631365bdcfcc1e2fa589586ef65664da209c7a67c09cb6"
+        },
+        "availability": {
+          "neither": 4466,
+          "deflectionOnly": 57,
+          "trappedOnly": 107,
+          "both": 0
+        },
+        "selection": {
+          "neither": {
+            "baseline": 4466,
+            "deflection": 0,
+            "trappedPiece": 0,
+            "other": 0
+          },
+          "deflectionOnly": {
+            "baseline": 0,
+            "deflection": 57,
+            "trappedPiece": 0,
+            "other": 0
+          },
+          "trappedOnly": {
+            "baseline": 0,
+            "deflection": 0,
+            "trappedPiece": 107,
+            "other": 0
+          },
+          "both": {
+            "baseline": 0,
+            "deflection": 0,
+            "trappedPiece": 0,
+            "other": 0
+          }
+        }
+      },
+      "heldout": {
+        "puzzles": 20000,
+        "datasetSha256": "d68b10c1e799fd21762c894473c467246d0701d718a62e28d7dab8dcd86d54b5",
+        "labelsSha256": {
+          "baseline": "03f9c1262c68f9e253682521bb564fa140c89defe77e0bb25933899a6e1ae49b",
+          "deflection": "91535d04374eadafbbc66b6d1d2a0b151f049f1ff43a95f8084ea23635f09616",
+          "trapped": "36bc5578b06fc4eb5d318fd3db49ab3cd5dfc3ca598c953828383b5e71834de9",
+          "combined": "53a49aeb9d7009731c55ced20cb44eb7f246c60fa4eb0e9c5594a25a5a976aae"
+        },
+        "availability": {
+          "neither": 19265,
+          "deflectionOnly": 553,
+          "trappedOnly": 182,
+          "both": 0
+        },
+        "selection": {
+          "neither": {
+            "baseline": 19265,
+            "deflection": 0,
+            "trappedPiece": 0,
+            "other": 0
+          },
+          "deflectionOnly": {
+            "baseline": 0,
+            "deflection": 553,
+            "trappedPiece": 0,
+            "other": 0
+          },
+          "trappedOnly": {
+            "baseline": 0,
+            "deflection": 0,
+            "trappedPiece": 182,
+            "other": 0
+          },
+          "both": {
+            "baseline": 0,
+            "deflection": 0,
+            "trappedPiece": 0,
+            "other": 0
+          }
+        }
+      }
+    }
   },
   "data": {
     "app": {
@@ -152,7 +337,7 @@
       "total_seconds": 13.302,
       "restart": "A completed sample is reused only when its hashes match. An interrupted stream restarts deterministically; final files are replaced atomically."
     },
-    "hashBasis": "The source archive and serialized sample bytes match their frozen hashes. Parsing the sample solely to hash JSON.stringify links its canonical-array hash to all three held-out score files. No puzzle rows or tags are reported."
+    "hashBasis": "The source archive and serialized sample bytes match their frozen hashes. Parsing the sample solely to hash JSON.stringify links its canonical-array hash to every held-out score file. No puzzle rows or tags are reported."
   },
   "baseline": {
     "app": {
@@ -356,15 +541,152 @@
           "passesRule": true
         }
       }
+    },
+    "best-deflection-trapped": {
+      "labeller": "best",
+      "words": [
+        {
+          "word": "deflection",
+          "concept": "deflection"
+        },
+        {
+          "word": "trappedPiece",
+          "concept": "trapped-piece"
+        }
+      ],
+      "verdict": "keep",
+      "sets": {
+        "app": {
+          "puzzles": 4630,
+          "baseline": {
+            "agreeCount": 2269,
+            "agreeRate": 0.4900647948164147,
+            "disagreeCount": 1058,
+            "disagreeRate": 0.22850971922246222
+          },
+          "candidate": {
+            "agreeCount": 2415,
+            "agreeRate": 0.521598272138229,
+            "disagreeCount": 1030,
+            "disagreeRate": 0.2224622030237581
+          },
+          "agreeDiff": 0.03153347732181425,
+          "agreeCi": [
+            0.02678185745140389,
+            0.03650107991360691
+          ],
+          "disagreeDiff": -0.006047516198704104,
+          "disagreeCi": [
+            -0.009071274298056155,
+            -0.003023758099352052
+          ],
+          "newWords": {
+            "deflection": {
+              "said": 57,
+              "tp": 39,
+              "fp": 18,
+              "fn": 96,
+              "precision": 0.6842105263157895,
+              "precisionCi": [
+                0.555202251973548,
+                0.7899571243157648
+              ],
+              "recall": 0.28888888888888886,
+              "recallCi": [
+                0.21911242318401133,
+                0.3703473789581373
+              ]
+            },
+            "trappedPiece": {
+              "said": 107,
+              "tp": 107,
+              "fp": 0,
+              "fn": 63,
+              "precision": 1,
+              "precisionCi": [
+                0.9653427614534562,
+                1
+              ],
+              "recall": 0.6294117647058823,
+              "recallCi": [
+                0.5547017370457961,
+                0.6984024435285541
+              ]
+            }
+          },
+          "passesRule": true
+        },
+        "heldout": {
+          "puzzles": 20000,
+          "baseline": {
+            "agreeCount": 7179,
+            "agreeRate": 0.35895,
+            "disagreeCount": 6759,
+            "disagreeRate": 0.33795
+          },
+          "candidate": {
+            "agreeCount": 7671,
+            "agreeRate": 0.38355,
+            "disagreeCount": 6722,
+            "disagreeRate": 0.3361
+          },
+          "agreeDiff": 0.0246,
+          "agreeCi": [
+            0.02245,
+            0.0268
+          ],
+          "disagreeDiff": -0.00185,
+          "disagreeCi": [
+            -0.00385,
+            0
+          ],
+          "newWords": {
+            "deflection": {
+              "said": 553,
+              "tp": 348,
+              "fp": 205,
+              "fn": 441,
+              "precision": 0.6292947558770343,
+              "precisionCi": [
+                0.5882763162148992,
+                0.6685292748904927
+              ],
+              "recall": 0.44106463878326996,
+              "recallCi": [
+                0.40678796919956556,
+                0.47591241313005744
+              ]
+            },
+            "trappedPiece": {
+              "said": 182,
+              "tp": 146,
+              "fp": 36,
+              "fn": 63,
+              "precision": 0.8021978021978022,
+              "precisionCi": [
+                0.738340750125614,
+                0.853561620110627
+              ],
+              "recall": 0.6985645933014354,
+              "recallCi": [
+                0.6332285303375687,
+                0.7567330891525985
+              ]
+            }
+          },
+          "passesRule": true
+        }
+      }
     }
   },
   "timing": {
     "heldoutPuzzleSecondsByVariant": {
       "baseline": 12.20872371300009,
       "best-deflection": 13.150507014999942,
-      "best-trapped": 18.736536685999873
+      "best-trapped": 18.736536685999873,
+      "best-deflection-trapped": 32.34573421900036
     },
-    "totalHeldoutPuzzleSeconds": 44.09576741399991,
+    "totalHeldoutPuzzleSeconds": 76.44150163300027,
     "basis": "Sum of recorded per-puzzle elapsed times across the two scoring shards; excludes setup, launch, merge and comparison time. This is work time, not elapsed wall time for the full run."
   }
 }

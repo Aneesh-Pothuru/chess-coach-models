@@ -11,8 +11,10 @@
 \maketitle
 
 \noindent The main text records the earlier study at commit \texttt{\AppCommit}.
-Its results and examples are preserved. The appendix reports the completed later
-test at a different pin, with candidates frozen before the held-out scores.
+Its results and examples are preserved. The appendix reports the later
+independent tests and a subsequent fixed combination at a different pin. The
+independent candidates were frozen before their held-out tests. The combination
+was fixed after those results and before its own scores.
 
 \begin{abstract}
 Three of the app's board readers put a motif word on a position: the theme of the best move the
@@ -189,11 +191,11 @@ with seed \RTwoSeed. The app-pool data hash is \texttt{\RTwoPoolHash}; the
 serialized sample hash is \texttt{\RTwoSampleHash}, and the compressed database
 hash is \texttt{\RTwoDatabaseHash}.
 
-The candidates and measurement scripts were frozen at lab commit
+The independent candidates and measurement scripts were frozen at lab commit
 \texttt{\RTwoFrozenCommit}. Each candidate starts independently from the pinned
 app and changes its best-move labeller. The test uses the same frozen candidate
 sources and app-pool results. The generator checks those files against that
-commit before writing the paper. The candidates were not retuned on the test.
+commit before writing the paper. Those candidates were not retuned on the test.
 
 \paragraph{The changes.} The deflection candidate passes the supplied best line
 to the app's existing deflection reader. That reader requires a forcing move,
@@ -234,11 +236,63 @@ independently against the pin. The last column applies the fixed rule to that
 set; keeping a candidate requires passing both sets.}
 \end{table}
 
-\paragraph{The result.} Both candidates meet the unchanged rule:
+\paragraph{The independent result.} Both independent candidates meet the unchanged rule:
 \RTwoVerdicts. The trapped-piece candidate's held-out disagreement point
 estimate rises. Its interval includes zero and its upper endpoint stays below
-the permitted limit. These are separate candidate results; their combined
-behavior has not been measured here.
+the permitted limit. These separate results were observed before the combined
+test below.
+
+\paragraph{The fixed combination.} The combined candidate preserves both
+predicates and every existing tactic's priority. It tries \texttt{trappedPiece}
+before \texttt{deflection}, then the defensive and phase fallbacks. This is an
+explicit new tie-break: the pin has a move-describer gain stage but does not
+rank either new word. The combination extends that stage with the trapped-piece
+proof before trying the supplementary deflection reader. Its source, tests,
+priority, measurement scripts and prior results were bound by a content
+manifest before its scores. The manifest's hash is
+\texttt{\RTwoCombinedManifestHash}. No alternative priority was scored.
+
+The combined test uses the same app pool, held-out sample and unchanged keep
+rule. The individual held-out outcomes were already known. This is a test of
+the registered combination on those same sets, not a fresh independent sample.
+Its verdict is \textbf{\RTwoCombinedVerdict}. \RTwoCombinedMeaning
+
+\begin{table}[htbp]
+\centering
+\small
+\RTwoCombinedCounts
+\caption{Combined best-move labeller: puzzles agreeing or disagreeing with a
+tag. The baseline counts appear in the independent results above.}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\RTwoCombinedTable
+\caption{Combined-minus-pinned changes in percentage points, with
+\RTwoConfidence\% paired bootstrap intervals, under the unchanged rule.}
+\end{table}
+
+\paragraph{When both words are available.} A word is available when its
+independent candidate emits it on that puzzle after all earlier tactics.
+Availability does not count raw findings that an earlier word hides. The
+overlap report checks every paired puzzle: use the first available new word
+in the registered order, or the pinned label when neither is available.
+The table counts the puzzles where both independent words are available and
+the combined word selected there. These counts are descriptive and add no
+decision threshold.
+
+Neither measured set contains a puzzle where both independent candidates emit
+their new word, so there is no observed overlap winner. These data do not
+exercise the tie-break. The synthetic overlap regression covers that case.
+
+\begin{table}[htbp]
+\centering
+\small
+\RTwoOverlap
+\caption{Overlap of the independent new words and the combined selection.
+The registered order is trapped piece before deflection.}
+\end{table}
 
 \paragraph{What a port changes.} The replacement misses publisher passes its
 existing SAN best line through the app's replay helper. A named miss can then
