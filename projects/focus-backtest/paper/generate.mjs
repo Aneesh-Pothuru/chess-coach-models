@@ -177,7 +177,7 @@ const flip = candReplay.focuses.find((f) => f.outcome === 'not-met' && replay.fo
 claim(!!flip, 'a focus the app graded met is graded not met by the candidate')
 const appFlip = replay.focuses.find((a) => a.cause === flip.cause && a.startedOn === flip.startedOn)
 const rd = flip.read
-claim(rd.window.perMove >= rd.reference.perMove && rd.baseline.perMove > rd.window.perMove && rd.baseline.perMove > appFlip.read.window.perMove, "that focus's baseline read above the games before it and the windows after it")
+claim(rd.window.perMove >= rd.reference.perMove && appFlip.read.window.perMove >= rd.reference.perMove && rd.baseline.perMove > rd.window.perMove && rd.baseline.perMove > appFlip.read.window.perMove, "that focus's baseline read above the games before it and the windows after it, and neither window beat the older games")
 g.def('FlipCause', esc(flip.cause)).def('FlipReference', fixed(rd.reference.perMove, 2)).def('FlipBaseline', fixed(rd.baseline.perMove, 2))
 g.def('FlipWindow', fixed(rd.window.perMove, 2)).def('FlipAppWindow', fixed(appFlip.read.window.perMove, 2))
 g.def('FlipGameReference', fixed(rd.reference.perGame, 1)).def('FlipGameBaseline', fixed(rd.baseline.perGame, 1)).def('FlipGameAppWindow', fixed(appFlip.read.window.perGame, 1))
