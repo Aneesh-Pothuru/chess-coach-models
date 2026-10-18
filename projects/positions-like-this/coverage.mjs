@@ -113,7 +113,7 @@ function boardToPlacement(board) {
 }
 
 const summary = {
-  note: 'Coverage only, counted before the rule was written: no move was scored.',
+  note: 'Coverage only: no move was scored.',
   index: { positions: rows, buckets: buckets.size },
   his: hisOut.map((h, half) => ({
     half,
