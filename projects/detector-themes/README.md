@@ -18,6 +18,13 @@ on far more puzzles than have one. `describeMove` is the most precise of the
 three and the one to build the others on. The paper,
 [`paper/paper.pdf`](paper/paper.pdf), has the numbers.
 
+**Round two.** The rule keeps both `best-deflection` and `best-trapped`.
+Both raise agreement on the app pool and the held-out set. Deflection lowers
+disagreement on both sets. Trapped piece has a higher held-out disagreement
+point estimate within the fixed allowance. These are independent candidates
+for the app, not a measured combined change or a shipped port. The script-written
+[result](results/round2/result.md) gives the counts, differences and intervals.
+
 ## The data
 
 The Lichess puzzle database (CC0). A puzzle is a mistake (its first move) and
@@ -57,23 +64,20 @@ checkmate is given by the score passed in, so its row is not a test.
 
 | File | What it does |
 |---|---|
-| `sample.py` | Draws the held-out set from the database (`zstdcat data/raw/lichess_db_puzzle.csv.zst \| python3 projects/detector-themes/sample.py`, with `CHESS_DIR` set). |
+| `sample.py` | Draws the held-out set from the database, using the clone's Python; `run-score.sh` validates the round-two sample before scoring it. |
 | `score.mts` | Scores the three labellers on a set; writes `results/score-<set>.json` (counts) and the per-puzzle labels to `data/processed/`. |
 | `compare.mjs` | Compares a candidate's labels with the pinned app's by the rule under Candidates; writes `results/compare-<candidate>.json`. |
 | `candidates/` | Each candidate's replacement files. |
-| `paper/` | The paper. |
+| `report-round2.mjs` | Checks the frozen measurement files and writes `results/round2/result.json` and `result.md` from both comparisons. |
+| `paper/` | The earlier paper and the round-two section; `generate.mjs --round2` checks the claims and writes `generated.tex`. |
 
-## Running the earlier round
+## The earlier round
 
-```bash
-make chess
-export CHESS_DIR=$(bridge/checkout.sh)
-curl -LO https://database.lichess.org/lichess_db_puzzle.csv.zst --output-dir data/raw
-zstdcat data/raw/lichess_db_puzzle.csv.zst | python3 projects/detector-themes/sample.py
-bridge/run.sh projects/detector-themes/score.mts app
-bridge/run.sh projects/detector-themes/score.mts heldout
-bridge/run.sh projects/detector-themes/paper/generate.mjs
-```
+The unversioned results and historical paper belong to the earlier app pin
+and its original sample. The current bridge pin and rebuilt sample cannot
+reproduce that run. Its aggregates and generated paper inputs are preserved
+by `paper/round1-manifest.json`; do not overwrite them with current-pin
+scores. The commands below reproduce round two in its own result directory.
 
 ## Candidates
 
@@ -87,19 +91,21 @@ held-out set alike, its agreement rises with the 95% interval of the paired
 difference (2,000 bootstrap draws of puzzles) above zero, and its
 disagreement does not rise (the interval's upper end at or below one point).
 
-| Candidate | Labeller | The change |
-|---|---|---|
-| `describe-first` | `best` | Before the defensive fallback, name a skewer, a discovered attack or a pin when the move describer finds one for the mover. |
-| `best-deflection` | `best` | Before defence or phase, name the existing line reader's deflection when the supplied solution begins with this move. |
-| `best-trapped` | `best` | Before defence or phase, name the describer's trapped piece when the supplied line wins that same piece after costs. |
+| Candidate | Labeller | Verdict | The change |
+|---|---|---|---|
+| `describe-first` | `best` | Kept in the earlier round; shipped | Before the defensive fallback, name a skewer, a discovered attack or a pin when the move describer finds one for the mover. |
+| `best-deflection` | `best` | Kept; candidate for the app | Before defence or phase, name the existing line reader's deflection when the supplied solution begins with this move. |
+| `best-trapped` | `best` | Kept; candidate for the app | Before defence or phase, name the describer's trapped piece when the supplied line wins that same piece after costs. |
 
-## The next round: app pool first
+## Round two: development, then the held-out test
 
 This round measures the pin in `bridge/chess.json`, independently of the
 older results above. Its outputs live in `results/round2/`; its per-puzzle
 labels and resumable work live in `private/detector-themes/round2/`. The
-older paper and results remain a record of the older app. No held-out
-labeller is run during this phase.
+older paper sections and results remain a record of the older app. The
+candidates were finalized in phase one before any held-out labeller ran.
+Phase two scored the pinned app and both frozen candidates and applied the
+same rule. The comparisons and their result report are in `results/round2/`.
 
 The sets, concepts and keep rule above do not change. The app pool is the
 unique puzzle ids in the pinned `src/data/puzzles.json`. The held-out set is
@@ -150,14 +156,15 @@ paper's broader description is not a description of this pin.
 
 ### The deflection candidate
 
-`best-deflection` is final for the held-out test. Its app-pool counts are in
-[`results/round2/development.md`](results/round2/development.md), written by
-`development.mjs`. No keep verdict has been computed. The candidate's tests
+`best-deflection` is kept on both sets. Its phase-one app-pool counts remain
+in [`results/round2/development.md`](results/round2/development.md), written
+by `development.mjs`; the completed test is in
+[`results/round2/result.md`](results/round2/result.md). The candidate's tests
 cover the forced guard departure, overload, another guard still holding the
 square, an unforced departure, and absent, short or mismatched evidence.
 
-Its replacements are `theme.ts`, `theme.test.ts`, `knowledge-README.md` and
-`mistakes.ts`. `candidate.sh` maps them to their app paths through the bridge.
+Its replacements are `theme.ts`, `theme.test.ts`, `knowledge-README.md`,
+`mistakes.ts` and `mistakes.test.ts`. `candidate.sh` maps them to their app paths through the bridge.
 The misses-deck publisher converts its existing SAN best line with the app's
 `replaySans`; old two-argument callers retain their old result. The routine's
 separate facts caller also needs this argument when ported. Its source file
@@ -171,10 +178,14 @@ catalogue's deflection concept. At this pin it has no `THEME_COMPETENCY`
 entry: solving that miss credits the learner's existing `calc.scan` fallback,
 not a new deflection skill. The older theme-to-area map resolves it to K1.
 The candidate does not change review `blunderMotifs`, so review weakness
-counts are unchanged. A separate competency mapping would be a separate
-app change, not an unmeasured part of this candidate.
+counts and motif-based recency signals are unchanged. Refiling misses can
+change their displayed theme and theme interleaving. Future attempts update
+`calc.scan` ability and can change recommendations; a new word does not
+create a new competency or directly increment a weakness weight. A separate
+competency mapping would be a separate app change, not an unmeasured part of
+this candidate.
 
-### Reproducing this phase
+### Reproducing the development scores
 
 The supplied `.cache/chess` and `.venv` are links to the provisioned shared
 resources. Their pinned files are read through those links. Candidate
@@ -193,7 +204,6 @@ projects/detector-themes/run-score.sh app
 projects/detector-themes/run-score.sh app best-deflection
 projects/detector-themes/run-score.sh app best-trapped
 nice -n 10 bridge/run.sh projects/detector-themes/development.mjs best-deflection best-trapped
-nice -n 10 bridge/run.sh projects/detector-themes/paper/generate.mjs --round2
 
 candidate=$(projects/detector-themes/candidate.sh best-deflection)
 (cd "$candidate" && nice -n 10 node_modules/.bin/vitest run --project fast --maxWorkers 1 src/services/knowledge/detectors/theme.test.ts src/services/knowledge/detectors/tactics/tactics.test.ts src/services/publishing/decks/themeLine.test.ts tests/architecture)
@@ -209,7 +219,7 @@ hash-matched sample; an interrupted reservoir pass restarts deterministically.
 Use `--limit 50 --shard 0/2 --round2` with `score.mts app` for a timing slice;
 it caches those rows without writing a partial score aggregate.
 
-### The held-out commands, for phase two only
+### Reproducing the held-out test and result
 
 ```bash
 projects/detector-themes/run-score.sh heldout
@@ -217,17 +227,29 @@ projects/detector-themes/run-score.sh heldout best-deflection
 projects/detector-themes/run-score.sh heldout best-trapped
 nice -n 10 bridge/run.sh projects/detector-themes/compare.mjs best-deflection best --round2
 nice -n 10 bridge/run.sh projects/detector-themes/compare.mjs best-trapped best --round2
+nice -n 10 bridge/run.sh projects/detector-themes/report-round2.mjs
+nice -n 10 bridge/run.sh projects/detector-themes/paper/generate.mjs --round2
 ```
 
 The comparison checks exact puzzle pairing, labels, truth, vocabulary,
 source hashes and the pinned app before it applies the unchanged bootstrap.
-Do not tune again after those commands. The original paper sections remain the report of
-the earlier pin. The new appendix is app-only development evidence. Its
-`--round2` generator verifies the frozen historical macros and aggregates,
-then writes the new numbers into `paper/generated.tex` without reading new
-held-out labels. It refuses a phase-one appendix after comparison results
-exist; phase two must then update the paper to its tested claims. No TeX was
-installed or run. `paper.pdf` is still the historical PDF.
+The detector code, tests, sample, scoring and comparison scripts, and rule
+were not changed after the held-out results. `report-round2.mjs` verifies the
+measurement files and phase-one aggregates against commit `b055ee1` before
+writing the result. Reporting code and prose are the phase-two changes.
+
+The original paper sections remain the report of the earlier pin. The
+round-two section reports the completed test. Its `--round2` generator
+checks the frozen historical macros and aggregates, the new comparison
+results, the rule's verdicts and the downstream claims before writing every
+new number into `paper/generated.tex`. No TeX was installed or run.
+`paper.pdf` is still the historical PDF.
+
+The scoring commands each use two low-priority workers. During this run the
+first comparison briefly overlapped the finishing trapped-piece workers,
+exceeding the requested two-heavy-process cap. All ran at `nice -n 10`.
+The remaining comparison ran on its own. No measurement setting or input
+was changed in response to a held-out result.
 
 ### The trapped-piece design, before its app-pool score
 
@@ -249,9 +271,9 @@ This is a proof along the supplied prefix and local capture war, not a
 search of every opponent reply or a verdict on unrelated later play.
 
 
-### The trapped-piece candidate and where this phase stops
+### The trapped-piece candidate and where development stopped
 
-`best-trapped` is final for the held-out test. Its tests cover a piece staying
+`best-trapped` is kept on both sets. Its tests cover a piece staying
 put, the same piece moving before capture, another piece being won instead,
 an investment that costs more than the target, a safe escape and missing or
 invalid evidence. Both candidates also test that the misses publisher passes
@@ -263,7 +285,10 @@ A `trappedPiece` miss files under that word and resolves to `trapped-piece`
 in the catalogue. It too lacks a `THEME_COMPETENCY` entry and credits the
 existing `calc.scan` fallback. The puzzle bucket already exists in K1, but
 the older `WORD_CONCEPTS` map has no trapped-piece entry. Review motifs and
-weakness counts are unchanged by this best-move candidate. These mapping
+weakness counts are unchanged by this best-move candidate. The ordinary
+puzzle bucket maps trapped pieces to hanging-piece weakness; the misses
+family does not use that bucket mapping, so this word does not directly
+raise a hanging-piece weakness weight. These mapping
 limits are reported rather than silently bundled into a labeller change.
 
 The next proposed change is interpreted literally as restricting the old
@@ -273,7 +298,7 @@ difference is therefore never positive. It cannot pass this round's fixed
 rule and is not worth adding code for here. A broader replacement that also
 finds new defensive moves would be another design. Following the brief's
 ordered stop, no defensive candidate or hanging-piece candidate is built or
-scored in this phase. The latter is deferred, not rejected on data.
+scored in this round. The latter is deferred, not rejected on data.
 
 The deflection reader covers a material target collected on its next turn;
 it does not cover every deflected guard of a mating square or a longer

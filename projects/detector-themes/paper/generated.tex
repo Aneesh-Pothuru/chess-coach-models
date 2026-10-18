@@ -165,31 +165,44 @@ passed-pawn & 615 & 454 & 0.73 & 0.54 & 1072 & 806 & 0.64 & 0.48 \\
 % Written by projects/detector-themes/paper/generate.mjs --round2; do not edit by hand.
 
 \newcommand{\RTwoAppCommit}{f4bd63f19b343f686fb97ea4cf70b211c0bddc0a}
-\newcommand{\RTwoPoolHash}{005f31596fae53c51d76916faca5de4b02850d2beaea693e21e99ff574b40f85}
+\newcommand{\RTwoFrozenCommit}{b055ee132c0cde90c2409f52ae9a94c8d9afa0a6}
 \newcommand{\RTwoPuzzles}{4,630}
 \newcommand{\RTwoSampled}{20,000}
 \newcommand{\RTwoEligible}{4,682,966}
-\newcommand{\RTwoSampleHash}{98c6777e6dbc7b81e0a7763d8005f3c12eb5ccc01da41a208103fa036614037a}
-\newcommand{\RTwoDatabaseHash}{76335bfa7d7c4a7f93c1366d81549e53951ebb79dd43d34904cab8f22d962f8d}
 \newcommand{\RTwoRatingLow}{400}
 \newcommand{\RTwoRatingHigh}{1,899}
+\newcommand{\RTwoPoolHash}{005f31596fae53c51d76916faca5de4b02850d2beaea693e21e99ff574b40f85}
+\newcommand{\RTwoSampleHash}{98c6777e6dbc7b81e0a7763d8005f3c12eb5ccc01da41a208103fa036614037a}
+\newcommand{\RTwoDatabaseHash}{76335bfa7d7c4a7f93c1366d81549e53951ebb79dd43d34904cab8f22d962f8d}
 \newcommand{\RTwoSeed}{20261014}
 \newcommand{\RTwoBootstrapSeed}{20261014}
 \newcommand{\RTwoDraws}{2,000}
 \newcommand{\RTwoConfidence}{95}
 \newcommand{\RTwoDisagreementLimit}{1}
-\newcommand{\RTwoProcesses}{2}
-\newcommand{\RTwoAppSeconds}{10.9}
-\newcommand{\RTwoHeldSeconds}{23.5}
-\newcommand{\RTwoSampleSeconds}{13.3}
-\newcommand{\RTwoTable}{%
-\begin{tabular}{lrrrrr}
+\newcommand{\RTwoCounts}{%
+\begin{tabular}{llrr}
 \toprule
-reader & agrees & disagrees & changed & new word TP & new word FP \\
+reader & set & agrees & disagrees \\
 \midrule
-pinned & 2,269 & 1,058 & -- & -- & -- \\
-\texttt{best-deflection} & 2,308 & 1,044 & 57 & 39 & 18 \\
-\texttt{best-trapped} & 2,376 & 1,044 & 107 & 107 & 0 \\
+pinned & app pool & 2,269 & 1,058 \\
+pinned & held out & 7,179 & 6,759 \\
+deflection & app pool & 2,308 & 1,044 \\
+deflection & held out & 7,526 & 6,712 \\
+trapped piece & app pool & 2,376 & 1,044 \\
+trapped piece & held out & 7,324 & 6,769 \\
 \bottomrule
 \end{tabular}
 }
+\newcommand{\RTwoTable}{%
+\begin{tabular}{llrrl}
+\toprule
+candidate & set & agreement change & disagreement change & rule \\
+\midrule
+deflection & app pool & 0.84 [0.583, 1.102] & $-$0.30 [$-$0.562, $-$0.043] & pass \\
+deflection & held out & 1.74 [1.565, 1.920] & $-$0.24 [$-$0.420, $-$0.055] & pass \\
+trapped piece & app pool & 2.31 [1.901, 2.765] & $-$0.30 [$-$0.454, $-$0.151] & pass \\
+trapped piece & held out & 0.73 [0.615, 0.850] & 0.05 [$-$0.020, 0.115] & pass \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\RTwoVerdicts}{\texttt{best-deflection}: keep; \texttt{best-trapped}: keep}

@@ -14,7 +14,7 @@ import { LAB_DIR, resultsDir } from '../../../bridge/lib/chess.mjs'
 import { Generated, board, esc, fixed, line, movesTex } from '../../paper.mjs'
 
 // The later sample is deliberately not substituted into the historical boards.
-// This branch reads only the frozen historical artifact and app-pool aggregates.
+// This branch preserves the historical artifact and checks the round-two test.
 if (process.argv.includes('--round2')) {
   await import('./generate-round2.mjs')
   process.exit(0)

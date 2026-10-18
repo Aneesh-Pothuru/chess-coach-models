@@ -11,8 +11,8 @@
 \maketitle
 
 \noindent The main text records the earlier study at commit \texttt{\AppCommit}.
-Its results and examples are preserved. The appendix reports the later app-pool
-development phase at a different pin; it contains no new held-out result.
+Its results and examples are preserved. The appendix reports the completed later
+test at a different pin, with candidates frozen before the held-out scores.
 
 \begin{abstract}
 Three of the app's board readers put a motif word on a position: the theme of the best move the
@@ -179,45 +179,82 @@ misses deck is built from the player's own mistakes, where a defensive move is m
 the drill-decks project measures on the deck itself.
 
 \appendix
-\section{App-pool development at the later pin}
+\section{The later held-out test}
 
-This phase measures commit \texttt{\RTwoAppCommit} on the \RTwoPuzzles{} unique
-puzzles shipped by that app. Each candidate starts from that pin and changes one
-labeller. The app's existing readers supply the board claims. Candidates are
-developed on this pool, finalized, and committed before the held-out test.
+This round measures app commit \texttt{\RTwoAppCommit}. The app pool contains
+\RTwoPuzzles{} unique shipped puzzles. The held-out sample contains
+\RTwoSampled{} puzzles drawn uniformly from \RTwoEligible{} eligible database
+rows, rated \RTwoRatingLow{} through \RTwoRatingHigh{}, excluding the app pool,
+with seed \RTwoSeed. The app-pool data hash is \texttt{\RTwoPoolHash}; the
+serialized sample hash is \texttt{\RTwoSampleHash}, and the compressed database
+hash is \texttt{\RTwoDatabaseHash}.
 
-The new sample contains \RTwoSampled{} puzzles drawn uniformly from
-\RTwoEligible{} eligible database rows, rated \RTwoRatingLow{} through
-\RTwoRatingHigh{}, with the app pool excluded and seed \RTwoSeed. Only its sample
-metadata is read here. The app-pool data hash is
-\texttt{\RTwoPoolHash}; the sample hash is \texttt{\RTwoSampleHash}, and its
-database hash is \texttt{\RTwoDatabaseHash}.
+The candidates and measurement scripts were frozen at lab commit
+\texttt{\RTwoFrozenCommit}. Each candidate starts independently from the pinned
+app and changes its best-move labeller. The test uses the same frozen candidate
+sources and app-pool results. The generator checks those files against that
+commit before writing the paper. The candidates were not retuned on the test.
+
+\paragraph{The changes.} The deflection candidate passes the supplied best line
+to the app's existing deflection reader. That reader requires a forcing move,
+the guard's departure and collection of the guarded target. It establishes a
+local capture-war gain, not the net value of a longer sacrifice. The trapped-piece
+candidate uses the move describer's gain finding, which requires that the piece
+loses where it stands and on every legal escape square. It follows that same
+piece through the supplied line until capture. The actual capture must win its
+capture war and leave a positive material gain after the preceding costs.
+Neither change searches every defense. Existing named tactics retain priority.
+
+\paragraph{The unchanged rule.} Agreement and disagreement are separate
+per-puzzle indicators: a said concept is present among the puzzle's tags, or a
+said concept is absent. The effect is the candidate-minus-pinned mean difference
+over the complete paired set. Keep only when, on both sets, the agreement
+difference's \RTwoConfidence\% interval is wholly positive and the disagreement
+difference's upper endpoint is at most \RTwoDisagreementLimit{} percentage
+point. The percentile intervals use \RTwoDraws{} bootstrap draws of puzzles with
+replacement, each the original set size, with seed \RTwoBootstrapSeed{}
+restarted for each set. Both indicators use the same draws. The fixed rule has
+no multiple-comparison correction.
+
+\begin{table}[htbp]
+\centering
+\small
+\RTwoCounts
+\caption{Puzzles on which the best-move labeller agrees or disagrees with a
+tag. Each reader scores the complete app pool and held-out sample.}
+\end{table}
 
 \begin{table}[htbp]
 \centering
 \small
 \RTwoTable
-\caption{Development counts on the app pool. Agrees and disagrees count puzzles;
-changed counts a different best-move word. The last columns count puzzles where
-the candidate's new word matches a tag or does not. These are development counts,
-not a keep verdict.}
+\caption{Candidate-minus-pinned changes in percentage points, with
+\RTwoConfidence\% paired bootstrap intervals. Each candidate is tested
+independently against the pin. The last column applies the fixed rule to that
+set; keeping a candidate requires passing both sets.}
 \end{table}
 
-Agreement increases on the app pool for every finalized candidate in the table.
-That is only the development screen. The keep rule remains unchanged: on both
-the app pool and held-out set, the paired agreement difference must have its
-\RTwoConfidence\% interval wholly above zero, and the disagreement difference's
-upper endpoint must be at most \RTwoDisagreementLimit{} percentage point.
-The test uses \RTwoDraws{} bootstrap draws of puzzles, with replacement, and
-seed \RTwoBootstrapSeed{} restarted for each set. There is no multiple-comparison
-correction in this fixed rule. No held-out labeller or candidate comparison was
-run in this phase, so none of these candidates is yet kept.
+\paragraph{The result.} Both candidates meet the unchanged rule:
+\RTwoVerdicts. The trapped-piece candidate's held-out disagreement point
+estimate rises. Its interval includes zero and its upper endpoint stays below
+the permitted limit. These are separate candidate results; their combined
+behavior has not been measured here.
 
-The app-pool work summed to \RTwoAppSeconds{} seconds of recorded per-puzzle
-wall time across the baseline and candidates. Scaling that work to the sample
-at \RTwoProcesses{} processes estimates \RTwoHeldSeconds{} seconds for scoring.
-This excludes process launch, candidate copies and comparison. The local sample
-pass took \RTwoSampleSeconds{} seconds; downloading its database is separate.
-The estimate is a planning figure, not a timed held-out run.
+\paragraph{What a port changes.} The replacement misses publisher passes its
+existing SAN best line through the app's replay helper. A named miss can then
+carry \texttt{deflection} or \texttt{trappedPiece}; both words already resolve to
+catalogue concepts. Neither has a direct \texttt{THEME\_COMPETENCY} entry at the
+pin. Miss and graduation attempts use the existing \texttt{calc.scan} fallback,
+so these candidates do not add a deflection or trapped-piece skill credit.
+The separate routine facts caller still needs the optional line argument.
+Review motif code is unchanged, so the direct review weakness updates that
+consume those motifs are unchanged. A kept result supports proposing a port
+with its tests; it is not a record of a deployment.
+
+\paragraph{Limits.} The test measures agreement with Lichess's tagger on public
+puzzles. It does not measure changes in the player's misses deck, skill growth
+or results. The trapped-piece proof ends at the named capture, and the
+deflection proof is local to its collected target. Longer play and defenses
+outside the supplied line remain outside those claims.
 
 \end{document}
