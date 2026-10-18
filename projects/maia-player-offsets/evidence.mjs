@@ -155,7 +155,7 @@ for (const group of staleWorkers) { try { process.kill(-group.pid, 'SIGTERM') } 
 for (let n = 0; n < 20 && staleWorkers.some((g) => knownAlive(g.pid, g.pidStarted)); n++) await wait(250)
 for (const group of staleWorkers.filter((g) => knownAlive(g.pid, g.pidStarted))) { try { process.kill(-group.pid, 'SIGKILL') } catch { /* already closed */ } }
 for (let n = 0; n < 20 && staleWorkers.some((g) => knownAlive(g.pid, g.pidStarted)); n++) await wait(250)
-if (staleWorkers.some((g) => knownAlive(g.pid, g.pidStarted))) throw new Error('old review worker groups did not stop; no new reviews started')
+if (staleWorkers.some((g) => knownAlive(g.pid, g.pidStarted) || groupAlive(g.pid))) throw new Error('old review worker groups did not stop; no new reviews started')
 const valid = (c) => {
   try {
     const doc = read(join(routine, `${c.id}.json`))
