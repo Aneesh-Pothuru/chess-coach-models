@@ -205,4 +205,35 @@ scripts, then the paper. No language model judges anything here.
 
 ## Files
 
-Added with the scripts.
+| File | What it does |
+|---|---|
+| `stream.py` | Streams the fixed game filter and checkpoints compact games under `private/rules-of-thumb/<run>/`. |
+| `detect.mjs` | Reads rule availability and the board splits through the app; implements the seeded draw and caps. |
+| `positions.mjs` | Scans every eligible position, resumes game shards and merges the kept rows in file order. |
+| `score.mjs` | Reads Maia, the engine and tablebase through the app; resumes score shards. Its timing mode writes counts and times only. |
+| `analyze.py` | Checks complete full-run inputs and writes the fixed measures, verdicts, splits and descriptions to `results/rules.json` and `results/rules.md`. |
+| `test_stream.py`, `tests-positions.mjs`, `tests-score.mjs`, `test_analysis.py` | Synthetic filter, detector, sampling, referee, bootstrap and decision checks. |
+| `implementation-notes.md` | Readings that need review before the full scan. |
+| `phase1.py` | Writes `results/phase1.json` and `results/phase1.md` from July counts and timings. |
+| `phase2.sh` | The full-run commands, after review, with three heavy workers at a time. |
+| `paper/` | The deferred paper scaffold and its checked generator. |
+
+## Running it
+
+From the lab's root. The timing run reads July only. All per-game and
+per-position files stay under `private/rules-of-thumb/`.
+
+```bash
+nice -n 10 .venv/bin/python -m unittest discover -s projects/rules-of-thumb -p 'test_*.py'
+nice -n 10 bridge/run.sh projects/rules-of-thumb/tests-positions.mjs
+nice -n 10 bridge/run.sh projects/rules-of-thumb/tests-score.mjs
+
+nice -n 10 .venv/bin/python projects/rules-of-thumb/stream.py --run slice --month 2026-07 --games 300
+nice -n 10 bridge/run.sh projects/rules-of-thumb/positions.mjs --run slice --month 2026-07 --pool 2
+nice -n 10 bridge/run.sh projects/rules-of-thumb/score.mjs --run slice --month 2026-07 --timing --limit 60 --pool 1
+.venv/bin/python projects/rules-of-thumb/phase1.py
+nice -n 10 bridge/run.sh projects/rules-of-thumb/paper/generate.mjs
+
+# Only after the reviewer answers implementation-notes.md:
+projects/rules-of-thumb/phase2.sh --reviewed
+```
