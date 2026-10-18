@@ -84,7 +84,7 @@ function rowOf(g, fens, rating, oppRating, archive) {
     passed,
     saved: g.score >= 0.5 ? 1 : 0,
     wp: Math.min(4, Math.floor(m.wpBefore / 5)),
-    wpAfter: Math.min(5, Math.floor(m.wpAfter / 5)),
+    wpAfter: Math.floor(m.wpAfter / 5),
     down: down >= 5 ? 2 : down >= 3 ? 1 : 0,
     rating: archive ? 0 : Math.floor((rating - RATING_FLOOR) / 100),
     oppHigher: rating === null || oppRating === null ? 2 : oppRating > rating ? 1 : 0,
