@@ -2,11 +2,13 @@
 // Run with bridge/run.sh projects/rules-of-thumb/tests-score.mjs.
 import assert from 'node:assert/strict'
 import { chess } from '../../bridge/lib/chess.mjs'
-import { engineSound, pick, readRow, tablebaseSound } from './score.mjs'
+import { addTimes, cumulativeSeconds, emptyTimes, engineSound, pick, probeWithRetry, readRow,
+  requireLiteral, tablebaseSound, TABLEBASE_RETRY_DELAYS_MS } from './score.mjs'
 
 const K = await chess('src/services/knowledge/index.ts')
 const E = await chess('src/services/engine/index.ts')
 const S = await chess('src/core/score/index.ts')
+const C = await chess('src/core/chess/index.ts')
 const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 const END = '8/8/8/8/8/4k3/8/R3K3 w - - 0 1'
 const score = cp => ({ cp, mate: null })
@@ -14,7 +16,7 @@ const best = (s = score(0)) => ({ complete: true, partial: false, completion: 'c
 const read = (uci, s = score(0)) => ({ best: uci, pv: [uci], score: s,
   partial: false, completion: 'complete', status: 'exact', coherent: true })
 const legalAt = fen => K.boardOf(fen).movesShared().map(m => m.uci)
-const row = (fen = START, more = {}) => ({ month: 'synthetic', game: 'synthetic', rule: 'synthetic',
+const row = (fen = START, more = {}) => ({ datasetKind: 'literal', month: 'synthetic', game: 'synthetic', rule: 'synthetic',
   fen, band: 1300, opponentBand: 1500, A: legalAt(fen)[0], ruleMoves: [legalAt(fen)[1]], splits: {}, ...more })
 let checks = 0
 function test(name, fn) {
@@ -74,6 +76,12 @@ function mockEngine(fen, options = {}) {
   const policy = Object.fromEntries(legal.map(m => [m, 1 / legal.length]))
   return {
     calls,
+    async newGame() {
+      calls.push({ method: 'newGame' })
+      if (options.newGameError) throw options.newGameError
+    },
+    status() { return { tablebase: options.status ?? 'offline' } },
+    reset(scope) { calls.push({ method: 'reset', scope }) },
     async humanPolicy(pos, opts) {
       calls.push({ method: 'humanPolicy', opts })
       return { bands: opts.bands.map(band => ({ band, policy: { ...policy, ...options.policy } })), legalCount: legal.length }
@@ -125,9 +133,13 @@ await testAsync('timing tablebase branch never reads the probe outcome', async (
   assert.equal(mock.calls.some(c => c.method === 'bestMoves' || c.method === 'scoreMove'), false)
 })
 await testAsync('missing tablebase is counted during timing and refuses real scoring', async () => {
-  const timed = await readRow(mockEngine(END, { probe: null }), row(END), true)
-  assert.equal(timed.times.tablebaseUnavailable, 1)
-  await assert.rejects(readRow(mockEngine(END, { probe: null }), row(END), false), /missing tablebase outcome/)
+  const delays = []
+  const timed = await readRow(mockEngine(END, { probe: null }), row(END), true, { sleep: async ms => { delays.push(ms) } })
+  assert.equal(timed.times.tablebaseUnavailable, 4)
+  assert.equal(timed.times.tablebaseRetries, 3)
+  assert.deepEqual(delays, TABLEBASE_RETRY_DELAYS_MS)
+  await assert.rejects(readRow(mockEngine(END, { probe: null }), row(END), false,
+    { sleep: async () => {} }), /missing tablebase outcome/)
 })
 await testAsync('R is modal within the rule; N is modal over every legal move; A remains played', async () => {
   const source = row(START, { band: 1500, opponentBand: 1300, A: 'd2d4', ruleMoves: ['h2h3', 'a2a3'] })
@@ -155,5 +167,121 @@ await testAsync('illegal recorded moves stop before any instrument request', asy
   const mock = mockEngine(START)
   await assert.rejects(readRow(mock, row(START, { A: 'a2a5' }), false), /illegal candidate/)
   assert.equal(mock.calls.length, 0)
+})
+
+await testAsync('each search position clears the engine hash before any searches', async () => {
+  const mock = mockEngine(START)
+  for (let i = 0; i < 2; i++) {
+    const before = mock.calls.length
+    const result = await readRow(mock, row(), true)
+    assert.equal(result.times.newGameCalls, 1)
+    const calls = mock.calls.slice(before).map(call => call.method)
+    assert.deepEqual(calls.slice(0, 3), ['humanPolicy', 'newGame', 'bestMoves'])
+    assert.equal(calls.filter(call => call === 'newGame').length, 1)
+    assert.ok(calls.slice(3).every(call => call === 'scoreMove'))
+  }
+  const tb = mockEngine(END)
+  const result = await readRow(tb, row(END), true)
+  assert.equal(result.times.newGameCalls, 0)
+  assert.equal(tb.calls.some(call => call.method === 'newGame'), false)
+})
+
+await testAsync('a failed hash reset stops before all searches and retains attempt timings', async () => {
+  const mock = mockEngine(START, { newGameError: new Error('synthetic reset failure') })
+  await assert.rejects(readRow(mock, row(), false), error => {
+    assert.match(error.message, /reset failure/)
+    assert.equal(error.times.newGameCalls, 1)
+    assert.equal(error.times.bestCalls, 0)
+    assert.equal(error.times.scoreCalls, 0)
+    assert.ok(error.times.rowSeconds >= error.times.newGameSeconds)
+    return true
+  })
+  assert.deepEqual(mock.calls.map(call => call.method), ['humanPolicy', 'newGame'])
+})
+
+test('literal provenance is mandatory on every full manifest and row', () => {
+  requireLiteral({ datasetKind: 'literal' }, [row()])
+  for (const datasetKind of [undefined, 'alternative', 'alternative-note']) {
+    assert.throws(() => requireLiteral({ datasetKind }, [row()]), /literal/)
+    assert.throws(() => requireLiteral({ datasetKind: 'literal' }, [row(START, { datasetKind })]), /literal/)
+  }
+})
+await testAsync('alternative rows fail before any scoring calls', async () => {
+  const mock = mockEngine(START)
+  await assert.rejects(readRow(mock, row(START, { datasetKind: 'alternative-note' }), false), /literal/)
+  assert.equal(mock.calls.length, 0)
+})
+
+await testAsync('probe retries clear negative cache and preserve the uninspected timing outcome', async () => {
+  const events = [], delays = [], resets = []
+  let attempts = 0, negative = false
+  const mock = {
+    async tablebase() {
+      assert.equal(negative, false, 'the prior negative cache must be cleared')
+      attempts++
+      if (attempts < 3) { negative = true; return null }
+      return outcomePoison
+    },
+    status: () => ({ tablebase: 'offline' }),
+    reset(scope) { resets.push(scope); negative = false },
+  }
+  const times = emptyTimes()
+  const result = await probeWithRetry(mock, C.position(END), times,
+    { sleep: async ms => { delays.push(ms) }, onEvent: event => { events.push(event) } })
+  assert.equal(result, outcomePoison)
+  assert.equal(times.tablebaseCalls, 3)
+  assert.equal(times.tablebaseUnavailable, 2)
+  assert.equal(times.tablebaseRetries, 2)
+  assert.deepEqual(delays, [1000, 2000])
+  assert.deepEqual(resets, ['tablebase', 'tablebase'])
+  assert.deepEqual(events.map(event => event.event), ['tablebase-retry', 'tablebase-retry', 'tablebase-recovered'])
+  assert.equal(events[0].failureKind, 'covered-probe-offline')
+})
+
+await testAsync('covered unsupported responses receive retries but never become soundness', async () => {
+  const events = []
+  const mock = mockEngine(END, { probe: null, status: 'unsupported' })
+  await assert.rejects(readRow(mock, row(END), false, { sleep: async () => {}, onEvent: event => { events.push(event) } }), error => {
+    assert.match(error.message, /missing tablebase outcome/)
+    assert.equal(error.times.tablebaseCalls, 4)
+    assert.equal(error.times.tablebaseRetries, 3)
+    assert.equal(error.times.bestCalls, 0)
+    return true
+  })
+  assert.equal(mock.calls.filter(call => call.method === 'reset').length, 3)
+  assert.equal(events.at(-1).event, 'tablebase-unavailable')
+  assert.equal(events.at(-1).failureKind, 'covered-probe-unsupported')
+  assert.equal(events.at(-1).exhausted, true)
+})
+
+await testAsync('uncovered castling positions stop without retries or engine fallback', async () => {
+  const fen = '4k3/8/8/8/8/8/8/4K2R w K - 0 1'
+  assert.equal(E.tablebaseCovers(fen), false)
+  const events = []
+  const mock = mockEngine(fen, { probe: null, status: 'idle' })
+  await assert.rejects(readRow(mock, row(fen), false, {
+    sleep: async () => { throw new Error('uncovered positions must not retry') },
+    onEvent: event => { events.push(event) },
+  }), /missing tablebase outcome/)
+  assert.equal(mock.calls.filter(call => call.method === 'tablebase').length, 1)
+  assert.equal(mock.calls.some(call => ['reset', 'bestMoves', 'scoreMove'].includes(call.method)), false)
+  assert.equal(events[0].failureKind, 'position-outside-tablebase-coverage')
+  assert.equal(events[0].exhausted, false)
+})
+
+test('cumulative timings survive checkpoints, recovery and no-op resumes without doubling', () => {
+  const done = [{ times: { rowSeconds: 5 } }, { times: { rowSeconds: 7 } }]
+  assert.equal(cumulativeSeconds({ workerSeconds: 12, rows: 1 }, done), 19)
+  assert.equal(cumulativeSeconds({ workerSeconds: 19, rows: 2 }, done), 19)
+  assert.equal(cumulativeSeconds({ workerSecondsThisInvocation: 12, rows: 1 }, done), 19)
+  assert.equal(cumulativeSeconds(null, done), 12)
+  const totals = emptyTimes()
+  addTimes(totals, { rowSeconds: 5, tablebaseRetries: 2 })
+  addTimes(totals, { rowSeconds: 7, tablebaseRetries: 1 })
+  assert.equal(totals.rowSeconds, 12)
+  assert.equal(totals.tablebaseRetries, 3)
+  assert.equal(totals.tablebaseRetrySeconds, 0)
+  assert.equal(emptyTimes().tablebaseRetries, 0)
+  assert.throws(() => addTimes(totals, { rowSeconds: -1 }), /invalid timing/)
 })
 console.log(JSON.stringify({ syntheticRefereeChecks: checks, engineProcesses: 0, maiaModels: 0, realGames: 0 }))

@@ -13,6 +13,10 @@ const E = await chess('src/services/engine/index.ts')
 const S = await chess('src/core/score/index.ts')
 const Node = await chess('src/adapters/node/engine/index.ts')
 const PIN = JSON.parse(readFileSync(join(LAB_DIR, 'bridge/chess.json'))).commit
+export const TABLEBASE_RETRY_DELAYS_MS = [1000, 2000, 4000]
+export const emptyTimes = () => ({ maiaSeconds: 0, engineSeconds: 0, tablebaseSeconds: 0, maiaCalls: 0,
+  maiaBands: 0, bestCalls: 0, scoreCalls: 0, tablebaseCalls: 0, tablebaseUnavailable: 0,
+  tablebaseRetries: 0, tablebaseRetrySeconds: 0, newGameCalls: 0, newGameSeconds: 0, rowSeconds: 0 })
 export const rowKey = r => `${r.month}:${r.game}:${r.rule}`
 export const sha = buffer => createHash('sha256').update(buffer).digest('hex')
 export function atomic(path, data) {
@@ -47,17 +51,72 @@ export function tablebaseSound(probe, uci) {
   return after === outcome
 }
 
-export async function readRow(eng, row, timing) {
+export function requireLiteral(manifest, rows) {
+  if (manifest.datasetKind !== 'literal' || rows.some(row => row.datasetKind !== 'literal')) throw new Error('scorer accepts only the literal registered population')
+}
+
+export function addTimes(totals, times) {
+  for (const [key, value] of Object.entries(times ?? {})) {
+    if (!Number.isFinite(value) || value < 0) throw new Error('invalid timing value')
+    totals[key] = (totals[key] ?? 0) + value
+  }
+  return totals
+}
+
+// A hard-killed process may have committed rows after its last manifest.
+// Recover their elapsed row time without counting earlier checkpoints twice.
+export function cumulativeSeconds(previous, doneRows) {
+  const known = previous?.workerSeconds ?? previous?.workerSecondsThisInvocation ?? 0
+  const committed = previous?.rows ?? 0
+  return known + doneRows.slice(committed).reduce((sum, row) => sum + (row.times?.rowSeconds ?? 0), 0)
+}
+
+/** Retry failed probes at covered positions. The adapter labels HTTP 4xx as
+ * unsupported, including transient 429 responses. reset('tablebase') clears
+ * the app's negative cache, while successful Node disk entries remain.
+ * Uncovered positions and missing outcomes are never engine fallbacks. */
+export async function probeWithRetry(eng, pos, times, options = {}) {
+  const sleep = options.sleep ?? (ms => new Promise(resolve => setTimeout(resolve, ms)))
+  const onEvent = options.onEvent ?? (() => {})
+  const covered = E.tablebaseCovers(C.fenOf(pos))
+  for (let attempt = 0; ; attempt++) {
+    times.tablebaseCalls++
+    const probe = await eng.tablebase(pos)
+    if (probe !== null) {
+      if (attempt) onEvent({ event: 'tablebase-recovered', attempts: attempt + 1 })
+      return probe
+    }
+    times.tablebaseUnavailable++
+    const status = eng.status().tablebase
+    const failureKind = covered ? `covered-probe-${status}` : 'position-outside-tablebase-coverage'
+    if (!covered || attempt >= TABLEBASE_RETRY_DELAYS_MS.length) {
+      onEvent({ event: 'tablebase-unavailable', status, failureKind, attempts: attempt + 1, exhausted: covered })
+      return null
+    }
+    const delayMs = TABLEBASE_RETRY_DELAYS_MS[attempt]
+    times.tablebaseRetries++
+    onEvent({ event: 'tablebase-retry', status, failureKind, failedAttempt: attempt + 1, nextAttempt: attempt + 2, delayMs })
+    const started = performance.now()
+    await sleep(delayMs)
+    times.tablebaseRetrySeconds += (performance.now() - started) / 1000
+    eng.reset('tablebase')
+  }
+}
+
+export async function readRow(eng, row, timing, options = {}) {
+  if (!timing && row.datasetKind !== 'literal') throw new Error('scorer accepts only literal position rows')
   const pos = C.position(row.fen)
   const board = K.tryBoard(row.fen)
   if (!board) throw new Error('invalid FEN')
   const legal = board.moves().map(m => `${m.from}${m.to}${m.promotion ?? ''}`)
   if (!legal.includes(row.A) || row.ruleMoves.some(m => !legal.includes(m))) throw new Error('illegal candidate')
-  const times = { maiaSeconds: 0, engineSeconds: 0, tablebaseSeconds: 0, maiaCalls: 1,
-    maiaBands: row.band === 1300 ? 1 : 2, bestCalls: 0, scoreCalls: 0, tablebaseCalls: 0, tablebaseUnavailable: 0 }
+  const times = { ...emptyTimes(), maiaCalls: 1, maiaBands: row.band === 1300 ? 1 : 2 }
+  const rowStarted = performance.now()
+  try {
   let start = performance.now()
-  const h = await eng.humanPolicy(pos, { bands: [...new Set([row.band, 1300])], opponentBand: row.opponentBand })
-  times.maiaSeconds += (performance.now() - start) / 1000
+  let h
+  try { h = await eng.humanPolicy(pos, { bands: [...new Set([row.band, 1300])], opponentBand: row.opponentBand }) }
+  finally { times.maiaSeconds += (performance.now() - start) / 1000 }
   if (h === 'unavailable') throw new Error('Maia unavailable')
   const policy = h.bands.find(b => b.band === row.band)?.policy
   const hisPolicy = h.bands.find(b => b.band === 1300)?.policy
@@ -68,24 +127,28 @@ export async function readRow(eng, row, timing) {
   let sound, evidence
   if (pieces(row.fen) <= 7) {
     start = performance.now()
-    const tb = await eng.tablebase(pos)
-    times.tablebaseSeconds += (performance.now() - start) / 1000
-    times.tablebaseCalls++
-    times.tablebaseUnavailable += Number(tb === null)
+    let tb
+    try { tb = await probeWithRetry(eng, pos, times, options) }
+    finally { times.tablebaseSeconds += (performance.now() - start) / 1000 }
     if (!timing) {
       sound = Object.fromEntries(Object.entries({ R, N, A: row.A }).map(([k, uci]) => [k, tablebaseSound(tb, uci)]))
       evidence = { source: 'tablebase', probe: tb }
     }
   } else {
     start = performance.now()
-    const best = await eng.bestMoves(pos, { budget: 'grade', multiPv: 1, priority: 'batch', cache: 'bypass' })
+    try {
+    // The app awaits ucinewgame and readyok. Clear once per position, then
+    // search its best and distinct R/N/A in a deterministic sequence.
+    const clearing = performance.now()
+    try { times.newGameCalls++; await eng.newGame() }
+    finally { times.newGameSeconds += (performance.now() - clearing) / 1000 }
     times.bestCalls++
+    const best = await eng.bestMoves(pos, { budget: 'grade', multiPv: 1, priority: 'batch', cache: 'bypass' })
     const readings = {}
     for (const uci of moves) {
-      readings[uci] = await eng.scoreMove(pos, uci, { budget: 'grade', priority: 'batch', cache: 'bypass' })
       times.scoreCalls++
+      readings[uci] = await eng.scoreMove(pos, uci, { budget: 'grade', priority: 'batch', cache: 'bypass' })
     }
-    times.engineSeconds += (performance.now() - start) / 1000
     for (const [uci, r] of Object.entries(readings)) {
       validateScores(r, best)
       if (r.best !== uci && r.pv[0] !== uci) throw new Error('scoreMove did not score its requested root')
@@ -94,13 +157,20 @@ export async function readRow(eng, row, timing) {
       sound = Object.fromEntries(Object.entries({ R, N, A: row.A }).map(([k, uci]) => [k, engineSound(readings[uci], best, row.fen.split(' ')[1])]))
       evidence = { source: 'stockfish', best, readings }
     }
+    } finally { times.engineSeconds += (performance.now() - start) / 1000 }
   }
   // This branch is deliberately before soundness, adoption, win% and split derivation.
+  times.rowSeconds = (performance.now() - rowStarted) / 1000
   if (timing) return { key: rowKey(row), times }
   const move = board.findUci(R)
   return { ...row, R, N, sound, probabilityRAtHisBand: h.bands.find(b => b.band === 1300).policy[R],
     probabilityRAtMoverBand: policy[R], splits: { ...row.splits, forcing: Boolean(move.captured) || board.child(move).inCheck() },
     evidence, times }
+  } catch (error) {
+    times.rowSeconds = (performance.now() - rowStarted) / 1000
+    error.times = times
+    throw error
+  }
 }
 
 async function main() {
@@ -115,24 +185,38 @@ async function main() {
   if (CHESS_DIR.split('/').pop() !== PIN || PIN !== 'f4bd63f19b343f686fb97ea4cf70b211c0bddc0a') throw new Error('fixed app pin required')
   if (E.BUDGETS.grade.node.nodes !== 250000 || E.ACCEPT_WINDOW_WP !== 3) throw new Error('fixed instruments changed')
   const pool = Number(arg('pool', 1))
-  if (!Number.isInteger(pool) || pool < 1 || pool > (timing ? 2 : 3)) throw new Error('worker limit exceeded')
+  if (!Number.isInteger(pool) || pool < 1 || pool > 2) throw new Error('worker limit exceeded: at most two heavy workers')
   if (pool > 1) {
     if (args.includes('--shard')) throw new Error('choose pool or shard')
     const base = args.filter((_, i) => i !== args.indexOf('--pool') && i !== args.indexOf('--pool') + 1)
-    await Promise.all(Array.from({ length: pool }, (_, i) => new Promise((ok, fail) => {
+    const children = []
+    let stopping = false
+    const stopOthers = () => { stopping = true; for (const child of children) if (child.exitCode === null) child.kill('SIGTERM') }
+    process.on('SIGINT', stopOthers); process.on('SIGTERM', stopOthers)
+    const results = await Promise.allSettled(Array.from({ length: pool }, (_, i) => new Promise((ok, fail) => {
       const p = spawn('nice', ['-n', '10', join(LAB_DIR, 'bridge/run.sh'), fileURLToPath(import.meta.url), ...base, '--shard', `${i}/${pool}`], { stdio: 'inherit' })
-      p.on('error', fail); p.on('exit', code => code === 0 ? ok() : fail(new Error(`worker ${i} exited ${code}`)))
+      children.push(p)
+      if (stopping) p.kill('SIGTERM')
+      p.on('error', error => { stopOthers(); fail(error) })
+      p.on('exit', (code, signal) => {
+        if (code === 0) ok()
+        else { stopOthers(); fail(new Error(`worker ${i} exited ${signal ?? code}`)) }
+      })
     })))
+    process.off('SIGINT', stopOthers); process.off('SIGTERM', stopOthers)
+    const failure = results.find(result => result.status === 'rejected')
+    if (failure) throw failure.reason
     return
   }
   const [shard, shards] = arg('shard', '0/1').split('/').map(Number)
-  if (!Number.isInteger(shard) || !Number.isInteger(shards) || shard < 0 || shard >= shards || shards > (timing ? 2 : 3)) throw new Error('invalid shard')
+  if (!Number.isInteger(shard) || !Number.isInteger(shards) || shard < 0 || shard >= shards || shards > 2) throw new Error('invalid shard; at most two heavy workers')
   const dir = join(privateDir('rules-of-thumb'), run)
   const input = join(dir, `positions-${month}.jsonl.gz`)
   const bytes = readFileSync(input)
   let rows = gunzipSync(bytes).toString().trim().split('\n').filter(Boolean).map(JSON.parse)
   const positionManifest = JSON.parse(readFileSync(join(dir, `positions-${month}.json`)))
   if (!positionManifest.complete || positionManifest.app !== PIN || positionManifest.run !== run || positionManifest.month !== month || positionManifest.outputSha256 !== sha(bytes)) throw new Error('position build incomplete or provenance mismatch')
+  if (!timing) requireLiteral(positionManifest, rows)
   if (timing) {
     const limit = Number(arg('limit', 60))
     if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error('timing limit must be 1..100')
@@ -143,33 +227,77 @@ async function main() {
   const prefix = `${timing ? 'timing' : 'scored'}-${month}-${shard}-of-${shards}`
   const path = join(dir, `${prefix}.jsonl`), manifestPath = join(dir, `${prefix}.json`)
   const signature = { app: PIN, inputSha256: sha(bytes), timing, month, run, shard, shards, keysSha256: sha(rows.map(rowKey).join('\n')) }
-  if (!timing) signature.scorerVersion = sha(readFileSync(fileURLToPath(import.meta.url)))
+  if (!timing) Object.assign(signature, { scorerVersion: sha(readFileSync(fileURLToPath(import.meta.url))), datasetKind: 'literal', scannerVersion: positionManifest.scannerVersion,
+    engineHash: 'newGame-before-each-position' })
+  let previous = null
   if (existsSync(manifestPath)) {
-    const previous = JSON.parse(readFileSync(manifestPath))
+    previous = JSON.parse(readFileSync(manifestPath))
     for (const [k, v] of Object.entries(signature)) if (previous[k] !== v) throw new Error(`resume mismatch: ${k}`)
   } else if (existsSync(path)) throw new Error('journal has no provenance manifest')
   const doneRows = journal(path)
   const done = new Set(doneRows.map(r => r.key ?? rowKey(r)))
-  if (done.size !== doneRows.length || doneRows.some(r => !rows.some(x => rowKey(x) === (r.key ?? rowKey(r))))) throw new Error('duplicate or foreign journal row')
-  atomic(manifestPath, { ...signature, complete: false, expectedRows: rows.length, rows: done.size })
-  const tb = Node.nodeTablebase({ cacheFile: join(dir, `tablebase-${shard}-of-${shards}.json`) })
-  const eng = Node.createNodeEngine({ root: CHESS_DIR, pool: 1, tablebase: tb, evalCache: false })
+  const expected = new Set(rows.map(rowKey))
+  if (expected.size !== rows.length || done.size !== doneRows.length || doneRows.some(r => !expected.has(r.key ?? rowKey(r)))) throw new Error('duplicate or foreign journal row')
+  if (!timing) requireLiteral(signature, doneRows)
+  const totals = emptyTimes()
+  for (const row of doneRows) addTimes(totals, row.times)
+  // A no-op resume preserves the completed run's timings and status.
+  if (previous?.complete && done.size === rows.length) {
+    console.log(JSON.stringify({ month, shard, timing, rows: done.size, totals, complete: true, resumedWithoutWork: true, workerSeconds: previous.workerSeconds ?? previous.workerSecondsThisInvocation }))
+    return
+  }
+  const eventPath = join(dir, `${prefix}.events.jsonl`)
+  const log = event => appendFileSync(eventPath, JSON.stringify({ at: new Date().toISOString(), month, shard, shards, timing, ...event }) + '\n')
+  const beforeSeconds = cumulativeSeconds(previous, doneRows)
+  const failedAttemptTotals = { ...emptyTimes(), ...previous?.failedAttemptTotals }
+  let stoppedJobs = previous?.stoppedJobs ?? 0
+  if (previous?.status === 'running') { stoppedJobs++; log({ event: 'interrupted-job-recovered', rows: done.size, previousCheckpointRows: previous.rows }) }
   const started = performance.now()
-  try {
-    for (const row of rows) {
-      if (done.has(rowKey(row))) continue
-      const result = await readRow(eng, row, timing)
-      appendFileSync(path, JSON.stringify(result) + '\n')
-      doneRows.push(result); done.add(rowKey(row))
-      if (done.size % 10 === 0) console.error(JSON.stringify({ stage: timing ? 'timing' : 'score', month, shard, rows: done.size, seconds: (performance.now() - started) / 1000 }))
-    }
-  } finally { eng.dispose() }
-  const totals = {}
-  for (const r of doneRows) for (const [k, v] of Object.entries(r.times)) totals[k] = (totals[k] ?? 0) + v
-  atomic(manifestPath, { ...signature, complete: done.size === rows.length, expectedRows: rows.length, rows: done.size, totals,
+  let activeKey = null
+  let stopRequested = null
+  const onSignal = signal => { stopRequested ??= signal; log({ event: 'stop-requested', signal, key: activeKey }) }
+  const onInt = () => onSignal('SIGINT'), onTerm = () => onSignal('SIGTERM')
+  process.on('SIGINT', onInt); process.on('SIGTERM', onTerm)
+  const saveProgress = (status, reason = null) => atomic(manifestPath, { ...signature, complete: status === 'complete', status,
+    expectedRows: rows.length, rows: done.size, totals, failedAttemptTotals, stoppedJobs,
     budgetNodes: E.BUDGETS.grade.node.nodes, acceptWindowWp: E.ACCEPT_WINDOW_WP,
     data: 'Lichess rated standard 600+0, both ratings 1250..1649, July slice or fixed monthly scan',
-    workerSecondsThisInvocation: (performance.now() - started) / 1000 })
-  console.log(JSON.stringify({ month, shard, timing, rows: done.size, totals }))
+    workerSeconds: beforeSeconds + (performance.now() - started) / 1000,
+    workerSecondsThisInvocation: (performance.now() - started) / 1000,
+    updatedAt: new Date().toISOString(), ...(reason ? { stoppedReason: reason, pendingKey: activeKey } : {}) })
+  saveProgress('running')
+  log({ event: 'job-started', rows: done.size, expectedRows: rows.length, resumed: done.size > 0 })
+  let eng = null
+  let failure = null
+  try {
+    const tb = Node.nodeTablebase({ cacheFile: join(dir, `tablebase-${shard}-of-${shards}.json`) })
+    eng = Node.createNodeEngine({ root: CHESS_DIR, pool: 1, tablebase: tb, evalCache: false })
+    for (const row of rows) {
+      if (done.has(rowKey(row))) continue
+      if (stopRequested) throw new Error(`stop requested: ${stopRequested}`)
+      activeKey = rowKey(row)
+      const result = await readRow(eng, row, timing, { onEvent: event => log({ ...event, key: activeKey }) })
+      appendFileSync(path, JSON.stringify(result) + '\n')
+      doneRows.push(result); done.add(rowKey(row))
+      addTimes(totals, result.times)
+      activeKey = null
+      if (done.size % 50 === 0) {
+        saveProgress('running')
+        console.error(JSON.stringify({ stage: timing ? 'timing' : 'score', month, shard, rows: done.size, workerSeconds: beforeSeconds + (performance.now() - started) / 1000 }))
+      }
+    }
+  } catch (error) {
+    failure = error
+    stoppedJobs++
+    addTimes(failedAttemptTotals, error.times)
+    log({ event: 'job-stopped', key: activeKey, rows: done.size, reason: error.message, times: error.times ?? null })
+  } finally {
+    eng?.dispose()
+    process.off('SIGINT', onInt); process.off('SIGTERM', onTerm)
+    saveProgress(failure ? 'stopped' : 'complete', failure?.message)
+  }
+  if (failure) throw failure
+  log({ event: 'job-completed', rows: done.size, workerSeconds: beforeSeconds + (performance.now() - started) / 1000 })
+  console.log(JSON.stringify({ month, shard, timing, rows: done.size, totals, workerSeconds: beforeSeconds + (performance.now() - started) / 1000 }))
 }
 if (resolve(process.argv[1] ?? '') === fileURLToPath(import.meta.url)) await main()

@@ -1,7 +1,8 @@
-# Readings for review before the full scan
+# Reviewed readings for the literal scan
 
-The README's rule is unchanged. These are implementation choices where it
-leaves a detail open. The full scan waits for the reviewer to answer them.
+The README's rule is unchanged. The reviewer accepted the phase-one
+readings with the changes below and authorized the literal full run with
+two heavy workers. The rule's owner has not amended the detector filter.
 
 The game-rule draw spans both players. It is one uniform index in that
 rule's chronological eligible positions, using FNV-1a followed by
@@ -19,15 +20,20 @@ engine evidence is supplied. At this pin, the technique readers for
 findings cannot pass the registered filter. The app can also suppress a
 technique when the moved piece hangs. The tests preserve the app's output;
 they do not add positive findings to make these rules available. The
-reviewer must decide whether this is the intended study. The implementation
-does not repair the definition.
+owner will decide whether to amend this definition. The availability scan
+also records mover-actor note findings for the four note-only concepts at
+every eligible position. Their seeded draws and monthly caps are kept in
+separate alternative files. Only literal gain rows are scored and analyzed.
+No alternative row may enter the analysis without a committed README
+amendment and a new frozen content manifest. King-shelter has no alternative
+definition in this run.
 
 `worst-piece` uses the piece and tie-breaking already chosen by
 `ActivityFacts`. Its after-move mobility is the app's `squaresToGo` on the
 piece's destination. This returns null when the move checks the other king.
 Null does not establish an increase, so such a move does not qualify. This
-is the literal reading through the app's activity instrument; it needs
-review because the README does not specify the null case.
+is the reading through the app's activity instrument accepted by the
+reviewer.
 
 An opponent threat means a nonempty opponent-indexed `mateInOne` or
 `winningCaptures` array. The unindexed `stalemateTraps` describes the mover
@@ -53,9 +59,11 @@ line of a one-line `bestMoves` search. Each distinct R, N or A gets its own
 a move's restricted search with the unrestricted best's score. Soundness
 calls `acceptsAlternative` on exact White-oriented scores, so the app's
 `core/score` supplies the win-percent conversion. Incomplete, incoherent or
-wrong-root readings stop the job and leave the row pending. The app's
-default engine hash persists between calls; worker assignment and restarts
-can therefore affect the search even at a fixed node budget.
+wrong-root readings stop the job and leave the row pending. Before each
+position's searches the scorer awaits the app's `newGame`, clearing the
+engine's previous-game search state. Searches within a position keep their
+fixed order: unrestricted best, then distinct R, N and A. A restarted
+worker therefore starts each position in the same engine state.
 
 At seven men or fewer, the tablebase decides instead of Stockfish. "Keeps
 the outcome" means exact equality between `moveOutcomeForMover(move)` and
@@ -65,7 +73,11 @@ does not collapse them into win, draw and loss. Missing or unknown probes,
 missing move entries, and positions with castling rights that the tablebase
 does not cover stop full scoring. The README supplies no fallback or
 exclusion. Timing mode may count an unavailable probe without deciding
-soundness. Each worker's tablebase cache is private and separate.
+soundness. Network failures receive bounded retries with backoff, logged
+privately with their outcomes. The app's tablebase negative cache is cleared
+before each retry so a failed request is actually retried. Unsupported or
+unknown outcomes never become engine decisions. Each worker's tablebase
+cache is private and separate.
 
 Bootstrap draws are ordinary fixed-size resamples of games with
 replacement, not the predecessor's Poisson approximation. The seed is
@@ -98,7 +110,9 @@ the stream rather than silently changing the sample. Mainline PGN is kept
 without comments or player names. A restart re-streams the compressed
 source and skips records already checkpointed; it never stores the monthly
 archive. Full-run stream, availability and scoring checkpoints pin their source
-code, and analysis rejects incompatible versions. Completed games survive
+code, and analysis rejects incompatible versions. A committed manifest
+freezes content hashes of the rule and code; no branch commit identifier is
+used as provenance. The app and records pins remain recorded. Completed games survive
 interrupted availability and scoring writes. An incomplete last journal line is discarded and recomputed.
 
 The timing sample is the first 300 eligible July games. The availability
@@ -119,3 +133,13 @@ same game mix, uninterrupted input and unchanged per-worker throughput.
 The average includes the measured model startup and tablebase requests. Network contention, fanless thermal limits, tablebase latency,
 rare rules absent in the slice and restart overhead can change it. This is
 summed worker elapsed time, including waits, not a cloud charge. No packages were installed.
+
+The phase-two runner streams the months in one background process, which
+may overlap the two availability or scoring workers. It completes all
+availability scans before scoring the literal rows. Each stage logs its
+start, completion or failure and elapsed wall time privately. A completed
+stage with unchanged output hashes is not repeated. Streaming retries a
+failed invocation up to three times, resuming durable chunks. A referee
+failure stops the run after its bounded probe retries, preserving all
+completed rows for inspection and resume. The answer and paper remain
+unwritten until the rule's owner reviews the aggregate results.

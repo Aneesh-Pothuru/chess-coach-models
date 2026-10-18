@@ -215,7 +215,9 @@ scripts, then the paper. No language model judges anything here.
 | `test_stream.py`, `tests-positions.mjs`, `tests-score.mjs`, `test_analysis.py` | Synthetic filter, detector, sampling, referee, bootstrap and decision checks. |
 | `implementation-notes.md` | Readings that need review before the full scan. |
 | `phase1.py` | Writes `results/phase1.json` and `results/phase1.md` from July counts and timings. |
-| `phase2.sh` | The full-run commands, after review, with three heavy workers at a time. |
+| `freeze.py`, `phase2-manifest.json` | Freeze and verify the rule and code by content hashes that survive rebasing. |
+| `run_phase2.py` | Runs resumable stages with private logs, one stream process and two heavy workers. |
+| `phase2.sh` | The full-run commands, after review, with two heavy workers at a time. |
 | `paper/` | The deferred paper scaffold and its checked generator. |
 
 ## Running it

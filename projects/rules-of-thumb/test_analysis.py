@@ -11,7 +11,9 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+from types import SimpleNamespace
 import unittest
+from unittest import mock
 
 import numpy as np
 
@@ -26,6 +28,7 @@ def estimate(value, lo=None, hi=None):
 
 def row(i=0, month="2026-07", rule="open-file", bad=False, band=1300, **splits):
     return {
+        "datasetKind": "literal",
         "game": f"synthetic-{month}-{i}", "month": month, "rule": rule,
         "band": band, "opponentBand": 1300, "R": "a1a2", "N": "a1a2", "A": "a1a2",
         "ruleMoves": ["a1a2"], "fen": "synthetic", "ply": 30,
@@ -38,7 +41,7 @@ def row(i=0, month="2026-07", rule="open-file", bad=False, band=1300, **splits):
 def manifest(month, games=0):
     available = {"positions": games, "rules": {rule: games if rule == "open-file" else 0 for rule in A.RULES}}
     empty = {"positions": 0, "rules": {rule: 0 for rule in A.RULES}}
-    return {"app": "synthetic-app", "month": month, "complete": True, "run": "full",
+    return {"app": "synthetic-app", "month": month, "complete": True, "run": "full", "datasetKind": "literal",
             "games": games, "positions": games, "kept": dict(available["rules"]),
             "availability": {"all": available, "byBand": {"1300": deepcopy(available), "1500": empty}}}
 
@@ -131,12 +134,24 @@ class RuleTests(unittest.TestCase):
         self.assertEqual(list(output["rules"]), list(A.RULES))
         self.assertEqual(output["rules"]["open-file"]["train"]["positions"], 2)
         self.assertEqual(output["rules"]["open-file"]["heldout"]["positions"], 1)
+        self.assertEqual(output["rules"]["open-file"]["countsByMonth"]["2026-07"]["scoredPositions"], 1)
         self.assertEqual(output["rules"]["active-king"]["verdict"], "not enough data (n=0)")
         # The export contains only aggregates: no synthetic game ids or FENs.
         text = json.dumps(output, allow_nan=False)
         self.assertNotIn("synthetic-2026", text)
         self.assertNotIn('"fen"', text)
         self.assertIn("open-file", A.markdown(output))
+
+    def test_nonliteral_rows_and_manifests_cannot_be_analyzed(self):
+        rows = [row()]
+        manifests = [manifest(month, 1) for month in A.MONTHS]
+        rows[0]["datasetKind"] = "alternative"
+        with self.assertRaisesRegex(ValueError, "literal"):
+            A.analyze(rows, manifests, "synthetic-app", draws=10)
+        rows[0]["datasetKind"] = "literal"
+        manifests[1]["datasetKind"] = "alternative"
+        with self.assertRaisesRegex(ValueError, "literal"):
+            A.analyze(rows, manifests, "synthetic-app", draws=10)
 
 
 class TreeTests(unittest.TestCase):
@@ -173,6 +188,15 @@ class GateTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("analysis is disabled in phase 1", result.stderr)
 
+    def test_committed_content_manifest_checked_before_private_data(self):
+        verifier = mock.Mock(side_effect=ValueError("content manifest is not committed"))
+        with mock.patch.dict(sys.modules, {"freeze": SimpleNamespace(verify_manifest=verifier)}):
+            with mock.patch.object(A, "load_full") as loader:
+                with self.assertRaisesRegex(ValueError, "not committed"):
+                    A.main(["--run", "full", "--phase2-reviewed"])
+                loader.assert_not_called()
+        verifier.assert_called_once_with(require_committed=True)
+
     def build_synthetic_full(self, directory):
         versions = A.measurement_versions()
         for month in A.MONTHS:
@@ -192,6 +216,7 @@ class GateTests(unittest.TestCase):
             (directory / f"games-{month}.json").write_text(json.dumps(stream))
             (directory / f"scored-{month}-0-of-1.jsonl").write_text(data)
             signature = {"month": month, "complete": True, "run": "full", "timing": False, "app": "synthetic-app",
+                         "datasetKind": "literal",
                          "shard": 0, "shards": 1, "rows": 1, "expectedRows": 1,
                          "scorerVersion": versions["scorerVersion"],
                          "inputSha256": hashlib.sha256(compressed).hexdigest(),
@@ -257,6 +282,67 @@ class GateTests(unittest.TestCase):
                 path.write_text(json.dumps(content))
                 with self.assertRaisesRegex(ValueError, "code changed"):
                     A.load_full(directory, "synthetic-app")
+
+    def test_alternative_manifests_and_scored_rows_refuse(self):
+        for target in ("positions", "scored", "scored-row"):
+            with tempfile.TemporaryDirectory(prefix="rules-analysis-") as temp:
+                directory = Path(temp)
+                self.build_synthetic_full(directory)
+                name = {"positions": "positions-2026-07.json", "scored": "scored-2026-07-0-of-1.json",
+                        "scored-row": "scored-2026-07-0-of-1.jsonl"}[target]
+                path = directory / name
+                content = json.loads(path.read_text())
+                content["datasetKind"] = "alternative"
+                path.write_text(json.dumps(content) + "\n")
+                with self.assertRaisesRegex(ValueError, "nonliteral"):
+                    A.load_full(directory, "synthetic-app")
+
+
+class OperationalTests(unittest.TestCase):
+    def test_stopped_then_completed_attempts_and_backoffs(self):
+        events = [
+            {"stage": "stream", "month": "2026-07", "attempt": "first", "event": "started"},
+            {"stage": "stream", "month": "2026-07", "attempt": "first", "event": "stopped", "seconds": 10, "exitCode": 1},
+            {"stage": "stream", "month": "2026-07", "event": "restart-backoff", "seconds": 5},
+            {"stage": "stream", "month": "2026-07", "attempt": "second", "event": "started"},
+            {"stage": "stream", "month": "2026-07", "attempt": "second", "event": "completed", "seconds": 20, "exitCode": 0},
+            {"stage": "stream", "month": "2026-07", "event": "already-complete"},
+            {"stage": "analysis", "month": None, "attempt": "current", "event": "started"},
+        ]
+        report = A.stage_attempts(events)
+        stream = report["stream"]["2026-07"]
+        self.assertEqual((stream["attempts"], stream["stoppedJobs"], stream["completedJobs"], stream["unfinishedJobs"]), (2, 1, 1, 0))
+        self.assertEqual(stream["cumulativeFinishedInvocationSeconds"], 30)
+        self.assertEqual(stream["restartBackoffs"], 1)
+        self.assertEqual(stream["restartBackoffSeconds"], 5)
+        self.assertEqual(stream["alreadyCompleteChecks"], 1)
+        self.assertNotIn("analysis", report)
+        self.assertNotIn("first", json.dumps(report))
+
+    def test_missing_events_and_metrics_are_unknown_not_zero(self):
+        self.assertIsNone(A.stage_attempts(None))
+        self.assertIsNone(A.sum_reported([{"seconds": 1}, {}], "seconds"))
+        self.assertEqual(A.sum_reported([{"seconds": 1}, {"seconds": 2}], "seconds"), 3)
+
+    def test_completed_and_failed_work_stay_separate(self):
+        stream = {"kept": 1, "seconds": 3, "gamesRead": 4}
+        scan = {"timing": {"seconds": 10, "describeMoveSeconds": 8}, "wallSeconds": 6, "describeMoveCalls": 12}
+        scores = [
+            {"rows": 2, "workerSeconds": 30, "totals": {"engineSeconds": 20, "tablebaseRetries": 1},
+             "failedAttemptTotals": {"engineSeconds": 4, "tablebaseRetries": 2}},
+            {"rows": 3, "workerSeconds": 40, "totals": {"engineSeconds": 25, "tablebaseRetries": 0},
+             "failedAttemptTotals": {"engineSeconds": 0, "tablebaseRetries": 0}},
+        ]
+        report = A.stage_totals(stream, scan, scores)
+        self.assertEqual(report["score"]["cumulativeWorkerSeconds"], 70)
+        self.assertEqual(report["score"]["completedRowTotals"]["engineSeconds"], 45)
+        self.assertEqual(report["score"]["failedAttemptTotals"]["engineSeconds"], 4)
+        self.assertEqual(report["score"]["failedAttemptTotals"]["tablebaseRetries"], 2)
+
+    def test_reused_attempt_identifier_refuses(self):
+        event = {"stage": "score", "month": "2026-09", "attempt": "same", "event": "started"}
+        with self.assertRaisesRegex(ValueError, "reused"):
+            A.stage_attempts([event, event])
 
 
 if __name__ == "__main__":

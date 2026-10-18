@@ -12,7 +12,12 @@ export const RULES = [
   'king-shelter', 'worst-piece',
 ]
 const MOVE_RULES = new Set(RULES.slice(0, -1))
+// Kept separately for the owner's later choice. These are never substituted
+// for the committed gain definition, and king-shelter is not an alternative.
+export const ALTERNATIVE_RULES = ['outside-passer', 'lucena', 'philidor', 'bishop-pair']
+const NOTE_RULES = new Set(ALTERNATIVE_RULES)
 export const emptyRules = () => Object.fromEntries(RULES.map((r) => [r, 0]))
+export const emptyAlternativeRules = () => Object.fromEntries(ALTERNATIVE_RULES.map((r) => [r, 0]))
 export const bandOf = (rating) => rating >= 1250 && rating <= 1449 ? 1300 : rating >= 1450 && rating <= 1649 ? 1500 : null
 
 /** Findings of the named concept, actor and tone; no engine evidence added. */
@@ -52,6 +57,7 @@ export function availabilityOf(fen) {
   const facts = K.describePosition(fen)
   const moves = facts.board.movesShared()
   const ruleMoves = Object.fromEntries(RULES.map((r) => [r, []]))
+  const alternativeRuleMoves = Object.fromEntries(ALTERNATIVE_RULES.map((r) => [r, []]))
   let describeMoveMs = 0
   let worstPieceMs = 0
   const worstStart = performance.now()
@@ -61,7 +67,9 @@ export function availabilityOf(fen) {
     const moveStart = performance.now()
     const described = K.describeMove(fen, move.uci)
     if (!described) throw new Error('describeMove rejected a legal move')
-    const showing = new Set(described.findings.filter((f) => MOVE_RULES.has(f.conceptId) && f.actor === facts.turn && f.tone === 'gain').map((f) => f.conceptId))
+    const findings = described.findings
+    const showing = new Set(findings.filter((f) => MOVE_RULES.has(f.conceptId) && f.actor === facts.turn && f.tone === 'gain').map((f) => f.conceptId))
+    const notes = new Set(findings.filter((f) => NOTE_RULES.has(f.conceptId) && f.actor === facts.turn && f.tone === 'note').map((f) => f.conceptId))
     describeMoveMs += performance.now() - moveStart
     const worstStart = performance.now()
     if (worst?.square === move.from) {
@@ -70,9 +78,11 @@ export function availabilityOf(fen) {
     }
     worstPieceMs += performance.now() - worstStart
     for (const rule of showing) ruleMoves[rule].push(move.uci)
+    for (const rule of notes) alternativeRuleMoves[rule].push(move.uci)
   }
   for (const moves of Object.values(ruleMoves)) moves.sort()
-  return { ruleMoves, legalMoves: moves.length, describeMoveMs, worstPieceMs, milliseconds: performance.now() - started }
+  for (const moves of Object.values(alternativeRuleMoves)) moves.sort()
+  return { ruleMoves, alternativeRuleMoves, legalMoves: moves.length, describeMoveMs, worstPieceMs, milliseconds: performance.now() - started }
 }
 
 /** FNV-1a then mulberry32, matching book-advice's reproducible lab sampler. */

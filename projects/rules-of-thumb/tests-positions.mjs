@@ -1,8 +1,13 @@
 // Synthetic board checks only. Expected findings come from the pinned app's
 // technique/insight fixtures, including concepts that emit note or concession.
 import assert from 'node:assert/strict'
-import { RULES, rulesOfMove, availabilityOf, drawPosition, emptyRules, cappedRows, splitsOf, describePosition, bandOf } from './detect.mjs'
-import { sansOf } from './positions.mjs'
+import { appendFileSync, mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs'
+import { join } from 'node:path'
+import { createHash } from 'node:crypto'
+import { gzipSync, gunzipSync } from 'node:zlib'
+import { privateDir } from '../../bridge/lib/chess.mjs'
+import { RULES, ALTERNATIVE_RULES, rulesOfMove, availabilityOf, drawPosition, emptyRules, emptyAlternativeRules, cappedRows, splitsOf, describePosition, bandOf } from './detect.mjs'
+import { sansOf, buildGame, validateRecord, worker, merge } from './positions.mjs'
 
 const cases = [
   ['active-king', '8/pp4k1/8/8/8/8/6P1/R5K1 w - - 0 1', 'g1f2', true],
@@ -46,10 +51,22 @@ assert.deepEqual(new Set(cases.map((x) => x[0])), new Set(RULES))
 // Confirm note-tone examples are genuinely recognized but fail the gain gate.
 const { chess } = await import('../../bridge/lib/chess.mjs')
 const K = await chess('src/services/knowledge/index.ts')
-for (const rule of ['outside-passer', 'lucena', 'philidor', 'bishop-pair']) {
+for (const rule of ALTERNATIVE_RULES) {
   const [, fen, uci] = cases.find((x) => x[0] === rule)
-  assert(K.describeMove(fen, uci).findings.some((f) => f.conceptId === rule && f.tone === 'note'))
+  const mover = describePosition(fen).turn
+  assert(K.describeMove(fen, uci).findings.some((f) => f.conceptId === rule && f.actor === mover && f.tone === 'note'))
+  const both = availabilityOf(fen)
+  assert.equal(both.ruleMoves[rule].length, 0)
+  assert(both.alternativeRuleMoves[rule].includes(uci))
+  for (const [id, moves] of Object.entries(both.alternativeRuleMoves)) {
+    assert(ALTERNATIVE_RULES.includes(id))
+    for (const move of moves) assert(K.describeMove(fen, move).findings.some((f) => f.conceptId === id && f.actor === mover && f.tone === 'note'))
+  }
+  const [, negativeFen, negativeUci] = cases.filter((x) => x[0] === rule)[1]
+  assert(!availabilityOf(negativeFen).alternativeRuleMoves[rule].includes(negativeUci))
 }
+assert(!ALTERNATIVE_RULES.includes('king-shelter'))
+assert(!Object.hasOwn(availabilityOf(cases.find((x) => x[0] === 'king-shelter')[1]).alternativeRuleMoves, 'king-shelter'))
 const full = availabilityOf('7k/8/8/8/8/8/4P3/N5K1 w - - 0 1')
 assert.equal(full.legalMoves, describePosition('7k/8/8/8/8/8/4P3/N5K1 w - - 0 1').board.movesShared().length)
 assert(full.ruleMoves['worst-piece'].includes('a1b3'))
@@ -72,6 +89,10 @@ assert.equal(kept.at(-1).gameIndex, 3999)
 assert.equal(cappedRows([{ rule: 'opposition' }], cap).length, 1)
 assert.equal(cappedRows(rows, cap).length, 0)
 assert.equal(cappedRows(rows, emptyRules()).length, 4000)
+const alternativeCap = emptyAlternativeRules()
+assert.equal(cappedRows(Array.from({ length: 4002 }, (_, gameIndex) => ({ gameIndex, rule: 'lucena', datasetKind: 'alternative' })), alternativeCap).length, 4000)
+assert.equal(cap.lucena, 0)
+assert.equal(cappedRows([{ rule: 'lucena', datasetKind: 'literal' }], cap).length, 1)
 
 assert.equal(bandOf(1249), null)
 assert.equal(bandOf(1250), 1300)
@@ -84,4 +105,78 @@ assert.equal(splitsOf('6k1/5ppp/8/8/8/8/5PPP/R5K1 b - - 0 1').material, 'behind'
 assert.equal(splitsOf('6k1/5ppp/8/8/8/8/5PPP/6K1 w - - 0 1').material, 'level')
 assert.equal(splitsOf('6k1/5ppp/q7/8/8/8/5PPP/6K1 w - - 0 1').kingDanger, true)
 assert.deepEqual(sansOf('1. e4 { [%clk 0:10:00] } 1... e5 2.Nf3?! Nc6 $1 1-0'), ['e4', 'e5', 'Nf3', 'Nc6'])
-console.log(JSON.stringify({ synthetic: true, ruleCases: cases.length, rules: RULES.length, checks: 'detection, gain filter, legal-move availability, seeded draw, caps, bands, splits, movetext' }))
+
+// A synthetic game confirms all pre-move readings survive JSON persistence,
+// and its two definitions are drawn from their own chronological positions.
+const syntheticInput = { id: 'synthetic-game', whiteElo: 1300, blackElo: 1500, initialFen: '7k/8/8/8/8/8/P7/R5K1 w - - 0 1', moves: Array.from({ length: 30 }, (_, i) => ['a1b1', 'h8h7', 'b1a1', 'h7h8'][i % 4]) }
+const synthetic = buildGame(syntheticInput, 0, '2026-07')
+assert.equal(synthetic.positionAvailability.length, 30)
+assert.equal(synthetic.counts.positions, 30)
+assert(synthetic.rows.every((r) => r.datasetKind === 'literal'))
+assert(synthetic.alternativeRows.every((r) => r.datasetKind === 'alternative'))
+assert(synthetic.positionAvailability.every((p) => p.literalRuleMoves && p.alternativeRuleMoves))
+validateRecord(JSON.parse(JSON.stringify(synthetic)), 0)
+assert.throws(() => validateRecord(synthetic, 1), /out-of-order/)
+const missingReadings = structuredClone(synthetic)
+missingReadings.positionAvailability.pop()
+assert.throws(() => validateRecord(missingReadings, 0), /per-position/)
+const wrongKind = structuredClone(synthetic)
+assert(wrongKind.rows.length > 0)
+wrongKind.rows[0].datasetKind = 'alternative'
+assert.throws(() => validateRecord(wrongKind, 0), /saved draw/)
+const wrongDraw = structuredClone(synthetic)
+wrongDraw.rows[0].ply++
+assert.throws(() => validateRecord(wrongDraw, 0), /saved draw/)
+const noteInput = { id: 'synthetic-note', whiteElo: 1300, blackElo: 1500, initialFen: '4k3/1p5p/2n5/1B6/8/8/7P/4KB2 w - - 0 20', moves: ['b5c6', 'b7c6', ...Array.from({ length: 28 }, (_, i) => ['e1f2', 'e8d7', 'f2e1', 'd7e8'][i % 4])] }
+const noteGame = buildGame(noteInput, 2, '2026-07')
+validateRecord(noteGame, 2)
+assert(noteGame.alternativeRows.some((r) => r.rule === 'bishop-pair' && r.ply === 0 && r.ruleMoves.includes('b5c6')))
+assert(!noteGame.rows.some((r) => r.rule === 'bishop-pair'))
+assert.equal(noteGame.counts.alternativeAvailableGames['bishop-pair'], 1)
+assert.equal(noteGame.counts.availableGames['bishop-pair'], 0)
+const mixedRows = structuredClone(noteGame)
+mixedRows.rows.push(mixedRows.alternativeRows[0])
+assert.throws(() => validateRecord(mixedRows, 2), /draw without|saved draw/)
+
+// Exercise the actual journal and merge paths using synthetic games only.
+// Resume repairs an unfinished final line, reuses completed games and keeps
+// the two output streams separate even when shards finish out of order.
+const testDir = mkdtempSync(join(privateDir('rules-of-thumb'), 'test-positions-'))
+try {
+  const input = join(testDir, 'games-2026-07.jsonl.gz')
+  const bytes = gzipSync([syntheticInput, noteInput].map((g) => JSON.stringify(g) + '\n').join(''))
+  writeFileSync(input, bytes)
+  const config = { dir: testDir, input, inputGames: 2, inputSha256: createHash('sha256').update(bytes).digest('hex'), month: '2026-07', run: 'slice' }
+  await worker(config, 1, 2)
+  await worker(config, 0, 2)
+  const journal = join(testDir, 'availability-2026-07-0of2.jsonl')
+  const original = readFileSync(journal)
+  appendFileSync(journal, '{"gameIndex":')
+  await worker(config, 0, 2)
+  assert.deepEqual(readFileSync(journal), original)
+  const resumed = JSON.parse(readFileSync(`${journal}.complete.json`, 'utf8'))
+  assert.equal(resumed.resumed, 1)
+  assert.equal(resumed.built, 0)
+  await merge(config, 2, 0)
+  const readRows = (file) => gunzipSync(readFileSync(join(testDir, file))).toString().trim().split('\n').filter(Boolean).map(JSON.parse)
+  const literalRows = readRows('positions-2026-07.jsonl.gz')
+  const alternativeRows = readRows('positions-alternative-2026-07.jsonl.gz')
+  assert(literalRows.every((r) => r.datasetKind === 'literal'))
+  assert(alternativeRows.length > 0 && alternativeRows.every((r) => r.datasetKind === 'alternative' && ALTERNATIVE_RULES.includes(r.rule)))
+  assert(literalRows.every((r, i) => i === 0 || r.gameIndex >= literalRows[i - 1].gameIndex))
+  const literalManifest = JSON.parse(readFileSync(join(testDir, 'positions-2026-07.json'), 'utf8'))
+  const alternativeManifest = JSON.parse(readFileSync(join(testDir, 'positions-alternative-2026-07.json'), 'utf8'))
+  assert.equal(literalManifest.datasetKind, 'literal')
+  assert.equal(alternativeManifest.datasetKind, 'alternative')
+  assert.equal(literalManifest.keptPositions, literalRows.length)
+  assert.equal(alternativeManifest.keptPositions, alternativeRows.length)
+  assert.equal(literalManifest.availability.all.positions, 60)
+  assert.equal(alternativeManifest.availability.all.positions, 60)
+  assert.equal(literalManifest.availableGames['bishop-pair'], 0)
+  assert.equal(alternativeManifest.availableGames['bishop-pair'], 1)
+  assert.equal(literalManifest.outputSha256, createHash('sha256').update(readFileSync(join(testDir, 'positions-2026-07.jsonl.gz'))).digest('hex'))
+  assert.equal(alternativeManifest.outputSha256, createHash('sha256').update(readFileSync(join(testDir, 'positions-alternative-2026-07.jsonl.gz'))).digest('hex'))
+} finally {
+  rmSync(testDir, { recursive: true, force: true })
+}
+console.log(JSON.stringify({ synthetic: true, ruleCases: cases.length, rules: RULES.length, alternativeRules: ALTERNATIVE_RULES.length, checks: 'detection, gain and note isolation, every-position persistence, seeded draws, separate caps, journal order and resume, sharded merge, content hashes, bands, splits, movetext' }))

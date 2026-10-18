@@ -266,14 +266,16 @@ def availability(manifests, rule):
     return {**group(), "byBand": {str(band): group(band) for band in BANDS}}
 
 
-def analyze(rows, manifests, app, draws=DRAWS):
+def analyze(rows, manifests, app, draws=DRAWS, stage_events=None):
     """Aggregate already validated rows. Production calls always use 2000 draws.
 
     This function is also exercised with explicit synthetic rows by tests.
     Do not call it with phase-one timing data.
     """
+    require(all(row.get("datasetKind") == "literal" for row in rows), "only the literal fixed-rule dataset can be analyzed")
+    require(all(m.get("datasetKind") == "literal" for m in manifests), "only literal position manifests can be analyzed")
     out = {
-        "app": app, "data": {"source": "Lichess rated standard 600+0", "license": "CC0",
+        "app": app, "datasetKind": "literal", "data": {"source": "Lichess rated standard 600+0", "license": "CC0",
             "train": list(MONTHS[:2]), "heldout": MONTHS[2], "bands": {"1300": [1250, 1449], "1500": [1450, 1649]},
             "gamesByMonth": {m["month"]: m["games"] for m in manifests},
             "positionsByMonth": {m["month"]: m["positions"] for m in manifests}},
@@ -285,6 +287,11 @@ def analyze(rows, manifests, app, draws=DRAWS):
             "emptyCells": "undefined differences cannot establish a failure; no extra minimum count",
             "failureGap": "cell minus all remaining cells of that split; at most -0.10 in each period",
             "multiplicity": "no adjustment; none is registered"},
+        "operations": {"byMonth": {m["month"]: m.get("stageTotals") for m in manifests},
+            "stageAttempts": stage_attempts(stage_events),
+            "stageEventsRecorded": stage_events is not None,
+            "timingDefinition": "Worker seconds sum process time across workers and resumes; stage seconds sum completed/stopped invocation wall times. Completed-row instrument time excludes failed attempts, which are reported separately.",
+            "missing": "null means the instrument did not report this count or time"},
         "rules": {},
     }
     for rule in RULES:
@@ -302,6 +309,13 @@ def analyze(rows, manifests, app, draws=DRAWS):
                 if failure_condition(before, after):
                     failures.append({"split": feature, "cell": cell, "train": before, "heldout": after})
         out["rules"][rule] = {
+            "countsByMonth": {m["month"]: {
+                "scannedGames": m["games"], "scannedPositions": m["positions"],
+                "availablePositions": m["availability"]["all"]["rules"][rule],
+                "gamesWithAvailability": m.get("availableGames", {}).get(rule),
+                "retainedPositions": m["kept"][rule],
+                "scoredPositions": sum(row["month"] == m["month"] for row in selected),
+            } for m in manifests},
             "verdict": verdict(train_summary["lift"], heldout_summary["lift"], len(heldout)),
             "stepUp": step_up(train_summary["adoptionDifferenceAboveMinusHis"], heldout_summary["adoptionDifferenceAboveMinusHis"]),
             "train": train_summary, "heldout": heldout_summary, "failureConditions": failures,
@@ -334,6 +348,99 @@ def require(condition, message):
         raise ValueError(message)
 
 
+def stage_attempts(events):
+    """Aggregate only the supervisor's public operational counters.
+
+    Analysis events are excluded: the current analysis's own duration is
+    written separately after this function returns. Unknown details of
+    attempts are not copied to the public result.
+    """
+    if events is None:
+        return None
+    attempts = {}
+    groups = {}
+
+    def group_for(stage, month):
+        return groups.setdefault(stage, {}).setdefault(month, {
+            "attempts": 0, "completedJobs": 0, "stoppedJobs": 0, "unfinishedJobs": 0,
+            "completedSeconds": 0.0, "stoppedSeconds": 0.0, "cumulativeFinishedInvocationSeconds": 0.0,
+            "alreadyCompleteChecks": 0, "restartBackoffs": 0, "restartBackoffSeconds": 0.0,
+        })
+
+    for event in events:
+        stage, month = event["stage"], event.get("month") or "all"
+        require(stage in ("stream", "positions", "score", "analysis"), "unknown stage event")
+        require(month in (*MONTHS, "all"), "unknown stage month")
+        if stage == "analysis":
+            continue
+        require(event["event"] in ("started", "completed", "stopped", "already-complete", "restart-backoff"), "unknown stage event kind")
+        if event["event"] == "already-complete":
+            group_for(stage, month)["alreadyCompleteChecks"] += 1
+            continue
+        if event["event"] == "restart-backoff":
+            seconds = event["seconds"]
+            require(isinstance(seconds, (int, float)) and not isinstance(seconds, bool)
+                    and math.isfinite(seconds) and seconds >= 0, "invalid retry backoff")
+            group_for(stage, month)["restartBackoffs"] += 1
+            group_for(stage, month)["restartBackoffSeconds"] += seconds
+            continue
+        number = event["attempt"]
+        key = stage, month, number
+        if event["event"] == "started":
+            require(key not in attempts, "stage attempt identifier was reused")
+            attempts[key] = {"status": "started", "seconds": None}
+        else:
+            require(key in attempts and attempts[key]["status"] == "started", "stage terminal event has no unique start")
+            seconds = event.get("seconds")
+            require(isinstance(seconds, (int, float)) and not isinstance(seconds, bool)
+                    and math.isfinite(seconds) and seconds >= 0, "invalid stage elapsed time")
+            attempts[key] = {"status": event["event"], "seconds": seconds}
+    for (stage, month, _), attempt in attempts.items():
+        group = group_for(stage, month)
+        group["attempts"] += 1
+        if attempt["status"] == "started":
+            group["unfinishedJobs"] += 1
+        elif attempt["status"] == "completed":
+            group["completedJobs"] += 1
+            group["completedSeconds"] += attempt["seconds"]
+        else:
+            group["stoppedJobs"] += 1
+            group["stoppedSeconds"] += attempt["seconds"]
+        if attempt["seconds"] is not None:
+            group["cumulativeFinishedInvocationSeconds"] += attempt["seconds"]
+    return groups
+
+
+def sum_reported(records, field):
+    values = [record.get(field) for record in records]
+    if any(not isinstance(value, (int, float)) or isinstance(value, bool) or not math.isfinite(value)
+           for value in values):
+        return None
+    return sum(values)
+
+
+def stage_totals(stream, scan, scores):
+    """Whitelist numbers; errors, worker identities and private paths stay private."""
+    metric_names = ("maiaSeconds", "engineSeconds", "tablebaseSeconds", "rowSeconds", "newGameSeconds",
+                    "maiaCalls", "maiaBands", "bestCalls", "scoreCalls", "tablebaseCalls", "tablebaseUnavailable",
+                    "tablebaseRetries", "tablebaseRetrySeconds", "newGameCalls")
+    completed = [score.get("totals", {}) for score in scores]
+    failed = [score.get("failedAttemptTotals", {}) for score in scores]
+    return {
+        "stream": {"cumulativeCheckpointedSeconds": stream.get("seconds"), "gamesRead": stream.get("gamesRead"),
+                   "gamesKept": stream["kept"]},
+        "positions": {"completedGameTiming": {name: scan.get("timing", {}).get(name) for name in
+                       ("seconds", "describeMoveSeconds", "worstPieceSeconds", "splitsSeconds")},
+                      "lastInvocationWallSeconds": scan.get("wallSeconds"),
+                      "describeMoveCalls": scan.get("describeMoveCalls"), "legalMoves": scan.get("legalMoves")},
+        "score": {"workers": len(scores), "cumulativeWorkerSeconds": sum_reported(scores, "workerSeconds"),
+                  "stoppedWorkerJobs": sum_reported(scores, "stoppedJobs"),
+                  "completedRows": sum(score["rows"] for score in scores),
+                  "completedRowTotals": {name: sum_reported(completed, name) for name in metric_names},
+                  "failedAttemptTotals": {name: sum_reported(failed, name) for name in metric_names}},
+    }
+
+
 def row_key(row):
     return row["month"], row["game"], row["rule"]
 
@@ -346,6 +453,7 @@ def load_full(directory, app):
     for month in MONTHS:
         stream = json.loads((directory / f"games-{month}.json").read_text())
         scan = json.loads((directory / f"positions-{month}.json").read_text())
+        require(scan.get("datasetKind") == "literal", f"{month}: nonliteral position dataset")
         require(stream.get("streamVersion") == versions["streamVersion"], f"{month}: stream code changed")
         require(scan.get("scannerVersion") == versions["scannerVersion"], f"{month}: position scanner code changed")
         for label, manifest in (("stream", stream), ("positions", scan)):
@@ -378,6 +486,7 @@ def load_full(directory, app):
         for rule in RULES:
             require(counts[rule] == scan["kept"][rule] <= 4000, f"{month}: kept cap/count mismatch")
         for row in expected_rows:
+            require(row.get("datasetKind") == "literal", "nonliteral position row")
             require(row["month"] == month, "position month mismatch")
             require(row["game"] in source_games, "position from a game outside the stream")
         shard_manifests = sorted(directory.glob(f"scored-{month}-*-of-*.json"))
@@ -386,10 +495,12 @@ def load_full(directory, app):
         shard_counts = {manifest["shards"] for manifest in loaded_shards}
         require(len(shard_counts) == 1, f"{month}: mixed shard layouts")
         shards = shard_counts.pop()
+        require(type(shards) is int and 1 <= shards <= 2, f"{month}: score worker count exceeds the reviewed allowance")
         require({m["shard"] for m in loaded_shards} == set(range(shards)), f"{month}: missing score shard")
         require(len(loaded_shards) == shards, f"{month}: repeated score shard")
         scored = {}
         for path, manifest in zip(shard_manifests, loaded_shards):
+            require(manifest.get("datasetKind") == "literal", f"{path.name}: nonliteral score dataset")
             require(manifest.get("complete") is True and manifest.get("run") == "full" and manifest.get("timing") is False, f"{path.name}: incomplete or phase one")
             require(manifest.get("app") == app and manifest.get("month") == month, f"{path.name}: provenance mismatch")
             require(manifest.get("scorerVersion") == versions["scorerVersion"], f"{path.name}: scorer code changed")
@@ -402,6 +513,7 @@ def load_full(directory, app):
             shard_rows = read_jsonl(path.with_suffix(".jsonl"))
             require(len(shard_rows) == manifest["rows"], f"{path.name}: row count mismatch")
             for row in shard_rows:
+                require(row.get("datasetKind") == "literal", "nonliteral scored row")
                 key = row_key(row)
                 require(key in allowed and key not in scored, f"{path.name}: unexpected or duplicate row")
                 source = expected[key]
@@ -430,6 +542,7 @@ def load_full(directory, app):
         for rule in RULES:
             require(0 <= available["all"]["rules"][rule] <= scan["positions"], "availability count invalid")
             require(sum(available["byBand"][str(b)]["rules"][rule] for b in BANDS) == available["all"]["rules"][rule], "availability numerator mismatch")
+        scan["stageTotals"] = stage_totals(stream, scan, loaded_shards)
         manifests.append(scan)
         rows.extend(scored[key] for key in sorted(scored))
     return rows, manifests
@@ -444,6 +557,9 @@ def markdown(report):
             return point + " (interval undefined)"
         return point + f" ({100 * estimate['lo']:.2f} to {100 * estimate['hi']:.2f})"
 
+    def number(value):
+        return "unrecorded" if value is None else f"{value:,.2f}" if isinstance(value, float) else str(value)
+
     lines = ["# Rules of thumb: results", "",
         f"Written by `analyze.py` on the app at `{report['app']}`. The data are rated standard Lichess 600+0 games (CC0), July and August 2026 pooled for train and September 2026 held out.", "",
         f"Intervals are 95% percentile intervals from {report['bootstrap']['draws']:,} bootstrap samples over games, seed {report['bootstrap']['seed']}. Shares and differences below are percentage points. Undefined subgroup draws are counted in `rules.json`.", "",
@@ -452,6 +568,36 @@ def markdown(report):
     for rule, result in report["rules"].items():
         train, heldout = result["train"], result["heldout"]
         lines.append(f"| {rule} | {train['positions']} | {heldout['positions']} | {fmt(train['lift'])} | {fmt(heldout['lift'])} | {result['verdict']} | {'yes' if result['stepUp'] else 'no'} |")
+    lines.extend(["", "## Counts and run times", "",
+                  "| Rule | Month | Available positions | Games with availability | Retained positions | Scored positions |",
+                  "|---|---|---:|---:|---:|---:|"])
+    for rule, result in report["rules"].items():
+        for month, counts in result["countsByMonth"].items():
+            values = [number(counts[key]) for key in ("availablePositions", "gamesWithAvailability", "retainedPositions", "scoredPositions")]
+            lines.append(f"| {rule} | {month} | " + " | ".join(values) + " |")
+    lines.extend(["", "Worker seconds sum across workers and resumes. Instrument times cover completed rows; failed attempts are separate. Missing timings are not counted as zero.", "",
+                  "| Month | Stream checkpointed seconds | Completed availability seconds | Cumulative score worker seconds | Maia seconds | Engine seconds | Tablebase seconds | Completed-row tablebase retries | Failed-attempt tablebase retries |",
+                  "|---|---:|---:|---:|---:|---:|---:|---:|---:|"])
+    for month, totals in report["operations"]["byMonth"].items():
+        if totals is None:
+            continue
+        score = totals["score"]
+        values = [totals["stream"]["cumulativeCheckpointedSeconds"], totals["positions"]["completedGameTiming"]["seconds"],
+                  score["cumulativeWorkerSeconds"], score["completedRowTotals"]["maiaSeconds"],
+                  score["completedRowTotals"]["engineSeconds"], score["completedRowTotals"]["tablebaseSeconds"],
+                  score["completedRowTotals"]["tablebaseRetries"], score["failedAttemptTotals"]["tablebaseRetries"]]
+        lines.append(f"| {month} | " + " | ".join(number(value) for value in values) + " |")
+    attempts = report["operations"]["stageAttempts"]
+    if attempts is None:
+        lines.extend(["", "Supervisor attempts were not recorded; stopped-job counts and cumulative invocation times are unknown."])
+    else:
+        lines.extend(["", "| Stage | Month | Attempts | Completed jobs | Stopped jobs | Unfinished jobs | Cumulative finished invocation seconds |",
+                      "|---|---|---:|---:|---:|---:|---:|"])
+        for stage, months in attempts.items():
+            for month, counts in months.items():
+                values = [counts[key] for key in ("attempts", "completedJobs", "stoppedJobs", "unfinishedJobs", "cumulativeFinishedInvocationSeconds")]
+                lines.append(f"| {stage} | {month} | " + " | ".join(number(value) for value in values) + " |")
+        lines.extend(["", "Analysis elapsed seconds are recorded separately. Stage restart backoffs and checks that found a completed stage are in `rules.json`."])
     for rule, result in report["rules"].items():
         lines.extend(["", f"## {rule}", "", "| Period and band | Positions | Sound R | Sound N | Sound A | Lift | Adoption | Maia probability of R at his band |",
                       "|---|---:|---|---|---|---|---|---|"])
@@ -489,15 +635,24 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if not args.phase2_reviewed:
         parser.error("analysis is disabled in phase 1; review is required before the full scan and analysis")
+    from freeze import verify_manifest
+    frozen = verify_manifest(require_committed=True)
+    require(frozen.get("datasetKind") == "literal" and frozen.get("alternativeScoringAuthorized") is False,
+            "analysis requires the committed literal-rule content manifest")
     pin = json.loads((LAB / "bridge" / "chess.json").read_text())
     app = pin["commit"]
     require(app == "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a", "the fixed app pin changed")
+    require(frozen["app"] == app, "frozen app differs from the pin")
     started = time.monotonic()
     rows, manifests = load_full(PRIVATE / args.run, app)
-    result = analyze(rows, manifests, app)
+    events_path = PRIVATE / args.run / "stage-events.jsonl"
+    events = read_jsonl(events_path) if events_path.exists() else None
+    result = analyze(rows, manifests, app, stage_events=events)
     result["measurementVersions"] = measurement_versions()
     result["seconds"] = time.monotonic() - started
-    result["ruleReadmeSha256"] = hashlib.sha256((PROJECT / "README.md").read_bytes()).hexdigest()
+    result["ruleReadmeSha256"] = frozen["rule"]["sha256"]
+    result["contentManifestSha256"] = hashlib.sha256((PROJECT / "phase2-manifest.json").read_bytes()).hexdigest()
+    result["operations"]["currentAnalysisSeconds"] = result["seconds"]
     destination = PROJECT / "results"
     destination.mkdir(exist_ok=True)
     serialized = json.dumps(result, indent=2, allow_nan=False) + "\n"
