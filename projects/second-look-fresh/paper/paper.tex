@@ -1,0 +1,142 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Does a fresh second look bring the reviews together?\\[0.3em]
+\large Phase \Phase: the fixed design and its cost}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The phone, desktop and routine reviews share a second-look budget, but the
+engine starts those looks with different earlier work in memory. This study
+tests clearing that memory before each look. The rule is fixed, and all
+\Cases{} frozen games replay. Only counts, time, depth and a raw-search
+determinism check have been computed. The check repeats across profiles.
+The full comparison is estimated to take \TotalHours{} hours on this
+machine under the process limit. No claim about agreement or quality has
+yet been tested.
+\end{abstract}
+
+\section{The data and change}
+The study keeps the predecessor's frozen sample and order: \Cases{} games,
+both players, \Plies{} plies. There are \Positions{} positions,
+\Nonterminal{} nonterminal positions, and \TablebasePositions{} within
+the app's tablebase piece limit. \TimeControls{} No game is removed to
+make the time controls uniform. The app measured is
+\texttt{\AppCommit}; records are at \texttt{\RecordsCommit}. The
+predecessor measured an older app commit, so the baseline will be rebuilt.
+
+The candidate exposes the engine's existing \texttt{newGame} method on
+the review port and awaits it before each verification look. This sends
+\texttt{ucinewgame}, then waits for readiness. The initial look remains
+\VerifyNodes{} nodes with \Candidates{} candidates; its optional
+adaptive retry remains \AdaptiveNodes{} nodes and is also cleared first.
+The candidate changes no budget, flag, quota, retention rule, cache policy
+or classification. Teaching and manual rechecks remain outside the change.
+
+\section{The fixed rule}
+Each arm's phone and desktop are compared with that arm's routine. Serious
+errors are the app's \texttt{isSerious} on final records. The miss share
+is routine serious plies absent from the device's serious set, divided by
+routine serious plies. The extra share reverses the roles. A paired change
+is candidate minus baseline. All shares pool counts over games.
+
+The bootstrap uses \Draws{} Poisson(\PoissonMean) draws over games,
+seed \Seed, sharing weights across every arm and profile. Ordinary
+percentile intervals have \Confidence\% coverage. The \Effects{}
+decision effects---the device share changes and the profile quality
+changes---use Bonferroni intervals with \CorrectedConfidence\% coverage.
+Quantiles linearly interpolate between sorted draws.
+
+For each device, both point changes must be negative; a corrected upper
+bound must be below zero for at least one share, while the other's lower
+bound must be at most zero. Both devices must meet this requirement to
+establish narrowing. Both devices agree by the predecessor's bar only
+when all their ordinary upper bounds are below \AgreementLine\%.
+This global agreement claim requires every endpoint and supplies no
+alternative route to keeping the change.
+
+The quality guard reads the common attempted second looks separately for
+each profile. It captures the accepted evidence at verification time,
+before routine teaching can replace it. The reference is a fresh
+\ReferenceNodes-node look with \Candidates{} candidates and the full
+history, using the app's own evidence gatherer. This is
+\NominalMultiplier{} times the initial budget and \AdaptiveMultiplier{}
+times the adaptive budget. An incomplete reference gets one fresh retry,
+for at most \ReferenceAttempts{} attempts. An unresolved reference
+prevents a favorable quality decision.
+
+The app's \texttt{judgeMove} and \texttt{isSerious} read the best and
+played scores into a binary verdict. This tests the raw second look;
+the gap measure still reads the complete review's classes. Incomplete
+arm evidence counts as incorrect. The candidate's error rate minus the
+baseline's must have a corrected upper bound below \QualityMargin{}
+percentage point for every profile. A lower bound above that margin
+rejects the candidate. Otherwise the guard is inconclusive. Keep the
+candidate for a port only when both device gaps narrow and every quality
+guard passes. Zero denominators or invalid bootstrap draws cannot pass.
+
+\section{The timing slice}
+The first frozen game, \SlicePlies{} plies, was selected without reading
+its labels. Devices ran in pairs; each routine ran alone, leaving room
+for its human model. Every run used the app's \Engine, \Threads{}
+thread and \HashSize{} MB hash, with no evaluation cache.
+
+\begin{table}[h]
+\centering\small
+\TimingTable
+\caption{Descriptive timing only. Seconds per look include its reset,
+candidate search, restricted played-move search when needed, and adaptive
+retry. Depth is the retained reading at verification time.}
+\end{table}
+
+Cleared raw evidence was identical in all \DeterminismComparisons{}
+comparisons across profiles: \DeterminismPositions{} positions at both
+verification budgets, \DeterminismSearches{} searches. This check decides
+no agreement or quality claim. The reference timing slice used
+\RefSlicePositions{} positions in \RefSliceSeconds{} search seconds;
+including resets gives \RefSecondsEach{} seconds per position. No
+reference verdict was compared with an arm's verdict.
+
+\section{The cost of the full run}
+The full run builds \CanonicalDocuments{} canonical CLI documents and
+\ObservedReplays{} observed replays. The replay must reproduce each CLI
+document's positions, records, coverage and provenance. It provides the
+per-ply timing and the verification evidence that the quality guard needs.
+All per-game files stay private; only aggregates are reported.
+
+Scaling by plies gives about \ReferencePositions{} distinct reference
+positions. With at most \WorkerLimit{} workers, and routine alone, the
+estimate is \CliHours{} hours for CLI documents, \ReplayHours{} for
+observed replays and \ReferenceHours{} for references: \TotalHours{}
+hours total, or \WorkHours{} process-hours. Reserving \ReservePercent\%
+for slowdown gives \PlanningHours{} hours. If every ply needs a reference
+and every reference its retry, the same measured rate gives
+\EnvelopeHours{} hours. That is a work envelope, not a runtime bound.
+The small slice cannot measure full-run network stalls, all teaching costs,
+model loading differences or thermal slowdown.
+
+\section{What this can change}
+A kept candidate becomes a separate app port. New reviews on every profile
+clear the analyst before each selected second look and adaptive retry.
+The current saved-review policy stays: Game Review opens the device's saved
+review first and asks for the routine's only when it kept none. Existing
+reviews keep their old judgments until explicitly rebuilt.
+
+The sample is not a fresh holdout. The deeper engine reference is not
+ground truth, and its fresh search path may favor the fresh candidate.
+The quality guard covers common attempted looks only. Actual devices have
+a different hash size and an evaluation cache, and other analyst work can
+interleave. This serial, uncached Node study cannot establish identical
+real-device readings. Equal raw searches can also lead to different
+adaptive choices, retained evidence and routine teaching.
+
+No comparison result is reported in this phase. No package installation
+or PDF compilation was needed. The README fixes the full protocol and
+commands before the deciding numbers are computed.
+
+\end{document}
