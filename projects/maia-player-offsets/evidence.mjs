@@ -6,10 +6,10 @@
 //   bridge/run.sh projects/maia-player-offsets/evidence.mjs --full
 import { createHash } from 'node:crypto'
 import { execFileSync, spawn } from 'node:child_process'
-import { appendFileSync, closeSync, existsSync, mkdirSync, openSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
+import { appendFileSync, closeSync, existsSync, mkdirSync, openSync, readdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'node:fs'
 import { getPriority } from 'node:os'
 import { join } from 'node:path'
-import { CHESS_DIR, LAB_DIR, privateDir } from '../../bridge/lib/chess.mjs'
+import { CHESS_DIR, LAB_DIR, chess, privateDir } from '../../bridge/lib/chess.mjs'
 
 const home = privateDir('maia-player-offsets')
 const args = process.argv.slice(2)
@@ -27,8 +27,21 @@ const runner = join(LAB_DIR, 'projects/maia-player-offsets/review-one.mts')
 const evidenceRoot = join(home, 'evidence')
 const routine = join(evidenceRoot, 'routine')
 mkdirSync(routine, { recursive: true })
+const heldCases = read(join(home, 'held-cases.json'))
+const frozenHeldCases = read(join(home, 'frozen-held-cases.json'))
+const games = read(join(home, 'games.json'))
+const { gameIdOf } = await chess('src/services/archive/index.ts')
+const expectedHeld = games.filter((g) => g.half === 'held').map((g) => {
+  const game = gameIdOf(String(g.id))
+  return { id: game.slice(3), game, playerColor: g.me,
+    myRating: g.me === 'w' ? g.white : g.black,
+    oppRating: g.me === 'w' ? g.black : g.white, plies: g.plies }
+})
+const heldByGame = new Map(heldCases.map((c) => [c.game, c]))
+if (heldByGame.size !== expectedHeld.length || heldCases.length !== expectedHeld.length || expectedHeld.some((c) => JSON.stringify(heldByGame.get(c.game)) !== JSON.stringify(c))) throw new Error('guard cases must cover every held-out game with unchanged attributes')
+if (!frozenHeldCases.length || new Set(frozenHeldCases.map((c) => c.game)).size !== frozenHeldCases.length || frozenHeldCases.some((c) => JSON.stringify(heldByGame.get(c.game)) !== JSON.stringify(c))) throw new Error('historical frozen held cases are not an exact subset of the full guard')
 const manifest = {
-  schema: 'maia-player-offsets-evidence/2', app: pin.commit, records: pin.records,
+  schema: 'maia-player-offsets-evidence/3', app: pin.commit, records: pin.records,
   profile: 'routine', runnerSha256: sha256(readFileSync(runner)),
   predecessorBuilderSha256: sha256(readFileSync(join(LAB_DIR, 'projects/accuracy-vs-chesscom/build-evidence.mjs'))),
   appCliSha256: sha256(readFileSync(join(CHESS_DIR, 'src/cli/commands/review.ts'))),
@@ -37,10 +50,28 @@ const manifest = {
   gamesSha256: sha256(readFileSync(join(home, 'games.json'))),
   adapter: { archiveKeyCache: false, reviews: false, evalCache: false, tablebase: false, pool: 1, freshProcessPerGame: true },
   departure: 'The CLI keeps reviews even with --no-cache and enables tablebases. The same app archive conversion and review service are called directly with private output, review/eval/key caches disabled, and tablebases disabled.',
+  frozenHeldCasesSha256: sha256(readFileSync(join(home, 'frozen-held-cases.json'))),
+  coverage: { selection: 'all-held-out-games', games: heldCases.length, sourceHalf: 'held', includesZeroCountGames: true },
 }
 const manifestFile = join(evidenceRoot, 'manifest.json')
 if (existsSync(manifestFile)) {
-  if (JSON.stringify(read(manifestFile)) !== JSON.stringify(manifest)) throw new Error('evidence provenance or case selection changed; keep stale evidence separate before rebuilding')
+  const previous = read(manifestFile)
+  if (JSON.stringify(previous) !== JSON.stringify(manifest)) {
+    // The only permitted migration widens the original frozen held-out guard
+    // to every held-out game. All review inputs and instruments stay fixed.
+    const { frozenHeldCasesSha256, coverage, ...expectedPrevious } = manifest
+    expectedPrevious.schema = 'maia-player-offsets-evidence/2'
+    expectedPrevious.heldCasesSha256 = frozenHeldCasesSha256
+    if (previous.schema !== expectedPrevious.schema || JSON.stringify(previous) !== JSON.stringify(expectedPrevious) || frozenHeldCases.length >= heldCases.length) throw new Error('evidence provenance changed beyond the approved held-out coverage expansion')
+    const backup = join(evidenceRoot, 'manifest-v2-frozen-held.json')
+    const oldText = readFileSync(manifestFile, 'utf8')
+    if (existsSync(backup) && readFileSync(backup, 'utf8') !== oldText) throw new Error('existing prior evidence manifest differs')
+    if (!existsSync(backup)) writeFileSync(backup, oldText)
+    const temporary = `${manifestFile}.tmp`
+    writeFileSync(temporary, JSON.stringify(manifest, null, 2) + '\n')
+    renameSync(temporary, manifestFile)
+    console.error(`evidence coverage expanded from ${frozenHeldCases.length} to ${heldCases.length} held-out games; existing documents retained`)
+  }
 } else {
   if (readdirSync(routine).length) throw new Error('existing routine evidence has no provenance manifest; keep it separate before rebuilding')
   writeFileSync(manifestFile, JSON.stringify(manifest, null, 2) + '\n')

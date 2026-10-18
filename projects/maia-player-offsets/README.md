@@ -23,22 +23,28 @@ There is no new time-control filter. Ratings are those recorded after games.
 `prepare.mjs` runs that predecessor's source, changing only its private
 output directory. The relocated source and its hash are kept privately. No
 predecessor or shared file is edited. The archive stores record ids as URLs;
-the app's `gameIdOf` maps them to the frozen cases' game keys for the guard.
+the app's `gameIdOf` maps them to the review service's game keys.
 The original ids and order stay unchanged in the move files.
 
-The punish guard uses the intersection of these held-out games with the
-accuracy project's frozen cases. Routine evidence for that intersection is
-rebuilt at the pinned app, through the same archive conversion and review
-service as the accuracy project's builder. It starts a fresh engine for each
-game, with no eval cache. The CLI still saves reviews even with `--no-cache`,
-so `review-one.mts` calls the app service directly with review storage and
-archive key caching disabled. Tablebases are disabled to keep the run local;
-this differs from the predecessor CLI configuration and is recorded in the
-evidence manifest. The frozen records' old event counts describe coverage and cost only;
-their probabilities, outcomes and verdicts are not reused. There is no
-routine evidence already cached here. This subset can be assigned the exact
-same halves, but does not cover the whole held-out archive. We keep this
-closest matched guard instead of presenting old evidence as a current check.
+The punish guard uses every held-out game, including games with no counted
+move. The reviewer expanded the guard from the 28 frozen held-out cases to
+all 324 held-out games before any effect was computed. The small frozen
+subset might not distinguish the fixed margin from sampling noise. Only the
+evidence set changes; every other part of the rule below is unchanged.
+
+Routine evidence is rebuilt at the pinned app, through the same archive
+conversion and review service as the accuracy project's builder. It starts
+a fresh engine for each game, with no eval cache. The CLI still saves reviews
+even with `--no-cache`, so `review-one.mts` calls the app service directly
+with review storage and archive key caching disabled. Tablebases are disabled
+to keep the run local. These settings are unchanged from phase 1 and recorded
+in the evidence manifest. The two completed timing reviews are retained after
+checking that their cases and all instrument settings match the expanded set.
+
+The frozen records' old event counts describe that subset only. They do not
+bound the guard, and their probabilities, outcomes and verdicts are not
+reused. The full guard is extracted from the rebuilt reviews on all held-out
+games, without an extra move-clock or ply filter.
 
 ## The instruments
 
@@ -127,8 +133,8 @@ We do not change punish to actual-opponent conditioning in this port.
 
 The guard measure is mean (q - E1)^2, the predecessors' Brier score. Its
 difference is candidate minus 250; lower is better. Use the same held-game
-draws as above, with zero events from held-out games outside the frozen
-subset, and divide by each draw's event count. Require the upper end of the
+draws as above over all held-out games, retaining games with no qualifying
+event, and divide by each draw's event count. Require the upper end of the
 97.5% percentile interval (q = 0.9875) to be at most 0.005 in each of four
 cells: verified and all replies, each in both directions. Report ordinary
 95% intervals too. This is Bonferroni over the two candidate guards;
@@ -178,7 +184,8 @@ selected by Fisher-Yates with mulberry32 seed 7, split alternately between
 two processes, all distinct candidate pairs per move. Timing caches are
 separate and excluded from the fit. The review timing slice is the held
 frozen cases nearest the 25th and 75th percentiles of game length, ties by id.
-Completed review files can be reused in phase 2. Timings do not score E1 or
+Completed review files can be reused in phase 2. Every held-out game is then
+reviewed for the guard; the frozen timing slice does not restrict that set. Timings do not score E1 or
 candidate gains. The app may compute its own ordinary review probabilities
 internally; these are not candidate comparisons.
 
@@ -187,9 +194,12 @@ completed position, repair only an incomplete final JSONL append, and reject
 changed app, inputs or design. Review caches resume by completed game and
 check provenance. Cost is the maximum of the two shard workloads times the
 measured seconds per policy call, plus review seconds per ply times held
-case plies divided by two. Report startup separately, a 1.5x planning
+game plies divided by two. Punish-policy cost is provisionally scaled from
+the old frozen subset by held-out plies; actual event counts are unknown
+until the full evidence is rebuilt. Report startup separately, a 1.5x planning
 allowance for the fanless machine, and cache size extrapolated from the slice.
-This is a projection, not a sustained thermal benchmark.
+This is a projection, not a sustained thermal benchmark. Other projects
+share this machine, so the full run may take longer; worker count stays at two.
 
 The review timing invocation also lowered the coordinator's priority before
 its workers ran `nice -n 10`; that reduced their priority twice. The commands
@@ -229,9 +239,9 @@ and does not model serial dependence or repeated opponents.
 
 One player, his opponents and post-game ratings are the population. Maia's
 lowest band merges weak ratings. A fitted offset absorbs model mismatch and
-is not a general conversion between chess sites. The guard covers a small,
-previously selected subset, uses the engine's single best reply as its
-outcome, and retains the verified set's outcome selection. Its all-reply
+is not a general conversion between chess sites. The guard uses every
+held-out game, but uses the engine's single best reply as its outcome and
+retains the verified set's outcome selection. Its all-reply
 check helps expose that selection but cannot remove it.
 
 ## Files and running it
@@ -239,7 +249,7 @@ check helps expose that selection but cannot remove it.
 | File | What it does |
 |---|---|
 | `design.mjs`, `io.mjs` | Fixed grids, app conversions, seeds and cache provenance. |
-| `prepare.mjs` | Runs predecessor positions with only its output redirected; joins and counts frozen cases. |
+| `prepare.mjs` | Runs predecessor positions with only its output redirected; builds all held-out review cases and counts the frozen timing subset. |
 | `weights.mts` | Gets and verifies the app's pinned Maia weights inside this clone. |
 | `policies.mts` | Resumable two-shard move or punish policies; separate timing mode. |
 | `evidence.mjs`, `review-one.mts`, `events.mjs` | Rebuild routine evidence through the app service and extract the predecessor's event definition. |

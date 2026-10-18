@@ -15,6 +15,7 @@ for (const [file, digest] of Object.entries(r.provenance.sourceHashes)) check(ha
 check(r.data.fit.games === r.data.held.games && r.data.fit.games + r.data.held.games === r.data.games, 'equal-halves claim failed')
 check(r.data.fit.moves + r.data.held.moves === r.data.moves && r.work.byShard.reduce((a, b) => a + b, 0) === r.work.movePolicyCalls, 'count identity failed')
 check(r.data.frozenCases.overlap.unmatched === 0 && r.data.frozenCases.ratingMismatch === 0 && r.data.frozenCases.sideMismatch === 0, 'complete case join claim failed')
+check(r.data.guard.coverage === 'all-held-out' && r.work.heldReviewGames === r.data.held.games, 'guard does not cover all held-out games')
 check(r.design.A === 441 && r.design.B === 147 && r.design.slopes.every(b => b > -1), 'candidate-family claim failed')
 check(r.timing.review.games === 2 && r.timing.policies.reduce((s, t) => s + t.rows, 0) === 32, 'timing slice changed')
 check(r.packagesInstalled.length === 0 && r.weights.wasCached === false, 'setup prose changed')
@@ -23,7 +24,7 @@ const defs = {
   Phase: r.phase, ModelName: 'Maia-2', AppCommit: `\\texttt{${r.app}}`, RecordsCommit: `\\texttt{${r.records}}`,
   Games: r.data.games, Moves: r.data.moves, FitGames: r.data.fit.games, FitMoves: r.data.fit.moves,
   HeldGames: r.data.held.games, HeldMoves: r.data.held.moves, EmptyGames: r.data.zeroMoveGames,
-  FrozenGames: r.data.frozenCases.total, GuardGames: r.data.frozenCases.overlap.held,
+  FrozenGames: r.data.frozenCases.total, FrozenHeldGames: r.data.frozenCases.overlap.held, GuardGames: r.work.heldReviewGames,
   RecordedEvents: r.data.recordedEvents.held.events, RecordedExact: r.data.recordedEvents.held.exact,
   Base: r.design.baseline, ACount: r.design.A, BCount: r.design.B,
   OffsetMin: Math.min(...r.design.offsets), OffsetMax: Math.max(...r.design.offsets), OffsetStep: r.design.offsets[1] - r.design.offsets[0],
@@ -44,7 +45,7 @@ out.block('CostTable', [
   '\\begin{tabular}{lrr}\\toprule Step & Work & Projected hours \\\\ \\midrule',
   `Move policies & ${r.work.movePolicyCalls} & ${fixed(r.cost.moveSeconds / 3600, 2)} \\\\`,
   `Routine reviews & ${r.work.heldReviewGames} games & ${fixed(r.cost.reviewSeconds / 3600, 2)} \\\\`,
-  `Punish policies (old-event estimate) & ${r.work.recordedHeldPunishCalls} & ${fixed(r.cost.punishSeconds / 3600, 3)} \\\\`,
+  `Punish policies (scaled estimate) & ${r.work.estimatedFullPunishCalls} & ${fixed(r.cost.punishSeconds / 3600, 3)} \\\\`,
   '\\bottomrule\\end{tabular}',
 ].join('\n'))
 out.write(join(root, 'paper/generated.tex'))

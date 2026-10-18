@@ -97,7 +97,12 @@
         }
       }
     },
-    "note": "Recorded event counts are coverage estimates from old evidence, not the phase-2 events. New reviews supply the guard."
+    "guard": {
+      "games": 324,
+      "plies": 19885,
+      "coverage": "all-held-out"
+    },
+    "note": "Recorded events describe the frozen subset only. The guard uses new reviews of every held-out game; its event counts are not yet known."
   },
   "design": {
     "A": 441,
@@ -168,11 +173,12 @@
       "36": 17061
     },
     "recordedHeldPunishCalls": 1927,
-    "heldReviewGames": 28,
-    "heldReviewPlies": 1921
+    "estimatedFullPunishCalls": 19948,
+    "heldReviewGames": 324,
+    "heldReviewPlies": 19885
   },
   "timing": {
-    "positionsSeconds": 5.435503458,
+    "positionsSeconds": 7.032422416999999,
     "policies": [
       {
         "kind": "move",
@@ -216,12 +222,12 @@
     "processes": 2,
     "nice": 10,
     "moveSeconds": 9464.53235950567,
-    "reviewSeconds": 1294.153480539693,
-    "punishSeconds": 20.63752747652928,
-    "totalHours": 2.9942564909783034,
-    "planningHours": 4.491384736467455,
-    "estimatedPolicyBytes": 840861190.5179775,
-    "excludes": "Small data preparation, streaming aggregation and bootstrap passes; no model inference in fit. Review event workload uses old event counts and may change. Short-slice timing does not measure sustained fanless throttling."
+    "reviewSeconds": 13396.273795175322,
+    "punishSeconds": 210.13435666057657,
+    "totalHours": 6.408594586483769,
+    "planningHours": 9.612891879725652,
+    "estimatedPolicyBytes": 857661763.8516854,
+    "excludes": "Small data preparation, streaming aggregation and bootstrap passes; no model inference in fit. Punish-policy workload scales the frozen-subset calls by held-out plies and may change. Short-slice timing does not measure sustained fanless throttling or competing projects."
   },
   "weights": {
     "wasCached": false,
@@ -232,21 +238,21 @@
   "packagesInstalled": [],
   "provenance": {
     "sourceHashes": {
-      "projects/maia-player-offsets/README.md": "2e3a68eb1d410131d8bc810150eb9a07755a089fb57ee63fb1d189fe5f987b2e",
+      "projects/maia-player-offsets/README.md": "03433885daa5fc45e1bde0ae6fd3bf4dc632e267bb73840ea1bc0d9c0ff3607f",
       "projects/maia-player-offsets/design.mjs": "17bb2c8256f68ae003d2b91abb97a55cd702b0c210ae642eec56e6061fdfca15",
-      "projects/maia-player-offsets/fit.mjs": "a2f29e0b791424c517c6539b2c60f890bbe174051fd5f101663e668b3daff0c6",
-      "projects/maia-player-offsets/events.mjs": "72b4b1d9feffd0b5eac0ed20149294ccec2853881b2c47b4b872ec1665a679de",
+      "projects/maia-player-offsets/fit.mjs": "9bbaec8de69917d9951cccfb73a2cb07a1f69c79ce32de113710ee444708141c",
+      "projects/maia-player-offsets/events.mjs": "a0393e6437ff11fd5342c18fdb4f7924d988bb4f16669792116327b973f4728a",
       "projects/maia-player-offsets/policies.mts": "8f672a69e3f42161c5d4c872b90f99daa6cf04d296d19d7e5d326cd757118bec",
       "projects/maia-player-offsets/review-one.mts": "938654b26bf058f57d2cfbb755d8a03b7b008664f61c10ac6306eedcc910ee30",
-      "projects/maia-player-offsets/evidence.mjs": "c274c714e3bb30ce6132087e5bd98a841e07d20d05ce969c149789a433fe115f",
-      "projects/maia-player-offsets/count.mjs": "ca4b79d31d8453375ed72dd4609a795b25710c6ac4039307ea495dc6df61e737",
-      "projects/maia-player-offsets/paper/generate.mjs": "fd2e15470e5aacc671117d92f085f510581fa9287970e9cd146b0588e9733022",
-      "projects/maia-player-offsets/paper/paper.tex": "d127614a275583efce70f5b7f2462d02ae95c5c0b20a312d6e7c5b1296b82bfa",
+      "projects/maia-player-offsets/evidence.mjs": "3045f893d638b3cdfeecbb0516411019d23d78b7d197886bac7dfa2edfa18e3e",
+      "projects/maia-player-offsets/count.mjs": "f23a93168c1d65a779b55a0a60990326eff5eff2032a4711322f2ac1a254ec1b",
+      "projects/maia-player-offsets/paper/generate.mjs": "a4fd191d01d6de218f2de519a270e53c5e527c6b661fd8582e3b4186fee28b24",
+      "projects/maia-player-offsets/paper/paper.tex": "7f918fcb3d55178ac7c19e5a432c58f4e4a53ed1d517e83db9b3c834db947244",
       "projects/maia-rating-offset/positions.mts": "d8b235192af01a5d512c39a36441018ba0f3f1430399d923e23353f7094976b9"
     },
-    "prepared": "ba2b4ee6fa1206456caeb43871830029c018706129d3842735ae6c7cb9580e4e",
+    "prepared": "0063c93a303adc6473acf23776d675136b4bb5a54814ddde1bb958cf536b6575",
     "design": "17bb2c8256f68ae003d2b91abb97a55cd702b0c210ae642eec56e6061fdfca15",
     "positions": "3229e75cfee305746ff60d74a380caa0f0c03eeebf57f6e4f4f89cec5398d246",
-    "evidence": "faab4b2c21ae6c90f7b8ba33fdcbb6389a3feee01a3099d6122030799066b777"
+    "evidence": "65d2d6f33328da48205a3f13f74f67585a38c6c894a5e460434175c385581bd2"
   }
 }

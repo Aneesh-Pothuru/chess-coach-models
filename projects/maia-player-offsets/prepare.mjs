@@ -1,6 +1,7 @@
 // Rebuild the predecessor's exact moves and halves, changing only its private
-// output directory. Copy the frozen punish cases and count their overlap.
-// No policy probabilities or outcomes are scored in this phase.
+// output directory. The punish guard covers every held-out game. Preserve
+// the frozen cases and their timing slice for historical comparison.
+// No policy probabilities or outcomes are scored here.
 //
 //   bridge/run.sh projects/maia-player-offsets/prepare.mjs
 import { createHash } from 'node:crypto'
@@ -64,12 +65,24 @@ for (const c of cases) {
   if (myRating !== c.myRating || oppRating !== c.oppRating) ratingMismatch++
 }
 assert(sideMismatch === 0 && ratingMismatch === 0, 'frozen case side or ratings differ from the pinned archive')
-const held = cases.filter((c) => gameById.get(c.game)?.half === 'held')
-const sorted = [...held].sort((a, b) => a.plies - b.plies || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+const frozenHeld = cases.filter((c) => gameById.get(c.game)?.half === 'held')
+const held = games.filter((g) => g.half === 'held').map((g) => {
+  const game = gameIdOf(String(g.id))
+  assert(/^cc:\d+$/.test(game), 'a held-out game is not supported by the unchanged review adapter; no games may be omitted')
+  assert(g.me === 'w' || g.me === 'b', 'a held-out game has no player side; no games may be omitted')
+  return { id: game.slice(3), game, playerColor: g.me,
+    myRating: g.me === 'w' ? g.white : g.black,
+    oppRating: g.me === 'w' ? g.black : g.white, plies: g.plies }
+})
+const heldByGame = new Map(held.map((c) => [c.game, c]))
+assert(heldByGame.size === held.length, 'duplicate held-out guard cases')
+assert(frozenHeld.every((c) => JSON.stringify(heldByGame.get(c.game)) === JSON.stringify(c)), 'frozen held cases differ from the full held-out cases')
+const sorted = [...frozenHeld].sort((a, b) => a.plies - b.plies || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
 assert(sorted.length >= 2, 'need at least two matched held-out cases for the timing slice')
 const benchmark = [0.25, 0.75].map((q) => sorted[Math.round(q * (sorted.length - 1))])
 assert(new Set(benchmark.map((c) => c.id)).size === 2, 'timing quantiles did not select distinct cases')
 write('cases.json', cases)
+write('frozen-held-cases.json', frozenHeld)
 write('held-cases.json', held)
 write('benchmark-cases.json', benchmark)
 
@@ -109,8 +122,9 @@ const report = {
   positions: positionsCounts,
   positionsSeconds: seconds,
   frozenCases: { total: cases.length, overlap, ratingMismatch, sideMismatch },
+  guard: { selection: 'all-held-out-games', games: held.length, zeroMoveGames: games.filter((g) => g.half === 'held' && g.counted === 0).length, plies: held.reduce((n, c) => n + c.plies, 0) },
   recordedEvents: eventOverlap,
-  benchmark: { cases: benchmark.length, quantiles: [0.25, 0.75], plies: benchmark.map((c) => c.plies), heldPlies: held.reduce((n, c) => n + c.plies, 0) },
+  benchmark: { cases: benchmark.length, quantiles: [0.25, 0.75], plies: benchmark.map((c) => c.plies), heldPlies: frozenHeld.reduce((n, c) => n + c.plies, 0), selection: 'historical frozen held-out cases' },
 }
 write('prepare.json', report)
 console.log(JSON.stringify(report, null, 2))

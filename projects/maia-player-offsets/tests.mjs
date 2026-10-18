@@ -10,7 +10,7 @@ import { bandsFor, punishBand, CANDIDATES, baseline } from './design.mjs'
 import { completedKeys } from './io.mjs'
 import {
   bestFromGrid, sharedSamples, doubledLowerTailP, interval, applyHolm,
-  summarizeGuard, allGuardCellsPass, chooseAdoption,
+  summarizeGuard, allGuardCellsPass, chooseAdoption, requireHeldCoverage,
 } from './fit.mjs'
 
 const { defaultMaiaElo } = await chess('src/services/engine/index.ts')
@@ -126,6 +126,21 @@ assert.equal(chooseAdoption({ A: choice(0.1), B: choice(0.1) }), 'B')
 assert.equal(chooseAdoption({ A: choice(0.2), B: choice(0.1) }), 'A')
 assert.equal(chooseAdoption({ A: choice(0.2, true, false), B: choice(0.1) }), 'B')
 assert.equal(chooseAdoption({ A: choice(0.2, true, false), B: choice(0.1, false) }), null)
+
+// Full guard coverage includes a held-out game with no counted moves. A fitting
+// game, omitted held-out game or duplicate case cannot substitute for it.
+const syntheticGames = [
+  { g: 0, id: 'synthetic-fit', half: 'fit', counted: 1 },
+  { g: 1, id: 'synthetic-held-first', half: 'held', counted: 1 },
+  { g: 2, id: 'synthetic-held-empty', half: 'held', counted: 0 },
+]
+const syntheticCases = [{ game: 'synthetic-held-first' }, { game: 'synthetic-held-empty' }]
+const identity = key => key
+assert.deepEqual(requireHeldCoverage(syntheticGames, syntheticCases, identity), new Set([1, 2]))
+assert.throws(() => requireHeldCoverage(syntheticGames, syntheticCases.slice(0, 1), identity), /every held-out game/)
+assert.throws(() => requireHeldCoverage(syntheticGames, [...syntheticCases, { game: 'synthetic-fit' }], identity), /every held-out game/)
+assert.throws(() => requireHeldCoverage(syntheticGames, [syntheticCases[0], syntheticCases[0]], identity), /duplicate held-out game/)
+assert.throws(() => requireHeldCoverage(syntheticGames, [syntheticCases[0], { game: 'synthetic-fit' }], identity), /outside the held-out half/)
 
 // Resume logic keeps only newline-committed rows, including when an interrupted
 // row is longer than the backward-scan buffer. All files contain synthetic keys.

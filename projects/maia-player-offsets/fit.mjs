@@ -76,6 +76,24 @@ export function chooseAdoption(tests) {
   return ['A', 'B'].filter(kind => tests[kind].wins && tests[kind].guardPass)
     .sort((a, b) => tests[b].held.gain - tests[a].held.gain || (a === 'B' ? -1 : 1))[0] ?? null
 }
+export function requireHeldCoverage(games, cases, gameIdOf) {
+  const expected = new Map()
+  for (const g of games.filter(g => g.half === 'held')) {
+    const key = gameIdOf(g.id)
+    assert(!expected.has(key), 'duplicate canonical held-out game')
+    expected.set(key, g.g)
+  }
+  assert(Array.isArray(cases) && cases.length === expected.size, 'guard must cover every held-out game')
+  const covered = new Set()
+  for (const c of cases) {
+    assert(expected.has(c.game), 'guard contains a game outside the held-out half')
+    const index = expected.get(c.game)
+    assert(!covered.has(index), 'guard contains a duplicate held-out game')
+    covered.add(index)
+  }
+  assert(covered.size === expected.size, 'guard is missing a held-out game')
+  return covered
+}
 
 async function main() {
 if (process.argv.slice(2).join(' ') !== '--phase2') throw new Error('fit is phase 2 only; usage: fit.mjs --phase2')
@@ -96,10 +114,11 @@ const evidenceFile = join(dir, 'evidence/manifest.json')
 const evidence = read(evidenceFile)
 const heldCasesFile = join(dir, 'held-cases.json')
 const heldCases = read(heldCasesFile)
-assert(eventDocument.app === pin.commit && eventDocument.records === pin.records && eventDocument.benchmark === false, 'punish events are not the full pinned-app extraction')
+assert(eventDocument.app === pin.commit && eventDocument.records === pin.records && eventDocument.benchmark === false && eventDocument.coverage === 'all-held-out-games', 'punish events are not the full pinned-app extraction')
 assert(eventDocument.evidenceManifest === hash(evidenceFile), 'punish events refer to different evidence')
-assert(evidence.schema === 'maia-player-offsets-evidence/2' && evidence.app === pin.commit && evidence.records === pin.records && evidence.profile === 'routine', 'invalid evidence provenance')
+assert(evidence.schema === 'maia-player-offsets-evidence/3' && evidence.app === pin.commit && evidence.records === pin.records && evidence.profile === 'routine', 'invalid evidence provenance')
 assert(evidence.gamesSha256 === hash(join(dir, 'games.json')) && evidence.heldCasesSha256 === hash(heldCasesFile), 'evidence games or held-case selection changed')
+assert(evidence.frozenHeldCasesSha256 === hash(join(dir, 'frozen-held-cases.json')), 'historical frozen-case provenance changed')
 assert(evidence.runnerSha256 === hash(join(LAB_DIR, 'projects/maia-player-offsets/review-one.mts')), 'review adapter changed')
 assert(evidence.predecessorBuilderSha256 === hash(join(LAB_DIR, 'projects/accuracy-vs-chesscom/build-evidence.mjs')), 'predecessor evidence builder changed')
 assert(evidence.appCliSha256 === hash(join(CHESS_DIR, 'src/cli/commands/review.ts')), 'app review command changed')
@@ -107,6 +126,7 @@ assert(JSON.stringify(evidence.adapter) === JSON.stringify({ archiveKeyCache: fa
 assert(Array.isArray(games) && games.length > 1 && moves.length > 0, 'missing games or counted moves')
 assert(Array.isArray(events), 'missing punish events')
 assert(Array.isArray(heldCases) && eventDocument.counts?.games === heldCases.length && eventDocument.counts?.events === events.length, 'punish extraction does not cover the selected cases')
+assert(evidence.coverage?.selection === 'all-held-out-games' && evidence.coverage?.games === heldCases.length && evidence.coverage?.sourceHalf === 'held' && evidence.coverage?.includesZeroCountGames === true, 'evidence does not cover the full held-out half')
 assert(new Set(games.map(g => g.id)).size === games.length, 'duplicate game identifiers')
 games.forEach((g, i) => assert(g.g === i && g.half === (i % 2 === 0 ? 'fit' : 'held') && Number.isInteger(g.counted) && g.counted >= 0, 'games or halves differ from the predecessor'))
 const counted = games.map(() => 0)
@@ -119,11 +139,10 @@ assert(games.every((g, i) => g.counted === counted[i]), 'game move counts differ
 const { gameIdOf } = await chess('src/services/archive/index.ts')
 const gameById = new Map(games.map(g => [gameIdOf(g.id), g]))
 assert(gameById.size === games.length, 'duplicate canonical archive identifiers')
-const frozenHeld = new Set()
+const coveredHeld = requireHeldCoverage(games, heldCases, gameIdOf)
 for (const c of heldCases) {
   const g = gameById.get(c.game)
-  assert(g?.half === 'held' && !frozenHeld.has(g.g), 'duplicate or unmatched held-out frozen case')
-  frozenHeld.add(g.g)
+  assert(c.playerColor === g.me && c.myRating === (g.me === 'w' ? g.white : g.black) && c.oppRating === (g.me === 'w' ? g.black : g.white), 'held-out case side or ratings differ from its archive game')
   const file = join(dir, 'evidence/routine', `${c.id}.json`)
   assert(fs.existsSync(file), 'missing routine evidence for a held-out case')
   const doc = read(file)
@@ -133,7 +152,7 @@ for (const c of heldCases) {
 const eventKeys = new Set()
 events.forEach((e) => {
   assert(Number.isInteger(e.k) && e.k >= 0 && !eventKeys.has(e.k), 'duplicate or invalid punish event key')
-  assert(Number.isInteger(e.g) && frozenHeld.has(e.g) && games[e.g]?.half === 'held' && e.half === 'held', 'punish event is outside the held-out frozen cases')
+  assert(Number.isInteger(e.g) && coveredHeld.has(e.g) && games[e.g]?.half === 'held' && e.half === 'held', 'punish event is outside the held-out games')
   assert(typeof e.E1 === 'boolean' && typeof e.inExact === 'boolean' && typeof e.me === 'boolean' && Number.isFinite(e.r) && typeof e.bestUci === 'string', 'invalid punish event schema')
   assert(e.dir === (e.me ? 'opp-err' : 'player-err'), 'punish direction and replier side disagree')
   eventKeys.add(e.k)
@@ -304,10 +323,10 @@ const report = {
   app: pin.commit, records: pin.records,
   sources: { moves: manifest(moveFile), gamesSha256: hash(join(dir, 'games.json')), events: manifest(eventFile), evidenceManifestSha256: hash(evidenceFile) },
   data: {
-    description: 'The pinned archive, predecessor positions and alternating game halves; punish events from matched held-out frozen accuracy cases, rebuilt on the pinned app.',
+    description: 'The pinned archive, predecessor positions and alternating game halves; punish events from routine reviews of every held-out game, rebuilt on the pinned app.',
     games: games.length, moves: moves.length,
     fit: { games: fitIndices.length, moves: fitBase.moves }, held: { games: heldIndices.length, moves: heldBase.moves },
-    punish: { events: events.length, games: new Set(events.map(e => e.g)).size, verified: events.filter(e => e.inExact).length },
+    punish: { events: events.length, games: new Set(events.map(e => e.g)).size, coveredGames: coveredHeld.size, verified: events.filter(e => e.inExact).length },
     moverRating: { min: ratings[0], median: quantile(ratings, 0.5), max: ratings.at(-1), thirdsCuts: cuts },
   },
   rule: {
@@ -340,7 +359,7 @@ const iv = x => x === null ? 'inconclusive' : `${f(x[0])} to ${f(x[1])}`
 const parameter = c => c.kind === 'A' ? `player ${c.him}, opponents ${c.opp}` : `a = ${c.a}, b = ${c.b}`
 const md = [
   '# Maia-2 player offsets: results', '',
-  `Written by fit.mjs. App commit ${pin.commit}; records commit ${pin.records}. The archive contributes ${games.length} games and ${moves.length} moves: ${fitIndices.length} fitting games (${fitBase.moves} moves), ${heldIndices.length} held-out games (${heldBase.moves} moves). Punish evidence contributes ${report.data.punish.events} events (${report.data.punish.verified} verified) in ${report.data.punish.games} held-out games. All ${heldIndices.length} held-out games enter each of ${DRAWS} shared bootstrap draws, seed ${SEED}.`, '',
+  `Written by fit.mjs. App commit ${pin.commit}; records commit ${pin.records}. The archive contributes ${games.length} games and ${moves.length} moves: ${fitIndices.length} fitting games (${fitBase.moves} moves), ${heldIndices.length} held-out games (${heldBase.moves} moves). Punish reviews cover all ${report.data.punish.coveredGames} held-out games and contribute ${report.data.punish.events} events (${report.data.punish.verified} verified) in ${report.data.punish.games} games. All ${heldIndices.length} held-out games enter each of ${DRAWS} shared bootstrap draws, seed ${SEED}.`, '',
   `**Verdict.** ${adopted ? `Candidate ${adopted} is adopted (${parameter(tests[adopted].fitted)}).` : `The app's ${BASE} stays.`}`, '',
   `The likelihood tests use doubled lower-tail bootstrap p-values for positive gain, Holm over two candidates, positive fitting gains, and positive stage interval lower bounds. The punish guard requires each of four Brier-difference upper bounds from the 97.5% intervals to be at most ${GUARD_MARGIN}. A missing cell or empty bootstrap denominator cannot pass.`, '',
   '| Candidate | Fitted values | Fitting gain | Held gain (95% interval) | Holm adjusted p | Likelihood wins | Punish guard |',

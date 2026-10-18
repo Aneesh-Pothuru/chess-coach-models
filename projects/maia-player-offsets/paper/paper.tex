@@ -29,11 +29,14 @@ fitting games (\FitMoves{} moves) and \HeldGames{} held-out games
 bootstrap units. Both sides count, at their recorded post-game ratings.
 
 All \FrozenGames{} frozen accuracy cases join to these games without a
-rating or side mismatch. The \GuardGames{} in the held-out half form the
-punish guard. Old recorded evidence has \RecordedEvents{} events there,
-\RecordedExact{} verified; these are coverage counts only. The guard will
-use new routine reviews at the pinned app. It covers a subset, not the
-whole held-out archive.
+rating or side mismatch. The \FrozenHeldGames{} in the held-out half supply
+the old recorded counts: \RecordedEvents{} events, \RecordedExact{} verified.
+Before any effect was computed, review expanded the punish guard to all
+\GuardGames{} held-out games so that the small frozen subset would not limit
+its evidence. The margin and every other decision rule stay unchanged.
+The guard will use new routine reviews at the pinned app on every held-out
+game, including games with no counted move. The old counts describe only
+the frozen subset and do not bound the guard.
 
 \section{Candidates and estimation}
 Candidate A jointly fits separate player and opponent offsets over
@@ -112,8 +115,8 @@ predecessor's CLI; the instrument remains the app's routine pipeline.
 The predecessor explored these same games. They are held out from the new
 fit, not independent of the exploration that chose the question. A fresh
 archive is needed for a stronger confirmation. The bootstrap does not model
-serial dependence or repeat opponents. The punish subset is small and its
-verification pass selects partly on outcomes; the all-reply guard checks
+serial dependence or repeat opponents. Although the guard covers every
+held-out game, its verification pass selects partly on outcomes; the all-reply guard checks
 that selection without removing it.
 
 The call-site audit records the person every conversion models. A would

@@ -12,6 +12,16 @@ const { gameIdOf } = await chess('src/services/archive/index.ts')
 const byId = new Map(games.map(g => [gameIdOf(g.id), g]))
 const provenance = read(join(dir, 'evidence/manifest.json'))
 if (provenance.app !== pin.commit || provenance.records !== pin.records || provenance.gamesSha256 !== hash(join(dir, 'games.json'))) throw new Error('evidence provenance differs')
+if (!benchmark) {
+  const held = games.filter(g => g.half === 'held')
+  const caseByGame = new Map(cases.map(c => [c.game, c]))
+  if (caseByGame.size !== cases.length || cases.length !== held.length) throw new Error('punish guard must cover every held-out game, including games with no counted moves')
+  for (const g of held) {
+    const game = gameIdOf(g.id), c = caseByGame.get(game)
+    if (!c || c.game !== game || c.id !== game.slice(3) || c.playerColor !== g.me || c.myRating !== (g.me === 'w' ? g.white : g.black) || c.oppRating !== (g.me === 'w' ? g.black : g.white) || c.plies !== g.plies) throw new Error('full held-out guard case is missing or changed')
+  }
+  if (provenance.schema !== 'maia-player-offsets-evidence/3' || provenance.heldCasesSha256 !== hash(join(dir, 'held-cases.json')) || provenance.coverage?.selection !== 'all-held-out-games' || provenance.coverage.games !== held.length || provenance.coverage.sourceHalf !== 'held' || provenance.coverage.includesZeroCountGames !== true) throw new Error('evidence manifest does not certify full held-out coverage')
+}
 const events = [], skips = {}
 const skip = why => { skips[why] = (skips[why] ?? 0) + 1 }
 for (const c of cases) {
@@ -35,6 +45,7 @@ for (const c of cases) {
   }
 }
 const report = { app: pin.commit, records: pin.records, benchmark, evidenceManifest: hash(join(dir, 'evidence/manifest.json')),
+  coverage: benchmark ? 'historical-frozen-timing-slice' : 'all-held-out-games',
   definition: 'maia-punish/events.mts: lossPct >= 5, non-book reply, bestUci; E1 exact best reply; verified or terminal primary',
   counts: { games: cases.length, events: events.length, exact: events.filter(e => e.inExact).length,
     directions: Object.fromEntries(['player-err', 'opp-err'].map(d => [d, { all: events.filter(e => e.dir === d).length, exact: events.filter(e => e.dir === d && e.inExact).length }])) },
