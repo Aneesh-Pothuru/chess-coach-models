@@ -27,8 +27,8 @@ All the app's, at the pinned commit (`bridge/chess.json`):
   centipawns from White's side. `mine` and `theirs` are the best capture
   balances for the side to move and for the other side (`bestExchange` on the
   position and on its `flipTurn`), as the deck computes them.
-- **The worst piece**: the legal moves of Black's worst piece minus those of
-  White's (`describePosition(fen).side[c].activity.worstPiece.moves`), so
+- **The worst piece**: the legal moves of White's worst piece minus those of
+  Black's (`describePosition(fen).side[c].activity.worstPiece.moves`), so
   positive when White's worst piece is the freer. "Feed your laziest piece" is
   the app's lesson; the drill folds it into activity.
 
@@ -126,4 +126,23 @@ model judges anything here.
 
 ## Files
 
-Added with the scripts.
+| File | What it does |
+|---|---|
+| `lib.mjs` | The study's constants (months, readings, leans, cap, budget, the rule's bars), the seeded generator, the Wilson interval and the capped selection of the study's positions. |
+| `stream.py` | Streams a month of the Lichess database and keeps the games that enter (`private/judge-factors/games-<month>.jsonl.gz`), with a summary beside them. |
+| `scan.mjs` | Replays each game through the app's code, reads every position of the drill's population and draws each reading's position for the game (`private/judge-factors/positions-<month>-<i>-of-<n>.jsonl`). |
+| `verdict.mjs` | Scores each distinct position with Stockfish through the app's engine service, one shard at a time, resuming where a shard stopped (`private/judge-factors/verdicts-<i>-of-<n>.jsonl`). |
+| `analyze.mjs` | Applies the rule and the descriptions; writes `results/judge-factors.json` and `results/judge-factors.md`. |
+
+## Running it
+
+```bash
+make chess
+python3 projects/judge-factors/stream.py --month 2026-08
+python3 projects/judge-factors/stream.py --month 2026-09
+for m in 2026-08 2026-09; do
+  for i in 0 1 2 3; do bridge/run.sh projects/judge-factors/scan.mjs --month $m --shard $i/4 & done; wait
+done
+for i in 0 1 2 3; do bridge/run.sh projects/judge-factors/verdict.mjs --shard $i/4 & done; wait
+bridge/run.sh projects/judge-factors/analyze.mjs
+```
