@@ -25,7 +25,12 @@ catalogue's techniques and positional patterns. A move **shows** a rule when
 readers only ever write a `note` (amended before any position was scored, see
 below): `outside-passer` counts its note; `lucena` counts its note when the
 mover is the side with the pawn, and `philidor` when the mover is the side
-without it, so each counts only for the side the position is for.
+without it, so each counts only for the side the position is for. And
+`trade-when-ahead` counts when the app's technique reader fires on the move
+(`techniqueInsights(fen, uci)` in the knowledge service's
+`detectors/technique/insights.ts` holds a `trade-when-ahead` insight with tone
+`good`), as `worst-piece` is read from the app's readings (second amendment,
+below).
 
 | Rule | The catalogue's name |
 |---|---|
@@ -63,6 +68,17 @@ the shelter. So the outside passer, Lucena and Philidor count their note as
 above. The bishop pair's note says a bishop that takes a knight gives the pair
 up, a warning rather than a rule to follow, and the king shelter is never a
 move to play, so both leave this round; a rule to avoid needs its own test.
+
+**The second amendment, before any `trade-when-ahead` row was scored.** An
+instrument check on a constructed position where every condition of its reader
+holds (`3rk3/1p6/2n5/8/3N4/8/8/3RK2R w K - 0 1`, Nxc6: White five points up,
+an even knight trade by the capture war, bxc6 recaptures) found no
+`trade-when-ahead` finding through `describeMove`, while the technique reader
+alone gives it. `moveInsights` drops every good technique insight whose moved
+piece can be taken where it lands, and an even trade's capturing piece always
+can, so through `describeMove` the rule could never be available. It is read
+from the reader instead. The app's own review has the same gap; it is reported
+to the app.
 
 ## The data
 
