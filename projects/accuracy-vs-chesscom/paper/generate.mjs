@@ -273,6 +273,12 @@ g.block('ReproTable', [
 g.def('ReproLargest', fixed(repro.largest_test_mae_change, 2))
 g.def('AppCommit', `\\texttt{${repro.chess.pinned_commit.slice(0, 7)}}`).def('RecordsCommit', `\\texttt{${repro.chess.records_commit.slice(0, 7)}}`)
 const rr = repro.reread
+if (rr.rerun.holds !== true) throw new Error('the archive re-read check fails: the paper says it holds')
+for (const [name, result] of [['recorded', rr.recorded], ['rerun', rr.rerun]]) {
+  if (!(Number.isFinite(result.mae) && result.mae <= rr.rule.mae && Number.isFinite(result.p90) && result.p90 <= rr.rule.p90)) {
+    throw new Error(`the ${name} re-read check is outside its rule: the paper says it holds`)
+  }
+}
 g.def('RereadRecordedMae', fixed(rr.recorded.mae, 2)).def('RereadRecordedPNinety', fixed(rr.recorded.p90, 2)).def('RereadRecordedSides', String(rr.recorded.sides))
 g.def('RereadMae', fixed(rr.rerun.mae, 2)).def('RereadPNinety', fixed(rr.rerun.p90, 2)).def('RereadSides', String(rr.rerun.sides)).def('RereadMax', fixed(rr.rerun.max, 1))
 g.def('RereadRuleMae', String(rr.rule.mae)).def('RereadRuleP', String(rr.rule.p90)).def('RereadHolds', rr.rerun.holds ? 'holds' : 'fails')
