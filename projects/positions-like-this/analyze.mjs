@@ -20,6 +20,8 @@ const exact = (r, moves) => moves.every((m) => r.scores[m]?.exact === true)
 const soundOf = (r, uci) => (r.scores[uci].sound ? 1 : 0)
 const shareOf = (r, arm) => r[arm].reduce((s, m) => s + soundOf(r, m.move), 0) / ARM
 const anySound = (r, arm) => (r[arm].some((m) => soundOf(r, m.move) === 1) ? 1 : 0)
+const lostOf = (r, arm) => r[arm].reduce((s, m) => s + Math.max(0, r.scores[m.move].lost), 0) / ARM
+const bestOf = (r, arm) => r[arm].filter((m) => m.move === r.best).length / ARM
 const newTo = (r, arm) =>
   r[arm].some((m) => soundOf(r, m.move) === 1 && m.move !== r.played && r.scores[m.move].pHis < HARD) ? 1 : 0
 
@@ -42,6 +44,13 @@ const hisValues = (r) => ({
   newT: newTo(r, 'T'),
   newR: newTo(r, 'R'),
   newLift: newTo(r, 'T') - newTo(r, 'R'),
+  lostT: lostOf(r, 'T'),
+  lostR: lostOf(r, 'R'),
+  lostR2: lostOf(r, 'R2'),
+  lostA: Math.max(0, r.scores[r.played].lost),
+  bestT: bestOf(r, 'T'),
+  bestR: bestOf(r, 'R'),
+  bestR2: bestOf(r, 'R2'),
 })
 const strongValues = (r) => ({
   twin: soundOf(r, r.twin),
@@ -49,6 +58,10 @@ const strongValues = (r) => ({
   R: shareOf(r, 'R'),
   twinLift: soundOf(r, r.twin) - shareOf(r, 'R'),
   lift: shareOf(r, 'T') - shareOf(r, 'R'),
+  lostT: lostOf(r, 'T'),
+  lostR: lostOf(r, 'R'),
+  bestT: bestOf(r, 'T'),
+  bestR: bestOf(r, 'R'),
 })
 
 const interval = (xs) => {
@@ -86,9 +99,9 @@ function boot(units, valuesOf, seed) {
 const byGame = (rows) => {
   const m = new Map()
   for (const r of rows) {
-    const list = m.get(r.gi)
+    const list = m.get(r.gi ?? r.game)
     if (list) list.push(r)
-    else m.set(r.gi, [r])
+    else m.set(r.gi ?? r.game, [r])
   }
   return [...m.values()]
 }
@@ -106,8 +119,8 @@ const enough = main.every((m) => m.n >= MIN_POSITIONS)
 let verdict
 if (!twinPass || !nullPass) verdict = 'no verdict'
 else if (!enough) verdict = `not enough data (n=${main.map((m) => m.n).join(', ')})`
-else if (above(main[0].lift.ci) && above(main[1].lift.ci)) verdict = 'alike works'
-else if (below(main[0].lift.ci) && below(main[1].lift.ci)) verdict = 'alike misleads'
+else if (above(main[0].lift.ci) && above(main[1].lift.ci)) verdict = 'likeness works'
+else if (below(main[0].lift.ci) && below(main[1].lift.ci)) verdict = 'likeness misleads'
 else verdict = 'no better than a random match'
 
 const binOf = (d) => DISTANCE_BINS.findIndex(([lo, hi]) => d >= lo && d <= hi)
@@ -162,6 +175,8 @@ const report = {
     structure: split(halfRows[h], (r) => (r.structure ? 'named' : 'none'), SEED + 60 + 10 * h),
     newToHim: { T: main[h].newT, R: main[h].newR, lift: main[h].newLift },
     whenWrong: rescue(halfRows[h], SEED + 80 + h),
+    lost: { T: main[h].lostT, R: main[h].lostR, R2: main[h].lostR2, A: main[h].lostA },
+    best: { T: main[h].bestT, R: main[h].bestR, R2: main[h].bestR2 },
   })),
   strong: {
     tried: strongRows.length,
@@ -173,6 +188,9 @@ const report = {
     R: strongStats.R,
     lift: strongStats.lift,
     nearestDistance: median(strong.map((r) => r.T[0].d)),
+    distances: distanceTable(strong, SEED + 100),
+    lost: { T: strongStats.lostT, R: strongStats.lostR },
+    best: { T: strongStats.bestT, R: strongStats.bestR },
     phase: [...new Set(strong.map((r) => r.phase))].sort().map((k, i) => {
       const s = boot(strong.filter((r) => r.phase === k).map((r) => [r]), strongValues, SEED + 90 + i)
       return { key: k, n: s.n, T: s.T, R: s.R, lift: s.lift }
@@ -199,6 +217,12 @@ for (const h of report.halves) {
   for (const b of h.distances) lines.push(`| ${h.half === 0 ? 'First' : 'Second'} | ${b.bin[0]}${b.bin[1] === null ? '+' : ` to ${b.bin[1]}`} | ${b.matches} | ${cell(b.sound)} | ${cell(b.fromT)} |`)
 }
 lines.push('', '## Strong players\' held-out positions, no plant', '', `T ${cell(strongStats.T)}%, R ${cell(strongStats.R)}%, lift ${cell(strongStats.lift)} points over ${strongStats.n} positions.`)
+lines.push('', '| Distance | Matches | Sound (%) | From T (%) |', '|---|---|---|---|')
+for (const b of report.strong.distances) lines.push(`| ${b.bin[0]}${b.bin[1] === null ? '+' : ` to ${b.bin[1]}`} | ${b.matches} | ${cell(b.sound)} | ${cell(b.fromT)} |`)
+const wp = (s) => (s ? `${s.value.toFixed(2)} (${s.ci ? `${s.ci[0].toFixed(2)} to ${s.ci[1].toFixed(2)}` : '--'})` : '--')
+lines.push('', '## The win% each arm\'s moves give up, and the share that are the referee\'s best (%)', '', '| Positions | Given up: T | R | R2 | A | Best: T | R | R2 |', '|---|---|---|---|---|---|---|---|')
+for (const h of report.halves) lines.push(`| ${h.half === 0 ? 'First' : 'Second'} half | ${wp(h.lost.T)} | ${wp(h.lost.R)} | ${wp(h.lost.R2)} | ${wp(h.lost.A)} | ${cell(h.best.T)} | ${cell(h.best.R)} | ${cell(h.best.R2)} |`)
+lines.push(`| Strong players | ${wp(report.strong.lost.T)} | ${wp(report.strong.lost.R)} | -- | -- | ${cell(report.strong.best.T)} | ${cell(report.strong.best.R)} | -- |`)
 lines.push('', '## Splits of his positions (lift in points)', '', '| Half | Split | Cell | Positions | T | R | Lift |', '|---|---|---|---|---|---|---|')
 for (const h of report.halves) {
   for (const [name, rows] of [['phase', h.phase], ['structure', h.structure]]) {

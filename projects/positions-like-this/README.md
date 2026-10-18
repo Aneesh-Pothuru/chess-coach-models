@@ -163,6 +163,15 @@ resampling his games within the half, or the strong players' positions: the
 - **When he went wrong**: among positions where his move is not sound, the
   share where at least one T move is sound, against R.
 
+Added while the moves were being scored, before any result was read:
+
+- **The win% given up**: the mean win% each arm's moves give up against the
+  referee's best (a move that scores above the best gives up none), and his
+  move's.
+- **The best move**: the share of each arm's moves that are the referee's best.
+- **Distance on strong players' positions**: the distance table again, on the
+  held-out strong positions.
+
 ## Caveats
 
 - **A move stands for a plan.** The strong player's next move is tested, not
