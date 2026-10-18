@@ -29,6 +29,7 @@ app's explanation code. The numbers are in the paper,
 | `endgames.mjs` | The endgame set: archive games outside the accuracy sample that reach the endgame by the app's divider, drawn with a fixed seed and split train/test by game before any lesson is read. The 60 sampled games hold too few endgame moments to measure an endgame round on. `--set NAME` writes another set, and `--exclude` an earlier set's `games.json` keeps its games out of the draw, as the second endgame set (`endgames2`) keeps out the first's. |
 | `endgame-cases.mjs` | The endgame set's key moments: `build-cases.mjs`, `probes.mjs` and `defenses.mjs` over the set's games and phone evidence, then the moments whose position before the move the document's division puts in the endgame, each with its game's split, graded. `--searches` reads a base's searches so a candidate is read on the same ones. |
 | `reproduce.mjs` | Recomputes every variant's aggregates, every judge round (a sampled round's draw made again from the moments it changed) and the judge's controls from the records, sets a round graded on documents rebuilt for it beside its base on those documents (with the text defects it fixes, where the records count them, and on the endgame set, split by the games the records list, where the round ran there too), then rebuilds the pinned app's texts end to end on the lab's evidence and grades them, and says which kept rounds after the kept variant the pinned app carries. |
+| `grader-impact.mjs` | Counts the two audit fixes' sentence forms in stored explanations, with coverage and conditional bounds on each round's grade margin. Writes `results/grader-impact.{md,json}`; unknown per-moment coverage stays under `private/lab-audit/`. No searches or rules change. |
 | `paper/` | The paper. |
 
 ## Running it
@@ -78,3 +79,17 @@ bridge/run.sh projects/explain-top-move/endgame-cases.mjs --out private/explain-
 ```
 
 Everything it writes names games, so it all stays under `private/`.
+
+### The grader audit
+
+```bash
+node projects/explain-top-move/grader-impact.mjs
+node --test projects/explain-top-move/grader-impact.test.mjs
+```
+
+The records keep a full baseline and the judge's excerpts, but only grades
+and text hashes for most variant moments. The audit separates counted
+sentences from missing texts; it does not call a partial zero a full count.
+[`results/grader-impact.md`](results/grader-impact.md) gives every round's
+coverage, grade-margin bound, and the exact files needed for a full re-grade.
+The original rules and published reproduction stay unchanged.
