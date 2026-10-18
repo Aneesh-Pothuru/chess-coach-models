@@ -200,3 +200,23 @@ A Claude session on this repository's bridge, on CPU, four shards. Per-position
 rows go under `private/his-habits/`, which git ignores; only aggregates are
 committed (`results/`), written by the scripts, then the paper. No language
 model judges anything here.
+
+## Files
+
+| File | What it does |
+|---|---|
+| `lib.mjs` | The study's constants (filters, bands, budgets, the Lichess sample, the rule's bars), the kinds of move and their reader over the app's code, the seeded generator and the Maia-2 sums. |
+| `stream.py` | Streams Lichess's September 2026 database and keeps the 10-minute games with a player at one of the bands (`private/his-habits/lichess-2026-09.jsonl.gz`), with a summary beside them. |
+| `his.mjs` | Reads his archive at the pinned commit, and for each of his positions writes every legal move's kinds, Maia-2's policy at his band and the band above, his move, the band above's most likely move, the null player's move, and Stockfish's win% after his move and that move, one shard at a time, resuming where a shard stopped (`private/his-habits/his-<i>-of-<n>.jsonl`). |
+| `lichess.mjs` | Takes the first 2,000 player-games at each band, draws their positions, and writes each one's kinds and Maia-2's policy at the player's band (`private/his-habits/lichess-<i>-of-<n>.jsonl`). |
+| `analyze.mjs` | Applies the rule and the descriptions; writes `results/his-habits.json` and `results/his-habits.md`. |
+
+## Running it
+
+```bash
+make chess
+python3 projects/his-habits/stream.py
+for i in 0 1 2 3; do bridge/run.sh projects/his-habits/his.mjs --shard $i/4 & done; wait
+for i in 0 1 2 3; do bridge/run.sh projects/his-habits/lichess.mjs --shard $i/4 & done; wait
+bridge/run.sh projects/his-habits/analyze.mjs
+```
