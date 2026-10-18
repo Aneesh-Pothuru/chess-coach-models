@@ -121,4 +121,18 @@ committed (`results/`), written by the scripts, then the paper.
 
 ## Files
 
-Added with the scripts.
+| File | What it does |
+|---|---|
+| `lib.mjs` | The study's constants (rollouts, plies, budget, margin, seeds), the seeded generator and the bootstrap over games. |
+| `positions.mjs` | Reads his archive at the pinned commit and writes the entering positions with B, F and P (`private/findable-move/positions.jsonl`) and their counts (`results/positions.json`). |
+| `rollouts.mjs` | Plays each move's rollouts with Maia-2 and scores their ends with Stockfish, one shard at a time, resuming where a shard stopped (`private/findable-move/rollouts-<i>-of-<n>.jsonl`). |
+| `analyze.mjs` | Applies the rule and the descriptions; writes `results/findable-move.json` and `results/findable-move.md`. |
+
+## Running it
+
+```bash
+make chess
+bridge/run.sh projects/findable-move/positions.mjs
+for i in 0 1 2 3; do bridge/run.sh projects/findable-move/rollouts.mjs --shard $i/4 & done; wait
+bridge/run.sh projects/findable-move/analyze.mjs
+```
