@@ -71,6 +71,7 @@ g.def('AppPrior', String(PUNISH_PRIOR))
 
 // The secondary outcome on all replies, where it does not beat the base rate for the player's errors.
 const allPlayerE2 = results['ALL|player-err'].e2
+if (!(Number.isFinite(allPlayerE2.iB[1]) && allPlayerE2.iB[1] >= 0)) throw new Error('E2 no longer fails to beat the base rate: the paper says it does')
 g.def('AllPlayerETwoDiff', fixed(allPlayerE2.bq - allPlayerE2.bb, 3)).def('AllPlayerETwoCI', ci(allPlayerE2.iB))
 
 // ---- the calibration figure, recorded events, primary set ----
