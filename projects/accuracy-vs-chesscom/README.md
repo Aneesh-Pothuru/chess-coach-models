@@ -23,6 +23,7 @@ app's `src/services/review/accuracy.ts`). The numbers are in the paper,
 | `explore.mjs` | The bench for a thesis: scores an accuracy function on the train games and the dev pool, never on test. |
 | `models/` | `current.mjs`, the app's model with one hook for each part a thesis may change, and `lichess-v2.mjs`, the instrument the app first shipped, frozen. |
 | `reread-check.mjs` | Checks that the archive's stored accuracies come back from their stored per-ply evaluations, which the archive reader relies on to read them again under a newer instrument. |
+| `reread-tablebase-audit.mjs` | Counts tablebase exposure in the re-read sample without engine runs, comparing the current and historical app eligibility filters. Its aggregate report is `results/reread-tablebase-audit.md`; per-game diagnostics stay under `private/lab-audit/accuracy-reread/`. |
 | `reproduce.mjs` | Reruns the three instruments the hill-climb compared, as candidates of the pinned app on rebuilt evidence, and the re-read check, beside the recorded numbers. |
 | `hillclimb/` | The hill-climb's record: what each round changed (`v1/`, with the instruments before and after; `v2/`, the merge), what the metrics mean, where it stands, and the brief its researchers worked from. |
 | `paper/` | The paper. |
@@ -42,6 +43,14 @@ The cases, chess.com's numbers, the evidence and every variant's rows name
 the player's games, so they stay under `private/accuracy-vs-chesscom/`.
 `results/reproduction.{md,json}` hold aggregates only. The evidence is shared:
 the explain, judge and Maia projects read it too.
+
+The audit of the frozen instrument's eligibility filter reads the stored
+archive only. Run it with
+`bridge/run.sh projects/accuracy-vs-chesscom/reread-tablebase-audit.mjs`.
+It writes separate aggregates and leaves the published reproduction and
+the study's rule unchanged. Its report distinguishes stored tablebase
+positions from the ply records the accuracy filter reads, and states the
+limits of checking a historical sample from the available archive.
 
 To try a thesis, copy `models/current.mjs`, override one hook, and score it
 with `explore.mjs --model ./my-model.mjs`. One that helps there becomes a

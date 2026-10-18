@@ -1,0 +1,65 @@
+{
+  "eval": "accuracy archive re-read tablebase exposure",
+  "appCommit": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+  "recordsCommit": "aed714ada579782ce73630596e59c8b65e74cb30",
+  "historicalInstrument": "hillclimb/v1/accuracy.before.ts",
+  "historicalInstrumentSha256": "373f02f83111cf9310dff5126e8b5b082aa1260699b6f8808d06733046aeb49d",
+  "sample": "archive rows selected by reread-check.mjs; both acc2 sides v2-tagged or untagged, successfully read by the pinned app",
+  "counts": {
+    "archiveRows": 235,
+    "archiveSides": 470,
+    "scoredArchiveRows": 233,
+    "scoredArchiveSides": 466,
+    "scoredPlyRecords": 15162,
+    "scoredStoredTablebasePositions": 493,
+    "scoredTablebasePlyRecords": 0,
+    "archiveReadFailures": 0,
+    "sameRowsInRecordsCheckout": 235,
+    "rowsWithStoredTablebasePositions": 24,
+    "storedTablebasePositions": 493,
+    "restoredPositionsWithTablebase": 493,
+    "restoredPlyRecords": 15166,
+    "rowsWithTablebasePlyRecords": 0,
+    "tablebasePlyRecords": 0,
+    "currentGradedPlyRecords": 13968,
+    "historicalGradedPlyRecords": 13968,
+    "eligibilityDifferences": 0,
+    "changedAccuracySides": 0,
+    "maxAbsoluteAccuracyChange": 0
+  },
+  "committedReread": {
+    "recorded": {
+      "sides": 454,
+      "mae": 0.34,
+      "p90": 1.04
+    },
+    "rerun": {
+      "holds": true,
+      "sides": 466,
+      "mae": 0.38,
+      "p90": 1.16,
+      "max": 6.98,
+      "within05": 0.76,
+      "untaggedMae": 0.03,
+      "taggedMae": 0.92,
+      "untaggedSides": 286,
+      "taggedSides": 180,
+      "leftOut": {
+        "coach-accuracy/3-lichess-derived-tablebase": 14,
+        "coach-accuracy/4-plain-mean-steep-tablebase": 28
+      }
+    },
+    "rule": {
+      "mae": 0.5,
+      "p90": 1.5
+    }
+  },
+  "presentReread": {
+    "sides": 466,
+    "mae": 0.3750800625384145,
+    "p90": 1.161680745601842,
+    "primary": "B",
+    "holds": true
+  },
+  "historicalSampleLimit": "The original 454-side membership and the 466-side reproduction membership are not retained in the cached research records. Their aggregates alone cannot certify equality with the present sample."
+}
