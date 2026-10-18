@@ -1,0 +1,24 @@
+{
+  "project": "detector-themes",
+  "round": 2,
+  "phase": 3,
+  "candidate": "best-deflection-trapped",
+  "priority": [
+    "trappedPiece",
+    "deflection"
+  ],
+  "rationale": "Preserve every existing themeOfBest priority; extend its describeMove gain stage with the unchanged trapped-piece collection proof, then try the supplementary deflection line reader, before defensiveMove and phase. The pin does not itself rank the two new words.",
+  "availabilityDefinition": "A new word is available when its independent candidate emits that word for the same puzzle, after the existing higher-priority tactics. Both means best-deflection emits deflection and best-trapped emits trappedPiece. This does not count raw findings hidden by an earlier tactic.",
+  "selectionDefinition": "Use the first available word in priority; if neither is available, use the pinned label. Assert this composition on every paired puzzle.",
+  "rule": {
+    "draws": 2000,
+    "seed": 20261014,
+    "confidence": 0.95,
+    "agreementLowerAbove": 0,
+    "disagreementUpperAtMost": 0.01
+  },
+  "bootstrap": "Paired puzzles with replacement; original set size per draw; Mulberry32 seed restarted for each set; same draws for both indicators; sorted endpoints floor(0.025 B) and floor(0.975 B).",
+  "multiplicity": "No multiple-comparison correction; same fixed rule as the independent candidates.",
+  "decision": "Keep only when both app and heldout pass. A failed combined test does not support this combined port. Overlap counts are descriptive and add no threshold.",
+  "priorEvidence": "Individual held-out outcomes have already been observed. This tests the requested fixed combination on those same sets; no search over priorities is allowed."
+}

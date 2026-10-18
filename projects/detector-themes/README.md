@@ -96,6 +96,7 @@ disagreement does not rise (the interval's upper end at or below one point).
 | `describe-first` | `best` | Kept in the earlier round; shipped | Before the defensive fallback, name a skewer, a discovered attack or a pin when the move describer finds one for the mover. |
 | `best-deflection` | `best` | Kept; candidate for the app | Before defence or phase, name the existing line reader's deflection when the supplied solution begins with this move. |
 | `best-trapped` | `best` | Kept; candidate for the app | Before defence or phase, name the describer's trapped piece when the supplied line wins that same piece after costs. |
+| `best-deflection-trapped` | `best` | Fixed before scoring; awaiting the combined test | Before defence or phase, name the existing trapped-piece proof first, then the deflection proof. |
 
 ## Round two: development, then the held-out test
 
@@ -314,3 +315,54 @@ candidate=$(projects/detector-themes/candidate.sh best-trapped)
 (cd "$candidate" && nice -n 10 node_modules/.bin/vitest run --project fast --maxWorkers 1 src/services/knowledge/detectors/theme.test.ts src/services/knowledge/detectors/insights/insights.test.ts src/services/publishing/decks/themeLine.test.ts tests/architecture)
 (cd "$candidate" && nice -n 10 node_modules/.bin/tsc -p tsconfig.app.json --noEmit --incremental false)
 ```
+
+## The combined port candidate, fixed before scoring
+
+Phase three measures `best-deflection-trapped` against the same pinned app,
+on the same app pool and held-out sample, by the unchanged keep rule above.
+The individual results have already been seen. This is the requested test of
+combining their code, not a fresh unseen test of the individual ideas. There
+is one combined candidate and no search over its order.
+
+Keep every existing `themeOfBest` priority. After skewer, discovered attack
+and pin, try trapped piece, then deflection, then the existing defensive and
+phase fallbacks. The pin has neither new word, so it cannot prescribe their
+literal order. It already consumes the move describer's gains at this point.
+We extend that stage with its trapped-piece finding and unchanged collection
+proof, before trying the supplementary deflection line reader. This is the
+new tie-break, fixed from the code's existing stages before any combined
+score or overlap count. Both proofs stay unchanged. The shared publisher
+stays byte-identical; the theme tests contain both changes and a priority
+check, beside the publisher test.
+
+For the overlap count, a word is available when its independent candidate
+emits that added word for the same puzzle. Thus both are available when
+`best-deflection` says `deflection` and `best-trapped` says `trappedPiece`.
+This is availability after the existing higher-priority tactics, not every
+raw reader finding that an earlier tactic may hide. Count neither, only
+deflection, only trapped piece, and both; check the combined label against
+the registered order on every puzzle. When both are available, trapped piece
+must win. These descriptive counts have no additional decision threshold.
+
+`freeze-combined.mjs` writes `results/round2/combined-design.json` before
+any combined score. It binds the candidate, tests, wrapper, scorer, comparator,
+overlap script, sample and previous score aggregates by SHA256. It refuses
+to create a new manifest after combined work exists. Later runs only verify
+that manifest. No new lab commit id is used as the freeze. The old candidates,
+scorer, comparator and sample stay unchanged; `candidate.sh` only adds the
+combined name to its accepted names. A failed combined keep test means do
+not propose this combined port, even though the individual changes passed.
+
+```bash
+node projects/detector-themes/freeze-combined.mjs
+projects/detector-themes/run-combined.sh app
+projects/detector-themes/run-combined.sh heldout
+nice -n 10 bridge/run.sh projects/detector-themes/compare.mjs best-deflection-trapped best --round2
+nice -n 10 node projects/detector-themes/overlap-combined.mjs
+nice -n 10 bridge/run.sh projects/detector-themes/report-round2.mjs
+nice -n 10 bridge/run.sh projects/detector-themes/paper/generate.mjs --round2
+```
+
+`run-combined.sh` verifies the frozen content and binds resumed work to the
+manifest hash. Run each command to completion before the next. Scoring uses the existing
+pair of `nice -n 10` workers; comparison runs after they have both exited.

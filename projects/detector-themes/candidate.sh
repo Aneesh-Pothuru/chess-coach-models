@@ -2,8 +2,8 @@
 # Build a round-two replacement copy through the lab bridge.
 set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-name="${1:?usage: candidate.sh best-deflection|best-trapped}"
-case "$name" in best-deflection|best-trapped) ;; *) echo "unknown candidate" >&2; exit 2;; esac
+name="${1:?usage: candidate.sh best-deflection|best-trapped|best-deflection-trapped}"
+case "$name" in best-deflection|best-trapped|best-deflection-trapped) ;; *) echo "unknown candidate" >&2; exit 2;; esac
 files="$root/projects/detector-themes/candidates/$name"
 # The supplied .cache/chess may point to a shared cache; candidate writes stay here.
 app="$(env -u CHESS_DIR "$root/bridge/checkout.sh")"
