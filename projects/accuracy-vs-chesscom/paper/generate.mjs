@@ -16,7 +16,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { Chess } from 'chess.js'
 import { LAB_DIR, chess, hillclimbDir, privateDir, records, resultsDir } from '../../../bridge/lib/chess.mjs'
-import { Generated, board, esc, figurine, fixed, movesTex } from '../../paper.mjs'
+import { Generated, board, esc, figurine, fixed } from '../../paper.mjs'
 import { summarize } from '../summarize.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
@@ -221,8 +221,6 @@ if (Math.abs((weighted + harmonic) / 2 - baseAcc) > 1e-9) throw new Error('the b
 if (Math.abs(baseAcc - pick.base) > 1e-6 || Math.abs(appAcc - pick.app) > 1e-6) throw new Error('the example does not recompute to the reproduction')
 const worst = gradedBase.reduce((a, b) => (b.r.lossPct > a.r.lossPct ? b : a))
 const fen = doc.fens[worst.i]
-const sans = doc.records.map((r) => r.san)
-const startFen = doc.fens[0]
 const sideName = color === 'w' ? 'White' : 'Black'
 const numbered = (mover, n, san) => (mover === 'w' ? `${n}.~` : `${n}\\ldots{}`) + figurine(san)
 const moveLabel = (r) => numbered(r.mover, r.moveNumber, r.san)
@@ -239,7 +237,6 @@ g.input('ExampleGame', 'example-game', [
   board(fen, { played: worst.r.uci, better: worst.r.bestUci, size: '13pt' }),
   '\\end{minipage}\\hfill',
   '\\begin{minipage}[t]{0.56\\textwidth}\\vspace{0pt}\\small',
-  `\\textbf{The game:} ${movesTex(startFen, sans)}\\par`,
   `\\textbf{Played:} ${moveLabel(worst.r)} (red); the engine's best was ${numbered(worst.r.mover, worst.r.moveNumber, bestSan)} (green).\\par`,
   `\\textbf{UCI:} \\uci{${worst.r.uci}}; best \\uci{${worst.r.bestUci}}\\par`,
   `\\textbf{FEN:} \\fen{${fen}}`,
@@ -248,9 +245,9 @@ g.input('ExampleGame', 'example-game', [
   '\\smallskip\\small',
   '\\begin{tabular}{lrrr}',
   '\\toprule',
-  `${sideName}'s graded move & win\\% lost & Lichess curve & steep curve \\\\`,
+  `${sideName}'s worst move & win\\% lost & Lichess curve & steep curve \\\\`,
   '\\midrule',
-  ...gradedBase.map(({ r }) => `${moveLabel(r)} & ${fixed(r.lossPct)} & ${fixed(base.moveAccuracy(r.lossPct))} & ${fixed(app.moveAccuracy(r.lossPct))} \\\\`),
+  `${moveLabel(worst.r)} & ${fixed(worst.r.lossPct)} & ${fixed(base.moveAccuracy(worst.r.lossPct))} & ${fixed(app.moveAccuracy(worst.r.lossPct))} \\\\`,
   '\\midrule',
   `\\multicolumn{2}{l}{the side's accuracy} & ${fixed(baseAcc)} & ${fixed(appAcc)} \\\\`,
   '\\bottomrule',
