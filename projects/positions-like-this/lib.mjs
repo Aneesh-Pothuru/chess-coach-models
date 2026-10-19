@@ -462,3 +462,19 @@ export function topOf(policy) {
 export async function* linesOfAll(files) {
   for (const file of files) yield* linesOf(file)
 }
+
+export function distanceParts(q, sizes, e) {
+  const pawns =
+    popcount(q.pawns[0] ^ e.pawns[0]) +
+    popcount(q.pawns[1] ^ e.pawns[1]) +
+    popcount(q.pawns[2] ^ e.pawns[2]) +
+    popcount(q.pawns[3] ^ e.pawns[3])
+  const kings = KING_COST[q.kings[0] * 64 + e.kings[0]] + KING_COST[q.kings[1] * 64 + e.kings[1]]
+  let pieces = 0
+  let at = 0
+  for (const k of sizes) {
+    if (k > 0) pieces += groupCost(q.slots, at, e.slots, at, k)
+    at += k
+  }
+  return { pawns, pieces, kings }
+}
