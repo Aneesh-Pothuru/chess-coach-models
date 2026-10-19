@@ -112,10 +112,12 @@ Named before the first run, these looks decide nothing, but they show what one o
 (Table~\ref{tab:looks}, Figure~\ref{fig:looks}). Maia-2 predicts the player's own moves best at
 \BestHim{} (\BestHimLo{} to \BestHimHi{} over the draws) and his opponents' best at \BestOpp{}
 (\BestOppLo{} to \BestOppHi); the two intervals do not overlap. By the movers' rating, the
-weakest third (\LowFrom{} to \LowTo) fits best at \LowBest, and the two stronger thirds at
-\AppOffset, like the moves as a whole. The gains a part's own best offset would bring over \AppOffset{} are
-small: \GainHim{} per move for the player's moves, \GainOpp{} for his opponents' and \GainLow{}
-for the weakest third.
+weakest third (\LowFrom{} to \LowTo) fits best at \LowBest{} (\LowLo{} to \LowHi), an interval
+that leaves \AppOffset{} out; the middle third fits best at \MidBest{} (\MidLo{} to \MidHi) and
+the strongest at \HighBest{} (\HighLo{} to \HighHi), and both intervals hold \AppOffset, like
+the moves as a whole. The gains a part's own best offset would bring over \AppOffset{} are
+small: \GainHim{} per move for the player's moves, \GainOpp{} for his opponents', \GainLow{}
+for the weakest third and \GainHigh{} for the strongest.
 
 One offset moves both players at once, so it cannot follow the split: every offset that fits his
 opponents better than \AppOffset{} fits him worse, and every one that fits him better fits them

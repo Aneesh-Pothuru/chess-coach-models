@@ -93,10 +93,12 @@ const tops = r.top1.all
 g.def('TopMin', percent(Math.min(...tops), 1)).def('TopMax', percent(Math.max(...tops), 1))
 // The looks beside it: the gains a different offset would bring each part, against the app's.
 const gain = (c) => Math.max(...c) - c[bi]
-g.def('GainHim', fixed(gain(r.curve.him), 4)).def('GainOpp', fixed(gain(r.curve.opponents), 4)).def('GainLow', fixed(gain(r.byRating[0].curve), 4))
+g.def('GainHim', fixed(gain(r.curve.him), 4)).def('GainOpp', fixed(gain(r.curve.opponents), 4)).def('GainLow', fixed(gain(r.byRating[0].curve), 4)).def('GainHigh', fixed(gain(r.byRating[2].curve), 4))
 if (!(r.bestBySide.him.interval[1] < r.bestBySide.opponents.interval[0])) throw new Error("the player's and his opponents' intervals overlap: the paper says they do not")
 if (!(r.bestBySide.him.offset < r.base && r.bestBySide.opponents.offset > r.base)) throw new Error('the sides no longer pull apart around the app\'s offset')
-if (!(r.byRating[0].best > r.base && r.byRating[1].best === r.base && r.byRating[2].best === r.base)) throw new Error('the thirds no longer read as the paper says')
+// The paper says the weakest third's interval leaves the app's offset out and the two stronger thirds' intervals hold it.
+const holds = (x) => x.interval[0] <= r.base && r.base <= x.interval[1]
+if (!(r.byRating[0].best > r.base && r.byRating[0].interval[0] > r.base && holds(r.byRating[1]) && holds(r.byRating[2]))) throw new Error('the thirds no longer read as the paper says')
 // The paper says no offset fits both sides better than the app's: whatever helps one side hurts the other.
 r.offsets.forEach((o, oi) => {
   if (oi === bi) return
