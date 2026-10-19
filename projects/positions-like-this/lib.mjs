@@ -478,3 +478,69 @@ export function distanceParts(q, sizes, e) {
   }
   return { pawns, pieces, kings }
 }
+
+export function rowsOf(dir, readdirSync) {
+  const read = (prefix) =>
+    readdirSync(dir)
+      .filter((f) => f.startsWith(`${prefix}-`) && /-of-\d+\.jsonl$/.test(f))
+      .flatMap((f) => readJsonl(`${dir}/${f}`))
+  const movesOf = (r, arms) => arms.flatMap((a) => r[a].map((m) => m.move))
+  const exact = (r, moves) => moves.every((m) => r.scores[m]?.exact === true)
+  const hisRows = read('his')
+  const strongRows = read('strong')
+  const hisScored = hisRows.filter((r) => r.status === 'scored')
+  const strongScored = strongRows.filter((r) => r.status === 'scored')
+  return {
+    hisRows,
+    hisScored,
+    his: hisScored.filter((r) => exact(r, [...movesOf(r, ['T', 'R', 'R2']), r.natural, r.above, r.played])),
+    strongRows,
+    strongScored,
+    strong: strongScored.filter((r) => exact(r, [...movesOf(r, ['T', 'R']), r.twin])),
+  }
+}
+
+export const soundOf = (r, uci) => (r.scores[uci].sound ? 1 : 0)
+export const shareOf = (r, arm) => r[arm].reduce((s, m) => s + soundOf(r, m.move), 0) / ARM
+
+export function interval(xs) {
+  const s = xs.filter(Number.isFinite).sort((a, b) => a - b)
+  if (s.length < 0.95 * xs.length || s.length === 0) return null
+  return [s[Math.floor(0.025 * (s.length - 1))], s[Math.ceil(0.975 * (s.length - 1))]]
+}
+
+export function boot(units, valuesOf, seed) {
+  const vals = units.map((u) => u.map(valuesOf))
+  const names = Object.keys(vals.find((u) => u.length)?.[0] ?? {})
+  const meanOf = (list) => {
+    const out = Object.fromEntries(names.map((k) => [k, 0]))
+    let n = 0
+    for (const u of list) {
+      for (const v of u) {
+        for (const k of names) out[k] += v[k]
+        n++
+      }
+    }
+    for (const k of names) out[k] = n ? out[k] / n : null
+    return { n, ...out }
+  }
+  const point = meanOf(vals)
+  const rnd = mulberry32(seed)
+  const draws = []
+  for (let d = 0; d < DRAWS; d++) draws.push(meanOf(vals.map(() => vals[Math.floor(rnd() * vals.length)])))
+  return Object.fromEntries([
+    ['n', point.n],
+    ['units', units.length],
+    ...names.map((k) => [k, { value: point[k], ci: interval(draws.map((x) => x[k])) }]),
+  ])
+}
+
+export function byGame(rows) {
+  const m = new Map()
+  for (const r of rows) {
+    const list = m.get(r.gi ?? r.game)
+    if (list) list.push(r)
+    else m.set(r.gi ?? r.game, [r])
+  }
+  return [...m.values()]
+}

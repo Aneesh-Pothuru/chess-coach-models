@@ -1,36 +1,20 @@
 import { readdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { privateDir, resultsDir } from '../../bridge/lib/chess.mjs'
-import { ARM, DISTANCE_BINS, DRAWS, HARD, MIN_POSITIONS, PROJECT, SEED, argOf, mulberry32, readJsonl } from './lib.mjs'
+import { ARM, DISTANCE_BINS, HARD, MIN_POSITIONS, PROJECT, SEED, argOf, boot, byGame, rowsOf, shareOf, soundOf } from './lib.mjs'
 
 const dir = privateDir(PROJECT)
 const out = argOf('--out', resultsDir(PROJECT))
-const rowsOf = (prefix) =>
-  readdirSync(dir)
-    .filter((f) => f.startsWith(`${prefix}-`) && /-of-\d+\.jsonl$/.test(f))
-    .flatMap((f) => readJsonl(join(dir, f)))
 
 const HALVES = [0, 1]
-const hisRows = rowsOf('his')
-const strongRows = rowsOf('strong')
+const { hisRows, hisScored, his, strongRows, strongScored, strong } = rowsOf(dir, readdirSync)
 
 const tally = (rows, key) => rows.reduce((acc, r) => ({ ...acc, [r[key]]: (acc[r[key]] ?? 0) + 1 }), {})
-const movesOf = (r, arms) => arms.flatMap((a) => r[a].map((m) => m.move))
-const exact = (r, moves) => moves.every((m) => r.scores[m]?.exact === true)
-const soundOf = (r, uci) => (r.scores[uci].sound ? 1 : 0)
-const shareOf = (r, arm) => r[arm].reduce((s, m) => s + soundOf(r, m.move), 0) / ARM
 const anySound = (r, arm) => (r[arm].some((m) => soundOf(r, m.move) === 1) ? 1 : 0)
 const lostOf = (r, arm) => r[arm].reduce((s, m) => s + Math.max(0, r.scores[m.move].lost), 0) / ARM
 const bestOf = (r, arm) => r[arm].filter((m) => m.move === r.best).length / ARM
 const newTo = (r, arm) =>
   r[arm].some((m) => soundOf(r, m.move) === 1 && m.move !== r.played && r.scores[m.move].pHis < HARD) ? 1 : 0
-
-const hisScored = hisRows.filter((r) => r.status === 'scored')
-const hisMoves = (r) => [...movesOf(r, ['T', 'R', 'R2']), r.natural, r.above, r.played]
-const his = hisScored.filter((r) => exact(r, hisMoves(r)))
-const strongScored = strongRows.filter((r) => r.status === 'scored')
-const strongMoves = (r) => [...movesOf(r, ['T', 'R']), r.twin]
-const strong = strongScored.filter((r) => exact(r, strongMoves(r)))
 
 const hisValues = (r) => ({
   T: shareOf(r, 'T'),
@@ -63,48 +47,6 @@ const strongValues = (r) => ({
   bestT: bestOf(r, 'T'),
   bestR: bestOf(r, 'R'),
 })
-
-const interval = (xs) => {
-  const s = xs.filter(Number.isFinite).sort((a, b) => a - b)
-  if (s.length < 0.95 * xs.length || s.length === 0) return null
-  return [s[Math.floor(0.025 * (s.length - 1))], s[Math.ceil(0.975 * (s.length - 1))]]
-}
-
-function boot(units, valuesOf, seed) {
-  const vals = units.map((u) => u.map(valuesOf))
-  const names = Object.keys(vals.find((u) => u.length)?.[0] ?? {})
-  const meanOf = (list) => {
-    const out = Object.fromEntries(names.map((k) => [k, 0]))
-    let n = 0
-    for (const u of list) {
-      for (const v of u) {
-        for (const k of names) out[k] += v[k]
-        n++
-      }
-    }
-    for (const k of names) out[k] = n ? out[k] / n : null
-    return { n, ...out }
-  }
-  const point = meanOf(vals)
-  const rnd = mulberry32(seed)
-  const draws = []
-  for (let d = 0; d < DRAWS; d++) draws.push(meanOf(vals.map(() => vals[Math.floor(rnd() * vals.length)])))
-  return Object.fromEntries([
-    ['n', point.n],
-    ['units', units.length],
-    ...names.map((k) => [k, { value: point[k], ci: interval(draws.map((x) => x[k])) }]),
-  ])
-}
-
-const byGame = (rows) => {
-  const m = new Map()
-  for (const r of rows) {
-    const list = m.get(r.gi ?? r.game)
-    if (list) list.push(r)
-    else m.set(r.gi ?? r.game, [r])
-  }
-  return [...m.values()]
-}
 
 const halfRows = HALVES.map((h) => his.filter((r) => r.half === h))
 const main = halfRows.map((rows, h) => boot(byGame(rows), hisValues, SEED + h))

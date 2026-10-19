@@ -162,6 +162,20 @@ for i in 0 1 2 3; do bridge/run.sh projects/his-habits/lichess.mjs --shard $i/4 
 bridge/run.sh projects/his-habits/analyze.mjs
 bridge/run.sh projects/his-habits/describe.mjs
 
+# Positions like this: the first 400,000 Lichess games between players rated
+# 2200 or more as an index of positions, his quiet positions matched against it,
+# and the matches' moves refereed by Stockfish. The scorers hold the index in
+# memory and resume where they stopped.
+python3 projects/positions-like-this/stream.py
+for i in 0 1 2 3; do bridge/run.sh projects/positions-like-this/index.mjs --shard $i/4 & done; wait
+bridge/run.sh projects/positions-like-this/index.mjs --summary
+bridge/run.sh projects/positions-like-this/positions.mjs
+NODE_OPTIONS=--max-old-space-size=12000 bridge/run.sh projects/positions-like-this/coverage.mjs
+for i in 0 1 2 3; do NODE_OPTIONS=--max-old-space-size=6000 bridge/run.sh projects/positions-like-this/score.mjs --shard $i/4 & done; wait
+for i in 0 1 2 3; do NODE_OPTIONS=--max-old-space-size=6000 bridge/run.sh projects/positions-like-this/strong.mjs --shard $i/4 & done; wait
+bridge/run.sh projects/positions-like-this/analyze.mjs
+NODE_OPTIONS=--max-old-space-size=6000 bridge/run.sh projects/positions-like-this/describe.mjs
+
 # The learner's solve chances: his puzzle attempts replayed through the app's
 # learner, on a record rebuilt from the memory cards and on the profile as the
 # app holds it.

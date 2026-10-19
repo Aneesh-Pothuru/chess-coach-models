@@ -11,8 +11,28 @@ players so alike that the strong player's move is also sound in his, more
 often than the move of a strong player from a position that only has the same
 pieces?
 
-**The answer.** Not run yet. The rule below was committed before any move was
-scored.
+**The answer.** Likeness works, by the rule below, which was committed before
+any move was scored, but far too weakly to give advice. Both controls passed.
+In his quiet positions, the strong players' moves from the three nearest
+positions are sound more often than the moves from random positions with the
+same pieces, on both halves of his games, by about six points. Yet they are
+sound in only about a quarter of his positions: about half as often as his own
+move, and less often than Maia-2's most likely move at his band. A match's move
+is sound more often the nearer its position, but most of his positions have no
+match nearer than 10, and the few with one within 2 do no better there than
+Maia-2's move.
+
+Added after the rule was applied: cutting the index to its first games shows
+that near matches grow only slowly with its size, the median distance of his
+nearest match falling by about one for each doubling. The lift is largest in
+the middlegame and where the app names the pawn structure, so what carries from
+a strong player's game is more likely the plan the structure calls for than the
+next move; a next round can match on the structure and test a plan, with its
+rule fixed first. The app takes no search for similar positions. The numbers
+are in [`results/positions-like-this.md`](results/positions-like-this.md),
+written by `analyze.mjs`, and
+[`results/descriptions.md`](results/descriptions.md), written by
+`describe.mjs`; the paper is [`paper/paper.pdf`](paper/paper.pdf).
 
 If likeness works, a "this is like..." example in the review or a drill can
 show a strong player's position like his with the move played there, and the
@@ -192,12 +212,12 @@ Added while the moves were being scored, before any result was read:
 - **The same month.** The held-out strong positions come from the same month
   as the index, so the same players can be on both sides; their result
   describes and decides nothing.
-- **A coverage count ran first.** Before this rule was fixed, an index of the
-  first 100,000 games was built and the share of his positions it covers
-  counted, with no move scored. Their nearest matches were far, so the index
-  was grown to 400,000 games. The final index's coverage
-  (`results/coverage.json`) is counted after this rule is committed and before
-  any move is scored.
+- **A coverage count ran first.** Before this rule was fixed, a partial index,
+  the positions of about the first 22,000 games, was built and the share of
+  his positions it covers counted, with no move scored. Their nearest matches
+  were far, so the full index was built from 400,000 games. The final index's
+  coverage (`results/coverage.json`) is counted after this rule is committed
+  and before any move is scored.
 
 ## Who runs it
 
@@ -218,6 +238,8 @@ No language model judges anything here.
 | `score.mjs` | For each of his covered positions: the referee's best, Maia-2's policy at his band and the band above, the arms' moves, and every move's soundness, one shard at a time, resuming where a shard stopped (`private/positions-like-this/his-<i>-of-<n>.jsonl`). |
 | `strong.mjs` | The same for the held-out strong positions, with the twin's move (`private/positions-like-this/strong-<i>-of-<n>.jsonl`). |
 | `analyze.mjs` | Applies the rule and the descriptions; writes `results/positions-like-this.json` and `.md`. |
+| `describe.mjs` | Added after the rule was applied: his positions and the strong players' by the distance of their nearest match, with the nearest match's move beside his own and Maia-2's, and the nearest match's distance as the index is cut to its first games (`results/descriptions.json` and `.md`). |
+| `paper/generate.mjs` | Writes every number, table and position the paper prints into `paper/generated.tex`, and refuses to write when a claim the paper makes no longer holds. |
 
 ## Running it
 
@@ -227,8 +249,14 @@ python3 projects/positions-like-this/stream.py
 for i in 0 1 2 3; do bridge/run.sh projects/positions-like-this/index.mjs --shard $i/4 & done; wait
 bridge/run.sh projects/positions-like-this/index.mjs --summary
 bridge/run.sh projects/positions-like-this/positions.mjs
-bridge/run.sh projects/positions-like-this/coverage.mjs
+NODE_OPTIONS=--max-old-space-size=12000 bridge/run.sh projects/positions-like-this/coverage.mjs
+export NODE_OPTIONS=--max-old-space-size=6000
 for i in 0 1 2 3; do bridge/run.sh projects/positions-like-this/score.mjs --shard $i/4 & done; wait
 for i in 0 1 2 3; do bridge/run.sh projects/positions-like-this/strong.mjs --shard $i/4 & done; wait
 bridge/run.sh projects/positions-like-this/analyze.mjs
+bridge/run.sh projects/positions-like-this/describe.mjs
+bridge/run.sh projects/positions-like-this/paper/generate.mjs
 ```
+
+Each scorer, `coverage.mjs` and `describe.mjs` hold the index positions with
+his sets of pieces in memory, a few gigabytes each, hence the larger heap.

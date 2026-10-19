@@ -1,0 +1,362 @@
+% Written by projects/positions-like-this/paper/generate.mjs; do not edit by hand.
+
+\newcommand{\AppCommit}{f4bd63f19b}
+\newcommand{\MinMen}{eight}
+\newcommand{\ClockFloor}{30}
+\newcommand{\WinLow}{10}
+\newcommand{\WinHigh}{90}
+\newcommand{\Offset}{250}
+\newcommand{\Above}{200}
+\newcommand{\Arm}{three}
+\newcommand{\RandomDraws}{20,000}
+\newcommand{\PieceCap}{2}
+\newcommand{\KingCap}{3}
+\newcommand{\GradeNodes}{250,000}
+\newcommand{\Window}{3}
+\newcommand{\StrongQueries}{1,200}
+\newcommand{\Tries}{three}
+\newcommand{\MinPositions}{300}
+\newcommand{\Hard}{10}
+\newcommand{\Draws}{2,000}
+\newcommand{\HeldOutOneIn}{ten}
+\newcommand{\Games}{647}
+\newcommand{\GamesFirst}{324}
+\newcommand{\GamesSecond}{323}
+\newcommand{\FirstFrom}{July 22}
+\newcommand{\FirstTo}{August 23}
+\newcommand{\SecondFrom}{August 23}
+\newcommand{\SecondTo}{October 15}
+\newcommand{\Candidates}{8,896}
+\newcommand{\CandFirst}{4,492}
+\newcommand{\CandSecond}{4,404}
+\newcommand{\MonthName}{September 2026}
+\newcommand{\Floor}{2200}
+\newcommand{\MinPlies}{30}
+\newcommand{\Cap}{400,000}
+\newcommand{\GamesRead}{23,231,008}
+\newcommand{\Blitz}{365,813}
+\newcommand{\Rapid}{33,040}
+\newcommand{\Classical}{1,147}
+\newcommand{\IndexGames}{359,845}
+\newcommand{\HeldOutGames}{40,155}
+\newcommand{\IndexPositions}{15,792,886}
+\newcommand{\HeldOutPositions}{1,763,748}
+\newcommand{\IndexMillions}{15.8}
+\newcommand{\CoveredFirst}{78}
+\newcommand{\NearMedianFirst}{15}
+\newcommand{\NearTenFirst}{8}
+\newcommand{\BucketMedianFirst}{1,408}
+\newcommand{\NoBucketFirst}{52}
+\newcommand{\CoveredSecond}{84}
+\newcommand{\NearMedianSecond}{14}
+\newcommand{\NearTenSecond}{8}
+\newcommand{\BucketMedianSecond}{2,348}
+\newcommand{\NoBucketSecond}{1}
+\newcommand{\StrongSample}{3,000}
+\newcommand{\StrongCovered}{90}
+\newcommand{\StrongNearMedian}{15}
+\newcommand{\StrongNearTen}{6}
+\newcommand{\CoverageTable}{%
+\begin{table}[ht]
+\centering\small
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+& & & & \multicolumn{4}{c}{Distance of the nearest match} \\
+\cmidrule(lr){5-8}
+& Positions & Covered (\%) & Bucket (median) & 10\% & 25\% & Median & 75\% \\
+\midrule
+His, first half & 4,492 & 77.9 & 1,408 & 8 & 11 & 15 & 18 \\
+His, second half & 4,404 & 84.0 & 2,348 & 8 & 11 & 14 & 18 \\
+Strong players, held out & 3,000 & 89.7 & -- & 6 & 10 & 15 & 18 \\
+\bottomrule
+\end{tabular}
+\caption{How much of each set of positions the index covers, counted before any move was scored: the share of positions for which T, R and R2 (T and R for the strong players' positions) each find three matches whose moves transfer, the number of index positions with the same pieces, and the distance of the nearest match that transfers. The strong players' positions are a sample of the held-out ones.}
+\label{tab:coverage}
+\end{table}
+}
+\newcommand{\ScoredFirst}{2,309}
+\newcommand{\ScoredGamesFirst}{280}
+\newcommand{\NotCoveredFirst}{991}
+\newcommand{\ForcingFirst}{1,159}
+\newcommand{\DecidedFirst}{33}
+\newcommand{\NoExactFirst}{0}
+\newcommand{\InexactFirst}{0}
+\newcommand{\ScoredSecond}{2,498}
+\newcommand{\ScoredGamesSecond}{287}
+\newcommand{\NotCoveredSecond}{703}
+\newcommand{\ForcingSecond}{1,197}
+\newcommand{\DecidedSecond}{6}
+\newcommand{\NoExactSecond}{0}
+\newcommand{\InexactSecond}{0}
+\newcommand{\StrongPositions}{1,200}
+\newcommand{\StrongTried}{1,311}
+\newcommand{\StrongInexact}{0}
+\newcommand{\ArmTable}{%
+\begin{table}[ht]
+\centering\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+Move & First half & Second half \\
+\midrule
+Positions (games) & 2,309 (280) & 2,498 (287) \\
+\midrule
+T, the matches & 26.8 {\scriptsize(25.0, 28.7)} & 27.3 {\scriptsize(25.3, 29.3)} \\
+R, random matches & 20.8 {\scriptsize(19.1, 22.4)} & 21.6 {\scriptsize(19.8, 23.5)} \\
+R2, a second draw & 21.1 {\scriptsize(19.4, 22.9)} & 21.1 {\scriptsize(19.2, 23.0)} \\
+N, his band & 60.7 {\scriptsize(58.3, 63.1)} & 64.9 {\scriptsize(62.2, 67.6)} \\
+U, the band above & 62.4 {\scriptsize(60.0, 64.8)} & 65.6 {\scriptsize(62.9, 68.4)} \\
+A, his move & 52.0 {\scriptsize(49.7, 54.1)} & 55.3 {\scriptsize(52.8, 58.0)} \\
+\midrule
+Lift, T minus R (points) & 6.1 {\scriptsize(4.6, 7.5)} & 5.8 {\scriptsize(4.4, 7.2)} \\
+Null, R2 minus R (points) & 0.3 {\scriptsize($-$0.8, 1.5)} & $-$0.5 {\scriptsize($-$1.5, 0.6)} \\
+\bottomrule
+\end{tabular}
+\caption{The share of each arm's moves that are sound in his positions, in \%, with its 95\% interval, and the lift and the null in points. A move is sound when it gives up no more than 3 win\% against Stockfish's best.}
+\label{tab:arms}
+\end{table}
+}
+\newcommand{\DistanceTable}{%
+\begin{table}[ht]
+\centering\footnotesize
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{@{}lrlrrlrrlr@{}}
+\toprule
+& \multicolumn{3}{c}{His, first half} & \multicolumn{3}{c}{His, second half} & \multicolumn{3}{c}{Strong players, held out} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}
+Distance & Matches & Sound (\%) & From T & Matches & Sound (\%) & From T & Matches & Sound (\%) & From T \\
+\midrule
+0 to 2 & 38 & 73.7 {\scriptsize(50.0, 89.5)} & 100 & 44 & 75.0 {\scriptsize(55.6, 90.2)} & 100 & 122 & 87.7 {\scriptsize(81.0, 93.3)} & 100 \\
+3 to 5 & 158 & 57.6 {\scriptsize(47.1, 66.9)} & 100 & 177 & 53.1 {\scriptsize(43.6, 62.3)} & 100 & 173 & 59.0 {\scriptsize(50.0, 68.5)} & 100 \\
+6 to 9 & 733 & 43.9 {\scriptsize(39.3, 48.6)} & 100 & 787 & 44.2 {\scriptsize(39.2, 49.3)} & 99 & 427 & 45.9 {\scriptsize(40.5, 51.6)} & 99 \\
+10 or more & 12,925 & 22.1 {\scriptsize(20.5, 23.7)} & 46 & 13,980 & 22.8 {\scriptsize(21.2, 24.6)} & 46 & 6,478 & 21.2 {\scriptsize(19.7, 22.7)} & 44 \\
+\bottomrule
+\end{tabular}
+\caption{Every T and R match by its own distance from the position: how many there are, the share whose move is sound, and the share of them, in \%, that come from T. Intervals resample the games.}
+\label{tab:distance}
+\end{table}
+}
+\newcommand{\SplitTable}{%
+\begin{table}[ht]
+\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}llrlll@{}}
+\toprule
+Half & Positions of & $n$ & T (\%) & R (\%) & Lift (points) \\
+\midrule
+First & Endgame & 621 & 29.0 {\scriptsize(24.9, 33.5)} & 26.1 {\scriptsize(22.3, 29.6)} & 3.0 {\scriptsize(0.4, 5.6)} \\
+First & Middlegame & 1,688 & 26.0 {\scriptsize(24.1, 28.0)} & 18.8 {\scriptsize(17.0, 20.6)} & 7.2 {\scriptsize(5.4, 9.0)} \\
+First & A structure the app names & 645 & 31.1 {\scriptsize(27.7, 34.5)} & 21.0 {\scriptsize(18.4, 23.8)} & 10.1 {\scriptsize(7.1, 12.9)} \\
+First & No named structure & 1,664 & 25.2 {\scriptsize(23.0, 27.3)} & 20.7 {\scriptsize(18.5, 22.8)} & 4.5 {\scriptsize(2.9, 6.2)} \\
+Second & Endgame & 648 & 29.7 {\scriptsize(25.7, 34.0)} & 27.1 {\scriptsize(23.1, 31.7)} & 2.6 {\scriptsize($-$0.3, 5.5)} \\
+Second & Middlegame & 1,850 & 26.5 {\scriptsize(24.6, 28.5)} & 19.6 {\scriptsize(17.9, 21.4)} & 6.9 {\scriptsize(5.4, 8.5)} \\
+Second & A structure the app names & 706 & 30.7 {\scriptsize(27.5, 34.3)} & 22.0 {\scriptsize(19.1, 25.0)} & 8.8 {\scriptsize(6.5, 11.3)} \\
+Second & No named structure & 1,792 & 26.0 {\scriptsize(23.7, 28.3)} & 21.4 {\scriptsize(19.3, 23.4)} & 4.6 {\scriptsize(2.9, 6.3)} \\
+\midrule
+Strong & Endgame & 322 & 33.9 {\scriptsize(29.9, 37.6)} & 28.3 {\scriptsize(24.2, 32.0)} & 5.6 {\scriptsize(2.4, 8.8)} \\
+Strong & Middlegame & 878 & 27.6 {\scriptsize(25.4, 30.0)} & 17.0 {\scriptsize(15.3, 18.9)} & 10.6 {\scriptsize(8.4, 12.8)} \\
+\bottomrule
+\end{tabular}
+\caption{T's and R's soundness and the lift by the divider's phase of the position and by whether the app names its pawn structure, with 95\% intervals.}
+\label{tab:splits}
+\end{table}
+}
+\newcommand{\MoreTable}{%
+\begin{table}[ht]
+\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}llll@{}}
+\toprule
+& His, first half & His, second half & Strong players \\
+\midrule
+Win\% given up, T & 15.53 {\scriptsize(14.72, 16.32)} & 15.33 {\scriptsize(14.54, 16.14)} & 15.15 {\scriptsize(14.39, 15.92)} \\
+Win\% given up, R & 16.48 {\scriptsize(15.67, 17.30)} & 16.38 {\scriptsize(15.55, 17.18)} & 17.14 {\scriptsize(16.43, 17.88)} \\
+Win\% given up, R2 & 16.53 {\scriptsize(15.71, 17.35)} & 16.50 {\scriptsize(15.70, 17.32)} & -- \\
+Win\% given up, his move & 6.07 {\scriptsize(5.66, 6.49)} & 5.74 {\scriptsize(5.33, 6.19)} & -- \\
+\midrule
+The best move, T (\%) & 7.4 {\scriptsize(6.6, 8.3)} & 7.0 {\scriptsize(6.3, 7.8)} & 9.6 {\scriptsize(8.5, 10.7)} \\
+The best move, R (\%) & 4.2 {\scriptsize(3.7, 4.8)} & 3.2 {\scriptsize(2.7, 3.6)} & 4.2 {\scriptsize(3.5, 4.9)} \\
+\midrule
+New to him, T (\%) & 29.4 {\scriptsize(27.1, 31.9)} & 29.9 {\scriptsize(27.3, 32.5)} & -- \\
+New to him, R (\%) & 28.9 {\scriptsize(26.4, 31.3)} & 29.9 {\scriptsize(27.5, 32.4)} & -- \\
+\midrule
+His move unsound: positions & 1,108 & 1,116 & -- \\
+\quad some T move sound (\%) & 34.9 {\scriptsize(31.5, 38.2)} & 36.9 {\scriptsize(33.6, 40.4)} & -- \\
+\quad some R move sound (\%) & 28.6 {\scriptsize(26.0, 31.4)} & 27.2 {\scriptsize(24.8, 29.8)} & -- \\
+\bottomrule
+\end{tabular}
+\caption{The mean win\% each arm's moves give up against Stockfish's best (a move that scores above it gives up none); the share of each arm's moves that are the best; the share of positions where a move of the arm is sound, is not his move and has under 10\% at his band by Maia-2; and, where his own move is not sound, the share of positions where at least one of the arm's moves is. 95\% intervals.}
+\label{tab:more}
+\end{table}
+}
+\newcommand{\ScoredAll}{4,807}
+\newcommand{\TwinSound}{66.6}
+\newcommand{\TwinSoundCi}{63.9 to 69.3}
+\newcommand{\TwinR}{20.1}
+\newcommand{\TwinRCi}{18.5 to 21.7}
+\newcommand{\TwinLift}{46.5}
+\newcommand{\TwinLiftCi}{43.6 to 49.2}
+\newcommand{\NullFirst}{0.3}
+\newcommand{\NullFirstCi}{$-$0.8 to 1.5}
+\newcommand{\NullSecond}{$-$0.5}
+\newcommand{\NullSecondCi}{$-$1.5 to 0.6}
+\newcommand{\TFirst}{26.8}
+\newcommand{\RFirst}{20.8}
+\newcommand{\RTwoFirst}{21.1}
+\newcommand{\AFirst}{52.0}
+\newcommand{\NFirst}{60.7}
+\newcommand{\UFirst}{62.4}
+\newcommand{\LiftFirst}{6.1}
+\newcommand{\LiftFirstCi}{4.6 to 7.5}
+\newcommand{\LostTFirst}{15.5}
+\newcommand{\LostRFirst}{16.5}
+\newcommand{\LostAFirst}{6.1}
+\newcommand{\BestTFirst}{7.4}
+\newcommand{\BestRFirst}{4.2}
+\newcommand{\DistZeroFirst}{74}
+\newcommand{\DistThreeFirst}{58}
+\newcommand{\DistSixFirst}{44}
+\newcommand{\DistTenFirst}{22}
+\newcommand{\MidLiftFirst}{7.2}
+\newcommand{\EndLiftFirst}{3.0}
+\newcommand{\NamedLiftFirst}{10.1}
+\newcommand{\NoneLiftFirst}{4.5}
+\newcommand{\NewTFirst}{29.4}
+\newcommand{\NewRFirst}{28.9}
+\newcommand{\WrongFirst}{1,108}
+\newcommand{\WrongTFirst}{34.9}
+\newcommand{\WrongRFirst}{28.6}
+\newcommand{\TSecond}{27.3}
+\newcommand{\RSecond}{21.6}
+\newcommand{\RTwoSecond}{21.1}
+\newcommand{\ASecond}{55.3}
+\newcommand{\NSecond}{64.9}
+\newcommand{\USecond}{65.6}
+\newcommand{\LiftSecond}{5.8}
+\newcommand{\LiftSecondCi}{4.4 to 7.2}
+\newcommand{\LostTSecond}{15.3}
+\newcommand{\LostRSecond}{16.4}
+\newcommand{\LostASecond}{5.7}
+\newcommand{\BestTSecond}{7.0}
+\newcommand{\BestRSecond}{3.2}
+\newcommand{\DistZeroSecond}{75}
+\newcommand{\DistThreeSecond}{53}
+\newcommand{\DistSixSecond}{44}
+\newcommand{\DistTenSecond}{23}
+\newcommand{\MidLiftSecond}{6.9}
+\newcommand{\EndLiftSecond}{2.6}
+\newcommand{\NamedLiftSecond}{8.8}
+\newcommand{\NoneLiftSecond}{4.6}
+\newcommand{\NewTSecond}{29.9}
+\newcommand{\NewRSecond}{29.9}
+\newcommand{\WrongSecond}{1,116}
+\newcommand{\WrongTSecond}{36.9}
+\newcommand{\WrongRSecond}{27.2}
+\newcommand{\StrongDistZero}{88}
+\newcommand{\StrongDistTen}{21}
+\newcommand{\StrongLift}{9.2}
+\newcommand{\StrongLiftCi}{7.3 to 11.1}
+\newcommand{\FarShare}{82}
+\newcommand{\FarSound}{23.9}
+\newcommand{\FarA}{51.9}
+\newcommand{\FarMaia}{61.0}
+\newcommand{\NearTwoShare}{1.0}
+\newcommand{\NearTwoCount}{47}
+\newcommand{\NearTwoSound}{78.7}
+\newcommand{\NearTwoA}{72.3}
+\newcommand{\NearTwoMaia}{83.0}
+\newcommand{\NearestTable}{%
+\begin{table}[ht]
+\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lrrllll@{}}
+\toprule
+Nearest match & Positions & Share (\%) & Its move & R & His move & N, his band \\
+\midrule
+0 to 2 & 47 & 1.0 & 78.7 {\scriptsize(65.9, 89.4)} & 38.3 {\scriptsize(27.7, 48.1)} & 72.3 {\scriptsize(58.0, 84.6)} & 83.0 {\scriptsize(72.7, 92.5)} \\
+3 to 5 & 156 & 3.2 & 56.4 {\scriptsize(48.4, 64.6)} & 28.4 {\scriptsize(23.2, 34.0)} & 63.5 {\scriptsize(55.7, 70.8)} & 80.1 {\scriptsize(73.7, 86.4)} \\
+6 to 9 & 639 & 13.3 & 43.2 {\scriptsize(38.8, 47.7)} & 27.9 {\scriptsize(24.8, 31.1)} & 61.7 {\scriptsize(57.1, 66.1)} & 68.9 {\scriptsize(65.2, 72.6)} \\
+10 or more & 3,965 & 82.5 & 23.9 {\scriptsize(22.3, 25.5)} & 19.6 {\scriptsize(18.4, 20.9)} & 51.9 {\scriptsize(50.0, 53.7)} & 61.0 {\scriptsize(59.0, 63.0)} \\
+\bottomrule
+\end{tabular}
+\caption{Added after the run. His positions, both halves, by the distance of their nearest match: how many, and the share of moves that are sound, in \%, for the nearest match's move, R's, his own and Maia-2's most likely move at his band, with 95\% intervals resampling his games.}
+\label{tab:nearest}
+\end{table}
+}
+\newcommand{\ScaleFactor}{16}
+\newcommand{\ScaleMedianFirst}{19}
+\newcommand{\ScaleMedianLast}{14}
+\newcommand{\ScaleTwoFirst}{0.1}
+\newcommand{\ScaleTwoLast}{1.0}
+\newcommand{\ScaleTable}{%
+\begin{table}[ht]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}rrrrrrr@{}}
+\toprule
+Stream games & Index games & No match & Median distance & Within 2 (\%) & Within 5 (\%) & Within 9 (\%) \\
+\midrule
+25,000 & 21,768 & 330 & 19 & 0.1 & 1.2 & 6.8 \\
+50,000 & 43,625 & 99 & 17 & 0.3 & 1.8 & 8.9 \\
+100,000 & 87,416 & 19 & 16 & 0.5 & 2.3 & 11.0 \\
+200,000 & 174,760 & 0 & 15 & 0.6 & 3.3 & 14.0 \\
+400,000 & 349,647 & 0 & 14 & 1.0 & 4.2 & 17.5 \\
+\bottomrule
+\end{tabular}
+\caption{Added after the run. The nearest match that transfers for each of his scored positions, with the index cut to the positions of the first games of the stream: how many have no match at all, the median distance, a position with no match counting as farther than any, and the share of positions with one within 2, 5 and 9. Index games counts the index games with any of his positions' sets of pieces. With the whole index, every position has its nearest match at the distance T found.}
+\label{tab:scale}
+\end{table}
+}
+\newcommand{\EaFen}{\fen{r2qkbnr/pp3ppp/4p3/3pQ3/3P4/2P5/PP3PPP/RNB1K2R b KQkq - 0 9}}
+\newcommand{\EaStrongFen}{\fen{r2qkbnr/pp3ppp/4p3/3pQ3/3P4/2P5/PP3PPP/RNB1K2R b KQkq - 0 9}}
+\newcommand{\EaMover}{Black}
+\newcommand{\EaPhase}{middlegame}
+\newcommand{\EaD}{0}
+\newcommand{\EaPawns}{0}
+\newcommand{\EaPieces}{0}
+\newcommand{\EaKings}{0}
+\newcommand{\EaMove}{9\ldots{}\symknight{}f6}
+\newcommand{\EaBest}{9\ldots{}\symknight{}f6}
+\newcommand{\EaPlayed}{9\ldots{}\symknight{}f6}
+\newcommand{\EaStrongMove}{9\ldots{}\symknight{}f6}
+\newcommand{\EaMoveUci}{\uci{g8f6}}
+\newcommand{\EaBestUci}{\uci{g8f6}}
+\newcommand{\EaPlayedUci}{\uci{g8f6}}
+\newcommand{\EaWpBest}{52}
+\newcommand{\EaWpMove}{52}
+\newcommand{\EaWpPlayed}{52}
+\newcommand{\EaSound}{sound}
+\newcommand{\EaTSound}{one}
+\newcommand{\EaRSound}{three}
+\newcommand{\EaBoard}{%
+\chessboard[setfen={r2qkbnr/pp3ppp/4p3/3pQ3/3P4/2P5/PP3PPP/RNB1K2R b KQkq - 0 9}, boardfontsize=13pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=blue!70!black, markmoves={g8-f6}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={g8-f6}]
+}
+\newcommand{\EaStrongBoard}{%
+\chessboard[setfen={r2qkbnr/pp3ppp/4p3/3pQ3/3P4/2P5/PP3PPP/RNB1K2R b KQkq - 0 9}, boardfontsize=13pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={g8-f6}]
+}
+\newcommand{\EbFen}{\fen{r3k2r/pb3ppp/2p1pn2/1p1pq3/B7/2P1P1P1/PP1N1PP1/R2QK2R w KQkq - 0 14}}
+\newcommand{\EbStrongFen}{\fen{r1b2rk1/pp3ppp/4pn2/1Bppq3/8/2P1P2P/PP3PP1/RN1QK2R w KQ - 0 11}}
+\newcommand{\EbMover}{White}
+\newcommand{\EbPhase}{middlegame}
+\newcommand{\EbD}{14}
+\newcommand{\EbPawns}{6}
+\newcommand{\EbPieces}{6}
+\newcommand{\EbKings}{2}
+\newcommand{\EbMove}{14.~O-O}
+\newcommand{\EbBest}{14.~\symbishop{}c2}
+\newcommand{\EbPlayed}{14.~\symbishop{}b3}
+\newcommand{\EbStrongMove}{11.~O-O}
+\newcommand{\EbMoveUci}{\uci{e1g1}}
+\newcommand{\EbBestUci}{\uci{a4c2}}
+\newcommand{\EbPlayedUci}{\uci{a4b3}}
+\newcommand{\EbWpBest}{39}
+\newcommand{\EbWpMove}{19}
+\newcommand{\EbWpPlayed}{36}
+\newcommand{\EbSound}{not sound}
+\newcommand{\EbTSound}{zero}
+\newcommand{\EbRSound}{zero}
+\newcommand{\EbBoard}{%
+\chessboard[setfen={r3k2r/pb3ppp/2p1pn2/1p1pq3/B7/2P1P1P1/PP1N1PP1/R2QK2R w KQkq - 0 14}, boardfontsize=13pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=blue!70!black, markmoves={a4-b3}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={e1-g1}]
+}
+\newcommand{\EbStrongBoard}{%
+\chessboard[setfen={r1b2rk1/pp3ppp/4pn2/1Bppq3/8/2P1P2P/PP3PP1/RN1QK2R w KQ - 0 11}, boardfontsize=13pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={e1-g1}]
+}

@@ -12,7 +12,25 @@ random matches with the same pieces, refereed by Stockfish}
 \maketitle
 
 \begin{abstract}
-\AbstractText
+Can the app find positions from strong players' games so like a position from his games that
+the strong player's move works in his too? For \ScoredAll{} quiet middlegame and endgame positions
+from his \Games{} 10-minute games, an index of \IndexPositions{} positions from \IndexGames{}
+Lichess games between players rated \Floor{} or more gives the \Arm{} nearest positions with the
+same pieces, by a distance over the pawns, the pieces and the kings, and \Arm{} random positions
+with the same pieces, and Stockfish says which of the strong players' moves are sound in his
+position. By the rule fixed before any move was scored, likeness works: the nearest positions'
+moves are sound \TFirst\% and \TSecond\% of the time on the two halves of his games, against
+\RFirst\% and \RSecond\% for random ones, a lift of \LiftFirst{} and \LiftSecond{} points with
+both intervals above 0, and both controls pass. It works too weakly to give advice: his own move
+is sound \AFirst\% and \ASecond\% of the time, and Maia-2's most likely move at his band \NFirst\%
+and \NSecond\%. A match's move is sound more often the nearer its position, from \DistTenFirst\%
+and \DistTenSecond\% at a distance of 10 or more to \DistZeroFirst\% and \DistZeroSecond\% within
+2, but most of his positions have no match nearer than 10, and the few with one within 2 do no
+better there than Maia-2's move. Added after the run: \ScaleFactor{} times as many games moves the
+median distance of his nearest match only from \ScaleMedianFirst{} to \ScaleMedianLast. The app
+takes no search for similar positions from this. The lift is largest where the app names the
+pawn structure, so what carries from a strong player's game to his is more likely the plan the
+structure calls for than the next move.
 \end{abstract}
 
 \section{The question}
@@ -113,6 +131,187 @@ enough data}, whatever the numbers say. The rule and the scripts went to the lab
 was scored; the coverage of the final index was counted after the rule and before any move was
 scored.
 
-\ResultsSections
+\section{Coverage}
+
+\CoverageTable
+
+The index covers most of his positions but rarely closely (Table~\ref{tab:coverage}). It finds
+\Arm{} matches for each arm in \CoveredFirst\% of his candidate positions in the first half and
+\CoveredSecond\% in the second, and in \StrongCovered\% of a sample of \StrongSample{} held-out
+strong players' positions. The nearest match that transfers has a median distance of
+\NearMedianFirst{} and \NearMedianSecond{} in the two halves, and \StrongNearMedian{} for the
+strong players' positions: a typical match differs from his position in several pawns and most
+of the pieces.
+
+Of the covered positions, the referee keeps the quiet ones: \ScoredFirst{} positions from
+\ScoredGamesFirst{} games in the first half and \ScoredSecond{} from \ScoredGamesSecond{} games in
+the second. In \ForcingFirst{} and \ForcingSecond{} positions the best move is a capture, a check
+or a promotion, and in \DecidedFirst{} and \DecidedSecond{} the referee reads the game as decided.
+Every score was exact.
+
+\section{The controls}
+
+\paragraph{The planted twin passes.} In \StrongPositions{} held-out strong players' positions, the
+strong player's own move is sound \TwinSound\% of the time (\TwinSoundCi) and a random match's
+move \TwinR\% (\TwinRCi); the difference, \TwinLift{} points (\TwinLiftCi), lies far above 0. The
+referee tells a move that belongs to a position from one that only fits it. A strong player's own
+move is sound in only about two thirds of their positions, the ceiling for any match: most of the
+index is blitz, and a strong player's blitz move is often more than \Window{} win\% from
+Stockfish's best.
+
+\paragraph{The null passes.} R2 against R reads \NullFirst{} points (\NullFirstCi) in the first
+half and \NullSecond{} points (\NullSecondCi) in the second; both intervals hold 0.
+
+\section{The verdict: likeness works}
+
+\ArmTable
+
+The strong players' moves from the \Arm{} nearest positions are sound in his position \TFirst\%
+and \TSecond\% of the time on the two halves, and the random matches' \RFirst\% and \RSecond\%
+(Table~\ref{tab:arms}). The lift is \LiftFirst{} points (\LiftFirstCi) and \LiftSecond{} points
+(\LiftSecondCi), above 0 on both halves, so by the rule likeness works. A second random draw does
+no better than the first: R2's moves are sound \RTwoFirst\% and \RTwoSecond\% of the time.
+
+It works far too weakly to give advice. His own move is sound \AFirst\% and \ASecond\% of the
+time, Maia-2's most likely move at his band \NFirst\% and \NSecond\%, and at the band above
+\UFirst\% and \USecond\%: a strong player's move from a position like his is sound about half as
+often as his own. On average the matches' moves give up \LostTFirst{} and \LostTSecond{} win\%
+against the best, about one point less than the random matches' (\LostRFirst{} and \LostRSecond),
+while his own moves give up \LostAFirst{} and \LostASecond{} (Table~\ref{tab:more}). The
+matches' moves are the referee's best \BestTFirst\% and \BestTSecond\% of the time, the random
+matches' \BestRFirst\% and \BestRSecond\%.
+
+\section{What the positions describe}
+
+\DistanceTable
+
+\paragraph{Nearer is better.} A match's move is sound more often the nearer its position
+(Table~\ref{tab:distance}): \DistZeroFirst\% and \DistZeroSecond\% of the matches within 2 on the
+two halves, \DistThreeFirst\% and \DistThreeSecond\% from 3 to 5, \DistSixFirst\% and
+\DistSixSecond\% from 6 to 9, and \DistTenFirst\% and \DistTenSecond\% at 10 or more. Strong
+players' own positions show the same, from \StrongDistZero\% within 2 to \StrongDistTen\% at 10
+or more. Almost every match within 9 is one of T's; at 10 or more, where all of R's are, a little
+under half are T's.
+
+\SplitTable
+
+\paragraph{Middlegame and structure.} The lift is larger in the middlegame, \MidLiftFirst{} and
+\MidLiftSecond{} points, than in the endgame, \EndLiftFirst{} and \EndLiftSecond{} points, where
+the second half's interval holds 0 (Table~\ref{tab:splits}). It is larger where the app names the
+position's pawn structure, \NamedLiftFirst{} and \NamedLiftSecond{} points, than where it names
+none, \NoneLiftFirst{} and \NoneLiftSecond. In the strong players' own positions the lift is
+\StrongLift{} points (\StrongLiftCi).
+
+\MoreTable
+
+\paragraph{New to him, and his mistakes.} A sound move he rarely finds, one that is not his move
+and that Maia-2 gives under \Hard\% at his band, comes from T in \NewTFirst\% and \NewTSecond\% of
+his positions and from R in \NewRFirst\% and \NewRSecond\%: likeness adds no idea he would miss.
+Where his own move is not sound, in \WrongFirst{} and \WrongSecond{} positions, at least one of
+T's moves is sound in \WrongTFirst\% and \WrongTSecond\% of them, and one of R's in \WrongRFirst\%
+and \WrongRSecond\%.
+
+\section{Added after the run}
+
+These descriptions were added once the rule had been applied; none was named before the run.
+
+\NearestTable
+
+\paragraph{Only a near match competes.} By the distance of each position's nearest match
+(Table~\ref{tab:nearest}), \FarShare\% of his positions have none nearer than 10, and there the
+nearest match's move is sound \FarSound\% of the time, against \FarA\% for his own move and
+\FarMaia\% for Maia-2's most likely move at his band. Only \NearTwoShare\% of his positions,
+\NearTwoCount{} in all, have a match within 2. There its move is sound \NearTwoSound\% of the
+time, about as often as his own move (\NearTwoA\%) and no more often than Maia-2's
+(\NearTwoMaia\%). These are easier positions: his own move and Maia-2's are sound more often there
+too.
+
+\ScaleTable
+
+\paragraph{A bigger index helps slowly.} Restricting the index to the first games of the stream
+(Table~\ref{tab:scale}), \ScaleFactor{} times as many games moves the median distance of his
+positions' nearest match from \ScaleMedianFirst{} to \ScaleMedianLast, about one for each
+doubling, and the share with a match within 2 from \ScaleTwoFirst\% to \ScaleTwoLast\%. Near
+matches grow with the index, but slowly.
+
+\section{Two positions}
+
+Two of his positions show what the matches look like (Figure~\ref{fig:examples}): the one with
+the nearest match of all, and one whose nearest match is at the median distance. They illustrate;
+they test nothing.
+
+\begin{figure}[ht]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\EaBoard\\[0.3em]
+{\footnotesize FEN \EaFen}\\[0.6em]
+\EaStrongBoard\\[0.3em]
+{\footnotesize FEN \EaStrongFen}
+\caption{Above, his position: he is \EaMover, in the \EaPhase, with \EaWpBest\% to win by the
+best move \EaBest. Below, the nearest strong players' position, at distance \EaD{} (pawns
+\EaPawns, pieces \EaPieces, kings \EaKings), where \EaStrongMove{} was played. In his position
+that move is \EaMove{}, \EaSound{} at \EaWpMove\%; he played \EaPlayed{} (blue), at
+\EaWpPlayed\%. Sound here: \EaTSound{} of T's \Arm{} moves and \EaRSound{} of R's.}
+\label{fig:nearest}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\EbBoard\\[0.3em]
+{\footnotesize FEN \EbFen}\\[0.6em]
+\EbStrongBoard\\[0.3em]
+{\footnotesize FEN \EbStrongFen}
+\caption{Above, his position: he is \EbMover, in the \EbPhase, with \EbWpBest\% to win by the
+best move \EbBest. Below, the nearest strong players' position, at distance \EbD{} (pawns
+\EbPawns, pieces \EbPieces, kings \EbKings), where \EbStrongMove{} was played. In his position
+that move is \EbMove{}, \EbSound{} at \EbWpMove\%; he played \EbPlayed{} (blue), at
+\EbWpPlayed\%. Sound here: \EbTSound{} of T's \Arm{} moves and \EbRSound{} of R's.}
+\label{fig:median}
+\end{subfigure}
+\caption{Two of his second-half positions whose nearest match has the same side to move: left,
+the one whose nearest match is nearest of all; right, the first whose nearest match is at the
+median distance, \NearMedianSecond. The strong player's move is green where it is sound in his
+position and red where it is not. Stockfish at \GradeNodes{} nodes, rerun for this figure.}
+\label{fig:examples}
+\end{figure}
+
+\section{What the app can take}
+
+\begin{itemize}[nosep]
+\item \textbf{No search for similar positions.} Likeness works by the rule, but a strong player's
+  move from a position like his is sound about half as often as his own, and the near matches,
+  the only ones that do as well as Maia-2's most likely move at his band, are rare. A ``this is
+  like\ldots'' example built this way would mostly show a move that does not work in his
+  position.
+\item \textbf{An example is checked first.} If the app ever shows a strong player's position as an
+  example, the engine checks its move in his position before it is shown, and only a near match
+  is worth showing.
+\item \textbf{A plan, not a move.} The lift is largest where the app names the pawn structure.
+  What carries from a strong player's game to his is more likely the plan the structure calls
+  for than the next move. A next round can match on the structure and test a plan over the next
+  few moves, with its rule fixed first.
+\end{itemize}
+
+\section{Caveats}
+
+\begin{itemize}[nosep]
+\item \textbf{A move stands for a plan.} The strong player's next move is tested, not the moves
+  that follow it.
+\item \textbf{The board alone.} The study's plan also named Maia-2's reading of the position as
+  part of alike. The app's Maia-2 gives move probabilities and no reading of who is better, so
+  this round matches on the board alone.
+\item \textbf{Sound is a window.} In a quiet position several moves are often within \Window{}
+  win\% of the best, so the arms are paired by position. A strong player's own move clears the
+  window about two times in three.
+\item \textbf{Mostly blitz.} Most index games are blitz; his games are rapid.
+\item \textbf{The same month.} The held-out strong positions come from the same month as the
+  index, so the same players can be on both sides; their result describes and decides nothing.
+\item \textbf{A coverage count ran first.} Before the rule was fixed, a partial index from the
+  first games of the stream showed that his positions' nearest matches were far, and the index
+  was grown to \Cap{} games before any move was scored.
+\item \textbf{Added after the run.} The grouping by the nearest match's distance, the index-size
+  curve and the two positions were looked at once the rule had been applied. They describe; a
+  rule built on them needs positions this study did not see.
+\end{itemize}
 
 \end{document}
