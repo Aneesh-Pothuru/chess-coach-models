@@ -170,13 +170,14 @@ export function materialKey(board) {
     if (ch === '.' || ch === 'K' || ch === 'k') continue
     count[groupOf(ch, sq)]++
   }
-  const side = (gs) => gs.map((g) => count[g]).join('')
+  // A side can promote all eight pawns: ten rooks or knights still need one digit.
+  const side = (gs) => gs.map((g) => count[g].toString(16)).join('')
   return `${side(['Q', 'R', 'L', 'D', 'N', 'P'])}/${side(['q', 'r', 'l', 'd', 'n', 'p'])}`
 }
 
 export function groupSizes(key) {
   const [us, them] = key.split('/')
-  const n = (s, i) => Number(s[i])
+  const n = (s, i) => Number.parseInt(s[i], 16)
   return [n(us, 4), n(us, 2), n(us, 3), n(us, 1), n(us, 0), n(them, 4), n(them, 2), n(them, 3), n(them, 1), n(them, 0)]
 }
 
