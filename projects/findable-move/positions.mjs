@@ -1,7 +1,7 @@
 import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { CHESS_DIR, chess, privateDir, resultsDir } from '../../bridge/lib/chess.mjs'
-import { gitCommit, PROJECT, OFFSET, DECOY_DROP } from './lib.mjs'
+import { gitCommit, PROJECT, OFFSET, DECOY_DROP, tenMinutes } from './lib.mjs'
 
 const N = await chess('src/adapters/node/engine/index.ts')
 const E = await chess('src/services/engine/index.ts')
@@ -33,8 +33,7 @@ function moveOf(fen, san) {
 const all = loadArchiveGames({ dir: join(CHESS_DIR, ARCHIVE_SUBDIR) })
 const games = all
   .filter((g) => {
-    const tc = parseTimeControl(typeof g.time_control === 'string' ? g.time_control : null)
-    if (tc && (tc.base !== 600 || tc.inc !== 0)) {
+    if (!tenMinutes(g, parseTimeControl)) {
       skip('game: not 10|0')
       return false
     }

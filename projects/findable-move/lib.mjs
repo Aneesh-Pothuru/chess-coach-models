@@ -11,6 +11,11 @@ export const MARGIN = 1
 export const DRAWS = 2000
 export const SEED = 20261018
 
+export function tenMinutes(game, parseTimeControl) {
+  const tc = parseTimeControl(typeof game.time_control === 'string' ? game.time_control : null)
+  return tc !== null && tc.base === 600 && tc.inc === 0
+}
+
 export function gitCommit(dir) {
   return execFileSync('git', ['-C', dir, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()
 }
