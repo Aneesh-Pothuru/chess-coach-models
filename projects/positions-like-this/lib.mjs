@@ -236,8 +236,19 @@ function groupCost(a, ao, b, bo, k) {
   }
   if (k <= 6) permute(0, 0, 0)
   else {
-    best = 0
-    for (let i = 0; i < k; i++) best += PIECE_COST[a[ao + i] * 64 + b[bo + i]]
+    // Promotions can leave more than six pieces of one kind. Keep the same
+    // minimum-assignment distance without enumerating every permutation.
+    const costs = new Float64Array(1 << k).fill(Infinity)
+    costs[0] = 0
+    for (let used = 0; used < costs.length - 1; used++) {
+      const i = popcount(used)
+      for (let j = 0; j < k; j++) {
+        if (used & (1 << j)) continue
+        const next = used | (1 << j)
+        costs[next] = Math.min(costs[next], costs[used] + PIECE_COST[a[ao + i] * 64 + b[bo + j]])
+      }
+    }
+    best = costs.at(-1)
   }
   return best
 }
