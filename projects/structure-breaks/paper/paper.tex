@@ -1,0 +1,321 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Do the breaks the app teaches for each pawn structure hold at his level?\\[0.3em]
+\large Each structure's breaks against his own move in \ScoredAll{} of his quiet positions,
+refereed by Stockfish, with strong players' positions beside them}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+When the app names the pawn structure in one of his positions and a break its catalogue teaches
+for that structure can be played, is the break a sound move there, more often than the move he
+played? In \ScoredAll{} quiet middlegame and endgame positions from his 10-minute games, Stockfish
+at \GradeNodes{} nodes calls a move sound when it gives up no more than \Window{} win\% against
+the best. By the rule fixed before any move was scored, the break misleads: the breaks are sound
+\BFirst\% and \BSecond\% of the time on the two halves of his games, his own moves \AFirst\% and
+\ASecond\%, a gain of \GainFirst{} and \GainSecond{} points with both intervals below 0, and both
+controls pass. A break that can be played is sound about as often as a random move that is not a
+break, and gives up \LostBFirst{} and \LostBSecond{} win\% on average against his moves'
+\LostAFirst{} and \LostASecond. It is so in every structure with enough positions, and in
+\StrongScored{} positions of players rated \Floor{} or more, whose breaks are sound \StrongB\% of
+the time against their own moves' \StrongS\%: a break is rarely right merely because it can be
+played. Added after the run: the breaks he played were sound \PlayedSound\% of the time, the ones
+he passed over \NotPlayedB\%, and where a break is Stockfish's best, in \BestShare\% of these
+positions, he played one \BestPlayed\% of the time against \NotBestPlayed\% elsewhere. The app
+should not offer a structure's break as the plan whenever it is on; what it can teach is the
+moment, with the engine's word on each position.
+\end{abstract}
+
+\section{The question}
+
+A coach explains a middlegame by its pawn structure. In the Carlsbad the plan is the minority
+attack and its break is b4-b5; against the London pyramid, Black strikes with \ldots c5. The app
+does the same. It names the structure on the board, teaches each structure's plans and breaks
+from its catalogue, and its structure index counts the games in which he played the structure's
+break. This study asks whether that teaching holds in his games: when a break his structure
+teaches can be played in one of his quiet middlegame or endgame positions, is it a sound move
+there, more often than the move he played?
+
+If the break holds, the review and the drills can teach the structure's break as the plan when it
+is on, and the count of breaks played measures something worth raising. If it misleads, playing
+the break whenever it can be played is worse than his own choice, and the app has to teach when a
+break is right, not only which break.
+
+This study follows the one on positions like his. There, strong players' moves from positions
+like his carried over weakly, and best where the app names the pawn structure, which suggested
+testing the plan a structure calls for in place of the next move from a similar game.
+
+\section{How it was measured}
+
+\paragraph{His positions.} His \Games{} 10-minute games in the app's archive at commit
+\texttt{\AppCommit}, in order of their end time: the first \GamesFirst{} (\FirstFrom{} to
+\FirstTo) and the last \GamesSecond{} (\SecondFrom{} to \SecondTo) are the two halves. Nothing is
+fitted, so the halves are two replications. The positions are the ones the study on positions like
+his drew: before one of his moves, past the opening by the app's divider, not in check, with at
+least \MinLegal{} legal moves and \MinMen{} men or more, his win\% before the move between
+\WinLow{} and \WinHigh{} by the archive's evaluation, and his clock at least \ClockFloor{} seconds,
+\Candidates{} positions in all. The app names a structure in \Named{} of them (\NamedShare\%). A
+position enters this study when a break is on: at least one of his legal moves is a break of that
+structure for his side. That leaves \BreakOn{} positions from \BreakGames{} games, \BreakOnFirst{}
+in the first half and \BreakOnSecond{} in the second. In \NotOn{} positions with a named
+structure no break was on, and in \NoLever{} the catalogue gives his side no break.
+
+\paragraph{The breaks.} The app's catalogue writes each structure's breaks for each side as pawn
+moves, such as c3-c4 (Table~\ref{tab:catalogue}). For three structures, the isolated queen's
+pawn, hanging pawns and the queenside majority, it writes them from the holder's side, the side
+whose pawns make the structure, and the app reads them with the ranks mirrored when Black holds
+it. A move is a break when the app's own reading counts it, played after the game's moves so far:
+a pawn move of his to the last square a break names, a capture landing there included. The
+structure is the one the app names on the board of the position.
+
+\paragraph{Strong players' positions.} The study on positions like his streamed the first
+\StreamCap{} rated games of Lichess's \MonthName{} database (CC0) between two players rated
+\Floor{} or more. Read in file order, each game offers the positions before a move by either
+side that are past the opening, not in check, with \MinMen{} men or more, at least \MinLegal{}
+legal moves, the mover's clock at least \ClockFloor{} seconds and a structure the app names. A
+seeded hash of the game shuffles them, and the first of up to \Tries{} with a break on for the
+mover is the game's one position. The first \StrongGamesRead{} games gave \StrongDrawn{}
+positions; \StrongNoStructure{} games had no position with a named structure, and in
+\StrongNotOn{} none of the tries had a break on. Most are blitz: \Blitz{} blitz, \Rapid{} rapid
+and \Classical{} classical. They are scored in order until \StrongTarget{} pass the referee's
+quiet filter.
+
+\paragraph{The moves compared.} In each of his positions, \textbf{B} is every legal move of his
+that is a break, and B's soundness is the share of them that are sound. \textbf{A} is his move.
+\textbf{N} is Maia-2's most likely move at his band and \textbf{U} at the band above: his band is
+his rating at the game with the app's offset of \Offset{} points, the band above the same of his
+rating plus \Above, each conditioned on the opponent's band. \textbf{R} and \textbf{R2} are two
+legal moves that are not breaks, each drawn uniformly at random with a seed, independently of each
+other. In the strong players' positions: B, \textbf{S}, the strong player's move, R and R2.
+
+\paragraph{The referee.} Stockfish through the app's engine service at the grading budget of
+\GradeNodes{} nodes, with its hash cleared before each position and no tablebase, gives the best
+move and scores every move compared. A move is \emph{sound} when it gives up no more than
+\Window{} win\% against the best, by the app's own test for an alternative move. A position is
+\emph{quiet} when the best move is not a capture, a check or a promotion and the win\% it gives
+the side to move is between \WinLow{} and \WinHigh; only quiet positions are scored. A score
+that is not exact counts as missing, and a position with one leaves the analysis.
+
+\paragraph{The measures.} The \emph{gain} is B's soundness minus A's, averaged over positions,
+paired by position; where his move was a break, B and A share it. \Draws{} bootstrap draws with a
+fixed seed resample his games within each half, or the strong players' positions, and intervals
+are the 95\% percentile intervals.
+
+\paragraph{The rule, fixed before any move was scored.} Two controls come first, and if either
+fails the study gives no verdict.
+\begin{enumerate}[nosep]
+\item \textbf{The referee tells moves apart here.} His own move's soundness minus R's must have
+  its interval above 0 on each half, and the strong player's move's minus R's on the strong
+  players' positions.
+\item \textbf{The null.} R2 against R, in place of B against A, must read neither as the break
+  holding nor as it misleading.
+\end{enumerate}
+Then, on his positions, \emph{the break holds} when the gain's interval lies above 0 on both
+halves, \emph{the break misleads} when it lies below 0 on both, and it is \emph{no better than his
+own move} otherwise. A half with fewer than \MinPositions{} scored positions is \emph{not enough
+data}, whatever the numbers say. The rule and the scripts went to the lab before any move was
+scored; the positions with a break on had been drawn and counted, with no move scored.
+
+\section{Coverage}
+
+\CatalogueTable
+
+A break is on in \OnShare\% of his positions with a named structure (Table~\ref{tab:catalogue}).
+\LondonShare\% of them are the London pyramid, \LondonWhite{} of its \LondonOn{} with him as White,
+and nearly all of his reversed Carlsbad and advance chain positions have him as Black. The strong
+players' positions are most often the isolated queen's pawn, \StrongIqpShare\% of those drawn.
+
+The referee keeps the quiet ones: \ScoredFirst{} positions from \ScoredGamesFirst{} games in the
+first half and \ScoredSecond{} from \ScoredGamesSecond{} games in the second. In \ForcingFirst{}
+and \ForcingSecond{} positions the best move is a capture, a check or a promotion, and in
+\DecidedFirst{} and \DecidedSecond{} the referee reads the game as decided. \StrongTried{} strong
+players' positions were tried before \StrongScored{} were quiet. Every score was exact.
+
+\section{The controls}
+
+\paragraph{The referee tells moves apart.} His own move is sound \ControlFirst{} and
+\ControlSecond{} points more often than a random move that is not a break (\ControlFirstCi;
+\ControlSecondCi), and the strong player's move \StrongControl{} points more often
+(\StrongControlCi). All three intervals lie above 0.
+
+\paragraph{The null passes.} R2 against R reads \NullFirst{} points (\NullFirstCi) in the first
+half and \NullSecond{} points (\NullSecondCi) in the second; both intervals hold 0.
+
+\section{The verdict: the break misleads}
+
+\ArmTable
+
+The breaks are sound \BFirst\% and \BSecond\% of the time on the two halves, his own moves
+\AFirst\% and \ASecond\% (Table~\ref{tab:arms}). The gain is \GainFirst{} points (\GainFirstCi)
+and \GainSecond{} points (\GainSecondCi), below 0 on both halves, so by the rule the break
+misleads: playing the structure's break whenever it can be played would be worse than his own
+choice.
+
+A break that can be played is sound about as often as a random move that is not a break, at
+\RFirst\% and \RSecond\%; paired by position, the breaks are \BRFirst{} points (\BRFirstCi) and
+\BRSecond{} points (\BRSecondCi) above it (Table~\ref{tab:choice}). Being one of the structure's
+breaks adds nothing to a move's chance of being sound when all that is known is that it can be
+played. Maia-2's most likely move at his band is sound \NFirst\% and \NSecond\% of the time, and
+at the band above \UFirst\% and \USecond\%, more often than his own.
+
+\section{What the positions describe}
+
+\MoreTable
+
+\paragraph{How much a break gives up.} On average the breaks give up \LostBFirst{} and
+\LostBSecond{} win\% against the best, about three times what his moves give up, \LostAFirst{}
+and \LostASecond{} (Table~\ref{tab:more}). \BestBFirst\% and \BestBSecond\% of the breaks are
+the referee's best.
+
+\paragraph{Finding it.} He played a break in \PlayedFirst\% and \PlayedSecond\% of these
+positions, and Maia-2 at his band gives the breaks together \MassHisFirst\% and \MassHisSecond\%
+of its probability, at the band above \MassPlusFirst\% and \MassPlusSecond\%. Strong players
+played a break in \StrongPlayed\% of theirs.
+
+\paragraph{Strong players.} In \StrongScored{} positions of players rated \Floor{} or more, mostly
+blitz, the breaks are sound \StrongB\% of the time against the strong player's move's \StrongS\%,
+\StrongGain{} points (\StrongGainCi), and a random move that is not a break \StrongR\%; paired by
+position, their breaks are \StrongBR{} points above it (\StrongBRCi). The break that can be played
+is rarely the move at their level either, and trails their own move by more than his trails his,
+so what misleads is the reading of a break as the plan whenever it is on, not his level.
+
+\section{By structure, phase and chance}
+
+\StructureTable
+
+\paragraph{Every structure.} The London pyramid's breaks are sound \StructLondonPyramidB\% of the
+time against his move's \StructLondonPyramidA\%, the isolated queen's pawn's \StructIqpB\% against
+\StructIqpA\%, the reversed Carlsbad's \StructCarlsbadReversedB\% against
+\StructCarlsbadReversedA\%, and the advance chain's \StructAdvanceChainB\% against
+\StructAdvanceChainA\% (Table~\ref{tab:structure}). In each structure with enough positions the
+gain's interval lies below 0: it is not only the London.
+
+\SplitTable
+
+\paragraph{Phase, the first chance, and the breaks he passed over.} In the middlegame the breaks
+are sound \MidB\% of the time against his move's \MidA\%, and in the endgame, in only \EndN{}
+positions, \EndB\% against \EndA\% (Table~\ref{tab:splits}). The first position in a game with a
+break on is no better for the break than the later ones, \FirstB\% against \LaterB\%. Where his move was not a break, the breaks he
+passed over are sound \NotPlayedBFirst\% and \NotPlayedBSecond\% of the time on the two halves.
+
+\section{Added after the run}
+
+These descriptions were added once his halves had been scored and looked at; none was named before
+the run, and they decide nothing.
+
+\MomentTable
+
+\paragraph{The moment.} A break is Stockfish's best in \BestN{} of his positions, \BestShare\% of
+them. There he played a break \BestPlayed\% of the time (\BestPlayedCi), against \NotBestPlayed\%
+where no break is the best, and Maia-2 at his band gives the breaks \BestMass\% against
+\NotBestMass\% (Table~\ref{tab:moment}). He and his band read when a break is due, and both miss it
+most of the time. Strong players played a break \StrongBestPlayed\% of the time where one is the
+best, in \StrongBestN{} positions, and \StrongNotBestPlayed\% elsewhere.
+
+\ChoiceTable
+
+\paragraph{His own choice.} Where he played a break, in \PlayedN{} positions, it was sound
+\PlayedSound\% of the time (\PlayedSoundCi), about as often as his moves are; where he did not,
+the breaks he passed over were sound \NotPlayedB\% (\NotPlayedBCi). He breaks more selectively
+than the catalogue's reading of when a break is on (Table~\ref{tab:choice}). Strong players do the same: the breaks they
+played, in \StrongPlayedN{} positions, were sound \StrongPlayedSound\% of the time, the ones they
+passed over \StrongNotPlayedB\%. At least one break is sound in \SomeFirst\% and \SomeSecond\% of
+his positions, against \AFirst\% and \ASecond\% for his move.
+
+\LeverTable
+
+\paragraph{Each break apart.} His most common breaks are \LevOneStructure's \LevOneBreak, sound
+\LevOneL\% of the time in \LevOneN{} positions against his move's \LevOneOwn\%,
+\LevTwoStructure's \LevTwoBreak{} (\LevTwoL\% against \LevTwoOwn\%), \LevThreeStructure's
+\LevThreeBreak{} (\LevThreeL\% against \LevThreeOwn\%) and \LevFourStructure's \LevFourBreak{}
+(\LevFourL\% against \LevFourOwn\%) (Table~\ref{tab:levers}). No break with enough positions, his
+or the strong players', is sound as often as the move played. The strong players' most common is
+\StrongLevOneStructure's \StrongLevOneBreak, sound \StrongLevOneL\% of the time against their
+move's \StrongLevOneOwn\%.
+
+\StrongStructureTable
+
+\section{Two positions}
+
+Two of his positions show what a break that can be played looks like (Figure~\ref{fig:examples}):
+the first of the \EaHalf{} half where a break is the best move and he played neither a break nor
+another sound move, and the first London pyramid position of the \EbHalf{} half where every break
+is unsound and his own move is sound. They illustrate; they test nothing.
+
+\begin{figure}[ht]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\EaBoard\\[0.3em]
+{\footnotesize FEN \EaFen}
+\caption{He is \EaMover, in the \EaPhase, in \EaStructure. The best move is \EaBest, at
+\EaWpBest\% to win. \EaBreakLabel: \EaBreaks. He played \EaPlayed{} (blue), \EaPlayedSound{} at
+\EaWpPlayed\%.}
+\label{fig:due}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\EbBoard\\[0.3em]
+{\footnotesize FEN \EbFen}
+\caption{He is \EbMover, in the \EbPhase, in \EbStructure. The best move is \EbBest, at
+\EbWpBest\% to win. \EbBreakLabel: \EbBreaks. He played \EbPlayed{} (blue), \EbPlayedSound{} at
+\EbWpPlayed\%.}
+\label{fig:early}
+\end{subfigure}
+\caption{Two of his positions with a break on. A break is green where it is sound and red where
+it is not; win\% is his after each move. Stockfish at \GradeNodes{} nodes, rerun for this
+figure.}
+\label{fig:examples}
+\end{figure}
+
+\section{What the app can take}
+
+\begin{itemize}[nosep]
+\item \textbf{Not the break as the plan whenever it is on.} In his positions a break that can be
+  played is sound about one time in five, no more often than a random move, while his own move is
+  sound more than half the time. When the app names a structure's break in a position, in the
+  review, a drill or the coach's reading of the position, it says whether Stockfish finds the
+  break sound there, and does not offer it as the plan otherwise.
+\item \textbf{The count of breaks played is no target.} The structure index counts the games
+  where he played the break. A break played merely because it can be is mostly unsound, so a
+  higher count is not progress by itself; what the index can count instead is the break played
+  where it was sound, and the break missed where it was the best.
+\item \textbf{Teach the moment.} Where a break is the best move, about one position in ten here,
+  he played one about one time in four. Those positions, and the ones where a break was on and
+  wrong, are the material for a drill on when to break, each checked by Stockfish and each with
+  the structure's trap, which the catalogue already writes. A next round can test whether the
+  conditions the app's coaching method asks before a break (pieces pointed at the lines it opens,
+  rooks ready for the file, enough force on that side) tell when a break is sound, with its rule
+  fixed first.
+\end{itemize}
+
+\section{Caveats}
+
+\begin{itemize}[nosep]
+\item \textbf{A break stands for a plan.} The break is tested as the next move. The preparation a
+  plan asks for first, rooks behind the advance or the trap each structure names, is not tested,
+  except as the first chance in a game against the later ones.
+\item \textbf{Breaks by square.} The app counts any pawn move to a break's last square as the
+  break, a capture landing there included; this study keeps the app's reading.
+\item \textbf{The structure of the position.} The structure index names the structure a game
+  settles into and holds; this study names it on the board of each position, as the app's
+  reading of a position does.
+\item \textbf{Sound is a window.} In a quiet position several moves are often within \Window{}
+  win\% of the best, so B and A can both be sound; they are paired by position for that reason.
+\item \textbf{Many positions a game for him.} Every one of his positions that qualifies enters,
+  so a game where a break stays on for many moves counts many times; intervals resample whole
+  games for that reason. Strong players give one position a game.
+\item \textbf{Mostly the London, and mostly blitz.} About half of his positions are the London
+  pyramid; the by-structure table shows the answer is not only the London's. Most strong games
+  are blitz; his are rapid.
+\item \textbf{Added after the run.} The descriptions of the moment, his own choice, each break
+  apart and the strong players' structures were chosen once his halves had been scored. They
+  describe; a rule built on them needs positions this study did not see.
+\end{itemize}
+
+\end{document}

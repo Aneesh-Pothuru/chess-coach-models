@@ -176,6 +176,16 @@ for i in 0 1 2 3; do NODE_OPTIONS=--max-old-space-size=6000 bridge/run.sh projec
 bridge/run.sh projects/positions-like-this/analyze.mjs
 NODE_OPTIONS=--max-old-space-size=6000 bridge/run.sh projects/positions-like-this/describe.mjs
 
+# The structure's breaks: positions like this's candidates of his and its strong
+# games, kept where the app names the structure and one of its breaks can be
+# played, each break against the move played, refereed by Stockfish. The scorers
+# resume where they stopped.
+bridge/run.sh projects/structure-breaks/positions.mjs
+for i in 0 1 2 3; do bridge/run.sh projects/structure-breaks/score.mjs --who his --shard $i/4 & done; wait
+for i in 0 1 2 3; do bridge/run.sh projects/structure-breaks/score.mjs --who strong --shard $i/4 & done; wait
+bridge/run.sh projects/structure-breaks/analyze.mjs
+bridge/run.sh projects/structure-breaks/describe.mjs
+
 # The learner's solve chances: his puzzle attempts replayed through the app's
 # learner, on a record rebuilt from the memory cards and on the profile as the
 # app holds it.

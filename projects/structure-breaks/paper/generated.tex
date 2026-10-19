@@ -1,0 +1,482 @@
+% Written by projects/structure-breaks/paper/generate.mjs; do not edit by hand.
+
+\newcommand{\AppCommit}{f4bd63f19b}
+\newcommand{\MinMen}{eight}
+\newcommand{\ClockFloor}{30}
+\newcommand{\WinLow}{10}
+\newcommand{\WinHigh}{90}
+\newcommand{\MinLegal}{two}
+\newcommand{\Offset}{250}
+\newcommand{\Above}{200}
+\newcommand{\GradeNodes}{250,000}
+\newcommand{\Window}{3}
+\newcommand{\MinPositions}{150}
+\newcommand{\MinCell}{30}
+\newcommand{\Draws}{2,000}
+\newcommand{\Seed}{20261019}
+\newcommand{\StrongTarget}{1,200}
+\newcommand{\StrongDrawn}{3,000}
+\newcommand{\Tries}{three}
+\newcommand{\Games}{647}
+\newcommand{\GamesFirst}{324}
+\newcommand{\GamesSecond}{323}
+\newcommand{\FirstFrom}{July 22}
+\newcommand{\FirstTo}{August 23}
+\newcommand{\SecondFrom}{August 23}
+\newcommand{\SecondTo}{October 15}
+\newcommand{\Candidates}{8,896}
+\newcommand{\Named}{2,411}
+\newcommand{\NotOn}{1,040}
+\newcommand{\NoLever}{twelve}
+\newcommand{\BreakOn}{1,359}
+\newcommand{\BreakOnFirst}{730}
+\newcommand{\BreakOnSecond}{629}
+\newcommand{\BreakGames}{245}
+\newcommand{\BreakGamesFirst}{130}
+\newcommand{\BreakGamesSecond}{115}
+\newcommand{\NamedShare}{27}
+\newcommand{\OnShare}{56}
+\newcommand{\LondonOn}{638}
+\newcommand{\LondonShare}{47}
+\newcommand{\MonthName}{September 2026}
+\newcommand{\Floor}{2200}
+\newcommand{\StreamCap}{400,000}
+\newcommand{\StrongGamesRead}{11,392}
+\newcommand{\StrongNoStructure}{5,219}
+\newcommand{\StrongNotOn}{3,173}
+\newcommand{\Blitz}{2,781}
+\newcommand{\Rapid}{209}
+\newcommand{\Classical}{10}
+\newcommand{\StrongIqp}{1,171}
+\newcommand{\StrongIqpShare}{39}
+\newcommand{\ScoredFirst}{491}
+\newcommand{\ScoredGamesFirst}{114}
+\newcommand{\ForcingFirst}{233}
+\newcommand{\DecidedFirst}{6}
+\newcommand{\NoExactFirst}{0}
+\newcommand{\NoOtherFirst}{0}
+\newcommand{\InexactFirst}{0}
+\newcommand{\ScoredSecond}{418}
+\newcommand{\ScoredGamesSecond}{103}
+\newcommand{\ForcingSecond}{208}
+\newcommand{\DecidedSecond}{3}
+\newcommand{\NoExactSecond}{0}
+\newcommand{\NoOtherSecond}{0}
+\newcommand{\InexactSecond}{0}
+\newcommand{\StrongScored}{1,200}
+\newcommand{\StrongTried}{1,824}
+\newcommand{\StrongForcing}{599}
+\newcommand{\StrongDecided}{25}
+\newcommand{\StrongInexact}{0}
+\newcommand{\ScoredAll}{909}
+\newcommand{\CatalogueTable}{%
+\begin{table}[ht]
+\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}l>{\raggedright\arraybackslash}p{2.3cm}>{\raggedright\arraybackslash}p{3.3cm}rrrr@{}}
+\toprule
+& \multicolumn{2}{c}{The breaks the app teaches} & \multicolumn{2}{c}{His positions} & \multicolumn{2}{c}{Strong players'} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+Structure & White & Black & Break on & Scored & Drawn & Scored \\
+\midrule
+London pyramid & c3-c4, e3-e4 & \ldots{}c7-c5, \ldots{}e6-e5 & 638 & 427 & 438 & 178 \\
+Isolated queen's pawn$^{*}$ & d4-d5 & \ldots{}b5-b4 to remove a defender & 252 & 144 & 1,171 & 408 \\
+Reversed Carlsbad & f4-f5, c3-c4 & \ldots{}b5-b4, \ldots{}e6-e5 & 208 & 153 & 215 & 100 \\
+Advance chain & f4-f5 & \ldots{}c7-c5, \ldots{}f7-f6 & 195 & 136 & 400 & 171 \\
+Carlsbad & b4-b5, e3-e4 & \ldots{}c6-c5, \ldots{}f7-f5 & 30 & 23 & 197 & 102 \\
+Pirc set-up & e4-e5, f4-f5, h4-h5 & \ldots{}c7-c5, \ldots{}e7-e5 & 18 & 11 & 229 & 96 \\
+King's Indian chain & c4-c5 & \ldots{}f7-f5, \ldots{}g5-g4 & 11 & 9 & 224 & 96 \\
+Hanging pawns$^{*}$ & d4-d5, c4-c5 & -- & 7 & 6 & 126 & 49 \\
+\bottomrule
+\end{tabular}
+\caption{The app's structures with breaks, the breaks its catalogue teaches each side, and the positions with a break on: his, both halves, and the strong players' positions drawn, before the referee's quiet filter, and those scored. $^{*}$Written from the holder's side: White's column is the holder's breaks and Black's the other side's, and the app reads both with the ranks mirrored when Black holds the structure.}
+\label{tab:catalogue}
+\end{table}
+}
+\newcommand{\ArmTable}{%
+\begin{table}[ht]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llll@{}}
+\toprule
+& His, first half & His, second half & Strong players \\
+\midrule
+Positions (games) & 491 (114) & 418 (103) & 1,200 (1,200) \\
+\midrule
+B, the breaks & 20.5 {\scriptsize(15.9, 25.2)} & 22.4 {\scriptsize(17.2, 27.8)} & 22.8 {\scriptsize(20.5, 25.1)} \\
+A, his move; S, the strong player's & 55.2 {\scriptsize(50.3, 60.1)} & 57.9 {\scriptsize(52.0, 63.5)} & 68.8 {\scriptsize(66.1, 71.4)} \\
+N, Maia-2 at his band & 66.0 {\scriptsize(61.6, 70.6)} & 71.5 {\scriptsize(66.4, 76.7)} & -- \\
+U, the band above & 67.6 {\scriptsize(62.9, 72.3)} & 73.0 {\scriptsize(67.9, 78.2)} & -- \\
+R, a random move & 18.9 {\scriptsize(14.6, 23.2)} & 20.3 {\scriptsize(15.3, 25.6)} & 17.0 {\scriptsize(14.9, 19.2)} \\
+R2, a second random move & 17.5 {\scriptsize(13.6, 21.4)} & 17.9 {\scriptsize(13.2, 22.8)} & 17.6 {\scriptsize(15.4, 19.7)} \\
+\midrule
+Gain: B minus A, or S (points) & $-$34.7 {\scriptsize($-$40.8, $-$28.5)} & $-$35.5 {\scriptsize($-$42.1, $-$28.7)} & $-$46.0 {\scriptsize($-$49.2, $-$42.8)} \\
+B minus N (points) & $-$45.5 {\scriptsize($-$50.7, $-$39.8)} & $-$49.2 {\scriptsize($-$56.4, $-$42.3)} & -- \\
+Control: A, or S, minus R (points) & 36.3 {\scriptsize(30.8, 42.0)} & 37.6 {\scriptsize(31.7, 43.4)} & 51.7 {\scriptsize(48.6, 54.7)} \\
+Null: R2 minus R (points) & $-$1.4 {\scriptsize($-$5.6, 2.9)} & $-$2.4 {\scriptsize($-$6.2, 1.6)} & -- \\
+\bottomrule
+\end{tabular}
+\caption{The share of each arm's moves that are sound, in \%, and the differences the rule reads, in points, with 95\% intervals resampling his games, or the strong players' positions. A move is sound when it gives up no more than 3 win\% against Stockfish's best.}
+\label{tab:arms}
+\end{table}
+}
+\newcommand{\MoreTable}{%
+\begin{table}[ht]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llll@{}}
+\toprule
+& His, first half & His, second half & Strong players \\
+\midrule
+Win\% given up: the breaks & 15.4 {\scriptsize(13.5, 17.3)} & 15.4 {\scriptsize(13.6, 17.2)} & 13.4 {\scriptsize(12.7, 14.1)} \\
+Win\% given up: the move played & 5.6 {\scriptsize(4.8, 6.5)} & 5.5 {\scriptsize(4.5, 6.7)} & 3.1 {\scriptsize(2.8, 3.4)} \\
+The breaks that are the best (\%) & 8.5 {\scriptsize(5.5, 11.8)} & 6.0 {\scriptsize(3.8, 8.5)} & 8.8 {\scriptsize(7.4, 10.4)} \\
+\midrule
+He, or they, played a break (\%) & 9.2 {\scriptsize(6.7, 12.0)} & 8.1 {\scriptsize(5.8, 10.7)} & 11.7 {\scriptsize(9.8, 13.5)} \\
+Maia-2 at his band gives the breaks (\%) & 7.5 {\scriptsize(6.1, 9.2)} & 6.1 {\scriptsize(4.9, 7.5)} & -- \\
+At the band above (\%) & 7.1 {\scriptsize(5.7, 8.9)} & 5.9 {\scriptsize(4.7, 7.3)} & -- \\
+\bottomrule
+\end{tabular}
+\caption{The mean win\% the breaks and the move played give up against Stockfish's best (a move that scores above the best gives up none), the share of breaks that are the best, and how often a break is found: how often the move played was a break, and the probability Maia-2 gives the breaks together at his band and at the band above. 95\% intervals.}
+\label{tab:more}
+\end{table}
+}
+\newcommand{\StructureTable}{%
+\begin{table}[ht]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrlll@{}}
+\toprule
+Structure & Positions & Games & B (\%) & A (\%) & Gain (points) \\
+\midrule
+London pyramid & 427 & 111 & 27.6 {\scriptsize(22.2, 33.3)} & 56.4 {\scriptsize(51.0, 61.9)} & $-$28.8 {\scriptsize($-$34.9, $-$22.4)} \\
+Reversed Carlsbad & 153 & 38 & 8.2 {\scriptsize(2.1, 16.5)} & 57.5 {\scriptsize(48.9, 66.0)} & $-$49.3 {\scriptsize($-$60.9, $-$37.9)} \\
+Isolated queen's pawn & 144 & 48 & 22.9 {\scriptsize(16.1, 29.7)} & 54.2 {\scriptsize(46.0, 62.5)} & $-$31.3 {\scriptsize($-$40.9, $-$21.2)} \\
+Advance chain & 136 & 32 & 12.5 {\scriptsize(6.2, 20.3)} & 57.4 {\scriptsize(48.7, 66.4)} & $-$44.9 {\scriptsize($-$54.5, $-$34.8)} \\
+Carlsbad & 23 & 7 & \multicolumn{3}{l}{not enough data ($n=23$)} \\
+Pirc set-up & 11 & 9 & \multicolumn{3}{l}{not enough data ($n=11$)} \\
+King's Indian chain & 9 & 2 & \multicolumn{3}{l}{not enough data ($n=9$)} \\
+Hanging pawns & 6 & 3 & \multicolumn{3}{l}{not enough data ($n=6$)} \\
+\bottomrule
+\end{tabular}
+\caption{His positions by structure, both halves together: the share of the breaks and of his moves that are sound, and the gain, with 95\% intervals, for each structure with at least 30 scored positions.}
+\label{tab:structure}
+\end{table}
+}
+\newcommand{\SplitTable}{%
+\begin{table}[ht]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrlll@{}}
+\toprule
+His positions & Positions & Games & B (\%) & A (\%) & Gain (points) \\
+\midrule
+Middlegame & 819 & 209 & 20.3 {\scriptsize(17.1, 23.9)} & 56.3 {\scriptsize(52.3, 60.3)} & $-$36.0 {\scriptsize($-$40.4, $-$31.3)} \\
+Endgame & 90 & 29 & 30.6 {\scriptsize(16.2, 43.5)} & 57.8 {\scriptsize(45.9, 68.3)} & $-$27.2 {\scriptsize($-$41.3, $-$14.2)} \\
+\midrule
+The first chance in a game & 172 & 172 & 22.1 {\scriptsize(16.9, 27.9)} & 61.0 {\scriptsize(53.5, 68.0)} & $-$39.0 {\scriptsize($-$47.4, $-$30.5)} \\
+Later chances & 737 & 175 & 21.2 {\scriptsize(17.3, 25.0)} & 55.4 {\scriptsize(51.3, 59.4)} & $-$34.2 {\scriptsize($-$39.3, $-$29.2)} \\
+\midrule
+His move not a break, first half & 446 & 108 & 17.2 {\scriptsize(12.9, 21.9)} & 54.9 {\scriptsize(49.9, 60.2)} & $-$37.8 {\scriptsize($-$44.4, $-$31.1)} \\
+His move not a break, second half & 384 & 96 & 20.1 {\scriptsize(14.9, 25.5)} & 57.8 {\scriptsize(52.1, 63.4)} & $-$37.8 {\scriptsize($-$44.6, $-$31.0)} \\
+\bottomrule
+\end{tabular}
+\caption{His positions by the divider's phase and by whether the position is the first in its game with a break on, both halves together, and his positions where his move was not a break, by half: the share of the breaks and of his moves that are sound, and the gain, with 95\% intervals.}
+\label{tab:splits}
+\end{table}
+}
+\newcommand{\Verdict}{the break misleads}
+\newcommand{\BFirst}{20.5}
+\newcommand{\AFirst}{55.2}
+\newcommand{\NFirst}{66.0}
+\newcommand{\UFirst}{67.6}
+\newcommand{\RFirst}{18.9}
+\newcommand{\RTwoFirst}{17.5}
+\newcommand{\GainFirst}{$-$34.7}
+\newcommand{\GainFirstCi}{$-$40.8 to $-$28.5}
+\newcommand{\BNFirst}{$-$45.5}
+\newcommand{\BNCiFirst}{$-$50.7 to $-$39.8}
+\newcommand{\ControlFirst}{36.3}
+\newcommand{\ControlFirstCi}{30.8 to 42.0}
+\newcommand{\NullFirst}{$-$1.4}
+\newcommand{\NullFirstCi}{$-$5.6 to 2.9}
+\newcommand{\LostBFirst}{15.4}
+\newcommand{\LostAFirst}{5.6}
+\newcommand{\BestBFirst}{8.5}
+\newcommand{\PlayedFirst}{9.2}
+\newcommand{\MassHisFirst}{7.5}
+\newcommand{\MassPlusFirst}{7.1}
+\newcommand{\BSecond}{22.4}
+\newcommand{\ASecond}{57.9}
+\newcommand{\NSecond}{71.5}
+\newcommand{\USecond}{73.0}
+\newcommand{\RSecond}{20.3}
+\newcommand{\RTwoSecond}{17.9}
+\newcommand{\GainSecond}{$-$35.5}
+\newcommand{\GainSecondCi}{$-$42.1 to $-$28.7}
+\newcommand{\BNSecond}{$-$49.2}
+\newcommand{\BNCiSecond}{$-$56.4 to $-$42.3}
+\newcommand{\ControlSecond}{37.6}
+\newcommand{\ControlSecondCi}{31.7 to 43.4}
+\newcommand{\NullSecond}{$-$2.4}
+\newcommand{\NullSecondCi}{$-$6.2 to 1.6}
+\newcommand{\LostBSecond}{15.4}
+\newcommand{\LostASecond}{5.5}
+\newcommand{\BestBSecond}{6.0}
+\newcommand{\PlayedSecond}{8.1}
+\newcommand{\MassHisSecond}{6.1}
+\newcommand{\MassPlusSecond}{5.9}
+\newcommand{\StrongB}{22.8}
+\newcommand{\StrongS}{68.8}
+\newcommand{\StrongR}{17.0}
+\newcommand{\StrongRTwo}{17.6}
+\newcommand{\StrongGain}{$-$46.0}
+\newcommand{\StrongGainCi}{$-$49.2 to $-$42.8}
+\newcommand{\StrongControl}{51.7}
+\newcommand{\StrongControlCi}{48.6 to 54.7}
+\newcommand{\StrongLostB}{13.4}
+\newcommand{\StrongLostS}{3.1}
+\newcommand{\StrongBestB}{8.8}
+\newcommand{\StrongPlayed}{11.7}
+\newcommand{\StructLondonPyramidB}{27.6}
+\newcommand{\StructLondonPyramidA}{56.4}
+\newcommand{\StructLondonPyramidGain}{$-$28.8}
+\newcommand{\StructLondonPyramidN}{427}
+\newcommand{\StructCarlsbadReversedB}{8.2}
+\newcommand{\StructCarlsbadReversedA}{57.5}
+\newcommand{\StructCarlsbadReversedGain}{$-$49.3}
+\newcommand{\StructCarlsbadReversedN}{153}
+\newcommand{\StructIqpB}{22.9}
+\newcommand{\StructIqpA}{54.2}
+\newcommand{\StructIqpGain}{$-$31.3}
+\newcommand{\StructIqpN}{144}
+\newcommand{\StructAdvanceChainB}{12.5}
+\newcommand{\StructAdvanceChainA}{57.4}
+\newcommand{\StructAdvanceChainGain}{$-$44.9}
+\newcommand{\StructAdvanceChainN}{136}
+\newcommand{\MidB}{20.3}
+\newcommand{\MidA}{56.3}
+\newcommand{\MidGain}{$-$36.0}
+\newcommand{\EndB}{30.6}
+\newcommand{\EndA}{57.8}
+\newcommand{\EndGain}{$-$27.2}
+\newcommand{\EndN}{90}
+\newcommand{\FirstB}{22.1}
+\newcommand{\FirstA}{61.0}
+\newcommand{\FirstGain}{$-$39.0}
+\newcommand{\LaterB}{21.2}
+\newcommand{\LaterA}{55.4}
+\newcommand{\LaterGain}{$-$34.2}
+\newcommand{\NotPlayedFirst}{446}
+\newcommand{\NotPlayedGainFirst}{$-$37.8}
+\newcommand{\NotPlayedBFirst}{17.2}
+\newcommand{\NotPlayedSecond}{384}
+\newcommand{\NotPlayedGainSecond}{$-$37.8}
+\newcommand{\NotPlayedBSecond}{20.1}
+\newcommand{\SomeFirst}{26.3}
+\newcommand{\SomeMinusFirst}{$-$28.9}
+\newcommand{\SomeMinusFirstCi}{$-$35.5 to $-$21.9}
+\newcommand{\SomeSecond}{28.0}
+\newcommand{\SomeMinusSecond}{$-$29.9}
+\newcommand{\SomeMinusSecondCi}{$-$37.0 to $-$22.4}
+\newcommand{\BRFirst}{1.5}
+\newcommand{\BRFirstCi}{$-$3.5 to 6.6}
+\newcommand{\BRSecond}{2.0}
+\newcommand{\BRSecondCi}{$-$3.8 to 7.8}
+\newcommand{\StrongBR}{5.8}
+\newcommand{\StrongBRCi}{2.9 to 8.6}
+\newcommand{\StrongSome}{26.3}
+\newcommand{\StrongSomeMinus}{$-$42.4}
+\newcommand{\StrongSomeMinusCi}{$-$45.8 to $-$39.0}
+\newcommand{\PlayedN}{79}
+\newcommand{\PlayedSound}{58.2}
+\newcommand{\PlayedSoundCi}{47.4 to 69.4}
+\newcommand{\NotPlayedB}{18.5}
+\newcommand{\NotPlayedBCi}{15.2 to 22.0}
+\newcommand{\StrongPlayedN}{140}
+\newcommand{\StrongPlayedSound}{70.0}
+\newcommand{\StrongNotPlayedB}{17.8}
+\newcommand{\BestN}{94}
+\newcommand{\BestShare}{10.3}
+\newcommand{\BestPlayed}{25.5}
+\newcommand{\BestPlayedCi}{17.1 to 33.7}
+\newcommand{\NotBestPlayed}{6.7}
+\newcommand{\BestMass}{19.5}
+\newcommand{\NotBestMass}{5.4}
+\newcommand{\BestMassPlus}{20.1}
+\newcommand{\NotBestMassPlus}{5.0}
+\newcommand{\StrongBestN}{132}
+\newcommand{\StrongBestPlayed}{42.4}
+\newcommand{\StrongNotBestPlayed}{7.9}
+\newcommand{\MomentTable}{%
+\begin{table}[ht]
+\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lrllll@{}}
+\toprule
+Positions & $n$ & \begin{tabular}[b]{@{}l@{}}Played \\ a break\end{tabular} & \begin{tabular}[b]{@{}l@{}}Played \\ the best\end{tabular} & \begin{tabular}[b]{@{}l@{}}Maia-2 gives the \\ breaks, his band\end{tabular} & \begin{tabular}[b]{@{}l@{}}The band \\ above\end{tabular} \\
+\midrule
+His, a break is the best & 94 & 25.5 {\scriptsize(17.1, 33.7)} & 23.4 {\scriptsize(14.8, 32.0)} & 19.5 {\scriptsize(15.5, 24.7)} & 20.1 {\scriptsize(15.9, 25.5)} \\
+His, no break is the best & 815 & 6.7 {\scriptsize(5.2, 8.4)} & 22.5 {\scriptsize(19.6, 25.4)} & 5.4 {\scriptsize(4.6, 6.2)} & 5.0 {\scriptsize(4.2, 5.8)} \\
+Strong, a break is the best & 132 & 42.4 {\scriptsize(34.1, 50.8)} & 40.2 {\scriptsize(31.8, 48.5)} & -- & -- \\
+Strong, no break is the best & 1,068 & 7.9 {\scriptsize(6.3, 9.5)} & 36.0 {\scriptsize(33.1, 39.1)} & -- & -- \\
+\bottomrule
+\end{tabular}
+\caption{Added after the run. His positions, both halves together, and the strong players', where a break is Stockfish's best and where none is: how often the move played was a break and was the best, and the probability Maia-2 gives the breaks together. In \%, with 95\% intervals.}
+\label{tab:moment}
+\end{table}
+}
+\newcommand{\ChoiceTable}{%
+\begin{table}[ht]
+\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lrllll@{}}
+\toprule
+Positions & $n$ & \begin{tabular}[b]{@{}l@{}}Some break \\ sound\end{tabular} & \begin{tabular}[b]{@{}l@{}}The move \\ played, sound\end{tabular} & \begin{tabular}[b]{@{}l@{}}Difference \\ (points)\end{tabular} & \begin{tabular}[b]{@{}l@{}}B minus R \\ (points)\end{tabular} \\
+\midrule
+His, first half & 491 & 26.3 {\scriptsize(21.0, 31.9)} & 55.2 {\scriptsize(50.3, 60.1)} & $-$28.9 {\scriptsize($-$35.5, $-$21.9)} & 1.5 {\scriptsize($-$3.5, 6.6)} \\
+His, second half & 418 & 28.0 {\scriptsize(21.4, 34.9)} & 57.9 {\scriptsize(52.1, 64.0)} & $-$29.9 {\scriptsize($-$37.0, $-$22.4)} & 2.0 {\scriptsize($-$3.8, 7.8)} \\
+Strong players & 1,200 & 26.3 {\scriptsize(23.8, 28.9)} & 68.8 {\scriptsize(66.1, 71.4)} & $-$42.4 {\scriptsize($-$45.8, $-$39.0)} & 5.8 {\scriptsize(2.9, 8.6)} \\
+\midrule
+& & \begin{tabular}[b]{@{}l@{}}The break \\ played, sound\end{tabular} & \begin{tabular}[b]{@{}l@{}}The breaks, \\ sound\end{tabular} & \begin{tabular}[b]{@{}l@{}}The move \\ played, sound\end{tabular} & \\
+\midrule
+His, played one & 79 & 58.2 {\scriptsize(47.4, 69.4)} & 51.3 {\scriptsize(41.9, 61.3)} & -- & -- \\
+His, did not & 830 & -- & 18.5 {\scriptsize(15.2, 22.0)} & 56.3 {\scriptsize(52.3, 60.2)} & -- \\
+Strong, played one & 140 & 70.0 {\scriptsize(62.1, 77.1)} & 60.0 {\scriptsize(53.2, 66.8)} & -- & -- \\
+Strong, did not & 1,060 & -- & 17.8 {\scriptsize(15.7, 20.0)} & 68.6 {\scriptsize(65.8, 71.3)} & -- \\
+\bottomrule
+\end{tabular}
+\caption{Added after the run. Above, the share of positions where at least one break is sound, against the share where the move played is, and the breaks' soundness minus a random move's, paired by position. Below, his positions, both halves together, and the strong players', where the move played was a break or was not: the share of the breaks played that are sound, of all the breaks, and of the moves played. In \%, with 95\% intervals.}
+\label{tab:choice}
+\end{table}
+}
+\newcommand{\LeverTable}{%
+\begin{table}[ht]
+\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.4cm}>{\raggedright\arraybackslash}p{2.3cm}rlrrlr@{}}
+\toprule
+& & \multicolumn{3}{c}{His positions} & \multicolumn{3}{c}{Strong players'} \\
+\cmidrule(lr){3-5}\cmidrule(lr){6-8}
+Structure & Break & $n$ & The break & His move & $n$ & The break & Their move \\
+\midrule
+London pyramid & c3-c4 & 373 & 29.0 {\scriptsize(22.6, 35.4)} & 56.6 & 63 & 25.4 {\scriptsize(15.9, 36.5)} & 74.6 \\
+London pyramid & e3-e4 & 355 & 23.4 {\scriptsize(17.7, 29.5)} & 56.3 & 80 & 17.5 {\scriptsize(10.0, 26.3)} & 75.0 \\
+Reversed Carlsbad & \ldots{}e6-e5 & 151 & 7.9 {\scriptsize(2.0, 15.6)} & 58.3 & 48 & 12.5 {\scriptsize(4.2, 22.9)} & 66.7 \\
+Advance chain & \ldots{}f7-f6 & 118 & 9.3 {\scriptsize(3.3, 18.1)} & 58.5 & 132 & 10.6 {\scriptsize(6.1, 15.9)} & 62.1 \\
+Isolated queen's pawn & d5-d4 & 76 & 25.0 {\scriptsize(16.0, 35.1)} & 50.0 & 159 & 22.6 {\scriptsize(16.4, 28.9)} & 64.8 \\
+Isolated queen's pawn & d4-d5 & 44 & 11.4 {\scriptsize(2.3, 21.1)} & 50.0 & 143 & 22.4 {\scriptsize(16.1, 29.4)} & 68.5 \\
+Carlsbad & e3-e4 & 22 & -- & -- & 55 & 12.7 {\scriptsize(5.5, 21.8)} & 70.9 \\
+London pyramid & \ldots{}c7-c5 & 22 & -- & -- & 39 & 28.2 {\scriptsize(15.4, 43.6)} & 71.8 \\
+Advance chain & \ldots{}c7-c5 & 18 & -- & -- & 37 & 32.4 {\scriptsize(18.9, 48.6)} & 70.3 \\
+Isolated queen's pawn & \ldots{}b4-b5 to remove a defender & 16 & -- & -- & 42 & 31.0 {\scriptsize(16.7, 45.2)} & 73.8 \\
+London pyramid & \ldots{}e6-e5 & 12 & -- & -- & 66 & 15.2 {\scriptsize(7.6, 24.2)} & 72.7 \\
+King's Indian chain & \ldots{}f7-f5 & 9 & -- & -- & 51 & 43.1 {\scriptsize(29.4, 56.9)} & 70.6 \\
+Isolated queen's pawn & \ldots{}b5-b4 to remove a defender & 8 & -- & -- & 64 & 25.0 {\scriptsize(15.6, 35.9)} & 60.9 \\
+Pirc set-up & \ldots{}e7-e5 & 8 & -- & -- & 32 & 34.4 {\scriptsize(18.8, 50.0)} & 75.0 \\
+Pirc set-up & e4-e5 & 3 & -- & -- & 47 & 23.4 {\scriptsize(12.8, 36.2)} & 78.7 \\
+Reversed Carlsbad & c3-c4 & 2 & -- & -- & 50 & 14.0 {\scriptsize(6.0, 24.0)} & 74.0 \\
+Pirc set-up & \ldots{}c7-c5 & 2 & -- & -- & 36 & 38.9 {\scriptsize(25.0, 55.6)} & 77.8 \\
+Carlsbad & \ldots{}c6-c5 & 1 & -- & -- & 47 & 21.3 {\scriptsize(10.6, 34.0)} & 76.6 \\
+King's Indian chain & c4-c5 & 0 & -- & -- & 36 & 33.3 {\scriptsize(19.4, 50.0)} & 55.6 \\
+\bottomrule
+\end{tabular}
+\caption{Added after the run. Each break the catalogue teaches, apart, where it is on in at least 30 of his positions (both halves) or of the strong players': the positions, the share of the break's moves that are sound, with its 95\% interval, and the share of the moves played there that are, in \%. Each break is the catalogue's text as the app reads it for the side to move: for a structure written from the holder's side, with the ranks mirrored when Black holds the structure.}
+\label{tab:levers}
+\end{table}
+}
+\newcommand{\LevOneStructure}{the London pyramid}
+\newcommand{\LevOneBreak}{c3-c4}
+\newcommand{\LevOneN}{373}
+\newcommand{\LevOneL}{29.0}
+\newcommand{\LevOneOwn}{56.6}
+\newcommand{\LevTwoStructure}{the London pyramid}
+\newcommand{\LevTwoBreak}{e3-e4}
+\newcommand{\LevTwoN}{355}
+\newcommand{\LevTwoL}{23.4}
+\newcommand{\LevTwoOwn}{56.3}
+\newcommand{\LevThreeStructure}{the reversed Carlsbad}
+\newcommand{\LevThreeBreak}{\ldots{}e6-e5}
+\newcommand{\LevThreeN}{151}
+\newcommand{\LevThreeL}{7.9}
+\newcommand{\LevThreeOwn}{58.3}
+\newcommand{\LevFourStructure}{the advance chain}
+\newcommand{\LevFourBreak}{\ldots{}f7-f6}
+\newcommand{\LevFourN}{118}
+\newcommand{\LevFourL}{9.3}
+\newcommand{\LevFourOwn}{58.5}
+\newcommand{\StrongLevOneStructure}{the isolated queen's pawn}
+\newcommand{\StrongLevOneBreak}{d5-d4}
+\newcommand{\StrongLevOneN}{159}
+\newcommand{\StrongLevOneL}{22.6}
+\newcommand{\StrongLevOneOwn}{64.8}
+\newcommand{\StrongLevTwoStructure}{the isolated queen's pawn}
+\newcommand{\StrongLevTwoBreak}{d4-d5}
+\newcommand{\StrongLevTwoN}{143}
+\newcommand{\StrongLevTwoL}{22.4}
+\newcommand{\StrongLevTwoOwn}{68.5}
+\newcommand{\StrongLevThreeStructure}{the advance chain}
+\newcommand{\StrongLevThreeBreak}{\ldots{}f7-f6}
+\newcommand{\StrongLevThreeN}{132}
+\newcommand{\StrongLevThreeL}{10.6}
+\newcommand{\StrongLevThreeOwn}{62.1}
+\newcommand{\StrongLevFourStructure}{the London pyramid}
+\newcommand{\StrongLevFourBreak}{e3-e4}
+\newcommand{\StrongLevFourN}{80}
+\newcommand{\StrongLevFourL}{17.5}
+\newcommand{\StrongLevFourOwn}{75.0}
+\newcommand{\StrongStructureTable}{%
+\begin{table}[ht]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrlll@{}}
+\toprule
+Structure & Positions & B (\%) & S (\%) & B minus S (points) \\
+\midrule
+Isolated queen's pawn & 408 & 23.8 {\scriptsize(19.9, 27.9)} & 66.4 {\scriptsize(62.0, 70.8)} & $-$42.6 {\scriptsize($-$48.0, $-$37.0)} \\
+London pyramid & 178 & 19.7 {\scriptsize(14.9, 25.0)} & 72.5 {\scriptsize(65.7, 79.2)} & $-$52.8 {\scriptsize($-$60.1, $-$44.7)} \\
+Advance chain & 171 & 15.2 {\scriptsize(10.5, 20.5)} & 65.5 {\scriptsize(58.5, 72.5)} & $-$50.3 {\scriptsize($-$58.8, $-$42.1)} \\
+Carlsbad & 102 & 16.7 {\scriptsize(9.8, 23.5)} & 73.5 {\scriptsize(64.7, 82.4)} & $-$56.9 {\scriptsize($-$66.7, $-$46.6)} \\
+Reversed Carlsbad & 100 & 15.0 {\scriptsize(9.0, 22.0)} & 71.0 {\scriptsize(62.0, 80.0)} & $-$56.0 {\scriptsize($-$68.0, $-$43.5)} \\
+King's Indian chain & 96 & 38.0 {\scriptsize(28.1, 47.9)} & 63.5 {\scriptsize(54.2, 72.9)} & $-$25.5 {\scriptsize($-$37.5, $-$13.5)} \\
+Pirc set-up & 96 & 33.9 {\scriptsize(25.0, 42.7)} & 77.1 {\scriptsize(68.8, 85.4)} & $-$43.2 {\scriptsize($-$55.2, $-$31.3)} \\
+Hanging pawns & 49 & 28.6 {\scriptsize(21.4, 35.7)} & 65.3 {\scriptsize(51.0, 79.6)} & $-$36.7 {\scriptsize($-$51.0, $-$22.4)} \\
+\bottomrule
+\end{tabular}
+\caption{Added after the run. The strong players' positions by structure: the share of the breaks and of their moves that are sound, and the difference, with 95\% intervals, for each structure with at least 30 scored positions.}
+\label{tab:strongstructure}
+\end{table}
+}
+\newcommand{\EaHalf}{second}
+\newcommand{\EbHalf}{second}
+\newcommand{\LondonWhite}{601}
+\newcommand{\EaFen}{\fen{r2q1rk1/ppp1ppbp/2np1np1/8/2PPP1bP/2N1BN2/PP3PP1/R2QKB1R b KQ - 2 8}}
+\newcommand{\EaMover}{Black}
+\newcommand{\EaPhase}{middlegame}
+\newcommand{\EaStructure}{the Pirc set-up}
+\newcommand{\EaBreaks}{8\ldots{}e5 (sound, 55\%)}
+\newcommand{\EaBreakLabel}{The break}
+\newcommand{\EaBest}{8\ldots{}e5}
+\newcommand{\EaWpBest}{55}
+\newcommand{\EaPlayed}{8\ldots{}e6}
+\newcommand{\EaWpPlayed}{49}
+\newcommand{\EaPlayedSound}{not sound}
+\newcommand{\EaLost}{$-$6}
+\newcommand{\EaBoard}{%
+\chessboard[setfen={r2q1rk1/ppp1ppbp/2np1np1/8/2PPP1bP/2N1BN2/PP3PP1/R2QKB1R b KQ - 2 8}, boardfontsize=14pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=blue!70!black, markmoves={e7-e6}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={e7-e5}]
+}
+\newcommand{\EbFen}{\fen{rn1q2k1/ppp3p1/3b1p1p/3p1R1Q/3Pr2B/2P1P3/PP4PP/RN4K1 w - - 0 16}}
+\newcommand{\EbMover}{White}
+\newcommand{\EbPhase}{middlegame}
+\newcommand{\EbStructure}{the London pyramid}
+\newcommand{\EbBreaks}{16.~c4 (not sound, 54\%)}
+\newcommand{\EbBreakLabel}{The break}
+\newcommand{\EbBest}{16.~\symknight{}d2}
+\newcommand{\EbWpBest}{61}
+\newcommand{\EbPlayed}{16.~\symknight{}d2}
+\newcommand{\EbWpPlayed}{61}
+\newcommand{\EbPlayedSound}{sound}
+\newcommand{\EbLost}{0}
+\newcommand{\EbBoard}{%
+\chessboard[setfen={rn1q2k1/ppp3p1/3b1p1p/3p1R1Q/3Pr2B/2P1P3/PP4PP/RN4K1 w - - 0 16}, boardfontsize=14pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=blue!70!black, markmoves={b1-d2}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={c3-c4}]
+}

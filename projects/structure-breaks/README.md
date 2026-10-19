@@ -9,8 +9,28 @@ games in which he played the break (`playedLever`). When a break his
 structure teaches can be played in one of his quiet middlegame or endgame
 positions, is it a sound move there, more often than the move he played?
 
-**The answer.** Not run yet. The rule below was committed before any move was
-scored.
+**The answer.** The break misleads, by the rule below, which was committed
+before any move was scored. Both controls passed. In his quiet positions with a
+break on, the breaks are sound about one time in five on both halves of his
+games, while his own move is sound more than half the time: the gain lies about
+35 points below 0 on each half. A break that can be played is sound about as
+often as a random move that is not a break, and gives up about three times the
+win% his move gives up. It is so in each structure with enough positions (the
+London pyramid, the isolated queen's pawn, the reversed Carlsbad and the advance
+chain), in the middlegame and the endgame, and in strong players' positions,
+where the breaks trail the strong player's own move by even more: a break is
+rarely right merely because it can be played.
+
+Added after the rule was applied: the breaks he did play were sound about as
+often as his other moves, and far more often than the breaks he passed over.
+Where a break is the referee's best, about one position in ten, he played one
+about one time in four, against about one in fifteen elsewhere, and Maia-2 at
+his band reads the moment as he does. The app should not offer a structure's
+break as the plan whenever it is on; what it can teach is the moment, with
+Stockfish's word on each position. The numbers are in
+[`results/structure-breaks.md`](results/structure-breaks.md), written by
+`analyze.mjs`, and [`results/descriptions.md`](results/descriptions.md), written
+by `describe.mjs`; the paper is [`paper/paper.pdf`](paper/paper.pdf).
 
 If the break holds, the review and the drills can teach the structure's break
 as the plan when it is on, and the structure index's count of breaks played
@@ -170,6 +190,9 @@ model judges anything here.
 | `positions.mjs` | Reads positions-like-this's candidates of his and its strong games, and writes the positions with the break on (`private/structure-breaks/his-candidates.jsonl`, `strong-candidates.jsonl`) and their counts (`results/positions.json`). No move is scored. |
 | `score.mjs` | For each position (`--who his` or `--who strong`): the referee's best, Maia-2's policy at his band and the band above (his positions), the arms' moves and every move's soundness, one shard at a time, resuming where a shard stopped (`private/structure-breaks/<who>-<i>-of-<n>.jsonl`). |
 | `analyze.mjs` | Applies the rule and the descriptions; writes `results/structure-breaks.json` and `.md`. |
+| `describe.mjs` | The descriptions added after the run (each break apart, where a break is the best, where he played one, the strong players' structures); writes `results/descriptions.json` and `.md`. |
+| `paper/generate.mjs` | Writes `paper/generated.tex`, every number, table and position the paper prints, from `results/` and the private rows (the two positions rescored), and refuses to write when a claim the paper makes no longer holds. |
+| `paper/paper.tex` | The paper. |
 
 ## Running it
 
@@ -180,4 +203,7 @@ bridge/run.sh projects/structure-breaks/positions.mjs
 for i in 0 1 2 3; do bridge/run.sh projects/structure-breaks/score.mjs --who his --shard $i/4 & done; wait
 for i in 0 1 2 3; do bridge/run.sh projects/structure-breaks/score.mjs --who strong --shard $i/4 & done; wait
 bridge/run.sh projects/structure-breaks/analyze.mjs
+bridge/run.sh projects/structure-breaks/describe.mjs
+bridge/run.sh projects/structure-breaks/paper/generate.mjs
+(cd projects/structure-breaks/paper && latexmk -pdf paper.tex)
 ```
