@@ -25,9 +25,9 @@ point estimate within the fixed allowance. The combined
 `best-deflection-trapped` candidate also passes on both sets. It tries trapped
 piece before deflection after the existing tactics. No puzzle in either set
 offered both new words, so this test has no observed overlap winner. The
-combined change is a candidate for the app; it has not shipped. The
-script-written [result](results/round2/result.md) gives the counts, differences
-and intervals.
+combined change shipped with chess PR 127. Its new-pin recheck is reported
+separately below. The script-written [result](results/round2/result.md) gives
+the counts, differences and intervals.
 
 ## The data
 
@@ -75,6 +75,8 @@ checkmate is given by the score passed in, so its row is not a test.
 | `report-round2.mjs` | Checks the frozen inputs and all comparisons, writes `results/round2/result.json` and `result.md`, and updates the round-two Candidates rows. |
 | `combined-spec.json`, `freeze-combined.mjs`, `combined-freeze.mjs` | Register the combined order and verify its pre-score content hashes. |
 | `run-combined.sh`, `overlap-combined.mjs` | Run the combined score under that freeze; check every combined label against the independent labels and count overlap. |
+| `run-recheck.mjs`, `report-recheck.mjs` | Run the unchanged scorer at the shipped pin in separate paths, then compare its labels and counts with the committed combined candidate. |
+| `verify-round2-history.mjs` | Verify the original freeze with its archived pin after the live bridge pin advances. |
 | `paper/` | The earlier paper and the round-two section; `generate.mjs --round2` checks the claims and writes `generated.tex`. |
 
 ## The earlier round
@@ -102,13 +104,15 @@ disagreement does not rise (the interval's upper end at or below one point).
 | `describe-first` | `best` | Kept in the earlier round; shipped | Before the defensive fallback, name a skewer, a discovered attack or a pin when the move describer finds one for the mover. |
 | `best-deflection` | `best` | Kept; candidate for the app | Before defence or phase, name the existing line reader's deflection when the supplied solution begins with this move. |
 | `best-trapped` | `best` | Kept; candidate for the app | Before defence or phase, name the describer's trapped piece when the supplied line wins that same piece after costs. |
-| `best-deflection-trapped` | `best` | Kept; candidate for the app | Before defence or phase, name the existing trapped-piece proof first, then the deflection proof. |
+| `best-deflection-trapped` | `best` | Kept; shipped with chess PR 127 | Before defence or phase, name the existing trapped-piece proof first, then the deflection proof. |
 
 ## Round two: development, then the held-out test
 
-This round measures the pin in `bridge/chess.json`, independently of the
-older results above. Its outputs live in `results/round2/`; its per-puzzle
-labels and resumable work live in `private/detector-themes/round2/`. The
+The round-two experiment measured app `f4bd63f`, independently of the older
+results above. The bridge now pins the shipped PR 127 merge; the recheck
+below keeps its scores separate. The experiment's outputs live in
+`results/round2/`; its per-puzzle labels and resumable work live in
+`private/detector-themes/round2/`. The
 older paper sections and results remain a record of the older app. The
 candidates were finalized in phase one before any held-out labeller ran.
 Phase two scored the pinned app and both frozen candidates and applied the
@@ -194,6 +198,12 @@ competency mapping would be a separate app change, not an unmeasured part of
 this candidate.
 
 ### Reproducing the development scores
+
+The command blocks for development, held-out testing and the combined test
+below record the original run at `f4bd63f`. They are historical commands,
+not commands to run with the advanced bridge pin. The original scorer has
+fixed paths, and its original keep rule and inputs remain frozen. Use the
+post-port commands below to measure the shipped pin.
 
 The supplied `.cache/chess` and `.venv` are links to the provisioned shared
 resources. Their pinned files are read through those links. Candidate
@@ -395,3 +405,38 @@ candidate=$(projects/detector-themes/candidate.sh best-deflection-trapped)
 (cd "$candidate" && nice -n 10 node_modules/.bin/vitest run --project fast --maxWorkers 1 src/services/knowledge/detectors/theme.test.ts src/services/knowledge/detectors/tactics/tactics.test.ts src/services/knowledge/detectors/insights/insights.test.ts src/services/publishing/decks/themeLine.test.ts tests/architecture)
 (cd "$candidate" && nice -n 10 node_modules/.bin/tsc -p tsconfig.app.json --noEmit --incremental false)
 ```
+
+## The shipped-pin recheck
+
+The combined change shipped with chess PR 127, app commit
+`3a377486e8ae214f86f1e948f69231248f79f8a0`. The bridge now pins that merge;
+its records pin is unchanged. This is a post-port check, not a new keep test.
+The script-written [recheck](results/round2/3a377486e8ae214f86f1e948f69231248f79f8a0/recheck.md)
+places the shipped counts beside the committed combined candidate and checks
+per-puzzle labels, so equal totals cannot hide changed labels. Every saved
+best, blunder and move label matched on both sets.
+
+`run-recheck.mjs` copies the original scorer and its bridge path helpers byte
+for byte into a private lab directory for this pin. The directory links only
+the frozen held-out sample and the new aggregate output folder. Work and
+labels stay under `private/detector-themes/rechecks/`; aggregates go under
+`results/round2/3a377486e8ae214f86f1e948f69231248f79f8a0/`. The app is unpatched
+and `CANDIDATE` is unset. Both datasets must match the original hashes. Each
+score uses two `nice -n 10` shards, waits for them, then merges. Run these
+commands one at a time:
+
+```bash
+node projects/detector-themes/run-recheck.mjs app
+node projects/detector-themes/run-recheck.mjs heldout
+CHESS_DIR="$PWD/private/detector-themes/app-cache/3a377486e8ae214f86f1e948f69231248f79f8a0" nice -n 10 bridge/run.sh projects/detector-themes/report-recheck.mjs
+CHESS_DIR="$PWD/private/detector-themes/app-cache/3a377486e8ae214f86f1e948f69231248f79f8a0" nice -n 10 bridge/run.sh projects/detector-themes/report-round2.mjs
+CHESS_DIR="$PWD/private/detector-themes/app-cache/3a377486e8ae214f86f1e948f69231248f79f8a0" nice -n 10 bridge/run.sh projects/detector-themes/paper/generate.mjs --round2
+```
+
+The checkout and its npm dependencies live in this clone's private cache;
+nothing was installed system-wide. Historical claim checks read only the
+old pin bytes from the recorded freeze and use the provisioned old app for
+its source checks. Every other frozen input must still match. The original
+scores, sample, rules and combined content manifest remain unchanged. The
+paper uses seven-character commit references in the round-two prose, while
+its generated inputs retain the full identities. No PDF was compiled.

@@ -5,9 +5,10 @@ import { createHash } from 'node:crypto'
 import { execFileSync } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { CHESS_DIR, LAB_DIR } from '../../../bridge/lib/chess.mjs'
+import { LAB_DIR } from '../../../bridge/lib/chess.mjs'
 import { Generated, esc, fixed } from '../../paper.mjs'
-import { COMBINED, MANIFEST, SPEC, verifyCombined } from '../combined-freeze.mjs'
+import { COMBINED, MANIFEST, SPEC } from '../combined-freeze.mjs'
+import { verifyRound2History } from '../verify-round2-history.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const resultDir = join(here, '../results/round2')
@@ -35,15 +36,16 @@ for (const [path, hash] of Object.entries(manifest.inputs)) {
 const historicalBody = (text) => text.slice(text.indexOf('\\begin{abstract}'), text.indexOf('\\appendix'))
 claim(historicalBody(readFileSync(join(here, 'paper.tex'), 'utf8')) === historicalBody(git(LAB_DIR, 'show', `${frozen}:projects/detector-themes/paper/paper.tex`).toString('utf8')), 'the historical prose is unchanged')
 
-const pin = json(join(LAB_DIR, 'bridge/chess.json')).commit
+const combinedFreeze = verifyRound2History()
+const pin = combinedFreeze.historicalPin.commit
+const historicalAppDir = combinedFreeze.historicalAppDir
 const report = json(join(resultDir, 'result.json'))
 const sample = json(join(resultDir, 'sample.json'))
 const development = json(join(resultDir, 'development.json'))
-claim(report.project === 'detector-themes' && report.round === 2 && report.frozenCommit === frozen && report.app === pin, 'the completed report names the frozen design and current app pin')
-claim(git(CHESS_DIR, 'rev-parse', 'HEAD').toString().trim() === pin, 'paper source checks use the pinned app')
+claim(report.project === 'detector-themes' && report.round === 2 && report.frozenCommit === frozen && report.app === pin, 'the completed report names the frozen design and historical experiment app pin')
+claim(git(historicalAppDir, 'rev-parse', 'HEAD').toString().trim() === pin, 'paper source checks use the historical experiment app')
 claim(same(Object.keys(report.candidates).sort(), [...variants].sort()), 'the report contains the independent candidates and the registered combination')
 claim(same(report.rule, { draws: 2000, seed: 20261014, confidence: 0.95, agreementLowerAbove: 0, disagreementUpperAtMost: 0.01 }), 'the candidate rule is unchanged')
-const combinedFreeze = verifyCombined()
 claim(report.combinedFreeze.path === MANIFEST && report.combinedFreeze.sha256 === combinedFreeze.sha256 && same(report.combinedFreeze.manifest, combinedFreeze.manifest), 'the report uses the verified combined content freeze')
 const specification = json(join(LAB_DIR, SPEC))
 claim(same(combinedFreeze.manifest.priority, ['trappedPiece', 'deflection']) && same(combinedFreeze.manifest.rule, report.rule), 'the combined tie-break and keep rule are the registered ones')
@@ -53,7 +55,7 @@ claim(specification.decision.includes('Overlap counts are descriptive and add no
 claim(Object.keys(report.frozenChecksums).length > 0, 'the report carries frozen source checksums')
 for (const [path, record] of Object.entries(report.frozenChecksums)) {
   claim((path === 'bridge/chess.json' || path.startsWith('projects/detector-themes/')) && !path.includes('..'), 'frozen paths name this project or its app pin')
-  const bytes = readFileSync(join(LAB_DIR, path))
+  const bytes = combinedFreeze.historicalBytes(path)
   claim(validDigest(record.sha256) && digest(bytes) === record.sha256 && bytes.equals(git(LAB_DIR, 'show', `${frozen}:${path}`)), `frozen artifact ${path} is unchanged`)
   claim(git(LAB_DIR, 'rev-parse', `${frozen}:${path}`).toString().trim() === record.gitBlob, `frozen git blob ${path} matches`)
 }
@@ -89,8 +91,8 @@ const sourceKey = 'src/services/knowledge/detectors/theme.ts'
 const motifKey = 'src/services/knowledge/detectors/motifs.ts'
 const vocabularyKey = 'src/services/knowledge/catalogue/vocabulary.ts'
 const appSource = (path) => {
-  const bytes = readFileSync(join(CHESS_DIR, path))
-  claim(bytes.equals(git(CHESS_DIR, 'show', `${pin}:${path}`)), `pinned source ${path} is unchanged`)
+  const bytes = readFileSync(join(historicalAppDir, path))
+  claim(bytes.equals(git(historicalAppDir, 'show', `${pin}:${path}`)), `historical experiment source ${path} is unchanged`)
   return bytes.toString('utf8')
 }
 const pinnedTheme = appSource(sourceKey)
@@ -207,6 +209,7 @@ for (const fragment of ["expect(trapped?.squares).toEqual(['a1'])", "expect(dete
 const number = (n) => n.toLocaleString('en-US')
 const g = new Generated('projects/detector-themes/paper/generate.mjs --round2')
 g.def('RTwoAppCommit', pin).def('RTwoFrozenCommit', frozen)
+g.def('RTwoAppCommitShort', pin.slice(0, 7)).def('RTwoFrozenCommitShort', frozen.slice(0, 7))
 g.def('RTwoPuzzles', number(report.data.app.puzzles)).def('RTwoSampled', number(sample.sampled))
 g.def('RTwoEligible', number(sample.eligible)).def('RTwoRatingLow', String(sample.ratings[0])).def('RTwoRatingHigh', number(sample.ratings[1]))
 g.def('RTwoPoolHash', report.data.app.datasetSha256).def('RTwoSampleHash', sample.data_sha256).def('RTwoDatabaseHash', sample.source_sha256)

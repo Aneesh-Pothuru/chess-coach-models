@@ -7,7 +7,7 @@ import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { verifyCombined } from './combined-freeze.mjs'
+import { verifyRound2History } from './verify-round2-history.mjs'
 
 const PROJECT = 'projects/detector-themes'
 const root = fileURLToPath(new URL('../../', import.meta.url))
@@ -35,6 +35,7 @@ const canonicalSources = (value) => JSON.stringify(Object.entries(value).sort(([
 const sameSources = (a, b, message) => assert(canonicalSources(a) === canonicalSources(b), message)
 
 assert(git('rev-parse', frozenCommit).toString().trim() === frozenCommit, 'the frozen commit is unavailable')
+const verifiedCombined = verifyRound2History()
 const frozenPaths = [
   'bridge/chess.json',
   ...['compare.mjs', 'development.mjs', 'run-score.sh', 'sample.py', 'score.mts'].map((name) => `${PROJECT}/${name}`),
@@ -44,7 +45,7 @@ const frozenPaths = [
 const frozenChecksums = {}
 for (const path of frozenPaths) {
   const expected = git('show', `${frozenCommit}:${path}`)
-  const actual = fs.readFileSync(join(root, path))
+  const actual = verifiedCombined.historicalBytes(path)
   assert(expected.equals(actual), `${path}: differs from the frozen phase-one commit`)
   frozenChecksums[path] = { gitBlob: git('rev-parse', `${frozenCommit}:${path}`).toString().trim(), sha256: sha256(actual) }
 }
@@ -58,7 +59,6 @@ function read(path) {
 const sample = read(`${dir}/sample.json`)
 const development = read(`${dir}/development.json`)
 const pin = JSON.parse(git('show', `${frozenCommit}:bridge/chess.json`)).commit
-const verifiedCombined = verifyCombined()
 const manifest = read(manifestPath)
 assert(inputs[manifestPath] === verifiedCombined.sha256, 'combined design changed while being verified')
 const specification = read(`${PROJECT}/combined-spec.json`)
@@ -314,7 +314,7 @@ let updatedTable = table[0]
 for (const [name, change] of Object.entries(changes)) {
   const row = new RegExp('^\\| `' + name + '` \\| `best` \\| [^\\n]*\\|$', 'gm')
   assert([...updatedTable.matchAll(row)].length === 1, `${name}: Candidates table must contain exactly one row`)
-  const verdict = candidates[name].verdict === 'keep' ? 'Kept; candidate for the app' : 'Not kept'
+  const verdict = candidates[name].verdict === 'keep' ? (name === combinedName ? 'Kept; shipped with chess PR 127' : 'Kept; candidate for the app') : 'Not kept'
   updatedTable = updatedTable.replace(row, `| \`${name}\` | \`best\` | ${verdict} | ${change} |`)
 }
 const tableStart = sectionStart + table.index
