@@ -11,13 +11,54 @@ games at 600+0 against their rated rapid games with more time. Does the extra
 minute spent at a trigger go with fewer serious errors than the extra minute
 at an ordinary move? Does another moment do better?
 
-**This run.** This is the design and its count. No budget effect, error rate,
-per-moment think mean, ratio, interval, p-value or verdict has been computed.
-The aggregate count and the timings are in `results/phase1.md`. A fitted
-danger score is used only to count the high-danger candidate and common
-strata, and to time that step. Its fit is fixed below; its accuracy and error
-rates are not inspected in this phase. The paper describes the design and
-counts, and makes no claim that more time helps.
+**The answer.** Leave the app's triggers alone. The larger budget cuts
+serious errors overall, but the placebo does not pass. Its interval crosses
+the lower tolerance boundary of -1.000 percentage point. The design cannot
+tell which moments deserve extra time under the fixed rule.
+
+| Check | Δerr (percentage points; 95% interval) | Verdict |
+|---|---|---|
+| More time at all | -0.289 (-0.563 to -0.009) | pass |
+| Under-five-second placebo | -0.596 (-1.026 to -0.148) | inconclusive |
+
+These are the registered within-player estimates for the primary players.
+Differences are slow minus fast. The v columns are serious errors saved per
+extra minute. Each comparison uses its own paired none cohort.
+
+| Moment | Δthink (s) | Δerr (pp) | v | v minus paired none | Verdict |
+|---|---:|---:|---:|---:|---|
+| Book exit | +3.172 | -0.641 | +0.121 | cannot tell | cannot tell; leave unchanged |
+| Conversion | +5.299 | -0.189 | +0.021 | +0.041 | cannot tell; leave unchanged |
+| Forcing | +4.967 | -0.547 | +0.066 | +0.110 | cannot tell; leave unchanged |
+| Structure | +7.638 | -2.947 | +0.231 | cannot tell | cannot tell; leave unchanged |
+| After the opponent's serious error | +6.089 | -0.502 | +0.049 | +0.089 | cannot tell; leave unchanged |
+| In check | +3.432 | -1.186 | +0.207 | cannot tell | cannot tell; leave unchanged |
+| After a capture | +3.535 | -0.121 | +0.020 | +0.063 | cannot tell; leave unchanged |
+| Own piece hanging | +5.323 | -0.420 | +0.047 | +0.090 | cannot tell; leave unchanged |
+| Opponent's piece hanging | +4.127 | -0.696 | +0.101 | +0.144 | cannot tell; leave unchanged |
+| Defending | +5.928 | +0.597 | -0.060 | cannot tell | cannot tell; leave unchanged |
+| Early | +3.545 | -0.258 | +0.044 | +0.086 | cannot tell; leave unchanged |
+| High danger | +6.918 | -0.873 | +0.076 | +0.115 | cannot tell; leave unchanged |
+
+Forcing and high danger have positive value contrasts that pass their family
+tests (Holm p 0.02000 and 0.04399). Their separate error-difference
+intervals lie below zero, but the placebo blocks both. The move after the opponent's
+serious error has no resolved reduction or value advantage. Book exit,
+structure, in check and defending lack enough coverage for a contrast;
+their individual ratios pass the extra-think floor. The overall error
+interval crosses zero in both descriptive sensitivity runs. Neither those
+runs nor the favorable comparisons change the verdict.
+
+The app took **Not yet**. A trigger change would need a separate pull
+request. This result does not change either think-time bar.
+
+The full intervals, paired support, rating descriptions and sensitivities
+are in [the effect report](results/analysis.md); the ordered summary is in
+[the result report](results/report.md). The scripts measured app
+`f4bd63f19b343f686fb97ea4cf70b211c0bddc0a` on the frozen 2026-09 and 2026-08
+source prefixes, with 2,019 primary players. The data and rule below are
+unchanged from phase one. Its original documents are preserved in
+`phase1/` against the original content manifest.
 
 ## The data
 
@@ -345,7 +386,11 @@ paired comparison names its own cohort and coverage.
 | `cost.py` | Prices the full build and later analysis from measured timings and count-only bootstrap arithmetic; writes `results/cost.json` and `.md`. |
 | `freeze.py` | Writes and checks `freeze-manifest.json`, the SHA-256 content freeze of the rule, scripts, phase-one reports, paper and imported lab helpers. It stores no commit ID from this branch. |
 | `test_pipeline.py` | Checks the parser, restart handling and count pipeline without estimating an effect. |
-| `paper/paper.tex` | The phase-one paper: design, counts and limits. |
+| `publication.mjs` | Checks the original content freeze using its archived documents, input identities, unchanged registered text and saved rule application. It cannot authorize an effects run. |
+| `report.mjs` | Writes the README answer, lab table row and ordered result report from saved aggregates, refusing claims that no longer hold. `--record-run` also records completed detached-job timings. |
+| `test_publication.mjs` | Checks that changed evidence is refused and missing intervals are never printed as zero. |
+| `phase1/` | Exact original README and paper files; their hashes remain in the unchanged manifest. |
+| `paper/paper.tex` | The result paper: gates, comparisons and limits. |
 | `paper/generate.mjs` | Writes every printed number and table to `paper/generated.tex` from the aggregate reports, and refuses unsupported claims. |
 
 All streamed games, player joins, move rows, models, logs and restart state
@@ -356,98 +401,59 @@ installed or needed for this phase.
 
 ## Running it
 
-From the lab root, in order. Every long job uses the detached launcher: it
-starts a new session through `nohup`, disconnects standard input, and writes
-output to a private file. It survives the controlling terminal or reviewer
-session ending. The stream and bridge runners start at most two nice-10
-children. Other long steps run at nice 10 with one LightGBM or numeric-library
-worker. The launcher permits one managed job at a time, so these jobs do
-not overlap. Also wait for any job started outside the launcher before
-using it. The checkout and dependencies already exist; no fetch or pin
-change is needed.
+Regenerate the published text from the saved aggregate reports, without
+opening private moves or estimating another effect:
 
 ```bash
-set -e
-mkdir -p private/think-time-budget
-.venv/bin/python projects/think-time-budget/detached.py start sample sample.py --months 2026-09 2026-08
-.venv/bin/python projects/think-time-budget/detached.py wait sample
-.venv/bin/python projects/think-time-budget/detached.py start cohort cohort.py --months 2026-09 2026-08 --select-k auto --export
-.venv/bin/python projects/think-time-budget/detached.py wait cohort
-.venv/bin/python projects/think-time-budget/detached.py start benchmark run_build.py --months 2026-09 --per-budget 25
-.venv/bin/python projects/think-time-budget/detached.py wait benchmark
-.venv/bin/python projects/think-time-budget/detached.py start build run_build.py --months 2026-09 2026-08
-.venv/bin/python projects/think-time-budget/detached.py wait build
-.venv/bin/python projects/think-time-budget/detached.py start count analyze.py --months 2026-09 2026-08
-.venv/bin/python projects/think-time-budget/detached.py wait count
-.venv/bin/python projects/think-time-budget/detached.py start cost cost.py
-.venv/bin/python projects/think-time-budget/detached.py wait cost
+node projects/think-time-budget/report.mjs
 bridge/run.sh projects/think-time-budget/paper/generate.mjs
-.venv/bin/python projects/think-time-budget/test_pipeline.py
-.venv/bin/python projects/think-time-budget/freeze.py write
-.venv/bin/python projects/think-time-budget/freeze.py check
+node projects/think-time-budget/test_publication.mjs
 .venv/bin/python scripts/check_private.py
 ```
 
-Each `wait` returns success only after its job finishes successfully. If the
-terminal closes, use `status` and `wait` again; they do not restart the job.
-For example:
+The original phase-one commands and the reviewed phase-two commands remain
+in [the archived README](phase1/README.md). Phase two ran the original
+committed freeze check, resumed the saved bridge build, then ran effects,
+each long job detached. The execution receipt is in `results/run.json`.
+No sampling, model, estimator, threshold or comparison changed after an
+effect was seen. Only the reporting files and this lab's project row changed.
 
-```bash
-.venv/bin/python projects/think-time-budget/detached.py status build
-tail -n 30 private/think-time-budget/build.log
-.venv/bin/python projects/think-time-budget/detached.py wait build
-```
+The original manifest includes the original README and paper. Publication
+replaces those documents, so the original `freeze.py check` deliberately
+rejects the published working tree. It has not been weakened or refrozen.
+`publication.mjs` verifies the exact archived copies and every other frozen
+file in place. It also checks that the registered data through caveats above
+are byte-for-byte unchanged. It does not replace the analysis guard.
 
-The PID and completion record are in `private/think-time-budget/jobs/`.
-`detached.py stop build` requests a graceful stop after verifying the recorded
-PID still belongs to that job. Start the same command again to resume saved
-chunks. Logs append on restart. A reboot needs a new start; saved data remain.
-
-The separate final cohort pass writes the current report schema after the
-sampler exits. The cost report adds that pass to the timings in the sampling
-log; keep it outside that log.
-
-The timing slice requests 25 fast and 25 slow games per shard, at most 100
-games in September; its builds are separate from the full run and keyed by
-the input fingerprint. The observed slice used the early three-million-game
-prefixes, before the final cohort was selected. Each full shard
-checks a real Black build on its first 20 games of each budget and checks
-every written clock reading. The launcher can also run `facts.mjs` with
-`--month`, `--shard 0/2` or `1/2`, and `--check 20`; use the runner for the
-two-process full build. Use the same options on a restart. Completed chunks must not
-be mixed with a changed input, code version or shard count.
-
-Write the content manifest only after all phase-one files and generated
-reports are final, as the last writing step before the privacy check and
-local commit. Its sorted file list covers this README, all project scripts,
-the aggregate input counts and phase-one reports, the paper sources and
-generated text, the app pin, the predecessor reader and the bridge and paper
-helpers they import. It excludes itself, private data and phase-two outputs.
-The aggregate reports carry the private export fingerprints. The manifest
-stores content hashes, not this branch's commit IDs, so a rebase does not
-invalidate an unchanged design. A changed dependency fails verification
-even when the branch has been rebased.
-
-The privacy check runs again immediately before every commit. Phase one
-stops after its local commit. It never runs the following phase-two commands.
-Phase two uses the frozen cohort and saved nuisance scores; it does not
-rerun the stream or choose K again. Verify the committed manifest, resume
-the bridge build if necessary and wait for its successful completion before
-starting effects:
+To repeat the raw phase-two run after the publication commit, restore only
+those original documents in a detached scratch worktree inside this clone.
+Use the existing private checkpoints, app checkout and Python environment;
+do not refetch, resample or overlap another job:
 
 ```bash
 set -e
+budget_lab="$PWD"
+budget_replay="$budget_lab/.cache/think-time-budget-replay"
+git worktree add --detach "$budget_replay" HEAD
+for doc in README.md paper/paper.tex paper/generate.mjs paper/generated.tex; do
+  cp "$budget_replay/projects/think-time-budget/phase1/$doc" "$budget_replay/projects/think-time-budget/$doc"
+done
+ln -s "$budget_lab/.venv" "$budget_replay/.venv"
+ln -s "$budget_lab/private" "$budget_replay/private"
+mkdir -p "$budget_replay/.cache"
+ln -s "$budget_lab/.cache/chess" "$budget_replay/.cache/chess"
+cd "$budget_replay"
 .venv/bin/python projects/think-time-budget/freeze.py check --require-committed
 .venv/bin/python projects/think-time-budget/detached.py start build run_build.py --months 2026-09 2026-08
 .venv/bin/python projects/think-time-budget/detached.py wait build
 .venv/bin/python projects/think-time-budget/detached.py start effects analyze.py --months 2026-09 2026-08 --effects
 .venv/bin/python projects/think-time-budget/detached.py wait effects
-.venv/bin/python scripts/check_private.py
+cmp projects/think-time-budget/results/analysis.json "$budget_lab/projects/think-time-budget/results/analysis.json"
 ```
 
-Before loading any move data, the effect command requires the manifest to
-be tracked and clean in Git and verifies every frozen content hash. A staged
-or newly added manifest is not a committed rule. It also checks the move
-export fingerprint and registered rule against the phase-one report.
-The phase-one paper generator continues to describe phase one; a phase-two
-paper and its claim checks must be written from that later report.
+Every long job starts in its own session with private logs and a completion
+record. The bridge uses at most two nice-10 workers; effects uses one numeric
+thread at nice 10. Use `detached.py status effects` and the private log to
+monitor it after an interruption. The scratch restoration keeps the original
+manifest tracked and clean; it changes no estimator or rule. Content hashes,
+not commits from this branch, establish provenance. No PDF is built.

@@ -2,117 +2,278 @@
 \input{../../preamble}
 \input{generated}
 \title{Does a larger clock budget make a think pay?\\[0.3em]
-\large A within-player design and its feasibility count}
+\large The same rapid players at different time controls}
 \author{Chess Coach research lab}
 \date{}
 \begin{document}
 \maketitle
 
 \begin{abstract}
-The earlier think-time study compared positions where players chose long
-and short thinks. This design compares the same players after they chose
-different time controls. The fast budget is \FastControl; the slow budget
-has a base of at least \MinBase{} seconds and base plus \IncrementMultiplier{}
-times increment of at least \MinBudget{} seconds, in games Lichess labels
-rapid. The sampled prefixes contain \PrimaryPlayers{} players in the primary
-rating band with at least \MinimumGames{} analysed games in each budget.
-The app's own instruments built \BuiltGames{} games for selected players.
-This paper reports counts and timings. No budget effect, error rate,
-per-moment think mean, interval or trigger verdict has been computed.
+More time goes with fewer serious errors overall, but this design does not
+justify changing the app's long-think triggers. The adjusted difference is
+\OverallError{} percentage points. On moves made in under \PlaceboSeconds{}
+seconds, where little budget effect was expected, the difference is
+\PlaceboError{} points. That interval crosses the registered placebo
+tolerance. The check is inconclusive and blocks every trigger decision.
+After the opponent's serious error, extra time has no resolved advantage
+over an ordinary move. Forcing and high danger have positive contrasts
+that survive the separate Holm corrections, but the gate still leaves the
+app alone. The comparison uses \PrimaryPlayers{} players in the primary
+band, with at least \MinimumGames{} analysed games in each budget.
+It is an observational comparison of budgets, not a causal return to
+making one move take longer.
 \end{abstract}
 
 \section{The question and data}
-Does an extra minute spent at one of the app's long-think triggers save
-more serious errors than a minute at an ordinary move? Does another moment
-do better? The triggers come from \texttt{triggerOf} at app commit
-\texttt{\AppCommit}. The data are file-order prefixes of \Months{} from the
-Lichess database. Names, games and player joins stay private. Every move
-must carry a readable evaluation and clock. Games end normally or on time,
-have at least \MinPlies{} plies, and ratings within \RatingGap{} points.
-Unlike the predecessor, a final mate is not exempt from the evaluation
-requirement.
+The app tells the player when to stop and think. Do its triggers mark moves
+where an extra minute saves more serious errors than an extra minute at a
+move with no trigger? Does another moment do better? The earlier
+think-time-rapid study compared positions where players chose long or
+short thinks. Here the same players chose different budgets before the
+game began.
 
-\begin{table}[h]
+The app measured is \texttt{\AppCommit}. The data are file-order prefixes
+of \Months{} from the Lichess database. The fast control is \FastControl.
+Slow has a base of at least \MinBase{} seconds and base plus
+\IncrementMultiplier{} times increment of at least \MinBudget{} seconds.
+Lichess must label the game rated rapid in its Event header. The formula
+sets a budget bar; it does not reconstruct Lichess's category.
+
+Every move must carry a readable evaluation and clock, including a final
+mate. Games end normally or on time, last at least \MinPlies{} plies, and
+have ratings within \RatingGap{} points. The stream keeps only filtered
+games. Names, game identifiers, player joins and move rows stay private.
+
+\begin{table}[ht]
 \centering\small\SourceTable
-\caption{The actual source prefixes, not whole-month counts.}
+\caption{The actual source prefixes. Kept games precede player selection.}
 \end{table}
 
-Players need \MinimumGames{} games in each budget. The choice comes from
-counts alone. Their mean rating over kept games determines the primary
-band, from \RatingLo{} inclusive to \RatingHi{} exclusive. All their kept
-games enter. There are no rating quotas.
+The source size and minimum games were chosen from counts before effects.
+Players need \MinimumGames{} kept games in each budget. All their kept
+games enter. Their arithmetic mean rating over those games determines the
+primary band, from \RatingLo{} inclusive to \RatingHi{} exclusive. There
+are \SelectedPlayers{} selected players at all ratings and
+\PrimaryPlayers{} in the primary band. The app's instruments built all
+\BuiltGames{} selected games. The saved input fingerprint is
+\texttt{\InputFingerprint}.
+
+\begin{table}[ht]
+\centering\small\ControlTable
+\caption{The largest slow controls among selected games, followed by the
+remaining controls together. The complete mix is in the cohort report.}
+\end{table}
 
 \section{Measures and matching}
 The reader, classifier, hanging-piece counts, move facts and triggers are
-the app's, imported through the bridge. The book exit and absence of a miss
-ledger follow the predecessor. A serious error is an app-classified
-mistake or blunder. Eligible moves are graded, nontrivial and timed, with
-at least \MinClock{} seconds available before the move in either budget.
-The app already adds the increment when deriving a think. Its flipped
-Black build matched a separate Black build on \BlackChecked{} games.
+the app's, imported through the bridge. The book exit follows its archive
+reader. A serious error is an app-classified mistake or blunder; there is
+no miss ledger in these games. Eligible moves are graded, nontrivial and
+timed, with at least \MinClock{} seconds before the move in both budgets.
+The app derives a think by subtracting the clock after the move from the
+previous clock for that side and adding the increment. Its flipped Black
+build matched a separate Black build on \BlackChecked{} games; the build
+checked \ClockChecked{} clock readings.
 
-The nuisance danger model uses \FoldCount{} player folds. A training fold
-excludes both sides of every game involving a held-out player. It learns
-from fast-budget quick moves and omits clocks, opponent think and every
-time-control field. The fixed fit is used here only to count high-danger
-moves and common strata. No performance or error-rate diagnostic is read.
+The triggers are book exit, conversion, forcing and structure; none means
+that the app returns no trigger. Candidates are the move after the
+opponent's serious error, being in check, following a capture, a hanging
+piece on either side, defending at \DefendingCp{} centipawns or worse,
+the player's book exit and next \EarlyMoves{} moves, and high danger.
+Candidates overlap. High danger starts at the \HighQuantile{}th percentile
+on primary quick moves pooled across budgets. Quick means under the app's
+\QuickSeconds{}-second line.
 
-For each moment, danger quintiles of its primary fast moves define the
-strata. Within a player, only strata containing moves in both budgets
-contribute. Their weights are the player's fast move counts. Players then
-receive equal weight. Both the error difference and think difference use
-the same weights. Their ratio is errors saved per extra minute. A moment
-and ordinary moves are compared only on the intersection of their
-supported players.
+The danger model is a fixed LightGBM classifier with \TreeCount{} trees
+and \FoldCount{} player folds. It learns from fast-budget quick moves.
+For a held-out player fold, training excludes every game involving any
+player in that fold, including the opponent's side. Inputs describe the
+board and ratings before the move. Raw clocks, opponent think and every
+time-control field are omitted. The danger model stays fixed during the
+player bootstrap; it is not refitted within a draw.
+
+For each moment T, \StrataCount{} danger strata are cut on its primary
+fast moves, using all think lengths. Within a player, a stratum contributes
+only when both budgets have T moves there. The slow-minus-fast differences
+in error rate and think time receive weights proportional to that player's
+fast moves in contributing strata. Players then receive equal weight.
+Their averages are $\Delta\mathrm{err}_T$ and
+$\Delta\mathrm{think}_T$. The saving per extra minute is
+\[
+v_T=-\SecondsPerMinute\,
+\frac{\Delta\mathrm{err}_T}{\Delta\mathrm{think}_T}.
+\]
+This is a ratio of average differences. It is not an average of individual
+players' ratios.
+
+T and none are compared on the same players with common strata in both
+sets. Each comparison therefore has its own paired none estimate. Coverage
+is the equal-player mean fraction of fast moves retained from the players
+with T and none moves in both budgets before matching. Players lost in
+matching count as zero. The all-move and placebo checks use the same
+estimator without pairing to none.
 
 \section{The fixed rule}
-The README gives the complete specification. There are \Draws{} Poisson
-bootstrap draws over players, seed \Seed, shared by every comparison.
-Scores, strata and support stay fixed. A comparison needs \MinPlayers{}
-matched players and \Coverage\% of its equal-player fast-move weight.
-Both think differences must have a \Confidence\% lower interval endpoint
-of at least \ThinkFloor{} seconds, with every bootstrap denominator positive.
-Otherwise the ratio is not estimated.
+The complete rule was committed before this effect pass. Its original
+README, paper and generator remain archived byte for byte, and the
+original content manifest still verifies the rule, analysis code,
+dependencies and input reports. The publication changed the answer and
+paper, not the estimator or decision thresholds.
 
-The slow budget must reduce errors over all eligible moves, with the
-interval wholly below zero. For moves under \PlaceboSeconds{} seconds in
-both budgets, the entire interval must lie inside plus or minus
-\PlaceboPoints{} percentage point. A failed or inconclusive check blocks
-trigger changes. Given those checks, a trigger is kept when extra time
-cuts its error rate and its saving per minute exceeds ordinary moves
-with Holm-adjusted p below \Alpha. A significant disadvantage removes its
-special priority. The correction covers all \TriggerCount{} triggers.
-The \CandidateCount{} candidates form a separate Holm family; a candidate
-joins only when it cuts errors and exceeds ordinary moves. Otherwise the
-app stays as it is. This does not recalibrate its \DeepSeconds{}-second
-or \BookSeconds{}-second bars.
+Intervals use \Draws{} Poisson bootstrap draws over players, seed \Seed.
+Every comparison uses the same draws. Models, strata and support remain
+fixed. Intervals are the \Confidence\% percentile intervals. A comparison
+needs \MinPlayers{} matched players and \Coverage\% fast-move coverage at
+both T and none. For each ratio, the lower endpoint for extra think must
+be at least \ThinkFloor{} seconds and every bootstrap denominator must be
+positive.
 
-\section{Counts and cost}
-\begin{table}[h]
-\centering\small\MomentTable
-\caption{Primary eligible moves and players with moves in both budgets.
-Candidates overlap. These are counts, not effect estimates.}
+The overall error interval must be wholly below zero. For eligible moves
+under \PlaceboSeconds{} seconds in both budgets, the entire error interval
+must lie strictly inside plus or minus \PlaceboPoints{} percentage point.
+A failed or inconclusive gate blocks changes. Given both gates, support
+and extra think, a trigger is kept when its error interval is below zero
+and its value exceeds paired none with Holm-adjusted p below \Alpha.
+A significant disadvantage removes its special priority. The correction
+covers all \TriggerCount{} triggers. The \CandidateCount{} candidates
+form a separate family; a candidate joins only when it cuts errors and
+exceeds none under those same interval and corrected-comparison conditions.
+Ineligible comparisons enter their family with unit p-value.
+
+\section{The checks decide the app result}
+\begin{table}[ht]
+\centering\small\CheckTable
+\caption{Adjusted slow-minus-fast error differences. Parentheses give
+\Confidence\% intervals. Coverage is the equal-player fast-move fraction.}
 \end{table}
 
-The overall move-weighted mean think is \FastThink{} seconds at the fast
-budget and \SlowThink{} at the slow budget among primary eligible moves.
-No per-moment think mean is read. The bridge took \BridgeMinutes{} worker
-minutes; ideal elapsed time with \Workers{} processes is
-\BridgeTwoMinutes{} minutes. The fixed danger fit and scoring took
-\DangerSeconds{} seconds with a single worker. These timings describe this
-machine and this sample, not a guaranteed run time.
+The overall check passes: its upper endpoint is below zero. The placebo
+does not pass. Its lower endpoint extends beyond the negative tolerance
+boundary while its upper endpoint lies inside the allowed range. The
+registered verdict is inconclusive, not untrustworthy and not pass. The
+boundary is applied to the saved estimates, without rounding it into a pass.
+Every trigger and candidate therefore receives \emph{cannot tell; leave
+unchanged}.
+
+The overall move-weighted think is \FastThink{} seconds at the fast budget
+and \SlowThink{} at the slow budget among primary eligible moves. These
+raw means describe \PrimaryFastMoves{} fast and \PrimarySlowMoves{} slow
+moves. They do not supply the within-player, matched differences below.
+
+\section{After the opponent's serious error first}
+This candidate was the leading question before the effect pass. In its
+paired cohort, the slow budget adds \AfterThink{} seconds of think. Its
+error difference is \AfterError{} percentage points. The saving per extra
+minute is \AfterValue{} serious errors; its advantage over paired none is
+\AfterContrast, with Holm p = \AfterP. Both the error and advantage
+intervals cross zero. This is not evidence for adding a special long-think
+instruction there, even apart from the placebo gate.
+
+\begin{table}[ht]
+\centering\footnotesize\setlength{\tabcolsep}{3pt}\EstimateTable
+\caption{All \ComparisonCount{} paired comparisons, with the leading
+candidate first. T marks an app trigger and C a candidate. Errors use
+percentage points; think uses seconds; $v_T$ uses serious errors saved per
+extra minute. Each entry gives the estimate and its \Confidence\% interval.
+Values on cohorts with inadequate coverage remain descriptions.}
+\end{table}
+
+\begin{table}[ht]
+\centering\footnotesize\setlength{\tabcolsep}{3pt}\ContrastTable
+\caption{Value and advantage on each comparison's own paired-player
+cohort. The Holm correction uses the complete trigger or candidate family.
+Cannot tell means support prevents the contrast; it is not a zero effect.
+The placebo gate blocks app changes even where a contrast is available.}
+\end{table}
+
+Forcing and high danger are the only positive contrasts that survive their
+family's Holm correction, at p = \ForcingP{} and \DangerP. Their error
+intervals are also below zero. They describe possible differences in where
+more time helps, but neither overrides the placebo. The study gives no
+permission to keep, drop or add a trigger on that basis alone.
+
+\begin{table}[ht]
+\centering\footnotesize\setlength{\tabcolsep}{3pt}\SupportTable
+\caption{Support before and after matching. Before means players with
+both moment and none moves in both budgets. Coverage counts lost players
+as zero. The registered coverage bar applies at both moment and none.}
+\end{table}
+
+Book exit, structure, in check and defending fail the coverage bar. All
+\FailedCoverageCount{} have enough matched players, but too little of the
+original fast-move weight remains. Their unavailable contrasts and unit
+p-values remain in the report. Every moment and its paired none clears
+the extra-think floor; that does not repair the lost coverage.
+
+\begin{table}[ht]
+\centering\footnotesize\setlength{\tabcolsep}{3pt}\NoneTable
+\caption{The error and think differences behind each paired none value.
+The benchmark is recomputed on the same players as its moment, rather than
+substituting a single ordinary-move estimate for all comparisons.}
+\end{table}
+
+\section{Descriptions without another decision}
+The finer-strata and no-increment checks were specified before effects.
+They use the same draws but cannot change the primary verdict. With
+\TenStrata{} strata, the overall error difference is \TenOverallError{}
+percentage points. With slow restricted to no increment, it is
+\ZeroOverallError{} points. Both intervals cross zero. These descriptions
+do not strengthen the small overall reduction into a general budget claim.
+
+\begin{table}[ht]
+\centering\footnotesize\setlength{\tabcolsep}{3pt}\SensitivityTable
+\caption{Descriptive slow-minus-fast error differences in percentage
+points, on each moment's own matched players. The finer-strata and
+no-increment columns do not test the paired advantage against none.}
+\end{table}
+
+\begin{table}[ht]
+\centering\footnotesize\setlength{\tabcolsep}{3pt}\TrendTable
+\caption{Selected rating-band descriptions: error differences in
+percentage points. Each band's fast moves define its matching strata.
+There is no Holm verdict or app change for the trend. The saved report
+contains all moments, values and support.}
+\end{table}
+
+\begin{table}[ht]
+\centering\small\DiagnosticsTable
+\caption{Danger diagnostics on held-out quick moves at all selected
+ratings, pooled within budget. The model was trained only on fast quick
+moves. Predictive discrimination does not validate a causal interpretation
+of the budget comparison.}
+\end{table}
+
+The bridge used \BridgeMinutes{} worker-minutes; its ideal elapsed cost
+with \Workers{} processes is \BridgeTwoMinutes{} minutes. The fixed
+danger fit and scoring took \DangerSeconds{} seconds. These are measured
+work times on this machine, not guaranteed wall times. The effect pass
+ran from saved facts and the fixed danger scores.
 
 \section{Limits and the app}
-The budget was chosen before the position, but not at random. A player may
-choose more time when rested or more serious. Both opponents receive the
-larger budget. The board, opponent's errors and survival above the minimum
-clock can already reflect it. Matching those features conditions on part
-of the budget's effect. The ratio is an association with the budget, not
-a causal return to forcing a particular move to take another minute.
+The budget is chosen before the position, but not assigned at random.
+The same player may choose it when more rested, more serious or facing a
+different opponent. Repeated players remove fixed differences between
+people, not those changing circumstances. Analysed games are selected
+games, and file prefixes need not represent later days.
 
-Analysed games are selected games; file prefixes need not represent later
-days. A player bootstrap does not capture all dependence between opponents.
-Whole-second clocks limit precision. Slow pools the time controls listed
-in the count report. None of these counts justifies changing the app.
-The later effect pass will apply the committed rule without changing it.
+Both opponents receive the larger budget. Boards, opponent errors and
+survival above the clock floor can already reflect it. Matching observed
+board difficulty conditions on part of that change. The app's check-giving
+and pawn-capture triggers also depend partly on the move played, which
+more time can change. The ratio is an association with the budget, not a
+causal return to forcing a particular move to take another minute.
+
+A player bootstrap does not capture every dependence between opponents.
+Its intervals also condition on the fitted danger model. Whole-second
+clocks limit precision, and slow mixes controls and increments. The
+placebo can expose a problem but cannot prove the absence of confounding.
+Here it did not establish that the design is trustworthy enough for the
+registered app decision.
+
+The triggers stay as they are. No candidate is added and no trigger loses
+priority. The \DeepSeconds{}-second and \BookSeconds{}-second bars are
+unchanged: comparing budgets does not identify those move-level bars.
+The positive forcing and high-danger contrasts, and the unresolved move
+after the opponent's error, remain descriptions for a later design to
+test.
 \end{document}

@@ -1,0 +1,37 @@
+{
+  "appCommit": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+  "months": [
+    "2026-09",
+    "2026-08"
+  ],
+  "fingerprint": "aab77f5f1ebb53ad65c7",
+  "freezeManifestSha256": "f92ad3bd4e9a4881499d75f1f40c134400246fcecdff459c76ecd22c22e7cd5d",
+  "jobs": [
+    {
+      "name": "build",
+      "script": "run_build.py",
+      "arguments": [
+        "--months",
+        "2026-09",
+        "2026-08"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 14.281442880630493
+    },
+    {
+      "name": "effects",
+      "script": "analyze.py",
+      "arguments": [
+        "--months",
+        "2026-09",
+        "2026-08",
+        "--effects"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 100.98870015144348
+    }
+  ],
+  "analysisSeconds": 91.62,
+  "analysisSha256": "0abe123987f383094087565cead5c251c8f7cd271c852c090a8f90b8c3de7522",
+  "notes": "Original committed freeze passed before data were loaded. Build resumed saved facts. No rule or estimator changed."
+}
