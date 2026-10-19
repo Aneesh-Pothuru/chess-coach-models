@@ -1,0 +1,327 @@
+% Written by projects/break-ready/paper/generate.mjs; do not edit by hand.
+
+\newcommand{\AppCommit}{f4bd63f19b}
+\newcommand{\GradeNodes}{250,000}
+\newcommand{\Window}{3}
+\newcommand{\Draws}{2,000}
+\newcommand{\Seed}{20261020}
+\newcommand{\AimedMin}{two}
+\newcommand{\MinArm}{60}
+\newcommand{\MinCell}{30}
+\newcommand{\PositionsFirst}{491}
+\newcommand{\GamesFirst}{114}
+\newcommand{\BreaksFirst}{716}
+\newcommand{\PositionsSecond}{418}
+\newcommand{\GamesSecond}{103}
+\newcommand{\BreaksSecond}{553}
+\newcommand{\StrongPositions}{1,200}
+\newcommand{\StrongBreaks}{1,416}
+\newcommand{\BreaksAll}{1,269}
+\newcommand{\PositionsAll}{909}
+\newcommand{\Floor}{2200}
+\newcommand{\CoverageTable}{%
+\begin{table}[ht]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llll@{}}
+\toprule
+& His, first half & His, second half & Strong players \\
+\midrule
+Breaks (positions) & 716 (491) & 553 (418) & 1,416 (1,200) \\
+\midrule
+1. Pieces aimed & 359 {\scriptsize(50.1\%)} & 294 {\scriptsize(53.2\%)} & 509 {\scriptsize(35.9\%)} \\
+2. Rooks ready & 567 {\scriptsize(79.2\%)} & 474 {\scriptsize(85.7\%)} & 1,170 {\scriptsize(82.6\%)} \\
+3. A passer or an exposed king & 50 {\scriptsize(7.0\%)} & 42 {\scriptsize(7.6\%)} & 165 {\scriptsize(11.7\%)} \\
+4. Force on that side & 369 {\scriptsize(51.5\%)} & 335 {\scriptsize(60.6\%)} & 787 {\scriptsize(55.6\%)} \\
+5. The blunder check: safe & 446 {\scriptsize(62.3\%)} & 344 {\scriptsize(62.2\%)} & 762 {\scriptsize(53.8\%)} \\
+\midrule
+All five & 4 {\scriptsize(0.6\%)} & 4 {\scriptsize(0.7\%)} & 11 {\scriptsize(0.8\%)} \\
+Safe, with the pieces ready & 157 of 446 & 136 of 344 & 148 of 762 \\
+\bottomrule
+\end{tabular}
+\caption{Counted before the rule was fixed, from the board alone, with no score read: the breaks each question passes, all five, and the safe breaks with the pieces ready (questions 1, 2 and 4), among the safe breaks.}
+\label{tab:coverage}
+\end{table}
+}
+\newcommand{\AllFive}{eight}
+\newcommand{\AllFiveStrong}{eleven}
+\newcommand{\PurposeShare}{7}
+\newcommand{\ReadyFirst}{157}
+\newcommand{\SafeFirst}{446}
+\newcommand{\ReadySecond}{136}
+\newcommand{\SafeSecond}{344}
+\newcommand{\ReadyStrong}{148}
+\newcommand{\SafeStrong}{762}
+\newcommand{\Verdict}{no signal}
+\newcommand{\LiftFirst}{3.0}
+\newcommand{\LiftFirstCi}{$-$5.7 to 11.2}
+\newcommand{\CheckFirst}{12.5}
+\newcommand{\CheckFirstCi}{2.5 to 22.1}
+\newcommand{\NullFirst}{$-$10.7}
+\newcommand{\NullFirstCi}{$-$18.2 to $-$2.5}
+\newcommand{\ControlFirst}{36.3}
+\newcommand{\ControlFirstCi}{30.8 to 41.5}
+\newcommand{\ReadySoundFirst}{26.1}
+\newcommand{\RushedSoundFirst}{26.0}
+\newcommand{\SafeSoundFirst}{26.0}
+\newcommand{\UnsafeSoundFirst}{13.7}
+\newcommand{\LiftSecond}{2.3}
+\newcommand{\LiftSecondCi}{$-$6.0 to 11.8}
+\newcommand{\CheckSecond}{15.9}
+\newcommand{\CheckSecondCi}{6.1 to 26.0}
+\newcommand{\NullSecond}{9.1}
+\newcommand{\NullSecondCi}{0.2 to 18.9}
+\newcommand{\ControlSecond}{37.6}
+\newcommand{\ControlSecondCi}{31.7 to 43.5}
+\newcommand{\ReadySoundSecond}{33.8}
+\newcommand{\RushedSoundSecond}{29.8}
+\newcommand{\SafeSoundSecond}{31.4}
+\newcommand{\UnsafeSoundSecond}{12.9}
+\newcommand{\StrongLift}{$-$4.6}
+\newcommand{\StrongLiftCi}{$-$13.7 to 4.4}
+\newcommand{\StrongCheck}{20.9}
+\newcommand{\StrongCheckCi}{16.6 to 25.4}
+\newcommand{\StrongControl}{51.7}
+\newcommand{\StrongControlCi}{48.7 to 54.8}
+\newcommand{\StrongReadySound}{30.4}
+\newcommand{\StrongRushedSound}{33.2}
+\newcommand{\StrongSafeSound}{32.7}
+\newcommand{\StrongUnsafeSound}{12.4}
+\newcommand{\ControlTable}{%
+\begin{table}[ht]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llll@{}}
+\toprule
+& His, first half & His, second half & Strong players \\
+\midrule
+1. The move played minus a random move & 36.3 {\scriptsize(30.8, 41.5)} & 37.6 {\scriptsize(31.7, 43.5)} & 51.7 {\scriptsize(48.7, 54.8)} \\
+2. The blunder check's lift & 12.5 {\scriptsize(2.5, 22.1)} & 15.9 {\scriptsize(6.1, 26.0)} & 20.9 {\scriptsize(16.6, 25.4)} \\
+3. A random reading's lift & $-$10.7 {\scriptsize($-$18.2, $-$2.5)} & 9.1 {\scriptsize(0.2, 18.9)} & -- \\
+\midrule
+Pieces ready, the lift & 3.0 {\scriptsize($-$5.7, 11.2)} & 2.3 {\scriptsize($-$6.0, 11.8)} & $-$4.6 {\scriptsize($-$13.7, 4.4)} \\
+Safe breaks: ready / rushed & 157 / 289 & 136 / 208 & 148 / 614 \\
+Sound: ready / rushed (\%) & 26.1 / 26.0 & 33.8 / 29.8 & 30.4 / 33.2 \\
+Sound: safe / not safe (\%) & 26.0 / 13.7 & 31.4 / 12.9 & 32.7 / 12.4 \\
+\bottomrule
+\end{tabular}
+\caption{The controls and the rule's lift, in points, with 95\% intervals resampling his games, or the strong players' positions. The strong players' column is reported, not ruled on. Below, the share of breaks that are sound on each side, in \%, before the groups are weighed.}
+\label{tab:controls}
+\end{table}
+}
+\newcommand{\QuestionTable}{%
+\begin{table}[ht]
+\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lrllll@{}}
+\toprule
+Question & \begin{tabular}[b]{@{}l@{}}His breaks: \\ pass / fail\end{tabular} & \begin{tabular}[b]{@{}l@{}}His, halves \\ together\end{tabular} & \begin{tabular}[b]{@{}l@{}}His, first \\ half\end{tabular} & \begin{tabular}[b]{@{}l@{}}His, second \\ half\end{tabular} & \begin{tabular}[b]{@{}l@{}}Strong \\ players\end{tabular} \\
+\midrule
+Pieces aimed & 653 / 616 & 6.8 {\scriptsize(1.7, 12.6)} & 8.9 {\scriptsize(2.4, 15.9)} & 4.0 {\scriptsize($-$3.9, 13.2)} & $-$0.2 {\scriptsize($-$4.9, 4.4)} \\
+Rooks ready & 1,041 / 228 & 3.6 {\scriptsize($-$3.5, 9.8)} & 4.8 {\scriptsize($-$4.7, 12.6)} & 1.0 {\scriptsize($-$9.5, 10.8)} & 1.3 {\scriptsize($-$4.7, 7.0)} \\
+A passer or an exposed king & 92 / 1,177 & 9.1 {\scriptsize($-$7.3, 27.1)} & 24.0 {\scriptsize(4.4, 52.1)} & $-$4.7 {\scriptsize($-$25.8, 22.6)} & 1.2 {\scriptsize($-$6.9, 9.2)} \\
+Force on that side & 704 / 565 & 9.2 {\scriptsize(3.5, 14.4)} & 8.2 {\scriptsize(1.5, 15.3)} & 9.2 {\scriptsize(0.3, 18.2)} & 2.0 {\scriptsize($-$2.3, 6.5)} \\
+The blunder check: safe & 790 / 479 & 14.2 {\scriptsize(7.7, 20.4)} & 12.5 {\scriptsize(3.0, 22.2)} & 15.9 {\scriptsize(6.4, 26.0)} & 20.9 {\scriptsize(16.5, 25.4)} \\
+The four but purpose, together & 293 / 976 & 9.4 {\scriptsize(3.9, 15.1)} & 7.3 {\scriptsize($-$0.1, 15.0)} & 10.4 {\scriptsize(2.5, 18.2)} & 7.8 {\scriptsize($-$0.1, 16.0)} \\
+\bottomrule
+\end{tabular}
+\caption{Each question alone over all the breaks, safe or not, and the four questions other than purpose together: the lift, in points, with 95\% intervals.}
+\label{tab:questions}
+\end{table}
+}
+\newcommand{\QAimed}{6.8}
+\newcommand{\QAimedCi}{1.7 to 12.6}
+\newcommand{\QAimedStrong}{$-$0.2}
+\newcommand{\QRooks}{3.6}
+\newcommand{\QRooksCi}{$-$3.5 to 9.8}
+\newcommand{\QRooksStrong}{1.3}
+\newcommand{\QPurpose}{9.1}
+\newcommand{\QPurposeCi}{$-$7.3 to 27.1}
+\newcommand{\QPurposeStrong}{1.2}
+\newcommand{\QForce}{9.2}
+\newcommand{\QForceCi}{3.5 to 14.4}
+\newcommand{\QForceStrong}{2.0}
+\newcommand{\QSafe}{14.2}
+\newcommand{\QSafeCi}{7.7 to 20.4}
+\newcommand{\QSafeStrong}{20.9}
+\newcommand{\QAllButPurpose}{9.4}
+\newcommand{\QAllButPurposeCi}{3.9 to 15.1}
+\newcommand{\QAllButPurposeStrong}{7.8}
+\newcommand{\CountTable}{%
+\begin{table}[ht]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrl@{\hspace{1.5em}}lrlrl@{}}
+\toprule
+\multicolumn{3}{@{}l}{All his breaks, by questions passed} & \multicolumn{5}{l}{The safe breaks, by piece questions passed} \\
+\cmidrule(r{1.5em}){1-3}\cmidrule(l){4-8}
+Of five & Breaks & Sound (\%) & Of three & \begin{tabular}[b]{@{}l@{}}His \\ breaks\end{tabular} & His, sound (\%) & \begin{tabular}[b]{@{}l@{}}Strong \\ breaks\end{tabular} & Strong, sound (\%) \\
+\midrule
+0 & 45 & 0.0 {\scriptsize(0.0, 0.0)} & 0 & 37 & 13.5 {\scriptsize(3.4, 23.1)} & 57 & 26.3 {\scriptsize(15.8, 37.9)} \\
+1 & 189 & 14.3 {\scriptsize(8.6, 20.8)} & 1 & 185 & 20.5 {\scriptsize(14.3, 27.4)} & 205 & 34.1 {\scriptsize(27.5, 40.6)} \\
+2 & 345 & 18.0 {\scriptsize(14.0, 22.6)} & 2 & 275 & 34.2 {\scriptsize(27.4, 41.3)} & 352 & 33.8 {\scriptsize(29.0, 38.6)} \\
+3 & 367 & 25.9 {\scriptsize(20.7, 31.0)} & 3 & 293 & 29.7 {\scriptsize(23.8, 35.8)} & 148 & 30.4 {\scriptsize(23.4, 38.1)} \\
+4 & 315 & 32.1 {\scriptsize(25.9, 38.0)} & & & & & \\
+5 & 8 & \emph{n=8} & & & & & \\
+\bottomrule
+\end{tabular}
+\caption{The share of breaks that are sound, in \%, with 95\% intervals. Left: all his breaks, both halves together, by how many of the five questions they pass (fewer than 30 breaks shows only their number). Right, added after the run: the safe breaks, his and the strong players', by how many of the three piece questions they pass.}
+\label{tab:count}
+\end{table}
+}
+\newcommand{\CountNone}{0.0}
+\newcommand{\CountOne}{14.3}
+\newcommand{\CountTwo}{18.0}
+\newcommand{\CountThree}{25.9}
+\newcommand{\CountFour}{32.1}
+\newcommand{\GroupTable}{%
+\begin{table}[ht]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrlll@{}}
+\toprule
+Break & Ready / rushed & Ready, sound (\%) & Rushed, sound (\%) & Lift (points) \\
+\midrule
+London pyramid, c3-c4 & 113 / 183 & 30.1 {\scriptsize(21.2, 38.9)} & 28.4 {\scriptsize(20.7, 37.1)} & 1.7 {\scriptsize($-$8.3, 10.8)} \\
+London pyramid, e3-e4 & 93 / 107 & 38.7 {\scriptsize(28.0, 50.0)} & 30.8 {\scriptsize(21.2, 41.6)} & 7.9 {\scriptsize($-$6.9, 21.5)} \\
+Advance chain, \ldots{}f7-f6 & 37 / 67 & 13.5 {\scriptsize(3.0, 29.4)} & 9.0 {\scriptsize(2.1, 18.6)} & 4.6 {\scriptsize($-$6.6, 19.5)} \\
+\bottomrule
+\end{tabular}
+\caption{His safe breaks, both halves together, for each group with at least 30 breaks with the pieces ready and 30 rushed: the share sound on each side and the difference, with 95\% intervals.}
+\label{tab:groups}
+\end{table}
+}
+\newcommand{\GroupsOther}{19}
+\newcommand{\PlayedReady}{7.2}
+\newcommand{\PlayedRushed}{8.7}
+\newcommand{\PlayedUnsafe}{3.1}
+\newcommand{\StrongPlayedReady}{17.6}
+\newcommand{\StrongPlayedRushed}{14.0}
+\newcommand{\StrongPlayedUnsafe}{4.3}
+\newcommand{\ChoiceLift}{$-$1.0}
+\newcommand{\ChoiceLiftCi}{$-$4.6 to 2.9}
+\newcommand{\AgainstFirst}{138}
+\newcommand{\AgainstReadyFirst}{26.1}
+\newcommand{\AgainstOwnFirst}{54.3}
+\newcommand{\AgainstGainFirst}{$-$28.3}
+\newcommand{\AgainstGainFirstCi}{$-$37.7 to $-$18.6}
+\newcommand{\AgainstSecond}{111}
+\newcommand{\AgainstReadySecond}{33.3}
+\newcommand{\AgainstOwnSecond}{57.7}
+\newcommand{\AgainstGainSecond}{$-$24.3}
+\newcommand{\AgainstGainSecondCi}{$-$32.6 to $-$16.2}
+\newcommand{\ChoiceTable}{%
+\begin{table}[ht]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llll@{}}
+\toprule
+& Safe, pieces ready & Safe, rushed & Not safe \\
+\midrule
+He played the break (\%) & 7.2 & 8.7 & 3.1 \\
+Strong players played it (\%) & 17.6 & 14.0 & 4.3 \\
+\midrule
+& Positions & \begin{tabular}[b]{@{}l@{}}The ready \\ breaks, sound\end{tabular} & \begin{tabular}[b]{@{}l@{}}His move, \\ sound\end{tabular} \\
+\midrule
+His, first half & 138 & 26.1 {\scriptsize(18.1, 34.3)} & 54.3 {\scriptsize(45.8, 62.6)} \\
+His, second half & 111 & 33.3 {\scriptsize(25.2, 42.3)} & 57.7 {\scriptsize(49.5, 67.0)} \\
+\bottomrule
+\end{tabular}
+\caption{Above: how often the break was the move played, by what the questions say of it. Below: his positions with a safe break whose pieces are ready, the share of those breaks that are sound and of his moves there, in \%, with 95\% intervals.}
+\label{tab:choice}
+\end{table}
+}
+\newcommand{\CalSpreadFirst}{4.4}
+\newcommand{\CalBootFirst}{4.3}
+\newcommand{\CalExcludesFirst}{three}
+\newcommand{\CalPFirst}{0.54}
+\newcommand{\CalSpreadSecond}{5.2}
+\newcommand{\CalBootSecond}{5.2}
+\newcommand{\CalExcludesSecond}{six}
+\newcommand{\CalPSecond}{0.68}
+\newcommand{\CalReadings}{100}
+\newcommand{\CalPermutations}{1,000}
+\newcommand{\NullSdFirst}{2.4}
+\newcommand{\NullSdSecond}{1.7}
+\newcommand{\SafeQuestionTable}{%
+\begin{table}[ht]
+\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lrllll@{}}
+\toprule
+Question & \begin{tabular}[b]{@{}l@{}}His safe breaks: \\ pass / fail\end{tabular} & \begin{tabular}[b]{@{}l@{}}His, halves \\ together\end{tabular} & \begin{tabular}[b]{@{}l@{}}His, first \\ half\end{tabular} & \begin{tabular}[b]{@{}l@{}}His, second \\ half\end{tabular} & \begin{tabular}[b]{@{}l@{}}Strong \\ players\end{tabular} \\
+\midrule
+Pieces aimed & 465 / 325 & 7.4 {\scriptsize(1.1, 14.8)} & 9.9 {\scriptsize(1.6, 18.3)} & 4.0 {\scriptsize($-$6.3, 17.7)} & $-$4.7 {\scriptsize($-$12.3, 2.6)} \\
+Rooks ready & 674 / 116 & $-$0.9 {\scriptsize($-$11.0, 8.4)} & $-$3.6 {\scriptsize($-$17.8, 7.9)} & 1.2 {\scriptsize($-$11.7, 16.2)} & 0.0 {\scriptsize($-$8.2, 8.2)} \\
+Force on that side & 475 / 315 & 8.4 {\scriptsize(0.6, 15.8)} & 8.9 {\scriptsize($-$1.2, 17.8)} & 5.5 {\scriptsize($-$7.1, 17.8)} & 3.2 {\scriptsize($-$3.7, 10.1)} \\
+\midrule
+\multicolumn{6}{@{}l}{The intervals, checked on random readings drawn as the null draws its own} \\
+& \begin{tabular}[b]{@{}l@{}}Spread of \\ random lifts\end{tabular} & \begin{tabular}[b]{@{}l@{}}The bootstrap's \\ spread\end{tabular} & \begin{tabular}[b]{@{}l@{}}Intervals \\ leaving out 0\end{tabular} & \begin{tabular}[b]{@{}l@{}}Pieces ready's \\ lift\end{tabular} & \begin{tabular}[b]{@{}l@{}}Random lifts \\ as far from 0\end{tabular} \\
+\midrule
+His, first half & 4.4 & 4.3 & 3 of 100 & 3.0 & 0.54 \\
+His, second half & 5.2 & 5.2 & 6 of 100 & 2.3 & 0.68 \\
+\bottomrule
+\end{tabular}
+\caption{Added after the run. Above: each piece question alone among the safe breaks, the lift in points with 95\% intervals. Below: the spread of the lift, in points, over 1,000 random readings that pass as many safe breaks in each group as pieces ready does, the bootstrap's spread for 100 of them, how many of those 100 intervals leave out 0, and the share of random readings whose lift is at least as far from 0 as pieces ready's.}
+\label{tab:safequestions}
+\end{table}
+}
+\newcommand{\SAimed}{7.4}
+\newcommand{\SAimedCi}{1.1 to 14.8}
+\newcommand{\SAimedStrong}{$-$4.7}
+\newcommand{\SRooks}{$-$0.9}
+\newcommand{\SRooksCi}{$-$11.0 to 8.4}
+\newcommand{\SRooksStrong}{0.0}
+\newcommand{\SForce}{8.4}
+\newcommand{\SForceCi}{0.6 to 15.8}
+\newcommand{\SForceStrong}{3.2}
+\newcommand{\SafeTwo}{34.2}
+\newcommand{\SafeThree}{29.7}
+\newcommand{\EaFen}{\fen{1k1r3r/pppq1pbp/5np1/3p4/1n1P1B2/1N1BPQ1P/PP3PP1/R4RK1 w - - 2 14}}
+\newcommand{\EaMover}{White}
+\newcommand{\EaPhase}{middlegame}
+\newcommand{\EaStructure}{the Carlsbad}
+\newcommand{\EaBreak}{14.~e4}
+\newcommand{\EaBreakSound}{not sound}
+\newcommand{\EaWpBreak}{36}
+\newcommand{\EaBest}{14.~\symbishop{}e2}
+\newcommand{\EaWpBest}{69}
+\newcommand{\EaPlayed}{14.~\symbishop{}e2}
+\newcommand{\EaWpPlayed}{68}
+\newcommand{\EaPlayedSound}{sound}
+\newcommand{\EaAimed}{\symbishop{}d3 and \symqueen{}f3}
+\newcommand{\EaAimedOk}{yes}
+\newcommand{\EaUndeveloped}{}
+\newcommand{\EaFiles}{d-file and e-file}
+\newcommand{\EaRooks}{\symrook{}a1 and \symrook{}f1}
+\newcommand{\EaRooksOk}{yes}
+\newcommand{\EaForceUs}{20}
+\newcommand{\EaForceThem}{17}
+\newcommand{\EaForceOk}{yes}
+\newcommand{\EaBoard}{%
+\chessboard[setfen={1k1r3r/pppq1pbp/5np1/3p4/1n1P1B2/1N1BPQ1P/PP3PP1/R4RK1 w - - 2 14}, boardfontsize=14pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=blue!70!black, markmoves={d3-e2}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={e3-e4}]
+}
+\newcommand{\EbFen}{\fen{r3k2r/pbp2ppp/1pnqpn2/3p4/3P4/2PBPNP1/PP1N1PP1/R2QK2R w KQkq - 2 10}}
+\newcommand{\EbMover}{White}
+\newcommand{\EbPhase}{middlegame}
+\newcommand{\EbStructure}{the London pyramid}
+\newcommand{\EbBreak}{10.~e4}
+\newcommand{\EbBreakSound}{sound}
+\newcommand{\EbWpBreak}{55}
+\newcommand{\EbBest}{10.~\symqueen{}a4}
+\newcommand{\EbWpBest}{55}
+\newcommand{\EbPlayed}{10.~\symknight{}e5}
+\newcommand{\EbWpPlayed}{38}
+\newcommand{\EbPlayedSound}{not sound}
+\newcommand{\EbAimed}{\symbishop{}d3, \symknight{}d2 and \symqueen{}d1}
+\newcommand{\EbAimedOk}{yes}
+\newcommand{\EbUndeveloped}{}
+\newcommand{\EbFiles}{d-file and e-file}
+\newcommand{\EbRooks}{none}
+\newcommand{\EbRooksOk}{no}
+\newcommand{\EbForceUs}{18}
+\newcommand{\EbForceThem}{12}
+\newcommand{\EbForceOk}{yes}
+\newcommand{\EbBoard}{%
+\chessboard[setfen={r3k2r/pbp2ppp/1pnqpn2/3p4/3P4/2PBPNP1/PP1N1PP1/R2QK2R w KQkq - 2 10}, boardfontsize=14pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=blue!70!black, markmoves={f3-e5}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={e3-e4}]
+}

@@ -1,0 +1,274 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Does the checklist before a break tell when the break is sound?\\[0.3em]
+\large The coaching method's five questions read as board code, on the \BreaksAll{} breaks of
+his quiet positions and \StrongBreaks{} of strong players', refereed by Stockfish}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+A break the app teaches for his pawn structure, played merely because it can be, is sound about
+one time in five, so what the app can teach is the moment. The coaching method the app follows
+names the moment with five questions to ask before a break: are the pieces developed and aimed at
+the lines it opens, are the rooks ready for the new file, does it create a passed pawn or expose
+a king, is the force on that side equal or better, has it been calculated? Read with the app's
+own board readings on the breaks of his quiet positions, all five pass for \AllFive{} of his
+\BreaksAll{} breaks, so the rule tests the three questions about the pieces, among the breaks the
+app's blunder check calls safe, comparing each break with the same break of the same structure at
+other moments. By the rule fixed before any reading was joined to a score, there is no signal:
+the lift is \LiftFirst{} and \LiftSecond{} points on the two halves of his games, with both
+intervals across 0, and \StrongLift{} for strong players. The controls pass, and the blunder
+check itself tells the moment: a safe break is sound about twice as often as one that is not
+(\SafeSoundFirst\% and \SafeSoundSecond\% against \UnsafeSoundFirst\% and \UnsafeSoundSecond\%).
+Even where a safe break has its pieces ready, it is sound \AgainstReadyFirst\% and
+\AgainstReadySecond\% of the time, against his own move's \AgainstOwnFirst\% and
+\AgainstOwnSecond\%. The app can keep the checklist as a way of thinking and put the blunder check
+first, but the verdict on a break in a position stays the engine's.
+\end{abstract}
+
+\section{The question}
+
+The study of the breaks the app teaches for each pawn structure found that a break played merely
+because it can be is sound about one time in five in his quiet positions, no more often than a
+random move, while his own move is sound more than half the time; the breaks he chose were as
+sound as his other moves. What the app can teach is the moment. The coaching method the app
+follows names the moment with a checklist to run before playing a break: pieces developed and
+pointed at the lines that open, rooks ready for the new file, a passed pawn or an exposed king,
+equal or better force on that sector, three or four moves calculated. It adds that rushing the
+break before the pieces are ready is the most common structural error at his level.
+
+Read as board code, does that checklist tell a sound break from an unsound one? If it does, the
+review and the drills can teach the moment in the checklist's words: the pieces are not ready
+yet, so the break opens lines for the other side. If it does not, the checklist read this way
+cannot stand in for the engine's word on a position, and the app should not offer it as the test
+of when to break.
+
+\section{How it was measured}
+
+\paragraph{The breaks.} Every break of every position the structure study scored: his quiet
+middlegame and endgame positions with a break on, from his 10-minute games in the app's archive
+at commit \texttt{\AppCommit}, in two halves by the games' end time (\PositionsFirst{} positions
+in \GamesFirst{} games, and \PositionsSecond{} in \GamesSecond), and \StrongPositions{} positions
+of strong players, one a game, from the Lichess games of September 2026 between two players rated
+\Floor{} or more. Nothing is fitted, so the halves are two replications. A break is a legal pawn
+move that the app's \texttt{playedLever} counts as a break of the structure the app names on the
+board, for the side to move. Each break is a unit: his \BreaksFirst{} and \BreaksSecond{} breaks
+and the strong players' \StrongBreaks. Its soundness is the structure study's: Stockfish at the
+app's grading budget of \GradeNodes{} nodes, the hash cleared before each position, accepts it
+when it gives up no more than \Window{} win\% against the best. Its group is its structure and the
+break it plays, such as the London pyramid's c3-c4.
+
+\paragraph{The questions, as board code.} Each question reads the position before the break,
+through the app's knowledge service. The break moves a pawn to the break square; its targets are
+the other side's pawns the pawn attacks from there; the lines it opens are the files of the
+pawn's square, the break square and the targets; its sector is the break square's file and the
+files on either side.
+\begin{enumerate}[nosep]
+\item \textbf{Pieces aimed}: no knight or bishop on its starting square, and at least \AimedMin{}
+  of the mover's knights, bishops, rooks and queens aimed at the break: a rook or queen on one of
+  the lines it opens, or a piece that sees the break square or a target.
+\item \textbf{Rooks ready}: a rook on one of those lines, or with a legal move to one; a mover
+  with no rook passes.
+\item \textbf{A passer or an exposed king}: a new passed pawn for the mover, or a thinner shelter
+  in front of the other king by the app's shelter scale, after the break or after the trade it
+  offers (the break's pawn and a target off the board).
+\item \textbf{Force on that side}: the mover's knights, bishops, rooks and queens on the sector's
+  files are worth at least the other side's, by the app's piece values.
+\item \textbf{Safe}: the app's blunder check calls the break safe: it allows no mate in one,
+  leaves nothing newly hanging and deserts no defence. That is as much of three or four moves
+  calculated as board code reads without an engine.
+\end{enumerate}
+A break whose pieces are ready passes questions 1, 2 and 4; a safe break whose pieces are not
+ready is rushed.
+
+\paragraph{The lift.} The lift of a reading is the share of sound breaks among those it passes
+minus the share among those it fails, within each group, pooled over the groups with breaks on
+both sides by the weight $n_1 n_0/(n_1+n_0)$. It compares each break with itself at other
+moments, so it measures the moment, not which break is the sounder in general. Intervals come
+from \Draws{} bootstrap draws with seed \Seed, resampling his games within a half, or the strong
+players' positions: the 95\% percentile interval.
+
+\section{Counted before the rule}
+
+Before the rule was fixed, each question was read on every break and the passes counted, with no
+score of any move read (Table~\ref{tab:coverage}). All five pass for \AllFive{} of his
+\BreaksAll{} breaks and \AllFiveStrong{} of the strong players' \StrongBreaks: the question of a
+passer or an exposed king passes for \PurposeShare\% of his breaks, and the checklist taken whole
+cannot be tested. The rule tests the three piece questions, the ones the checklist calls the
+common error, among the breaks the blunder check calls safe: \ReadyFirst{} of \SafeFirst{} and
+\ReadySecond{} of \SafeSecond{} of his safe breaks have their pieces ready.
+
+\CoverageTable
+
+\section{The rule, fixed before any reading was joined to a score}
+
+The controls come first, and if any fails there is no verdict. (1) The move played must be sound
+more often than a random move that is not a break, by an interval above 0, on each half and for
+the strong players. (2) A reading known to matter must show: the blunder check's own lift, over
+all breaks, above 0 on both halves; without it, a lift the piece questions lack could be one this
+design cannot see. (3) A reading drawn at random, passing as many safe breaks in each group as
+the pieces' readiness does, must reach neither verdict below.
+
+Then, on his safe breaks: the pieces tell the moment when the lift of their readiness lies above
+0 on both halves; they mislead when it lies below 0 on both; otherwise there is no signal; and
+there is not enough data when a half has fewer than \MinArm{} safe breaks with the pieces ready or
+fewer than \MinArm{} rushed ones.
+
+\section{The verdict: no signal}
+
+The controls pass (Table~\ref{tab:controls}). His move is sound \ControlFirst{} and
+\ControlSecond{} points more often than a random move, and the strong players' \StrongControl.
+The blunder check tells the moment: \CheckFirst{} points (\CheckFirstCi) and \CheckSecond{}
+(\CheckSecondCi), and \StrongCheck{} for the strong players. The random reading's lift is
+\NullFirst{} (\NullFirstCi) and \NullSecond{} (\NullSecondCi): its intervals leave out 0 on both
+halves, but on opposite sides, so it reaches neither verdict and the control passes by the rule.
+Section~\ref{sec:after} checks those intervals on many random readings.
+
+The pieces' readiness gives no signal: its lift is \LiftFirst{} points (\LiftFirstCi) and
+\LiftSecond{} (\LiftSecondCi). The safe breaks with the pieces ready are sound \ReadySoundFirst\%
+and \ReadySoundSecond\% of the time, the rushed ones \RushedSoundFirst\% and
+\RushedSoundSecond\%. In the strong players' positions, reported and not ruled on, the lift is
+\StrongLift{} (\StrongLiftCi).
+
+\ControlTable
+
+\section{Two positions}
+
+Two of his positions show the checklist and the engine disagreeing (Figure~\ref{fig:examples}):
+the first of the later half where a safe break with its pieces ready is unsound while his own move
+is sound, and the first where a rushed safe break is sound while he played something else. They
+illustrate; they test nothing.
+
+\begin{figure}[ht]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\EaBoard\\[0.3em]
+{\footnotesize FEN \EaFen}
+\caption{He is \EaMover, in the \EaPhase, in \EaStructure. The break \EaBreak{} opens the
+\EaFiles. Aimed at it: \EaAimed\EaUndeveloped{} (\EaAimedOk); rooks ready: \EaRooks{}
+(\EaRooksOk); force \EaForceUs{} against \EaForceThem{} (\EaForceOk); safe. Stockfish: \EaBest{}
+is best at \EaWpBest\% to win; the break is \EaBreakSound{} (\EaWpBreak\%). He played \EaPlayed{}
+(blue), \EaPlayedSound{} at \EaWpPlayed\%.}
+\label{fig:ready}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\EbBoard\\[0.3em]
+{\footnotesize FEN \EbFen}
+\caption{He is \EbMover, in the \EbPhase, in \EbStructure. The break \EbBreak{} opens the
+\EbFiles. Aimed at it: \EbAimed\EbUndeveloped{} (\EbAimedOk); rooks ready: \EbRooks{}
+(\EbRooksOk); force \EbForceUs{} against \EbForceThem{} (\EbForceOk); safe. Stockfish: \EbBest{}
+is best at \EbWpBest\% to win; the break is \EbBreakSound{} (\EbWpBreak\%). He played \EbPlayed{}
+(blue), \EbPlayedSound{} at \EbWpPlayed\%.}
+\label{fig:rushed}
+\end{subfigure}
+\caption{Two of his positions with a safe break. The break is green where Stockfish finds it
+sound and red where it does not; win\% is his after each move. Stockfish at \GradeNodes{} nodes,
+rerun for this figure.}
+\label{fig:examples}
+\end{figure}
+
+\section{What the breaks describe}
+
+\paragraph{Each question alone.} Over all the breaks, safe or not, the blunder check has the
+largest lift, \QSafe{} points with his halves together (Table~\ref{tab:questions}), and for the
+strong players it is the only question whose interval lies above 0. For him, the pieces aimed
+(\QAimed{} points) and the force on that side (\QForce) also lie above 0 over all breaks, safe or
+not; the rooks ready and the question of a passer or an exposed king do not.
+
+\QuestionTable
+
+\paragraph{The more questions pass.} Over all his breaks, the share sound rises with the number
+of questions passed: \CountOne\% with one, \CountTwo\% with two, \CountThree\% with three and
+\CountFour\% with four (Table~\ref{tab:count}). That count mixes the groups and the blunder
+check, and four questions passing still leave the break sound less often than his own move.
+
+\CountTable
+
+\paragraph{By group.} In each of the three groups with enough safe breaks on both sides, the
+London pyramid's two breaks and the advance chain's \ldots f7-f6, the lift holds 0
+(Table~\ref{tab:groups}); the other \GroupsOther{} groups have too few breaks on one side.
+
+\GroupTable
+
+\paragraph{His choice, and the ready break against his move.} He played a safe break with the
+pieces ready \PlayedReady\% of the time, a rushed one \PlayedRushed\% and an unsafe one
+\PlayedUnsafe\% (Table~\ref{tab:choice}). Within the groups, the share of ready breaks he
+played minus the share of rushed ones is \ChoiceLift{} points (\ChoiceLiftCi): he does not wait
+for the pieces, but he does avoid the unsafe breaks, as the strong players do. Where a safe break has its pieces ready, in \AgainstFirst{} and
+\AgainstSecond{} of his positions, those breaks are sound \AgainstReadyFirst\% and
+\AgainstReadySecond\% of the time and his own moves there \AgainstOwnFirst\% and
+\AgainstOwnSecond\%: the ready break trails his move by \AgainstGainFirst{} points
+(\AgainstGainFirstCi) and \AgainstGainSecond{} (\AgainstGainSecondCi).
+
+\ChoiceTable
+
+\section{Added after the run}
+\label{sec:after}
+
+\paragraph{The intervals.} The random reading's intervals left out 0 on both halves, which a
+95\% interval should do for about one random reading in twenty on each. Over
+\CalPermutations{} random readings drawn the same way, the lift spreads by \CalSpreadFirst{} and
+\CalSpreadSecond{} points, and the bootstrap's own spread for \CalReadings{} of them is
+\CalBootFirst{} and \CalBootSecond; their intervals leave out 0 for \CalExcludesFirst{} and
+\CalExcludesSecond{} of the \CalReadings. The intervals hold their width; the reading the rule
+drew lies \NullSdFirst{} and \NullSdSecond{} spreads from 0, an unlucky draw. The pieces'
+readiness lies no farther from 0 than random readings often do: \CalPFirst{} and \CalPSecond{} of
+them lie as far (Table~\ref{tab:safequestions}).
+
+\paragraph{Each piece question alone, among the safe breaks.} With his halves together, the pieces
+aimed give \SAimed{} points (\SAimedCi) and the force on that side \SForce{} (\SForceCi), while
+the rooks give \SRooks{} (\SRooksCi); for the strong players none lies above 0 (\SAimedStrong,
+\SRooksStrong{} and \SForceStrong). Asking for all three loses what the aimed pieces and the force
+carry: his safe breaks passing two of the piece questions are sound \SafeTwo\% of the time and
+those passing all three \SafeThree\% (Table~\ref{tab:count}). These readings were chosen after
+the run, among several, so they do not overturn the verdict; a rule built on the aimed pieces or
+the force needs positions this study did not see.
+
+\SafeQuestionTable
+
+\section{What the app can take}
+
+\begin{itemize}[nosep]
+\item \textbf{The blunder check first.} Of the checklist's questions, the one that tells the
+  moment is the calculation, as the app's blunder check reads it: a safe break is sound about
+  twice as often as one that is not, for him and for strong players. When the review, a drill or
+  the coach's reading of a position names a break, the first thing it checks is that the break
+  leaves nothing loose.
+\item \textbf{Not the piece questions as the verdict.} With the break safe, whether the pieces are
+  aimed, the rooks ready and the force there tells nothing about whether the break is sound, for
+  him or for strong players. The app should not call a break ready or rushed by these readings
+  as a judgment of the move. The questions can stay as a way of thinking about a structure; the
+  verdict on a break in a position is Stockfish's.
+\item \textbf{A ready break is still no suggestion.} Where a safe break has its pieces ready, it
+  is sound about three times in ten, his own move more than five times in ten. The app should
+  never offer a break as the move on the checklist's word.
+\end{itemize}
+
+\section{Caveats}
+
+\begin{itemize}[nosep]
+\item \textbf{A reading of the words.} ``Pointed at the lines that open'', ``ready'' and
+  ``sector'' are read here one way each, fixed before any score was joined; a coach might read
+  them otherwise, which would be another study.
+\item \textbf{The checklist taken whole.} All five questions almost never pass, so only the piece
+  questions and each question apart were tested.
+\item \textbf{The breaks are the app's.} Only the breaks the structure catalogue names are tested,
+  at the squares the app reads.
+\item \textbf{Sound is a window.} Several moves are often within \Window{} win\% of the best; a
+  break that is not the best can be sound.
+\item \textbf{Many breaks a game for him.} A game where a break stays on counts many times;
+  intervals resample whole games for that reason.
+\item \textbf{The same positions.} The positions, scores and referee are the structure study's;
+  only the two positions shown were searched again.
+\item \textbf{Added after the run.} The check of the intervals and the piece questions alone among
+  the safe breaks were chosen once the rule had been applied. They describe and decide nothing.
+\end{itemize}
+
+\end{document}

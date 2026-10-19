@@ -186,6 +186,12 @@ for i in 0 1 2 3; do bridge/run.sh projects/structure-breaks/score.mjs --who str
 bridge/run.sh projects/structure-breaks/analyze.mjs
 bridge/run.sh projects/structure-breaks/describe.mjs
 
+# The checklist before a break: its questions read on the breaks structure-breaks
+# scored, with no new engine search.
+bridge/run.sh projects/break-ready/coverage.mjs
+bridge/run.sh projects/break-ready/analyze.mjs
+bridge/run.sh projects/break-ready/describe.mjs
+
 # The learner's solve chances: his puzzle attempts replayed through the app's
 # learner, on a record rebuilt from the memory cards and on the profile as the
 # app holds it.

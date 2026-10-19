@@ -18,6 +18,23 @@ one? Among breaks that the app's own blunder check calls safe, and comparing
 each break with the same break of the same structure at other moments, are the
 breaks whose pieces are ready sound more often than the rushed ones?
 
+**The answer.** No signal, by the rule below, which was committed before any
+reading was joined to a score; every control passed. Among the breaks the
+app's blunder check calls safe, those whose pieces are ready are sound about as
+often as the rushed ones of the same break: the lift is a few points on each
+half of his games, both intervals across 0, and a few points below 0 for strong
+players. The blunder check is the question that tells the moment: a safe break
+is sound about twice as often as one that is not, for him and for strong
+players. All five questions almost never pass together, and even where a safe
+break has its pieces ready it is sound about three times in ten, against his
+own move's five and a half. The app can keep the checklist as a way of thinking
+and put the blunder check first, but the verdict on a break stays the
+engine's. The numbers are in [`results/break-ready.md`](results/break-ready.md),
+written by `analyze.mjs`, and [`results/descriptions.md`](results/descriptions.md),
+written by `describe.mjs`, which adds after the run a check of the intervals on
+random readings and each piece question alone among the safe breaks; the paper
+is [`paper/paper.pdf`](paper/paper.pdf).
+
 If they are, the review and the drills can teach the moment in the
 checklist's words: the pieces are not ready yet, so the break opens lines for
 the other side. If they are not, the checklist read this way cannot stand in
@@ -158,6 +175,10 @@ model judges anything here.
 |---|---|
 | `lib.mjs` | The study's constants, the five questions (`checksOf`), each break's group (`leverOf`), the lift (`leverWeighted`) and its bootstrap (`bootStat`). |
 | `coverage.mjs` | Reads the questions on every break structure-breaks scored and writes them (`private/break-ready/<who>-checks.jsonl`) and their counts (`results/coverage.json` and `.md`). No score is read. |
+| `analyze.mjs` | Joins each break's readings to its score, applies the rule and the descriptions; writes `results/break-ready.json` and `.md`. |
+| `describe.mjs` | The descriptions added after the run (the intervals checked on random readings, each piece question alone among the safe breaks, the safe breaks by piece questions passed); writes `results/descriptions.json` and `.md`. |
+| `paper/generate.mjs` | Writes `paper/generated.tex`, every number, table and position the paper prints, from `results/` and the private rows (the two positions rescored), and refuses to write when a claim the paper makes no longer holds. |
+| `paper/paper.tex` | The paper. |
 
 ## Running it
 
@@ -165,4 +186,8 @@ model judges anything here.
 make chess
 # structure-breaks first: its positions and scores
 bridge/run.sh projects/break-ready/coverage.mjs
+bridge/run.sh projects/break-ready/analyze.mjs
+bridge/run.sh projects/break-ready/describe.mjs
+bridge/run.sh projects/break-ready/paper/generate.mjs
+(cd projects/break-ready/paper && latexmk -pdf paper.tex)
 ```
