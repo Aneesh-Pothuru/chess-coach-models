@@ -82,6 +82,7 @@ const verdict = !enough
     : { holds: 'the break holds', misleads: 'the break misleads', 'no better': 'no better than his own move' }[verdictOf('gain')]
 
 const pooled = his.scored
+const statusOf = (rows) => rows.reduce((acc, r) => ({ ...acc, [r.status]: (acc[r.status] ?? 0) + 1 }), {})
 const cells = (rows, keyOf, seed) => {
   const groups = new Map()
   for (const r of rows) {
@@ -105,8 +106,19 @@ const report = {
   verdict,
   enough,
   controls,
-  halves: stats.map((s, h) => ({ half: h, positions: halves[h].length, games: new Set(halves[h].map((r) => r.gi)).size, stats: s })),
-  strong: { positions: strong.scored.length, stats: strongStats },
+  halves: stats.map((s, h) => {
+    const all = his.rows.filter((r) => r.half === h)
+    return {
+      half: h,
+      candidates: all.length,
+      status: statusOf(all),
+      inexact: all.filter((r) => r.status === 'scored' && !Object.values(r.scores).every((x) => x.exact)).length,
+      positions: halves[h].length,
+      games: new Set(halves[h].map((r) => r.gi)).size,
+      stats: s,
+    }
+  }),
+  strong: { tried: strong.rows.length, status: statusOf(strong.rows), inexact: strong.inexact, positions: strong.scored.length, stats: strongStats },
   byStructure: cells(pooled, (r) => r.structure, SEED + 100),
   byPhase: cells(pooled, (r) => r.phase, SEED + 200),
   notPlayed: halves.map((rows, h) => hisBoot(rows.filter((r) => !r.breaks.includes(r.played)), SEED + 300 + h)),
