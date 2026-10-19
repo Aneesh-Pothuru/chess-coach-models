@@ -74,6 +74,19 @@ export function wilson(k, n, z = 1.959963984540054) {
   return { k, n, share: p, ci: [c - h, c + h] }
 }
 
+export function readingDecision(agreement) {
+  // The report rounds its intervals; a decision must use the counts' full precision.
+  const intervals = Object.keys(MONTHS).map((s) => wilson(agreement[s].k, agreement[s].n).ci)
+  const above = (bar) => intervals.every((ci) => ci && ci[0] > bar)
+  const below = (bar) => intervals.every((ci) => ci && ci[1] < bar)
+  let verdict
+  if (agreement.heldout.n < MIN_HELDOUT) verdict = `not enough data (n=${agreement.heldout.n})`
+  else if (above(0.5)) verdict = 'tells who is better'
+  else if (below(0.5)) verdict = 'points the wrong way'
+  else verdict = 'no signal'
+  return { verdict, reliable: verdict === 'tells who is better' && above(RELIABLE) }
+}
+
 export const bandOf = (whiteElo, blackElo) => {
   const mean = (whiteElo + blackElo) / 2
   const b = BANDS.find(([lo, hi]) => mean >= lo && mean <= hi + 0.5)

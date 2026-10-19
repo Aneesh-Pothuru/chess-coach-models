@@ -15,6 +15,7 @@ import {
   gitCommit,
   keyOf,
   readJsonl,
+  readingDecision,
   studyRows,
   wilson,
 } from './lib.mjs'
@@ -82,17 +83,10 @@ for (const reading of READINGS) {
   const mineRows = rows.filter((r) => r.reading === reading)
   const sets = Object.fromEntries(SPLITS.map((s) => [s, mineRows.filter((r) => r.split === s)]))
   const a = Object.fromEntries(SPLITS.map((s) => [s, agreement(sets[s])]))
-  const above = (bar) => SPLITS.every((s) => a[s].ci && a[s].ci[0] > bar)
-  const below = (bar) => SPLITS.every((s) => a[s].ci && a[s].ci[1] < bar)
-  let verdict
-  if (a.heldout.n < MIN_HELDOUT) verdict = `not enough data (n=${a.heldout.n})`
-  else if (above(0.5)) verdict = 'tells who is better'
-  else if (below(0.5)) verdict = 'points the wrong way'
-  else verdict = 'no signal'
+  const decision = readingDecision(a)
   perReading[reading] = {
     lean: leanOf(reading),
-    verdict,
-    reliable: verdict === 'tells who is better' && above(RELIABLE),
+    ...decision,
     agreement: a,
     verdicts: Object.fromEntries(SPLITS.map((s) => [s, shares(sets[s])])),
     byBand: Object.fromEntries(SPLITS.map((s) => [s, by(sets[s], 'band')])),
