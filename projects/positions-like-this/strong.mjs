@@ -13,21 +13,19 @@ import {
   WIN_LOW,
   argOf,
   armsOf,
+  checkPlantedTwin,
   complete,
-  distance,
-  featuresOf,
-  groupSizes,
   legalCodes,
   linesOf,
   linesOfAll,
   loadIndex,
   matchOf,
   materialKey,
-  moveCode,
   mulberry32,
   normalBoard,
   quietMove,
   readJsonl,
+  requirePlantedTwins,
   shardFiles,
   realUci,
   seedOf,
@@ -44,6 +42,7 @@ const target = Math.ceil(Number(argOf('--queries', String(STRONG_QUERIES))) / sh
 const dir = privateDir(PROJECT)
 const outFile = join(dir, `strong-${shard}-of-${shards}.jsonl`)
 const previous = readJsonl(outFile)
+requirePlantedTwins(previous)
 const tried = new Set(previous.map((r) => r.game))
 let kept = previous.filter((r) => r.status === 'scored').length
 const append = (row) => appendFileSync(outFile, JSON.stringify(row) + '\n')
@@ -87,15 +86,13 @@ for (const game of mine) {
     const turn = fen.split(' ')[1]
     if (normalBoard(fen) !== board) throw new Error(`board mismatch in game ${game} at ${ply}`)
     const legal = legalCodes(fen, Chess)
-    const own = moveCode(nuci)
-    if (!legal.has(own) || board[own & 63] !== piece) throw new Error(`the twin's move does not transfer in game ${game} at ${ply}`)
-    const twin = featuresOf(board)
-    if (distance(twin, groupSizes(materialKey(board)), twin) !== 0) throw new Error(`the twin is not at distance 0 in game ${game} at ${ply}`)
     const arms = armsOf(buckets, board, legal, seedOf('strong', game, ply, SEED), { second: false })
     if (!complete(arms, { second: false })) {
       attempts.push({ ply, status: 'not covered', arms: [arms.T.length, arms.R.length] })
       continue
     }
+    const planted = checkPlantedTwin(arms.bucket, board, legal, { game, ply, move: nuci, piece, phase }, seedOf('strong', game, ply, SEED))
+    const twinCheck = { ...planted, move: realUci(planted.move, turn) }
     await engine.newGame('analyst')
     const pos = C.position(C.START_FEN, replayed.ucis.slice(0, ply))
     const best = await engine.bestMoves(pos, { budget: BUDGET, multiPv: 1, priority: 'batch' })
@@ -127,7 +124,7 @@ for (const game of mine) {
         lost: Sc.isExactScore(r.score) ? E.lostWp(r.score, line.score, turn) : null,
       }
     }
-    scored = { ply, phase: phase === 'e' ? 'endgame' : 'middlegame', best: line.move, wp, key: materialKey(board), bucket: arms.size, T, R, twin: twinMove, scores }
+    scored = { ply, phase: phase === 'e' ? 'endgame' : 'middlegame', best: line.move, wp, key: materialKey(board), bucket: arms.size, T, R, twin: twinMove, twinCheck, scores }
     break
   }
   if (scored) {

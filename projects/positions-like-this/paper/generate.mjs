@@ -41,6 +41,8 @@ import {
   materialKey,
   normalBoard,
   readJsonl,
+  requirePlantedTwins,
+  rowsOf,
 } from '../lib.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
@@ -242,6 +244,9 @@ g.block(
 // ---- the verdict and what it rests on ----
 const holds0 = (c) => c !== null && c[0] <= 0 && c[1] >= 0
 const T = out.controls.twin
+const strongRows = rowsOf(dir, readdirSync).strong
+requirePlantedTwins(strongRows)
+claim(T.positions > 0 && T.retrieval?.checked === T.positions && strongRows.length === T.positions, 'every control position was planted and retrieved from the index')
 claim(out.verdict === 'likeness works' && T.pass && out.controls.null.pass, 'both controls pass and the verdict is that likeness works')
 claim(H.every((h) => h.positions >= MIN_POSITIONS && h.lift.ci[0] > 0), 'the lift lies above 0 on both halves, each with enough positions')
 claim(H.every((h) => h.status['no exact best'] === undefined && h.inexact === 0) && out.strong.inexact === 0, 'every score was exact')

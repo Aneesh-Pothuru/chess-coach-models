@@ -1,13 +1,14 @@
 import { readdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { privateDir, resultsDir } from '../../bridge/lib/chess.mjs'
-import { ARM, DISTANCE_BINS, HARD, MIN_POSITIONS, PROJECT, SEED, argOf, boot, byGame, rowsOf, shareOf, soundOf } from './lib.mjs'
+import { ARM, DISTANCE_BINS, HARD, MIN_POSITIONS, PROJECT, SEED, argOf, boot, byGame, requirePlantedTwins, rowsOf, shareOf, soundOf } from './lib.mjs'
 
 const dir = privateDir(PROJECT)
 const out = argOf('--out', resultsDir(PROJECT))
 
 const HALVES = [0, 1]
 const { hisRows, hisScored, his, strongRows, strongScored, strong } = rowsOf(dir, readdirSync)
+requirePlantedTwins(strongScored)
 
 const tally = (rows, key) => rows.reduce((acc, r) => ({ ...acc, [r[key]]: (acc[r[key]] ?? 0) + 1 }), {})
 const anySound = (r, arm) => (r[arm].some((m) => soundOf(r, m.move) === 1) ? 1 : 0)
@@ -99,7 +100,7 @@ const median = (xs) => {
 const report = {
   verdict,
   controls: {
-    twin: { pass: twinPass, positions: strongStats.n, twin: strongStats.twin, R: strongStats.R, lift: strongStats.twinLift },
+    twin: { pass: twinPass, positions: strongStats.n, retrieval: { checked: strong.length }, twin: strongStats.twin, R: strongStats.R, lift: strongStats.twinLift },
     null: { pass: nullPass, halves: main.map((m) => m.nullLift) },
   },
   halves: HALVES.map((h) => ({

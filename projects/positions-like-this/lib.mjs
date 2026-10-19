@@ -374,6 +374,39 @@ export function nearest(bucket, dist, legal, board, k, seed, excluded = new Set(
   return out
 }
 
+export function checkPlantedTwin(bucket, board, legal, row, seed) {
+  if (bucket.key !== materialKey(board)) throw new Error('the twin has a different material bucket')
+  const at = bucket.n
+  try {
+    bucket.add(featuresOf(board), row)
+    const dist = bucket.distancesTo(featuresOf(board))
+    if (dist[at] !== 0) throw new Error('the indexed twin is not at distance 0')
+    if (!transfers(legal, board, bucket, at)) throw new Error("the indexed twin's move does not transfer")
+    // Existing exact matches can tie the plant. Retrieve that whole nearest
+    // distance level with the production selector and its usual seeded ties.
+    const tiedGames = new Set()
+    for (let i = 0; i < bucket.n; i++) {
+      if (dist[i] === 0 && transfers(legal, board, bucket, i)) tiedGames.add(bucket.game[i])
+    }
+    const found = nearest(bucket, dist, legal, board, tiedGames.size, seed)
+    const twin = found.find((m) => m.i === at)
+    if (!twin || twin.d !== 0 || found[0]?.d !== 0) throw new Error('the planted twin was not retrieved at the nearest distance 0')
+    return { retrieved: true, distance: twin.d, move: codeUci(bucket.move[twin.i]) }
+  } finally {
+    // Leave the unplanted T and R populations intact, including after a failure.
+    bucket.n = at
+  }
+}
+
+export function requirePlantedTwins(rows) {
+  for (const r of rows.filter((r) => r.status === 'scored')) {
+    const check = r.twinCheck
+    if (check?.retrieved !== true || check.distance !== 0 || check.move !== r.twin) {
+      throw new Error('a scored strong position has no checked planted-twin retrieval; rebuild its strong shard')
+    }
+  }
+}
+
 export function drawRandom(bucket, dist, legal, board, k, rnd, excluded, draws = RANDOM_DRAWS) {
   const order = Int32Array.from({ length: bucket.n }, (_, i) => i)
   const out = []
