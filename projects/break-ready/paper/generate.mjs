@@ -222,6 +222,8 @@ for (const [k, c] of BC.entries()) if (c.stats) g.def(`Count${['None', 'One', 'T
 
 const groupsShown = out.groups.filter((x) => x.stats)
 claim(groupsShown.length === 3 && groupsShown.every((x) => holds0(x.stats.lift.ci)), "in each of the three groups with enough safe breaks the lift holds 0")
+const namedGroups = ['london-pyramid|c3-c4', 'london-pyramid|e3-e4', 'advance-chain|...f7-f6']
+claim(namedGroups.every((group) => groupsShown.some((x) => x.group === group)), 'the three groups are the ones the paper names')
 g.block(
   'GroupTable',
   [
@@ -334,6 +336,7 @@ const firstOf = (keep) => [1, 0].map((h) => checks.filter((b) => b.half === h &&
 const readyUnsound = firstOf((b) => b.checks.safe && piecesReady(b.checks) && !b.sound && soundOf(rows.get(b.id), rows.get(b.id).played))
 const rushedSound = firstOf((b) => b.checks.safe && !piecesReady(b.checks) && b.sound && !rows.get(b.id).breaks.includes(rows.get(b.id).played))
 claim(readyUnsound && rushedSound, 'both examples exist')
+claim(readyUnsound.half === 1 && rushedSound.half === 1, 'both examples are from the later half')
 const engine = N.createNodeEngine({ root: CHESS_DIR, tablebase: false, evalCache: false, pool: 1 })
 const SIDE = { w: 'White', b: 'Black' }
 const COLOR = { sound: 'green!50!black', unsound: 'red!75!black', his: 'blue!70!black' }
