@@ -64,10 +64,8 @@ for (const p of positions) {
 }
 
 const round = (x, d = 2) => (x === null || x === undefined ? null : Math.round(x * 10 ** d) / 10 ** d)
-const est = (list, f) => {
-  const b = bootstrapMean(list, f)
-  return { n: b.n, games: b.games, mean: round(b.mean), ci: b.ci ? b.ci.map((x) => round(x)) : null }
-}
+// Keep full precision through the controls and verdict; round only for display.
+const est = (list, f) => bootstrapMean(list, f)
 const share = (list, f) => (list.length ? round(list.filter(f).length / list.length, 4) : null)
 
 const SPLITS = ['train', 'heldout']
@@ -139,7 +137,7 @@ const report = {
 }
 writeFileSync(join(results, 'findable-move.json'), JSON.stringify(report, null, 2) + '\n')
 
-const ci = (e) => (e.ci ? `${e.mean} (${e.ci[0]} to ${e.ci[1]})` : 'not enough data')
+const ci = (e) => (e.ci ? `${round(e.mean)} (${round(e.ci[0])} to ${round(e.ci[1])})` : 'not enough data')
 const md = [
   '# Findable move: results',
   '',
