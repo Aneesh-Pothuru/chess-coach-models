@@ -68,7 +68,7 @@ export function randomOthers(fen, breaks, seed) {
 }
 
 export const soundOf = (r, uci) => (r.scores[uci].sound ? 1 : 0)
-export const lostOf = (r, uci) => r.scores[uci].lost
+export const lostOf = (r, uci) => Math.max(0, r.scores[uci].lost)
 export const meanOver = (list, f) => list.reduce((s, x) => s + f(x), 0) / list.length
 export const breakSound = (r) => meanOver(r.breaks, (m) => soundOf(r, m))
 export const breakLost = (r) => meanOver(r.breaks, (m) => lostOf(r, m))
