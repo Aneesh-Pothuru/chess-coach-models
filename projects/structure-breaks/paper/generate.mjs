@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url'
 import { Chess } from 'chess.js'
 import { CHESS_DIR, chess, privateDir, resultsDir } from '../../../bridge/lib/chess.mjs'
 import { Generated, esc, fixed, movesTex, percent, word } from '../../paper.mjs'
-import { ABOVE, DRAWS, OFFSET } from '../../positions-like-this/lib.mjs'
+import { ABOVE, DRAWS } from '../../positions-like-this/lib.mjs'
 import {
   BUDGET,
   CLOCK_FLOOR,
@@ -76,7 +76,7 @@ const below0 = (c) => c !== null && c[1] < 0
 claim(P.app.commit === L.app.commit, "his positions are positions-like-this's, from the same app commit")
 g.def('AppCommit', P.app.commit.slice(0, 10))
 g.def('MinMen', word(MIN_MEN)).def('ClockFloor', String(CLOCK_FLOOR)).def('WinLow', String(WIN_LOW)).def('WinHigh', String(WIN_HIGH)).def('MinLegal', word(MIN_LEGAL))
-g.def('Offset', String(OFFSET)).def('Above', String(ABOVE)).def('GradeNodes', count(E.budgetNodes(BUDGET, 'node'))).def('Window', String(E.ACCEPT_WINDOW_WP))
+g.def('Offset', String(E.DEFAULT_LICHESS_OFFSET)).def('Above', String(ABOVE)).def('GradeNodes', count(E.budgetNodes(BUDGET, 'node'))).def('Window', String(E.ACCEPT_WINDOW_WP))
 g.def('MinPositions', String(MIN_POSITIONS)).def('MinCell', String(MIN_CELL)).def('Draws', count(DRAWS)).def('Seed', String(SEED))
 g.def('StrongTarget', count(STRONG_POSITIONS)).def('StrongDrawn', count(STRONG_CANDIDATES)).def('Tries', word(STRONG_TRIES))
 claim([...St.HOLDER_WRITTEN].sort().join(' ') === 'hanging-pawns iqp queenside-majority', "the catalogue writes three structures from the holder's side")

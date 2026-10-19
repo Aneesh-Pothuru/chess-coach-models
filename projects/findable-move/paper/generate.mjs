@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url'
 import { Chess } from 'chess.js'
 import { chess, privateDir, resultsDir } from '../../../bridge/lib/chess.mjs'
 import { Generated, fixed, line, movesTex, percent, word } from '../../paper.mjs'
-import { DRAWS, OFFSET, PROJECT, ROLLOUTS, readJsonl } from '../lib.mjs'
+import { DRAWS, PROJECT, ROLLOUTS, readJsonl } from '../lib.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const E = await chess('src/services/engine/index.ts')
@@ -30,7 +30,7 @@ const count = (n) => n.toLocaleString('en-US')
 const D = out.design
 const M = D.margin
 const window = E.ACCEPT_WINDOW_WP
-g.def('AppCommit', out.app.commit.slice(0, 10)).def('Offset', String(OFFSET)).def('Window', String(window))
+g.def('AppCommit', out.app.commit.slice(0, 10)).def('Offset', String(E.DEFAULT_LICHESS_OFFSET)).def('Window', String(window))
 g.def('Rollouts', String(D.rollouts)).def('Plies', String(D.plies)).def('HalfPlies', word(D.plies / 2)).def('HalfRollouts', String(D.rollouts / 2))
 g.def('BudgetNodes', count(E.budgetNodes(D.budget, 'node'))).def('Margin', word(M)).def('DecoyDrop', String(D.decoyDrop))
 claim(D.rollouts === ROLLOUTS && D.budget === 'check', 'the report ran the design the README fixed')

@@ -26,7 +26,6 @@ import {
   MIN_MEN,
   MIN_POSITIONS,
   MONTH,
-  OFFSET,
   PIECE_CAP,
   PROJECT,
   RANDOM_DRAWS,
@@ -74,7 +73,7 @@ const HALF = ['First', 'Second']
 claim(P.app.commit === I.app.commit, 'his positions and the index come from the same app commit')
 g.def('AppCommit', P.app.commit.slice(0, 10))
 g.def('MinMen', word(MIN_MEN)).def('ClockFloor', String(CLOCK_FLOOR)).def('WinLow', String(WIN_LOW)).def('WinHigh', String(WIN_HIGH))
-g.def('Offset', String(OFFSET)).def('Above', String(ABOVE)).def('Arm', word(ARM)).def('RandomDraws', count(RANDOM_DRAWS))
+g.def('Offset', String(E.DEFAULT_LICHESS_OFFSET)).def('Above', String(ABOVE)).def('Arm', word(ARM)).def('RandomDraws', count(RANDOM_DRAWS))
 g.def('PieceCap', String(PIECE_CAP)).def('KingCap', String(KING_CAP)).def('GradeNodes', count(E.budgetNodes(BUDGET, 'node')))
 g.def('Window', String(E.ACCEPT_WINDOW_WP)).def('StrongQueries', count(STRONG_QUERIES)).def('Tries', word(STRONG_TRIES))
 g.def('MinPositions', String(MIN_POSITIONS)).def('Hard', String(Math.round(100 * HARD))).def('Draws', count(DRAWS)).def('HeldOutOneIn', word(HELD_OUT_ONE_IN))

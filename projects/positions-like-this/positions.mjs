@@ -7,7 +7,6 @@ import {
   CLOCK_FLOOR,
   MIN_LEGAL,
   MIN_MEN,
-  OFFSET,
   PROJECT,
   START_CLOCK,
   WIN_HIGH,
@@ -98,9 +97,9 @@ for (let gi = 0; gi < games.length; gi++) {
       played: replayed.ucis[ply],
       myColor,
       phase: K.phaseOf(fen),
-      hisBand: E.defaultMaiaElo(g.myRating, OFFSET),
-      plusBand: E.defaultMaiaElo(g.myRating + ABOVE, OFFSET),
-      oppBand: E.defaultMaiaElo(g.oppRating, OFFSET),
+      hisBand: E.defaultMaiaElo(g.myRating, E.DEFAULT_LICHESS_OFFSET),
+      plusBand: E.defaultMaiaElo(g.myRating + ABOVE, E.DEFAULT_LICHESS_OFFSET),
+      oppBand: E.defaultMaiaElo(g.oppRating, E.DEFAULT_LICHESS_OFFSET),
     })
   }
 }

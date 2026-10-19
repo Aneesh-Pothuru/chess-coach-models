@@ -4,7 +4,6 @@ import { gunzipSync } from 'node:zlib'
 import { Chess } from 'chess.js'
 
 export const PROJECT = 'his-habits'
-export const OFFSET = 250
 export const ABOVE = 200
 export const WIN_LOW = 10
 export const WIN_HIGH = 90

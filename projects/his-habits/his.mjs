@@ -5,7 +5,6 @@ import {
   ABOVE,
   CLOCK_FLOOR,
   COST_BUDGET,
-  OFFSET,
   PROJECT,
   WIN_HIGH,
   WIN_LOW,
@@ -98,9 +97,9 @@ for (let gi = 0; gi < games.length; gi++) {
       myColor,
       wpBefore: wp,
       clock,
-      hisBand: E.defaultMaiaElo(g.myRating, OFFSET),
-      plusBand: E.defaultMaiaElo(g.myRating + ABOVE, OFFSET),
-      oppBand: E.defaultMaiaElo(g.oppRating, OFFSET),
+      hisBand: E.defaultMaiaElo(g.myRating, E.DEFAULT_LICHESS_OFFSET),
+      plusBand: E.defaultMaiaElo(g.myRating + ABOVE, E.DEFAULT_LICHESS_OFFSET),
+      oppBand: E.defaultMaiaElo(g.oppRating, E.DEFAULT_LICHESS_OFFSET),
     })
   }
 }

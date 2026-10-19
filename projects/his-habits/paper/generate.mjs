@@ -27,7 +27,6 @@ import {
   LICHESS_MONTH,
   MIN_COUNT,
   MOVE_KINDS,
-  OFFSET,
   PER_BAND,
   PER_PLAYER,
   PROJECT,
@@ -111,7 +110,7 @@ claim(out.kinds.map((k) => k.kind).join('|') === KINDS.join('|'), 'the report co
 
 // ---- the design ----
 g.def('AppCommit', out.app.commit.slice(0, 10))
-g.def('Above', String(ABOVE)).def('Offset', String(OFFSET)).def('WinLow', String(WIN_LOW)).def('WinHigh', String(WIN_HIGH)).def('ClockFloor', String(CLOCK_FLOOR))
+g.def('Above', String(ABOVE)).def('Offset', String(E.DEFAULT_LICHESS_OFFSET)).def('WinLow', String(WIN_LOW)).def('WinHigh', String(WIN_HIGH)).def('ClockFloor', String(CLOCK_FLOOR))
 g.def('CostNodes', count(E.budgetNodes(COST_BUDGET, 'node'))).def('FilterNodes', count(E.budgetNodes(FILTER_BUDGET, 'node')))
 g.def('PerBand', count(PER_BAND)).def('PerPlayer', word(PER_PLAYER)).def('Tries', word(TRIES)).def('LichessFloor', String(LICHESS_FLOOR))
 g.def('MinCount', String(MIN_COUNT)).def('Draws', count(DRAWS)).def('KappaLow', '2/3').def('KappaHigh', '3/2')

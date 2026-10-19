@@ -2,7 +2,6 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 
 export const PROJECT = 'findable-move'
-export const OFFSET = 250
 export const DECOY_DROP = 10
 export const ROLLOUTS = 16
 export const PLIES = 12

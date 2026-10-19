@@ -12,7 +12,6 @@ export const START_CLOCK = 600
 export const MIN_LEGAL = 2
 export const WIN_LOW = 10
 export const WIN_HIGH = 90
-export const OFFSET = 250
 export const ABOVE = 200
 export const BUDGET = 'grade'
 export const ARM = 3

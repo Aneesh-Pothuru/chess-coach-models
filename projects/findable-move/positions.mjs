@@ -1,7 +1,7 @@
 import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { CHESS_DIR, chess, privateDir, resultsDir } from '../../bridge/lib/chess.mjs'
-import { gitCommit, PROJECT, OFFSET, DECOY_DROP, tenMinutes } from './lib.mjs'
+import { gitCommit, PROJECT, DECOY_DROP, tenMinutes } from './lib.mjs'
 
 const N = await chess('src/adapters/node/engine/index.ts')
 const E = await chess('src/services/engine/index.ts')
@@ -53,8 +53,8 @@ for (let gi = 0; gi < games.length; gi++) {
   }
   const replayed = C.replaySans(C.START_FEN, g.sans ?? [])
   const myColor = g.meIsWhite ? 'w' : 'b'
-  const hisBand = E.defaultMaiaElo(g.myRating, OFFSET)
-  const oppBand = E.defaultMaiaElo(g.oppRating, OFFSET)
+  const hisBand = E.defaultMaiaElo(g.myRating, E.DEFAULT_LICHESS_OFFSET)
+  const oppBand = E.defaultMaiaElo(g.oppRating, E.DEFAULT_LICHESS_OFFSET)
   const entries = [
     ...(g.deep ?? []).map((e) => ({ kind: 'turning', e, playedSan: e.san })),
     ...(g.plans ?? []).map((e) => ({ kind: 'plan', e, playedSan: e.played })),
