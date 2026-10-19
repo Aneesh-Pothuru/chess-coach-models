@@ -223,6 +223,22 @@ its workers. No job depends on an interactive session's output pipe. Resume
 uses the same launcher and first checks the saved worker identities and groups.
 Interrupted attempt time is reported separately from the gap before resuming.
 
+A review timeout leaves its completed predecessors intact and makes the
+review stage fail before event extraction. `recover-review-timeouts.mjs`
+inspects such a stopped attempt without changing it. Its explicit `--resume`
+accepts only a fully accounted timeout-only failure before any later stage,
+with no surviving or ambiguous worker groups and unchanged committed source
+and input hashes. It preserves the failed attempt and a private state backup,
+records the reviewed restart, and invokes the same detached launcher. It
+does not change the timeout, review settings, games or analysis. The helper
+and launcher must themselves match committed content before a restart.
+
+The helper's separate execution report distinguishes completed review worker
+time, failed timeout wall time, and stage wall time. These are elapsed times,
+not CPU-active time; scheduling gaps or machine suspension can lengthen them.
+A temporary AC-only sleep guard may follow the verified launcher process.
+It ends with that process and changes no permanent power setting.
+
 The review timing invocation also lowered the coordinator's priority before
 its workers ran `nice -n 10`; that reduced their priority twice. The commands
 below leave the lightweight coordinator at its normal priority and apply
@@ -279,12 +295,16 @@ check helps expose that selection but cannot remove it.
 | `fit.mjs` | Phase 2 only: applies the fixed rule, after an explicit `--phase2`. |
 | `run-phase2.mjs` | Runs phase 2 in order with two heavy workers, resumable private state and aggregate stage timings. |
 | `launch.py` | Starts the controller detached, with a private log and PID record. |
+| `recover-review-timeouts.mjs` | Inspects stopped timeout-only review failures, records a checked restart, and writes aggregate execution and recovery reports. |
 | `protocol.md`, `protocol-manifest.json`, `freeze.mjs` | Approved rule text and reproducible content hashes; fixed before effects. |
 | `tests.mjs` | Synthetic checks for side mapping, ties, Holm, event weighting and the guard; never reads the player's data. |
 | `call-sites.md` | Conversion callers and later port scope. |
 | `paper/` | Protocol paper and checked number generator; no TeX build here. |
 
-Phase 1 (policy timing and review timing run sequentially):
+The phase-1 commands below record how preparation and the timing slices were
+run, sequentially. `results/phase1.json` is the frozen preregistration report;
+do not overwrite it during phase 2 or while resuming. The current paper
+generator requires the completed phase-2 result.
 
 ```bash
 bridge/run.sh projects/maia-player-offsets/prepare.mjs
@@ -296,7 +316,6 @@ wait
 bridge/run.sh projects/maia-player-offsets/evidence.mjs --benchmark
 bridge/run.sh projects/maia-player-offsets/events.mjs --benchmark
 nice -n 10 bridge/run.sh projects/maia-player-offsets/count.mjs
-bridge/run.sh projects/maia-player-offsets/paper/generate.mjs
 bridge/run.sh projects/maia-player-offsets/tests.mjs
 .venv/bin/python scripts/check_private.py
 ```
@@ -304,6 +323,8 @@ bridge/run.sh projects/maia-player-offsets/tests.mjs
 Phase 2, after review of this commit (no new grid choices):
 
 The controller runs the stages below and resumes them after interruption.
+For a fresh private directory, first run `prepare.mjs` and `weights.mts` as
+above. A resumed run keeps its existing prepared files and policy caches.
 Start it detached, at normal coordinator priority:
 
 ```bash
@@ -312,6 +333,14 @@ bridge/run.sh projects/maia-player-offsets/run-phase2.mjs --status
 ```
 
 The launcher records the PID and log path in the private `phase2-launch.json`.
+If a finished review attempt failed only through timeouts, inspect it first,
+then resume through the checked helper:
+
+```bash
+node projects/maia-player-offsets/recover-review-timeouts.mjs
+node projects/maia-player-offsets/recover-review-timeouts.mjs --resume
+```
+
 The content-manifest migration, before resuming the interrupted first pass,
 is `bridge/run.sh projects/maia-player-offsets/run-phase2.mjs --migrate-pre-effects`.
 It requires the manifest and source files to be committed and refuses any fit
@@ -331,6 +360,12 @@ done
 wait
 nice -n 10 bridge/run.sh projects/maia-player-offsets/fit.mjs --phase2
 .venv/bin/python scripts/check_private.py
+```
+
+After the run completes, write its execution report:
+
+```bash
+node projects/maia-player-offsets/recover-review-timeouts.mjs --report
 ```
 
 Then update the paper's prose and generator to the result, with claim checks,
