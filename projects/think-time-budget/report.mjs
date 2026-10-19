@@ -59,7 +59,7 @@ const introduction = original.slice(0, original.indexOf('**This run.**'))
 const registered = original.slice(original.indexOf('## The data\n'), original.indexOf('## Files\n'))
 let files = original.slice(original.indexOf('## Files\n'), original.indexOf('## Running it\n'))
 files = files.replace('The phase-one paper: design, counts and limits.', 'The result paper: gates, comparisons and limits.')
-files = files.replace('| `paper/paper.tex`', '| `publication.mjs` | Checks the original content freeze using its archived documents, input identities, unchanged registered text and saved rule application. It cannot authorize an effects run. |\n| `report.mjs` | Writes the README answer, lab table row and ordered result report from saved aggregates, refusing claims that no longer hold. `--record-run` also records completed detached-job timings. |\n| `test_publication.mjs` | Checks that changed evidence is refused and missing intervals are never printed as zero. |\n| `phase1/` | Exact original README and paper files; their hashes remain in the unchanged manifest. |\n| `paper/paper.tex`')
+files = files.replace('| `paper/paper.tex`', '| `publication.mjs` | Checks the original content freeze using its archived documents, input identities, unchanged registered text and saved rule application. It cannot authorize an effects run. |\n| `report.mjs` | Writes the README answer, lab table row and ordered result report from saved aggregates, refusing claims that no longer hold. `--record-run` also records completed detached-job timings. |\n| `test_publication.mjs` | Checks that changed evidence is refused and missing intervals are never printed as zero. |\n| `phase1/` | Exact original README, paper files and freeze checker; their hashes remain in the unchanged manifest. |\n| `paper/paper.tex`')
 const running = `## Running it
 
 Regenerate the published text from the saved aggregate reports, without
@@ -69,6 +69,7 @@ opening private moves or estimating another effect:
 node projects/think-time-budget/report.mjs
 bridge/run.sh projects/think-time-budget/paper/generate.mjs
 node projects/think-time-budget/test_publication.mjs
+.venv/bin/python projects/think-time-budget/test_freeze.py
 .venv/bin/python scripts/check_private.py
 \`\`\`
 
@@ -79,45 +80,34 @@ each long job detached. The execution receipt is in \`results/run.json\`.
 No sampling, model, estimator, threshold or comparison changed after an
 effect was seen. Only the reporting files and this lab's project row changed.
 
-The original manifest includes the original README and paper. Publication
-replaces those documents, so the original \`freeze.py check\` deliberately
-rejects the published working tree. It has not been weakened or refrozen.
-\`publication.mjs\` verifies the exact archived copies and every other frozen
-file in place. It also checks that the registered data through caveats above
-are byte-for-byte unchanged. It does not replace the analysis guard.
+The manifest and all its hashes remain unchanged. \`freeze.py check\` reads
+the original README, paper files and original checker from \`phase1/\`.
+Only those explicitly named files use snapshots; every numerical instrument
+and other frozen dependency is checked in place. The archived checker keeps
+its original hash while the current checker resolves the published paths.
+\`publication.mjs\` uses the same snapshot set and also checks that the
+registered data through caveats above are byte-for-byte unchanged.
 
-To repeat the raw phase-two run after the publication commit, restore only
-those original documents in a detached scratch worktree inside this clone.
-Use the existing private checkpoints, app checkout and Python environment;
-do not refetch, resample or overlap another job:
+Repeat the reviewed phase-two commands directly from the lab root, using
+the existing private checkpoints, app checkout and Python environment.
+Do not refetch, resample or overlap another job:
 
 \`\`\`bash
 set -e
-budget_lab="$PWD"
-budget_replay="$budget_lab/.cache/think-time-budget-replay"
-git worktree add --detach "$budget_replay" HEAD
-for doc in README.md paper/paper.tex paper/generate.mjs paper/generated.tex; do
-  cp "$budget_replay/projects/think-time-budget/phase1/$doc" "$budget_replay/projects/think-time-budget/$doc"
-done
-ln -s "$budget_lab/.venv" "$budget_replay/.venv"
-ln -s "$budget_lab/private" "$budget_replay/private"
-mkdir -p "$budget_replay/.cache"
-ln -s "$budget_lab/.cache/chess" "$budget_replay/.cache/chess"
-cd "$budget_replay"
 .venv/bin/python projects/think-time-budget/freeze.py check --require-committed
 .venv/bin/python projects/think-time-budget/detached.py start build run_build.py --months 2026-09 2026-08
 .venv/bin/python projects/think-time-budget/detached.py wait build
 .venv/bin/python projects/think-time-budget/detached.py start effects analyze.py --months 2026-09 2026-08 --effects
 .venv/bin/python projects/think-time-budget/detached.py wait effects
-cmp projects/think-time-budget/results/analysis.json "$budget_lab/projects/think-time-budget/results/analysis.json"
 \`\`\`
 
 Every long job starts in its own session with private logs and a completion
 record. The bridge uses at most two nice-10 workers; effects uses one numeric
 thread at nice 10. Use \`detached.py status effects\` and the private log to
-monitor it after an interruption. The scratch restoration keeps the original
-manifest tracked and clean; it changes no estimator or rule. Content hashes,
-not commits from this branch, establish provenance. No PDF is built.
+monitor it after an interruption. The manifest must remain tracked and clean.
+Content hashes, not commits from this branch, establish provenance. No PDF
+is built. \`test_freeze.py\` checks that changes to a snapshot or to live
+numerical code still fail verification.
 `
 const readme = introduction + answer + '\n' + registered + files + running
 const row = '| [think-time-budget](projects/think-time-budget/) ([paper](projects/think-time-budget/paper/paper.tex)) | For the same players, does a larger rapid clock budget make extra time at a trigger save more errors than at an ordinary move? | Not yet: errors fall overall, but the placebo is inconclusive, so the triggers stay as they are |'

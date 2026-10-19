@@ -26,10 +26,18 @@ DEPENDENCIES = (
     'scripts/check_private.py',
 )
 PATHS = tuple(sorted([f'projects/think-time-budget/{path}' for path in PROJECT_FILES] + list(DEPENDENCIES)))
+# Publication replaced these documents and this verifier, not the numerical
+# instruments. Verify their exact phase-one copies under the original hashes.
+# Keep this a closed list: numerical code must always be checked in place.
+SNAPSHOTS = {
+    f'projects/think-time-budget/{path}': f'projects/think-time-budget/phase1/{path}'
+    for path in ('README.md', 'paper/paper.tex', 'paper/generate.mjs',
+                 'paper/generated.tex', 'freeze.py')
+}
 
 
-def contents(path):
-    source = LAB / path
+def contents(path, *, archived=False):
+    source = LAB / (SNAPSHOTS.get(path, path) if archived else path)
     if not source.is_file():
         raise ValueError(f'freeze input is missing: {path}')
     data = source.read_bytes()
@@ -53,7 +61,7 @@ def check_manifest(require_committed=False):
     entries = frozen.get('files', [])
     if [entry.get('path') for entry in entries] != list(PATHS):
         raise ValueError('freeze manifest has a different file set; review the phase-one freeze')
-    changed = [entry['path'] for entry in entries if contents(entry['path']) != entry]
+    changed = [entry['path'] for entry in entries if contents(entry['path'], archived=True) != entry]
     if changed:
         raise ValueError('frozen content changed: ' + ', '.join(changed))
     return frozen

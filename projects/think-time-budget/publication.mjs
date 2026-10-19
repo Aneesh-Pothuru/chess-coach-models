@@ -21,10 +21,10 @@ export function claim(condition, message) {
 export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex')
 export const readJSON = path => JSON.parse(readFileSync(path, 'utf8'))
 const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b)
-const archivedDocuments = ['README.md', 'paper/paper.tex', 'paper/generate.mjs', 'paper/generated.tex']
+const archivedFiles = ['README.md', 'paper/paper.tex', 'paper/generate.mjs', 'paper/generated.tex', 'freeze.py']
 
-/** Audit the original freeze after publication replaces its four documents.
- * This does not authorize an effects run or replace freeze.py's original guard.
+/** Audit the original freeze using the same closed snapshot set as freeze.py.
+ * This reporting check does not authorize an effects run.
  */
 export function verifyArchive() {
   const relative = 'projects/think-time-budget/freeze-manifest.json'
@@ -35,7 +35,7 @@ export function verifyArchive() {
   claim(manifest.files.length === 34 && new Set(manifest.files.map(f => f.path)).size === 34, 'complete original freeze')
   for (const entry of manifest.files) {
     const suffix = entry.path.replace(/^projects\/think-time-budget\//, '')
-    const path = archivedDocuments.includes(suffix)
+    const path = archivedFiles.includes(suffix)
       ? join(project, 'phase1', suffix) : join(lab, entry.path)
     const bytes = readFileSync(path)
     claim(bytes.length === entry.bytes && sha256(bytes) === entry.sha256, `frozen content: ${entry.path}`)
