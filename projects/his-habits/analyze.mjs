@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { CHESS_DIR, privateDir, resultsDir } from '../../bridge/lib/chess.mjs'
+import { privateDir, resultsDir } from '../../bridge/lib/chess.mjs'
 import { CONTROL, DRAWS, KAPPA_RANGE, KINDS, LICHESS_BANDS, MIN_COUNT, PROJECT, SEED, argOf, gitCommit, mulberry32, readJsonl } from './lib.mjs'
 
 const LAB = fileURLToPath(new URL('../../', import.meta.url))
@@ -378,7 +378,7 @@ const agreement = HALVES.map((h) => {
 })
 
 const report = {
-  app: { commit: gitCommit(CHESS_DIR) },
+  app: positionsSummary.app,
   lab: { commit: gitCommit(LAB) },
   data: {
     his: positionsSummary,
