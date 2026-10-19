@@ -1,4 +1,4 @@
-import { appendFileSync } from 'node:fs'
+import { appendFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { Chess } from 'chess.js'
 import { CHESS_DIR, chess, privateDir } from '../../bridge/lib/chess.mjs'
@@ -25,8 +25,13 @@ const C = await chess('src/core/chess/index.ts')
 const who = argOf('--who', 'his')
 if (who !== 'his' && who !== 'strong') throw new Error('--who his|strong')
 const { i: shard, n: shards } = shardOf(argOf('--shard', '0/1'))
-const target = who === 'strong' ? Math.ceil(Number(argOf('--positions', '1200')) / shards) : Infinity
+if (who === 'strong' && shards !== 1) throw new Error('strong positions require a single shard (--shard 0/1) to keep the target in source order')
+const target = who === 'strong' ? Number(argOf('--positions', '1200')) : Infinity
 const dir = privateDir(PROJECT)
+if (who === 'strong' && readdirSync(dir).some((file) => {
+  const match = /^strong-\d+-of-(\d+)\.jsonl$/.exec(file)
+  return match && Number(match[1]) !== 1
+})) throw new Error('archive the old multi-shard strong score files outside this directory before a sequential rerun; their quotas do not preserve source order')
 const mine = readJsonl(join(dir, `${who}-candidates.jsonl`)).filter((p) => p.id % shards === shard)
 const outFile = join(dir, `${who}-${shard}-of-${shards}.jsonl`)
 const previous = readJsonl(outFile)

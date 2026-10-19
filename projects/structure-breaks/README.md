@@ -177,7 +177,9 @@ a missing score leaves the analysis (counted).
 
 ## Who runs it
 
-A Claude session on this repository's bridge, on CPU, four shards. Per-position
+A Claude session on this repository's bridge, on CPU. His positions can be
+sharded; the strong positions run in one resumable pass to keep their order.
+Per-position
 rows go under `private/structure-breaks/`, which git ignores; only aggregates
 are committed (`results/`), written by the scripts, then the paper. No language
 model judges anything here.
@@ -201,7 +203,7 @@ make chess
 # positions-like-this's positions.mjs and stream.py first, for his candidates and the strong games
 bridge/run.sh projects/structure-breaks/positions.mjs
 for i in 0 1 2 3; do bridge/run.sh projects/structure-breaks/score.mjs --who his --shard $i/4 & done; wait
-for i in 0 1 2 3; do bridge/run.sh projects/structure-breaks/score.mjs --who strong --shard $i/4 & done; wait
+nice -n 10 bridge/run.sh projects/structure-breaks/score.mjs --who strong
 bridge/run.sh projects/structure-breaks/analyze.mjs
 bridge/run.sh projects/structure-breaks/describe.mjs
 bridge/run.sh projects/structure-breaks/paper/generate.mjs

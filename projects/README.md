@@ -182,7 +182,7 @@ NODE_OPTIONS=--max-old-space-size=6000 bridge/run.sh projects/positions-like-thi
 # resume where they stopped.
 bridge/run.sh projects/structure-breaks/positions.mjs
 for i in 0 1 2 3; do bridge/run.sh projects/structure-breaks/score.mjs --who his --shard $i/4 & done; wait
-for i in 0 1 2 3; do bridge/run.sh projects/structure-breaks/score.mjs --who strong --shard $i/4 & done; wait
+nice -n 10 bridge/run.sh projects/structure-breaks/score.mjs --who strong
 bridge/run.sh projects/structure-breaks/analyze.mjs
 bridge/run.sh projects/structure-breaks/describe.mjs
 
