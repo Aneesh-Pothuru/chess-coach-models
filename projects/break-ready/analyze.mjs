@@ -142,7 +142,7 @@ const groups = [...Map.groupBy(his.filter(isSafe), (b) => b.group).entries()]
     const no = list.filter((b) => !ready(b))
     const row = { group, ready: yes.length, rushed: no.length }
     if (yes.length < MIN_CELL || no.length < MIN_CELL) return { ...row, stats: null, note: `not enough data (n=${yes.length}/${no.length})` }
-    return { ...row, stats: bootStat(hisUnits(list), (l) => ({ ready: mean(l.filter(ready), sound), rushed: mean(l.filter((b) => !ready(b)), sound), lift: mean(l.filter(ready), sound) - mean(l.filter((b) => !ready(b)), sound) }), SEED + 500 + i) }
+    return { ...row, stats: bootStat(hisUnits(list), (l) => ({ ready: mean(l.filter(ready), sound), rushed: mean(l.filter((b) => !ready(b)), sound), lift: leverWeighted(l, ready, sound) }), SEED + 500 + i) }
   })
 
 const choice = {
