@@ -38,7 +38,7 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { CHESS_DIR, LAB_DIR, privateDir, projectDir, records, resultsDir } from '../../bridge/lib/chess.mjs';
+import { CHESS_DIR, LAB_DIR, chess, privateDir, projectDir, records, resultsDir } from '../../bridge/lib/chess.mjs';
 import { DRIFT_RULE, lengthCheck, longerPicked, roundControl } from './judge/controls/score.mjs';
 import { score } from './judge/pairwise.mjs';
 import { draw } from './judge/sample.mjs';
@@ -95,6 +95,8 @@ const run = (script, ...args) => execFileSync(join(LAB_DIR, 'bridge', 'run.sh'),
   cwd: LAB_DIR, stdio: ['ignore', 'ignore', 'inherit'],
 });
 const jsonl = path => readFileSync(path, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l));
+/** The pinned app's Maia bands: the player's offset and, from chess PR 132, his opponents'. */
+const maiaLevels = await chess('src/services/engine/index.ts');
 const gameOf = id => id.slice(0, id.lastIndexOf('-'));
 const roundOrder = (a, b) => parseInt(a.replace(/^\D+/, ''), 10) - parseInt(b.replace(/^\D+/, ''), 10) || a.localeCompare(b);
 /** JSON with every object's keys sorted, to compare two reports whatever order they were written in. */
@@ -115,6 +117,18 @@ const appDefends = () => existsSync(join(CHESS_DIR, 'src', 'services', 'review',
  * round 29's `pinSafe`; round 24's `raceLeft` is in the pawn runs' detector
  * beside it.
  */
+/** The moments whose text differs from the last kept round's, by what each shows. */
+function renderDiffer(differ) {
+  if (!differ?.length) return '';
+  const band = "a natural defense read at the band the app gives the player's opponents, not his own";
+  if (differ.length === 1) {
+    const [d] = differ;
+    return ` The one that differs is ${d.mine ? "the player's move" : "his opponent's move"}, ${d.sameGrades ? 'keeps' : 'does not keep'} the grades recorded for it, and carries ${d.opponentBandDefense ? band : `no ${band.slice(2)}`}.`;
+  }
+  const count = key => differ.filter(d => d[key]).length;
+  return ` Of the ${differ.length} that differ, ${count('mine')} are the player's moves, ${count('sameGrades')} keep the grades recorded for them, and ${count('opponentBandDefense')} carry ${band}.`;
+}
+
 function appCarries() {
   const lessonFile = join(CHESS_DIR, 'src', 'services', 'knowledge', 'detectors', 'lesson.ts');
   const lesson = existsSync(lessonFile) ? readFileSync(lessonFile, 'utf8') : '';
@@ -292,6 +306,27 @@ function main() {
   const last = [...state.rounds].reverse().map(r => r.variant).find(v => existsSync(join(recorded, v, 'rebuilt', `${v}.results.jsonl`)));
   const lastTexts = last ? new Map(jsonl(join(recorded, last, 'rebuilt', `${last}.results.jsonl`)).map(m => [m.id, m.textHash])) : null;
   const textsMatch = lastTexts && { variant: last, of: lastTexts.size, same: [...lastTexts].filter(([id, h]) => app.get(id)?.textHash === h).length };
+  // Each moment whose text is not the last kept round's, without its game:
+  // whether it is the player's move, keeps the grades recorded for it, and
+  // carries a natural defense read at the band the app gives the player's
+  // opponents, where that band is not the one his own offset would give.
+  if (textsMatch) {
+    const lastRows = new Map(jsonl(join(recorded, last, 'rebuilt', `${last}.results.jsonl`)).map(m => [m.id, m]));
+    const appCases = new Map(JSON.parse(readFileSync(join(dir, 'cases.json'), 'utf8')).map(c => [c.id, c]));
+    const accuracyGames = new Map(JSON.parse(readFileSync(join(privateDir('accuracy-vs-chesscom'), 'cases.json'), 'utf8')).map(g => [String(g.id), g]));
+    const { defaultMaiaElo, DEFAULT_LICHESS_OFFSET, OPPONENT_LICHESS_OFFSET } = maiaLevels;
+    textsMatch.differ = [...lastTexts].filter(([id, h]) => app.get(id)?.textHash !== h).map(([id]) => {
+      const c = appCases.get(id);
+      const g = c && accuracyGames.get(String(c.game));
+      const theirs = g && typeof OPPONENT_LICHESS_OFFSET === 'number' ? defaultMaiaElo(g.oppRating, OPPONENT_LICHESS_OFFSET) : null;
+      const own = g ? defaultMaiaElo(g.oppRating, DEFAULT_LICHESS_OFFSET) : null;
+      return {
+        mine: !!c && c.mover === c.playerColor,
+        sameGrades: !!app.get(id) && lastRows.has(id) && DIMS.every(d => app.get(id)[d] === lastRows.get(id)[d]),
+        opponentBandDefense: theirs !== null && theirs !== own && (c?.defenses ?? []).some(p => p.band === theirs),
+      };
+    });
+  }
 
   const rows = [];
   for (const which of ['test', 'train']) {
@@ -442,7 +477,7 @@ function render(report) {
     `The pinned app's explanations, rebuilt from engine evidence the lab rebuilt (${report.rerun.evidence.documents} games, ${report.rerun.evidence.versions.join(', ')}, ${report.rerun.evidence.builds.join(', ')}), with the capture searches redone on that evidence (${report.rerun.probes.kept} kept)${report.rerun.defenses ? ` and the defense searches (${report.rerun.defenses.kept} kept)` : '; the pinned app makes no defense searches'}. ${report.rerun.moments} key moments.`,
     '',
     renderCarries(report),
-    ...(report.rerun.textsMatch ? ['', `Its texts equal ${report.rerun.textsMatch.variant}'s, recorded on the 60 games' rebuilt documents, on ${report.rerun.textsMatch.same} of those ${report.rerun.textsMatch.of} moments.`] : []),
+    ...(report.rerun.textsMatch ? ['', `Its texts equal ${report.rerun.textsMatch.variant}'s, recorded on the 60 games' rebuilt documents, on ${report.rerun.textsMatch.same} of those ${report.rerun.textsMatch.of} moments.${renderDiffer(report.rerun.textsMatch.differ)}`] : []),
     '',
     '| split | grade | recorded baseline | recorded ' + report.kept + ' | pinned app, rerun |',
     '|---|---|---|---|---|',

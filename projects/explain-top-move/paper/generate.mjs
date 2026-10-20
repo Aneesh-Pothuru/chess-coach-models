@@ -1111,7 +1111,15 @@ const carried = later.filter(v => repro.chess.carries[v]);
 claim(carried.every((v, i) => v === later[i]), `the pinned app carries the kept rounds after ${KEPT} in order`);
 const pending = later.slice(carried.length).map(v => String(kept.get(v)));
 const tm = repro.rerun.textsMatch;
-g.def('RerunTextsSentence', tm ? `Its texts equal the recorded texts of ${tm.variant}, the last kept round, on ${tm.same === tm.of ? `all ${tm.of}` : `${tm.same} of the ${tm.of}`} moments of round ${kept.get(tm.variant)}'s documents.` : '');
+const differ = tm?.differ ?? [];
+claim(!tm || differ.length === tm.of - tm.same, "the reproduction describes every moment whose text differs from the last kept round's");
+claim(differ.every(d => d.sameGrades), 'every moment whose text differs from the last kept round\'s keeps the grades recorded for it');
+const opponentsBand = "the band the app now gives the player's opponents, not his own";
+const differSentence = !differ.length ? ''
+  : differ.length === 1
+    ? ` The one that differs is ${differ[0].mine ? "the player's move" : "his opponent's move"} and keeps the grades recorded for it${differ[0].opponentBandDefense ? `; the defense searches read its natural defense at ${opponentsBand}` : ''}.`
+    : ` The ${word(differ.length)} that differ keep the grades recorded for them, and the defense searches read the natural defense of ${word(differ.filter(d => d.opponentBandDefense).length)} of them at ${opponentsBand}.`;
+g.def('RerunTextsSentence', tm ? `Its texts equal the recorded texts of ${tm.variant}, the last kept round, on ${tm.same === tm.of ? `all ${tm.of}` : `${tm.same} of the ${tm.of}`} moments of round ${kept.get(tm.variant)}'s documents.${differSentence}` : '');
 g.def('AppKeptThrough', String(kept.get(carried.at(-1) ?? KEPT)))
   .def('AppKeptSentence', pending.length
     ? `The app at that commit carries the kept rounds through round ${kept.get(carried.at(-1) ?? KEPT)}; ${pending.length > 1 ? 'rounds' : 'round'} ${listed(pending)} ${pending.length > 1 ? 'are' : 'is'} not in it yet.`
