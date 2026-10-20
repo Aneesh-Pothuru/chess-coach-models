@@ -8,8 +8,9 @@ the live one.
 
 ## Result
 
-Not run yet: the pilot below comes first, and the full run waits on the
-owner's budget.
+The pilot only, on the first three train days: `results/report.json` holds
+its numbers as `batch.py report` computed them, and `results/runs.json` each
+run's. Three days decide nothing; the full run waits on the owner's budget.
 
 ## Question
 

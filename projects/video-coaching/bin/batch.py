@@ -445,7 +445,7 @@ def cmd_report(args):
         '3 overall not worse': not below(rep['all'].get('judge.overall')),
         '4 truth not worse': not above(rep['all'].get('audit.false.minusBase')) and not above(rep['all'].get('audit.boardClaimsFalse.minusBase')),
         '5 check passes as often': (rep['all']['pass'] or {}).get('est', 0) >= (rep['all']['pass.base'] or {}).get('est', 0),
-        '6 controls clean': same_wins == 0 and decoy_wins <= len(rep['controls']['decoy']) // 4 and not (null and (null['lo'] > 0 or null['hi'] < 0)),
+        '6 controls clean': same_wins == 0 and decoy_wins <= len(rep['controls']['decoy']) // 4 and bool(null) and null['lo'] <= 0 <= null['hi'],
         '7 coaching moves made more often': above(rep['all'].get('audit.coachingShare.minusBase')),
         '8 not much longer': bool(ratio and ratio['est'] <= 1.3),
     }
