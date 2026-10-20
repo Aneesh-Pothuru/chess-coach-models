@@ -1,0 +1,275 @@
+{
+  "schema": "second-look-fresh-suspension-diagnostic/1",
+  "appCommit": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+  "recordsCommit": "aed714ada579782ce73630596e59c8b65e74cb30",
+  "casesSha256": "ba26913e6c35403b132b614029216ff6209f6231c83a0fb8381140fcc9250ed6",
+  "candidateSha256": "8f1d16bc8d412dd2f9584c6eec3aea82ac3eefa22d15aed9be4ff6b05f0e89e1",
+  "secondStoppedManifestSha256": "d14ff24ed7eee03eb50a3268e1f1b90cfcbad51235bc0b4ad3892fb14c7371db",
+  "secondAcquisitionReportSha256": "626faf9d5b83896b63492bf734bf6ba08913e6a65ea935ef4ea826f9f1ffe5c6",
+  "secondAmendmentSha256": "17b5be4e594e5d3a7aa705c75f039b68d253d761d1bd5d2b6a44e093515d7742",
+  "frozenBindingSha256": "03a4895e83f4b4a9ea9cd2cd264e5a4c3cd223780a4b87b9397beb78a85d074b",
+  "reportingScriptSha256": "a905c04a76cb75a5ff4d5ee42cd97e3e3dcb66abdafb4ba4bf6c70da4f85e634",
+  "classification": {
+    "qualifies": false,
+    "downstreamRowsAccountedFor": true,
+    "suspensionDocumented": true,
+    "nominalCallStartPlusDeadlineFallsInPowerInterval": true,
+    "actualSlotStartRecorded": false,
+    "actualDeadlineExpiryRecorded": false,
+    "terminalCauseRecorded": false,
+    "deadlineTerminationProven": false,
+    "reasons": [
+      "deadline-termination-not-recorded",
+      "actual-search-slot-start-and-deadline-delivery-unrecorded"
+    ],
+    "conclusion": "The preserved mismatch does not prove the required deadline termination and does not qualify."
+  },
+  "downstream": {
+    "differingPositionRows": 1,
+    "differingRecordRows": 1,
+    "sameChangedRowSets": true,
+    "nondeepPositionsUnchanged": true,
+    "rawEvidenceEqualsFinalAtEveryChangedRow": true,
+    "extensionUnchanged": true,
+    "allDifferingTopLevelFieldsAccountedFor": true,
+    "accountedForRows": 1,
+    "unaccountedForRows": 0,
+    "allRowsDownstream": true,
+    "differingTopLevelFieldNames": [
+      "positions",
+      "records",
+      "white"
+    ],
+    "differingSummaryFieldNames": [
+      "accuracy",
+      "acpl",
+      "phases"
+    ]
+  },
+  "observedCompleteness": {
+    "rawLooks": 34,
+    "completeRawLooks": 34,
+    "matchingCanonicalLatestReadings": 33,
+    "differingCanonicalLatestReadings": 1,
+    "failedCalls": 0
+  },
+  "power": {
+    "powerLogSha256": "5901cb3f61d5d2936893688c6222497168e6c75a8dfe26af57a147623db775b3",
+    "captureMetadataSha256": "fee8d1a96d34ea3f30abb31c05787465d2f73dedc72e70e5ec5594df86c5d654",
+    "sleepEventAt": "2026-10-20T12:36:06.000Z",
+    "wakeEventAt": "2026-10-20T16:43:49.000Z",
+    "loggedEventIntervalSeconds": 14863,
+    "callStartsAfterSleepEventSeconds": 3.231,
+    "callEndsAfterWakeEventSeconds": 0.132,
+    "fullSleepAndWakeDocumented": true,
+    "limitation": "These are logged power-event times, not the search slot’s timer-arm or timer-delivery timestamps."
+  },
+  "clockComparison": {
+    "blockedNewProcesses": {
+      "processes": 1,
+      "firstStartedAt": "2026-10-20T12:33:45.531365+00:00",
+      "lastEndedAt": "2026-10-20T16:45:12.875878+00:00",
+      "calendarSeconds": {
+        "count": 1,
+        "sum": 15087.344513,
+        "mean": 15087.344513,
+        "median": 15087.344513,
+        "min": 15087.344513,
+        "max": 15087.344513
+      },
+      "pythonMonotonicSeconds": {
+        "count": 1,
+        "sum": 248.0013850419782,
+        "mean": 248.0013850419782,
+        "median": 248.0013850419782,
+        "min": 248.0013850419782,
+        "max": 248.0013850419782
+      },
+      "calendarMinusPythonMonotonicSeconds": {
+        "count": 1,
+        "sum": 14839.343127958022,
+        "mean": 14839.343127958022,
+        "median": 14839.343127958022,
+        "min": 14839.343127958022,
+        "max": 14839.343127958022
+      }
+    },
+    "blockedNewReviewCalendarSeconds": {
+      "count": 1,
+      "sum": 15086.221,
+      "mean": 15086.221,
+      "median": 15086.221,
+      "min": 15086.221,
+      "max": 15086.221
+    },
+    "blockedNewReviewNodePerformanceSeconds": {
+      "count": 1,
+      "sum": 15086.073954666,
+      "mean": 15086.073954666,
+      "median": 15086.073954666,
+      "min": 15086.073954666,
+      "max": 15086.073954666
+    }
+  },
+  "searchTiming": {
+    "defaultDeadlineMs": 120000,
+    "wrapperCallStartedAt": "2026-10-20T12:36:09.231Z",
+    "wrapperCallEndedAt": "2026-10-20T16:43:49.132Z",
+    "recordedNodePerformanceSeconds": 14859.764226625,
+    "wrapperUtcSeconds": 14859.901,
+    "nominalCallStartPlusDeadlineAt": "2026-10-20T12:38:09.231Z",
+    "nominalOnly": true,
+    "interpretation": "Call start plus the configured delay is counterfactual arithmetic, not an observed slot start, timer expiry or deadline delivery."
+  },
+  "retainedTelemetry": {
+    "recordedCallFieldNames": [
+      "budget",
+      "depth",
+      "endedAt",
+      "endedMonotonicMs",
+      "failed",
+      "index",
+      "method",
+      "multiPv",
+      "seconds",
+      "stage",
+      "startedAt",
+      "startedMonotonicMs"
+    ],
+    "absentTerminalFieldNames": [
+      "completion",
+      "timedOut",
+      "partial",
+      "result",
+      "nodes",
+      "timeMs"
+    ],
+    "rawUciLinesInProcessLog": 0,
+    "terminalMarkersInProcessLog": 0,
+    "processLogSha256": "fea358ca7a53f09ab8ae0b8db78389c5ac9ada70d2b1717bfd1def9dc83bb19d",
+    "returnedAdaptivePayloadSaved": false,
+    "discardedDeepEvidenceSaved": false,
+    "rawUciTeePresent": false,
+    "evalCacheEnabled": false
+  },
+  "source": {
+    "hashes": {
+      "src/adapters/node/engine/index.ts": "82105d615d8526b1449448259372f9ae60fc19a1ecd0ba4a31a22902cd0b61c4",
+      "src/adapters/node/engine/transport.ts": "cab7152c25d59771e245c49cbaad870c20adbb247b1412c0fb277a3b4e0fc923",
+      "src/services/engine/service.ts": "19a969de3d80fd6971ccb593d25a4b8e58a4fbab4fdd21ae1a55fe67a38662c9",
+      "src/services/engine/uci/session.ts": "24d0f36e968eedc46b6ac349797c620904dadcdf9c6bd4157781dc7ee7795a64",
+      "src/services/engine/uci/search.ts": "31fefc2d167c3940e32fa2aa6559adf401c9d0e60787d4fe657910bb6b716830",
+      "src/services/review/pipeline/run.ts": "688b4ce947ce43660c58674f62f789245ef79ee089cca3b7c17965d62e1d462b",
+      "src/services/review/pipeline/evidence.ts": "de7daaa2e8d6a987955bd745e0e107fcbdcdfc361af176d3b610ca54cfd0400f",
+      "src/services/review/pipeline/rebuild.ts": "325c0f1b819b5f2a28efa493878f4d9e543cc326dd642b84d62b62bd485ae545",
+      "src/services/review/pipeline/document.ts": "2b53910030bf1356549c8ccbc4fd160fba063f9e5a863214521c8f587450f7b8",
+      "src/services/review/accuracy.ts": "0ae0eb5eb4031776a503bf98d89310a240c37c05dead99f5a2a8379019828e30",
+      "src/services/review/moments.ts": "a813308f15237c1f373198db070c53f1173db54acca5d29c61d310c3eb3a4497"
+    },
+    "candidateHashes": {
+      "src/adapters/node/engine/index.ts": "82105d615d8526b1449448259372f9ae60fc19a1ecd0ba4a31a22902cd0b61c4",
+      "src/adapters/node/engine/transport.ts": "cab7152c25d59771e245c49cbaad870c20adbb247b1412c0fb277a3b4e0fc923",
+      "src/services/engine/service.ts": "19a969de3d80fd6971ccb593d25a4b8e58a4fbab4fdd21ae1a55fe67a38662c9",
+      "src/services/engine/uci/session.ts": "24d0f36e968eedc46b6ac349797c620904dadcdf9c6bd4157781dc7ee7795a64",
+      "src/services/engine/uci/search.ts": "31fefc2d167c3940e32fa2aa6559adf401c9d0e60787d4fe657910bb6b716830",
+      "src/services/review/pipeline/run.ts": "45ca4beee569f951734c8e5237d1c8e790b25a6b6cb7ca3375c00b1b845a08c4",
+      "src/services/review/pipeline/evidence.ts": "de7daaa2e8d6a987955bd745e0e107fcbdcdfc361af176d3b610ca54cfd0400f",
+      "src/services/review/pipeline/rebuild.ts": "325c0f1b819b5f2a28efa493878f4d9e543cc326dd642b84d62b62bd485ae545",
+      "src/services/review/pipeline/document.ts": "2b53910030bf1356549c8ccbc4fd160fba063f9e5a863214521c8f587450f7b8",
+      "src/services/review/accuracy.ts": "0ae0eb5eb4031776a503bf98d89310a240c37c05dead99f5a2a8379019828e30",
+      "src/services/review/moments.ts": "a813308f15237c1f373198db070c53f1173db54acca5d29c61d310c3eb3a4497"
+    },
+    "sourceSetSha256": "1c663fec51a7bcc90a8e375eb55148b7d281d8211a80d59902bf87a96ac35b0a",
+    "anchors": [
+      {
+        "path": "src/services/engine/service.ts",
+        "line": 85,
+        "meaning": "The Node service chooses its default search deadline."
+      },
+      {
+        "path": "src/services/engine/service.ts",
+        "line": 126,
+        "meaning": "Per-call overrides can replace the default; this replay supplied none."
+      },
+      {
+        "path": "src/services/engine/uci/session.ts",
+        "line": 340,
+        "meaning": "The deadline timer is armed inside the scheduled UCI search slot."
+      },
+      {
+        "path": "src/services/engine/uci/session.ts",
+        "line": 330,
+        "meaning": "Deadline recovery resolves a timed-out result after draining; it need not throw."
+      },
+      {
+        "path": "src/services/engine/uci/session.ts",
+        "line": 347,
+        "meaning": "Receiving bestmove on the normal path resolves a non-timeout result."
+      },
+      {
+        "path": "src/services/engine/uci/search.ts",
+        "line": 94,
+        "meaning": "Search results distinguish the terminal path."
+      },
+      {
+        "path": "src/services/engine/service.ts",
+        "line": 323,
+        "meaning": "The CandidateSet carries deadline completion as partial."
+      },
+      {
+        "path": "src/services/review/pipeline/evidence.ts",
+        "line": 27,
+        "meaning": "Deep evidence checks the returned CandidateSet completeness and partial flag."
+      },
+      {
+        "path": "src/services/review/pipeline/evidence.ts",
+        "line": 76,
+        "meaning": "Lower-rank adaptive evidence keeps the initial reading."
+      },
+      {
+        "path": "src/services/review/pipeline/evidence.ts",
+        "line": 82,
+        "meaning": "At equal rank, lower-depth adaptive evidence keeps the initial reading."
+      },
+      {
+        "path": "src/services/review/pipeline/run.ts",
+        "line": 268,
+        "meaning": "Adaptive evidence selection precedes the emitted verification event."
+      },
+      {
+        "path": "src/services/review/pipeline/rebuild.ts",
+        "line": 119,
+        "meaning": "Record refinement consumes this position’s retained deep evidence."
+      },
+      {
+        "path": "src/services/review/pipeline/rebuild.ts",
+        "line": 341,
+        "meaning": "Criticality is rebuilt after record refinement."
+      },
+      {
+        "path": "src/services/review/pipeline/document.ts",
+        "line": 81,
+        "meaning": "The side summary is derived from the rebuilt records."
+      },
+      {
+        "path": "src/adapters/node/engine/transport.ts",
+        "line": 19,
+        "meaning": "Engine stdout is piped to the transport and stderr is discarded."
+      }
+    ],
+    "defaultNodeDeadlineMs": 120000,
+    "observationInstrumentSha256": "0ca0912f1ab72833e825f50f5e521cf57828dcaa02e862997834e24cdac6e62e",
+    "engineResultPayloadRecorded": false,
+    "rawUciTeePresent": false,
+    "evalCacheEnabled": false
+  },
+  "noSearchOrDecidingMetricRun": true,
+  "decidingMetricsRead": false,
+  "limitations": [
+    "The deadline callback and normal bestmove callback are distinct source paths. Neither chosen terminal path is retained for the adaptive call.",
+    "The call wrapper starts before service awaits and search-slot scheduling. Its timestamp does not locate timer arming.",
+    "A logged suspension and nominal deadline within that interval do not establish that the timer actually elapsed during suspension or that deadline recovery won after wake.",
+    "The retained verification event contains the selected prior evidence. It cannot recover completeness or exact rejection conditions of the discarded adaptive result.",
+    "No unique counterfactual cause is established by this dependency audit."
+  ]
+}

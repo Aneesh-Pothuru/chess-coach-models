@@ -600,3 +600,100 @@ after an attempt-start record blocks another search until inspected.
 An already produced observation is recovered from its retained bytes.
 Reference checkpoints resume as registered. The old launcher is not used
 to bypass this amendment's gate.
+
+## Third acquisition amendment, approved before the comparison
+
+The preserved second acquisition stopped during a routine replay. Its
+adaptive verification call spans a sleep and wake recorded by the macOS
+power log. The log names low battery as the reason for sleep. The retained
+reading, position and record differences all follow that call. The
+[diagnosis](results/suspension-diagnostic.md) checks the saved bytes,
+process clocks, power log and app source without a new search or a deciding
+metric.
+
+The app uses a timer for its search deadline. The observed wrapper did
+not retain the search slot's start time, deadline result or returned
+completion status. A deadline computed from wrapper entry would fall
+inside the logged sleep interval. That does not establish when the slot
+timer was armed or which terminal path the app took. The source can end a
+search through either its deadline handler or a normal bestmove response.
+The old observation cannot distinguish them.
+
+This amendment is approved before the comparison. Preserve every existing
+canonical document, observation, rejected output, classification, log and
+manifest. Replace nothing. Keep the second amendment's human-policy
+failure rule and every original equality and completeness check. Apply
+the following additional rule to the stopped replay and every remaining
+replay. No chess class, share, comparison direction or candidate verdict
+enters this acquisition rule.
+
+A suspension failure must fail the unchanged equality check on positions,
+records, provenance and coverage. It must also have calendar elapsed time
+minus the sleep-excluding Python monotonic elapsed time strictly greater
+than sixty seconds, or a power log documenting sleep during the replay.
+Every differing reading, position and record must be accounted for
+downstream of a search that the app ended through its deadline path, with
+that deadline falling inside the suspension interval. Check the retained
+trace and the measured app's source. A recorded deadline result or
+equivalent unambiguous control-flow evidence can establish that path.
+A long call, a weaker retained reading, zero thrown errors or a nominal
+expiry computed from wrapper entry alone cannot establish it. Missing
+terminal evidence leaves eligibility unestablished.
+
+An eligible failure receives exactly one additional observed replay of
+the same game. Save it separately before checking equality. Accept it
+only if it reproduces the canonical document exactly. Keep and report
+both outputs. Any mismatch or acquisition failure in that additional
+replay stops the run. There is no third attempt, including when a failure
+meets more than one infrastructure explanation. Every other mismatch
+still stops the run. Do not repeat an already produced output.
+
+Before each authorized replay, require AC power from `pmset -g batt` and
+an open lid from `ioreg -r -k AppleClamshellState`. Retain the command
+outputs privately. Unknown state, command failure, battery power or a
+closed lid holds the gate. Sample every five seconds while waiting.
+Require these conditions before starting the unchanged second-amendment
+quiet window and check them again immediately before launch. A failed
+final check restarts the gate. The quiet window still requires five
+continuous minutes below a one-minute load average of six, with no
+`npm run verify:pr` or `vitest` process. Its existing sampling and clock
+gap checks stay fixed.
+
+Run every authorized replay with both `caffeinate -i` and `-s` assertions
+for its lifetime. Keep the acquisition awake through its remaining work.
+Run detached with file logs, one replay at a time, at nice ten and at most
+two heavy processes. Record start and end calendar and Python monotonic
+clocks for every replay. Report their difference separately from Node's
+review clock. A quiet window and power assertion are precautions, not
+evidence that a produced mismatch can be discarded.
+
+If eligibility is established, run the stopped replay's one retry first,
+then the six remaining first replays in the frozen order. Apply both
+infrastructure rules to every output. Only sixty accepted observations
+permit the unchanged registered reference and analysis steps. Preserve
+the separation of loaded first-pass, later first-pass and retry timings.
+Stop before the README's answer and paper conclusions.
+
+The present diagnosis accounts for the differing rows and confirms
+sleep, but cannot establish deadline termination or actual expiry.
+The stopped replay therefore does not qualify under this amendment.
+No new replay or later phase-two step is authorized by this finding.
+The missing terminal evidence cannot be recovered by searching again.
+
+This section is appended to the exact previous README bytes. The old
+execution binding and its README copy remain unchanged. Its whole-file
+README check will now refuse the added section; do not edit that binding
+or use an old launcher to bypass the stop. The new diagnostic checks the
+preserved binding and all its source hashes, permitting only this
+manifest-bound append to the public README. The third manifest freezes
+the section, diagnostic, source files and preceding stopped checkpoint
+by content hash. It contains no lab-branch commit identity.
+
+Regenerate this diagnosis and verify its registration without a search:
+
+```bash
+CHESS_DIR="$PWD/.cache/chess/f4bd63f19b343f686fb97ea4cf70b211c0bddc0a" \
+  bridge/run.sh projects/second-look-fresh/suspension-diagnostic.mjs --preserved
+node projects/second-look-fresh/third-amendment.mjs --freeze
+.venv/bin/python scripts/check_private.py
+```
