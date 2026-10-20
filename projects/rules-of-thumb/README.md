@@ -194,6 +194,46 @@ draws 2,000 resamples of games with seed 20261018.
   His own games are too few for most rules; a later round can check the rules
   that pass on his archive.
 
+## Added after the rule was applied
+
+The run's review found that the lift's zero is not a neutral rule's. R is the
+move Maia-2 rates most likely among those that show the rule and N the most
+likely of all, so where N shows the rule R is N and adds 0, and wherever R
+differs from N, Maia-2 rated R lower. A rule that carries no information, a
+set of moves drawn at random, would show a lift below 0 too, so "It misleads"
+cannot tell such a rule from one that points to worse moves than chance. Two
+additions, written down before any of them was computed, say which. They
+describe, and change no verdict.
+
+**The null move.** In each scored position, with k the number of legal moves
+that show the rule, k legal moves are drawn at random without replacement,
+seeded by the row's key (`month:game:rule`) and `null` as the position draw is
+seeded, and **R0** is the one of them Maia-2 rates most likely at the mover's
+band, ties broken as R's are. R0 is refereed as R was: with seven men or fewer
+by the tablebase probe the run stored; otherwise, when R0 is R, N or the move
+played, by its soundness in the run, and else by Stockfish at `grade`, the
+hash cleared, the best searched first and then R0, judged against that best.
+The share of these searches whose best differs from the run's is reported.
+
+- **The null's lift**: R0's soundness minus N's, paired by position: the lift
+  a rule with no information would show.
+- **The rule's content**: R's soundness minus R0's, paired by position.
+- The same bootstrap over games (2,000 draws, seed 20261018), on the train
+  months and on the held-out month separately.
+
+On both, a rule **points to better moves than chance** when its content's 95%
+interval lies above 0, **to worse moves than chance** when it lies below 0,
+and **no differently from chance** otherwise. Rules under 300 held-out
+positions are left out. Also reported: the share of positions where R is N
+and where R0 is N, the lift where R is not N, and R0's soundness by band.
+
+**Examples.** For each rule with a verdict, eight held-out positions drawn at
+random among those where R is not N (seeded by the rule's id), each with its
+FEN, R, N, the move played and the referee's best, and whether each is sound,
+with its win%. They are Lichess positions (CC0) and are committed without a
+game id or link. The paper shows some of them to judge whether a detector
+reads its rule too widely.
+
 ## Who runs it
 
 The scan and the engine work are large (tens of thousands of positions, each
