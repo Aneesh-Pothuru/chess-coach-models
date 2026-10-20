@@ -261,6 +261,13 @@ scripts, then the paper. No language model judges anything here.
 | `freeze.py`, `phase2-manifest.json` | Freeze and verify the rule and code by content hashes that survive rebasing. |
 | `run_phase2.py` | Runs resumable stages with private logs, one stream process and two heavy workers; detaches the driver and cleans up stopped stage groups. |
 | `phase2.sh` | Launches the reviewed full run with detached file logging and two heavy workers at a time. |
+| `null-common.mjs`, `null-score.mjs` | Draw the registered random subsets and resume the null referee against the original saved rows. |
+| `analyze_null.py` | Writes the addition's paired measures and content readings to `results/null.json` and `results/null.md`. |
+| `examples-null.mjs` | Draws held-out examples and writes SAN, soundness and win% from the stored app evidence to `results/examples.json` and `results/examples.md`. |
+| `null-readings.md` | Records the addition's sampling, referee, analysis and example readings. |
+| `freeze_null.py`, `null-manifest.json`, `null-input-manifest.json` | Freeze the addition and the original inputs by content hash, leaving phase two's freeze unchanged. |
+| `run_null.py`, `null.sh` | Run September, July and August, then analysis and examples, with detached file logs and two heavy workers. |
+| `tests-null-score.mjs`, `tests-null-examples.mjs`, `test_null_analysis.py`, `test_null_runner.py` | Synthetic checks for the addition's sampling, referee, examples, analysis, provenance and process control. |
 | `paper/` | The deferred paper scaffold and its checked generator. |
 
 ## Running it
@@ -283,4 +290,21 @@ cat private/rules-of-thumb/full/driver.json
 
 # After the driver completes scoring and analysis:
 nice -n 10 .venv/bin/python projects/rules-of-thumb/operations.py --run full
+```
+
+The addition uses the completed run's cached app and records pins. Its
+launcher sets them explicitly and needs no wrapper with `nice`; it starts
+each heavy worker at nice 10.
+
+```bash
+nice -n 10 .venv/bin/python -m unittest discover -s projects/rules-of-thumb -p 'test_null_*.py'
+CHESS_DIR="$PWD/.cache/chess/f4bd63f19b343f686fb97ea4cf70b211c0bddc0a" \
+  nice -n 10 bridge/run.sh projects/rules-of-thumb/tests-null-score.mjs
+CHESS_DIR="$PWD/.cache/chess/f4bd63f19b343f686fb97ea4cf70b211c0bddc0a" \
+  nice -n 10 bridge/run.sh projects/rules-of-thumb/tests-null-examples.mjs
+
+# Verify the separate committed freeze, then launch or resume:
+.venv/bin/python projects/rules-of-thumb/freeze_null.py
+projects/rules-of-thumb/null.sh --reviewed
+cat private/rules-of-thumb/null/driver.json
 ```
