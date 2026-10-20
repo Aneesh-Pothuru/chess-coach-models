@@ -2,7 +2,8 @@
 // The text defects the correctness rounds fix, counted in a variant's cases:
 // round 11's five, which the player's calibration answers and the judges'
 // notes flagged, round 14's two, the pieces an amount names, and round 17c's
-// one, a move given two scores. Each is read off the texts the player sees;
+// one, a move given two scores, and round 28's one, an absence said before a
+// reason the same lesson gives. Each is read off the texts the player sees;
 // round 14's through the grader, which knows the line each amount is counted
 // on.
 //
@@ -24,6 +25,12 @@
 //                        line gives that piece back
 //   gradeScoreDiffers    the folded grade text gives a move another score than
 //                        "The difference" gives it (+4.5 there, +4.6 here)
+//   absentBeforeReason   "The difference" says the concrete reason for the
+//                        engine's preference is not established, and another
+//                        of its sentences names one: a guard the played move
+//                        gave up, a chased piece's escape, a check with a
+//                        reason, why the order matters, a pawn that queens or
+//                        promotes, or the pawn ending a line reaches
 //
 //   bridge/run.sh projects/explain-top-move/defects.mjs <cases.json> [--out defects.json]
 //
@@ -52,7 +59,19 @@ function amount(s) {
   return about ? Number(about[1]) : null
 }
 
-export const DEFECTS = ['lowercaseReveal', 'recaptureOutright', 'quietForcing', 'unsettledVsOutright', 'pieceOverAmount', 'amountNamesUnwon', 'fallenGivenBack', 'gradeScoreDiffers']
+export const DEFECTS = ['lowercaseReveal', 'recaptureOutright', 'quietForcing', 'unsettledVsOutright', 'pieceOverAmount', 'amountNamesUnwon', 'fallenGivenBack', 'gradeScoreDiffers', 'absentBeforeReason']
+
+const NOT_ESTABLISHED = "The concrete reason for the engine's preference is not established."
+
+/** The difference's sentences that name a reason (knowledge/detectors/lesson.ts and pawnRuns.ts). */
+const NAMED_REASONS = [
+  /^After \S+, (?:your|their) (?:king|queen|rook|bishop|knight|pawn) no longer guards [a-h][1-8](?:: the (?:queen|rook|bishop) on [a-h][1-8] pins it to (?:your|their) king)?, and .+\.$/,
+  /^\S+ attacks (?:your|their) (?:king|queen|rook|bishop|knight|pawn) on [a-h][1-8], but it escapes /,
+  /^\S+ is a check with a reason: /,
+  /^Played now, \S+ allows \S+\. /,
+  /^After \S+, (?:your|their) [a-h]-pawn (?:queens|promotes): /,
+  /^After [^,]+, only (?:the kings are left: a draw|kings and pawns are left: in the engine's line )/,
+]
 
 /** The two moves' scores in the grade text: "(+4.5 for you after Re5, +5.9 for you after Rxd8+)". */
 function gradeScores(grade) {
@@ -105,6 +124,8 @@ export function defects(cases) {
       return there !== null && Number(there[0]) !== Number(said)
     })
     if (differs) out.gradeScoreDiffers.push(id)
+    const sentences = lesson?.difference ?? []
+    if (sentences.some((d) => d.includes(NOT_ESTABLISHED)) && sentences.some((d) => NAMED_REASONS.some((re) => re.test(d)))) out.absentBeforeReason.push(id)
   }
   return out
 }

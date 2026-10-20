@@ -1309,6 +1309,16 @@ function checkGuardLeft([x, k, whose, sq, y, piece], e) {
   return [...out, claim('check_reason', surface, shown, whole, T(`after ${mv.san} ${reply.san} the king no longer guards ${sq}, and the line plays ${next.san}`))]
 }
 
+/** The squares of the other side's pieces that newly attack `color`'s king once the piece on `sq` is lifted from `fen`. */
+function opensOnKing(fen, sq, color) {
+  const b = load(fen)
+  const king = b ? findKing(b, color) : null
+  if (!king) return []
+  const before = new Set(b.attackers(king, other(color)))
+  b.remove(sq)
+  return b.attackers(king, other(color)).filter((s) => !before.has(s))
+}
+
 /**
  * "After X, your P no longer guards S, and Y follows" (or "Y takes the Q
  * there"): X is the played move, made by that P, which attacked S before it,
@@ -1316,8 +1326,13 @@ function checkGuardLeft([x, k, whose, sq, y, piece], e) {
  * lands on S, a square other than the one X moved to, taking that piece when
  * the text says so; and the guard held something: Y is a king's move, or Y's
  * piece is worth more than P, or after Y nothing of Y's side covers S.
+ *
+ * With "...guards S: the R on T pins it to your king, and Y follows", the P
+ * still attacks S from where X put it, alone of the mover's pieces, but
+ * lifting it there opens the R on T onto the mover's king, lifting it where
+ * it stood before X opened nothing, and after Y it has no legal move to S.
  */
-function checkGuardGivenUp([x, whose, piece, sq, y, taken], e) {
+function checkGuardGivenUp([x, whose, piece, sq, pinner, pinnerSq, kingWhose, y, taken], e) {
   const { M, surface, shown, whole } = e
   const out = [e.san(x, M.F0, M.playedUci)]
   const fail = (why) => [...out, claim('guard_given_up', surface, shown, whole, F(why))]
@@ -1328,15 +1343,48 @@ function checkGuardGivenUp([x, whose, piece, sq, y, taken], e) {
   if (sq === mv.to) return fail(`${sq} is the square ${mv.san} moves to`)
   if (!load(M.F0).attackers(sq, mv.color).includes(mv.from)) return fail(`the ${piece} on ${mv.from} did not guard ${sq}`)
   const still = mv.board.attackers(sq, mv.color)
-  if (still.length) return fail(`after ${mv.san}, ${still.join(' and ')} still guard${still.length === 1 ? 's' : ''} ${sq}`)
+  if (pinner) {
+    if (ownerOf(kingWhose, M) !== mv.color) return fail(`the king the ${piece} is pinned to is not ${kingWhose}`)
+    if (still.length !== 1 || still[0] !== mv.to) return fail(`after ${mv.san}, the ${piece} on ${mv.to} is not the one piece of the mover's that attacks ${sq}`)
+    const by = mv.board.get(pinnerSq)
+    if (!by || by.color === mv.color || by.type !== TYPE_OF_WORD[pinner]) return fail(`after ${mv.san} there is no ${pinner} of ${SIDE_NAME[other(mv.color)]}'s on ${pinnerSq}`)
+    if (!opensOnKing(mv.afterFen, mv.to, mv.color).includes(pinnerSq)) return fail(`lifting the ${piece} on ${mv.to} does not open the ${pinner} on ${pinnerSq} onto the king`)
+    if (opensOnKing(M.F0, mv.from, mv.color).length) return fail(`the ${piece} on ${mv.from} was pinned before ${mv.san}`)
+  } else if (still.length) return fail(`after ${mv.san}, ${still.join(' and ')} still guard${still.length === 1 ? 's' : ''} ${sq}`)
   out.push(e.san(y, mv.afterFen, M.replyPvUci[0]))
   const reply = moveAt(mv.afterFen, M.replyPvUci[0])
   if (!reply || reply.to !== sq) return fail(`the engine's reply to ${mv.san} does not land on ${sq}`)
   if (taken && reply.captured !== TYPE_OF_WORD[taken]) return fail(`${reply.san} does not take a ${taken} on ${sq}`)
+  if (pinner && reply.board.moves({ square: mv.to, verbose: true }).some((m) => m.to === sq)) return fail(`after ${reply.san}, the ${piece} on ${mv.to} can take on ${sq}`)
   const worth = { p: 1, n: 3, b: 3, r: 5, q: 9 }
   const covered = reply.board.attackers(sq, reply.color).length > 0
   if (reply.piece !== 'k' && covered && (mv.piece === 'k' || worth[reply.piece] <= worth[mv.piece])) return fail(`the guard held nothing: after ${reply.san} the ${WORD_OF_TYPE[reply.piece]} on ${sq} is covered, and taking it with the ${piece} would not gain`)
-  return [...out, claim('guard_given_up', surface, shown, whole, T(`the ${piece} on ${mv.from} guarded ${sq}, nothing of the mover's does after ${mv.san}, and the reply ${reply.san} lands there`))]
+  const held = pinner ? `the ${pinner} on ${pinnerSq} pins the ${piece} on ${mv.to} to the king after ${mv.san}` : `nothing of the mover's does after ${mv.san}`
+  return [...out, claim('guard_given_up', surface, shown, whole, T(`the ${piece} on ${mv.from} guarded ${sq}, ${held}, and the reply ${reply.san} lands there`))]
+}
+
+/**
+ * "it is safe from your P on S: the R on T pins the P to your king": after
+ * the move the clause is about, the P of the side to move stands on S,
+ * attacks the square the move landed on and has no legal move there, and
+ * lifting it opens the R on T, of the move's side, onto its king.
+ */
+function checkPinSafe(M, att, [whose, pieceWord, sq, pinnerWord, pinnerSq, again, kingWhose], span, shown, surface) {
+  const mv = att?.mv
+  if (!M || !mv) return claim('pin_safe', surface, shown, span, U('no moment context'))
+  const fail = (why) => claim('pin_safe', surface, shown, span, F(why))
+  const side = other(mv.color)
+  if (ownerOf(whose, M) !== side || ownerOf(kingWhose, M) !== side) return fail(`after ${mv.san} the side to move is not ${whose}`)
+  if (again !== pieceWord) return fail(`the pin names a ${again}, not the ${pieceWord}`)
+  const cell = mv.board.get(sq)
+  if (!cell || cell.color !== side || cell.type !== TYPE_OF_WORD[pieceWord]) return fail(`after ${mv.san} there is no ${pieceWord} of ${SIDE_NAME[side]}'s on ${sq}`)
+  if (!mv.board.attackers(mv.to, side).includes(sq)) return fail(`the ${pieceWord} on ${sq} does not attack ${mv.to}`)
+  if (mv.board.moves({ square: sq, verbose: true }).some((m) => m.to === mv.to)) return fail(`the ${pieceWord} on ${sq} can take on ${mv.to}`)
+  const by = mv.board.get(pinnerSq)
+  if (!by || by.color !== mv.color || by.type !== TYPE_OF_WORD[pinnerWord]) return fail(`after ${mv.san} there is no ${pinnerWord} of ${SIDE_NAME[mv.color]}'s on ${pinnerSq}`)
+  return opensOnKing(mv.afterFen, sq, side).includes(pinnerSq)
+    ? claim('pin_safe', surface, shown, span, T(`after ${mv.san} the ${pieceWord} on ${sq} cannot take on ${mv.to}: lifting it opens the ${pinnerWord} on ${pinnerSq} onto the king`))
+    : fail(`lifting the ${pieceWord} on ${sq} does not open the ${pinnerWord} on ${pinnerSq} onto the king`)
 }
 
 /**
@@ -1992,6 +2040,8 @@ function clauseClaims(text, attOf, surface, shown, M = null) {
   take(new RegExp(String.raw`\bit guards the ${PIECE} on ${SQ}, which ${TOKR} would have attacked\b`, 'g'), ([p, sq, tok], whole, att) => [checkCoversOwn(att, TYPE_OF_WORD[p], sq, whole, shown, surface), checkWouldAttack(M, tok, TYPE_OF_WORD[p], sq, whole, shown, surface)])
   take(new RegExp(String.raw`\bit guards the ${PIECE} on ${SQ}, which ${TOKR} attacked\b`, 'g'), ([p, sq, tok], whole, att) => [checkCoversOwn(att, TYPE_OF_WORD[p], sq, whole, shown, surface), checkPlayedAttacked(M, tok, TYPE_OF_WORD[p], sq, whole, shown, surface)])
   take(new RegExp(String.raw`\bit takes away the check ${TOKR} would have given\b`, 'g'), ([tok], whole, att) => checkTakesCheck(M, att, tok, whole, shown, surface))
+  // A reply a pinned piece cannot take.
+  take(new RegExp(String.raw`\b(?:it )?is safe from (their|your) ${PIECE} on ${SQ}: the ${PIECE} on ${SQ} pins the ${PIECE} to (their|your) king\b`, 'g'), (g, whole, att) => checkPinSafe(M, att, g, whole, shown, surface))
   // What the better move does for the piece the played line takes.
   take(new RegExp(String.raw`\b(?:it )?guards (?:your|their) ${PIECE} on ${SQ}\b`, 'g'), ([p, sq], whole, att) => checkGuards(att, TYPE_OF_WORD[p], sq, whole, shown, surface))
   take(new RegExp(String.raw`\b(?:it )?moves (?:your|their) ${PIECE} on ${SQ} away, where it had no defender\b`, 'g'), ([p, sq], whole, att) => checkMovesAway(att, TYPE_OF_WORD[p], sq, whole, shown, surface))
@@ -2340,7 +2390,7 @@ const LESSON_TEMPLATES = [
   },
   // The guard a played move gives up: the square its piece left unguarded, where the reply lands.
   {
-    re: new RegExp(String.raw`\bAfter ${TOKR}, (their|your) ${PIECE} no longer guards ${SQ}, and ${TOKR} (?:follows|takes the ${PIECE} there)\.`, 'g'),
+    re: new RegExp(String.raw`\bAfter ${TOKR}, (their|your) ${PIECE} no longer guards ${SQ}(?:: the ${PIECE} on ${SQ} pins it to (their|your) king)?, and ${TOKR} (?:follows|takes the ${PIECE} there)\.`, 'g'),
     run: (g, e) => checkGuardGivenUp(g, e),
   },
   // A chased piece that escapes: the played move's attack, the reply that moves the piece away, and what it does from there.
@@ -3366,6 +3416,19 @@ function runCorruption(cases) {
   if (gt) results.push(corruptionRow('the piece the reply takes there named as another', gt, swapIn(gt, new RegExp(`^(${gave.source.slice(2)}\\S+ )${takesThere.source}`), (_, head, ...g) => `${head}takes the ${g[5] === 'queen' ? 'rook' : 'queen'} there.`), guardClaim))
   const gf = pick(inDiff((d) => gave.test(d) && / follows\.$/.test(d)))
   if (gf) results.push(corruptionRow('a quiet reply on the unguarded square said to take a queen', gf, swapIn(gf, new RegExp(`^(${gave.source.slice(2)}\\S+) follows\\.$`), (_, head) => `${head} takes the queen there.`), guardClaim))
+  if (gv) results.push(corruptionRow('a pin said where the piece that stops guarding is not pinned', gv, swapIn(gv, gave, (_, x, w, p, f, r) => `After ${x}, ${w} ${p} no longer guards ${f}${r}: the rook on a1 pins it to ${w} king, and `), guardClaim))
+  // A reply a pinned piece cannot take: the pinned piece's square, the pinner, its square, the piece the pin names.
+  const safeFrom = /^it is safe from (their|your) (pawn|knight|bishop|rook|queen) on ([a-h])([1-8]): the (pawn|knight|bishop|rook|queen) on ([a-h])([1-8]) pins the (\w+) to (their|your) king$/
+  const safeClaim = /is safe from/
+  const sf = pick((c) => !!c.texts?.lessonFor?.allowed?.points?.some((p) => safeFrom.test(p)))
+  if (sf) {
+    const said = (f) => swapPoint(sf, safeFrom, (_, w, p, pf, pr, q, qf, qr, again, k) => f({ w, p, at: `${pf}${pr}`, q, by: `${qf}${qr}`, again, k, pf, pr, qf, qr }))
+    const text = ({ w, p, at, q, by, again, k }) => `it is safe from ${w} ${p} on ${at}: the ${q} on ${by} pins the ${again} to ${k} king`
+    results.push(corruptionRow('the pinned piece\'s square, one file over', sf, said((g) => text({ ...g, at: `${nextFile(g.pf)}${g.pr}` })), safeClaim))
+    results.push(corruptionRow('the pinner named as another piece', sf, said((g) => text({ ...g, q: g.q === 'rook' ? 'bishop' : 'rook' })), safeClaim))
+    results.push(corruptionRow('the pinner\'s square, one file over', sf, said((g) => text({ ...g, by: `${nextFile(g.qf)}${g.qr}` })), safeClaim))
+    results.push(corruptionRow('the pinned piece named as another in the pin', sf, said((g) => text({ ...g, again: g.again === 'knight' ? 'bishop' : 'knight' })), safeClaim))
+  }
   // A chased piece that escapes: the square it stood on, the piece, where it goes, what it takes, what it attacks, the check.
   const chase = /\b(\S+) attacks (their|your) (pawn|knight|bishop|rook|queen) on ([a-h])([1-8]), but it escapes /
   const chaseClaim = /^\S+ attacks (?:their|your) \w+ on [a-h][1-8], but it escapes/
