@@ -11,7 +11,8 @@ an intercept of 275 and a slope of -0.5; its gain is 0.001940 (0.000332 to
 0.003479; adjusted p = 0.027972). Both win the likelihood comparison and
 pass all four punish guards. A has the larger observed gain, so the fixed
 selection rule chooses it. This does not establish that A significantly
-beats B. The app has not taken the change; the port is separate.
+beats B. The app took A with chess PR 132: its punish odds and lesson defenses read
+the player's opponents at +400 and the player at +250.
 
 The gain comes mainly from predicting opponents' moves. A's held-out gain
 on the player's moves is -0.000942, with an interval crossing zero, although
