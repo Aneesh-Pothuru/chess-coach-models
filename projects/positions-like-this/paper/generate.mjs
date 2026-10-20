@@ -288,6 +288,7 @@ claim(holds0(Object.fromEntries(H[1].phase.map((c) => [c.key, c])).endgame.lift.
 const SD = out.strong.distances
 claim(SD.every((b, k) => k === 0 || b.sound.value < SD[k - 1].sound.value), "in strong players' positions too a match's move is sound more often the nearer its position")
 g.def('StrongDistZero', pts(SD[0].sound.value, 0)).def('StrongDistTen', pts(SD[3].sound.value, 0))
+claim(SD[0].sound.value > out.controls.twin.twin.value, "the nearest matches of strong players' positions are sounder than the strong player's own move, so the twin's soundness is no ceiling")
 g.def('StrongLift', pts(out.strong.lift.value)).def('StrongLiftCi', ciWords(out.strong.lift.ci))
 claim(out.strong.lift.ci[0] > 0, "in strong players' own positions the lift lies above 0")
 

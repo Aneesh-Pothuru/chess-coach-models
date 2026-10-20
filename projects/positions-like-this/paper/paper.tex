@@ -155,9 +155,11 @@ Every score was exact.
 strong player's own move is sound \TwinSound\% of the time (\TwinSoundCi) and a random match's
 move \TwinR\% (\TwinRCi); the difference, \TwinLift{} points (\TwinLiftCi), lies far above 0. The
 referee tells a move that belongs to a position from one that only fits it. A strong player's own
-move is sound in only about two thirds of their positions, the ceiling for any match: most of the
-index is blitz, and a strong player's blitz move is often more than \Window{} win\% from
-Stockfish's best.
+move is sound in only about two thirds of their positions: most of the index is blitz, and a
+strong player's blitz move is often more than \Window{} win\% from Stockfish's best. That is no
+ceiling for a match: the nearest matches of strong players' positions are sound \StrongDistZero\%
+of the time (Table~\ref{tab:distance}), since a move that players chose in nearly the same
+position is sound more often than one player's move in one game.
 
 \paragraph{The null passes.} R2 against R reads \NullFirst{} points (\NullFirstCi) in the first
 half and \NullSecond{} points (\NullSecondCi) in the second; both intervals hold 0.
