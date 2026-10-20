@@ -6,30 +6,30 @@
 
 | Control | First half | Second half | Strong players | Passes |
 |---|---|---|---|---|
-| His move minus a random move (points) | 36.3 (30.8 to 41.5) | 37.6 (31.7 to 43.5) | 51.7 (48.7 to 54.8) | yes |
-| The blunder check's lift (points) | 12.5 (2.5 to 22.1) | 15.9 (6.1 to 26.0) | 20.9 (16.6 to 25.4) | yes |
+| His move minus a random move (points) | 36.3 (30.8 to 41.5) | 37.6 (31.7 to 43.5) | 51.8 (48.7 to 54.8) | yes |
+| The blunder check's lift (points) | 12.5 (2.5 to 22.1) | 15.9 (6.1 to 26.0) | 20.8 (16.4 to 25.1) | yes |
 | A random reading's lift (points) | -10.7 (-18.2 to -2.5) | 9.1 (0.2 to 18.9) | | yes |
 
 ## The rule: the lift of pieces ready among safe breaks (points)
 
 | | First half | Second half | Strong players |
 |---|---|---|---|
-| Safe breaks, pieces ready / rushed | 157 / 289 | 136 / 208 | 148 / 614 |
-| Lift | 3.0 (-5.7 to 11.2) | 2.3 (-6.0 to 11.8) | -4.6 (-13.7 to 4.4) |
-| Sound, pieces ready (%) | 26.1 | 33.8 | 30.4 |
-| Sound, rushed (%) | 26.0 | 29.8 | 33.2 |
-| Sound, safe / not safe (%) | 26.0 / 13.7 | 31.4 / 12.9 | 32.7 / 12.4 |
+| Safe breaks, pieces ready / rushed | 157 / 289 | 136 / 208 | 145 / 613 |
+| Lift | 3.0 (-5.7 to 11.2) | 2.3 (-6.0 to 11.8) | -7.0 (-15.8 to 1.6) |
+| Sound, pieces ready (%) | 26.1 | 33.8 | 29.0 |
+| Sound, rushed (%) | 26.0 | 29.8 | 33.3 |
+| Sound, safe / not safe (%) | 26.0 / 13.7 | 31.4 / 12.9 | 32.5 / 12.3 |
 
 ## Each question alone, over all breaks (lift, points)
 
 | Question | Passes / fails (his) | His, halves pooled | First half | Second half | Strong players |
 |---|---|---|---|---|---|
-| aimed | 653 / 616 | 6.8 (1.7 to 12.6) | 8.9 (2.4 to 15.9) | 4.0 (-3.9 to 13.2) | -0.2 (-4.9 to 4.4) |
-| rooks | 1041 / 228 | 3.6 (-3.5 to 9.8) | 4.8 (-4.7 to 12.6) | 1.0 (-9.5 to 10.8) | 1.3 (-4.7 to 7.0) |
-| purpose | 92 / 1177 | 9.1 (-7.3 to 27.1) | 24.0 (4.4 to 52.1) | -4.7 (-25.8 to 22.6) | 1.2 (-6.9 to 9.2) |
-| force | 704 / 565 | 9.2 (3.5 to 14.4) | 8.2 (1.5 to 15.3) | 9.2 (0.3 to 18.2) | 2.0 (-2.3 to 6.5) |
-| safe | 790 / 479 | 14.2 (7.7 to 20.4) | 12.5 (3.0 to 22.2) | 15.9 (6.4 to 26.0) | 20.9 (16.5 to 25.4) |
-| allButPurpose | 293 / 976 | 9.4 (3.9 to 15.1) | 7.3 (-0.1 to 15.0) | 10.4 (2.5 to 18.2) | 7.8 (-0.1 to 16.0) |
+| aimed | 653 / 616 | 6.8 (1.7 to 12.6) | 8.9 (2.4 to 15.9) | 4.0 (-3.9 to 13.2) | -0.8 (-5.4 to 3.7) |
+| rooks | 1041 / 228 | 3.6 (-3.5 to 9.8) | 4.8 (-4.7 to 12.6) | 1.0 (-9.5 to 10.8) | 0.5 (-5.4 to 6.3) |
+| purpose | 92 / 1177 | 9.1 (-7.3 to 27.1) | 24.0 (4.4 to 52.1) | -4.7 (-25.8 to 22.6) | 1.5 (-6.7 to 9.6) |
+| force | 704 / 565 | 9.2 (3.5 to 14.4) | 8.2 (1.5 to 15.3) | 9.2 (0.3 to 18.2) | 1.8 (-2.3 to 6.1) |
+| safe | 790 / 479 | 14.2 (7.7 to 20.4) | 12.5 (3.0 to 22.2) | 15.9 (6.4 to 26.0) | 20.8 (16.3 to 25.2) |
+| allButPurpose | 293 / 976 | 9.4 (3.9 to 15.1) | 7.3 (-0.1 to 15.0) | 10.4 (2.5 to 18.2) | 6.1 (-1.6 to 14.1) |
 
 ## Sound by how many of the five pass, his halves pooled (%)
 
@@ -74,7 +74,7 @@
 | | Safe, pieces ready | Rushed | Not safe |
 |---|---|---|---|
 | He played the break | 7.2 | 8.7 | 3.1 |
-| Strong players played it | 17.6 | 14.0 | 4.3 |
+| Strong players played it | 16.6 | 14.0 | 4.2 |
 
 Within groups, he plays a safe break with the pieces ready -1.0 (-4.6 to 2.9) points more often than a rushed one.
 

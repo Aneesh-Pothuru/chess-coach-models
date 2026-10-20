@@ -22,12 +22,12 @@ breaks whose pieces are ready sound more often than the rushed ones?
 reading was joined to a score; every control passed. Among the breaks the
 app's blunder check calls safe, those whose pieces are ready are sound about as
 often as the rushed ones of the same break: the lift is a few points on each
-half of his games, both intervals across 0, and a few points below 0 for strong
-players. The blunder check is the question that tells the moment: a safe break
-is sound about twice as often as one that is not, for him and for strong
-players. All five questions almost never pass together, and even where a safe
-break has its pieces ready it is sound about three times in ten, against his
-own move's five and a half. The app can keep the checklist as a way of thinking
+half of his games, both intervals across 0, and several points below 0 for
+strong players, an interval that crosses 0 too. The blunder check is the
+question that tells the moment: a safe break is sound about twice as often as
+one that is not, for him and for strong players. All five questions almost
+never pass together, and even where a safe break has its pieces ready it is
+sound about three times in ten, against his own move's five and a half. The app can keep the checklist as a way of thinking
 and put the blunder check first, but the verdict on a break stays the
 engine's. The numbers are in [`results/break-ready.md`](results/break-ready.md),
 written by `analyze.mjs`, and [`results/descriptions.md`](results/descriptions.md),
@@ -50,7 +50,7 @@ strong players' positions (the Lichess September 2026 games between two players
 rated 2200 or more), every one of whose moves had exact scores. A break is a legal move of the mover's that the app's
 `playedLever` counts as a break of the structure `structureOf` names, for the
 mover's side (`leversFor`), as structure-breaks read it. Each break is a unit:
-his 716 and 553 breaks, the strong players' 1,416. Its soundness comes from
+his 716 and 553 breaks, the strong players' 1,417. Its soundness comes from
 structure-breaks: the referee (Stockfish at the app's `grade` budget, the hash
 cleared before each position) accepts it within 3 win% of its best
 (`acceptsAlternative`). Its **group** is its structure and the break it plays
@@ -92,7 +92,7 @@ Before this rule was fixed, each question was read on every break and the
 passes counted, with no score of any move read
 ([`results/coverage.md`](results/coverage.md), written by `coverage.mjs`). All
 five questions pass for 8 of his 1,269 breaks and 11 of the strong players'
-1,416, so the checklist taken whole cannot be tested: question 3 passes for
+1,417, so the checklist taken whole cannot be tested: question 3 passes for
 about one break in fourteen of his. The rule tests the piece questions, which
 the checklist itself calls the band's most common error, among the breaks the
 blunder check calls safe; there his breaks with the pieces ready are 157 of 446

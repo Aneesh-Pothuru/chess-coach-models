@@ -5,17 +5,17 @@ Counted from the board alone: no score of any move was read.
 | | His, first half | His, second half | Strong players |
 |---|---|---|---|
 | Positions | 491 | 418 | 1200 |
-| Breaks | 716 | 553 | 1416 |
-| aimed | 359 of 716 (50.1%) | 294 of 553 (53.2%) | 509 of 1416 (35.9%) |
-| rooks | 567 of 716 (79.2%) | 474 of 553 (85.7%) | 1170 of 1416 (82.6%) |
-| purpose | 50 of 716 (7.0%) | 42 of 553 (7.6%) | 165 of 1416 (11.7%) |
-| force | 369 of 716 (51.5%) | 335 of 553 (60.6%) | 787 of 1416 (55.6%) |
-| safe | 446 of 716 (62.3%) | 344 of 553 (62.2%) | 762 of 1416 (53.8%) |
-| All five (ready) | 4 of 716 (0.6%) | 4 of 553 (0.7%) | 11 of 1416 (0.8%) |
-| Pieces ready, among the safe | 157 of 446 (35.2%) | 136 of 344 (39.5%) | 148 of 762 (19.4%) |
-| Questions passed, 0 to 5 | 34 / 118 / 200 / 187 / 173 / 4 | 11 / 71 / 145 / 180 / 142 / 4 | 42 / 247 / 441 / 491 / 184 / 11 |
-| Piece questions passed, 0 to 3 | 66 / 208 / 239 / 203 | 17 / 144 / 217 / 175 | 103 / 413 / 647 / 253 |
-| Breaks with no rook | 2 | 14 | 49 |
+| Breaks | 716 | 553 | 1417 |
+| aimed | 359 of 716 (50.1%) | 294 of 553 (53.2%) | 507 of 1417 (35.8%) |
+| rooks | 567 of 716 (79.2%) | 474 of 553 (85.7%) | 1171 of 1417 (82.6%) |
+| purpose | 50 of 716 (7.0%) | 42 of 553 (7.6%) | 165 of 1417 (11.6%) |
+| force | 369 of 716 (51.5%) | 335 of 553 (60.6%) | 787 of 1417 (55.5%) |
+| safe | 446 of 716 (62.3%) | 344 of 553 (62.2%) | 758 of 1417 (53.5%) |
+| All five (ready) | 4 of 716 (0.6%) | 4 of 553 (0.7%) | 11 of 1417 (0.8%) |
+| Pieces ready, among the safe | 157 of 446 (35.2%) | 136 of 344 (39.5%) | 145 of 758 (19.1%) |
+| Questions passed, 0 to 5 | 34 / 118 / 200 / 187 / 173 / 4 | 11 / 71 / 145 / 180 / 142 / 4 | 42 / 247 / 446 / 490 / 181 / 11 |
+| Piece questions passed, 0 to 3 | 66 / 208 / 239 / 203 | 17 / 144 / 217 / 175 | 103 / 413 / 651 / 250 |
+| Breaks with no rook | 2 | 14 | 48 |
 | Breaks with no lever | 0 | 0 | 0 |
 
 ## His, first half, by break
@@ -70,21 +70,21 @@ Counted from the board alone: no score of any move was read.
 
 | Break | Breaks | Ready | Safe | Pieces ready, among the safe |
 |---|---|---|---|---|
-| iqp|d5-d4 | 159 | 0 | 70 | 12 |
-| iqp|d4-d5 | 143 | 2 | 56 | 8 |
-| advance-chain|...f7-f6 | 132 | 0 | 93 | 17 |
-| london-pyramid|e3-e4 | 80 | 0 | 35 | 14 |
-| london-pyramid|...e6-e5 | 66 | 0 | 24 | 6 |
+| iqp|d5-d4 | 158 | 0 | 69 | 11 |
+| iqp|d4-d5 | 144 | 2 | 56 | 8 |
+| advance-chain|...f7-f6 | 129 | 0 | 90 | 15 |
+| london-pyramid|e3-e4 | 78 | 0 | 33 | 14 |
+| london-pyramid|...e6-e5 | 67 | 0 | 24 | 6 |
 | iqp|...b5-b4 to remove a defender | 64 | 0 | 41 | 5 |
-| london-pyramid|c3-c4 | 63 | 1 | 39 | 6 |
-| carlsbad|e3-e4 | 55 | 0 | 27 | 5 |
-| kid-chain|...f7-f5 | 51 | 0 | 41 | 8 |
-| carlsbad-reversed|c3-c4 | 50 | 0 | 24 | 6 |
+| london-pyramid|c3-c4 | 62 | 1 | 38 | 6 |
+| carlsbad|e3-e4 | 56 | 0 | 28 | 5 |
+| carlsbad-reversed|c3-c4 | 51 | 0 | 24 | 6 |
+| kid-chain|...f7-f5 | 50 | 0 | 40 | 8 |
+| pirc-modern|e4-e5 | 49 | 2 | 18 | 4 |
 | carlsbad-reversed|...e6-e5 | 48 | 0 | 11 | 3 |
-| pirc-modern|e4-e5 | 48 | 2 | 18 | 4 |
 | carlsbad|...c6-c5 | 47 | 0 | 28 | 5 |
 | iqp|...b4-b5 to remove a defender | 42 | 0 | 30 | 5 |
-| london-pyramid|...c7-c5 | 39 | 0 | 28 | 7 |
+| london-pyramid|...c7-c5 | 40 | 0 | 29 | 7 |
 | advance-chain|...c7-c5 | 37 | 0 | 26 | 7 |
 | kid-chain|c4-c5 | 36 | 1 | 15 | 11 |
 | pirc-modern|...c7-c5 | 36 | 0 | 30 | 5 |
@@ -92,10 +92,10 @@ Counted from the board alone: no score of any move was read.
 | hanging-pawns|c4-c5 | 28 | 0 | 19 | 1 |
 | hanging-pawns|d4-d5 | 28 | 0 | 15 | 1 |
 | advance-chain|f4-f5 | 26 | 2 | 7 | 2 |
-| hanging-pawns|c5-c4 | 21 | 0 | 17 | 0 |
-| hanging-pawns|d5-d4 | 21 | 0 | 10 | 0 |
+| hanging-pawns|c5-c4 | 22 | 0 | 17 | 0 |
+| hanging-pawns|d5-d4 | 22 | 0 | 11 | 0 |
 | pirc-modern|h4-h5 | 14 | 0 | 6 | 0 |
-| carlsbad|...f7-f5 | 12 | 0 | 10 | 1 |
+| carlsbad|...f7-f5 | 13 | 0 | 11 | 1 |
 | carlsbad-reversed|f4-f5 | 10 | 0 | 4 | 2 |
 | kid-chain|...g5-g4 | 10 | 2 | 5 | 2 |
 | carlsbad-reversed|...b5-b4 | 9 | 1 | 4 | 3 |
