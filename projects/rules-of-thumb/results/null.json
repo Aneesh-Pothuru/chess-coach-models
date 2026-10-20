@@ -1,0 +1,2297 @@
+{
+  "app": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+  "datasetKind": "null-addition",
+  "data": {
+    "source": "Lichess rated standard 600+0",
+    "license": "CC0",
+    "train": [
+      "2026-07",
+      "2026-08"
+    ],
+    "heldout": "2026-09",
+    "bands": {
+      "1300": [
+        1250,
+        1449
+      ],
+      "1500": [
+        1450,
+        1649
+      ]
+    },
+    "gamesByMonth": {
+      "2026-07": 30000,
+      "2026-08": 30000,
+      "2026-09": 30000
+    },
+    "positionsByMonth": {
+      "2026-07": 1433124,
+      "2026-08": 1430194,
+      "2026-09": 1430725
+    }
+  },
+  "bootstrap": {
+    "draws": 2000,
+    "seed": 20261018,
+    "unit": "game",
+    "sampling": "with replacement, fixed game count",
+    "interval": "95% percentile, linear interpolation",
+    "undefined": "omit undefined ratios and count them"
+  },
+  "readings": {
+    "train": "July and August pooled",
+    "bootstrapPopulation": "games retained for each rule, separately for train and heldout",
+    "pairing": "R, N and R0 use the same position and the same bootstrap game multiplicity",
+    "conditionalLift": "S(R) minus S(N), restricted to positions where R differs from N",
+    "exclusion": "rules with fewer than 300 held-out positions have no addition measures or reading",
+    "newBestDifference": "fresh Stockfish best UCI differs from the stored Stockfish best UCI; denominator is fresh null searches",
+    "verdicts": "the original preregistered verdicts are unchanged",
+    "units": "shares and soundness differences are fractions; Markdown prints percentages and percentage points"
+  },
+  "coverage": {
+    "scoredPositions": 128021,
+    "scoredPositionsByMonth": {
+      "2026-07": 42656,
+      "2026-08": 42611,
+      "2026-09": 42754
+    }
+  },
+  "excludedRules": {
+    "lucena": {
+      "trainPositions": 19,
+      "heldoutPositions": 6,
+      "reason": "fewer than 300 held-out positions"
+    },
+    "philidor": {
+      "trainPositions": 52,
+      "heldoutPositions": 30,
+      "reason": "fewer than 300 held-out positions"
+    }
+  },
+  "rules": {
+    "active-king": {
+      "originalVerdict": "It misleads",
+      "reading": "points to better moves than chance",
+      "countsByMonth": {
+        "2026-07": 4000,
+        "2026-08": 4000,
+        "2026-09": 4000
+      },
+      "train": {
+        "positions": 8000,
+        "games": 8000,
+        "nullLift": {
+          "value": -0.32775,
+          "lo": -0.339125,
+          "hi": -0.316125,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "content": {
+          "value": 0.075625,
+          "lo": 0.065121875,
+          "hi": 0.086,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareRIsN": {
+          "value": 0.217875,
+          "lo": 0.208625,
+          "hi": 0.227125,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareR0IsN": {
+          "value": 0.10875,
+          "lo": 0.102375,
+          "hi": 0.115625,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "liftWhenRDiffersFromN": {
+          "positions": 6257,
+          "lift": {
+            "value": -0.32235895796707686,
+            "lo": -0.3355142739273503,
+            "hi": -0.3081961472847748,
+            "validDraws": 2000,
+            "undefinedDraws": 0
+          }
+        },
+        "soundnessR0": {
+          "value": 0.510375,
+          "lo": 0.49925,
+          "hi": 0.521253125,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "soundnessR0ByBand": {
+          "1300": {
+            "positions": 3344,
+            "soundness": {
+              "value": 0.5149521531100478,
+              "lo": 0.49912307358311464,
+              "hi": 0.5318788506552123,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          },
+          "1500": {
+            "positions": 4656,
+            "soundness": {
+              "value": 0.5070876288659794,
+              "lo": 0.49212046207281995,
+              "hi": 0.5211975517014906,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          }
+        },
+        "newBestDiffersFromStored": {
+          "searches": 5397,
+          "changed": 0,
+          "share": 0.0
+        }
+      },
+      "heldout": {
+        "positions": 4000,
+        "games": 4000,
+        "nullLift": {
+          "value": -0.3215,
+          "lo": -0.33875,
+          "hi": -0.3055,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "content": {
+          "value": 0.07025,
+          "lo": 0.05475,
+          "hi": 0.08475624999999998,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareRIsN": {
+          "value": 0.22525,
+          "lo": 0.21299374999999998,
+          "hi": 0.238,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareR0IsN": {
+          "value": 0.109,
+          "lo": 0.09975,
+          "hi": 0.1185,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "liftWhenRDiffersFromN": {
+          "positions": 3099,
+          "lift": {
+            "value": -0.324298160696999,
+            "lo": -0.34388414594769134,
+            "hi": -0.3041203926435927,
+            "validDraws": 2000,
+            "undefinedDraws": 0
+          }
+        },
+        "soundnessR0": {
+          "value": 0.50725,
+          "lo": 0.49075,
+          "hi": 0.52250625,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "soundnessR0ByBand": {
+          "1300": {
+            "positions": 1713,
+            "soundness": {
+              "value": 0.5154699357851722,
+              "lo": 0.4901660285148806,
+              "hi": 0.5400472962224208,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          },
+          "1500": {
+            "positions": 2287,
+            "soundness": {
+              "value": 0.5010931351114998,
+              "lo": 0.481004536995776,
+              "hi": 0.52195432222518,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          }
+        },
+        "newBestDiffersFromStored": {
+          "searches": 2722,
+          "changed": 0,
+          "share": 0.0
+        }
+      }
+    },
+    "opposition": {
+      "originalVerdict": "It misleads",
+      "reading": "points to better moves than chance",
+      "countsByMonth": {
+        "2026-07": 1402,
+        "2026-08": 1373,
+        "2026-09": 1435
+      },
+      "train": {
+        "positions": 2775,
+        "games": 2775,
+        "nullLift": {
+          "value": -0.18198198198198198,
+          "lo": -0.19855855855855856,
+          "hi": -0.1654054054054054,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "content": {
+          "value": 0.08864864864864865,
+          "lo": 0.07386486486486486,
+          "hi": 0.10414414414414415,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareRIsN": {
+          "value": 0.3264864864864865,
+          "lo": 0.3084684684684685,
+          "hi": 0.34379279279279273,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareR0IsN": {
+          "value": 0.23315315315315316,
+          "lo": 0.2172972972972973,
+          "hi": 0.24972972972972973,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "liftWhenRDiffersFromN": {
+          "positions": 1869,
+          "lift": {
+            "value": -0.13857677902621723,
+            "lo": -0.1584024183006536,
+            "hi": -0.11956987111357927,
+            "validDraws": 2000,
+            "undefinedDraws": 0
+          }
+        },
+        "soundnessR0": {
+          "value": 0.7362162162162162,
+          "lo": 0.7196306306306306,
+          "hi": 0.7524324324324324,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "soundnessR0ByBand": {
+          "1300": {
+            "positions": 1129,
+            "soundness": {
+              "value": 0.7440212577502214,
+              "lo": 0.719029779931678,
+              "hi": 0.7695108364180941,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          },
+          "1500": {
+            "positions": 1646,
+            "soundness": {
+              "value": 0.7308626974483596,
+              "lo": 0.708650475811577,
+              "hi": 0.7512624055029994,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          }
+        },
+        "newBestDiffersFromStored": {
+          "searches": 724,
+          "changed": 0,
+          "share": 0.0
+        }
+      },
+      "heldout": {
+        "positions": 1435,
+        "games": 1435,
+        "nullLift": {
+          "value": -0.17979094076655053,
+          "lo": -0.20209059233449478,
+          "hi": -0.15749128919860628,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "content": {
+          "value": 0.06968641114982578,
+          "lo": 0.049477351916376304,
+          "hi": 0.08989547038327526,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareRIsN": {
+          "value": 0.32682926829268294,
+          "lo": 0.3024390243902439,
+          "hi": 0.35121951219512193,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareR0IsN": {
+          "value": 0.25853658536585367,
+          "lo": 0.23623693379790942,
+          "hi": 0.2808362369337979,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "liftWhenRDiffersFromN": {
+          "positions": 966,
+          "lift": {
+            "value": -0.16356107660455488,
+            "lo": -0.19140225179119755,
+            "hi": -0.1371112992278825,
+            "validDraws": 2000,
+            "undefinedDraws": 0
+          }
+        },
+        "soundnessR0": {
+          "value": 0.7533101045296168,
+          "lo": 0.7303135888501742,
+          "hi": 0.775609756097561,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "soundnessR0ByBand": {
+          "1300": {
+            "positions": 602,
+            "soundness": {
+              "value": 0.7475083056478405,
+              "lo": 0.7117545122661254,
+              "hi": 0.7816166230293577,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          },
+          "1500": {
+            "positions": 833,
+            "soundness": {
+              "value": 0.7575030012004802,
+              "lo": 0.7278140390658289,
+              "hi": 0.7854545980599892,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          }
+        },
+        "newBestDiffersFromStored": {
+          "searches": 358,
+          "changed": 0,
+          "share": 0.0
+        }
+      }
+    },
+    "square-rule": {
+      "originalVerdict": "It misleads",
+      "reading": "points to better moves than chance",
+      "countsByMonth": {
+        "2026-07": 2557,
+        "2026-08": 2516,
+        "2026-09": 2582
+      },
+      "train": {
+        "positions": 5073,
+        "games": 5073,
+        "nullLift": {
+          "value": -0.1681450818056377,
+          "lo": -0.17898679282475852,
+          "hi": -0.15789473684210525,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "content": {
+          "value": 0.14784151389710232,
+          "lo": 0.13817760693869505,
+          "hi": 0.15849103094815686,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareRIsN": {
+          "value": 0.6725803272225508,
+          "lo": 0.659368223930613,
+          "hi": 0.685989552533018,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareR0IsN": {
+          "value": 0.08180563768972994,
+          "lo": 0.07470924502266903,
+          "hi": 0.08909915237532032,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "liftWhenRDiffersFromN": {
+          "positions": 1661,
+          "lift": {
+            "value": -0.062010836845273934,
+            "lo": -0.07762456972546386,
+            "hi": -0.046620053100543526,
+            "validDraws": 2000,
+            "undefinedDraws": 0
+          }
+        },
+        "soundnessR0": {
+          "value": 0.8150995466193574,
+          "lo": 0.804060713581707,
+          "hi": 0.8251576976148236,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "soundnessR0ByBand": {
+          "1300": {
+            "positions": 2368,
+            "soundness": {
+              "value": 0.8315033783783784,
+              "lo": 0.8166022570919452,
+              "hi": 0.8464716262603452,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          },
+          "1500": {
+            "positions": 2705,
+            "soundness": {
+              "value": 0.8007393715341959,
+              "lo": 0.7844165416842296,
+              "hi": 0.8154192335435408,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          }
+        },
+        "newBestDiffersFromStored": {
+          "searches": 2197,
+          "changed": 0,
+          "share": 0.0
+        }
+      },
+      "heldout": {
+        "positions": 2582,
+        "games": 2582,
+        "nullLift": {
+          "value": -0.16769945778466305,
+          "lo": -0.18396591789310612,
+          "hi": -0.15259488768396592,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "content": {
+          "value": 0.1463981409759876,
+          "lo": 0.13129357087529048,
+          "hi": 0.16189000774593337,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareRIsN": {
+          "value": 0.6727343144848954,
+          "lo": 0.6545216886134779,
+          "hi": 0.6905499612703331,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareR0IsN": {
+          "value": 0.07358636715724244,
+          "lo": 0.06428156467854376,
+          "hi": 0.08404337722695585,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "liftWhenRDiffersFromN": {
+          "positions": 845,
+          "lift": {
+            "value": -0.0650887573964497,
+            "lo": -0.08706467661691543,
+            "hi": -0.04368917710709414,
+            "validDraws": 2000,
+            "undefinedDraws": 0
+          }
+        },
+        "soundnessR0": {
+          "value": 0.8144848954298993,
+          "lo": 0.7982184353214562,
+          "hi": 0.8292021688613478,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "soundnessR0ByBand": {
+          "1300": {
+            "positions": 1206,
+            "soundness": {
+              "value": 0.8266998341625207,
+              "lo": 0.8037345093648364,
+              "hi": 0.8475458688792802,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          },
+          "1500": {
+            "positions": 1376,
+            "soundness": {
+              "value": 0.8037790697674418,
+              "lo": 0.7829617180205416,
+              "hi": 0.8240128061301475,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          }
+        },
+        "newBestDiffersFromStored": {
+          "searches": 1075,
+          "changed": 0,
+          "share": 0.0
+        }
+      }
+    },
+    "rook-behind-passer": {
+      "originalVerdict": "It misleads",
+      "reading": "points to better moves than chance",
+      "countsByMonth": {
+        "2026-07": 4000,
+        "2026-08": 4000,
+        "2026-09": 4000
+      },
+      "train": {
+        "positions": 8000,
+        "games": 8000,
+        "nullLift": {
+          "value": -0.479875,
+          "lo": -0.492,
+          "hi": -0.467875,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "content": {
+          "value": 0.056875,
+          "lo": 0.047,
+          "hi": 0.067375,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareRIsN": {
+          "value": 0.07225,
+          "lo": 0.06675,
+          "hi": 0.077625,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareR0IsN": {
+          "value": 0.045625,
+          "lo": 0.041371875,
+          "hi": 0.05025,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "liftWhenRDiffersFromN": {
+          "positions": 7422,
+          "lift": {
+            "value": -0.4559417946645109,
+            "lo": -0.4684300319596694,
+            "hi": -0.4434396947080178,
+            "validDraws": 2000,
+            "undefinedDraws": 0
+          }
+        },
+        "soundnessR0": {
+          "value": 0.293875,
+          "lo": 0.283996875,
+          "hi": 0.303878125,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "soundnessR0ByBand": {
+          "1300": {
+            "positions": 3536,
+            "soundness": {
+              "value": 0.3040158371040724,
+              "lo": 0.2896033521950647,
+              "hi": 0.31878392209307627,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          },
+          "1500": {
+            "positions": 4464,
+            "soundness": {
+              "value": 0.28584229390681004,
+              "lo": 0.2725395171364817,
+              "hi": 0.2991282471645328,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          }
+        },
+        "newBestDiffersFromStored": {
+          "searches": 7007,
+          "changed": 0,
+          "share": 0.0
+        }
+      },
+      "heldout": {
+        "positions": 4000,
+        "games": 4000,
+        "nullLift": {
+          "value": -0.47975,
+          "lo": -0.4975,
+          "hi": -0.4632375000000001,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "content": {
+          "value": 0.05775,
+          "lo": 0.043,
+          "hi": 0.07225,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareRIsN": {
+          "value": 0.07075,
+          "lo": 0.06325,
+          "hi": 0.079,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareR0IsN": {
+          "value": 0.04325,
+          "lo": 0.0375,
+          "hi": 0.04950624999999997,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "liftWhenRDiffersFromN": {
+          "positions": 3717,
+          "lift": {
+            "value": -0.45412967446865754,
+            "lo": -0.47222503373819164,
+            "hi": -0.437549947376499,
+            "validDraws": 2000,
+            "undefinedDraws": 0
+          }
+        },
+        "soundnessR0": {
+          "value": 0.29475,
+          "lo": 0.2805,
+          "hi": 0.309,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "soundnessR0ByBand": {
+          "1300": {
+            "positions": 1831,
+            "soundness": {
+              "value": 0.312397596941562,
+              "lo": 0.29099938123756036,
+              "hi": 0.333879985997836,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          },
+          "1500": {
+            "positions": 2169,
+            "soundness": {
+              "value": 0.2798524665744583,
+              "lo": 0.26155161643910224,
+              "hi": 0.29868361325465276,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          }
+        },
+        "newBestDiffersFromStored": {
+          "searches": 3504,
+          "changed": 0,
+          "share": 0.0
+        }
+      }
+    },
+    "cut-off-king": {
+      "originalVerdict": "It misleads",
+      "reading": "no differently from chance",
+      "countsByMonth": {
+        "2026-07": 1382,
+        "2026-08": 1390,
+        "2026-09": 1398
+      },
+      "train": {
+        "positions": 2772,
+        "games": 2772,
+        "nullLift": {
+          "value": -0.41919191919191917,
+          "lo": -0.4386814574314574,
+          "hi": -0.4007936507936508,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "content": {
+          "value": 0.0025252525252525255,
+          "lo": -0.017316017316017316,
+          "hi": 0.021284271284271284,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareRIsN": {
+          "value": 0.047979797979797977,
+          "lo": 0.04075577200577201,
+          "hi": 0.05591630591630592,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareR0IsN": {
+          "value": 0.08044733044733045,
+          "lo": 0.07034632034632035,
+          "hi": 0.09054834054834054,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "liftWhenRDiffersFromN": {
+          "positions": 2639,
+          "lift": {
+            "value": -0.4376657824933687,
+            "lo": -0.45920562782324204,
+            "hi": -0.41806386535863654,
+            "validDraws": 2000,
+            "undefinedDraws": 0
+          }
+        },
+        "soundnessR0": {
+          "value": 0.41414141414141414,
+          "lo": 0.39574314574314573,
+          "hi": 0.4318181818181818,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "soundnessR0ByBand": {
+          "1300": {
+            "positions": 1139,
+            "soundness": {
+              "value": 0.41439859525899914,
+              "lo": 0.3859002907805914,
+              "hi": 0.44182578036114584,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          },
+          "1500": {
+            "positions": 1633,
+            "soundness": {
+              "value": 0.4139620330679731,
+              "lo": 0.3898174973582247,
+              "hi": 0.4367545078835511,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          }
+        },
+        "newBestDiffersFromStored": {
+          "searches": 1889,
+          "changed": 0,
+          "share": 0.0
+        }
+      },
+      "heldout": {
+        "positions": 1398,
+        "games": 1398,
+        "nullLift": {
+          "value": -0.41702432045779686,
+          "lo": -0.4449213161659514,
+          "hi": -0.388412017167382,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "content": {
+          "value": 0.00357653791130186,
+          "lo": -0.02503576537911302,
+          "hi": 0.031473533619456366,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareRIsN": {
+          "value": 0.06223175965665236,
+          "lo": 0.05007153075822604,
+          "hi": 0.07439198855507868,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareR0IsN": {
+          "value": 0.0994277539341917,
+          "lo": 0.0844062947067239,
+          "hi": 0.11516452074391989,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "liftWhenRDiffersFromN": {
+          "positions": 1311,
+          "lift": {
+            "value": -0.440884820747521,
+            "lo": -0.4688227412482363,
+            "hi": -0.4112697664324256,
+            "validDraws": 2000,
+            "undefinedDraws": 0
+          }
+        },
+        "soundnessR0": {
+          "value": 0.4206008583690987,
+          "lo": 0.3955650929899857,
+          "hi": 0.44635193133047213,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "soundnessR0ByBand": {
+          "1300": {
+            "positions": 583,
+            "soundness": {
+              "value": 0.41852487135506006,
+              "lo": 0.3794761224117902,
+              "hi": 0.45765765765765765,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          },
+          "1500": {
+            "positions": 815,
+            "soundness": {
+              "value": 0.42208588957055215,
+              "lo": 0.3867137510299248,
+              "hi": 0.4553374492890622,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          }
+        },
+        "newBestDiffersFromStored": {
+          "searches": 928,
+          "changed": 0,
+          "share": 0.0
+        }
+      }
+    },
+    "outside-passer": {
+      "originalVerdict": "It misleads",
+      "reading": "points to better moves than chance",
+      "countsByMonth": {
+        "2026-07": 1283,
+        "2026-08": 1293,
+        "2026-09": 1303
+      },
+      "train": {
+        "positions": 2576,
+        "games": 2576,
+        "nullLift": {
+          "value": -0.4363354037267081,
+          "lo": -0.45846273291925466,
+          "hi": -0.4161490683229814,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "content": {
+          "value": 0.2705745341614907,
+          "lo": 0.24883540372670807,
+          "hi": 0.2954192546583851,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareRIsN": {
+          "value": 0.6979813664596274,
+          "lo": 0.6809006211180124,
+          "hi": 0.7158482142857142,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareR0IsN": {
+          "value": 0.06987577639751552,
+          "lo": 0.06017080745341615,
+          "hi": 0.07997864906832293,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "liftWhenRDiffersFromN": {
+          "positions": 778,
+          "lift": {
+            "value": -0.5488431876606684,
+            "lo": -0.5880007706275581,
+            "hi": -0.5071012994333018,
+            "validDraws": 2000,
+            "undefinedDraws": 0
+          }
+        },
+        "soundnessR0": {
+          "value": 0.39751552795031053,
+          "lo": 0.37732919254658387,
+          "hi": 0.4161587732919254,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "soundnessR0ByBand": {
+          "1300": {
+            "positions": 1078,
+            "soundness": {
+              "value": 0.41465677179962895,
+              "lo": 0.3834965717157345,
+              "hi": 0.44465295244248565,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          },
+          "1500": {
+            "positions": 1498,
+            "soundness": {
+              "value": 0.38518024032042725,
+              "lo": 0.359836756030574,
+              "hi": 0.4092723716468765,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          }
+        },
+        "newBestDiffersFromStored": {
+          "searches": 1970,
+          "changed": 0,
+          "share": 0.0
+        }
+      },
+      "heldout": {
+        "positions": 1303,
+        "games": 1303,
+        "nullLift": {
+          "value": -0.4551036070606293,
+          "lo": -0.48351880276285497,
+          "hi": -0.4274558710667691,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "content": {
+          "value": 0.2847275518035303,
+          "lo": 0.25400997697620875,
+          "hi": 0.31696085955487335,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareRIsN": {
+          "value": 0.6945510360706063,
+          "lo": 0.6692248656945511,
+          "hi": 0.7191097467382962,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareR0IsN": {
+          "value": 0.07981580966999233,
+          "lo": 0.06600153491941672,
+          "hi": 0.09516500383729855,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "liftWhenRDiffersFromN": {
+          "positions": 398,
+          "lift": {
+            "value": -0.5577889447236181,
+            "lo": -0.610711004784689,
+            "hi": -0.5036238391867621,
+            "validDraws": 2000,
+            "undefinedDraws": 0
+          }
+        },
+        "soundnessR0": {
+          "value": 0.39293937068303914,
+          "lo": 0.3668457405986186,
+          "hi": 0.4190330007674597,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "soundnessR0ByBand": {
+          "1300": {
+            "positions": 529,
+            "soundness": {
+              "value": 0.4120982986767486,
+              "lo": 0.3687258687258687,
+              "hi": 0.4533333333333333,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          },
+          "1500": {
+            "positions": 774,
+            "soundness": {
+              "value": 0.3798449612403101,
+              "lo": 0.3455877699180938,
+              "hi": 0.4143063104865438,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          }
+        },
+        "newBestDiffersFromStored": {
+          "searches": 995,
+          "changed": 0,
+          "share": 0.0
+        }
+      }
+    },
+    "trade-when-ahead": {
+      "originalVerdict": "It misleads",
+      "reading": "points to better moves than chance",
+      "countsByMonth": {
+        "2026-07": 4000,
+        "2026-08": 4000,
+        "2026-09": 4000
+      },
+      "train": {
+        "positions": 8000,
+        "games": 8000,
+        "nullLift": {
+          "value": -0.6345,
+          "lo": -0.645378125,
+          "hi": -0.623371875,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "content": {
+          "value": 0.515875,
+          "lo": 0.503371875,
+          "hi": 0.527375,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareRIsN": {
+          "value": 0.62475,
+          "lo": 0.614125,
+          "hi": 0.635125,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareR0IsN": {
+          "value": 0.03675,
+          "lo": 0.032625,
+          "hi": 0.041,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "liftWhenRDiffersFromN": {
+          "positions": 3002,
+          "lift": {
+            "value": -0.3161225849433711,
+            "lo": -0.33866972176759413,
+            "hi": -0.29502525423463766,
+            "validDraws": 2000,
+            "undefinedDraws": 0
+          }
+        },
+        "soundnessR0": {
+          "value": 0.20775,
+          "lo": 0.198621875,
+          "hi": 0.216753125,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "soundnessR0ByBand": {
+          "1300": {
+            "positions": 3624,
+            "soundness": {
+              "value": 0.20253863134657837,
+              "lo": 0.18946921471143632,
+              "hi": 0.2157148177665739,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          },
+          "1500": {
+            "positions": 4376,
+            "soundness": {
+              "value": 0.21206581352833637,
+              "lo": 0.19917722441953106,
+              "hi": 0.22353489696102313,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          }
+        },
+        "newBestDiffersFromStored": {
+          "searches": 7492,
+          "changed": 0,
+          "share": 0.0
+        }
+      },
+      "heldout": {
+        "positions": 4000,
+        "games": 4000,
+        "nullLift": {
+          "value": -0.65,
+          "lo": -0.66625,
+          "hi": -0.63424375,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "content": {
+          "value": 0.52225,
+          "lo": 0.50499375,
+          "hi": 0.54,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareRIsN": {
+          "value": 0.6205,
+          "lo": 0.6065,
+          "hi": 0.635,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareR0IsN": {
+          "value": 0.032,
+          "lo": 0.0265,
+          "hi": 0.03725624999999996,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "liftWhenRDiffersFromN": {
+          "positions": 1518,
+          "lift": {
+            "value": -0.33662714097496704,
+            "lo": -0.36863198224359234,
+            "hi": -0.30312516079497487,
+            "validDraws": 2000,
+            "undefinedDraws": 0
+          }
+        },
+        "soundnessR0": {
+          "value": 0.192,
+          "lo": 0.1795,
+          "hi": 0.205,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "soundnessR0ByBand": {
+          "1300": {
+            "positions": 1873,
+            "soundness": {
+              "value": 0.20501868659903896,
+              "lo": 0.18680709044480984,
+              "hi": 0.22406646979850628,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          },
+          "1500": {
+            "positions": 2127,
+            "soundness": {
+              "value": 0.18053596614950634,
+              "lo": 0.1641139833491923,
+              "hi": 0.19694903343454181,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          }
+        },
+        "newBestDiffersFromStored": {
+          "searches": 3778,
+          "changed": 0,
+          "share": 0.0
+        }
+      }
+    },
+    "open-file": {
+      "originalVerdict": "It misleads",
+      "reading": "points to better moves than chance",
+      "countsByMonth": {
+        "2026-07": 4000,
+        "2026-08": 4000,
+        "2026-09": 4000
+      },
+      "train": {
+        "positions": 8000,
+        "games": 8000,
+        "nullLift": {
+          "value": -0.433125,
+          "lo": -0.445625,
+          "hi": -0.42075,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "content": {
+          "value": 0.11525,
+          "lo": 0.103875,
+          "hi": 0.127003125,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareRIsN": {
+          "value": 0.15825,
+          "lo": 0.149875,
+          "hi": 0.166375,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareR0IsN": {
+          "value": 0.093625,
+          "lo": 0.08725,
+          "hi": 0.099875,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "liftWhenRDiffersFromN": {
+          "positions": 6734,
+          "lift": {
+            "value": -0.37763587763587764,
+            "lo": -0.3919693815947654,
+            "hi": -0.36324590294095066,
+            "validDraws": 2000,
+            "undefinedDraws": 0
+          }
+        },
+        "soundnessR0": {
+          "value": 0.310875,
+          "lo": 0.3005,
+          "hi": 0.321503125,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "soundnessR0ByBand": {
+          "1300": {
+            "positions": 3586,
+            "soundness": {
+              "value": 0.31455660903513666,
+              "lo": 0.29950109727376534,
+              "hi": 0.3297106719915188,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          },
+          "1500": {
+            "positions": 4414,
+            "soundness": {
+              "value": 0.30788400543724515,
+              "lo": 0.29377321443900567,
+              "hi": 0.32162594557664015,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          }
+        },
+        "newBestDiffersFromStored": {
+          "searches": 6479,
+          "changed": 0,
+          "share": 0.0
+        }
+      },
+      "heldout": {
+        "positions": 4000,
+        "games": 4000,
+        "nullLift": {
+          "value": -0.425,
+          "lo": -0.443,
+          "hi": -0.4075,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "content": {
+          "value": 0.1105,
+          "lo": 0.09425,
+          "hi": 0.12725,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareRIsN": {
+          "value": 0.15925,
+          "lo": 0.14875,
+          "hi": 0.17025,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareR0IsN": {
+          "value": 0.089,
+          "lo": 0.08025,
+          "hi": 0.09775,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "liftWhenRDiffersFromN": {
+          "positions": 3363,
+          "lift": {
+            "value": -0.3740707701457032,
+            "lo": -0.3939237546492695,
+            "hi": -0.35279879819517695,
+            "validDraws": 2000,
+            "undefinedDraws": 0
+          }
+        },
+        "soundnessR0": {
+          "value": 0.31625,
+          "lo": 0.3025,
+          "hi": 0.33075625,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "soundnessR0ByBand": {
+          "1300": {
+            "positions": 1809,
+            "soundness": {
+              "value": 0.3195135433941404,
+              "lo": 0.2991190182884665,
+              "hi": 0.3412753164032047,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          },
+          "1500": {
+            "positions": 2191,
+            "soundness": {
+              "value": 0.313555454130534,
+              "lo": 0.293759690895838,
+              "hi": 0.33318720023980813,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          }
+        },
+        "newBestDiffersFromStored": {
+          "searches": 3263,
+          "changed": 0,
+          "share": 0.0
+        }
+      }
+    },
+    "rook-on-the-seventh": {
+      "originalVerdict": "It misleads",
+      "reading": "points to better moves than chance",
+      "countsByMonth": {
+        "2026-07": 4000,
+        "2026-08": 4000,
+        "2026-09": 4000
+      },
+      "train": {
+        "positions": 8000,
+        "games": 8000,
+        "nullLift": {
+          "value": -0.5245,
+          "lo": -0.536503125,
+          "hi": -0.5125,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "content": {
+          "value": 0.234125,
+          "lo": 0.2225,
+          "hi": 0.245875,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareRIsN": {
+          "value": 0.22525,
+          "lo": 0.216125,
+          "hi": 0.234378125,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareR0IsN": {
+          "value": 0.03175,
+          "lo": 0.028125,
+          "hi": 0.035625,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "liftWhenRDiffersFromN": {
+          "positions": 6198,
+          "lift": {
+            "value": -0.3747983220393675,
+            "lo": -0.3897516960764796,
+            "hi": -0.359986286857651,
+            "validDraws": 2000,
+            "undefinedDraws": 0
+          }
+        },
+        "soundnessR0": {
+          "value": 0.240375,
+          "lo": 0.230871875,
+          "hi": 0.249625,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "soundnessR0ByBand": {
+          "1300": {
+            "positions": 3519,
+            "soundness": {
+              "value": 0.24808184143222506,
+              "lo": 0.23352072326262652,
+              "hi": 0.26260253500163694,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          },
+          "1500": {
+            "positions": 4481,
+            "soundness": {
+              "value": 0.23432269582682436,
+              "lo": 0.22217302722985624,
+              "hi": 0.24625715022736422,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          }
+        },
+        "newBestDiffersFromStored": {
+          "searches": 7398,
+          "changed": 0,
+          "share": 0.0
+        }
+      },
+      "heldout": {
+        "positions": 4000,
+        "games": 4000,
+        "nullLift": {
+          "value": -0.5255,
+          "lo": -0.542,
+          "hi": -0.50825,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "content": {
+          "value": 0.228,
+          "lo": 0.21225,
+          "hi": 0.244,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareRIsN": {
+          "value": 0.20775,
+          "lo": 0.19525,
+          "hi": 0.22025624999999996,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareR0IsN": {
+          "value": 0.03,
+          "lo": 0.02475,
+          "hi": 0.0355,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "liftWhenRDiffersFromN": {
+          "positions": 3169,
+          "lift": {
+            "value": -0.3755127800568003,
+            "lo": -0.39570893081691194,
+            "hi": -0.3549902700812222,
+            "validDraws": 2000,
+            "undefinedDraws": 0
+          }
+        },
+        "soundnessR0": {
+          "value": 0.242,
+          "lo": 0.228,
+          "hi": 0.25550625,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "soundnessR0ByBand": {
+          "1300": {
+            "positions": 1788,
+            "soundness": {
+              "value": 0.2516778523489933,
+              "lo": 0.23081124757595348,
+              "hi": 0.27163924423879515,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          },
+          "1500": {
+            "positions": 2212,
+            "soundness": {
+              "value": 0.23417721518987342,
+              "lo": 0.21638630729150632,
+              "hi": 0.2532615054987627,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          }
+        },
+        "newBestDiffersFromStored": {
+          "searches": 3705,
+          "changed": 0,
+          "share": 0.0
+        }
+      }
+    },
+    "outpost": {
+      "originalVerdict": "It misleads",
+      "reading": "points to better moves than chance",
+      "countsByMonth": {
+        "2026-07": 4000,
+        "2026-08": 4000,
+        "2026-09": 4000
+      },
+      "train": {
+        "positions": 8000,
+        "games": 8000,
+        "nullLift": {
+          "value": -0.522,
+          "lo": -0.533875,
+          "hi": -0.510371875,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "content": {
+          "value": 0.2,
+          "lo": 0.188496875,
+          "hi": 0.211503125,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareRIsN": {
+          "value": 0.242625,
+          "lo": 0.23349687500000002,
+          "hi": 0.252128125,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareR0IsN": {
+          "value": 0.04125,
+          "lo": 0.03675,
+          "hi": 0.045625,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "liftWhenRDiffersFromN": {
+          "positions": 6059,
+          "lift": {
+            "value": -0.42515266545634595,
+            "lo": -0.4403853651209326,
+            "hi": -0.4104277253137252,
+            "validDraws": 2000,
+            "undefinedDraws": 0
+          }
+        },
+        "soundnessR0": {
+          "value": 0.22325,
+          "lo": 0.214375,
+          "hi": 0.23275,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "soundnessR0ByBand": {
+          "1300": {
+            "positions": 3463,
+            "soundness": {
+              "value": 0.2304360381172394,
+              "lo": 0.2166983181186785,
+              "hi": 0.24439413091059017,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          },
+          "1500": {
+            "positions": 4537,
+            "soundness": {
+              "value": 0.2177650429799427,
+              "lo": 0.2058041299830455,
+              "hi": 0.22950945113865254,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          }
+        },
+        "newBestDiffersFromStored": {
+          "searches": 7245,
+          "changed": 0,
+          "share": 0.0
+        }
+      },
+      "heldout": {
+        "positions": 4000,
+        "games": 4000,
+        "nullLift": {
+          "value": -0.53575,
+          "lo": -0.55225,
+          "hi": -0.5185,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "content": {
+          "value": 0.2195,
+          "lo": 0.2035,
+          "hi": 0.236,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareRIsN": {
+          "value": 0.247,
+          "lo": 0.23349375,
+          "hi": 0.26025,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareR0IsN": {
+          "value": 0.03625,
+          "lo": 0.0305,
+          "hi": 0.04225,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "liftWhenRDiffersFromN": {
+          "positions": 3012,
+          "lift": {
+            "value": -0.4199867197875166,
+            "lo": -0.4405571978072035,
+            "hi": -0.39826712451173124,
+            "validDraws": 2000,
+            "undefinedDraws": 0
+          }
+        },
+        "soundnessR0": {
+          "value": 0.21375,
+          "lo": 0.20125,
+          "hi": 0.2265,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "soundnessR0ByBand": {
+          "1300": {
+            "positions": 1723,
+            "soundness": {
+              "value": 0.22751015670342425,
+              "lo": 0.20793571204248273,
+              "hi": 0.2468872945235044,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          },
+          "1500": {
+            "positions": 2277,
+            "soundness": {
+              "value": 0.20333772507685552,
+              "lo": 0.18697632623954405,
+              "hi": 0.21994028286116077,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          }
+        },
+        "newBestDiffersFromStored": {
+          "searches": 3635,
+          "changed": 0,
+          "share": 0.0
+        }
+      }
+    },
+    "pawn-break": {
+      "originalVerdict": "It misleads",
+      "reading": "points to better moves than chance",
+      "countsByMonth": {
+        "2026-07": 4000,
+        "2026-08": 4000,
+        "2026-09": 4000
+      },
+      "train": {
+        "positions": 8000,
+        "games": 8000,
+        "nullLift": {
+          "value": -0.52575,
+          "lo": -0.537625,
+          "hi": -0.512996875,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "content": {
+          "value": 0.03725,
+          "lo": 0.026875,
+          "hi": 0.04725,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareRIsN": {
+          "value": 0.05675,
+          "lo": 0.051871875,
+          "hi": 0.061625,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareR0IsN": {
+          "value": 0.039625,
+          "lo": 0.0355,
+          "hi": 0.04425,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "liftWhenRDiffersFromN": {
+          "positions": 7546,
+          "lift": {
+            "value": -0.5178902729923138,
+            "lo": -0.5308146477670059,
+            "hi": -0.5047669176000592,
+            "validDraws": 2000,
+            "undefinedDraws": 0
+          }
+        },
+        "soundnessR0": {
+          "value": 0.202875,
+          "lo": 0.194125,
+          "hi": 0.212003125,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "soundnessR0ByBand": {
+          "1300": {
+            "positions": 3563,
+            "soundness": {
+              "value": 0.20909346056693798,
+              "lo": 0.19582660180983136,
+              "hi": 0.22216300934253405,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          },
+          "1500": {
+            "positions": 4437,
+            "soundness": {
+              "value": 0.19788145143114716,
+              "lo": 0.18630317515669023,
+              "hi": 0.2103976911799709,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          }
+        },
+        "newBestDiffersFromStored": {
+          "searches": 7262,
+          "changed": 0,
+          "share": 0.0
+        }
+      },
+      "heldout": {
+        "positions": 4000,
+        "games": 4000,
+        "nullLift": {
+          "value": -0.5415,
+          "lo": -0.55775,
+          "hi": -0.52549375,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "content": {
+          "value": 0.046,
+          "lo": 0.03099375,
+          "hi": 0.06075624999999996,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareRIsN": {
+          "value": 0.05525,
+          "lo": 0.04799375,
+          "hi": 0.06225,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareR0IsN": {
+          "value": 0.04025,
+          "lo": 0.0345,
+          "hi": 0.04625,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "liftWhenRDiffersFromN": {
+          "positions": 3779,
+          "lift": {
+            "value": -0.5244773749669225,
+            "lo": -0.5430267552639209,
+            "hi": -0.505455758904973,
+            "validDraws": 2000,
+            "undefinedDraws": 0
+          }
+        },
+        "soundnessR0": {
+          "value": 0.20225,
+          "lo": 0.18975,
+          "hi": 0.21400624999999995,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "soundnessR0ByBand": {
+          "1300": {
+            "positions": 1784,
+            "soundness": {
+              "value": 0.21300448430493274,
+              "lo": 0.19448630472971348,
+              "hi": 0.23172206062626008,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          },
+          "1500": {
+            "positions": 2216,
+            "soundness": {
+              "value": 0.19359205776173286,
+              "lo": 0.17751420065699425,
+              "hi": 0.21029324793230525,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          }
+        },
+        "newBestDiffersFromStored": {
+          "searches": 3648,
+          "changed": 0,
+          "share": 0.0
+        }
+      }
+    },
+    "passed-pawn": {
+      "originalVerdict": "It misleads",
+      "reading": "points to better moves than chance",
+      "countsByMonth": {
+        "2026-07": 4000,
+        "2026-08": 4000,
+        "2026-09": 4000
+      },
+      "train": {
+        "positions": 8000,
+        "games": 8000,
+        "nullLift": {
+          "value": -0.456375,
+          "lo": -0.468628125,
+          "hi": -0.443875,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "content": {
+          "value": 0.12525,
+          "lo": 0.113625,
+          "hi": 0.137125,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareRIsN": {
+          "value": 0.23825,
+          "lo": 0.229125,
+          "hi": 0.247375,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareR0IsN": {
+          "value": 0.061125,
+          "lo": 0.056,
+          "hi": 0.066375,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "liftWhenRDiffersFromN": {
+          "positions": 6094,
+          "lift": {
+            "value": -0.4346898588775845,
+            "lo": -0.4490518056284019,
+            "hi": -0.4199998363409817,
+            "validDraws": 2000,
+            "undefinedDraws": 0
+          }
+        },
+        "soundnessR0": {
+          "value": 0.315,
+          "lo": 0.304375,
+          "hi": 0.32575,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "soundnessR0ByBand": {
+          "1300": {
+            "positions": 3579,
+            "soundness": {
+              "value": 0.32606873428331934,
+              "lo": 0.30998580040328966,
+              "hi": 0.3413572932652288,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          },
+          "1500": {
+            "positions": 4421,
+            "soundness": {
+              "value": 0.3060393576114001,
+              "lo": 0.2931534680436518,
+              "hi": 0.3200559717002026,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          }
+        },
+        "newBestDiffersFromStored": {
+          "searches": 6797,
+          "changed": 0,
+          "share": 0.0
+        }
+      },
+      "heldout": {
+        "positions": 4000,
+        "games": 4000,
+        "nullLift": {
+          "value": -0.488,
+          "lo": -0.50475,
+          "hi": -0.47175,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "content": {
+          "value": 0.1515,
+          "lo": 0.13575,
+          "hi": 0.16775,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareRIsN": {
+          "value": 0.23475,
+          "lo": 0.22175,
+          "hi": 0.248,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareR0IsN": {
+          "value": 0.06375,
+          "lo": 0.05675,
+          "hi": 0.071,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "liftWhenRDiffersFromN": {
+          "positions": 3061,
+          "lift": {
+            "value": -0.4397255798758576,
+            "lo": -0.4590878475375247,
+            "hi": -0.418435479289814,
+            "validDraws": 2000,
+            "undefinedDraws": 0
+          }
+        },
+        "soundnessR0": {
+          "value": 0.291,
+          "lo": 0.27724375,
+          "hi": 0.305,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "soundnessR0ByBand": {
+          "1300": {
+            "positions": 1753,
+            "soundness": {
+              "value": 0.28237307472903594,
+              "lo": 0.26238803818914014,
+              "hi": 0.30315526544906407,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          },
+          "1500": {
+            "positions": 2247,
+            "soundness": {
+              "value": 0.2977303070761015,
+              "lo": 0.27819781418565415,
+              "hi": 0.3166603369504561,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          }
+        },
+        "newBestDiffersFromStored": {
+          "searches": 3381,
+          "changed": 0,
+          "share": 0.0
+        }
+      }
+    },
+    "worst-piece": {
+      "originalVerdict": "It misleads",
+      "reading": "points to better moves than chance",
+      "countsByMonth": {
+        "2026-07": 4000,
+        "2026-08": 4000,
+        "2026-09": 4000
+      },
+      "train": {
+        "positions": 8000,
+        "games": 8000,
+        "nullLift": {
+          "value": -0.457625,
+          "lo": -0.469128125,
+          "hi": -0.445125,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "content": {
+          "value": 0.055,
+          "lo": 0.0435,
+          "hi": 0.06575,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareRIsN": {
+          "value": 0.104625,
+          "lo": 0.097625,
+          "hi": 0.111375,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareR0IsN": {
+          "value": 0.080875,
+          "lo": 0.075,
+          "hi": 0.087125,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "liftWhenRDiffersFromN": {
+          "positions": 7163,
+          "lift": {
+            "value": -0.44967192517101773,
+            "lo": -0.4633332155210432,
+            "hi": -0.4360553047337799,
+            "validDraws": 2000,
+            "undefinedDraws": 0
+          }
+        },
+        "soundnessR0": {
+          "value": 0.2935,
+          "lo": 0.283625,
+          "hi": 0.303625,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "soundnessR0ByBand": {
+          "1300": {
+            "positions": 3571,
+            "soundness": {
+              "value": 0.2943153178381406,
+              "lo": 0.27966303484398153,
+              "hi": 0.30945852523446743,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          },
+          "1500": {
+            "positions": 4429,
+            "soundness": {
+              "value": 0.29284262813276135,
+              "lo": 0.27981113077972675,
+              "hi": 0.30654524662230215,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          }
+        },
+        "newBestDiffersFromStored": {
+          "searches": 6673,
+          "changed": 0,
+          "share": 0.0
+        }
+      },
+      "heldout": {
+        "positions": 4000,
+        "games": 4000,
+        "nullLift": {
+          "value": -0.435,
+          "lo": -0.453,
+          "hi": -0.41774375,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "content": {
+          "value": 0.02675,
+          "lo": 0.01125,
+          "hi": 0.04325,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareRIsN": {
+          "value": 0.10975,
+          "lo": 0.1005,
+          "hi": 0.1205,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "shareR0IsN": {
+          "value": 0.077,
+          "lo": 0.06875,
+          "hi": 0.08525,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "liftWhenRDiffersFromN": {
+          "positions": 3561,
+          "lift": {
+            "value": -0.458579050828419,
+            "lo": -0.4776911505405771,
+            "hi": -0.4398545812853428,
+            "validDraws": 2000,
+            "undefinedDraws": 0
+          }
+        },
+        "soundnessR0": {
+          "value": 0.31975,
+          "lo": 0.30575,
+          "hi": 0.33425,
+          "validDraws": 2000,
+          "undefinedDraws": 0
+        },
+        "soundnessR0ByBand": {
+          "1300": {
+            "positions": 1806,
+            "soundness": {
+              "value": 0.32170542635658916,
+              "lo": 0.2997617567546632,
+              "hi": 0.34284156279961653,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          },
+          "1500": {
+            "positions": 2194,
+            "soundness": {
+              "value": 0.31814038286235186,
+              "lo": 0.2998212082799083,
+              "hi": 0.33785074151224975,
+              "validDraws": 2000,
+              "undefinedDraws": 0
+            }
+          }
+        },
+        "newBestDiffersFromStored": {
+          "searches": 3365,
+          "changed": 0,
+          "share": 0.0
+        }
+      }
+    }
+  },
+  "records": "aed714ada579782ce73630596e59c8b65e74cb30",
+  "provenance": {
+    "additionManifestSha256": "e3b8037573152e49058786c4f1680489bb935b44d9ebc57f5643b5a2a84be91b",
+    "additionRuleSha256": "369dc6566e24c9d8df3b0fbededb12994b0815dcdbc0c1ab56ad77180193172a",
+    "originalRuleSha256": "a315126af832e7fe411a93e2e0767fcca83bf8cae9edfa022533ddfeb432f875",
+    "originalContentManifestSha256": "0f0f51d13a8c991522cba398969b110ab05e68a9571b5bd20ffdb607635f80a1",
+    "originalResultsSha256": "4006b99d9067739c43e1134f9e7ece768337b95c29455e96ad27ebf55507dde7",
+    "inputManifestSha256": "3ec3cf5ae823f7d87c0d375a582c399c0650449291c84f3694627decf001ebab",
+    "analysisSha256": "6b269c4401e8a269d3c681ab4956780abf5c7348c08da793c3359480d1c0e06e",
+    "scorerSha256": "bfba120e4257d36797e50be9b761daf87d388a1a22ba1f16f46517c2e77ab109"
+  },
+  "operations": {
+    "byMonth": {
+      "2026-07": {
+        "workers": 2,
+        "completedRows": 42656,
+        "cumulativeWorkerSeconds": 18797.60919775,
+        "stoppedWorkerJobs": 0,
+        "completedRowTotals": {
+          "maiaSeconds": 2333.511160709871,
+          "engineSeconds": 16448.61295003995,
+          "tablebaseSeconds": 0.03578512197809092,
+          "rowSeconds": 18783.02640755786,
+          "newGameSeconds": 214.9587771840036,
+          "maiaCalls": 42656,
+          "maiaBands": 66720,
+          "bestCalls": 34393,
+          "scoreCalls": 34393,
+          "tablebaseCalls": 0,
+          "newGameCalls": 34393,
+          "storedProbeReads": 3996,
+          "reusedMoves": 4267,
+          "newSearches": 34393
+        },
+        "failedAttemptTotals": {
+          "maiaSeconds": 0,
+          "engineSeconds": 0,
+          "tablebaseSeconds": 0,
+          "rowSeconds": 0,
+          "newGameSeconds": 0,
+          "maiaCalls": 0,
+          "maiaBands": 0,
+          "bestCalls": 0,
+          "scoreCalls": 0,
+          "tablebaseCalls": 0,
+          "newGameCalls": 0,
+          "storedProbeReads": 0,
+          "reusedMoves": 0,
+          "newSearches": 0
+        }
+      },
+      "2026-08": {
+        "workers": 2,
+        "completedRows": 42611,
+        "cumulativeWorkerSeconds": 16454.216477833,
+        "stoppedWorkerJobs": 0,
+        "completedRowTotals": {
+          "maiaSeconds": 2238.408330810966,
+          "engineSeconds": 14201.506626863935,
+          "tablebaseSeconds": 0.04017956402152228,
+          "rowSeconds": 16440.785620526065,
+          "newGameSeconds": 192.9263468419837,
+          "maiaCalls": 42611,
+          "maiaBands": 66283,
+          "bestCalls": 34137,
+          "scoreCalls": 34137,
+          "tablebaseCalls": 0,
+          "newGameCalls": 34137,
+          "storedProbeReads": 4003,
+          "reusedMoves": 4471,
+          "newSearches": 34137
+        },
+        "failedAttemptTotals": {
+          "maiaSeconds": 0,
+          "engineSeconds": 0,
+          "tablebaseSeconds": 0,
+          "rowSeconds": 0,
+          "newGameSeconds": 0,
+          "maiaCalls": 0,
+          "maiaBands": 0,
+          "bestCalls": 0,
+          "scoreCalls": 0,
+          "tablebaseCalls": 0,
+          "newGameCalls": 0,
+          "storedProbeReads": 0,
+          "reusedMoves": 0,
+          "newSearches": 0
+        }
+      },
+      "2026-09": {
+        "workers": 2,
+        "completedRows": 42754,
+        "cumulativeWorkerSeconds": 52978.904467750006,
+        "stoppedWorkerJobs": 0,
+        "completedRowTotals": {
+          "maiaSeconds": 32540.641469212987,
+          "engineSeconds": 20418.397275014824,
+          "tablebaseSeconds": 0.09245294806872695,
+          "rowSeconds": 52960.224331438076,
+          "newGameSeconds": 269.0864062440594,
+          "maiaCalls": 42754,
+          "maiaBands": 66497,
+          "bestCalls": 34357,
+          "scoreCalls": 34357,
+          "tablebaseCalls": 0,
+          "newGameCalls": 34357,
+          "storedProbeReads": 4180,
+          "reusedMoves": 4217,
+          "newSearches": 34357
+        },
+        "failedAttemptTotals": {
+          "maiaSeconds": 0,
+          "engineSeconds": 0,
+          "tablebaseSeconds": 0,
+          "rowSeconds": 0,
+          "newGameSeconds": 0,
+          "maiaCalls": 0,
+          "maiaBands": 0,
+          "bestCalls": 0,
+          "scoreCalls": 0,
+          "tablebaseCalls": 0,
+          "newGameCalls": 0,
+          "storedProbeReads": 0,
+          "reusedMoves": 0,
+          "newSearches": 0
+        }
+      }
+    },
+    "timingDefinition": "Worker seconds sum elapsed worker time across workers and resumes. Completed-row and failed-attempt instrument times are separate. Missing values are unknown, not zero."
+  },
+  "seconds": 19.720765084028244
+}

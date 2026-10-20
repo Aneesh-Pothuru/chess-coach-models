@@ -1,0 +1,3649 @@
+{
+  "schema": 1,
+  "app": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+  "data": {
+    "source": "Lichess rated standard 600+0",
+    "license": "CC0",
+    "heldout": "2026-09"
+  },
+  "selection": {
+    "positionsPerRule": 8,
+    "population": "held-out rows with R different from N, for rules with a registered verdict",
+    "seed": "rule id through detect.mjs seeded()",
+    "method": "partial Fisher-Yates without replacement",
+    "order": "original positions file order",
+    "outcomeSelection": false
+  },
+  "readings": {
+    "winPercent": "the original mover's side, through the app core/score winPercentFor",
+    "soundness": "the original recorded soundness, checked against its stored referee evidence",
+    "bestStockfish": "the first line of the original grade best search",
+    "bestTablebase": "app bestUciFor(stored probe, 'fifty-move')",
+    "tablebaseWinPercent": "app tablebaseWdl of the stored move category at the child FEN, then winPercentFor; unavailable conversions stop"
+  },
+  "provenance": {
+    "additionManifestSha256": "e3b8037573152e49058786c4f1680489bb935b44d9ebc57f5643b5a2a84be91b",
+    "originalAnalysisSha256": "4006b99d9067739c43e1134f9e7ece768337b95c29455e96ad27ebf55507dde7",
+    "originalPhase2ManifestSha256": "0f0f51d13a8c991522cba398969b110ab05e68a9571b5bd20ffdb607635f80a1",
+    "generatorSha256": "03c29305fbfb75cafffc5d0b8c813e2b0b6459a91127d8fa4242e7c2f74017a1",
+    "inputs": {
+      "positions": "3515a4b24be37c4eb151d5fb1e294d2bad7f56fb52073b76bd9d1c95d9f966c6",
+      "positionManifest": "a92d6b234d03de4695f1a9ed14404abd3d4d59e1cbad73a3fe236858dcf2209c",
+      "scored": [
+        {
+          "shard": 0,
+          "journalSha256": "1fa1290265b63e9c3420da544988563b951004038ce377d4bc91474269fc7dbf",
+          "manifestSha256": "09bc2094dafe3223b121f275788c92babd302cc7fb7d945d6f9d560e01cd9b09"
+        },
+        {
+          "shard": 1,
+          "journalSha256": "6a24388a2f03749d5aff7083d5918075670b88ce01c06f5380fdd81f7122c58c",
+          "manifestSha256": "0cda2f640b531d9a36dd5add4550a83f7f05fff0d2845a49aff3152f59855107"
+        }
+      ]
+    }
+  },
+  "summary": {
+    "rules": 13,
+    "positions": 104,
+    "referees": {
+      "stockfish": 91,
+      "tablebase": 13
+    },
+    "sound": {
+      "R": 48,
+      "N": 86,
+      "A": 77,
+      "best": 104
+    }
+  },
+  "excluded": [
+    {
+      "rule": "lucena",
+      "reason": "fewer than 300 held-out positions",
+      "positions": 6
+    },
+    {
+      "rule": "philidor",
+      "reason": "fewer than 300 held-out positions",
+      "positions": 30
+    }
+  ],
+  "rules": {
+    "active-king": {
+      "verdict": "It misleads",
+      "eligiblePositions": 3099,
+      "summary": {
+        "positions": 8,
+        "referees": {
+          "stockfish": 7,
+          "tablebase": 1
+        },
+        "sound": {
+          "R": 5,
+          "N": 5,
+          "A": 6,
+          "best": 8
+        }
+      },
+      "examples": [
+        {
+          "number": 1,
+          "fen": "1R6/5p2/5Pkp/1P2P2p/4K1b1/4B1r1/8/8 w - - 1 41",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "e4f4",
+              "san": "Kf4",
+              "sound": false,
+              "winPercent": 74.06582830702547
+            },
+            "N": {
+              "uci": "b8g8",
+              "san": "Rg8+",
+              "sound": true,
+              "winPercent": 87.35912627088476
+            },
+            "A": {
+              "uci": "b8g8",
+              "san": "Rg8+",
+              "sound": true,
+              "winPercent": 87.35912627088476
+            },
+            "best": {
+              "uci": "b8g8",
+              "san": "Rg8+",
+              "sound": true,
+              "winPercent": 82.33352267092977
+            }
+          }
+        },
+        {
+          "number": 2,
+          "fen": "8/2pk4/3b1p2/3p4/1P6/2P1B1pP/P6r/R5K1 b - - 5 37",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "d7c6",
+              "san": "Kc6",
+              "sound": false,
+              "winPercent": 54.86333135073832
+            },
+            "N": {
+              "uci": "h2h3",
+              "san": "Rxh3",
+              "sound": false,
+              "winPercent": 58.03043837193157
+            },
+            "A": {
+              "uci": "h2h3",
+              "san": "Rxh3",
+              "sound": false,
+              "winPercent": 58.03043837193157
+            },
+            "best": {
+              "uci": "f6f5",
+              "san": "f5",
+              "sound": true,
+              "winPercent": 69.44706044506174
+            }
+          }
+        },
+        {
+          "number": 3,
+          "fen": "4k3/8/8/5NKP/8/4P3/8/8 b - - 4 59",
+          "band": 1500,
+          "referee": "tablebase",
+          "moves": {
+            "R": {
+              "uci": "e8f7",
+              "san": "Kf7",
+              "sound": true,
+              "winPercent": 0
+            },
+            "N": {
+              "uci": "e8f8",
+              "san": "Kf8",
+              "sound": true,
+              "winPercent": 0
+            },
+            "A": {
+              "uci": "e8f7",
+              "san": "Kf7",
+              "sound": true,
+              "winPercent": 0
+            },
+            "best": {
+              "uci": "e8d7",
+              "san": "Kd7",
+              "sound": true,
+              "winPercent": 0
+            }
+          }
+        },
+        {
+          "number": 4,
+          "fen": "6k1/p6p/6p1/P1R2p2/8/8/5PK1/r7 w - - 1 51",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "g2f3",
+              "san": "Kf3",
+              "sound": false,
+              "winPercent": 22.364619396018004
+            },
+            "N": {
+              "uci": "c5c8",
+              "san": "Rc8+",
+              "sound": false,
+              "winPercent": 24.34088196633245
+            },
+            "A": {
+              "uci": "g2f3",
+              "san": "Kf3",
+              "sound": false,
+              "winPercent": 22.364619396018004
+            },
+            "best": {
+              "uci": "c5c8",
+              "san": "Rc8+",
+              "sound": true,
+              "winPercent": 31.817086097856773
+            }
+          }
+        },
+        {
+          "number": 5,
+          "fen": "8/pp6/2pb1k2/5p2/1nP5/1P4pP/P5K1/8 b - - 3 47",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "f6g5",
+              "san": "Kg5",
+              "sound": true,
+              "winPercent": 97.44584942302555
+            },
+            "N": {
+              "uci": "b4a2",
+              "san": "Nxa2",
+              "sound": false,
+              "winPercent": 94.55050916144498
+            },
+            "A": {
+              "uci": "f6g5",
+              "san": "Kg5",
+              "sound": true,
+              "winPercent": 97.44584942302555
+            },
+            "best": {
+              "uci": "b4c2",
+              "san": "Nc2",
+              "sound": true,
+              "winPercent": 98.43627717185507
+            }
+          }
+        },
+        {
+          "number": 6,
+          "fen": "3r2k1/5pp1/7p/pNp4P/P6P/4P3/3P1P2/1b2K3 w - - 0 31",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "e1e2",
+              "san": "Ke2",
+              "sound": true,
+              "winPercent": 10.779026169080517
+            },
+            "N": {
+              "uci": "b5c3",
+              "san": "Nc3",
+              "sound": true,
+              "winPercent": 11.620943498073885
+            },
+            "A": {
+              "uci": "b5c3",
+              "san": "Nc3",
+              "sound": true,
+              "winPercent": 11.620943498073885
+            },
+            "best": {
+              "uci": "b5a7",
+              "san": "Na7",
+              "sound": true,
+              "winPercent": 12.358976412903047
+            }
+          }
+        },
+        {
+          "number": 7,
+          "fen": "2r5/pp3k2/8/8/Pn3P2/5K2/8/8 w - - 3 41",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "f3e4",
+              "san": "Ke4",
+              "sound": true,
+              "winPercent": 1.4210854715202004e-14
+            },
+            "N": {
+              "uci": "f4f5",
+              "san": "f5",
+              "sound": true,
+              "winPercent": 1.4210854715202004e-14
+            },
+            "A": {
+              "uci": "f3e4",
+              "san": "Ke4",
+              "sound": true,
+              "winPercent": 1.4210854715202004e-14
+            },
+            "best": {
+              "uci": "f3e4",
+              "san": "Ke4",
+              "sound": true,
+              "winPercent": 1.4210854715202004e-14
+            }
+          }
+        },
+        {
+          "number": 8,
+          "fen": "8/6pp/8/8/PKP3kP/3R2P1/4r3/8 w - - 1 48",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "b4c5",
+              "san": "Kc5",
+              "sound": true,
+              "winPercent": 87.07174761414801
+            },
+            "N": {
+              "uci": "a4a5",
+              "san": "a5",
+              "sound": true,
+              "winPercent": 90.14046421228699
+            },
+            "A": {
+              "uci": "c4c5",
+              "san": "c5",
+              "sound": true,
+              "winPercent": 88.970578574512
+            },
+            "best": {
+              "uci": "a4a5",
+              "san": "a5",
+              "sound": true,
+              "winPercent": 88.89810685801524
+            }
+          }
+        }
+      ]
+    },
+    "opposition": {
+      "verdict": "It misleads",
+      "eligiblePositions": 966,
+      "summary": {
+        "positions": 8,
+        "referees": {
+          "stockfish": 4,
+          "tablebase": 4
+        },
+        "sound": {
+          "R": 5,
+          "N": 8,
+          "A": 7,
+          "best": 8
+        }
+      },
+      "examples": [
+        {
+          "number": 1,
+          "fen": "8/8/8/8/K7/1pk5/8/8 b - - 1 57",
+          "band": 1500,
+          "referee": "tablebase",
+          "moves": {
+            "R": {
+              "uci": "c3c2",
+              "san": "Kc2",
+              "sound": true,
+              "winPercent": 100
+            },
+            "N": {
+              "uci": "b3b2",
+              "san": "b2",
+              "sound": true,
+              "winPercent": 100
+            },
+            "A": {
+              "uci": "c3c2",
+              "san": "Kc2",
+              "sound": true,
+              "winPercent": 100
+            },
+            "best": {
+              "uci": "b3b2",
+              "san": "b2",
+              "sound": true,
+              "winPercent": 100
+            }
+          }
+        },
+        {
+          "number": 2,
+          "fen": "8/8/8/2p5/p7/P2k4/1K6/8 w - - 4 55",
+          "band": 1500,
+          "referee": "tablebase",
+          "moves": {
+            "R": {
+              "uci": "b2b1",
+              "san": "Kb1",
+              "sound": true,
+              "winPercent": 0
+            },
+            "N": {
+              "uci": "b2c1",
+              "san": "Kc1",
+              "sound": true,
+              "winPercent": 0
+            },
+            "A": {
+              "uci": "b2a2",
+              "san": "Ka2",
+              "sound": true,
+              "winPercent": 0
+            },
+            "best": {
+              "uci": "b2a1",
+              "san": "Ka1",
+              "sound": true,
+              "winPercent": 0
+            }
+          }
+        },
+        {
+          "number": 3,
+          "fen": "4K3/8/6p1/1p5p/1P5P/3k4/1P3p2/8 w - - 0 54",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "e8d7",
+              "san": "Kd7",
+              "sound": false,
+              "winPercent": 0.07018689337995454
+            },
+            "N": {
+              "uci": "e8f7",
+              "san": "Kf7",
+              "sound": true,
+              "winPercent": 3.2571757363317175
+            },
+            "A": {
+              "uci": "e8e7",
+              "san": "Ke7",
+              "sound": false,
+              "winPercent": 0.455536866153885
+            },
+            "best": {
+              "uci": "e8f7",
+              "san": "Kf7",
+              "sound": true,
+              "winPercent": 4.3246508162260255
+            }
+          }
+        },
+        {
+          "number": 4,
+          "fen": "8/2p5/8/8/1p1K4/k7/8/8 w - - 0 70",
+          "band": 1300,
+          "referee": "tablebase",
+          "moves": {
+            "R": {
+              "uci": "d4c5",
+              "san": "Kc5",
+              "sound": true,
+              "winPercent": 0
+            },
+            "N": {
+              "uci": "d4d3",
+              "san": "Kd3",
+              "sound": true,
+              "winPercent": 0
+            },
+            "A": {
+              "uci": "d4d3",
+              "san": "Kd3",
+              "sound": true,
+              "winPercent": 0
+            },
+            "best": {
+              "uci": "d4d3",
+              "san": "Kd3",
+              "sound": true,
+              "winPercent": 0
+            }
+          }
+        },
+        {
+          "number": 5,
+          "fen": "8/6p1/3kPp1p/1p3P1P/1PpP1P2/p1K5/8/8 b - - 7 48",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "d6c7",
+              "san": "Kc7",
+              "sound": true,
+              "winPercent": 50
+            },
+            "N": {
+              "uci": "d6e7",
+              "san": "Ke7",
+              "sound": true,
+              "winPercent": 50
+            },
+            "A": {
+              "uci": "d6e7",
+              "san": "Ke7",
+              "sound": true,
+              "winPercent": 50
+            },
+            "best": {
+              "uci": "d6c6",
+              "san": "Kc6",
+              "sound": true,
+              "winPercent": 50
+            }
+          }
+        },
+        {
+          "number": 6,
+          "fen": "4k3/2P5/8/1p4p1/1P3p2/P2Kp2P/6P1/8 w - - 1 49",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "d3e2",
+              "san": "Ke2",
+              "sound": false,
+              "winPercent": 49.815896832005215
+            },
+            "N": {
+              "uci": "c7c8q",
+              "san": "c8=Q+",
+              "sound": true,
+              "winPercent": 99.61233300868376
+            },
+            "A": {
+              "uci": "c7c8q",
+              "san": "c8=Q+",
+              "sound": true,
+              "winPercent": 99.61233300868376
+            },
+            "best": {
+              "uci": "c7c8q",
+              "san": "c8=Q+",
+              "sound": true,
+              "winPercent": 95.75088717717148
+            }
+          }
+        },
+        {
+          "number": 7,
+          "fen": "8/8/7k/6pP/8/6K1/8/8 w - - 1 73",
+          "band": 1500,
+          "referee": "tablebase",
+          "moves": {
+            "R": {
+              "uci": "g3h2",
+              "san": "Kh2",
+              "sound": true,
+              "winPercent": 50
+            },
+            "N": {
+              "uci": "g3g4",
+              "san": "Kg4",
+              "sound": true,
+              "winPercent": 50
+            },
+            "A": {
+              "uci": "g3g4",
+              "san": "Kg4",
+              "sound": true,
+              "winPercent": 50
+            },
+            "best": {
+              "uci": "g3f2",
+              "san": "Kf2",
+              "sound": true,
+              "winPercent": 50
+            }
+          }
+        },
+        {
+          "number": 8,
+          "fen": "8/8/1k6/1P3pp1/2K4p/6P1/7P/8 w - - 0 49",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "c4d4",
+              "san": "Kd4",
+              "sound": false,
+              "winPercent": 44.13578474153804
+            },
+            "N": {
+              "uci": "g3h4",
+              "san": "gxh4",
+              "sound": true,
+              "winPercent": 50
+            },
+            "A": {
+              "uci": "g3h4",
+              "san": "gxh4",
+              "sound": true,
+              "winPercent": 50
+            },
+            "best": {
+              "uci": "g3h4",
+              "san": "gxh4",
+              "sound": true,
+              "winPercent": 50.55228953683341
+            }
+          }
+        }
+      ]
+    },
+    "square-rule": {
+      "verdict": "It misleads",
+      "eligiblePositions": 845,
+      "summary": {
+        "positions": 8,
+        "referees": {
+          "stockfish": 4,
+          "tablebase": 4
+        },
+        "sound": {
+          "R": 8,
+          "N": 7,
+          "A": 7,
+          "best": 8
+        }
+      },
+      "examples": [
+        {
+          "number": 1,
+          "fen": "8/8/1p1p4/p1p3k1/P1PpP3/1P6/7K/8 b - - 0 51",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "d4d3",
+              "san": "d3",
+              "sound": true,
+              "winPercent": 99.10046919922546
+            },
+            "N": {
+              "uci": "g5f4",
+              "san": "Kf4",
+              "sound": true,
+              "winPercent": 96.04061049488779
+            },
+            "A": {
+              "uci": "g5f4",
+              "san": "Kf4",
+              "sound": true,
+              "winPercent": 96.04061049488779
+            },
+            "best": {
+              "uci": "g5f4",
+              "san": "Kf4",
+              "sound": true,
+              "winPercent": 95.73588113991161
+            }
+          }
+        },
+        {
+          "number": 2,
+          "fen": "8/1k1b4/1p6/5P2/4K3/p7/8/8 b - - 0 45",
+          "band": 1300,
+          "referee": "tablebase",
+          "moves": {
+            "R": {
+              "uci": "a3a2",
+              "san": "a2",
+              "sound": true,
+              "winPercent": 100
+            },
+            "N": {
+              "uci": "d7f5",
+              "san": "Bxf5+",
+              "sound": true,
+              "winPercent": 100
+            },
+            "A": {
+              "uci": "d7f5",
+              "san": "Bxf5+",
+              "sound": true,
+              "winPercent": 100
+            },
+            "best": {
+              "uci": "a3a2",
+              "san": "a2",
+              "sound": true,
+              "winPercent": 100
+            }
+          }
+        },
+        {
+          "number": 3,
+          "fen": "8/6p1/2p1pqP1/1k1b3K/1Pp4P/8/8/8 b - - 3 50",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "c4c3",
+              "san": "c3",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            },
+            "N": {
+              "uci": "d5f3",
+              "san": "Bf3#",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            },
+            "A": {
+              "uci": "b5b4",
+              "san": "Kxb4",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            },
+            "best": {
+              "uci": "d5f3",
+              "san": "Bf3#",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            }
+          }
+        },
+        {
+          "number": 4,
+          "fen": "8/8/3Q1p2/1P1p1k2/8/5P2/1P4PP/6K1 w - - 1 43",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "b5b6",
+              "san": "b6",
+              "sound": true,
+              "winPercent": 99.99999999999997
+            },
+            "N": {
+              "uci": "d6d5",
+              "san": "Qxd5+",
+              "sound": true,
+              "winPercent": 99.99999999999997
+            },
+            "A": {
+              "uci": "b5b6",
+              "san": "b6",
+              "sound": true,
+              "winPercent": 99.99999999999997
+            },
+            "best": {
+              "uci": "b5b6",
+              "san": "b6",
+              "sound": true,
+              "winPercent": 99.99999999999997
+            }
+          }
+        },
+        {
+          "number": 5,
+          "fen": "6k1/6p1/7p/6n1/5P2/8/1K6/8 b - - 0 42",
+          "band": 1300,
+          "referee": "tablebase",
+          "moves": {
+            "R": {
+              "uci": "h6h5",
+              "san": "h5",
+              "sound": true,
+              "winPercent": 100
+            },
+            "N": {
+              "uci": "g5e6",
+              "san": "Ne6",
+              "sound": true,
+              "winPercent": 100
+            },
+            "A": {
+              "uci": "g5e4",
+              "san": "Ne4",
+              "sound": true,
+              "winPercent": 100
+            },
+            "best": {
+              "uci": "h6h5",
+              "san": "h5",
+              "sound": true,
+              "winPercent": 100
+            }
+          }
+        },
+        {
+          "number": 6,
+          "fen": "8/8/8/p1p5/2P2kp1/8/1r6/6K1 b - - 0 53",
+          "band": 1500,
+          "referee": "tablebase",
+          "moves": {
+            "R": {
+              "uci": "a5a4",
+              "san": "a4",
+              "sound": true,
+              "winPercent": 100
+            },
+            "N": {
+              "uci": "f4f3",
+              "san": "Kf3",
+              "sound": true,
+              "winPercent": 100
+            },
+            "A": {
+              "uci": "b2c2",
+              "san": "Rc2",
+              "sound": true,
+              "winPercent": 100
+            },
+            "best": {
+              "uci": "g4g3",
+              "san": "g3",
+              "sound": true,
+              "winPercent": 100
+            }
+          }
+        },
+        {
+          "number": 7,
+          "fen": "7r/pk2n3/5p1p/3p3P/3P2P1/2r2PK1/8/8 b - - 1 39",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "a7a5",
+              "san": "a5",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            },
+            "N": {
+              "uci": "c3d3",
+              "san": "Rd3",
+              "sound": false,
+              "winPercent": 96.66062064680966
+            },
+            "A": {
+              "uci": "f6f5",
+              "san": "f5",
+              "sound": false,
+              "winPercent": 96.02658517641201
+            },
+            "best": {
+              "uci": "h8b8",
+              "san": "Rb8",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            }
+          }
+        },
+        {
+          "number": 8,
+          "fen": "8/3K2bk/6p1/q6p/3P4/8/8/8 b - - 0 50",
+          "band": 1300,
+          "referee": "tablebase",
+          "moves": {
+            "R": {
+              "uci": "h5h4",
+              "san": "h4",
+              "sound": true,
+              "winPercent": 100
+            },
+            "N": {
+              "uci": "g7d4",
+              "san": "Bxd4",
+              "sound": true,
+              "winPercent": 100
+            },
+            "A": {
+              "uci": "a5d5",
+              "san": "Qd5+",
+              "sound": true,
+              "winPercent": 100
+            },
+            "best": {
+              "uci": "g7d4",
+              "san": "Bxd4",
+              "sound": true,
+              "winPercent": 100
+            }
+          }
+        }
+      ]
+    },
+    "rook-behind-passer": {
+      "verdict": "It misleads",
+      "eligiblePositions": 3717,
+      "summary": {
+        "positions": 8,
+        "referees": {
+          "stockfish": 8,
+          "tablebase": 0
+        },
+        "sound": {
+          "R": 4,
+          "N": 7,
+          "A": 6,
+          "best": 8
+        }
+      },
+      "examples": [
+        {
+          "number": 1,
+          "fen": "2k2r2/pp4Q1/2pP4/5r2/8/8/PPK5/8 b - - 7 42",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "f5d5",
+              "san": "Rd5",
+              "sound": false,
+              "winPercent": 0
+            },
+            "N": {
+              "uci": "f5f7",
+              "san": "R5f7",
+              "sound": true,
+              "winPercent": 53.58387144707509
+            },
+            "A": {
+              "uci": "f8f7",
+              "san": "R8f7",
+              "sound": false,
+              "winPercent": 50
+            },
+            "best": {
+              "uci": "f5f7",
+              "san": "R5f7",
+              "sound": true,
+              "winPercent": 54.041451952195146
+            }
+          }
+        },
+        {
+          "number": 2,
+          "fen": "1r2r1k1/5ppp/p2nb3/8/3P4/KP3P2/6PP/2R4R w - - 1 26",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "h1d1",
+              "san": "Rhd1",
+              "sound": true,
+              "winPercent": 6.152923944931771
+            },
+            "N": {
+              "uci": "c1c6",
+              "san": "Rc6",
+              "sound": true,
+              "winPercent": 5.681687720615166
+            },
+            "A": {
+              "uci": "c1c3",
+              "san": "Rc3",
+              "sound": true,
+              "winPercent": 7.23136059066038
+            },
+            "best": {
+              "uci": "d4d5",
+              "san": "d5",
+              "sound": true,
+              "winPercent": 7.873721253163218
+            }
+          }
+        },
+        {
+          "number": 3,
+          "fen": "1n1q1knQ/3r1p2/p6p/3B2p1/1Pp1P3/8/P4PPP/R3R1K1 b - - 0 19",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "d7c7",
+              "san": "Rc7",
+              "sound": true,
+              "winPercent": 15.722415700743113
+            },
+            "N": {
+              "uci": "c4c3",
+              "san": "c3",
+              "sound": false,
+              "winPercent": 13.094954138457581
+            },
+            "A": {
+              "uci": "d7d6",
+              "san": "Rd6",
+              "sound": true,
+              "winPercent": 14.632550766597745
+            },
+            "best": {
+              "uci": "d7d6",
+              "san": "Rd6",
+              "sound": true,
+              "winPercent": 16.569737414693776
+            }
+          }
+        },
+        {
+          "number": 4,
+          "fen": "2r4r/5p1p/4p1p1/P1P5/2p3kP/6P1/P7/b3q1NK b - - 0 35",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "h8e8",
+              "san": "Rhe8",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            },
+            "N": {
+              "uci": "c8c5",
+              "san": "Rxc5",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            },
+            "A": {
+              "uci": "c8c5",
+              "san": "Rxc5",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            },
+            "best": {
+              "uci": "a1d4",
+              "san": "Bd4",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            }
+          }
+        },
+        {
+          "number": 5,
+          "fen": "1k6/p1pB4/8/6b1/2KPP1P1/P1P2r1p/1P2R2P/8 b - - 8 38",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "f3e3",
+              "san": "Re3",
+              "sound": true,
+              "winPercent": 9.63282427017441
+            },
+            "N": {
+              "uci": "f3f7",
+              "san": "Rf7",
+              "sound": true,
+              "winPercent": 10.191649247758733
+            },
+            "A": {
+              "uci": "f3f7",
+              "san": "Rf7",
+              "sound": true,
+              "winPercent": 10.191649247758733
+            },
+            "best": {
+              "uci": "b8b7",
+              "san": "Kb7",
+              "sound": true,
+              "winPercent": 11.81136725291283
+            }
+          }
+        },
+        {
+          "number": 6,
+          "fen": "1r6/4Kpkp/4p1p1/4P3/2R1b1B1/8/7b/8 b - - 13 39",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "b8h8",
+              "san": "Rh8",
+              "sound": false,
+              "winPercent": 85.86617598408057
+            },
+            "N": {
+              "uci": "e4d5",
+              "san": "Bd5",
+              "sound": true,
+              "winPercent": 94.37721868953503
+            },
+            "A": {
+              "uci": "h7h5",
+              "san": "h5",
+              "sound": false,
+              "winPercent": 90.83735610512753
+            },
+            "best": {
+              "uci": "e4d5",
+              "san": "Bd5",
+              "sound": true,
+              "winPercent": 94.25882628426288
+            }
+          }
+        },
+        {
+          "number": 7,
+          "fen": "4rr1k/Q1pq1p2/3p1p1p/8/P2nP3/7P/4BPP1/R4RK1 b - - 0 20",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "e8c8",
+              "san": "Rc8",
+              "sound": false,
+              "winPercent": 14.268414971333442
+            },
+            "N": {
+              "uci": "d4e2",
+              "san": "Nxe2+",
+              "sound": true,
+              "winPercent": 73.28028486085162
+            },
+            "A": {
+              "uci": "d4e2",
+              "san": "Nxe2+",
+              "sound": true,
+              "winPercent": 73.28028486085162
+            },
+            "best": {
+              "uci": "d4e2",
+              "san": "Nxe2+",
+              "sound": true,
+              "winPercent": 71.73929335708208
+            }
+          }
+        },
+        {
+          "number": 8,
+          "fen": "2rqk2r/pQ1n1ppp/R3p3/8/1b1P4/4P3/3N1PPP/2B1K2R b Kk - 5 17",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "c8a8",
+              "san": "Ra8",
+              "sound": false,
+              "winPercent": 14.910679411042167
+            },
+            "N": {
+              "uci": "c8c1",
+              "san": "Rxc1+",
+              "sound": true,
+              "winPercent": 79.91162424527937
+            },
+            "A": {
+              "uci": "c8c1",
+              "san": "Rxc1+",
+              "sound": true,
+              "winPercent": 79.91162424527937
+            },
+            "best": {
+              "uci": "c8c1",
+              "san": "Rxc1+",
+              "sound": true,
+              "winPercent": 79.49467516669483
+            }
+          }
+        }
+      ]
+    },
+    "cut-off-king": {
+      "verdict": "It misleads",
+      "eligiblePositions": 1311,
+      "summary": {
+        "positions": 8,
+        "referees": {
+          "stockfish": 7,
+          "tablebase": 1
+        },
+        "sound": {
+          "R": 2,
+          "N": 7,
+          "A": 6,
+          "best": 8
+        }
+      },
+      "examples": [
+        {
+          "number": 1,
+          "fen": "3k4/p1pp3P/1p2p1R1/4K3/7r/8/P1P5/8 w - - 3 37",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "g6f6",
+              "san": "Rf6",
+              "sound": false,
+              "winPercent": 13.95602101452765
+            },
+            "N": {
+              "uci": "g6g8",
+              "san": "Rg8+",
+              "sound": true,
+              "winPercent": 78.70339126807212
+            },
+            "A": {
+              "uci": "g6g8",
+              "san": "Rg8+",
+              "sound": true,
+              "winPercent": 78.70339126807212
+            },
+            "best": {
+              "uci": "e5f6",
+              "san": "Kf6",
+              "sound": true,
+              "winPercent": 77.57138412629945
+            }
+          }
+        },
+        {
+          "number": 2,
+          "fen": "1k3r2/1pp5/p7/5P2/5p2/1P6/P3K3/R7 w - - 0 30",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "a1d1",
+              "san": "Rd1",
+              "sound": true,
+              "winPercent": 24.408755556920003
+            },
+            "N": {
+              "uci": "e2f3",
+              "san": "Kf3",
+              "sound": true,
+              "winPercent": 23.470217892023403
+            },
+            "A": {
+              "uci": "e2f3",
+              "san": "Kf3",
+              "sound": true,
+              "winPercent": 23.470217892023403
+            },
+            "best": {
+              "uci": "e2f3",
+              "san": "Kf3",
+              "sound": true,
+              "winPercent": 25.934171692974523
+            }
+          }
+        },
+        {
+          "number": 3,
+          "fen": "8/8/7k/P5pp/8/KP4R1/5rP1/8 w - - 0 37",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "g3c3",
+              "san": "Rc3",
+              "sound": false,
+              "winPercent": 71.36455108934885
+            },
+            "N": {
+              "uci": "a5a6",
+              "san": "a6",
+              "sound": false,
+              "winPercent": 50
+            },
+            "A": {
+              "uci": "b3b4",
+              "san": "b4",
+              "sound": true,
+              "winPercent": 82.17227605077602
+            },
+            "best": {
+              "uci": "b3b4",
+              "san": "b4",
+              "sound": true,
+              "winPercent": 81.34874545019301
+            }
+          }
+        },
+        {
+          "number": 4,
+          "fen": "8/2p2ppk/4p2p/4P3/R3p3/2P1P2P/P4PPK/2r5 w - - 3 27",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "a4d4",
+              "san": "Rd4",
+              "sound": true,
+              "winPercent": 52.94226081270875
+            },
+            "N": {
+              "uci": "a4c4",
+              "san": "Rc4",
+              "sound": true,
+              "winPercent": 54.315678521975045
+            },
+            "A": {
+              "uci": "a4c4",
+              "san": "Rc4",
+              "sound": true,
+              "winPercent": 54.315678521975045
+            },
+            "best": {
+              "uci": "a4c4",
+              "san": "Rc4",
+              "sound": true,
+              "winPercent": 55.68256609665036
+            }
+          }
+        },
+        {
+          "number": 5,
+          "fen": "8/6p1/6k1/5p2/P3rPP1/1P2PKP1/3R4/8 w - - 1 45",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "d2c2",
+              "san": "Rc2",
+              "sound": false,
+              "winPercent": 89.80835075224127
+            },
+            "N": {
+              "uci": "g4f5",
+              "san": "gxf5+",
+              "sound": true,
+              "winPercent": 99.99999999999997
+            },
+            "A": {
+              "uci": "g4g5",
+              "san": "g5",
+              "sound": false,
+              "winPercent": 90.6829680630278
+            },
+            "best": {
+              "uci": "g4f5",
+              "san": "gxf5+",
+              "sound": true,
+              "winPercent": 98.97053119987314
+            }
+          }
+        },
+        {
+          "number": 6,
+          "fen": "3r2k1/p4pp1/7p/2Pp4/P2R4/5P2/5KPP/8 b - - 1 35",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "d8e8",
+              "san": "Re8",
+              "sound": false,
+              "winPercent": 36.61823363988792
+            },
+            "N": {
+              "uci": "g8f8",
+              "san": "Kf8",
+              "sound": true,
+              "winPercent": 39.042367286887924
+            },
+            "A": {
+              "uci": "g8h7",
+              "san": "Kh7",
+              "sound": false,
+              "winPercent": 24.54488673960863
+            },
+            "best": {
+              "uci": "g8f8",
+              "san": "Kf8",
+              "sound": true,
+              "winPercent": 40.63067778943679
+            }
+          }
+        },
+        {
+          "number": 7,
+          "fen": "8/3R4/6k1/8/P2p1K2/r4P2/8/8 w - - 3 39",
+          "band": 1500,
+          "referee": "tablebase",
+          "moves": {
+            "R": {
+              "uci": "d7e7",
+              "san": "Re7",
+              "sound": false,
+              "winPercent": 50
+            },
+            "N": {
+              "uci": "d7d4",
+              "san": "Rxd4",
+              "sound": true,
+              "winPercent": 100
+            },
+            "A": {
+              "uci": "d7d4",
+              "san": "Rxd4",
+              "sound": true,
+              "winPercent": 100
+            },
+            "best": {
+              "uci": "d7d4",
+              "san": "Rxd4",
+              "sound": true,
+              "winPercent": 100
+            }
+          }
+        },
+        {
+          "number": 8,
+          "fen": "8/8/5p2/1pRp4/p6k/P4r2/1PP3p1/1K6 b - - 1 46",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "f3e3",
+              "san": "Re3",
+              "sound": false,
+              "winPercent": 96.6960932211693
+            },
+            "N": {
+              "uci": "g2g1q",
+              "san": "g1=Q+",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            },
+            "A": {
+              "uci": "g2g1q",
+              "san": "g1=Q+",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            },
+            "best": {
+              "uci": "g2g1q",
+              "san": "g1=Q+",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            }
+          }
+        }
+      ]
+    },
+    "outside-passer": {
+      "verdict": "It misleads",
+      "eligiblePositions": 398,
+      "summary": {
+        "positions": 8,
+        "referees": {
+          "stockfish": 6,
+          "tablebase": 2
+        },
+        "sound": {
+          "R": 2,
+          "N": 6,
+          "A": 7,
+          "best": 8
+        }
+      },
+      "examples": [
+        {
+          "number": 1,
+          "fen": "2r5/5k2/8/3p3p/pB6/P1P3K1/6p1/8 b - - 1 53",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "c8c3",
+              "san": "Rxc3+",
+              "sound": false,
+              "winPercent": 90.98944005759381
+            },
+            "N": {
+              "uci": "g2g1q",
+              "san": "g1=Q+",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            },
+            "A": {
+              "uci": "g2g1q",
+              "san": "g1=Q+",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            },
+            "best": {
+              "uci": "g2g1q",
+              "san": "g1=Q+",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            }
+          }
+        },
+        {
+          "number": 2,
+          "fen": "6k1/5pp1/3Bp2p/1p6/rP2P1P1/5K1P/8/8 b - - 1 32",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "a4b4",
+              "san": "Rxb4",
+              "sound": false,
+              "winPercent": 34.926500611173054
+            },
+            "N": {
+              "uci": "a4a3",
+              "san": "Ra3+",
+              "sound": true,
+              "winPercent": 86.90504586154242
+            },
+            "A": {
+              "uci": "f7f6",
+              "san": "f6",
+              "sound": true,
+              "winPercent": 86.65157323943802
+            },
+            "best": {
+              "uci": "a4a3",
+              "san": "Ra3+",
+              "sound": true,
+              "winPercent": 84.90148923385837
+            }
+          }
+        },
+        {
+          "number": 3,
+          "fen": "8/p5p1/1p6/7k/7P/K7/2p5/8 b - - 0 56",
+          "band": 1500,
+          "referee": "tablebase",
+          "moves": {
+            "R": {
+              "uci": "h5h4",
+              "san": "Kxh4",
+              "sound": true,
+              "winPercent": 100
+            },
+            "N": {
+              "uci": "c2c1q",
+              "san": "c1=Q+",
+              "sound": true,
+              "winPercent": 100
+            },
+            "A": {
+              "uci": "c2c1q",
+              "san": "c1=Q+",
+              "sound": true,
+              "winPercent": 100
+            },
+            "best": {
+              "uci": "h5h4",
+              "san": "Kxh4",
+              "sound": true,
+              "winPercent": 100
+            }
+          }
+        },
+        {
+          "number": 4,
+          "fen": "8/1p3p2/4k1p1/7p/1P1RKP2/6PP/1r6/8 b - - 0 42",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "b2b4",
+              "san": "Rxb4",
+              "sound": false,
+              "winPercent": 7.63667165134467
+            },
+            "N": {
+              "uci": "f7f5",
+              "san": "f5+",
+              "sound": false,
+              "winPercent": 52.39152574834706
+            },
+            "A": {
+              "uci": "b2b3",
+              "san": "Rb3",
+              "sound": true,
+              "winPercent": 66.23581358171661
+            },
+            "best": {
+              "uci": "b2b3",
+              "san": "Rb3",
+              "sound": true,
+              "winPercent": 62.86751633890877
+            }
+          }
+        },
+        {
+          "number": 5,
+          "fen": "6k1/6b1/8/1pB5/1P3KP1/1r6/8/4N3 b - - 0 43",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "b3b4",
+              "san": "Rxb4+",
+              "sound": false,
+              "winPercent": 17.666477329070233
+            },
+            "N": {
+              "uci": "g7c3",
+              "san": "Bc3",
+              "sound": false,
+              "winPercent": 52.2078114090291
+            },
+            "A": {
+              "uci": "g7f8",
+              "san": "Bf8",
+              "sound": false,
+              "winPercent": 50.36820134406648
+            },
+            "best": {
+              "uci": "g8f7",
+              "san": "Kf7",
+              "sound": true,
+              "winPercent": 55.77340998516676
+            }
+          }
+        },
+        {
+          "number": 6,
+          "fen": "5r2/3k2Kp/3P4/8/p7/3R3P/1p6/8 w - - 0 52",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "g7h7",
+              "san": "Kxh7",
+              "sound": false,
+              "winPercent": 1.4210854715202004e-14
+            },
+            "N": {
+              "uci": "g7f8",
+              "san": "Kxf8",
+              "sound": true,
+              "winPercent": 10.327249441731553
+            },
+            "A": {
+              "uci": "g7f8",
+              "san": "Kxf8",
+              "sound": true,
+              "winPercent": 10.327249441731553
+            },
+            "best": {
+              "uci": "g7f8",
+              "san": "Kxf8",
+              "sound": true,
+              "winPercent": 11.284897623993231
+            }
+          }
+        },
+        {
+          "number": 7,
+          "fen": "8/3P4/8/1pK5/3N4/P2kp3/8/8 w - - 1 64",
+          "band": 1500,
+          "referee": "tablebase",
+          "moves": {
+            "R": {
+              "uci": "d4b5",
+              "san": "Nxb5",
+              "sound": true,
+              "winPercent": 100
+            },
+            "N": {
+              "uci": "d7d8q",
+              "san": "d8=Q",
+              "sound": true,
+              "winPercent": 100
+            },
+            "A": {
+              "uci": "d7d8q",
+              "san": "d8=Q",
+              "sound": true,
+              "winPercent": 100
+            },
+            "best": {
+              "uci": "d4b5",
+              "san": "Nxb5",
+              "sound": true,
+              "winPercent": 100
+            }
+          }
+        },
+        {
+          "number": 8,
+          "fen": "8/8/7k/p4R1P/r4P2/7K/1P6/8 w - - 0 47",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "f5a5",
+              "san": "Rxa5",
+              "sound": false,
+              "winPercent": 15.820240791194308
+            },
+            "N": {
+              "uci": "h3g4",
+              "san": "Kg4",
+              "sound": true,
+              "winPercent": 53.30902822991305
+            },
+            "A": {
+              "uci": "h3g4",
+              "san": "Kg4",
+              "sound": true,
+              "winPercent": 53.30902822991305
+            },
+            "best": {
+              "uci": "h3g4",
+              "san": "Kg4",
+              "sound": true,
+              "winPercent": 55.04562746820834
+            }
+          }
+        }
+      ]
+    },
+    "trade-when-ahead": {
+      "verdict": "It misleads",
+      "eligiblePositions": 1518,
+      "summary": {
+        "positions": 8,
+        "referees": {
+          "stockfish": 8,
+          "tablebase": 0
+        },
+        "sound": {
+          "R": 4,
+          "N": 7,
+          "A": 7,
+          "best": 8
+        }
+      },
+      "examples": [
+        {
+          "number": 1,
+          "fen": "2kr3r/pppqnp2/2np4/1B5p/4P1p1/5PBP/PP3P2/RN1QR1K1 w - - 0 15",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "b5c6",
+              "san": "Bxc6",
+              "sound": false,
+              "winPercent": 67.21676854974802
+            },
+            "N": {
+              "uci": "f3g4",
+              "san": "fxg4",
+              "sound": false,
+              "winPercent": 67.70173032617419
+            },
+            "A": {
+              "uci": "f3g4",
+              "san": "fxg4",
+              "sound": false,
+              "winPercent": 67.70173032617419
+            },
+            "best": {
+              "uci": "h3h4",
+              "san": "h4",
+              "sound": true,
+              "winPercent": 71.06262503410557
+            }
+          }
+        },
+        {
+          "number": 2,
+          "fen": "2B2k2/pp4pp/6nq/3Q4/3P3N/4P1P1/PP5P/6K1 w - - 1 24",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "h4g6",
+              "san": "Nxg6+",
+              "sound": false,
+              "winPercent": 90.80666365586876
+            },
+            "N": {
+              "uci": "d5d8",
+              "san": "Qd8+",
+              "sound": true,
+              "winPercent": 99.99999999999997
+            },
+            "A": {
+              "uci": "d5f5",
+              "san": "Qf5+",
+              "sound": true,
+              "winPercent": 99.99999999999997
+            },
+            "best": {
+              "uci": "d5d8",
+              "san": "Qd8+",
+              "sound": true,
+              "winPercent": 98.00027097531927
+            }
+          }
+        },
+        {
+          "number": 3,
+          "fen": "r3k2r/p1pn1ppp/2p1p3/3p4/1P1Pb1P1/b1P2N1P/P3PPB1/R4RK1 b kq - 0 17",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "e4f3",
+              "san": "Bxf3",
+              "sound": true,
+              "winPercent": 82.96705794728743
+            },
+            "N": {
+              "uci": "a3b2",
+              "san": "Bb2",
+              "sound": true,
+              "winPercent": 84.80684627039938
+            },
+            "A": {
+              "uci": "a3b2",
+              "san": "Bb2",
+              "sound": true,
+              "winPercent": 84.80684627039938
+            },
+            "best": {
+              "uci": "a7a5",
+              "san": "a5",
+              "sound": true,
+              "winPercent": 84.32631204203119
+            }
+          }
+        },
+        {
+          "number": 4,
+          "fen": "rn4n1/pp6/1kpq4/3p4/3PbPp1/4B3/PPP2K2/RN2QR1r b - - 6 22",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "h1f1",
+              "san": "Rxf1+",
+              "sound": false,
+              "winPercent": 83.8334765669829
+            },
+            "N": {
+              "uci": "h1h2",
+              "san": "Rh2+",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            },
+            "A": {
+              "uci": "h1h2",
+              "san": "Rh2+",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            },
+            "best": {
+              "uci": "h1h2",
+              "san": "Rh2+",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            }
+          }
+        },
+        {
+          "number": 5,
+          "fen": "1r2r1k1/p1n2pbp/2p1p1p1/2PpP3/3P1P2/P1N3q1/1B4Q1/1R3RK1 b - - 1 21",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "g3g2",
+              "san": "Qxg2+",
+              "sound": true,
+              "winPercent": 73.78192027018545
+            },
+            "N": {
+              "uci": "g3e3",
+              "san": "Qe3+",
+              "sound": true,
+              "winPercent": 74.69727509866536
+            },
+            "A": {
+              "uci": "g3e3",
+              "san": "Qe3+",
+              "sound": true,
+              "winPercent": 74.69727509866536
+            },
+            "best": {
+              "uci": "g3g2",
+              "san": "Qxg2+",
+              "sound": true,
+              "winPercent": 75.24995800919416
+            }
+          }
+        },
+        {
+          "number": 6,
+          "fen": "1nkr3r/Rpp2p2/3pqp1p/1P2p3/2Q1P2B/2PP1N2/5RPP/6K1 w - - 1 22",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "c4e6",
+              "san": "Qxe6+",
+              "sound": true,
+              "winPercent": 87.23663888643881
+            },
+            "N": {
+              "uci": "c4a4",
+              "san": "Qa4",
+              "sound": true,
+              "winPercent": 85.36744923340225
+            },
+            "A": {
+              "uci": "c4e6",
+              "san": "Qxe6+",
+              "sound": true,
+              "winPercent": 87.23663888643881
+            },
+            "best": {
+              "uci": "c4e6",
+              "san": "Qxe6+",
+              "sound": true,
+              "winPercent": 88.07308573242653
+            }
+          }
+        },
+        {
+          "number": 7,
+          "fen": "3r4/pp3kb1/3p3p/4P1p1/4n3/P1NR1qBb/1PP4P/1K6 b - - 2 25",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "e4c3",
+              "san": "Nxc3+",
+              "sound": true,
+              "winPercent": 97.50026312406624
+            },
+            "N": {
+              "uci": "f3f1",
+              "san": "Qf1+",
+              "sound": true,
+              "winPercent": 97.60572238626702
+            },
+            "A": {
+              "uci": "e4c3",
+              "san": "Nxc3+",
+              "sound": true,
+              "winPercent": 97.50026312406624
+            },
+            "best": {
+              "uci": "f3f1",
+              "san": "Qf1+",
+              "sound": true,
+              "winPercent": 97.26582407142581
+            }
+          }
+        },
+        {
+          "number": 8,
+          "fen": "4r1k1/pppr1ppp/2p2q1n/2P2b2/4P3/2P2P1P/P2BQ1P1/RN2KB1R w KQ - 1 13",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "d2h6",
+              "san": "Bxh6",
+              "sound": false,
+              "winPercent": 63.63776066437299
+            },
+            "N": {
+              "uci": "g2g4",
+              "san": "g4",
+              "sound": true,
+              "winPercent": 77.50725757821421
+            },
+            "A": {
+              "uci": "g2g4",
+              "san": "g4",
+              "sound": true,
+              "winPercent": 77.50725757821421
+            },
+            "best": {
+              "uci": "g2g4",
+              "san": "g4",
+              "sound": true,
+              "winPercent": 79.07133848624497
+            }
+          }
+        }
+      ]
+    },
+    "open-file": {
+      "verdict": "It misleads",
+      "eligiblePositions": 3363,
+      "summary": {
+        "positions": 8,
+        "referees": {
+          "stockfish": 8,
+          "tablebase": 0
+        },
+        "sound": {
+          "R": 4,
+          "N": 6,
+          "A": 3,
+          "best": 8
+        }
+      },
+      "examples": [
+        {
+          "number": 1,
+          "fen": "k4qr1/1p6/p1ppQ3/3nP3/5P2/4P3/PPP2KR1/RNB5 b - - 3 32",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "g8h8",
+              "san": "Rh8",
+              "sound": false,
+              "winPercent": 13.69283400318173
+            },
+            "N": {
+              "uci": "g8g2",
+              "san": "Rxg2+",
+              "sound": true,
+              "winPercent": 16.774348040131002
+            },
+            "A": {
+              "uci": "g8h8",
+              "san": "Rh8",
+              "sound": false,
+              "winPercent": 13.69283400318173
+            },
+            "best": {
+              "uci": "g8g2",
+              "san": "Rxg2+",
+              "sound": true,
+              "winPercent": 17.612983627858085
+            }
+          }
+        },
+        {
+          "number": 2,
+          "fen": "4rrk1/1p1q2pp/pB6/P2p1p2/1P2p3/2P3P1/3Q1P1P/3R1RK1 w - - 0 23",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "f1e1",
+              "san": "Rfe1",
+              "sound": false,
+              "winPercent": 80.08836319239997
+            },
+            "N": {
+              "uci": "d2d5",
+              "san": "Qxd5+",
+              "sound": true,
+              "winPercent": 84.66396940887938
+            },
+            "A": {
+              "uci": "f1e1",
+              "san": "Rfe1",
+              "sound": false,
+              "winPercent": 80.08836319239997
+            },
+            "best": {
+              "uci": "d2d5",
+              "san": "Qxd5+",
+              "sound": true,
+              "winPercent": 83.9330342199078
+            }
+          }
+        },
+        {
+          "number": 3,
+          "fen": "r1bqr1k1/ppbn1ppp/2p2n2/2PpP3/7P/2NBPN2/PPQB1PP1/R3K2R b KQ - 0 11",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "d8e7",
+              "san": "Qe7",
+              "sound": false,
+              "winPercent": 22.109934903954397
+            },
+            "N": {
+              "uci": "d7e5",
+              "san": "Nxe5",
+              "sound": true,
+              "winPercent": 58.12008926446735
+            },
+            "A": {
+              "uci": "d7e5",
+              "san": "Nxe5",
+              "sound": true,
+              "winPercent": 58.12008926446735
+            },
+            "best": {
+              "uci": "d7e5",
+              "san": "Nxe5",
+              "sound": true,
+              "winPercent": 58.9244688568345
+            }
+          }
+        },
+        {
+          "number": 4,
+          "fen": "r2qrk2/p1p2p2/1p1p2p1/2n5/3QP3/7R/P1PN1PPP/1R4K1 w - - 8 21",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "b1d1",
+              "san": "Rd1",
+              "sound": false,
+              "winPercent": 62.350334329971105
+            },
+            "N": {
+              "uci": "h3h8",
+              "san": "Rh8+",
+              "sound": false,
+              "winPercent": 54.77213400816676
+            },
+            "A": {
+              "uci": "h3h8",
+              "san": "Rh8+",
+              "sound": false,
+              "winPercent": 54.77213400816676
+            },
+            "best": {
+              "uci": "b1e1",
+              "san": "Re1",
+              "sound": true,
+              "winPercent": 65.40749558280547
+            }
+          }
+        },
+        {
+          "number": 5,
+          "fen": "8/1pkr2p1/p1p4p/4b3/8/PP4PP/1P3P2/5RK1 w - - 1 30",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "f1e1",
+              "san": "Re1",
+              "sound": true,
+              "winPercent": 11.248087332490314
+            },
+            "N": {
+              "uci": "f1b1",
+              "san": "Rb1",
+              "sound": true,
+              "winPercent": 12.23982532701347
+            },
+            "A": {
+              "uci": "f1e1",
+              "san": "Re1",
+              "sound": true,
+              "winPercent": 11.248087332490314
+            },
+            "best": {
+              "uci": "f1b1",
+              "san": "Rb1",
+              "sound": true,
+              "winPercent": 11.926914267573451
+            }
+          }
+        },
+        {
+          "number": 6,
+          "fen": "r4rk1/pbp2pp1/1p5p/8/1P3P1q/P1NP3P/2PB1b1R/R1Q2K2 b - - 2 18",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "f8e8",
+              "san": "Rfe8",
+              "sound": true,
+              "winPercent": 85.73158502866656
+            },
+            "N": {
+              "uci": "f2g3",
+              "san": "Bg3",
+              "sound": false,
+              "winPercent": 80.32219384766665
+            },
+            "A": {
+              "uci": "f2g3",
+              "san": "Bg3",
+              "sound": false,
+              "winPercent": 80.32219384766665
+            },
+            "best": {
+              "uci": "a8e8",
+              "san": "Rae8",
+              "sound": true,
+              "winPercent": 85.22892607055503
+            }
+          }
+        },
+        {
+          "number": 7,
+          "fen": "r1b2rk1/p3b1p1/1p1p3p/1PpPppqN/4P3/P2P1Q1P/5PP1/R4R1K w - - 0 21",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "a1c1",
+              "san": "Rac1",
+              "sound": true,
+              "winPercent": 12.886860291577854
+            },
+            "N": {
+              "uci": "h5g3",
+              "san": "Ng3",
+              "sound": true,
+              "winPercent": 15.09851076614163
+            },
+            "A": {
+              "uci": "g2g3",
+              "san": "g3",
+              "sound": false,
+              "winPercent": 9.010559942406182
+            },
+            "best": {
+              "uci": "h5g3",
+              "san": "Ng3",
+              "sound": true,
+              "winPercent": 13.22117556602187
+            }
+          }
+        },
+        {
+          "number": 8,
+          "fen": "8/8/1p6/2p5/3pk3/5r1p/P1K5/7R w - - 2 58",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "h1e1",
+              "san": "Re1+",
+              "sound": true,
+              "winPercent": 7.6887769545138624
+            },
+            "N": {
+              "uci": "c2d2",
+              "san": "Kd2",
+              "sound": true,
+              "winPercent": 8.008305980061614
+            },
+            "A": {
+              "uci": "h1d1",
+              "san": "Rd1",
+              "sound": true,
+              "winPercent": 7.1088239218406315
+            },
+            "best": {
+              "uci": "c2d2",
+              "san": "Kd2",
+              "sound": true,
+              "winPercent": 8.831063994889789
+            }
+          }
+        }
+      ]
+    },
+    "rook-on-the-seventh": {
+      "verdict": "It misleads",
+      "eligiblePositions": 3169,
+      "summary": {
+        "positions": 8,
+        "referees": {
+          "stockfish": 8,
+          "tablebase": 0
+        },
+        "sound": {
+          "R": 4,
+          "N": 8,
+          "A": 8,
+          "best": 8
+        }
+      },
+      "examples": [
+        {
+          "number": 1,
+          "fen": "6k1/1b4b1/p4p2/1p4nP/2p1Pq2/P1Q3N1/1P3PP1/3rR1K1 b - - 6 32",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "d1d2",
+              "san": "Rd2",
+              "sound": true,
+              "winPercent": 86.17609834642812
+            },
+            "N": {
+              "uci": "d1e1",
+              "san": "Rxe1+",
+              "sound": true,
+              "winPercent": 86.60892650737608
+            },
+            "A": {
+              "uci": "d1e1",
+              "san": "Rxe1+",
+              "sound": true,
+              "winPercent": 86.60892650737608
+            },
+            "best": {
+              "uci": "d1d3",
+              "san": "Rd3",
+              "sound": true,
+              "winPercent": 86.86308617297156
+            }
+          }
+        },
+        {
+          "number": 2,
+          "fen": "8/1p2k3/6pp/5p2/1PR2P2/r1P2K1P/6P1/8 w - - 0 52",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "c4c7",
+              "san": "Rc7+",
+              "sound": true,
+              "winPercent": 60.254366098530575
+            },
+            "N": {
+              "uci": "g2g4",
+              "san": "g4",
+              "sound": true,
+              "winPercent": 64.73801693008373
+            },
+            "A": {
+              "uci": "c4c7",
+              "san": "Rc7+",
+              "sound": true,
+              "winPercent": 60.254366098530575
+            },
+            "best": {
+              "uci": "g2g4",
+              "san": "g4",
+              "sound": true,
+              "winPercent": 61.56928792462818
+            }
+          }
+        },
+        {
+          "number": 3,
+          "fen": "3r3k/p5p1/1p3p1P/8/8/P1p1KBR1/b1P2PP1/8 b - - 0 30",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "d8d2",
+              "san": "Rd2",
+              "sound": false,
+              "winPercent": 26.432321070506646
+            },
+            "N": {
+              "uci": "g7h6",
+              "san": "gxh6",
+              "sound": true,
+              "winPercent": 48.71155730352672
+            },
+            "A": {
+              "uci": "g7h6",
+              "san": "gxh6",
+              "sound": true,
+              "winPercent": 48.71155730352672
+            },
+            "best": {
+              "uci": "g7h6",
+              "san": "gxh6",
+              "sound": true,
+              "winPercent": 49.63179865593354
+            }
+          }
+        },
+        {
+          "number": 4,
+          "fen": "3q1rk1/2p2ppp/1p2p3/1R1pP3/r1n2B1P/2P3P1/4PPK1/5R2 b - - 0 21",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "a4a2",
+              "san": "Ra2",
+              "sound": true,
+              "winPercent": 91.96452624848273
+            },
+            "N": {
+              "uci": "d8d7",
+              "san": "Qd7",
+              "sound": true,
+              "winPercent": 91.34519639532505
+            },
+            "A": {
+              "uci": "a4a2",
+              "san": "Ra2",
+              "sound": true,
+              "winPercent": 91.96452624848273
+            },
+            "best": {
+              "uci": "a4a2",
+              "san": "Ra2",
+              "sound": true,
+              "winPercent": 91.51826607186987
+            }
+          }
+        },
+        {
+          "number": 5,
+          "fen": "7r/P4p1p/4p1p1/r7/2p3kP/6P1/P7/b3q1NK b - - 0 37",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "a5a2",
+              "san": "Rxa2",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            },
+            "N": {
+              "uci": "a5a7",
+              "san": "Rxa7",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            },
+            "A": {
+              "uci": "a5a7",
+              "san": "Rxa7",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            },
+            "best": {
+              "uci": "a1d4",
+              "san": "Bd4",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            }
+          }
+        },
+        {
+          "number": 6,
+          "fen": "5k2/ppK1N1pp/8/Nb6/3r4/7P/P3r1P1/8 b - - 7 35",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "d4d2",
+              "san": "Rdd2",
+              "sound": false,
+              "winPercent": 95.10960311122986
+            },
+            "N": {
+              "uci": "e2e7",
+              "san": "Rxe7+",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            },
+            "A": {
+              "uci": "e2e7",
+              "san": "Rxe7+",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            },
+            "best": {
+              "uci": "e2e7",
+              "san": "Rxe7+",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            }
+          }
+        },
+        {
+          "number": 7,
+          "fen": "5r2/Bp6/6RP/8/8/1P1K1p2/P1P4k/2b5 w - - 1 37",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "g6g7",
+              "san": "Rg7",
+              "sound": false,
+              "winPercent": 63.296265890472554
+            },
+            "N": {
+              "uci": "h6h7",
+              "san": "h7",
+              "sound": true,
+              "winPercent": 86.90504586154242
+            },
+            "A": {
+              "uci": "h6h7",
+              "san": "h7",
+              "sound": true,
+              "winPercent": 86.90504586154242
+            },
+            "best": {
+              "uci": "h6h7",
+              "san": "h7",
+              "sound": true,
+              "winPercent": 86.94689166918971
+            }
+          }
+        },
+        {
+          "number": 8,
+          "fen": "r3k3/pp3p2/2pp1pr1/4p3/2P1P3/1nP1Q2P/1qN1NP2/3RK2R b q - 9 24",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "g6g2",
+              "san": "Rg2",
+              "sound": false,
+              "winPercent": 36.36223933562701
+            },
+            "N": {
+              "uci": "b2c2",
+              "san": "Qxc2",
+              "sound": true,
+              "winPercent": 69.44706044506174
+            },
+            "A": {
+              "uci": "b2c2",
+              "san": "Qxc2",
+              "sound": true,
+              "winPercent": 69.44706044506174
+            },
+            "best": {
+              "uci": "b2c2",
+              "san": "Qxc2",
+              "sound": true,
+              "winPercent": 69.13366122677583
+            }
+          }
+        }
+      ]
+    },
+    "outpost": {
+      "verdict": "It misleads",
+      "eligiblePositions": 3012,
+      "summary": {
+        "positions": 8,
+        "referees": {
+          "stockfish": 8,
+          "tablebase": 0
+        },
+        "sound": {
+          "R": 2,
+          "N": 6,
+          "A": 5,
+          "best": 8
+        }
+      },
+      "examples": [
+        {
+          "number": 1,
+          "fen": "r3k1nr/2q2ppp/4p3/p2pn3/P7/NQP2N2/5PPP/R4RK1 w kq - 0 15",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "a3b5",
+              "san": "Nb5",
+              "sound": false,
+              "winPercent": 37.99603223030577
+            },
+            "N": {
+              "uci": "f3e5",
+              "san": "Nxe5",
+              "sound": true,
+              "winPercent": 59.36932221056321
+            },
+            "A": {
+              "uci": "f3e5",
+              "san": "Nxe5",
+              "sound": true,
+              "winPercent": 59.36932221056321
+            },
+            "best": {
+              "uci": "f3e5",
+              "san": "Nxe5",
+              "sound": true,
+              "winPercent": 57.6713100955946
+            }
+          }
+        },
+        {
+          "number": 2,
+          "fen": "1r4k1/NpN2p1p/6p1/2p1b2b/P4P2/6P1/1r5P/6K1 w - - 0 28",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "a7b5",
+              "san": "Nab5",
+              "sound": true,
+              "winPercent": 1.4210854715202004e-14
+            },
+            "N": {
+              "uci": "f4e5",
+              "san": "fxe5",
+              "sound": true,
+              "winPercent": 1.4210854715202004e-14
+            },
+            "A": {
+              "uci": "f4e5",
+              "san": "fxe5",
+              "sound": true,
+              "winPercent": 1.4210854715202004e-14
+            },
+            "best": {
+              "uci": "c7d5",
+              "san": "Nd5",
+              "sound": true,
+              "winPercent": 1.4210854715202004e-14
+            }
+          }
+        },
+        {
+          "number": 3,
+          "fen": "r3q1k1/pp4p1/2p1p1rp/6bR/3P2NQ/3R4/PP4PP/6K1 w - - 8 32",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "g4e5",
+              "san": "Ne5",
+              "sound": false,
+              "winPercent": 13.348426760561978
+            },
+            "N": {
+              "uci": "h4h3",
+              "san": "Qh3",
+              "sound": false,
+              "winPercent": 34.094353873508304
+            },
+            "A": {
+              "uci": "h4h3",
+              "san": "Qh3",
+              "sound": false,
+              "winPercent": 34.094353873508304
+            },
+            "best": {
+              "uci": "h4e1",
+              "san": "Qe1",
+              "sound": true,
+              "winPercent": 39.393451294358464
+            }
+          }
+        },
+        {
+          "number": 4,
+          "fen": "r4rk1/n4p1p/5qp1/1p1Q1p2/pP1n4/P1RB3R/5PPP/2B3K1 b - - 0 22",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "d4b3",
+              "san": "Nb3",
+              "sound": false,
+              "winPercent": 48.8955556790248
+            },
+            "N": {
+              "uci": "a8d8",
+              "san": "Rad8",
+              "sound": true,
+              "winPercent": 79.49467516669483
+            },
+            "A": {
+              "uci": "a8d8",
+              "san": "Rad8",
+              "sound": true,
+              "winPercent": 79.49467516669483
+            },
+            "best": {
+              "uci": "a8d8",
+              "san": "Rad8",
+              "sound": true,
+              "winPercent": 79.37437388061464
+            }
+          }
+        },
+        {
+          "number": 5,
+          "fen": "3r1r2/p1q1k3/2p2n2/1p3pp1/3PP2p/P1P1P3/3NQ1PP/R4RK1 b - - 0 25",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "f6e4",
+              "san": "Nxe4",
+              "sound": true,
+              "winPercent": 28.410246577959356
+            },
+            "N": {
+              "uci": "f5e4",
+              "san": "fxe4",
+              "sound": true,
+              "winPercent": 31.977056313180853
+            },
+            "A": {
+              "uci": "f6g4",
+              "san": "Ng4",
+              "sound": false,
+              "winPercent": 26.936559078609932
+            },
+            "best": {
+              "uci": "f5e4",
+              "san": "fxe4",
+              "sound": true,
+              "winPercent": 31.260576452516972
+            }
+          }
+        },
+        {
+          "number": 6,
+          "fen": "2kr4/5p2/1n1p3p/p1pP1P2/PpP1P3/1P6/N3K3/1B1Rb1r1 b - - 3 32",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "e1c3",
+              "san": "Bc3",
+              "sound": false,
+              "winPercent": 59.635503164636745
+            },
+            "N": {
+              "uci": "d8g8",
+              "san": "Rdg8",
+              "sound": true,
+              "winPercent": 91.48964080224704
+            },
+            "A": {
+              "uci": "e1f2",
+              "san": "Bf2",
+              "sound": true,
+              "winPercent": 87.83905850187358
+            },
+            "best": {
+              "uci": "d8g8",
+              "san": "Rdg8",
+              "sound": true,
+              "winPercent": 88.41681982392356
+            }
+          }
+        },
+        {
+          "number": 7,
+          "fen": "4r1k1/p4p2/2p2n2/1pNp2pp/6P1/3P1P1P/PPPb1KN1/R7 b - - 1 23",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "d2f4",
+              "san": "Bf4",
+              "sound": false,
+              "winPercent": 35.59892510877809
+            },
+            "N": {
+              "uci": "h5g4",
+              "san": "hxg4",
+              "sound": true,
+              "winPercent": 47.42482461063747
+            },
+            "A": {
+              "uci": "d2e3",
+              "san": "Be3+",
+              "sound": false,
+              "winPercent": 16.316792744377253
+            },
+            "best": {
+              "uci": "d2a5",
+              "san": "Ba5",
+              "sound": true,
+              "winPercent": 48.80355243833374
+            }
+          }
+        },
+        {
+          "number": 8,
+          "fen": "r1bq1rk1/pp2bpp1/3p1n1p/2p5/2BQP3/1P6/PBPN1PPP/R4RK1 w - - 0 11",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "c4d5",
+              "san": "Bd5",
+              "sound": false,
+              "winPercent": 11.138285043817639
+            },
+            "N": {
+              "uci": "d4e3",
+              "san": "Qe3",
+              "sound": false,
+              "winPercent": 56.49872147270768
+            },
+            "A": {
+              "uci": "d4c3",
+              "san": "Qc3",
+              "sound": true,
+              "winPercent": 57.131105741498935
+            },
+            "best": {
+              "uci": "d4d3",
+              "san": "Qd3",
+              "sound": true,
+              "winPercent": 59.7241050790976
+            }
+          }
+        }
+      ]
+    },
+    "pawn-break": {
+      "verdict": "It misleads",
+      "eligiblePositions": 3779,
+      "summary": {
+        "positions": 8,
+        "referees": {
+          "stockfish": 8,
+          "tablebase": 0
+        },
+        "sound": {
+          "R": 3,
+          "N": 7,
+          "A": 5,
+          "best": 8
+        }
+      },
+      "examples": [
+        {
+          "number": 1,
+          "fen": "r2q1rk1/1bppbppp/p4n2/3P2B1/2p5/2N2N2/PPP1QPPP/R3R1K1 b - - 5 12",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "c7c6",
+              "san": "c6",
+              "sound": false,
+              "winPercent": 14.957455800426857
+            },
+            "N": {
+              "uci": "f8e8",
+              "san": "Re8",
+              "sound": true,
+              "winPercent": 36.36223933562701
+            },
+            "A": {
+              "uci": "f8e8",
+              "san": "Re8",
+              "sound": true,
+              "winPercent": 36.36223933562701
+            },
+            "best": {
+              "uci": "h7h6",
+              "san": "h6",
+              "sound": true,
+              "winPercent": 38.08281678856247
+            }
+          }
+        },
+        {
+          "number": 2,
+          "fen": "r2qkb1r/ppp2ppp/3p1n2/8/4P3/3P1Q2/PPP2PPP/RNB1K2R b KQkq - 0 9",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "d6d5",
+              "san": "d5",
+              "sound": true,
+              "winPercent": 34.50924067173986
+            },
+            "N": {
+              "uci": "f8e7",
+              "san": "Be7",
+              "sound": true,
+              "winPercent": 35.93729949245686
+            },
+            "A": {
+              "uci": "d8e7",
+              "san": "Qe7",
+              "sound": false,
+              "winPercent": 29.777313012875567
+            },
+            "best": {
+              "uci": "f8e7",
+              "san": "Be7",
+              "sound": true,
+              "winPercent": 35.43027333120821
+            }
+          }
+        },
+        {
+          "number": 3,
+          "fen": "rn3rk1/ppp2ppp/5q2/3p4/5NnP/PPP1P3/2P5/R1BQK2R w KQ - 2 15",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "c3c4",
+              "san": "c4",
+              "sound": false,
+              "winPercent": 17.453266737981437
+            },
+            "N": {
+              "uci": "d1g4",
+              "san": "Qxg4",
+              "sound": false,
+              "winPercent": 25.02536698554691
+            },
+            "A": {
+              "uci": "d1d3",
+              "san": "Qd3",
+              "sound": false,
+              "winPercent": 20.867793568510635
+            },
+            "best": {
+              "uci": "c1d2",
+              "san": "Bd2",
+              "sound": true,
+              "winPercent": 38.16967754233412
+            }
+          }
+        },
+        {
+          "number": 4,
+          "fen": "rk1q3r/pp3Q1p/2p2p2/2Pppb2/5b2/5N2/PPP2PPP/R4RK1 w - - 0 17",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "c2c4",
+              "san": "c4",
+              "sound": true,
+              "winPercent": 18.31837401142804
+            },
+            "N": {
+              "uci": "f3h4",
+              "san": "Nh4",
+              "sound": true,
+              "winPercent": 16.877407540701398
+            },
+            "A": {
+              "uci": "f1e1",
+              "san": "Rfe1",
+              "sound": true,
+              "winPercent": 16.46818444286432
+            },
+            "best": {
+              "uci": "c2c4",
+              "san": "c4",
+              "sound": true,
+              "winPercent": 18.31837401142804
+            }
+          }
+        },
+        {
+          "number": 5,
+          "fen": "r3k2r/2pq2p1/p2p1b2/1p2pP1p/3nP3/1BN4P/PPP3P1/R2Q1RK1 w kq - 0 16",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "a2a4",
+              "san": "a4",
+              "sound": true,
+              "winPercent": 59.1915609324709
+            },
+            "N": {
+              "uci": "c3d5",
+              "san": "Nd5",
+              "sound": true,
+              "winPercent": 58.12008926446735
+            },
+            "A": {
+              "uci": "c3d5",
+              "san": "Nd5",
+              "sound": true,
+              "winPercent": 58.12008926446735
+            },
+            "best": {
+              "uci": "a2a4",
+              "san": "a4",
+              "sound": true,
+              "winPercent": 57.76116974476763
+            }
+          }
+        },
+        {
+          "number": 6,
+          "fen": "1rb1kbnr/pp4pp/4p3/1Np1P3/4p3/8/PPP2PPP/RNB1K2R w KQk - 0 10",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "f2f3",
+              "san": "f3",
+              "sound": false,
+              "winPercent": 50.920416012880864
+            },
+            "N": {
+              "uci": "b5a7",
+              "san": "Nxa7",
+              "sound": true,
+              "winPercent": 62.17730635233241
+            },
+            "A": {
+              "uci": "b1c3",
+              "san": "N1c3",
+              "sound": false,
+              "winPercent": 57.58139966794447
+            },
+            "best": {
+              "uci": "c1e3",
+              "san": "Be3",
+              "sound": true,
+              "winPercent": 61.22020503513589
+            }
+          }
+        },
+        {
+          "number": 7,
+          "fen": "1k1r1b1r/pb3ppp/1p1np3/4N3/1qPP4/4P1P1/1B3PBP/R2QR1K1 w - - 3 19",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "d4d5",
+              "san": "d5",
+              "sound": false,
+              "winPercent": 61.743385997576716
+            },
+            "N": {
+              "uci": "g2b7",
+              "san": "Bxb7",
+              "sound": true,
+              "winPercent": 88.34118629871756
+            },
+            "A": {
+              "uci": "g2b7",
+              "san": "Bxb7",
+              "sound": true,
+              "winPercent": 88.34118629871756
+            },
+            "best": {
+              "uci": "g2b7",
+              "san": "Bxb7",
+              "sound": true,
+              "winPercent": 88.34118629871756
+            }
+          }
+        },
+        {
+          "number": 8,
+          "fen": "8/pkp2PR1/2n1N2B/1p6/8/2P3b1/PP6/3K4 b - - 1 30",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "b5b4",
+              "san": "b4",
+              "sound": false,
+              "winPercent": 1.3329565754913233
+            },
+            "N": {
+              "uci": "g3d6",
+              "san": "Bd6",
+              "sound": true,
+              "winPercent": 5.430549934581194
+            },
+            "A": {
+              "uci": "g3d6",
+              "san": "Bd6",
+              "sound": true,
+              "winPercent": 5.430549934581194
+            },
+            "best": {
+              "uci": "g3d6",
+              "san": "Bd6",
+              "sound": true,
+              "winPercent": 7.63667165134467
+            }
+          }
+        }
+      ]
+    },
+    "passed-pawn": {
+      "verdict": "It misleads",
+      "eligiblePositions": 3061,
+      "summary": {
+        "positions": 8,
+        "referees": {
+          "stockfish": 8,
+          "tablebase": 0
+        },
+        "sound": {
+          "R": 1,
+          "N": 7,
+          "A": 4,
+          "best": 8
+        }
+      },
+      "examples": [
+        {
+          "number": 1,
+          "fen": "3Q4/6q1/3p1bk1/3P4/4n1N1/1P6/P1n3PP/5R1K w - - 2 38",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "h2h4",
+              "san": "h4",
+              "sound": false,
+              "winPercent": 3.2571757363317175
+            },
+            "N": {
+              "uci": "d8e8",
+              "san": "Qe8+",
+              "sound": true,
+              "winPercent": 99.99999999999997
+            },
+            "A": {
+              "uci": "d8e8",
+              "san": "Qe8+",
+              "sound": true,
+              "winPercent": 99.99999999999997
+            },
+            "best": {
+              "uci": "d8e8",
+              "san": "Qe8+",
+              "sound": true,
+              "winPercent": 98.45318966328304
+            }
+          }
+        },
+        {
+          "number": 2,
+          "fen": "2kr2r1/1p6/p7/2p1p3/2P3qb/P2PB2R/3Q2P1/R5K1 w - - 3 24",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "g2g3",
+              "san": "g3",
+              "sound": false,
+              "winPercent": 5.208049726347596
+            },
+            "N": {
+              "uci": "e3c5",
+              "san": "Bxc5",
+              "sound": false,
+              "winPercent": 10.921491048911157
+            },
+            "A": {
+              "uci": "e3c5",
+              "san": "Bxc5",
+              "sound": false,
+              "winPercent": 10.921491048911157
+            },
+            "best": {
+              "uci": "h3h2",
+              "san": "Rh2",
+              "sound": true,
+              "winPercent": 30.008809407041564
+            }
+          }
+        },
+        {
+          "number": 3,
+          "fen": "2Q2b1r/p5pk/7p/4p3/8/N1P5/PPqP1P1R/R1B3K1 b - - 4 23",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "h6h5",
+              "san": "h5",
+              "sound": false,
+              "winPercent": 2.5910653872960268
+            },
+            "N": {
+              "uci": "c2d1",
+              "san": "Qd1+",
+              "sound": true,
+              "winPercent": 12.358976412903047
+            },
+            "A": {
+              "uci": "c2d1",
+              "san": "Qd1+",
+              "sound": true,
+              "winPercent": 12.358976412903047
+            },
+            "best": {
+              "uci": "f8a3",
+              "san": "Bxa3",
+              "sound": true,
+              "winPercent": 13.391073492623931
+            }
+          }
+        },
+        {
+          "number": 4,
+          "fen": "rn3rk1/pp3ppp/8/3q4/1P6/8/P6P/RK3BNR b - - 0 23",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "f7f5",
+              "san": "f5",
+              "sound": false,
+              "winPercent": 95.76584274164551
+            },
+            "N": {
+              "uci": "d5h1",
+              "san": "Qxh1",
+              "sound": true,
+              "winPercent": 97.14583130654093
+            },
+            "A": {
+              "uci": "b8c6",
+              "san": "Nc6",
+              "sound": false,
+              "winPercent": 96.58856929813118
+            },
+            "best": {
+              "uci": "f8c8",
+              "san": "Rc8",
+              "sound": true,
+              "winPercent": 99.99999999999999
+            }
+          }
+        },
+        {
+          "number": 5,
+          "fen": "3r3k/1R6/3bQpPp/p1p3r1/P1P5/8/6PP/5R1K w - - 5 33",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "g6g7",
+              "san": "g7+",
+              "sound": true,
+              "winPercent": 99.99999999999997
+            },
+            "N": {
+              "uci": "e6f6",
+              "san": "Qxf6+",
+              "sound": true,
+              "winPercent": 100
+            },
+            "A": {
+              "uci": "e6f6",
+              "san": "Qxf6+",
+              "sound": true,
+              "winPercent": 100
+            },
+            "best": {
+              "uci": "b7h7",
+              "san": "Rh7#",
+              "sound": true,
+              "winPercent": 100
+            }
+          }
+        },
+        {
+          "number": 6,
+          "fen": "5rk1/p4ppp/4b3/8/4Q2R/1r6/q4PPP/5RK1 b - - 1 22",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "a7a5",
+              "san": "a5",
+              "sound": false,
+              "winPercent": 0
+            },
+            "N": {
+              "uci": "g7g6",
+              "san": "g6",
+              "sound": true,
+              "winPercent": 84.37491676427435
+            },
+            "A": {
+              "uci": "a2b2",
+              "san": "Qb2",
+              "sound": false,
+              "winPercent": 0
+            },
+            "best": {
+              "uci": "g7g6",
+              "san": "g6",
+              "sound": true,
+              "winPercent": 82.75790955442312
+            }
+          }
+        },
+        {
+          "number": 7,
+          "fen": "r3kb1r/pb3p1p/4p1p1/2PpP3/1n1P4/2N5/P3NPPP/2KR1B1R w kq - 2 16",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "c5c6",
+              "san": "c6",
+              "sound": false,
+              "winPercent": 38.343625677752044
+            },
+            "N": {
+              "uci": "a2a3",
+              "san": "a3",
+              "sound": true,
+              "winPercent": 61.39489294360486
+            },
+            "A": {
+              "uci": "c1b1",
+              "san": "Kb1",
+              "sound": false,
+              "winPercent": 56.227038404258955
+            },
+            "best": {
+              "uci": "a2a3",
+              "san": "a3",
+              "sound": true,
+              "winPercent": 60.3425129353426
+            }
+          }
+        },
+        {
+          "number": 8,
+          "fen": "rn2kbnr/p5pp/2qPpp2/1p2P3/2p3b1/2N2NP1/1P3PBP/R1BQK1R1 w Qkq - 0 14",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "d6d7",
+              "san": "d7+",
+              "sound": false,
+              "winPercent": 60.957632713112076
+            },
+            "N": {
+              "uci": "h2h3",
+              "san": "h3",
+              "sound": true,
+              "winPercent": 83.9826268607404
+            },
+            "A": {
+              "uci": "h2h3",
+              "san": "h3",
+              "sound": true,
+              "winPercent": 83.9826268607404
+            },
+            "best": {
+              "uci": "h2h3",
+              "san": "h3",
+              "sound": true,
+              "winPercent": 84.08144041620199
+            }
+          }
+        }
+      ]
+    },
+    "worst-piece": {
+      "verdict": "It misleads",
+      "eligiblePositions": 3561,
+      "summary": {
+        "positions": 8,
+        "referees": {
+          "stockfish": 7,
+          "tablebase": 1
+        },
+        "sound": {
+          "R": 4,
+          "N": 5,
+          "A": 6,
+          "best": 8
+        }
+      },
+      "examples": [
+        {
+          "number": 1,
+          "fen": "8/8/4k3/8/3K4/1P6/P1R5/8 w - - 7 52",
+          "band": 1500,
+          "referee": "tablebase",
+          "moves": {
+            "R": {
+              "uci": "c2c5",
+              "san": "Rc5",
+              "sound": true,
+              "winPercent": 100
+            },
+            "N": {
+              "uci": "b3b4",
+              "san": "b4",
+              "sound": true,
+              "winPercent": 100
+            },
+            "A": {
+              "uci": "c2c5",
+              "san": "Rc5",
+              "sound": true,
+              "winPercent": 100
+            },
+            "best": {
+              "uci": "b3b4",
+              "san": "b4",
+              "sound": true,
+              "winPercent": 100
+            }
+          }
+        },
+        {
+          "number": 2,
+          "fen": "2kr3r/pp1n1ppp/2pbbq2/1P1np2P/8/P1N1PN2/2QP1PP1/R1B1KB1R b KQ - 0 11",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "d8e8",
+              "san": "Rde8",
+              "sound": false,
+              "winPercent": 28.18611582905737
+            },
+            "N": {
+              "uci": "c6c5",
+              "san": "c5",
+              "sound": false,
+              "winPercent": 45.77570210539314
+            },
+            "A": {
+              "uci": "c6b5",
+              "san": "cxb5",
+              "sound": false,
+              "winPercent": 15.722415700743113
+            },
+            "best": {
+              "uci": "d5c3",
+              "san": "Nxc3",
+              "sound": true,
+              "winPercent": 50
+            }
+          }
+        },
+        {
+          "number": 3,
+          "fen": "4r3/2k5/8/2PKp3/4Rp2/6pP/6P1/8 b - - 4 46",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "e8f8",
+              "san": "Rf8",
+              "sound": false,
+              "winPercent": 49.90794810400108
+            },
+            "N": {
+              "uci": "f4f3",
+              "san": "f3",
+              "sound": false,
+              "winPercent": 50
+            },
+            "A": {
+              "uci": "e8d8",
+              "san": "Rd8+",
+              "sound": true,
+              "winPercent": 78.39318121648355
+            },
+            "best": {
+              "uci": "e8d8",
+              "san": "Rd8+",
+              "sound": true,
+              "winPercent": 69.13366122677583
+            }
+          }
+        },
+        {
+          "number": 4,
+          "fen": "r3kb1r/6pb/p2qpp1p/1p1p3P/6P1/1PN5/1PP2P2/R1BQK2R b KQkq - 0 18",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "f8e7",
+              "san": "Be7",
+              "sound": true,
+              "winPercent": 72.99091321665176
+            },
+            "N": {
+              "uci": "d6e5",
+              "san": "Qe5+",
+              "sound": false,
+              "winPercent": 71.36455108934885
+            },
+            "A": {
+              "uci": "d6e5",
+              "san": "Qe5+",
+              "sound": false,
+              "winPercent": 71.36455108934885
+            },
+            "best": {
+              "uci": "d6c6",
+              "san": "Qc6",
+              "sound": true,
+              "winPercent": 74.90548382601366
+            }
+          }
+        },
+        {
+          "number": 5,
+          "fen": "r3r1k1/pp1q1ppp/5n2/3p4/1P4b1/P3PN2/2Q1BPPP/R4RK1 b - - 7 17",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "f6e4",
+              "san": "Ne4",
+              "sound": true,
+              "winPercent": 46.78263165893829
+            },
+            "N": {
+              "uci": "a8c8",
+              "san": "Rac8",
+              "sound": true,
+              "winPercent": 46.96601598181785
+            },
+            "A": {
+              "uci": "a8c8",
+              "san": "Rac8",
+              "sound": true,
+              "winPercent": 46.96601598181785
+            },
+            "best": {
+              "uci": "a8c8",
+              "san": "Rac8",
+              "sound": true,
+              "winPercent": 46.05001214877426
+            }
+          }
+        },
+        {
+          "number": 6,
+          "fen": "2r1k2r/1b3pbp/1q3np1/4p3/1BP1P3/5N2/P1BN1PPP/R2Q1RK1 w k - 1 19",
+          "band": 1300,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "f1e1",
+              "san": "Re1",
+              "sound": false,
+              "winPercent": 74.76680474600357
+            },
+            "N": {
+              "uci": "c2a4",
+              "san": "Ba4+",
+              "sound": true,
+              "winPercent": 89.18551153472504
+            },
+            "A": {
+              "uci": "a1b1",
+              "san": "Rb1",
+              "sound": true,
+              "winPercent": 89.46635751884418
+            },
+            "best": {
+              "uci": "c2a4",
+              "san": "Ba4+",
+              "sound": true,
+              "winPercent": 89.53555642045939
+            }
+          }
+        },
+        {
+          "number": 7,
+          "fen": "r4rk1/1b1p1ppp/pq2p3/1p2n3/4PN2/2P1P3/PPB3PP/R2Q1RK1 b - - 3 17",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "f8c8",
+              "san": "Rfc8",
+              "sound": false,
+              "winPercent": 59.19156093247091
+            },
+            "N": {
+              "uci": "b6e3",
+              "san": "Qxe3+",
+              "sound": true,
+              "winPercent": 72.84548928928163
+            },
+            "A": {
+              "uci": "b6e3",
+              "san": "Qxe3+",
+              "sound": true,
+              "winPercent": 72.84548928928163
+            },
+            "best": {
+              "uci": "b6e3",
+              "san": "Qxe3+",
+              "sound": true,
+              "winPercent": 73.99503894412024
+            }
+          }
+        },
+        {
+          "number": 8,
+          "fen": "r3n1k1/2p3pp/4qp2/4p3/1Q4P1/3P3P/1PP2P2/2K1R3 b - - 0 26",
+          "band": 1500,
+          "referee": "stockfish",
+          "moves": {
+            "R": {
+              "uci": "e8d6",
+              "san": "Nd6",
+              "sound": true,
+              "winPercent": 81.62646767950038
+            },
+            "N": {
+              "uci": "a8a1",
+              "san": "Ra1+",
+              "sound": true,
+              "winPercent": 81.62646767950038
+            },
+            "A": {
+              "uci": "a8a1",
+              "san": "Ra1+",
+              "sound": true,
+              "winPercent": 81.62646767950038
+            },
+            "best": {
+              "uci": "e6c6",
+              "san": "Qc6",
+              "sound": true,
+              "winPercent": 80.84071495958992
+            }
+          }
+        }
+      ]
+    }
+  }
+}
