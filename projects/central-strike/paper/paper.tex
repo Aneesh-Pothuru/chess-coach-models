@@ -1,0 +1,204 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Is a central break right while the other king is still in the centre?\\[0.3em]
+\large A coach's moment for a pawn break, on \Entering{} of his quiet middlegame positions and
+\StrongEntering{} of strong players', refereed by Stockfish}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+A coach reviewing an adult beginner's rapid games teaches a moment for a pawn break: strike in the
+centre while the other king has not castled. The app leaves the moment to the engine, because a
+break that can be played is sound about one time in five in his quiet positions, no more often
+than a random move. In the positions the structure study scored, his quiet middlegame positions
+with a central break on, a central break is sound \CCentreFirst\% and \CCentreSecond\% of the time
+while the other king is still in the centre, against \CAwayFirst\% and \CAwaySecond\% once it has
+left. Measured against a random move in the same positions, the lift is \LiftFirst{} points
+(\LiftFirstCi) on the earlier half of his games and \LiftSecond{} (\LiftSecondCi) on the later
+one. The earlier interval reaches 0, so by the rule fixed before any score was read by the king
+there is no signal, though both halves point the same way. STRONGABSTRACT Even with the king in
+the centre, the central break trails his own move by \GainFirst{} and \GainSecond{} points. The
+coach's moment may hold at his level, but it is not shown here, and it would not make the break a
+better choice than his own move: the verdict on a break stays the engine's.
+\end{abstract}
+
+\section{The question}
+
+A titled player reviewing the rapid games of an adult beginner~\cite{video} teaches a moment for a pawn break: strike in the centre while the other king has not castled,
+because the lines the break opens lead to the king. He adds that players at that level miss the
+central break because the pawn feels like part of the scenery.
+
+The app teaches each pawn structure's breaks, and two earlier studies shaped what it says about
+them. A break that can be played is sound only about one time in five in his quiet positions, no
+more often than a random move, while his own move is sound more than half the time; and the
+pieces being ready for the break says nothing about whether it is sound, while the app's blunder
+check does. So the app's lesson tells him to check what a break leaves hanging and leaves the
+moment to the engine.
+
+The coach's moment is a reading of the board, so it can be tested the same way. In his quiet
+middlegame positions with a central break on, is the break sound more often when the other king
+is still in the centre than when it has left, beyond what the king's position does for any move,
+and is it then as sound as his own move? If the king marks the moment, the app can name a king
+still in the centre as the time to look at the central break; if the break is then as sound as
+his own move, as the time to play it. If not, the moment stays the engine's.
+
+\section{How it was measured}
+
+\paragraph{The positions.} The positions the structure study scored, with their scores as they
+stand. His are his quiet middlegame and endgame positions with a break of his structure on, from
+his 10-minute games in the app's archive at commit \texttt{\AppCommit}, in two halves by the
+games' end time; nothing is fitted, so the halves are two replications. The strong players' are
+positions from the Lichess games of \MonthName{} between two players rated \Floor{} or more, one a
+game, the first \StrongScored{} scored in source order. A position is quiet when Stockfish's best
+move is not a capture, a check or a promotion and the mover's win\% is between \WinLow{} and \WinHigh. The
+referee is Stockfish at the app's grading budget of \GradeNodes{} nodes, the hash cleared before
+each position; a move is sound when it gives up no more than \Window{} win\% against the best.
+
+A position enters this study when it is a middlegame by the app's phase reading, when one of its
+breaks lands on the d- or e-file (a central break), and when each central break, the move played
+and the two random moves have exact scores. The other king is \emph{in the centre} when it stands
+on the d-, e- or f-file, where a king that has not castled stands, and \emph{away} otherwise.
+
+\paragraph{The measures.} In each position, $C$ is the share of its central breaks that are sound;
+$A$ is 1 when his move is sound (for the strong players $S$, the strong player's move), and $R$
+and $R_2$ the same for two random legal moves that are not breaks, drawn by the structure study.
+The \emph{lift} is the mean of $C - R$ where the king is in the centre minus its mean where the
+king is away: $R$ stands for how forgiving a position is, so the lift asks whether the king in the
+centre helps the central break more than it helps any move. The \emph{strike's gain} is the mean
+of $C - A$ where the king is in the centre. Intervals come from \Draws{} bootstrap draws with seed
+\Seed, resampling his games within a half (a game's positions of both kinds together), or the
+strong players' positions: the 95\% percentile interval.
+
+\section{Counted before the rule}
+
+Before the rule was fixed, his positions were counted by the king's file and the breaks' files,
+with no score read (Table~\ref{tab:coverage}). The strong players' positions were being rescored
+in source order at the time, after a fix to the structure study, and were counted only when the
+analysis ran. His positions with the king in the centre come from \CentreGamesFirst{} and
+\CentreGamesSecond{} games, so only a large lift can show on each half.
+
+\CoverageTable
+
+\section{The rule, fixed before any score was read by the king}
+
+The controls come first, and if either fails there is no verdict. (1) His move must be sound more
+often than $R$, by an interval above 0, on each half, and the strong player's move on theirs.
+(2) The lift with $R_2$ in place of $C$ must not lie above 0 on both halves, nor below 0 on both.
+
+Then, on his positions: the strike holds when the lift lies above 0 on both halves and the
+strike's gain lies below 0 on neither; the king marks the moment but the break trails his move
+when the lift lies above 0 on both halves and the gain lies below 0 on a half; the king misleads
+when the lift lies below 0 on both halves; otherwise there is no signal. There is not enough data
+when, on a half, the positions with the king in the centre or away come from fewer than
+\MinGames{} games. The strong players' positions are read by the same measures and do not change
+the verdict.
+
+\section{The verdict: no signal}
+
+The controls pass (Table~\ref{tab:rule}). His move is sound \RefereeFirst{} and \RefereeSecond{}
+points more often than a random move, and the strong player's \StrongReferee; the null's lift is
+\NullFirst{} (\NullFirstCi) and \NullSecond{} (\NullSecondCi), holding 0 on both halves.
+
+The lift is \LiftFirst{} points (\LiftFirstCi) on the earlier half and \LiftSecond{}
+(\LiftSecondCi) on the later one. Both are positive, but the earlier interval reaches 0, so by the
+rule there is no signal. STRONGVERDICT
+
+The strike's gain answers the second question whatever the first: with the king in the centre, the
+central break is sound \GainFirst{} and \GainSecond{} points less often than his own move
+(\GainFirstCi{} and \GainSecondCi), and \StrongGain{} less often than the strong player's.
+
+\RuleTable
+
+\section{What the positions describe}
+
+None of what follows was part of the rule (Table~\ref{tab:arms}).
+
+\paragraph{The arms.} With the king in the centre a central break is sound \CCentreFirst\% and
+\CCentreSecond\% of the time, and \CAwayFirst\% and \CAwaySecond\% with it away, while a random
+move is sound \RCentreFirst\% and \RCentreSecond\% in the first case and \RAwayFirst\% and
+\RAwaySecond\% in the second. His own move is sound \ACentreFirst\% and \ACentreSecond\% with the
+king in the centre. The central breaks give up \LostCCentreFirst{} and \LostCCentreSecond{} win\%
+on average with the king in the centre, against \LostCAwayFirst{} and \LostCAwaySecond{} with it
+away; his move gives up \LostACentreFirst{} and \LostACentreSecond.
+
+\paragraph{Other readings.} With the king in the centre only when it stands on its starting square,
+the lift is \StrictFirst{} (\StrictFirstCi) and \StrictSecond{} (\StrictSecondCi). With both queens
+on the board, it is \QueensFirst{} (\QueensFirstCi) and \QueensSecond{} (\QueensSecondCi). For the
+breaks that land off the d- and e-files, the same lift is \FlankFirst{} (\FlankFirstCi) and
+\FlankSecond{} (\FlankSecondCi), holding 0 on both halves. STRONGOTHER
+
+\paragraph{Finding it.} He played a central break in \PlayedCentreFirst\% and
+\PlayedCentreSecond\% of his positions with the king in the centre, and \PlayedAwayFirst\% and
+\PlayedAwaySecond\% with it away. In the positions with both kinds of break on, Maia-2 at his band
+gives a central break \MaiaCFirst\% and \MaiaCSecond\% on average and a flank break \MaiaFFirst\%
+and \MaiaFSecond\%: by that reading a central break is no harder for his level to see than a flank
+break.
+
+\ArmTable
+
+\section{Two positions}
+
+Two positions of his later half with the other king in the centre (Figure~\ref{fig:examples}): the
+first where a central break is sound and he played something else, and the first where every
+central break is unsound and his own move is sound. They illustrate; they test nothing.
+
+\begin{figure}[ht]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\EaBoard\\[0.3em]
+{\footnotesize FEN \EaFen}
+\caption{He is \EaMover, in \EaStructure; the other king is on \EaKing. Stockfish: \EaBest{} is
+best at \EaWpBest\% to win; the central break \EaBreak{} is \EaBreakSound{} (\EaWpBreak\%). He
+played \EaPlayed{} (blue), \EaPlayedSound{} at \EaWpPlayed\%.}
+\label{fig:struck}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\EbBoard\\[0.3em]
+{\footnotesize FEN \EbFen}
+\caption{He is \EbMover, in \EbStructure; the other king is on \EbKing. Stockfish: \EbBest{} is
+best at \EbWpBest\% to win; the central break \EbBreak{} is \EbBreakSound{} (\EbWpBreak\%). He
+played \EbPlayed{} (blue), \EbPlayedSound{} at \EbWpPlayed\%.}
+\label{fig:trailed}
+\end{subfigure}
+\caption{Two of his positions with the other king in the centre. The break is green where
+Stockfish finds it sound and red where it does not; win\% is his after each move. Stockfish at
+\GradeNodes{} nodes, rerun for this figure.}
+\label{fig:examples}
+\end{figure}
+
+\section{What it means for the app}
+
+The app's pawn-break lesson stays as it is: check what a break leaves hanging before playing it,
+and leave the moment to the engine. A king still in the centre may be a reason to look at the
+central break, and both halves of his games lean that way, but at this size the lean is not shown,
+and where it shows most the break is still sound less often than his own move. A test on Lichess
+games at his band, with many more positions, could settle the lean; it would not change the second
+answer.
+
+\section{Caveats}
+
+\begin{itemize}[nosep]
+\item \textbf{Few games.} His positions with the king in the centre come from a few dozen games a
+  half, so only a large lift can show on each half.
+\item \textbf{Not a cause.} A king in the centre comes with an earlier middlegame and more pieces;
+  $R$ stands for how forgiving a position is, not for every difference.
+\item \textbf{A break stands for a plan}, tested as the next move.
+\item \textbf{Mostly the London.} Most of his positions are the London pyramid, whose central
+  breaks are e3-e4 for White and \ldots e6-e5 for Black.
+\item \textbf{Mostly blitz.} Most of the strong players' games are blitz; his are rapid.
+\end{itemize}
+
+\begin{thebibliography}{9}
+\bibitem{video} A titled player's review of an adult beginner's rapid games, ``Anyone Can Be 1200
+  In Chess. Watch This.'' (video, \url{https://www.youtube.com/watch?v=PcGDehRSqTM}). The lab read
+  a summary of its captions, not the video itself.
+\end{thebibliography}
+
+\end{document}
