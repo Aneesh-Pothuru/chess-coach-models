@@ -25,7 +25,10 @@ from the routine-profile reviews. For each:
 - E2: the reply played gave away at most 2 points (an equally good
   alternative counts);
 - q: Maia-2's probability of the punishing reply at the replier's band (the
-  replier's chess.com rapid rating, converted by the app's `defaultMaiaElo`).
+  replier's chess.com rapid rating, converted by the app's `defaultMaiaElo` at
+  the app's offset for the replier: `DEFAULT_LICHESS_OFFSET` for the player,
+  `OPPONENT_LICHESS_OFFSET` for his opponents; the recorded check, from before
+  the app split them, used the first for both).
 
 Replies from the opening book are left out. The primary set keeps the replies
 whose evidence the review's deeper pass verified; that pass checks errors
@@ -45,22 +48,25 @@ share that was found. `analyze.mjs` applies it.
 
 | File | What it does |
 |---|---|
-| `events.mts` | Finds the errors and their punishing replies in the routine evidence and runs Maia-2 on each through the app's Node engine service (its weights download on first use). |
+| `events.mts` | Finds the errors and their punishing replies in the routine evidence and runs Maia-2 on each through the app's Node engine service, at the band the app gives the replier (its weights download on first use); where a review carries the app's own odds, each event must match them. |
 | `analyze.mjs` | The rule over the events: Brier scores against the two baselines with a bootstrap over games, the calibration bins, and the areas under the ROC curve. |
-| `reproduce.mjs` | Recomputes the analysis from the records' events and reports whether it matches theirs byte for byte (the paper refuses to build when it does not), then rebuilds the events on the lab's evidence and reruns the analysis beside the recorded verdicts. |
+| `reproduce.mjs` | Recomputes the analysis from the records' events and reports whether it matches theirs byte for byte (the paper refuses to build when it does not), then builds the routine evidence on the pinned app, rebuilds the events on it and reruns the analysis beside the recorded verdicts. |
 | `paper/` | The paper. |
 
 ## Running it
 
-It reads the accuracy project's routine evidence, so that comes first:
+It reads the accuracy project's cases, and builds its own routine evidence on
+the pinned app with that project's `build-evidence.mjs`, into
+`private/maia-punish/evidence/<commit>/` (about two hours from scratch at the
+build's default concurrency; it resumes, and a complete build costs nothing):
 
 ```bash
 make chess
 bridge/run.sh projects/accuracy-vs-chesscom/build-cases.mjs --frozen
-bridge/run.sh projects/accuracy-vs-chesscom/build-evidence.mjs --profile routine
 bridge/run.sh projects/maia-punish/reproduce.mjs
 bridge/run.sh projects/maia-punish/paper/generate.mjs
 ```
 
-The events name games, so they stay in `private/maia-punish/`;
-`results/reproduction.{md,json}` hold aggregates only.
+The evidence and the events name games, so they stay in
+`private/maia-punish/`; `results/reproduction.{md,json}` hold aggregates
+only.

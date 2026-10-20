@@ -4,18 +4,21 @@
 // Recomputed: analyze.mjs over the events the records keep, its results held
 // byte for byte to the records' results.json.
 //
-// Rerun: events.mts on the routine evidence the lab rebuilt on the pinned app
-// (build-evidence.mjs --profile routine), then analyze.mjs, its verdicts and
-// scores set beside the recorded ones.
+// Rerun: the routine evidence rebuilt on the pinned app
+// (accuracy-vs-chesscom/build-evidence.mjs --profile routine, into
+// private/maia-punish/evidence/<app commit>/: it resumes, and a complete build
+// costs nothing), then events.mts on it, which prices each reply as that app
+// does, then analyze.mjs, its verdicts and scores set beside the recorded ones.
+// A build from scratch takes about an hour at the build's default concurrency.
 //
 //   bridge/run.sh projects/maia-punish/reproduce.mjs [--no-rerun]
 //
-// The events (which name games) stay in private/maia-punish/;
+// The evidence and the events (which name games) stay in private/maia-punish/;
 // results/reproduction.{md,json} hold aggregates only.
 
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import { CHESS_DIR, LAB_DIR, privateDir, projectDir, records, resultsDir } from '../../bridge/lib/chess.mjs';
 
 const FLOW = 'maia-punish';
@@ -58,17 +61,25 @@ function main() {
 
   const rerun = join(home, 'rerun');
   if (!process.argv.includes('--no-rerun')) {
+    const evidence = join(home, 'evidence', git(CHESS_DIR, 'rev-parse', 'HEAD'));
+    console.error(`[reproduce] routine evidence on the pinned app, in ${relative(LAB_DIR, evidence)}`);
+    execFileSync(join(LAB_DIR, 'bridge', 'run.sh'), [join(projectDir('accuracy-vs-chesscom'), 'build-evidence.mjs'), '--profile', 'routine', '--out', evidence], { cwd: LAB_DIR, stdio: ['ignore', 'ignore', 'inherit'] });
     console.error('[reproduce] events: errors, punishing replies and Maia odds on the rebuilt routine evidence');
-    execFileSync(join(LAB_DIR, 'bridge', 'run.sh'), [join(projectDir(FLOW), 'events.mts')], { cwd: LAB_DIR, stdio: ['ignore', 'ignore', 'inherit'] });
+    execFileSync(join(LAB_DIR, 'bridge', 'run.sh'), [join(projectDir(FLOW), 'events.mts'), '--evidence', join(evidence, 'routine')], { cwd: LAB_DIR, stdio: ['ignore', 'ignore', 'inherit'] });
     analyze(join(home, 'events.json'), rerun);
   }
   if (!existsSync(join(rerun, 'results.json'))) throw new Error(`no rerun in ${rerun}: run without --no-rerun`);
 
+  // The rerun's evidence and its odds come from one app commit, the one the report names.
+  const rerunEvents = read(join(home, 'events.json'));
+  if (rerunEvents.evidence !== relative(LAB_DIR, join(home, 'evidence', rerunEvents.app ?? '', 'routine'))) throw new Error(`the rerun's events read ${rerunEvents.evidence}, not evidence built on the app they ran on: run without --no-rerun`);
   const before = new Map(headline(read(join(recorded, 'results.json'))).map(r => [r.key, r]));
-  const events = { recorded: read(join(recorded, 'events.json')).events.length, rerun: read(join(home, 'events.json')).events.length };
+  const events = { recorded: read(join(recorded, 'events.json')).events.length, rerun: rerunEvents.events.length };
   const report = {
     eval: 'maia-punish reproduction',
-    chess: { pinned_commit: git(CHESS_DIR, 'rev-parse', 'HEAD'), records_commit: git(records(), 'rev-parse', 'HEAD') },
+    chess: { pinned_commit: rerunEvents.app, records_commit: git(records(), 'rev-parse', 'HEAD') },
+    offsets: rerunEvents.offsets,
+    appOdds: rerunEvents.appOdds,
     recomputedIdentical: identical,
     events,
     rows: headline(read(join(rerun, 'results.json'))).map(r => ({ key: r.key, recorded: before.get(r.key) ?? null, rerun: r })),
@@ -97,7 +108,7 @@ function render(report) {
     '',
     `Recomputed from the recorded events, the analysis ${report.recomputedIdentical ? 'matches the records\' results.json byte for byte' : 'differs from the records\' results.json'}.`,
     '',
-    `Rerun on the routine evidence the lab rebuilt: ${report.events.rerun} events (recorded: ${report.events.recorded}). Each cell reads recorded → rerun. Brier scores are for "the punishing reply is played": Maia's odds, the base rate, and a fit on the size of the error alone (both baselines leave one game out).`,
+    `Rerun on the routine evidence the lab rebuilt on that commit: ${report.events.rerun} events (recorded: ${report.events.recorded}). Each reply is priced as the app prices it, at the replier's band with chess.com ratings converted at +${report.offsets.player} for the player and +${report.offsets.opponents} for his opponents; the band and the odds match the app's own review for ${report.appOdds.checked} of the ${report.events.rerun} events${report.appOdds.absent ? ` (${report.appOdds.absent} carry none)` : ''}. Each cell reads recorded → rerun. Brier scores are for "the punishing reply is played": Maia's odds, the base rate, and a fit on the size of the error alone (both baselines leave one game out).`,
     '',
     '| replies to | events | punished | Brier, Maia | Brier, base rate | Brier, error size | AUC (errors of 10+) | verdict |',
     '|---|---|---|---|---|---|---|---|',

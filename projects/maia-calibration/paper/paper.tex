@@ -16,7 +16,7 @@ how findable a move is, the moves its Maia bot samples. The lab's benchmark foun
 confident than right on Lichess in every band. We fitted a temperature for each band on
 \FitMoves{} Lichess moves and tested it by a rule fixed before any number was computed. It
 improves the held-out Lichess moves and does not hurt the punish odds, but it makes the player's
-own games less likely, so it is not adopted. On his games, at the rating offset the app uses,
+own games less likely, so it is not adopted. On his games, at the rating offsets the app uses,
 Maia-2 is already about as sure as it is right, and softening it makes it less sure than right.
 The app keeps the raw policy. Scored by the app's own Maia-2, the Lichess sample also reproduces
 the benchmark's first-choice count exactly.
@@ -48,9 +48,11 @@ each side at its own Lichess rating's band. The \LichessGames{} games, ordered b
 alternate between a fitting half (\FitMoves{} moves) and a held-out half (\HeldMoves{} moves).
 
 \paragraph{Testing.} The player's games, never used to fit: the \HisMoves{} moves of the
-rating-offset project in \HisGames{} games, with both players' chess.com ratings converted at the
-offset that project keeps (\KeptOffset); and the punish events of the punish-odds project, each
-priced as the app prices it, at the replier's band facing an equal opponent. The punish events'
+rating-offset project in \HisGames{} games, with each player's chess.com rating converted at the
+app's offset for that player: \PlayerOffset{} for him and \OpponentOffset{} for his opponents
+(the rating-offset project's single offset for him, the player-offsets project's for them); and
+the punish events of the punish-odds project, each priced as the app prices it, at the replier's
+band, so converted, facing an equal opponent. The punish events'
 primary set holds the \PunishExact{} replies whose evidence the review's deeper pass verified;
 all \PunishAll{} non-book replies, in \PunishGames{} games, are reported beside it.
 
@@ -110,8 +112,8 @@ the Lichess held-out half Maia-2 is more confident than right in every band, by 
 occupy (\HisBandLow{} to \HisBandHigh), the gap runs from \HisGapMin{} to \HisGapMax{} points,
 smaller in every band than the smallest on Lichess, and softening turns it into
 underconfidence of \HisTGapMin{} to \HisTGapMax{} points. One reading, not tested here: the
-rating offset was chosen on these games for the same likelihood, and a higher band is a sharper
-policy, so the offset already sets how sure Maia-2 is about them.
+rating offsets were chosen on these games for the same likelihood, and a higher band is a sharper
+policy, so the offsets already set how sure Maia-2 is about them.
 
 \begin{figure}[!htbp]
 \centering
@@ -133,7 +135,7 @@ mean probability, raw and tempered (percent).}
 
 \section{What it means for the app}
 
-Nothing to port. On this player's games Maia-2, at the bands the app's offset gives, is about
+Nothing to port. On this player's games Maia-2, at the bands the app's offsets give, is about
 as sure as it is right, so the punish odds, findability and the Maia bot keep the raw policy.
 The overconfidence the benchmark measured is real on Lichess; it is not what this player's games
 show.

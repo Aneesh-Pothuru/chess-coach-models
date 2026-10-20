@@ -68,6 +68,12 @@ if (PUNISH_MIN_LOSS !== Number(errorAt[1])) throw new Error("the app prices erro
 const playerRate = results['EXACT|player-err'].k1 / results['EXACT|player-err'].n
 if (Math.abs(PUNISH_PRIOR - playerRate) > 0.005) throw new Error("the app's prior is not the check's punish rate")
 g.def('AppPrior', String(PUNISH_PRIOR))
+// How the app converts the replier's rating: the player's at one offset, his opponents' at a larger one.
+// The recorded check, from before that split, priced both sides at the player's.
+const { DEFAULT_LICHESS_OFFSET, OPPONENT_LICHESS_OFFSET, defaultMaiaElo } = await chess('src/services/engine/index.ts')
+if (!(OPPONENT_LICHESS_OFFSET > DEFAULT_LICHESS_OFFSET)) throw new Error("the app no longer reads the opponents at a larger offset than the player: the paper says it does")
+if (!events.every((e) => e.band === defaultMaiaElo(e.rating, DEFAULT_LICHESS_OFFSET))) throw new Error("the recorded events were not priced at the player's offset for both sides: the paper says they were")
+g.def('PlayerOffset', String(DEFAULT_LICHESS_OFFSET)).def('OpponentOffset', String(OPPONENT_LICHESS_OFFSET))
 
 // The secondary outcome on all replies, where it does not beat the base rate for the player's errors.
 const allPlayerE2 = results['ALL|player-err'].e2
@@ -135,6 +141,8 @@ example(missed, 'B')
 g.def('RecomputedIdentical', repro.recomputedIdentical ? 'matches the records\' results byte for byte' : 'differs from the records\' results')
 if (!repro.recomputedIdentical) throw new Error('the recomputed analysis differs from the records')
 g.def('RerunEvents', String(repro.events.rerun)).def('RecordedEvents', String(repro.events.recorded))
+if (repro.offsets?.player !== DEFAULT_LICHESS_OFFSET || repro.offsets?.opponents !== OPPONENT_LICHESS_OFFSET) throw new Error("the rerun priced the replies at other offsets than the app's: rerun reproduce.mjs")
+if (repro.appOdds?.checked !== repro.events.rerun) throw new Error("the paper says every rerun event matches the odds the app's own review recorded")
 g.def('AppCommit', `\\texttt{${repro.chess.pinned_commit.slice(0, 7)}}`).def('RecordsCommit', `\\texttt{${repro.chess.records_commit.slice(0, 7)}}`)
 const label = { 'EXACT|player-err': ['verified', 'the player\'s'], 'EXACT|opp-err': ['verified', 'the opponents\''], 'ALL|player-err': ['all', 'the player\'s'], 'ALL|opp-err': ['all', 'the opponents\''] }
 g.block('ReproTable', [

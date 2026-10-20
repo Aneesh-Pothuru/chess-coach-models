@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // Writes paper/generated.tex for the calibration paper: the rule's three tests,
 // each band's temperature and the top choice's confidence before and after
-// (results/calibration.json, from fit.mjs), the offset maia-rating-offset
-// keeps, and the lab's benchmark of its own Maia-2 on the same Lichess moves.
+// (results/calibration.json, from fit.mjs), the app's offsets for the player
+// and his opponents, and the lab's benchmark of its own Maia-2 on the same
+// Lichess moves.
 //
 //   bridge/run.sh projects/maia-calibration/paper/generate.mjs
 //
@@ -11,29 +12,32 @@
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { LAB_DIR, chess, projectDir, resultsDir } from '../../../bridge/lib/chess.mjs'
+import { LAB_DIR, chess, resultsDir } from '../../../bridge/lib/chess.mjs'
 import { Generated, esc, fixed, percent } from '../../paper.mjs'
+import { appOffsets } from '../bands.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const json = (path) => JSON.parse(readFileSync(path, 'utf8'))
 const r = json(join(resultsDir('maia-calibration'), 'calibration.json'))
-const offset = json(join(projectDir('maia-rating-offset'), 'results', 'offset.json'))
 const bench = json(join(LAB_DIR, 'reports', 'maia_benchmark_metrics.json'))
 const pin = json(join(LAB_DIR, 'bridge', 'chess.json'))
-const { maiaBands, MAIA_ELO_START, MAIA_ELO_END } = await chess('src/services/engine/index.ts')
+const engineApi = await chess('src/services/engine/index.ts')
+const { maiaBands, MAIA_ELO_START, MAIA_ELO_END } = engineApi
+const offsets = appOffsets(engineApi)
 const g = new Generated('projects/maia-calibration/paper/generate.mjs')
 /** A count with a thousands separator: 25{,}000. */
 const count = (x) => x.toLocaleString('en-US').replace(/,/g, '{,}')
 
-if (r.app !== pin.commit || offset.app !== pin.commit) throw new Error('the results measured another app commit than the lab pins: rerun the fits')
-if (r.data.his.offset !== offset.kept) throw new Error("the player's games were scored at another offset than maia-rating-offset keeps")
+if (r.app !== pin.commit) throw new Error('the results measured another app commit than the lab pins: rerun fit.mjs')
+if (r.data.his.offsets?.player !== offsets.player || r.data.his.offsets?.opponents !== offsets.opponents) throw new Error("the player's games were scored at other offsets than the app's")
+if (!(offsets.opponents > offsets.player)) throw new Error('the paper says the app reads the opponents at a larger offset than the player')
 g.def('AppCommit', `\\texttt{${pin.commit.slice(0, 7)}}`).def('Draws', count(r.draws)).def('Seed', String(r.seed)).def('MinFitMoves', String(r.minFitMoves))
 
 // ---- the data ----
 const d = r.data
 g.def('LichessMoves', count(d.lichess.moves)).def('LichessGames', count(d.lichess.games))
 g.def('FitMoves', count(d.lichess.fitMoves)).def('HeldMoves', count(d.lichess.heldMoves))
-g.def('HisMoves', count(d.his.moves)).def('HisGames', count(d.his.games)).def('KeptOffset', String(d.his.offset))
+g.def('HisMoves', count(d.his.moves)).def('HisGames', count(d.his.games)).def('PlayerOffset', String(offsets.player)).def('OpponentOffset', String(offsets.opponents))
 g.def('PunishExact', String(d.punish.exact)).def('PunishAll', String(d.punish.all)).def('PunishGames', String(d.punish.games))
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 const [year, month] = bench.protocol.month.split('-').map(Number)

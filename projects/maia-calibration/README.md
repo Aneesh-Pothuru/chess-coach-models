@@ -28,9 +28,14 @@ paper, [`paper/paper.pdf`](paper/paper.pdf), and the script's report,
   own Lichess rating's band. The games, ordered by their ids, alternate
   between a fitting half and a held-out half.
 - **Testing.** The player's games, never used to fit: the moves of
-  [`maia-rating-offset`](../maia-rating-offset/), at the offset that project's
-  rule keeps, and the punish events of [`maia-punish`](../maia-punish/), each
-  priced as the app prices it (the replier's band, facing an equal opponent).
+  [`maia-rating-offset`](../maia-rating-offset/), and the punish events of
+  [`maia-punish`](../maia-punish/), each priced as the app prices it (the
+  replier's band, facing an equal opponent). Both read the bands the app gives
+  the two players: the player's chess.com rating at the app's offset for him
+  (`DEFAULT_LICHESS_OFFSET`, the one `maia-rating-offset` keeps) and his
+  opponents' at its offset for them (`OPPONENT_LICHESS_OFFSET`, from
+  [`maia-player-offsets`](../maia-player-offsets/)), each person's in
+  whichever input of Maia is theirs.
 
 ## The candidate
 
@@ -68,7 +73,9 @@ the benchmark's count for its own Maia-2 on the same moves.
 |---|---|
 | `sample.py` | Turns the benchmark sampler's parquet into the rows the scorer reads. |
 | `lichess-policies.mts` | Scores the Lichess moves with the app's Maia-2; `--shard k/n` splits the work between processes. |
-| `punish-policies.mts` | Prices the punish events with the app's Maia-2, at the offset `maia-rating-offset` keeps. |
+| `bands.mjs` | The bands the app gives each player, shared by the scripts below. |
+| `app-policies.mts` | Scores the player's moves at those bands where `maia-rating-offset`'s policies, one offset for both players, do not reach them; `--shard k/n` splits the work. |
+| `punish-policies.mts` | Prices the punish events with the app's Maia-2 at the replier's band, and checks each against `maia-punish`'s. |
 | `fit.mjs` | Fits the temperatures, applies the rule and writes `results/`. |
 | `paper/` | The paper. |
 
@@ -79,6 +86,7 @@ make chess
 PYTHON=.venv/bin/python scripts/stream_benchmark.sh
 .venv/bin/python projects/maia-calibration/sample.py
 for k in 0 1 2 3; do bridge/run.sh projects/maia-calibration/lichess-policies.mts --shard $k/4 & done; wait
+for k in 0 1 2 3; do bridge/run.sh projects/maia-calibration/app-policies.mts --shard $k/4 & done; wait
 bridge/run.sh projects/maia-calibration/punish-policies.mts
 bridge/run.sh projects/maia-calibration/fit.mjs
 bridge/run.sh projects/maia-calibration/paper/generate.mjs

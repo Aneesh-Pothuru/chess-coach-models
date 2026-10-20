@@ -8,9 +8,12 @@
 //   bridge/run.sh projects/maia-calibration/fit.mjs
 import fs from 'node:fs'
 import { join } from 'node:path'
-import { chess, LAB_DIR, privateDir, projectDir, resultsDir } from '../../bridge/lib/chess.mjs'
+import { chess, LAB_DIR, privateDir, resultsDir } from '../../bridge/lib/chess.mjs'
+import { appOffsets, moveBands } from './bands.mjs'
 
-const { defaultMaiaElo, maiaBands } = await chess('src/services/engine/index.ts')
+const engineApi = await chess('src/services/engine/index.ts')
+const { defaultMaiaElo, maiaBands } = engineApi
+const offsets = appOffsets(engineApi)
 
 const SEED = 7
 const B = 1000
@@ -112,25 +115,24 @@ const llTest = (games) => ({
 const lichessHeld = lichess.filter((m) => m.half === 'held')
 const test1 = llTest(perGame(lichessHeld, (r) => r.s))
 
-// 2. The player's games, at the offset maia-rating-offset keeps.
-const offsetReport = JSON.parse(fs.readFileSync(join(projectDir('maia-rating-offset'), 'results', 'offset.json'), 'utf8'))
-const kept = offsetReport.kept
+// 2. The player's games, at the bands the app gives the two players (bands.mjs).
 const mro = privateDir('maia-rating-offset')
 const his = readJsonl(join(mro, 'positions.jsonl'))
 const hisPolicies = new Map()
-for (const f of fs.readdirSync(mro).filter((f) => /^policies-\d+-of-\d+\.jsonl$/.test(f))) for (const p of readJsonl(join(mro, f))) hisPolicies.set(p.k, p.pairs)
+const addPolicies = (file) => { for (const p of readJsonl(file)) hisPolicies.set(p.k, [...(hisPolicies.get(p.k) ?? []), ...p.pairs]) }
+for (const f of fs.readdirSync(mro).filter((f) => /^policies-\d+-of-\d+\.jsonl$/.test(f))) addPolicies(join(mro, f))
+for (const f of fs.readdirSync(cal).filter((f) => /^app-policies-\d+-of-\d+\.jsonl$/.test(f))) addPolicies(join(cal, f))
 const hisRows = his.map((m) => {
-  const s = defaultMaiaElo(m.r, kept)
-  const o = defaultMaiaElo(m.ro, kept)
+  const { s, o } = moveBands(m, offsets, defaultMaiaElo)
   const pair = (hisPolicies.get(m.k) ?? []).find((p) => p.s === s && p.o === o)
-  if (!pair) throw new Error(`move ${m.k}: no policy at bands ${s}/${o}`)
+  if (!pair) throw new Error(`move ${m.k}: no policy at bands ${s}/${o}: run app-policies.mts`)
   return { game: m.g, s, i: pair.i, ps: pair.ps, me: m.me }
 })
 const test2 = llTest(perGame(hisRows, (r) => r.s))
 
 // 3. The punish events: the Brier score of the punish odds against whether the punishing reply was played.
 const punish = JSON.parse(fs.readFileSync(join(cal, 'punish-policies.json'), 'utf8'))
-if (punish.offset !== kept) throw new Error(`the punish events were priced at offset ${punish.offset}, not ${kept}: rerun punish-policies.mts`)
+if (punish.offsets?.player !== offsets.player || punish.offsets?.opponents !== offsets.opponents) throw new Error(`the punish events were priced at other offsets than the app's: rerun punish-policies.mts`)
 function brierTest(rows) {
   const games = new Map()
   for (const r of rows) {
@@ -182,7 +184,7 @@ const report = {
   app: pin.commit,
   data: {
     lichess: { moves: lichess.length, games: new Set(lichess.map((m) => m.game)).size, fitMoves: lichess.filter((m) => m.half === 'fit').length, heldMoves: lichessHeld.length },
-    his: { moves: hisRows.length, games: new Set(hisRows.map((r) => r.game)).size, offset: kept },
+    his: { moves: hisRows.length, games: new Set(hisRows.map((r) => r.game)).size, offsets },
     punish: { exact: test3.events, all: test3All.events, games: test3All.games },
   },
   seed: SEED,
@@ -203,7 +205,7 @@ const iv = (t) => `${f4(t.interval[0])} to ${f4(t.interval[1])}`
 const md = [
   '# Maia-2 calibration by band: results',
   '',
-  `Written by fit.mjs. App commit ${pin.commit}. Lichess sample: ${report.data.lichess.moves} moves in ${report.data.lichess.games} games (fitting half ${report.data.lichess.fitMoves} moves, held-out half ${report.data.lichess.heldMoves}). The player's games: ${report.data.his.moves} moves in ${report.data.his.games} games, at offset ${kept}. Punish events: ${report.data.punish.exact} in the primary set, ${report.data.punish.all} in all, over ${report.data.punish.games} games. Bootstrap: ${B} draws over games, seed ${SEED}.`,
+  `Written by fit.mjs. App commit ${pin.commit}. Lichess sample: ${report.data.lichess.moves} moves in ${report.data.lichess.games} games (fitting half ${report.data.lichess.fitMoves} moves, held-out half ${report.data.lichess.heldMoves}). The player's games: ${report.data.his.moves} moves in ${report.data.his.games} games, at the app's offsets (the player ${offsets.player}, his opponents ${offsets.opponents}). Punish events: ${report.data.punish.exact} in the primary set, ${report.data.punish.all} in all, over ${report.data.punish.games} games. Bootstrap: ${B} draws over games, seed ${SEED}.`,
   '',
   `**Verdict.** ${adopted ? 'Adopted' : 'Not adopted'}: Lichess held-out ${pass1 ? 'passes' : 'fails'}, the player's games ${pass2 ? 'pass' : 'fail'}, the punish events ${pass3 ? 'pass' : 'fail'}.`,
   '',

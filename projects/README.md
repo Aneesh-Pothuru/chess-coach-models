@@ -56,6 +56,9 @@ bridge/run.sh projects/accuracy-vs-chesscom/build-evidence.mjs --profile desktop
 bridge/run.sh projects/accuracy-vs-chesscom/build-evidence.mjs --profile routine
 
 # Each project's numbers, recomputed from the records and rerun on that evidence.
+# maia-punish builds its own routine evidence on the pinned app first (under
+# private/maia-punish/evidence/<commit>/), so its rerun's evidence and odds
+# come from one commit.
 bridge/run.sh projects/accuracy-vs-chesscom/reproduce.mjs
 bridge/run.sh projects/explain-top-move/reproduce.mjs
 bridge/run.sh projects/judge-in-context/reproduce.mjs
@@ -98,6 +101,7 @@ bridge/run.sh projects/maia-rating-offset/fit.mjs
 PYTHON=.venv/bin/python scripts/stream_benchmark.sh
 .venv/bin/python projects/maia-calibration/sample.py
 for k in 0 1 2 3; do bridge/run.sh projects/maia-calibration/lichess-policies.mts --shard $k/4 & done; wait
+for k in 0 1 2 3; do bridge/run.sh projects/maia-calibration/app-policies.mts --shard $k/4 & done; wait
 bridge/run.sh projects/maia-calibration/punish-policies.mts
 bridge/run.sh projects/maia-calibration/fit.mjs
 
