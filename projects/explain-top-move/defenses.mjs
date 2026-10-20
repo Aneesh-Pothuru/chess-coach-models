@@ -2,7 +2,9 @@
 // The searches the explanation's defense answers rest on, made by the app's
 // own routine step (services/review `defenseProbes`): for every key moment
 // whose better move threatens a piece (knowledge `threatOf`), the human-move
-// model's likeliest reply after the better move, at the defender's band; when
+// model's likeliest reply after the better move, at the defender's band (the
+// game names the player's side, as the routine's does, so an app that reads
+// the player's opponents at their own offset reads them there); when
 // that reply moves an attacked piece or blocks (knowledge `naturalDefense`),
 // the engine's line from it: the better line itself when the defense is the
 // engine's reply there, else a search of the defense at the routine's punish
@@ -66,7 +68,7 @@ for (const [id, moments] of byMoment) {
     engine,
     { records, fens, moments: moments.map((c) => c.index) },
     (i) => position(fens[i]),
-    { white: { rating: rating('w') }, black: { rating: rating('b') } },
+    { white: { rating: rating('w') }, black: { rating: rating('b') }, me: g.playerColor },
     BUDGET,
     { priority: 'batch' },
   );
