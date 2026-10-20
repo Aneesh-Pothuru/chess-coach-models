@@ -175,8 +175,11 @@ audit graded a claim the writer had read from `coach engine find`,
 a script for using the routine's tools. The evidence now carries them, for
 both configs alike, and every script, the published ones and every run
 including the pilot's, is graded with it; the first grading of the 2026-09-25
-pair is kept in the eval directory and reported beside the result. The rule
-did not change.
+pair is kept in the eval directory and reported beside the result. The
+same regrade showed a second fault: one audit filed most of the lines it had
+checked and found true as misleading, so the audit's claim list gained a grade
+for a line that holds, which counts for nothing, and every audit was run again
+with it. The rule did not change.
 
 ## Pilot, spend and usage
 
