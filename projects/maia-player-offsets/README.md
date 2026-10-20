@@ -4,10 +4,27 @@
 rating, predict the moves in the player's games better than the app's single
 250? If it does, does it keep the punish odds as useful as they are at 250?
 
-**This run.** Phase 1 fixes the rule and counts and times the work. No fitted
-value, likelihood, first-choice share, Brier score, interval or verdict is
-computed. `results/phase1.md` is written by `count.mjs`. The paper is a
-protocol and cost report, not an answer. The app stays unchanged.
+**The answer.** The rule selects A: 250 for the player and 400 for his
+opponents. Its held-out gain is 0.002216 natural log probability per move
+(95% interval 0.000682 to 0.003754; Holm adjusted p = 0.007992). B fits
+an intercept of 275 and a slope of -0.5; its gain is 0.001940 (0.000332 to
+0.003479; adjusted p = 0.027972). Both win the likelihood comparison and
+pass all four punish guards. A has the larger observed gain, so the fixed
+selection rule chooses it. This does not establish that A significantly
+beats B. The app has not taken the change; the port is separate.
+
+The gain comes mainly from predicting opponents' moves. A's held-out gain
+on the player's moves is -0.000942, with an interval crossing zero, although
+his own offset stays at 250. The opponent's converted rating also enters
+Maia when the player moves. These side results are descriptive.
+
+[`results/offsets.md`](results/offsets.md) gives the verdict and every guard
+cell. [`results/runtime.md`](results/runtime.md) and
+[`results/execution.md`](results/execution.md) report the work and recovery.
+[`paper/paper.tex`](paper/paper.tex) is the paper source; its checked
+generator writes `paper/generated.tex`. No PDF is built in this run.
+`results/phase1.md` remains the counts and cost projection written before
+effects. The frozen rule below is preserved in `protocol.md`.
 
 ## The data
 
@@ -239,6 +256,17 @@ not CPU-active time; scheduling gaps or machine suspension can lengthen them.
 A temporary AC-only sleep guard may follow the verified launcher process.
 It ends with that process and changes no permanent power setting.
 
+The completed run covered all 324 held-out reviews and extracted 3,818 reply
+events, 3,295 with verified or terminal evidence. It required 900,016 move
+policy calls and 19,276 punish policy calls. Recorded stage wall times were
+6.67 hours for move policies, 24.33 hours for reviews, 1.30 seconds for event
+extraction, 1.24 hours for punish policies and 13.23 seconds for the fit.
+The whole span was 33.74 hours. These durations include interruptions and
+scheduling or suspension gaps within attempts; they are not CPU times.
+The first review pass retained 307 completed games and left 17 timeout-only
+failures. The checked restart completed those games without another failure.
+No review was excluded and no review setting changed.
+
 The review timing invocation also lowered the coordinator's priority before
 its workers ran `nice -n 10`; that reduced their priority twice. The commands
 below leave the lightweight coordinator at its normal priority and apply
@@ -299,7 +327,8 @@ check helps expose that selection but cannot remove it.
 | `protocol.md`, `protocol-manifest.json`, `freeze.mjs` | Approved rule text and reproducible content hashes; fixed before effects. |
 | `tests.mjs` | Synthetic checks for side mapping, ties, Holm, event weighting and the guard; never reads the player's data. |
 | `call-sites.md` | Conversion callers and later port scope. |
-| `paper/` | Protocol paper and checked number generator; no TeX build here. |
+| `results/` | Script-written phase-1 counts, final effects, runtime and execution reports. |
+| `paper/` | Result paper, checked number generator and generated TeX; no PDF build here. |
 
 The phase-1 commands below record how preparation and the timing slices were
 run, sequentially. `results/phase1.json` is the frozen preregistration report;
@@ -320,7 +349,7 @@ bridge/run.sh projects/maia-player-offsets/tests.mjs
 .venv/bin/python scripts/check_private.py
 ```
 
-Phase 2, after review of this commit (no new grid choices):
+Phase 2, using the approved protocol (no new grid choices):
 
 The controller runs the stages below and resumes them after interruption.
 For a fresh private directory, first run `prepare.mjs` and `weights.mts` as
@@ -368,7 +397,17 @@ After the run completes, write its execution report:
 node projects/maia-player-offsets/recover-review-timeouts.mjs --report
 ```
 
-Then update the paper's prose and generator to the result, with claim checks,
-regenerate its TeX, and obtain the lab's review. Do not push. All per-game and
-per-position files stay under `private/maia-player-offsets/`; `results/`
-contains only aggregates written by scripts.
+The paper generator binds the reviewed result by its content hash and checks
+the prose's claims before writing TeX:
+
+```bash
+bridge/run.sh projects/maia-player-offsets/paper/generate.mjs
+.venv/bin/python scripts/check_private.py
+```
+
+The completed study changed no instrument, data selection, grid, estimator,
+bootstrap or decision threshold after seeing an effect. Result prose and its
+checked presentation were completed afterward. Obtain the lab's review;
+do not push. All per-game and per-position files stay under
+`private/maia-player-offsets/`; `results/` contains only aggregates written
+by scripts.

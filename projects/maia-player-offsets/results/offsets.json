@@ -1,0 +1,1587 @@
+{
+  "phase": 2,
+  "app": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+  "records": "aed714ada579782ce73630596e59c8b65e74cb30",
+  "sources": {
+    "moves": {
+      "app": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+      "source": "3229e75cfee305746ff60d74a380caa0f0c03eeebf57f6e4f4f89cec5398d246",
+      "design": "17bb2c8256f68ae003d2b91abb97a55cd702b0c210ae642eec56e6061fdfca15"
+    },
+    "gamesSha256": "9164483f7525d7f3665d581e5cb169e8c181e07d124391fd52b78444389f8e9a",
+    "events": {
+      "app": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+      "source": "ce00e17b2b20bf33c017ed2b4334305dc42cdb87f68676a3e199efe7f7b6fd58",
+      "design": "17bb2c8256f68ae003d2b91abb97a55cd702b0c210ae642eec56e6061fdfca15"
+    },
+    "evidenceManifestSha256": "65d2d6f33328da48205a3f13f74f67585a38c6c894a5e460434175c385581bd2"
+  },
+  "data": {
+    "description": "The pinned archive, predecessor positions and alternating game halves; punish events from routine reviews of every held-out game, rebuilt on the pinned app.",
+    "games": 648,
+    "moves": 33522,
+    "fit": {
+      "games": 324,
+      "moves": 17055
+    },
+    "held": {
+      "games": 324,
+      "moves": 16467
+    },
+    "punish": {
+      "events": 3818,
+      "games": 322,
+      "coveredGames": 324,
+      "verified": 3295
+    },
+    "moverRating": {
+      "min": 513,
+      "median": 1015,
+      "max": 1228,
+      "thirdsCuts": [
+        935,
+        1076
+      ]
+    }
+  },
+  "rule": {
+    "base": 250,
+    "candidateCounts": {
+      "A": 441,
+      "B": 147
+    },
+    "seed": 7,
+    "draws": 1000,
+    "unit": "held-out game, sampled uniformly with replacement; one shared sequence includes zero-move and zero-event games",
+    "estimator": "ratio of summed log-likelihoods to counted moves; no bootstrap refitting",
+    "quantile": "sorted[Math.round(q * (draws.length - 1))]",
+    "p": "doubled lower-tail bootstrap p for positive gain: min(1, 2 * (1 + count(draw <= 0)) / (draws + 1))",
+    "pResolution": 0.001998001998001998,
+    "minimumFirstHolmAdjustedP": 0.003996003996003996,
+    "likelihood": "positive fitting gain; positive held 95% lower bound; two-candidate Holm adjusted p < .05; first Holm stage uses the 97.5% interval, second 95%; second requires first to win; ties in p put A first",
+    "guard": "candidate minus baseline Brier for E1, in each verified/all by player-err/opp-err cell; all four 97.5% upper bounds at most the margin; a missing cell or any empty draw is inconclusive",
+    "guardMargin": 0.005,
+    "multiplicity": "Holm over two likelihood candidates; guard uses a two-sided 97.5% interval per candidate (Bonferroni across two candidates), with all four cells required conjunctively",
+    "adoption": "eligible candidate with greatest observed held gain; an exact tie chooses B; otherwise retain the baseline"
+  },
+  "baseline": {
+    "fit": {
+      "moves": 17055,
+      "logLikelihood": -1.3958825514501694,
+      "firstChoice": 0.5367927294048666
+    },
+    "held": {
+      "moves": 16467,
+      "logLikelihood": -1.3958741188490111,
+      "firstChoice": 0.5420538045788547
+    },
+    "all": {
+      "moves": 33522,
+      "logLikelihood": -1.3958784091065362,
+      "firstChoice": 0.5393771254698407
+    }
+  },
+  "tests": {
+    "A": {
+      "fitted": {
+        "kind": "A",
+        "id": "A:250:400",
+        "him": 250,
+        "opp": 400
+      },
+      "fit": -1.3940928884949984,
+      "fitGain": 0.001789662955171023,
+      "held": {
+        "base": {
+          "moves": 16467,
+          "logLikelihood": -1.3958741188490111,
+          "firstChoice": 0.5420538045788547
+        },
+        "candidate": {
+          "moves": 16467,
+          "logLikelihood": -1.3936576320600986,
+          "firstChoice": 0.542296714641404
+        },
+        "gain": 0.0022164867889125084,
+        "interval95": [
+          0.0006824064065367933,
+          0.0037537716661418153
+        ],
+        "interval975": [
+          0.0005612619645212197,
+          0.003867148228369774
+        ],
+        "p": 0.003996003996003996,
+        "emptyDraws": 0,
+        "complete": true
+      },
+      "holm": {
+        "rank": 1,
+        "adjustedP": 0.007992007992007992,
+        "tail": 0.0125,
+        "interval": [
+          0.0005612619645212197,
+          0.003867148228369774
+        ],
+        "previousPassed": true
+      },
+      "wins": true,
+      "guard": {
+        "verified|player-err": {
+          "events": 1610,
+          "games": 308,
+          "bootstrapGames": 324,
+          "base": 0.1704856269099967,
+          "candidate": 0.1673725387555651,
+          "difference": -0.003113088154431577,
+          "interval95": [
+            -0.004807024914248981,
+            -0.0015449586313552649
+          ],
+          "interval975": [
+            -0.005020292707177767,
+            -0.001306190805593091
+          ],
+          "emptyDraws": 0,
+          "status": "pass",
+          "pass": true
+        },
+        "verified|opp-err": {
+          "events": 1685,
+          "games": 311,
+          "bootstrapGames": 324,
+          "base": 0.1658510184513786,
+          "candidate": 0.1658510184513786,
+          "difference": 0,
+          "interval95": [
+            0,
+            0
+          ],
+          "interval975": [
+            0,
+            0
+          ],
+          "emptyDraws": 0,
+          "status": "pass",
+          "pass": true
+        },
+        "all|player-err": {
+          "events": 1883,
+          "games": 312,
+          "bootstrapGames": 324,
+          "base": 0.15839332865995012,
+          "candidate": 0.15669219435608048,
+          "difference": -0.0017011343038696486,
+          "interval95": [
+            -0.0031859697429634233,
+            -0.00021775852393967636
+          ],
+          "interval975": [
+            -0.0034574744283378824,
+            0.00008337972552082838
+          ],
+          "emptyDraws": 0,
+          "status": "pass",
+          "pass": true
+        },
+        "all|opp-err": {
+          "events": 1935,
+          "games": 315,
+          "bootstrapGames": 324,
+          "base": 0.1557252382354246,
+          "candidate": 0.1557252382354246,
+          "difference": 0,
+          "interval95": [
+            0,
+            0
+          ],
+          "interval975": [
+            0,
+            0
+          ],
+          "emptyDraws": 0,
+          "status": "pass",
+          "pass": true
+        }
+      },
+      "guardPass": true,
+      "eligible": true,
+      "bySide": {
+        "him": {
+          "base": {
+            "moves": 8241,
+            "logLikelihood": -1.3511077156554832,
+            "firstChoice": 0.5555151073898799
+          },
+          "candidate": {
+            "moves": 8241,
+            "logLikelihood": -1.3520495975390114,
+            "firstChoice": 0.5534522509404198
+          },
+          "gain": -0.0009418818835282838,
+          "interval95": [
+            -0.0019478020678921884,
+            0.00011138669549513469
+          ],
+          "interval975": [
+            -0.0021336142105662535,
+            0.0002607459152959515
+          ],
+          "p": 1,
+          "emptyDraws": 0,
+          "complete": true
+        },
+        "opponents": {
+          "base": {
+            "moves": 8226,
+            "logLikelihood": -1.4407221529746914,
+            "firstChoice": 0.5285679552637977
+          },
+          "candidate": {
+            "moves": 8226,
+            "logLikelihood": -1.4353415382706838,
+            "firstChoice": 0.5311208363724775
+          },
+          "gain": 0.005380614704007636,
+          "interval95": [
+            0.002531108729371496,
+            0.008095304530508135
+          ],
+          "interval975": [
+            0.0021727785183888178,
+            0.008519525498093025
+          ],
+          "p": 0.001998001998001998,
+          "emptyDraws": 0,
+          "complete": true
+        }
+      },
+      "byRating": [
+        {
+          "from": 513,
+          "to": 934,
+          "base": {
+            "moves": 5113,
+            "logLikelihood": -1.4235070168723187,
+            "firstChoice": 0.5300215137883826
+          },
+          "candidate": {
+            "moves": 5113,
+            "logLikelihood": -1.4168771601237427,
+            "firstChoice": 0.5311949931547036
+          },
+          "gain": 0.0066298567485760795,
+          "interval95": [
+            0.0037069849697656584,
+            0.009682214651324416
+          ],
+          "interval975": [
+            0.003300183643179776,
+            0.009978194673769002
+          ],
+          "p": 0.001998001998001998,
+          "emptyDraws": 0,
+          "complete": true
+        },
+        {
+          "from": 935,
+          "to": 1075,
+          "base": {
+            "moves": 5690,
+            "logLikelihood": -1.4067110596139416,
+            "firstChoice": 0.5442882249560632
+          },
+          "candidate": {
+            "moves": 5690,
+            "logLikelihood": -1.4075176421580762,
+            "firstChoice": 0.5446397188049209
+          },
+          "gain": -0.0008065825441345709,
+          "interval95": [
+            -0.0029203433542529193,
+            0.0013866860966212933
+          ],
+          "interval975": [
+            -0.003294371025106189,
+            0.0016066734769805131
+          ],
+          "p": 1,
+          "emptyDraws": 0,
+          "complete": true
+        },
+        {
+          "from": 1076,
+          "to": 1228,
+          "base": {
+            "moves": 5664,
+            "logLikelihood": -1.3600426921990043,
+            "firstChoice": 0.5506709039548022
+          },
+          "candidate": {
+            "moves": 5664,
+            "logLikelihood": -1.3587732915857171,
+            "firstChoice": 0.5499646892655368
+          },
+          "gain": 0.001269400613287175,
+          "interval95": [
+            -0.0014618119392626023,
+            0.003955507572133043
+          ],
+          "interval975": [
+            -0.0019358020510307269,
+            0.004183759540598104
+          ],
+          "p": 0.3836163836163836,
+          "emptyDraws": 0,
+          "complete": true
+        }
+      ],
+      "firstChoice": {
+        "fit": 0.5377308707124011,
+        "all": 0.53997374858302,
+        "held": 0.542296714641404
+      }
+    },
+    "B": {
+      "fitted": {
+        "kind": "B",
+        "id": "B:275:-0.5",
+        "a": 275,
+        "b": -0.5
+      },
+      "fit": -1.3937884194455292,
+      "fitGain": 0.002094132004640148,
+      "held": {
+        "base": {
+          "moves": 16467,
+          "logLikelihood": -1.3958741188490111,
+          "firstChoice": 0.5420538045788547
+        },
+        "candidate": {
+          "moves": 16467,
+          "logLikelihood": -1.3939342374198713,
+          "firstChoice": 0.5429039897977773
+        },
+        "gain": 0.0019398814291398114,
+        "interval95": [
+          0.0003324690411712786,
+          0.003479389625910885
+        ],
+        "interval975": [
+          -0.000005275424962345221,
+          0.003797976106259341
+        ],
+        "p": 0.027972027972027972,
+        "emptyDraws": 0,
+        "complete": true
+      },
+      "holm": {
+        "rank": 2,
+        "adjustedP": 0.027972027972027972,
+        "tail": 0.025,
+        "interval": [
+          0.0003324690411712786,
+          0.003479389625910885
+        ],
+        "previousPassed": true
+      },
+      "wins": true,
+      "guard": {
+        "verified|player-err": {
+          "events": 1610,
+          "games": 308,
+          "bootstrapGames": 324,
+          "base": 0.1704856269099967,
+          "candidate": 0.1689797649537872,
+          "difference": -0.001505861956209477,
+          "interval95": [
+            -0.002741272215211392,
+            -0.00032407372640145545
+          ],
+          "interval975": [
+            -0.002969532535583559,
+            -0.00019949225340824746
+          ],
+          "emptyDraws": 0,
+          "status": "pass",
+          "pass": true
+        },
+        "verified|opp-err": {
+          "events": 1685,
+          "games": 311,
+          "bootstrapGames": 324,
+          "base": 0.1658510184513786,
+          "candidate": 0.16431276078390075,
+          "difference": -0.0015382576674778242,
+          "interval95": [
+            -0.003046803284891377,
+            -0.0002423191101812306
+          ],
+          "interval975": [
+            -0.003279464616694374,
+            -0.000024851019792479643
+          ],
+          "emptyDraws": 0,
+          "status": "pass",
+          "pass": true
+        },
+        "all|player-err": {
+          "events": 1883,
+          "games": 312,
+          "bootstrapGames": 324,
+          "base": 0.15839332865995012,
+          "candidate": 0.15744085642200079,
+          "difference": -0.0009524722379493394,
+          "interval95": [
+            -0.0020165531904244357,
+            0.000055254432407980255
+          ],
+          "interval975": [
+            -0.0022125593857547964,
+            0.00020611688301842753
+          ],
+          "emptyDraws": 0,
+          "status": "pass",
+          "pass": true
+        },
+        "all|opp-err": {
+          "events": 1935,
+          "games": 315,
+          "bootstrapGames": 324,
+          "base": 0.1557252382354246,
+          "candidate": 0.1549106240315455,
+          "difference": -0.0008146142038791093,
+          "interval95": [
+            -0.00220630562508758,
+            0.00038295607432797005
+          ],
+          "interval975": [
+            -0.0023608869066600517,
+            0.0004935883190265579
+          ],
+          "emptyDraws": 0,
+          "status": "pass",
+          "pass": true
+        }
+      },
+      "guardPass": true,
+      "eligible": true,
+      "bySide": {
+        "him": {
+          "base": {
+            "moves": 8241,
+            "logLikelihood": -1.3511077156554832,
+            "firstChoice": 0.5555151073898799
+          },
+          "candidate": {
+            "moves": 8241,
+            "logLikelihood": -1.3510832135965456,
+            "firstChoice": 0.5562431743720422
+          },
+          "gain": 0.000024502058937558857,
+          "interval95": [
+            -0.002136286005629783,
+            0.002257000628979259
+          ],
+          "interval975": [
+            -0.00240201569387766,
+            0.0025698944993916787
+          ],
+          "p": 1,
+          "emptyDraws": 0,
+          "complete": true
+        },
+        "opponents": {
+          "base": {
+            "moves": 8226,
+            "logLikelihood": -1.4407221529746914,
+            "firstChoice": 0.5285679552637977
+          },
+          "candidate": {
+            "moves": 8226,
+            "logLikelihood": -1.436863399506913,
+            "firstChoice": 0.5295404814004376
+          },
+          "gain": 0.0038587534677783086,
+          "interval95": [
+            0.0015905072118108574,
+            0.006169651811921379
+          ],
+          "interval975": [
+            0.0012839989331562673,
+            0.006558550355130416
+          ],
+          "p": 0.001998001998001998,
+          "emptyDraws": 0,
+          "complete": true
+        }
+      },
+      "byRating": [
+        {
+          "from": 513,
+          "to": 934,
+          "base": {
+            "moves": 5113,
+            "logLikelihood": -1.4235070168723187,
+            "firstChoice": 0.5300215137883826
+          },
+          "candidate": {
+            "moves": 5113,
+            "logLikelihood": -1.4170527016034982,
+            "firstChoice": 0.5331507920985723
+          },
+          "gain": 0.006454315268820565,
+          "interval95": [
+            0.0015226833100575325,
+            0.011461462693779513
+          ],
+          "interval975": [
+            0.0005859564564080114,
+            0.012065845229018487
+          ],
+          "p": 0.013986013986013986,
+          "emptyDraws": 0,
+          "complete": true
+        },
+        {
+          "from": 935,
+          "to": 1075,
+          "base": {
+            "moves": 5690,
+            "logLikelihood": -1.4067110596139416,
+            "firstChoice": 0.5442882249560632
+          },
+          "candidate": {
+            "moves": 5690,
+            "logLikelihood": -1.406757499901476,
+            "firstChoice": 0.5441124780316344
+          },
+          "gain": -0.00004644028753442164,
+          "interval95": [
+            -0.0008035001427246879,
+            0.0007375311368698515
+          ],
+          "interval975": [
+            -0.0008845767191501268,
+            0.000847315898904827
+          ],
+          "p": 1,
+          "emptyDraws": 0,
+          "complete": true
+        },
+        {
+          "from": 1076,
+          "to": 1228,
+          "base": {
+            "moves": 5664,
+            "logLikelihood": -1.3600426921990043,
+            "firstChoice": 0.5506709039548022
+          },
+          "candidate": {
+            "moves": 5664,
+            "logLikelihood": -1.3601826359207145,
+            "firstChoice": 0.5504943502824858
+          },
+          "gain": -0.00013994372171022285,
+          "interval95": [
+            -0.0008769224786174638,
+            0.0006516502236466139
+          ],
+          "interval975": [
+            -0.0009871340578108774,
+            0.0007589508216388134
+          ],
+          "p": 1,
+          "emptyDraws": 0,
+          "complete": true
+        }
+      ],
+      "firstChoice": {
+        "fit": 0.5364995602462621,
+        "all": 0.5396456058707715,
+        "held": 0.5429039897977773
+      }
+    }
+  },
+  "holmOrder": [
+    "A",
+    "B"
+  ],
+  "adopted": "A",
+  "kept": {
+    "kind": "A",
+    "id": "A:250:400",
+    "him": 250,
+    "opp": 400
+  },
+  "calibration": {
+    "verified|player-err": {
+      "base": [
+        {
+          "from": 0,
+          "to": 0.1,
+          "events": 328,
+          "meanProbability": 0.0461073746247074,
+          "observed": 0.10060975609756098,
+          "wilson95": [
+            0.07253951183198357,
+            0.13792683275587572
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.1,
+          "to": 0.2,
+          "events": 215,
+          "meanProbability": 0.14794079533557455,
+          "observed": 0.20930232558139536,
+          "wilson95": [
+            0.1602657479275736,
+            0.2685444936344803
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.2,
+          "to": 0.4,
+          "events": 289,
+          "meanProbability": 0.29376222229001436,
+          "observed": 0.4290657439446367,
+          "wilson95": [
+            0.3733011826244885,
+            0.4866913192394495
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.4,
+          "to": 0.6,
+          "events": 241,
+          "meanProbability": 0.5031289164507501,
+          "observed": 0.6016597510373444,
+          "wilson95": [
+            0.538723159664212,
+            0.6614063455103362
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.6,
+          "to": 0.8,
+          "events": 247,
+          "meanProbability": 0.6982133558888809,
+          "observed": 0.7246963562753036,
+          "wilson95": [
+            0.6658728155051123,
+            0.776637766764084
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.8,
+          "to": 1,
+          "events": 290,
+          "meanProbability": 0.9039302217643457,
+          "observed": 0.8931034482758621,
+          "wilson95": [
+            0.8522640567070312,
+            0.9236645713193106
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        }
+      ],
+      "A": [
+        {
+          "from": 0,
+          "to": 0.1,
+          "events": 314,
+          "meanProbability": 0.04333246796455544,
+          "observed": 0.09554140127388536,
+          "wilson95": [
+            0.06774496351009632,
+            0.13311448087317845
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.1,
+          "to": 0.2,
+          "events": 212,
+          "meanProbability": 0.14738822893529854,
+          "observed": 0.21226415094339623,
+          "wilson95": [
+            0.16259349361356948,
+            0.2721768203632787
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.2,
+          "to": 0.4,
+          "events": 273,
+          "meanProbability": 0.29579633871842437,
+          "observed": 0.38461538461538464,
+          "wilson95": [
+            0.3288855863482143,
+            0.4435473423454461
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.4,
+          "to": 0.6,
+          "events": 237,
+          "meanProbability": 0.5013689468920165,
+          "observed": 0.5738396624472574,
+          "wilson95": [
+            0.5101962287974642,
+            0.6351275878385139
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.6,
+          "to": 0.8,
+          "events": 244,
+          "meanProbability": 0.6974493401877859,
+          "observed": 0.7295081967213115,
+          "wilson95": [
+            0.6705330258225496,
+            0.7813687687074312
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.8,
+          "to": 1,
+          "events": 330,
+          "meanProbability": 0.9040082327879805,
+          "observed": 0.8818181818181818,
+          "wilson95": [
+            0.8425178372160806,
+            0.9123314882397757
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        }
+      ],
+      "B": [
+        {
+          "from": 0,
+          "to": 0.1,
+          "events": 322,
+          "meanProbability": 0.0451118549106787,
+          "observed": 0.10559006211180125,
+          "wilson95": [
+            0.07654989151638522,
+            0.14392990586945772
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.1,
+          "to": 0.2,
+          "events": 212,
+          "meanProbability": 0.14715487179813785,
+          "observed": 0.20754716981132076,
+          "wilson95": [
+            0.15839878394524362,
+            0.2671054696049955
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.2,
+          "to": 0.4,
+          "events": 279,
+          "meanProbability": 0.2944575080749051,
+          "observed": 0.3978494623655914,
+          "wilson95": [
+            0.34217878974473986,
+            0.4562948843847135
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.4,
+          "to": 0.6,
+          "events": 241,
+          "meanProbability": 0.5021739739598261,
+          "observed": 0.5975103734439834,
+          "wilson95": [
+            0.5345349404820446,
+            0.6574260134608895
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.6,
+          "to": 0.8,
+          "events": 252,
+          "meanProbability": 0.6990453740912872,
+          "observed": 0.7142857142857143,
+          "wilson95": [
+            0.6556188012306967,
+            0.7665176284856909
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.8,
+          "to": 1,
+          "events": 304,
+          "meanProbability": 0.9044678311584324,
+          "observed": 0.8947368421052632,
+          "wilson95": [
+            0.8551766377660086,
+            0.924445447314451
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        }
+      ]
+    },
+    "verified|opp-err": {
+      "base": [
+        {
+          "from": 0,
+          "to": 0.1,
+          "events": 314,
+          "meanProbability": 0.043981131814289025,
+          "observed": 0.06369426751592357,
+          "wilson95": [
+            0.04160715032770676,
+            0.09632784085740065
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.1,
+          "to": 0.2,
+          "events": 226,
+          "meanProbability": 0.14759962935488272,
+          "observed": 0.252212389380531,
+          "wilson95": [
+            0.20005688222911075,
+            0.31265070075149326
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.2,
+          "to": 0.4,
+          "events": 293,
+          "meanProbability": 0.29149777719811165,
+          "observed": 0.3822525597269625,
+          "wilson95": [
+            0.32847554163190673,
+            0.4390771436495682
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.4,
+          "to": 0.6,
+          "events": 267,
+          "meanProbability": 0.49665988966384267,
+          "observed": 0.5617977528089888,
+          "wilson95": [
+            0.5018242280153982,
+            0.6200182703365513
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.6,
+          "to": 0.8,
+          "events": 254,
+          "meanProbability": 0.7056510835988966,
+          "observed": 0.7519685039370079,
+          "wilson95": [
+            0.6953671686030909,
+            0.8010619184236494
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.8,
+          "to": 1,
+          "events": 331,
+          "meanProbability": 0.9119542018529947,
+          "observed": 0.8851963746223565,
+          "wilson95": [
+            0.8463475174852254,
+            0.9152069235272634
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        }
+      ],
+      "A": [
+        {
+          "from": 0,
+          "to": 0.1,
+          "events": 314,
+          "meanProbability": 0.043981131814289025,
+          "observed": 0.06369426751592357,
+          "wilson95": [
+            0.04160715032770676,
+            0.09632784085740065
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.1,
+          "to": 0.2,
+          "events": 226,
+          "meanProbability": 0.14759962935488272,
+          "observed": 0.252212389380531,
+          "wilson95": [
+            0.20005688222911075,
+            0.31265070075149326
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.2,
+          "to": 0.4,
+          "events": 293,
+          "meanProbability": 0.29149777719811165,
+          "observed": 0.3822525597269625,
+          "wilson95": [
+            0.32847554163190673,
+            0.4390771436495682
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.4,
+          "to": 0.6,
+          "events": 267,
+          "meanProbability": 0.49665988966384267,
+          "observed": 0.5617977528089888,
+          "wilson95": [
+            0.5018242280153982,
+            0.6200182703365513
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.6,
+          "to": 0.8,
+          "events": 254,
+          "meanProbability": 0.7056510835988966,
+          "observed": 0.7519685039370079,
+          "wilson95": [
+            0.6953671686030909,
+            0.8010619184236494
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.8,
+          "to": 1,
+          "events": 331,
+          "meanProbability": 0.9119542018529947,
+          "observed": 0.8851963746223565,
+          "wilson95": [
+            0.8463475174852254,
+            0.9152069235272634
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        }
+      ],
+      "B": [
+        {
+          "from": 0,
+          "to": 0.1,
+          "events": 313,
+          "meanProbability": 0.0438470327856665,
+          "observed": 0.0670926517571885,
+          "wilson95": [
+            0.044298157313531095,
+            0.10038448299282027
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.1,
+          "to": 0.2,
+          "events": 218,
+          "meanProbability": 0.14961276860498815,
+          "observed": 0.22935779816513763,
+          "wilson95": [
+            0.178522627915418,
+            0.2895659763189472
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.2,
+          "to": 0.4,
+          "events": 285,
+          "meanProbability": 0.29451172613346627,
+          "observed": 0.37543859649122807,
+          "wilson95": [
+            0.3212267891558655,
+            0.43296362280963047
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.4,
+          "to": 0.6,
+          "events": 263,
+          "meanProbability": 0.4979079696329912,
+          "observed": 0.5665399239543726,
+          "wilson95": [
+            0.5061161667028953,
+            0.6250478591373263
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.6,
+          "to": 0.8,
+          "events": 251,
+          "meanProbability": 0.702944520835904,
+          "observed": 0.7290836653386454,
+          "wilson95": [
+            0.6709556694364815,
+            0.780305285245597
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.8,
+          "to": 1,
+          "events": 355,
+          "meanProbability": 0.9113534861575184,
+          "observed": 0.8816901408450705,
+          "wilson95": [
+            0.8439383678778268,
+            0.9112697981201084
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        }
+      ]
+    },
+    "all|player-err": {
+      "base": [
+        {
+          "from": 0,
+          "to": 0.1,
+          "events": 445,
+          "meanProbability": 0.04548498972548349,
+          "observed": 0.07415730337078652,
+          "wilson95": [
+            0.05328865766416832,
+            0.10231519186479154
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.1,
+          "to": 0.2,
+          "events": 267,
+          "meanProbability": 0.1474159244802401,
+          "observed": 0.16853932584269662,
+          "wilson95": [
+            0.12841113018603656,
+            0.21807001501714385
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.2,
+          "to": 0.4,
+          "events": 340,
+          "meanProbability": 0.2911597436432999,
+          "observed": 0.36470588235294116,
+          "wilson95": [
+            0.3153172291874372,
+            0.4171175961080895
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.4,
+          "to": 0.6,
+          "events": 275,
+          "meanProbability": 0.501161590565874,
+          "observed": 0.5272727272727272,
+          "wilson95": [
+            0.4682965037105238,
+            0.5854975054853813
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.6,
+          "to": 0.8,
+          "events": 263,
+          "meanProbability": 0.6987208536778603,
+          "observed": 0.6806083650190115,
+          "wilson95": [
+            0.6220067217723386,
+            0.7340099197939778
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.8,
+          "to": 1,
+          "events": 293,
+          "meanProbability": 0.9030185922412257,
+          "observed": 0.8839590443686007,
+          "wilson95": [
+            0.8422188660485003,
+            0.9157615080336469
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        }
+      ],
+      "A": [
+        {
+          "from": 0,
+          "to": 0.1,
+          "events": 428,
+          "meanProbability": 0.043357563595821796,
+          "observed": 0.07009345794392523,
+          "wilson95": [
+            0.04953658939075925,
+            0.09829881991671505
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.1,
+          "to": 0.2,
+          "events": 264,
+          "meanProbability": 0.1476678203089172,
+          "observed": 0.17045454545454544,
+          "wilson95": [
+            0.12990035039361023,
+            0.22046161087212526
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.2,
+          "to": 0.4,
+          "events": 326,
+          "meanProbability": 0.29330985746304705,
+          "observed": 0.3220858895705521,
+          "wilson95": [
+            0.2736877513214457,
+            0.37462813833432057
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.4,
+          "to": 0.6,
+          "events": 268,
+          "meanProbability": 0.5000191064220297,
+          "observed": 0.5074626865671642,
+          "wilson95": [
+            0.44792629565431547,
+            0.5667881633445173
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.6,
+          "to": 0.8,
+          "events": 262,
+          "meanProbability": 0.6971504307435893,
+          "observed": 0.6793893129770993,
+          "wilson95": [
+            0.6206343785795468,
+            0.7329598290997058
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.8,
+          "to": 1,
+          "events": 335,
+          "meanProbability": 0.9030020502258133,
+          "observed": 0.8686567164179104,
+          "wilson95": [
+            0.8282703903889269,
+            0.9006840913314041
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        }
+      ],
+      "B": [
+        {
+          "from": 0,
+          "to": 0.1,
+          "events": 437,
+          "meanProbability": 0.04471693988592301,
+          "observed": 0.07780320366132723,
+          "wilson95": [
+            0.056208535692104405,
+            0.10675585294066844
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.1,
+          "to": 0.2,
+          "events": 265,
+          "meanProbability": 0.1472695434955414,
+          "observed": 0.1660377358490566,
+          "wilson95": [
+            0.12607325691376112,
+            0.2155461466691829
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.2,
+          "to": 0.4,
+          "events": 332,
+          "meanProbability": 0.29215906201426634,
+          "observed": 0.33433734939759036,
+          "wilson95": [
+            0.28574211317977927,
+            0.38672238722387986
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.4,
+          "to": 0.6,
+          "events": 274,
+          "meanProbability": 0.5019747469292059,
+          "observed": 0.5255474452554745,
+          "wilson95": [
+            0.466477775085405,
+            0.5839106732744022
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.6,
+          "to": 0.8,
+          "events": 268,
+          "meanProbability": 0.6996370638779639,
+          "observed": 0.6716417910447762,
+          "wilson95": [
+            0.6133380576753377,
+            0.7250944992978169
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.8,
+          "to": 1,
+          "events": 307,
+          "meanProbability": 0.9037485520684807,
+          "observed": 0.8859934853420195,
+          "wilson95": [
+            0.8455714835446208,
+            0.9168750732922878
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        }
+      ]
+    },
+    "all|opp-err": {
+      "base": [
+        {
+          "from": 0,
+          "to": 0.1,
+          "events": 420,
+          "meanProbability": 0.04439800679548773,
+          "observed": 0.047619047619047616,
+          "wilson95": [
+            0.031034610750252264,
+            0.0724037337257213
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.1,
+          "to": 0.2,
+          "events": 277,
+          "meanProbability": 0.14824605770230134,
+          "observed": 0.20577617328519857,
+          "wilson95": [
+            0.16234872836078318,
+            0.2572526343280893
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.2,
+          "to": 0.4,
+          "events": 338,
+          "meanProbability": 0.2925650697803525,
+          "observed": 0.33136094674556216,
+          "wilson95": [
+            0.28332216309912495,
+            0.38318990833514677
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.4,
+          "to": 0.6,
+          "events": 297,
+          "meanProbability": 0.4966699788435595,
+          "observed": 0.5084175084175084,
+          "wilson95": [
+            0.45181782506894413,
+            0.5648022246396304
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.6,
+          "to": 0.8,
+          "events": 270,
+          "meanProbability": 0.7032878662373279,
+          "observed": 0.7074074074074074,
+          "wilson95": [
+            0.6505347586678059,
+            0.7584610175098814
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.8,
+          "to": 1,
+          "events": 333,
+          "meanProbability": 0.911751755669244,
+          "observed": 0.8798798798798799,
+          "wilson95": [
+            0.8405603224507012,
+            0.9105348689956576
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        }
+      ],
+      "A": [
+        {
+          "from": 0,
+          "to": 0.1,
+          "events": 420,
+          "meanProbability": 0.04439800679548773,
+          "observed": 0.047619047619047616,
+          "wilson95": [
+            0.031034610750252264,
+            0.0724037337257213
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.1,
+          "to": 0.2,
+          "events": 277,
+          "meanProbability": 0.14824605770230134,
+          "observed": 0.20577617328519857,
+          "wilson95": [
+            0.16234872836078318,
+            0.2572526343280893
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.2,
+          "to": 0.4,
+          "events": 338,
+          "meanProbability": 0.2925650697803525,
+          "observed": 0.33136094674556216,
+          "wilson95": [
+            0.28332216309912495,
+            0.38318990833514677
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.4,
+          "to": 0.6,
+          "events": 297,
+          "meanProbability": 0.4966699788435595,
+          "observed": 0.5084175084175084,
+          "wilson95": [
+            0.45181782506894413,
+            0.5648022246396304
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.6,
+          "to": 0.8,
+          "events": 270,
+          "meanProbability": 0.7032878662373279,
+          "observed": 0.7074074074074074,
+          "wilson95": [
+            0.6505347586678059,
+            0.7584610175098814
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.8,
+          "to": 1,
+          "events": 333,
+          "meanProbability": 0.911751755669244,
+          "observed": 0.8798798798798799,
+          "wilson95": [
+            0.8405603224507012,
+            0.9105348689956576
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        }
+      ],
+      "B": [
+        {
+          "from": 0,
+          "to": 0.1,
+          "events": 417,
+          "meanProbability": 0.04424500118815914,
+          "observed": 0.050359712230215826,
+          "wilson95": [
+            0.033171290007548565,
+            0.07575680597699075
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.1,
+          "to": 0.2,
+          "events": 268,
+          "meanProbability": 0.1491564830452765,
+          "observed": 0.1865671641791045,
+          "wilson95": [
+            0.14447567931646735,
+            0.2375170427325549
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.2,
+          "to": 0.4,
+          "events": 328,
+          "meanProbability": 0.29414788507169337,
+          "observed": 0.32621951219512196,
+          "wilson95": [
+            0.2777485881757274,
+            0.37871386710295946
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.4,
+          "to": 0.6,
+          "events": 297,
+          "meanProbability": 0.49671231315346986,
+          "observed": 0.5050505050505051,
+          "wilson95": [
+            0.4484887558739299,
+            0.5614832739512148
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.6,
+          "to": 0.8,
+          "events": 269,
+          "meanProbability": 0.7020873183398796,
+          "observed": 0.6802973977695167,
+          "wilson95": [
+            0.6223637418676817,
+            0.7331540757662813
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        },
+        {
+          "from": 0.8,
+          "to": 1,
+          "events": 356,
+          "meanProbability": 0.9114326066845221,
+          "observed": 0.8792134831460674,
+          "wilson95": [
+            0.8412522801089658,
+            0.9090781595376195
+          ],
+          "oldBinRuleTested": true,
+          "oldBinRuleViolation": false
+        }
+      ]
+    }
+  }
+}

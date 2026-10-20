@@ -33,6 +33,7 @@ Two kinds of work live here:
 | Project | The question | What the app took |
 |---|---|---|
 | [maia-rating-offset](projects/maia-rating-offset/) ([paper](projects/maia-rating-offset/paper/paper.pdf)) | Which chess.com-to-Lichess rating offset makes Maia-2 most likely to play the moves in the player's games? | Confirmed: the app's +250 stays |
+| [maia-player-offsets](projects/maia-player-offsets/) ([paper source](projects/maia-player-offsets/paper/paper.tex)) | Do separate player and opponent offsets, or an offset that changes with rating, predict held-out moves better while keeping the punish odds calibrated? | Not yet: the rule selects +250 for the player and +400 for his opponents; both candidates improve move likelihood and pass the punish guard. The port is separate |
 | [maia-calibration](projects/maia-calibration/) ([paper](projects/maia-calibration/paper/paper.pdf)) | Does a temperature for each Maia band, fitted on Lichess, make its probabilities truer on the player's games? | Not adopted: it helps on Lichess and hurts on the player's games, where Maia-2 is already about as confident as it is right |
 
 ### The coach and the training

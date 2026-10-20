@@ -1,59 +1,320 @@
 % Written by projects/maia-player-offsets/paper/generate.mjs; do not edit by hand.
 
-\newcommand{\Phase}{1}
+\newcommand{\ProjectionPriorityNote}{This review timing used nice -n 10 for the coordinator as well as nice -n 10 for its workers; priority was lowered twice. Reproduction commands now lower only worker priority.}
 \newcommand{\ModelName}{Maia-2}
 \newcommand{\AppCommit}{\texttt{f4bd63f19b343f686fb97ea4cf70b211c0bddc0a}}
 \newcommand{\RecordsCommit}{\texttt{aed714ada579782ce73630596e59c8b65e74cb30}}
+\newcommand{\ProtocolDigest}{\texttt{03433885daa5fc45e1bde0ae6fd3bf4dc632e267bb73840ea1bc0d9c0ff3607f}}
 \newcommand{\Games}{648}
-\newcommand{\Moves}{33522}
+\newcommand{\Moves}{33{,}522}
 \newcommand{\FitGames}{324}
-\newcommand{\FitMoves}{17055}
+\newcommand{\FitMoves}{17{,}055}
 \newcommand{\HeldGames}{324}
-\newcommand{\HeldMoves}{16467}
+\newcommand{\HeldMoves}{16{,}467}
 \newcommand{\EmptyGames}{8}
-\newcommand{\FrozenGames}{60}
-\newcommand{\FrozenHeldGames}{28}
 \newcommand{\GuardGames}{324}
-\newcommand{\RecordedEvents}{328}
-\newcommand{\RecordedExact}{244}
+\newcommand{\PunishGames}{322}
+\newcommand{\PunishEvents}{3{,}818}
+\newcommand{\PunishVerified}{3{,}295}
 \newcommand{\Base}{250}
-\newcommand{\ACount}{441}
-\newcommand{\BCount}{147}
 \newcommand{\OffsetMin}{0}
 \newcommand{\OffsetMax}{500}
 \newcommand{\OffsetStep}{25}
+\newcommand{\ACount}{441}
+\newcommand{\BCount}{147}
 \newcommand{\Anchor}{1000}
-\newcommand{\SlopeList}{$-$0.75, $-$0.50, $-$0.25, 0.00, 0.25, 0.50, 0.75}
-\newcommand{\Draws}{1000}
+\newcommand{\Slopes}{$-$0.75, $-$0.50, $-$0.25, 0.00, 0.25, 0.50, 0.75}
+\newcommand{\PlayerOffset}{250}
+\newcommand{\OpponentOffset}{400}
+\newcommand{\Intercept}{275}
+\newcommand{\Slope}{$-$0.50}
+\newcommand{\Draws}{1{,}000}
 \newcommand{\Seed}{7}
 \newcommand{\GuardMargin}{0.005}
+\newcommand{\Alpha}{0.05}
 \newcommand{\OrdinaryCI}{95}
 \newcommand{\AdjustedCI}{97.5}
-\newcommand{\Alpha}{0.05}
-\newcommand{\GuardCells}{4}
+\newcommand{\GuardCells}{four}
 \newcommand{\MinPly}{11}
 \newcommand{\MinClock}{30}
 \newcommand{\ErrorLoss}{5}
-\newcommand{\PolicyCalls}{900016}
-\newcommand{\SampleMoves}{32}
-\newcommand{\SampleCalls}{890}
-\newcommand{\PolicySeconds}{10.27}
-\newcommand{\CallMS}{21.03}
-\newcommand{\Startup}{0.374}
-\newcommand{\ReviewGames}{2}
-\newcommand{\ReviewPlies}{140}
-\newcommand{\ReviewSeconds}{108.40}
-\newcommand{\FullHours}{6.41}
-\newcommand{\PlanningHours}{9.61}
-\newcommand{\Processes}{2}
+\newcommand{\GainA}{0.00222}
+\newcommand{\GainB}{0.00194}
+\newcommand{\IntervalA}{[0.00068, 0.00375]}
+\newcommand{\IntervalB}{[0.00033, 0.00348]}
+\newcommand{\PResolution}{0.001998}
+\newcommand{\HolmMinimum}{0.003996}
+\newcommand{\RatingMin}{513}
+\newcommand{\RatingMax}{1228}
+\newcommand{\RatingCutLow}{935}
+\newcommand{\RatingCutHigh}{1076}
+\newcommand{\MaxWorkers}{2}
 \newcommand{\Nice}{10}
-\newcommand{\Allowance}{1.5}
-\newcommand{\StorageMB}{858}
-\newcommand{\WeightsMB}{84.95}
-\newcommand{\CostTable}{%
-\begin{tabular}{lrr}\toprule Step & Work & Projected hours \\ \midrule
-Move policies & 900016 & 2.63 \\
-Routine reviews & 324 games & 3.72 \\
-Punish policies (scaled estimate) & 19948 & 0.058 \\
-\bottomrule\end{tabular}
+\newcommand{\ElapsedHours}{33.74}
+\newcommand{\SessionHours}{32.24}
+\newcommand{\GapHours}{1.50}
+\newcommand{\MoveCalls}{900{,}016}
+\newcommand{\PunishCalls}{19{,}276}
+\newcommand{\ReusedReviews}{2}
+\newcommand{\NewReviews}{322}
+\newcommand{\ReviewPlies}{19{,}885}
+\newcommand{\PolicyMB}{846.7}
+\newcommand{\ProjectedHours}{6.41}
+\newcommand{\PlanningHours}{9.61}
+\newcommand{\BinMinimum}{15}
+\newcommand{\BinAllowance}{0.10}
+\newcommand{\RecoveredAttempts}{1}
+\newcommand{\RecoveredReviewTimings}{0}
+\newcommand{\UntimedPolicyRows}{0}
+\newcommand{\TimeoutFailures}{17}
+\newcommand{\ReviewedRestarts}{1}
+\newcommand{\PredecessorPlayerOffset}{175}
+\newcommand{\OwnGainA}{$-$0.00094}
+\newcommand{\OwnIntervalA}{[$-$0.00195, 0.00011]}
+\newcommand{\OpponentGainA}{0.00538}
+\newcommand{\OpponentIntervalA}{[0.00253, 0.00810]}
+\newcommand{\BrierFormula}{$(q-y)^2$}
+\newcommand{\TailFormula}{$\min\{1,\;2(1+\#\{\Delta_b\leq0\})/(B+1)\}$}
+\newcommand{\QuantileFormula}{$\operatorname{round}(q(B-1))$}
+\newcommand{\StageQuantiles}{$0.0125,\;0.9875$}
+\newcommand{\OrdinaryQuantiles}{$0.025,\;0.975$}
+\newcommand{\Verdict}{The fixed rule selects separate offsets for the player and his opponents: \PlayerOffset{} and \OpponentOffset. Candidate A wins the likelihood test and passes every punish guard.}
+\newcommand{\PortConclusion}{Candidate A is the selected port. It needs separate profile offsets and owner identity wherever a person supplies either input to Maia. Its offsets must follow the person when the side to move changes.}
+\newcommand{\OutcomeDetail}{Candidate A wins the corrected likelihood test and passes all punish guards. Candidate B wins the corrected likelihood test and passes all punish guards.}
+\newcommand{\SelectionDetail}{Both qualify. The larger observed gain determines the selection; this is not a test that it beats the other candidate.}
+\newcommand{\ExploratoryComparison}{The selected split keeps the player's offset at \Base. The predecessor's exploratory value was \PredecessorPlayerOffset, from applying one shared offset to both bands and scoring only his moves across the whole archive. The joint fitting objective here is different.}
+\newcommand{\SideFinding}{For A, the gain on the player's own moves is \OwnGainA{} (ordinary interval \OwnIntervalA); the gain on opponents' moves is \OpponentGainA{} (\OpponentIntervalA). The player's interval includes zero; the opponents' interval lies above it. Keeping the player's offset fixed does not keep his move predictions fixed: the opponent band is also an input to Maia.}
+\newcommand{\RatingFinding}{The lowest rating third has the largest observed gain for both candidates. The ordinary intervals for the middle and highest thirds include zero. These descriptive comparisons add no selection condition.}
+\newcommand{\GuardFinding}{For A, the opponent-error cells match the baseline exactly: the player is the replier and his converted band is unchanged. The player-error cells have lower Brier estimates. The guard decision still uses every cell's upper interval bound.}
+\newcommand{\BinFinding}{Every reported bin meets the old rule's minimum count, and none violates that descriptive rule.}
+\newcommand{\RuntimeCaveat}{Every recorded session and stage attempt has a duration. The elapsed span can still include gaps between sessions.}
+\newcommand{\TimeoutRecoveryNote}{The execution report records \TimeoutFailures{} failed game-review attempts as timeouts across \ReviewedRestarts{} reviewed restart. Repeated timeouts, if any, count as separate failed attempts. The records do not establish why the timeouts occurred.}
+\newcommand{\RecoveredTimingNote}{The stage table includes reconstructed timing for \RecoveredAttempts{} interrupted attempt. The reconstruction uses the recorded session finish, includes shutdown time, and is bounded by the session duration. No completed-review timing needed recovery from a journal.}
+\newcommand{\PolicyTimingCoverageNote}{Every committed policy row has durable timing.}
+\newcommand{\FitTable}{%
+\begin{tabularx}{\textwidth}{Lrrr}
+\toprule
+Conversion & Fit mean log probability & Fit gain & Held mean log probability \\
+\midrule
+Baseline & $-$1.39588 & 0.00000 & $-$1.39587 \\
+A & $-$1.39409 & 0.00179 & $-$1.39366 \\
+B & $-$1.39379 & 0.00209 & $-$1.39393 \\
+\bottomrule
+\end{tabularx}
+}
+\newcommand{\GainTable}{%
+\begin{tabularx}{\textwidth}{Llll}
+\toprule
+Candidate & Held gain & Ordinary interval & Likelihood test \\
+\midrule
+A & 0.00222 & [0.00068, 0.00375] & passes \\
+B & 0.00194 & [0.00033, 0.00348] & passes \\
+\bottomrule
+\end{tabularx}
+}
+\newcommand{\HolmTable}{%
+\begin{tabularx}{\textwidth}{Lrrrl}
+\toprule
+Candidate (step) & Raw $p$ & Adjusted $p$ & Tail & Step interval \\
+\midrule
+A (1) & 0.003996 & 0.007992 & 0.0125 & [0.00056, 0.00387] \\
+B (2) & 0.027972 & 0.027972 & 0.0250 & [0.00033, 0.00348] \\
+\bottomrule
+\end{tabularx}
+}
+\newcommand{\GuardScoreTable}{%
+\begin{tabularx}{\textwidth}{Lrrrr}
+\toprule
+Candidate and cell & Events & Baseline & Candidate & Difference \\
+\midrule
+A: Verified, player's error & 1{,}610 & 0.17049 & 0.16737 & $-$0.00311 \\
+A: Verified, opponent's error & 1{,}685 & 0.16585 & 0.16585 & 0.00000 \\
+A: All, player's error & 1{,}883 & 0.15839 & 0.15669 & $-$0.00170 \\
+A: All, opponent's error & 1{,}935 & 0.15573 & 0.15573 & 0.00000 \\
+B: Verified, player's error & 1{,}610 & 0.17049 & 0.16898 & $-$0.00151 \\
+B: Verified, opponent's error & 1{,}685 & 0.16585 & 0.16431 & $-$0.00154 \\
+B: All, player's error & 1{,}883 & 0.15839 & 0.15744 & $-$0.00095 \\
+B: All, opponent's error & 1{,}935 & 0.15573 & 0.15491 & $-$0.00081 \\
+\bottomrule
+\end{tabularx}
+}
+\newcommand{\GuardIntervalTable}{%
+\begin{tabularx}{\textwidth}{Llll}
+\toprule
+Candidate and cell & Ordinary interval & Guard interval & Result \\
+\midrule
+A: Verified, player's error & [$-$0.00481, $-$0.00154] & [$-$0.00502, $-$0.00131] & pass \\
+A: Verified, opponent's error & [0.00000, 0.00000] & [0.00000, 0.00000] & pass \\
+A: All, player's error & [$-$0.00319, $-$0.00022] & [$-$0.00346, 0.00008] & pass \\
+A: All, opponent's error & [0.00000, 0.00000] & [0.00000, 0.00000] & pass \\
+B: Verified, player's error & [$-$0.00274, $-$0.00032] & [$-$0.00297, $-$0.00020] & pass \\
+B: Verified, opponent's error & [$-$0.00305, $-$0.00024] & [$-$0.00328, $-$0.00002] & pass \\
+B: All, player's error & [$-$0.00202, 0.00006] & [$-$0.00221, 0.00021] & pass \\
+B: All, opponent's error & [$-$0.00221, 0.00038] & [$-$0.00236, 0.00049] & pass \\
+\bottomrule
+\end{tabularx}
+}
+\newcommand{\GroupTable}{%
+\begin{tabularx}{\textwidth}{Lrll}
+\toprule
+Held-out moves & Count & A gain (ordinary interval) & B gain (ordinary interval) \\
+\midrule
+Player's moves & 8{,}241 & $-$0.00094 [$-$0.00195, 0.00011] & 0.00002 [$-$0.00214, 0.00226] \\
+Opponents' moves & 8{,}226 & 0.00538 [0.00253, 0.00810] & 0.00386 [0.00159, 0.00617] \\
+Rating 513--934 & 5{,}113 & 0.00663 [0.00371, 0.00968] & 0.00645 [0.00152, 0.01146] \\
+Rating 935--1075 & 5{,}690 & $-$0.00081 [$-$0.00292, 0.00139] & $-$0.00005 [$-$0.00080, 0.00074] \\
+Rating 1076--1228 & 5{,}664 & 0.00127 [$-$0.00146, 0.00396] & $-$0.00014 [$-$0.00088, 0.00065] \\
+\bottomrule
+\end{tabularx}
+}
+\newcommand{\TopTable}{%
+\begin{tabularx}{\textwidth}{Lrrr}
+\toprule
+Conversion & Fitting moves & Held-out moves & All moves \\
+\midrule
+Baseline & 53.68 & 54.21 & 53.94 \\
+A & 53.77 & 54.23 & 54.00 \\
+B & 53.65 & 54.29 & 53.96 \\
+\bottomrule
+\end{tabularx}
+}
+\newcommand{\TimingTable}{%
+\begin{tabularx}{\textwidth}{Lrrr}
+\toprule
+Stage & Attempts & Recorded wall seconds & Unmeasured attempts \\
+\midrule
+Move policies & 2 & 23997.98 & 0 \\
+Routine reviews & 2 & 87592.54 & 0 \\
+Event extraction & 1 & 1.30 & 0 \\
+Punish policies & 1 & 4450.73 & 0 \\
+Fitting and bootstrap & 1 & 13.23 & 0 \\
+\bottomrule
+\end{tabularx}
+}
+\newcommand{\ReviewTimingTable}{%
+\begin{tabularx}{\textwidth}{Lr}
+\toprule
+Review measure & Recorded seconds \\
+\midrule
+Completed-review workers, new reviews & 97452.73 \\
+Completed-review workers, including reused reviews & 97641.37 \\
+Failed timeout attempts & 77297.63 \\
+Review stage wall time & 87592.54 \\
+\bottomrule
+\end{tabularx}
+}
+\newcommand{\PolicyTimingTable}{%
+\begin{tabularx}{\textwidth}{Lrrr}
+\toprule
+Policies & Calls & First calls with restarts & Committed worker seconds \\
+\midrule
+Move & 900{,}016 & 4 & 47957.42 \\
+Punish & 19{,}276 & 2 & 8897.41 \\
+\bottomrule
+\end{tabularx}
+}
+\newcommand{\CalibrationTables}{%
+\subsection*{Verified, player's error}
+\begin{tabularx}{\textwidth}{Lrrrll}
+\toprule
+Model / bin & Events & Mean $q$ & Observed & Wilson interval & Old rule \\
+\midrule
+Baseline: [0.0,0.1) & 328 & 0.046 & 0.101 & [0.073, 0.138] & within \\
+Baseline: [0.1,0.2) & 215 & 0.148 & 0.209 & [0.160, 0.269] & within \\
+Baseline: [0.2,0.4) & 289 & 0.294 & 0.429 & [0.373, 0.487] & within \\
+Baseline: [0.4,0.6) & 241 & 0.503 & 0.602 & [0.539, 0.661] & within \\
+Baseline: [0.6,0.8) & 247 & 0.698 & 0.725 & [0.666, 0.777] & within \\
+Baseline: [0.8,1.0] & 290 & 0.904 & 0.893 & [0.852, 0.924] & within \\
+A: [0.0,0.1) & 314 & 0.043 & 0.096 & [0.068, 0.133] & within \\
+A: [0.1,0.2) & 212 & 0.147 & 0.212 & [0.163, 0.272] & within \\
+A: [0.2,0.4) & 273 & 0.296 & 0.385 & [0.329, 0.444] & within \\
+A: [0.4,0.6) & 237 & 0.501 & 0.574 & [0.510, 0.635] & within \\
+A: [0.6,0.8) & 244 & 0.697 & 0.730 & [0.671, 0.781] & within \\
+A: [0.8,1.0] & 330 & 0.904 & 0.882 & [0.843, 0.912] & within \\
+B: [0.0,0.1) & 322 & 0.045 & 0.106 & [0.077, 0.144] & within \\
+B: [0.1,0.2) & 212 & 0.147 & 0.208 & [0.158, 0.267] & within \\
+B: [0.2,0.4) & 279 & 0.294 & 0.398 & [0.342, 0.456] & within \\
+B: [0.4,0.6) & 241 & 0.502 & 0.598 & [0.535, 0.657] & within \\
+B: [0.6,0.8) & 252 & 0.699 & 0.714 & [0.656, 0.767] & within \\
+B: [0.8,1.0] & 304 & 0.904 & 0.895 & [0.855, 0.924] & within \\
+\bottomrule
+\end{tabularx}
+\medskip
+\subsection*{Verified, opponent's error}
+\begin{tabularx}{\textwidth}{Lrrrll}
+\toprule
+Model / bin & Events & Mean $q$ & Observed & Wilson interval & Old rule \\
+\midrule
+Baseline: [0.0,0.1) & 314 & 0.044 & 0.064 & [0.042, 0.096] & within \\
+Baseline: [0.1,0.2) & 226 & 0.148 & 0.252 & [0.200, 0.313] & within \\
+Baseline: [0.2,0.4) & 293 & 0.291 & 0.382 & [0.328, 0.439] & within \\
+Baseline: [0.4,0.6) & 267 & 0.497 & 0.562 & [0.502, 0.620] & within \\
+Baseline: [0.6,0.8) & 254 & 0.706 & 0.752 & [0.695, 0.801] & within \\
+Baseline: [0.8,1.0] & 331 & 0.912 & 0.885 & [0.846, 0.915] & within \\
+A: [0.0,0.1) & 314 & 0.044 & 0.064 & [0.042, 0.096] & within \\
+A: [0.1,0.2) & 226 & 0.148 & 0.252 & [0.200, 0.313] & within \\
+A: [0.2,0.4) & 293 & 0.291 & 0.382 & [0.328, 0.439] & within \\
+A: [0.4,0.6) & 267 & 0.497 & 0.562 & [0.502, 0.620] & within \\
+A: [0.6,0.8) & 254 & 0.706 & 0.752 & [0.695, 0.801] & within \\
+A: [0.8,1.0] & 331 & 0.912 & 0.885 & [0.846, 0.915] & within \\
+B: [0.0,0.1) & 313 & 0.044 & 0.067 & [0.044, 0.100] & within \\
+B: [0.1,0.2) & 218 & 0.150 & 0.229 & [0.179, 0.290] & within \\
+B: [0.2,0.4) & 285 & 0.295 & 0.375 & [0.321, 0.433] & within \\
+B: [0.4,0.6) & 263 & 0.498 & 0.567 & [0.506, 0.625] & within \\
+B: [0.6,0.8) & 251 & 0.703 & 0.729 & [0.671, 0.780] & within \\
+B: [0.8,1.0] & 355 & 0.911 & 0.882 & [0.844, 0.911] & within \\
+\bottomrule
+\end{tabularx}
+\medskip
+\subsection*{All, player's error}
+\begin{tabularx}{\textwidth}{Lrrrll}
+\toprule
+Model / bin & Events & Mean $q$ & Observed & Wilson interval & Old rule \\
+\midrule
+Baseline: [0.0,0.1) & 445 & 0.045 & 0.074 & [0.053, 0.102] & within \\
+Baseline: [0.1,0.2) & 267 & 0.147 & 0.169 & [0.128, 0.218] & within \\
+Baseline: [0.2,0.4) & 340 & 0.291 & 0.365 & [0.315, 0.417] & within \\
+Baseline: [0.4,0.6) & 275 & 0.501 & 0.527 & [0.468, 0.585] & within \\
+Baseline: [0.6,0.8) & 263 & 0.699 & 0.681 & [0.622, 0.734] & within \\
+Baseline: [0.8,1.0] & 293 & 0.903 & 0.884 & [0.842, 0.916] & within \\
+A: [0.0,0.1) & 428 & 0.043 & 0.070 & [0.050, 0.098] & within \\
+A: [0.1,0.2) & 264 & 0.148 & 0.170 & [0.130, 0.220] & within \\
+A: [0.2,0.4) & 326 & 0.293 & 0.322 & [0.274, 0.375] & within \\
+A: [0.4,0.6) & 268 & 0.500 & 0.507 & [0.448, 0.567] & within \\
+A: [0.6,0.8) & 262 & 0.697 & 0.679 & [0.621, 0.733] & within \\
+A: [0.8,1.0] & 335 & 0.903 & 0.869 & [0.828, 0.901] & within \\
+B: [0.0,0.1) & 437 & 0.045 & 0.078 & [0.056, 0.107] & within \\
+B: [0.1,0.2) & 265 & 0.147 & 0.166 & [0.126, 0.216] & within \\
+B: [0.2,0.4) & 332 & 0.292 & 0.334 & [0.286, 0.387] & within \\
+B: [0.4,0.6) & 274 & 0.502 & 0.526 & [0.466, 0.584] & within \\
+B: [0.6,0.8) & 268 & 0.700 & 0.672 & [0.613, 0.725] & within \\
+B: [0.8,1.0] & 307 & 0.904 & 0.886 & [0.846, 0.917] & within \\
+\bottomrule
+\end{tabularx}
+\medskip
+\subsection*{All, opponent's error}
+\begin{tabularx}{\textwidth}{Lrrrll}
+\toprule
+Model / bin & Events & Mean $q$ & Observed & Wilson interval & Old rule \\
+\midrule
+Baseline: [0.0,0.1) & 420 & 0.044 & 0.048 & [0.031, 0.072] & within \\
+Baseline: [0.1,0.2) & 277 & 0.148 & 0.206 & [0.162, 0.257] & within \\
+Baseline: [0.2,0.4) & 338 & 0.293 & 0.331 & [0.283, 0.383] & within \\
+Baseline: [0.4,0.6) & 297 & 0.497 & 0.508 & [0.452, 0.565] & within \\
+Baseline: [0.6,0.8) & 270 & 0.703 & 0.707 & [0.651, 0.758] & within \\
+Baseline: [0.8,1.0] & 333 & 0.912 & 0.880 & [0.841, 0.911] & within \\
+A: [0.0,0.1) & 420 & 0.044 & 0.048 & [0.031, 0.072] & within \\
+A: [0.1,0.2) & 277 & 0.148 & 0.206 & [0.162, 0.257] & within \\
+A: [0.2,0.4) & 338 & 0.293 & 0.331 & [0.283, 0.383] & within \\
+A: [0.4,0.6) & 297 & 0.497 & 0.508 & [0.452, 0.565] & within \\
+A: [0.6,0.8) & 270 & 0.703 & 0.707 & [0.651, 0.758] & within \\
+A: [0.8,1.0] & 333 & 0.912 & 0.880 & [0.841, 0.911] & within \\
+B: [0.0,0.1) & 417 & 0.044 & 0.050 & [0.033, 0.076] & within \\
+B: [0.1,0.2) & 268 & 0.149 & 0.187 & [0.144, 0.238] & within \\
+B: [0.2,0.4) & 328 & 0.294 & 0.326 & [0.278, 0.379] & within \\
+B: [0.4,0.6) & 297 & 0.497 & 0.505 & [0.448, 0.561] & within \\
+B: [0.6,0.8) & 269 & 0.702 & 0.680 & [0.622, 0.733] & within \\
+B: [0.8,1.0] & 356 & 0.911 & 0.879 & [0.841, 0.909] & within \\
+\bottomrule
+\end{tabularx}
 }
