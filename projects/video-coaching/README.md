@@ -8,9 +8,22 @@ the live one.
 
 ## Result
 
-The pilot only, on the first three train days: `results/report.json` holds
-its numbers as `batch.py report` computed them, and `results/runs.json` each
-run's. Three days decide nothing; the full run waits on the owner's budget.
+Kept: the daily routine's prompt took the bullet as tested (chess PR 161;
+[paper](paper/paper.pdf)). Judged blind in both orders, the candidate's
+coaching won on most of the 19 usable days and lost on none, on the train days
+and the held-out days alike, and it won overall on most days. The audit finds
+it asking his move before any hint, playing the better move on to their best
+reply and saying whether the miss is normal at his level in most moment
+scenes, where the published scripts and today's prompt do the first two rarely
+and the third never, with as many false claims. Every condition of the rule
+held and the controls were clean: the same script tied with itself on every
+day, and the decoy that pads today's script with words that say nothing new
+never won coaching. The cost is length: the candidate's videos are longer,
+within the rule's bound, and the judge found them harder to follow at speaking
+pace on several days, so a next round could ask for the same moves in fewer
+words. `results/report.json` holds the numbers as `batch.py report` computed
+them, the app commits the cases ran on and what was spent; `results/runs.json`
+each run's.
 
 ## Question
 
@@ -39,10 +52,15 @@ The 23 days from 2026-09-25 to 2026-10-19 whose review landed on the app's
 main branch with a video script (2026-10-03 and 2026-10-16 have none).
 `bin/make-case.sh <D> <case-dir>` builds one:
 
-- a checkout of the app at the commit `bridge/chess.json` pins (a git
-  repository with no remote, borrowing the app clone's objects), with the
-  coach data (`coach-log/`, `public/coach/`, `progress/`) as main held it just
-  before the day's review landed, and the day's archived analysis;
+- a checkout of the app at the commit `bridge/chess.json` pinned when the
+  case was built (a git repository with no remote, borrowing the app clone's
+  objects), with the coach data (`coach-log/`, `public/coach/`, `progress/`)
+  as main held it just before the day's review landed, and the day's archived
+  analysis. The pin moved from 3a37748 to 3ff95c4 while the cases were being
+  built, so some cases run at the later commit (`results/report.json` names
+  each case's): it adds the lesson lines' naming of pins (chess PR 136) and
+  changes outside the routine, and the routine's prompt and its video checker
+  are the same at both. Each day's prompts run on the same checkout;
 - `coach daily prepare --from-archive` run with that code, so the brief on
   disk is the one the writer reads, with prepare's own mark; chess.com is cut
   off in every node process (`bin/offline.cjs`);
@@ -190,7 +208,8 @@ run's cost and checks the harness. Its runs are those days' runs in the full
 eval, and nothing it shows decides anything alone; if it shows the candidate's
 text at fault (a check it cannot pass, an instruction the live routine cannot
 follow), a fixed candidate gets a new name and starts over. The full eval runs
-only on the owner's budget.
+only on the owner's budget: he set about $200 for it, so the full run's cap was
+$240 for the pilot and the full run together.
 
 The pilot stops at $60 of model calls at list price (`EVAL_CAP`):
 `ledger.jsonl` in the eval directory sums every call's `total_cost_usd`, and

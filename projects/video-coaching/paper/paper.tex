@@ -1,0 +1,268 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Does the daily video coach better when its prompt asks for a coach's moves?\\[0.3em]
+\large One bullet added to the daily routine's prompt, replayed on \Cases{} past days}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The app's daily routine writes a narrated video of the player's games every day. A titled
+coach's video review of a player near his level coaches with five moves: ask his move first, name the
+habit behind the mistake and the habit that replaces it, play the better move on to the opponent's
+best reply, say whether the miss is normal at his level, and praise a good move by what it saw. The
+routine's videos make three of these rarely or never. We added one bullet asking for the five moves
+to the routine's prompt and replayed the video step on \Cases{} past days, once under each prompt,
+with the routine's own model and checker. Judging blind in both orders, a model preferred the
+candidate's coaching on \CoachingWins{} days and today's prompt's on none, on the train days and the
+held-out days alike, and preferred the candidate overall on \OverallWins{} days against
+\OverallLosses. An audit against the evidence found the candidate asking his move first in
+\CandOpenQuestion\% of its moment scenes (today's prompt: \BaseOpenQuestion\%), playing the better
+move on to their reply in \CandThenWhat\% (\BaseThenWhat\%) and placing the miss at his level in
+\CandToldLevel\% of the positions it teaches (today's prompt: \BaseToldLevel\%), with no more false
+claims. The cost is length: its videos are \LengthRatio{} times as long heard once, and the judge
+found them harder to follow at speaking pace on \ListeningLosses{} days. Every condition of the
+rule fixed before the first run held, and the routine's prompt took the bullet.
+\end{abstract}
+
+\section{The question}
+
+The app's daily routine has a model review the player's games of the day and write, besides the
+written review, a narrated video script: scenes with a board from one of his games, a chart or
+tiles, and beats with a spoken line, a caption, the moves played on the board and a pause where he
+is meant to think. The app renders it with boards, captions and a synthetic voice.
+
+A titled player's video review of the rapid games of an adult rated about 1100, \emph{Anyone Can Be
+1200 In Chess. Watch This.} (\url{https://www.youtube.com/watch?v=PcGDehRSqTM}; the lab read a
+summary of its captions, not the video itself), coaches with five moves:
+\begin{enumerate}[nosep]
+\item ask before telling: the student says what he would play before any hint;
+\item name the habit behind the mistake, then the habit that replaces it;
+\item ``and then what?'': follow the better move to the opponent's best reply;
+\item pitch each miss at the player's level: a miss most players at his rating make is a pattern to
+learn, one they find is his to find;
+\item praise a good move by what it saw.
+\end{enumerate}
+The app's video grammar already asks for a pause to predict in every moment, findability or mirror
+framing, and a rule card at the end of each moment, but the routine's prompt says only how a video
+binds its boards and numbers. An audit of the \PublishedN{} published scripts of the days below
+(Table~\ref{tab:moves}) found the second move in most moment scenes and the first, third and fourth
+rarely. The candidate adds one bullet of five sub-points to step~4 of the daily prompt, right after
+the bullet on how the video binds its boards:
+
+\CandidateBullet
+
+Nothing else in the prompt changes. The question is whether the video coaches better with it,
+without becoming less true or much longer.
+
+\section{The cases and the writer}
+
+A case is a past day whose review landed on the app's main branch with a video script: \AllDays{}
+days from \FirstDay{} to \LastDay. Each is a checkout of the app with the coach data as main held
+it just before that day's review landed and the day's archived engine analysis; the app's own
+\texttt{coach daily prepare} wrote the day's brief again, offline. The day's annotations, coach log,
+briefing and note replies are put back as they landed, so only the video script is missing, and a
+writer run writes the video for the review the day published. A case is usable only when the
+published video script passes today's checker with those files; \Unusable{} do not, which leaves
+\Cases{} days with \GamesMin{} to \GamesMax{} games each. Most cases run the app at
+\texttt{\AppCommit} (\AppCommitDays{} days); the lab's pin moved while the cases were being built,
+so \LaterCommitList{} run at \texttt{\LaterCommit}, which adds the lesson lines' naming of pins
+(chess PR \PinMovePR) and changes outside the routine. The prompt and the video checker are the
+same at both, and each day's two prompts ran on the same checkout. The split was fixed before any
+run, interleaved by date: train is \TrainCases; held out is \HeldCases.
+
+The writer runs as the routine does: Opus 5.5, headless, with nothing inherited from the session
+that launched it, and a short preamble that names the day, says which steps ran and asks for the
+video script alone, done when the routine's check passes. Each prompt wrote every day once
+(\WriterRuns{} runs in all), and today's prompt wrote \NullDays{} a second time, to measure the
+judge's noise floor.
+
+\section{The graders}
+
+A script with no model reads each run: whether the final check passes, the check rounds, files
+changed besides the video script, commands it should not have run, the script's shape, its length
+heard once (spoken words at \WordsPerSecond{} a second plus every pause), cost and minutes.
+
+Sonnet 5.5 audits each script alone against the evidence it was written from: the brief without its
+bulk, the clock's turning points, a line per game, the engine digest of the day, how often players
+at his level play the engine's best move at each turning point, and for every board scene the
+position as the archive replays it, what was played there and next, the engine's best move and
+reply, how players at his band play there (Maia-2), the engine's plan lines, the threats, what each
+piece hits and guards, what each move the scene plays does, and after each move the game did not
+play, the engine's best reply. It lists the claims the evidence contradicts (\emph{false}), does not
+carry (\emph{unsupported}) or carries but slants (\emph{misleading}), and for each board scene its
+kind (a moment, praise, a judgement call, a plan, other), its false claims about the board, and
+which of the five moves it makes.
+
+Sonnet 5.5 also judges each pair blind, in both orders, on four criteria: truth, coaching, listening
+(would he follow it once, at speaking pace) and overall. A side wins a criterion only when both
+orders agree. Two controls check the judge on every day: today's script against itself, and against
+a decoy that adds as many spoken words as the candidate added that day (at least \MinDecoyWords), in beats that
+restate their scene with no square, move, piece, number or question the scene does not already
+have.
+
+The graders' prompts were settled on published scripts alone, before either prompt's runs were
+graded. The pilot (the first three train days) then showed two faults, and both were fixed before
+anything past the pilot was graded: the evidence did not carry what the writer's tools show (the
+Maia-2 reading, the engine's reply to a move the game did not play, the plan lines), so the audit
+graded claims the writer had read from them as unsupported; and one audit filed most of the lines
+it checked and found true as misleading, so the claim list gained a grade for a line that holds,
+which counts for nothing. Every script was graded again with the final graders. Graded with the
+first evidence, the judge \FirstCoaching{} on coaching on \FirstGradedDay; the regrade's verdicts
+are the ones reported.
+
+\section{The rule}
+
+A day scores $+1$ when the candidate wins a criterion, $-1$ when it loses and $0$ for a tie;
+intervals are 95\% percentile bootstrap intervals over days. The candidate replaces the live prompt
+only when every condition of Table~\ref{tab:rule} holds, fixed before its first run.
+
+\begin{table}[h]
+\centering
+\small\RuleTable
+\caption{The rule, fixed before the candidate's first run. Coaching and overall are the judge's
+scores per day; the claim rows and the coaching moves are the audit's numbers per script, candidate
+minus today's prompt; the length is the candidate's script heard once over today's on the same day.}
+\label{tab:rule}
+\end{table}
+
+\section{What the bullet changed}
+
+\begin{table}[h]
+\centering
+\small\MovesTable
+\caption{The coaching moves the audit finds, pooled over the \Cases{} days: the share of the scenes
+that owe a move and make it, with the number owing it in brackets. A moment scene owes the habit,
+its replacement and the level; it owes the open question only when it asks him something, and the
+reply only when it shows a better move. In the middle rows, consecutive board scenes on the same
+position count once, and a move counts as made when any of them makes it.}
+\label{tab:moves}
+\end{table}
+
+The published scripts and today's prompt name the habit behind a mistake and end on its replacement
+in most moment scenes, but they rarely ask his move before giving a hint (\PubOpenQuestion\% and
+\BaseOpenQuestion\%), rarely play the better move on to the opponent's best reply (\PubThenWhat\%
+and \BaseThenWhat\%), and never say whether a miss is normal at his level. The candidate does all
+three in most moment scenes (\CandOpenQuestion\%, \CandThenWhat\% and \CandLevel\%), and the level
+it states agrees with the findability evidence in \CandLevelTrue\% of the scenes that state one.
+Over the five moves, the share the audit finds in the moment scenes rose from \ShareBase\% to
+\ShareCand\% (\ShareDiff{} a script; rule~7).
+
+Scene by scene, the candidate names the habit and its replacement less often (\CandHabitNamed\% and
+\CandReplacement\%). That is how it asks first: it often shows a position in two scenes, one that
+asks and one that answers (\CandSplit{} board scenes a script repeat the position of the board scene
+before them, against \BaseSplit{} under today's prompt), and the audit owes the habit, its
+replacement and the level on each moment scene, so the scene that asks counts as a miss. Counted
+once per position taught, the candidate names the habit as often as today's prompt
+(\CandToldHabitNamed\% against \BaseToldHabitNamed\%) and ends on its replacement a little less
+often (\CandToldReplacement\% against \BaseToldReplacement\%). This count was made after the result
+and decides nothing.
+
+\section{What the judge preferred}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lrrr}
+\toprule
+Criterion & Train (\TrainN{} days) & Held out (\HeldN{} days) & All \\
+\midrule
+Truth & \TrainTruth & \HeldTruth & \AllTruth \\
+Coaching & \TrainCoaching & \HeldCoaching & \AllCoaching \\
+Listening & \TrainListening & \HeldListening & \AllListening \\
+Overall & \TrainOverall & \HeldOverall & \AllOverall \\
+\bottomrule
+\end{tabular}
+\caption{The judge's mean score per day from the candidate's side ($+1$ a win, $-1$ a loss, $0$ a
+tie), with its 95\% bootstrap interval over days.}
+\label{tab:judge}
+\end{table}
+
+The judge preferred the candidate's coaching on \CoachingWins{} of the \Cases{} days, tied on
+\CoachingTies{} and never preferred today's prompt's, and it preferred the candidate overall on
+\OverallWins{} days against \OverallLosses{} (Table~\ref{tab:judge}). Truth was even: \TruthWins{}
+wins, \TruthLosses{} losses and \TruthTies{} ties. Listening went the other way: the candidate never
+won it and lost it on \ListeningLosses{} days. Its videos ask more and run longer, and the judge
+found them harder to follow once at speaking pace.
+
+Two runs of today's prompt on the same day, judged against each other, split on coaching on
+\NullDecisive{} of \NullN{} days, each way at least once, for a mean of \AllNullCoaching. The judge
+does pick a side between two scripts of one prompt, but not one way on every day it decides, as it
+did for the candidate. Read in one order only, the judge favoured the side it read second in \SecondShare\% of
+its \Decided{} decided verdicts, so a verdict that only one order gives is a tie.
+
+\section{The controls}
+
+Today's script judged against itself tied on every criterion on all \SameN{} days. The decoy,
+today's script with on average \DecoyAdded{} spoken words added that only restate their scene, never
+won coaching and lost listening and overall on all \DecoyN{} days. The judge does not
+reward words that say nothing new, so the candidate's wins come from what its extra words say.
+
+\section{Truth}
+
+The audit found about as many false claims in the candidate's scripts as in today's (\CandFalse{} and
+\BaseFalse{} a script; the difference is \FalseDiff) and a few more false claims about the board
+(\CandBoardFalse{} against \BaseBoardFalse{} a script; \BoardDiff), within the noise; the candidate
+shows more board scenes (\CandBoardScenes{} against \BaseBoardScenes{} a script). Unsupported and
+misleading lines were about as common under both prompts (\CandUnsupported{} and
+\BaseUnsupported{} unsupported, \CandMisleading{} and \BaseMisleading{} misleading a script).
+
+\section{Length, cost and the check}
+
+Every run of both prompts passed the routine's check (\CandPassed{} and \BasePassed{} of
+\Cases). Heard once, the candidate's videos last \CandHeard{} minutes against \BaseHeard{}, with
+\CandWords{} spoken words against \BaseWords{} and \CandQuestions{} questions against
+\BaseQuestions; on the same day it is \LengthRatioInterval{} times as long (rule~8 allows
+\LengthCap). The
+writer took \CandRounds{} check rounds against \BaseRounds, \CandMinutes{} minutes against
+\BaseMinutes{} and \$\CandCost{} against \$\BaseCost{} a day at list price.
+
+\section{The graders measured twice}
+
+The audit is noisy itself. The \RetestN{} pilot scripts audited twice with the same evidence (the
+second time with a claim grade for a line that holds, which asks nothing new of the scene tallies)
+moved by \RetestShare{} points of coaching share on average and by up to \RetestMax, so one day's
+share in Table~\ref{tab:days} says little, while the pooled difference (\ShareDiff) is well beyond
+that noise.
+
+\begin{table}[h]
+\centering
+\scriptsize\DayTable
+\caption{Each day: the judge's verdict from the candidate's side ($+$ a win, $-$ a loss, $0$ a
+tie), the candidate's length over today's heard once, and the share of the coaching moves the audit
+finds in the moment scenes.}
+\label{tab:days}
+\end{table}
+
+\section{What the app takes}
+
+The candidate passed every condition of the rule (Table~\ref{tab:rule}), so the daily routine's
+prompt took the bullet as it was tested (chess PR \PortPR). Listening is its cost: the videos are
+longer, ask more, and were harder to follow once on \ListeningLosses{} days. A next round could ask
+for the same moves in fewer words, for instance one scene per moment that asks, waits and answers.
+
+\section{Limits}
+
+\begin{itemize}[nosep]
+\item The five moves are one change: the result shows they help together, not which of them does.
+\item A replay writes the video alone, after the day's review is in place; the routine writes it at
+the end of a long day's work. The published videos are shorter (\PubHeard{} minutes heard once) than
+either prompt's replays, so the length and its listening cost may differ live. Both prompts faced the
+same setting on every day.
+\item The graders are models. The judge picks a side between two runs of one prompt on some days and
+favours the side it reads second; the audit's tallies move between two readings. The controls, the
+noise floor and both orders bound these, and the graders are a different model from the writer.
+\item The level a script states is checked against the same findability the writer reads (Maia-2 at
+his band), so the audit checks that the writer read it right, not that Maia-2 knows his level.
+\item The cases ran at two app commits; the prompt and the checker are the same at both, and each
+day's two prompts ran on the same checkout.
+\item The eval spent \$\Spent{} at list price (\$\WriterSpend{} on the writer, \$\GraderSpend{} on
+the graders), on the owner's subscription, whose seven-day window it moved from \SevenDayFirst\% to
+\SevenDayLast\%.
+\end{itemize}
+
+\end{document}
