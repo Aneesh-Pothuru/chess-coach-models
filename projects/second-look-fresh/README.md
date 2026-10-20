@@ -210,9 +210,80 @@ clear the analyst before each selected second look and its adaptive retry;
 the routine does the same for each of its selected looks. Their sweep
 budgets, device quotas and routine tablebase stay as they are. The port
 does not change which saved review Game Review opens. It keeps opening a
-device's saved review first, and asks for the routine's only when it has
-kept none. Existing reviews therefore keep their old judgments until an
-explicit rebuild. No migration or invalidation is part of this candidate.
+device's saved review first, and offers the routine's review for comparison
+when it is available. Existing reviews therefore keep their old judgments
+until an explicit rebuild. No migration or invalidation is part of this
+candidate. The comparison option is present at this pin; the brief and the
+phase-one description repeated the predecessor's older opening policy.
+This source description was corrected before reading phase-two effects.
+
+## Acquisition amendment, approved before the comparison
+
+The original acquisition stopped at the exact-reproduction check. A saved
+candidate routine review did not reproduce in two observed replays. A
+separate private diagnostic found incomplete second-look evidence in the
+saved review and complete evidence in the replay, with different records.
+The execution logs also showed large gaps between calendar and monotonic
+elapsed time and build timeouts. The reviewer judged suspension during
+searches the likely acquisition failure. The rejected original replays
+were not retained, so the cause is not proved by their documents. No miss
+share, extra share or quality-guard result had been computed or read.
+
+The reviewer approved rebuilding the entire candidate routine batch, not
+selecting replacement moves or reviews by their completeness. This section
+is committed before that acquisition starts. The original registered
+protocol above and its content manifest remain intact. This amendment
+changes only the acquisition of the candidate routine batch.
+
+Preserve the old routine documents, accepted timing replays, logs and
+diagnostic in this project's private directory. Freeze every baseline
+document and observed replay, and both candidate device profiles, by file
+content hash. Their bytes must match before and after the amended run.
+The private original-acquisition manifest identifies all saved outputs;
+`amendment-manifest.json` records its digest and this section's digest,
+without game identifiers or this branch's commit ids.
+
+Rebuild all 60 candidate routine documents and all 60 observed replays in
+`private/second-look-fresh/acquisition-amended/`. Archive the old routine
+directories under `acquisition-original/`. Only the legacy candidate
+routine output paths point into the amended namespace, so the registered
+reference and analysis scripts read the prescribed replacement batch.
+The other profiles remain frozen in place. Keep the same games and order,
+app and candidate, engine settings, CLI builder and review instrument.
+
+Keep each first prescribed output as produced, whatever its completeness.
+An incomplete look is not grounds for another search. Resume saved first
+outputs without recomputing them. The observed replay gets a narrow
+acquisition wrapper: it saves the first completed document and trace
+privately, with an exclusive write, immediately before the existing equality
+check. It changes no review call, search, timing or evidence calculation.
+Its generated source is checked against the registered probe plus that
+fixed persistence patch. A retained first replay without an accepted timing
+file blocks another search; it can be recovered only from those same saved
+bytes if all existing checks pass. A failed equality check still stops the
+run. No rerun is chosen from a verdict, completeness count or comparison.
+An acquisition interruption or failed call is inspected before resumption;
+it never licenses replacing an output already produced.
+
+The candidate routine batch is the sole replacement cell. The miss and
+extra sets, quality guard, treatment of incomplete looks, reference budget
+and retry, estimator, bootstrap, thresholds and correction are unchanged.
+After the complete amended batch passes the existing checks, run the rest
+of phase two as registered. Long jobs remain detached, with file logs and
+at most two heavy processes at nice 10. An idle-sleep assertion accompanies
+the wrapper; it does not change a search or build timeout.
+
+Report incompleteness by arm and profile, including the old and rebuilt
+candidate routine batches. Keep final retained deep evidence separate from
+the pre-teaching evidence in observed replays. All old canonical documents
+are available, but only three old candidate routine observed replays were
+accepted before acquisition stopped. Give that denominator explicitly;
+their missing pre-teaching traces cannot be reconstructed from final
+documents, since routine teaching can replace evidence. Report the app's
+saved partial-coverage counts too, under that name. Do not infer raw
+incomplete looks by subtracting verified from flagged plies, and do not
+substitute the diagnostic for a missing study replay. These are descriptive
+acquisition counts and cannot change the decision rule.
 
 ## Caveats
 
@@ -255,7 +326,11 @@ account name, game link or per-game output belongs in this project.
 | `analyze.mjs` | Applies the fixed rule in phase two only. |
 | `phase1.mjs` | Writes the aggregate counts, timings, determinism check and cost estimate. |
 | `phase2.sh` | Runs the complete phase-two sequence with bounded concurrency. |
-| `paper/` | The phase-one design and timing paper; no comparison claim. |
+| `design-manifest.json`, `provenance.mjs` | Freeze the approved measurement files, unchanged evidence builder and registered protocol by content hash; no lab-branch commit id is required. |
+| `launch.py`, `run.py`, `status.py` | Launch phase two in a detached session with file logs, timestamp its output and read its status and checkpoint counts. |
+| `recover.mjs` | Mark an interrupted wrapper's last observed output without inventing its stop time; refuse while project workers remain. |
+| `execution.mjs` | Write aggregate stage timings on monotonic and calendar clocks, rejection and timeout counts, lower bounds and unallocated gaps after an interrupted run. |
+| `paper/` | The paper, generated quantities, table formatter and claim checks. |
 
 ## Running it
 
@@ -279,16 +354,57 @@ bridge/run.sh projects/second-look-fresh/phase1.mjs
 bridge/run.sh projects/second-look-fresh/paper/generate.mjs
 ```
 
-After this design has been committed and reviewed, phase two is:
+The reviewed phase-two command remains `bash projects/second-look-fresh/phase2.sh --phase2`.
+Launch it through the detached wrapper so a tool-session interruption cannot
+close its output pipe:
 
 ```bash
-bash projects/second-look-fresh/phase2.sh --phase2
+.venv/bin/python projects/second-look-fresh/launch.py --phase2
+.venv/bin/python projects/second-look-fresh/status.py
 ```
 
 That script names every build, observed replay, reference shard and analysis
 command. It refuses to proceed without the phase-one determinism check.
 All long steps resume completed games or reference positions. A changed
 manifest requires a new output directory, never silent mixing. The script
-does not commit or push. The phase-one paper generator refuses comparison
-results; the results paper is written only after phase two, with its own
-claim checks. TeX is not installed and no PDF is built in phase one.
+does not commit or push. The launcher records its PID and private log paths;
+the wrapper and phase-two script each have their own session, and their output
+goes to regular files. A live recorded wrapper prevents another launch.
+The launcher also runs `caffeinate -i -w` for the wrapper's lifetime to
+prevent idle system sleep from consuming the builders' elapsed-time limits.
+The original phase-one commands above are historical; any long rerun must
+also be detached with file output.
+
+If a wrapper is killed, first check that its workers have stopped. Then mark
+its unfinished logging metadata, using the basename reported by `status.py`,
+and launch again:
+
+```bash
+node projects/second-look-fresh/recover.mjs --interrupted LOG-run.json
+.venv/bin/python projects/second-look-fresh/launch.py --phase2
+```
+
+The recovery helper changes only logging metadata. It does not change a game
+checkpoint or an app manifest. An unobserved end leaves the last stage's time
+as a lower bound. The interval to resumption stays unallocated, since it can
+contain both work and downtime.
+
+The execution report retains both clocks over the same observed intervals.
+Calendar minus monotonic elapsed is an unattributed clock difference,
+consistent with suspension but not proof of its cause. Neither clock is
+CPU time. This difference stays separate from gaps between invocations.
+Logged replay rejections and build timeouts remain in the report even when
+an unchanged resumption completes the missing work.
+
+After the script finishes successfully:
+
+```bash
+node projects/second-look-fresh/execution.mjs
+bridge/run.sh projects/second-look-fresh/paper/generate.mjs
+.venv/bin/python scripts/check_private.py
+```
+
+The paper generator checks the result, its prose claims and the frozen
+content manifest. The manifest survives a rebase of the lab branch. The app
+pin and records commit still identify the measured inputs. TeX is not
+installed and no PDF is built.
