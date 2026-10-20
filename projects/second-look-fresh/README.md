@@ -5,11 +5,13 @@ routine starts its second look with the engine's earlier work in memory.
 If each look clears that memory first, do the devices name the routine's
 serious errors more often? Does the cleared look judge at least as well?
 
-**The answer.** Not measured in this phase. This is the design, the data
-count and a small timing run. No miss share, extra share, paired change or
-reference agreement is computed here. The rule below is fixed before any
-of them is computed. The timing run may build private review documents,
-but reads only coverage, search budgets, time, depth and a determinism check.
+**The answer.** The comparison did not run. The approved replacement
+acquisition built all 60 candidate routine documents. Of 50 first observed
+replays, 49 reproduced their canonical documents and one failed the
+unchanged equality check. Its first output is retained; ten first replays
+remain unmade. References and analysis never started. The rule has no verdict.
+The [acquisition report](results/acquisition-status.md) gives the counts;
+the [execution report](results/execution.md) gives every recorded stage.
 
 ## The data
 
@@ -288,7 +290,7 @@ acquisition counts and cannot change the decision rule.
 ## Caveats
 
 The frozen games belong to one player and were sampled for an accuracy
-study. They are not an independent holdout. The reference is deeper
+study. They are not an independent holdout. The reference is higher-budget
 Stockfish evidence, not ground truth, and a fresh reference can favor a
 fresh candidate's search path. Its budget is fixed regardless of the
 direction of a disagreement. The guard is only about common attempted
@@ -330,7 +332,42 @@ account name, game link or per-game output belongs in this project.
 | `launch.py`, `run.py`, `status.py` | Launch phase two in a detached session with file logs, timestamp its output and read its status and checkpoint counts. |
 | `recover.mjs` | Mark an interrupted wrapper's last observed output without inventing its stop time; refuse while project workers remain. |
 | `execution.mjs` | Write aggregate stage timings on monotonic and calendar clocks, rejection and timeout counts, lower bounds and unallocated gaps after an interrupted run. |
+| `amendment-manifest.json`, `amendment-code.json` | Freeze the approved acquisition amendment, original checkpoint manifest and narrow persistence wrapper by content hash. |
+| `amendment.mjs`, `phase2-amended.sh` | Archive the original routine batch, check every frozen output, preserve first rebuilt outputs and run the registered sequence through the amended acquisition. |
+| `acquisition-report.mjs` | Write descriptive incompleteness counts by arm, profile and original or rebuilt routine batch, with missing observed coverage explicit. |
+| `acquisition-status.mjs` | Write the stopped acquisition audit, verify all frozen and first outputs, and refuse active workers or deciding outputs. |
+| `replay-diagnostic.mjs` | Aggregate reproduction differences, evidence availability and failed calls in retained rejected first replays; compute no chess verdict. |
 | `paper/` | The paper, generated quantities, table formatter and claim checks. |
+
+## The stopped acquisition
+
+The amended run took 5.110 monotonic hours: 3.105 for the routine CLI build
+and 2.000 for the observed stage, plus preparation and frozen-output checks.
+Its calendar-minus-monotonic difference was 0.016 seconds. No build timed
+out. The first rejected replay has 35 complete raw second looks and no
+failed engine call. Four final deep-evidence rows and four record rows
+differ; coverage and provenance agree. Two human-policy calls failed after
+verification. Their error reasons were not retained. The cause of the
+reproduction mismatch is not established.
+
+The old routine's final saved evidence has 8 incomplete readings out of
+2,388. The rebuilt routine has none out of 2,384. Every frozen baseline and
+candidate device cell has no incomplete saved or observed evidence.
+Only three original routine observed replays are available; the other
+57 remain unknown. The rebuilt routine has 49 accepted replays, with
+no incomplete looks out of 1,907. Its 50 retained first journals, including
+the rejected replay, have no incomplete looks out of 1,942. The missing
+first and accepted traces are explicit in the report. Final saved evidence,
+accepted verification traces and rejected first outputs remain separate.
+
+The immutable private stopped manifest covers the 60 rebuilt documents,
+49 accepted replays and 50 first journals. All 600 frozen files and 63
+archived originals still match their hashes. The first rejected output
+blocks another search and the full comparison. No output was replaced and
+no existing check was weakened. A further acquisition resolution needs
+review; the current launcher must not be used to choose another replay.
+No deciding metric was computed or read. The later work adds descriptive
+reporting and paper checks only.
 
 ## Running it
 
@@ -351,19 +388,21 @@ for p in phone desktop routine; do
 done
 nice -n 10 bridge/run.sh projects/second-look-fresh/probe.mjs --reference
 bridge/run.sh projects/second-look-fresh/phase1.mjs
-bridge/run.sh projects/second-look-fresh/paper/generate.mjs
 ```
 
-The reviewed phase-two command remains `bash projects/second-look-fresh/phase2.sh --phase2`.
-Launch it through the detached wrapper so a tool-session interruption cannot
-close its output pipe:
+The original phase-two sequence is `bash projects/second-look-fresh/phase2.sh --phase2`.
+After the acquisition amendment, launch its checked replacement through the
+detached wrapper so a tool-session interruption cannot close its output pipe:
 
 ```bash
-.venv/bin/python projects/second-look-fresh/launch.py --phase2
+.venv/bin/python projects/second-look-fresh/launch.py --phase2 --amended
 .venv/bin/python projects/second-look-fresh/status.py
 ```
 
-That script names every build, observed replay, reference shard and analysis
+The amended driver generates the registered sequence with the narrow
+candidate routine persistence patch and a completion check before analysis.
+It checks the frozen baseline and device outputs and archived routine files.
+The sequence names every build, observed replay, reference shard and analysis
 command. It refuses to proceed without the phase-one determinism check.
 All long steps resume completed games or reference positions. A changed
 manifest requires a new output directory, never silent mixing. The script
@@ -381,13 +420,15 @@ and launch again:
 
 ```bash
 node projects/second-look-fresh/recover.mjs --interrupted LOG-run.json
-.venv/bin/python projects/second-look-fresh/launch.py --phase2
+.venv/bin/python projects/second-look-fresh/launch.py --phase2 --amended
 ```
 
 The recovery helper changes only logging metadata. It does not change a game
 checkpoint or an app manifest. An unobserved end leaves the last stage's time
 as a lower bound. The interval to resumption stays unallocated, since it can
 contain both work and downtime.
+An amended acquisition failure must be inspected before resumption. A saved
+first replay cannot be replaced; a reproduction failure still blocks the run.
 
 The execution report retains both clocks over the same observed intervals.
 Calendar minus monotonic elapsed is an unattributed clock difference,
@@ -396,15 +437,21 @@ CPU time. This difference stays separate from gaps between invocations.
 Logged replay rejections and build timeouts remain in the report even when
 an unchanged resumption completes the missing work.
 
-After the script finishes successfully:
+The present acquisition is stopped at its retained reproduction failure.
+Regenerate its reports without a search:
 
 ```bash
 node projects/second-look-fresh/execution.mjs
+bridge/run.sh projects/second-look-fresh/acquisition-status.mjs --stopped
 bridge/run.sh projects/second-look-fresh/paper/generate.mjs
 .venv/bin/python scripts/check_private.py
 ```
 
-The paper generator checks the result, its prose claims and the frozen
-content manifest. The manifest survives a rebase of the lab branch. The app
-pin and records commit still identify the measured inputs. TeX is not
-installed and no PDF is built.
+`acquisition-status.mjs` recomputes descriptive counts and rechecks the
+stopped manifest. It cannot complete acquisition or compute a comparison.
+`acquisition-report.mjs --phase2` is reserved for a complete comparison and
+currently refuses to run. The paper generator recomputes the stopped
+report, checks its prose claims and the frozen content manifests, and
+refuses if the recorded failure or absent deciding outputs change.
+The manifests survive a rebase of the lab branch. The app pin and records
+commit still identify the inputs. No PDF is built.

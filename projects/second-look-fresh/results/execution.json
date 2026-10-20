@@ -1,0 +1,1485 @@
+{
+  "schema": "second-look-fresh-execution/3",
+  "appCommit": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+  "recordsCommit": "aed714ada579782ce73630596e59c8b65e74cb30",
+  "games": 60,
+  "designSha256": "9bcb9d0512a763dd352dab9d8585988a02160fe7abda3b478585c688a2dc1161",
+  "amendmentSha256": "c301bc3e56ec45b233b3868d231e4e602719e97bfab511468058359a4cab2c54",
+  "amendedInvocations": 1,
+  "command": [
+    "bash",
+    "projects/second-look-fresh/phase2-amended.sh",
+    "--phase2"
+  ],
+  "invocations": 6,
+  "successfulInvocations": 0,
+  "failedInvocations": 5,
+  "unknownEndInvocations": 1,
+  "lastInvocationSucceeded": false,
+  "startedAt": "2026-10-18T18:23:41.347630+00:00",
+  "endedAt": "2026-10-20T10:33:10.106068+00:00",
+  "observedThroughAt": "2026-10-20T10:33:10.106068+00:00",
+  "activeWallSecondsLowerBound": 64153.10602158448,
+  "exactActiveWallSeconds": null,
+  "calendarElapsedSecondsLowerBound": 126725.935,
+  "exactCalendarElapsedSeconds": null,
+  "observedClockDifferenceSeconds": 62572.82897841552,
+  "timingIsLowerBound": true,
+  "calendarObservedSeconds": 144568.759,
+  "knownBetweenInvocationSeconds": 12576.787999999999,
+  "unallocatedGapSeconds": 5266.036,
+  "replayEqualityFailures": 4,
+  "replayEqualityFailuresByArmProfile": {
+    "baseline": {
+      "phone": 0,
+      "desktop": 0,
+      "routine": 1
+    },
+    "candidate": {
+      "phone": 0,
+      "desktop": 0,
+      "routine": 3
+    }
+  },
+  "cliTimeoutFailures": 10,
+  "cliTimeoutLimitsSeconds": [
+    3600
+  ],
+  "method": "Output-observation boundaries: preparation ends at the last line before the first CLI start; every later stage begins at the preceding stage closing line. Each boundary uses both the exact logged calendar timestamp and the wrapper monotonic timestamp. The legacy activeWallSecondsLowerBound and exactActiveWallSeconds fields measure monotonic elapsed time, not CPU time or guaranteed awake time. Calendar elapsed is measured over the same observed windows. observedClockDifferenceSeconds is calendar minus monotonic elapsed; it is an unattributed clock difference, consistent with sleep but not proof of sleep, CPU use or downtime. A recorded wrapper end closes analysis or an interrupted stage. An interruption with an unknown end is censored at its last output: both elapsed totals and its final stage durations are lower bounds. The clock difference describes only the observed windows and is not a bound on any unobserved difference. Time after the last output and before the next invocation is unallocated, not asserted idle; it can contain unlogged runtime. Known end-to-next-start gaps are reported separately. Calendar invocation windows plus both kinds of between-invocation gap equal the full observed calendar span. Launch and exit overhead are included when observed. Stage times are approximate output-observation intervals, not summed worker seconds. Counts sum logged attempts and resumptions, not distinct games or positions; interrupted work after the final line may first be counted on resumption.",
+  "stages": [
+    {
+      "stage": "preparation",
+      "activeWallSecondsLowerBound": 55.62726129358634,
+      "exactActiveWallSeconds": 55.62726129358634,
+      "endUnknown": false,
+      "calendarElapsedSecondsLowerBound": 55.629,
+      "exactCalendarElapsedSeconds": 55.629,
+      "observedClockDifferenceSeconds": 0.0017387064136542563,
+      "completeInvocations": 6,
+      "failedInvocations": 0,
+      "incompleteInvocations": 0,
+      "cliTimeoutLimitsSeconds": [],
+      "countsAcrossInvocations": {}
+    },
+    {
+      "stage": "baseline/CLI/phone",
+      "activeWallSecondsLowerBound": 1225.128240541555,
+      "exactActiveWallSeconds": 1225.128240541555,
+      "endUnknown": false,
+      "calendarElapsedSecondsLowerBound": 1225.1219999999998,
+      "exactCalendarElapsedSeconds": 1225.1219999999998,
+      "observedClockDifferenceSeconds": -0.006240541555143864,
+      "completeInvocations": 6,
+      "failedInvocations": 0,
+      "incompleteInvocations": 0,
+      "cliTimeoutLimitsSeconds": [],
+      "countsAcrossInvocations": {
+        "requestedGames": 360,
+        "pendingGames": 60,
+        "completedGames": 60,
+        "failedGames": 0,
+        "resumedGames": 300
+      }
+    },
+    {
+      "stage": "baseline/CLI/desktop",
+      "activeWallSecondsLowerBound": 2743.9428162495606,
+      "exactActiveWallSeconds": 2743.9428162495606,
+      "endUnknown": false,
+      "calendarElapsedSecondsLowerBound": 2743.9280000000003,
+      "exactCalendarElapsedSeconds": 2743.9280000000003,
+      "observedClockDifferenceSeconds": -0.014816249560226424,
+      "completeInvocations": 6,
+      "failedInvocations": 0,
+      "incompleteInvocations": 0,
+      "cliTimeoutLimitsSeconds": [],
+      "countsAcrossInvocations": {
+        "requestedGames": 360,
+        "pendingGames": 60,
+        "completedGames": 60,
+        "failedGames": 0,
+        "resumedGames": 300
+      }
+    },
+    {
+      "stage": "baseline/CLI/routine",
+      "activeWallSecondsLowerBound": 12489.748868208379,
+      "exactActiveWallSeconds": null,
+      "endUnknown": true,
+      "calendarElapsedSecondsLowerBound": 12489.785,
+      "exactCalendarElapsedSeconds": null,
+      "observedClockDifferenceSeconds": 0.03613179162130109,
+      "completeInvocations": 5,
+      "failedInvocations": 0,
+      "incompleteInvocations": 1,
+      "cliTimeoutLimitsSeconds": [],
+      "countsAcrossInvocations": {
+        "requestedGames": 360,
+        "pendingGames": 111,
+        "completedGames": 60,
+        "failedGames": 0,
+        "resumedGames": 249
+      }
+    },
+    {
+      "stage": "baseline/observed/phone",
+      "activeWallSecondsLowerBound": 1641.905796249397,
+      "exactActiveWallSeconds": 1641.905796249397,
+      "endUnknown": false,
+      "calendarElapsedSecondsLowerBound": 1641.923,
+      "exactCalendarElapsedSeconds": 1641.923,
+      "observedClockDifferenceSeconds": 0.0172037506029028,
+      "completeInvocations": 5,
+      "failedInvocations": 0,
+      "incompleteInvocations": 0,
+      "cliTimeoutLimitsSeconds": [],
+      "countsAcrossInvocations": {
+        "completedGames": 60,
+        "resumedGames": 240,
+        "timedGames": 60,
+        "finishedWorkers": 10
+      }
+    },
+    {
+      "stage": "baseline/observed/desktop",
+      "activeWallSecondsLowerBound": 1951.2377881659195,
+      "exactActiveWallSeconds": 1951.2377881659195,
+      "endUnknown": false,
+      "calendarElapsedSecondsLowerBound": 1951.187,
+      "exactCalendarElapsedSeconds": 1951.187,
+      "observedClockDifferenceSeconds": -0.05078816591958457,
+      "completeInvocations": 5,
+      "failedInvocations": 0,
+      "incompleteInvocations": 0,
+      "cliTimeoutLimitsSeconds": [],
+      "countsAcrossInvocations": {
+        "completedGames": 60,
+        "resumedGames": 240,
+        "timedGames": 60,
+        "finishedWorkers": 10
+      }
+    },
+    {
+      "stage": "baseline/observed/routine",
+      "activeWallSecondsLowerBound": 8697.890627750661,
+      "exactActiveWallSeconds": 8697.890627750661,
+      "endUnknown": false,
+      "calendarElapsedSecondsLowerBound": 8697.936999999998,
+      "exactCalendarElapsedSeconds": 8697.936999999998,
+      "observedClockDifferenceSeconds": 0.04637224933685502,
+      "completeInvocations": 4,
+      "failedInvocations": 1,
+      "incompleteInvocations": 0,
+      "cliTimeoutLimitsSeconds": [],
+      "countsAcrossInvocations": {
+        "completedGames": 17,
+        "resumedGames": 223,
+        "timedGames": 60,
+        "finishedWorkers": 4,
+        "replayEqualityFailures": 1
+      }
+    },
+    {
+      "stage": "candidate/CLI/phone",
+      "activeWallSecondsLowerBound": 1242.4481385839172,
+      "exactActiveWallSeconds": 1242.4481385839172,
+      "endUnknown": false,
+      "calendarElapsedSecondsLowerBound": 1242.4520000000002,
+      "exactCalendarElapsedSeconds": 1242.4520000000002,
+      "observedClockDifferenceSeconds": 0.0038614160830547917,
+      "completeInvocations": 4,
+      "failedInvocations": 0,
+      "incompleteInvocations": 0,
+      "cliTimeoutLimitsSeconds": [],
+      "countsAcrossInvocations": {
+        "requestedGames": 240,
+        "pendingGames": 60,
+        "completedGames": 60,
+        "failedGames": 0,
+        "resumedGames": 180
+      }
+    },
+    {
+      "stage": "candidate/CLI/desktop",
+      "activeWallSecondsLowerBound": 1569.6362543758005,
+      "exactActiveWallSeconds": 1569.6362543758005,
+      "endUnknown": false,
+      "calendarElapsedSecondsLowerBound": 1569.64,
+      "exactCalendarElapsedSeconds": 1569.64,
+      "observedClockDifferenceSeconds": 0.003745624199609665,
+      "completeInvocations": 4,
+      "failedInvocations": 0,
+      "incompleteInvocations": 0,
+      "cliTimeoutLimitsSeconds": [],
+      "countsAcrossInvocations": {
+        "requestedGames": 240,
+        "pendingGames": 60,
+        "completedGames": 60,
+        "failedGames": 0,
+        "resumedGames": 180
+      }
+    },
+    {
+      "stage": "candidate/CLI/routine",
+      "activeWallSecondsLowerBound": 21616.90104362415,
+      "exactActiveWallSeconds": 21616.90104362415,
+      "endUnknown": false,
+      "calendarElapsedSecondsLowerBound": 84189.663,
+      "exactCalendarElapsedSeconds": 84189.663,
+      "observedClockDifferenceSeconds": 62572.76195637585,
+      "completeInvocations": 3,
+      "failedInvocations": 1,
+      "incompleteInvocations": 0,
+      "cliTimeoutLimitsSeconds": [
+        3600
+      ],
+      "countsAcrossInvocations": {
+        "requestedGames": 240,
+        "pendingGames": 130,
+        "completedGames": 120,
+        "failedGames": 10,
+        "resumedGames": 110,
+        "cliTimeoutFailures": 10
+      }
+    },
+    {
+      "stage": "candidate/observed/phone",
+      "activeWallSecondsLowerBound": 1371.1386081674136,
+      "exactActiveWallSeconds": 1371.1386081674136,
+      "endUnknown": false,
+      "calendarElapsedSecondsLowerBound": 1371.146,
+      "exactCalendarElapsedSeconds": 1371.146,
+      "observedClockDifferenceSeconds": 0.007391832586336022,
+      "completeInvocations": 3,
+      "failedInvocations": 0,
+      "incompleteInvocations": 0,
+      "cliTimeoutLimitsSeconds": [],
+      "countsAcrossInvocations": {
+        "completedGames": 60,
+        "resumedGames": 120,
+        "timedGames": 60,
+        "finishedWorkers": 6
+      }
+    },
+    {
+      "stage": "candidate/observed/desktop",
+      "activeWallSecondsLowerBound": 1663.1470035412349,
+      "exactActiveWallSeconds": 1663.1470035412349,
+      "endUnknown": false,
+      "calendarElapsedSecondsLowerBound": 1663.164,
+      "exactCalendarElapsedSeconds": 1663.164,
+      "observedClockDifferenceSeconds": 0.01699645876510658,
+      "completeInvocations": 3,
+      "failedInvocations": 0,
+      "incompleteInvocations": 0,
+      "cliTimeoutLimitsSeconds": [],
+      "countsAcrossInvocations": {
+        "completedGames": 60,
+        "resumedGames": 120,
+        "timedGames": 60,
+        "finishedWorkers": 6
+      }
+    },
+    {
+      "stage": "candidate/observed/routine",
+      "activeWallSecondsLowerBound": 7884.353574832901,
+      "exactActiveWallSeconds": 7884.353574832901,
+      "endUnknown": false,
+      "calendarElapsedSecondsLowerBound": 7884.359,
+      "exactCalendarElapsedSeconds": 7884.359,
+      "observedClockDifferenceSeconds": 0.005425167099019745,
+      "completeInvocations": 0,
+      "failedInvocations": 3,
+      "incompleteInvocations": 0,
+      "cliTimeoutLimitsSeconds": [],
+      "countsAcrossInvocations": {
+        "completedGames": 0,
+        "resumedGames": 0,
+        "timedGames": 52,
+        "finishedWorkers": 0,
+        "replayEqualityFailures": 3
+      }
+    },
+    {
+      "stage": "references",
+      "activeWallSecondsLowerBound": 0,
+      "exactActiveWallSeconds": 0,
+      "endUnknown": false,
+      "calendarElapsedSecondsLowerBound": 0,
+      "exactCalendarElapsedSeconds": 0,
+      "observedClockDifferenceSeconds": 0,
+      "completeInvocations": 0,
+      "failedInvocations": 0,
+      "incompleteInvocations": 0,
+      "cliTimeoutLimitsSeconds": [],
+      "countsAcrossInvocations": {}
+    },
+    {
+      "stage": "analysis",
+      "activeWallSecondsLowerBound": 0,
+      "exactActiveWallSeconds": 0,
+      "endUnknown": false,
+      "calendarElapsedSecondsLowerBound": 0,
+      "exactCalendarElapsedSeconds": 0,
+      "observedClockDifferenceSeconds": 0,
+      "completeInvocations": 0,
+      "failedInvocations": 0,
+      "incompleteInvocations": 0,
+      "cliTimeoutLimitsSeconds": [],
+      "countsAcrossInvocations": {}
+    }
+  ],
+  "runs": [
+    {
+      "status": "interrupted-end-unknown",
+      "startedAt": "2026-10-18T18:23:41.347630+00:00",
+      "endedAt": null,
+      "observedThroughAt": "2026-10-18T20:12:52.666892+00:00",
+      "activeWallSecondsLowerBound": 6551.300174625125,
+      "exactActiveWallSeconds": null,
+      "calendarElapsedSecondsLowerBound": 6551.319,
+      "exactCalendarElapsedSeconds": null,
+      "observedClockDifferenceSeconds": 0.018825374875632406,
+      "endKnown": false,
+      "exitCode": null,
+      "designSha256": "9bcb9d0512a763dd352dab9d8585988a02160fe7abda3b478585c688a2dc1161",
+      "command": [
+        "bash",
+        "projects/second-look-fresh/phase2.sh",
+        "--phase2"
+      ],
+      "amendmentSha256": null,
+      "provenance": {
+        "appCommit": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+        "recordsCommit": "aed714ada579782ce73630596e59c8b65e74cb30",
+        "games": 60
+      },
+      "replayEqualityFailures": 0,
+      "replayEqualityFailuresByArmProfile": {
+        "baseline": {
+          "phone": 0,
+          "desktop": 0,
+          "routine": 0
+        },
+        "candidate": {
+          "phone": 0,
+          "desktop": 0,
+          "routine": 0
+        }
+      },
+      "cliTimeoutFailures": 0,
+      "cliTimeoutLimitsSeconds": [],
+      "stages": [
+        {
+          "stage": "preparation",
+          "status": "complete",
+          "endUnknown": false,
+          "activeWallSecondsLowerBound": 6.646765667013824,
+          "exactActiveWallSeconds": 6.646765667013824,
+          "calendarElapsedSecondsLowerBound": 6.647,
+          "exactCalendarElapsedSeconds": 6.647,
+          "observedClockDifferenceSeconds": 0.00023433298617625553
+        },
+        {
+          "stage": "baseline/CLI/phone",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 60,
+          "resumedGames": 0,
+          "completedGames": 60,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 1222.457966875285,
+          "exactActiveWallSeconds": 1222.457966875285,
+          "calendarElapsedSecondsLowerBound": 1222.452,
+          "exactCalendarElapsedSeconds": 1222.452,
+          "observedClockDifferenceSeconds": -0.005966875284912021
+        },
+        {
+          "stage": "baseline/CLI/desktop",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 60,
+          "resumedGames": 0,
+          "completedGames": 60,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 2741.0628541666083,
+          "exactActiveWallSeconds": 2741.0628541666083,
+          "calendarElapsedSecondsLowerBound": 2741.049,
+          "exactCalendarElapsedSeconds": 2741.049,
+          "observedClockDifferenceSeconds": -0.013854166608325613
+        },
+        {
+          "stage": "baseline/CLI/routine",
+          "status": "incomplete",
+          "endUnknown": true,
+          "requestedGames": 60,
+          "pendingGames": 60,
+          "resumedGames": 0,
+          "completedGames": 9,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 2581.1325879162177,
+          "exactActiveWallSeconds": null,
+          "calendarElapsedSecondsLowerBound": 2581.171,
+          "exactCalendarElapsedSeconds": null,
+          "observedClockDifferenceSeconds": 0.03841208378207739
+        }
+      ]
+    },
+    {
+      "status": "finished",
+      "startedAt": "2026-10-18T21:40:38.702690+00:00",
+      "endedAt": "2026-10-19T03:11:53.355194+00:00",
+      "observedThroughAt": "2026-10-19T03:11:53.355194+00:00",
+      "activeWallSecondsLowerBound": 19874.65112654213,
+      "exactActiveWallSeconds": 19874.65112654213,
+      "calendarElapsedSecondsLowerBound": 19874.653,
+      "exactCalendarElapsedSeconds": 19874.653,
+      "observedClockDifferenceSeconds": 0.0018734578698058613,
+      "endKnown": true,
+      "exitCode": 1,
+      "designSha256": "9bcb9d0512a763dd352dab9d8585988a02160fe7abda3b478585c688a2dc1161",
+      "command": [
+        "bash",
+        "projects/second-look-fresh/phase2.sh",
+        "--phase2"
+      ],
+      "amendmentSha256": null,
+      "provenance": {
+        "appCommit": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+        "recordsCommit": "aed714ada579782ce73630596e59c8b65e74cb30",
+        "games": 60
+      },
+      "replayEqualityFailures": 1,
+      "replayEqualityFailuresByArmProfile": {
+        "baseline": {
+          "phone": 0,
+          "desktop": 0,
+          "routine": 1
+        },
+        "candidate": {
+          "phone": 0,
+          "desktop": 0,
+          "routine": 0
+        }
+      },
+      "cliTimeoutFailures": 0,
+      "cliTimeoutLimitsSeconds": [],
+      "stages": [
+        {
+          "stage": "preparation",
+          "status": "complete",
+          "endUnknown": false,
+          "activeWallSecondsLowerBound": 11.703970416914672,
+          "exactActiveWallSeconds": 11.703970416914672,
+          "calendarElapsedSecondsLowerBound": 11.704,
+          "exactCalendarElapsedSeconds": 11.704,
+          "observedClockDifferenceSeconds": 0.000029583085328965808
+        },
+        {
+          "stage": "baseline/CLI/phone",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 0,
+          "resumedGames": 60,
+          "completedGames": 0,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 0.8165810410864651,
+          "exactActiveWallSeconds": 0.8165810410864651,
+          "calendarElapsedSecondsLowerBound": 0.817,
+          "exactCalendarElapsedSeconds": 0.817,
+          "observedClockDifferenceSeconds": 0.00041895891353482817
+        },
+        {
+          "stage": "baseline/CLI/desktop",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 0,
+          "resumedGames": 60,
+          "completedGames": 0,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 0.6234679999761283,
+          "exactActiveWallSeconds": 0.6234679999761283,
+          "calendarElapsedSecondsLowerBound": 0.623,
+          "exactCalendarElapsedSeconds": 0.623,
+          "observedClockDifferenceSeconds": -0.00046799997612834154
+        },
+        {
+          "stage": "baseline/CLI/routine",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 51,
+          "resumedGames": 9,
+          "completedGames": 51,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 9906.359427209012,
+          "exactActiveWallSeconds": 9906.359427209012,
+          "calendarElapsedSecondsLowerBound": 9906.357,
+          "exactCalendarElapsedSeconds": 9906.357,
+          "observedClockDifferenceSeconds": -0.002427209012239473
+        },
+        {
+          "stage": "baseline/observed/phone",
+          "status": "complete",
+          "endUnknown": false,
+          "timedGames": 60,
+          "completedGames": 60,
+          "resumedGames": 0,
+          "finishedWorkers": 2,
+          "activeWallSecondsLowerBound": 1638.8646841249429,
+          "exactActiveWallSeconds": 1638.8646841249429,
+          "calendarElapsedSecondsLowerBound": 1638.882,
+          "exactCalendarElapsedSeconds": 1638.882,
+          "observedClockDifferenceSeconds": 0.017315875057192898
+        },
+        {
+          "stage": "baseline/observed/desktop",
+          "status": "complete",
+          "endUnknown": false,
+          "timedGames": 60,
+          "completedGames": 60,
+          "resumedGames": 0,
+          "finishedWorkers": 2,
+          "activeWallSecondsLowerBound": 1948.3781213751063,
+          "exactActiveWallSeconds": 1948.3781213751063,
+          "calendarElapsedSecondsLowerBound": 1948.327,
+          "exactCalendarElapsedSeconds": 1948.327,
+          "observedClockDifferenceSeconds": -0.0511213751062769
+        },
+        {
+          "stage": "baseline/observed/routine",
+          "status": "failed",
+          "endUnknown": false,
+          "timedGames": 43,
+          "completedGames": 0,
+          "resumedGames": 0,
+          "finishedWorkers": 0,
+          "replayEqualityFailures": 1,
+          "activeWallSecondsLowerBound": 6367.90487437509,
+          "exactActiveWallSeconds": 6367.90487437509,
+          "calendarElapsedSecondsLowerBound": 6367.943,
+          "exactCalendarElapsedSeconds": 6367.943,
+          "observedClockDifferenceSeconds": 0.03812562491020799
+        }
+      ]
+    },
+    {
+      "status": "finished",
+      "startedAt": "2026-10-19T03:13:13.871747+00:00",
+      "endedAt": "2026-10-20T00:27:32.114188+00:00",
+      "observedThroughAt": "2026-10-20T00:27:32.114188+00:00",
+      "activeWallSecondsLowerBound": 13885.486992500257,
+      "exactActiveWallSeconds": 13885.486992500257,
+      "calendarElapsedSecondsLowerBound": 76458.243,
+      "exactCalendarElapsedSeconds": 76458.243,
+      "observedClockDifferenceSeconds": 62572.756007499745,
+      "endKnown": true,
+      "exitCode": 1,
+      "designSha256": "9bcb9d0512a763dd352dab9d8585988a02160fe7abda3b478585c688a2dc1161",
+      "command": [
+        "bash",
+        "projects/second-look-fresh/phase2.sh",
+        "--phase2"
+      ],
+      "amendmentSha256": null,
+      "provenance": {
+        "appCommit": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+        "recordsCommit": "aed714ada579782ce73630596e59c8b65e74cb30",
+        "games": 60
+      },
+      "replayEqualityFailures": 0,
+      "replayEqualityFailuresByArmProfile": {
+        "baseline": {
+          "phone": 0,
+          "desktop": 0,
+          "routine": 0
+        },
+        "candidate": {
+          "phone": 0,
+          "desktop": 0,
+          "routine": 0
+        }
+      },
+      "cliTimeoutFailures": 10,
+      "cliTimeoutLimitsSeconds": [
+        3600
+      ],
+      "stages": [
+        {
+          "stage": "preparation",
+          "status": "complete",
+          "endUnknown": false,
+          "activeWallSecondsLowerBound": 9.289459333289415,
+          "exactActiveWallSeconds": 9.289459333289415,
+          "calendarElapsedSecondsLowerBound": 9.29,
+          "exactCalendarElapsedSeconds": 9.29,
+          "observedClockDifferenceSeconds": 0.0005406667105845031
+        },
+        {
+          "stage": "baseline/CLI/phone",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 0,
+          "resumedGames": 60,
+          "completedGames": 0,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 0.62599041685462,
+          "exactActiveWallSeconds": 0.62599041685462,
+          "calendarElapsedSecondsLowerBound": 0.626,
+          "exactCalendarElapsedSeconds": 0.626,
+          "observedClockDifferenceSeconds": 0.00000958314538002103
+        },
+        {
+          "stage": "baseline/CLI/desktop",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 0,
+          "resumedGames": 60,
+          "completedGames": 0,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 0.6126632080413401,
+          "exactActiveWallSeconds": 0.6126632080413401,
+          "calendarElapsedSecondsLowerBound": 0.612,
+          "exactCalendarElapsedSeconds": 0.612,
+          "observedClockDifferenceSeconds": -0.0006632080413401242
+        },
+        {
+          "stage": "baseline/CLI/routine",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 0,
+          "resumedGames": 60,
+          "completedGames": 0,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 0.6142648751847446,
+          "exactActiveWallSeconds": 0.6142648751847446,
+          "calendarElapsedSecondsLowerBound": 0.615,
+          "exactCalendarElapsedSeconds": 0.615,
+          "observedClockDifferenceSeconds": 0.0007351248152553946
+        },
+        {
+          "stage": "baseline/observed/phone",
+          "status": "complete",
+          "endUnknown": false,
+          "timedGames": 0,
+          "completedGames": 0,
+          "resumedGames": 60,
+          "finishedWorkers": 2,
+          "activeWallSecondsLowerBound": 0.6121757919900119,
+          "exactActiveWallSeconds": 0.6121757919900119,
+          "calendarElapsedSecondsLowerBound": 0.612,
+          "exactCalendarElapsedSeconds": 0.612,
+          "observedClockDifferenceSeconds": -0.000175791990011942
+        },
+        {
+          "stage": "baseline/observed/desktop",
+          "status": "complete",
+          "endUnknown": false,
+          "timedGames": 0,
+          "completedGames": 0,
+          "resumedGames": 60,
+          "finishedWorkers": 2,
+          "activeWallSecondsLowerBound": 0.8290989156812429,
+          "exactActiveWallSeconds": 0.8290989156812429,
+          "calendarElapsedSecondsLowerBound": 0.829,
+          "exactCalendarElapsedSeconds": 0.829,
+          "observedClockDifferenceSeconds": -0.00009891568124298367
+        },
+        {
+          "stage": "baseline/observed/routine",
+          "status": "complete",
+          "endUnknown": false,
+          "timedGames": 17,
+          "completedGames": 17,
+          "resumedGames": 43,
+          "finishedWorkers": 1,
+          "activeWallSecondsLowerBound": 2327.7169076250866,
+          "exactActiveWallSeconds": 2327.7169076250866,
+          "calendarElapsedSecondsLowerBound": 2327.725,
+          "exactCalendarElapsedSeconds": 2327.725,
+          "observedClockDifferenceSeconds": 0.008092374913303502
+        },
+        {
+          "stage": "candidate/CLI/phone",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 60,
+          "resumedGames": 0,
+          "completedGames": 60,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 1240.8003290002234,
+          "exactActiveWallSeconds": 1240.8003290002234,
+          "calendarElapsedSecondsLowerBound": 1240.805,
+          "exactCalendarElapsedSeconds": 1240.805,
+          "observedClockDifferenceSeconds": 0.004670999776635654
+        },
+        {
+          "stage": "candidate/CLI/desktop",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 60,
+          "resumedGames": 0,
+          "completedGames": 60,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 1568.1982054589316,
+          "exactActiveWallSeconds": 1568.1982054589316,
+          "calendarElapsedSecondsLowerBound": 1568.202,
+          "exactCalendarElapsedSeconds": 1568.202,
+          "observedClockDifferenceSeconds": 0.0037945410683732916
+        },
+        {
+          "stage": "candidate/CLI/routine",
+          "status": "failed",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 60,
+          "resumedGames": 0,
+          "completedGames": 50,
+          "failedGames": 10,
+          "cliTimeoutLimitSeconds": 3600,
+          "cliTimeoutFailures": 10,
+          "activeWallSecondsLowerBound": 8736.187897874974,
+          "exactActiveWallSeconds": 8736.187897874974,
+          "calendarElapsedSecondsLowerBound": 71308.927,
+          "exactCalendarElapsedSeconds": 71308.927,
+          "observedClockDifferenceSeconds": 62572.73910212502
+        }
+      ]
+    },
+    {
+      "status": "finished",
+      "startedAt": "2026-10-20T00:27:50.046959+00:00",
+      "endedAt": "2026-10-20T01:56:04.969027+00:00",
+      "observedThroughAt": "2026-10-20T01:56:04.969027+00:00",
+      "activeWallSecondsLowerBound": 5294.886814292055,
+      "exactActiveWallSeconds": 5294.886814292055,
+      "calendarElapsedSecondsLowerBound": 5294.923,
+      "exactCalendarElapsedSeconds": 5294.923,
+      "observedClockDifferenceSeconds": 0.03618570794515108,
+      "endKnown": true,
+      "exitCode": 1,
+      "designSha256": "9bcb9d0512a763dd352dab9d8585988a02160fe7abda3b478585c688a2dc1161",
+      "command": [
+        "bash",
+        "projects/second-look-fresh/phase2.sh",
+        "--phase2"
+      ],
+      "amendmentSha256": null,
+      "provenance": {
+        "appCommit": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+        "recordsCommit": "aed714ada579782ce73630596e59c8b65e74cb30",
+        "games": 60
+      },
+      "replayEqualityFailures": 1,
+      "replayEqualityFailuresByArmProfile": {
+        "baseline": {
+          "phone": 0,
+          "desktop": 0,
+          "routine": 0
+        },
+        "candidate": {
+          "phone": 0,
+          "desktop": 0,
+          "routine": 1
+        }
+      },
+      "cliTimeoutFailures": 0,
+      "cliTimeoutLimitsSeconds": [],
+      "stages": [
+        {
+          "stage": "preparation",
+          "status": "complete",
+          "endUnknown": false,
+          "activeWallSecondsLowerBound": 9.896219542250037,
+          "exactActiveWallSeconds": 9.896219542250037,
+          "calendarElapsedSecondsLowerBound": 9.897,
+          "exactCalendarElapsedSeconds": 9.897,
+          "observedClockDifferenceSeconds": 0.0007804577499630483
+        },
+        {
+          "stage": "baseline/CLI/phone",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 0,
+          "resumedGames": 60,
+          "completedGames": 0,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 0.4033576250076294,
+          "exactActiveWallSeconds": 0.4033576250076294,
+          "calendarElapsedSecondsLowerBound": 0.403,
+          "exactCalendarElapsedSeconds": 0.403,
+          "observedClockDifferenceSeconds": -0.00035762500762936966
+        },
+        {
+          "stage": "baseline/CLI/desktop",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 0,
+          "resumedGames": 60,
+          "completedGames": 0,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 0.6214418751187623,
+          "exactActiveWallSeconds": 0.6214418751187623,
+          "calendarElapsedSecondsLowerBound": 0.621,
+          "exactCalendarElapsedSeconds": 0.621,
+          "observedClockDifferenceSeconds": -0.00044187511876225827
+        },
+        {
+          "stage": "baseline/CLI/routine",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 0,
+          "resumedGames": 60,
+          "completedGames": 0,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 0.6184334997087717,
+          "exactActiveWallSeconds": 0.6184334997087717,
+          "calendarElapsedSecondsLowerBound": 0.619,
+          "exactCalendarElapsedSeconds": 0.619,
+          "observedClockDifferenceSeconds": 0.000566500291228289
+        },
+        {
+          "stage": "baseline/observed/phone",
+          "status": "complete",
+          "endUnknown": false,
+          "timedGames": 0,
+          "completedGames": 0,
+          "resumedGames": 60,
+          "finishedWorkers": 2,
+          "activeWallSecondsLowerBound": 0.8124213330447674,
+          "exactActiveWallSeconds": 0.8124213330447674,
+          "calendarElapsedSecondsLowerBound": 0.812,
+          "exactCalendarElapsedSeconds": 0.812,
+          "observedClockDifferenceSeconds": -0.0004213330447673247
+        },
+        {
+          "stage": "baseline/observed/desktop",
+          "status": "complete",
+          "endUnknown": false,
+          "timedGames": 0,
+          "completedGames": 0,
+          "resumedGames": 60,
+          "finishedWorkers": 2,
+          "activeWallSecondsLowerBound": 0.6074741249904037,
+          "exactActiveWallSeconds": 0.6074741249904037,
+          "calendarElapsedSecondsLowerBound": 0.608,
+          "exactCalendarElapsedSeconds": 0.608,
+          "observedClockDifferenceSeconds": 0.0005258750095963327
+        },
+        {
+          "stage": "baseline/observed/routine",
+          "status": "complete",
+          "endUnknown": false,
+          "timedGames": 0,
+          "completedGames": 0,
+          "resumedGames": 60,
+          "finishedWorkers": 1,
+          "activeWallSecondsLowerBound": 0.8263394581153989,
+          "exactActiveWallSeconds": 0.8263394581153989,
+          "calendarElapsedSecondsLowerBound": 0.826,
+          "exactCalendarElapsedSeconds": 0.826,
+          "observedClockDifferenceSeconds": -0.00033945811539892734
+        },
+        {
+          "stage": "candidate/CLI/phone",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 0,
+          "resumedGames": 60,
+          "completedGames": 0,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 0.6219067089259624,
+          "exactActiveWallSeconds": 0.6219067089259624,
+          "calendarElapsedSecondsLowerBound": 0.622,
+          "exactCalendarElapsedSeconds": 0.622,
+          "observedClockDifferenceSeconds": 0.00009329107403754922
+        },
+        {
+          "stage": "candidate/CLI/desktop",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 0,
+          "resumedGames": 60,
+          "completedGames": 0,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 0.4202014999464154,
+          "exactActiveWallSeconds": 0.4202014999464154,
+          "calendarElapsedSecondsLowerBound": 0.42,
+          "exactCalendarElapsedSeconds": 0.42,
+          "observedClockDifferenceSeconds": -0.0002014999464154399
+        },
+        {
+          "stage": "candidate/CLI/routine",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 10,
+          "resumedGames": 50,
+          "completedGames": 10,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 1701.3075183751062,
+          "exactActiveWallSeconds": 1701.3075183751062,
+          "calendarElapsedSecondsLowerBound": 1701.338,
+          "exactCalendarElapsedSeconds": 1701.338,
+          "observedClockDifferenceSeconds": 0.030481624893809567
+        },
+        {
+          "stage": "candidate/observed/phone",
+          "status": "complete",
+          "endUnknown": false,
+          "timedGames": 60,
+          "completedGames": 60,
+          "resumedGames": 0,
+          "finishedWorkers": 2,
+          "activeWallSecondsLowerBound": 1370.102990833111,
+          "exactActiveWallSeconds": 1370.102990833111,
+          "calendarElapsedSecondsLowerBound": 1370.11,
+          "exactCalendarElapsedSeconds": 1370.11,
+          "observedClockDifferenceSeconds": 0.007009166888792606
+        },
+        {
+          "stage": "candidate/observed/desktop",
+          "status": "complete",
+          "endUnknown": false,
+          "timedGames": 60,
+          "completedGames": 60,
+          "resumedGames": 0,
+          "finishedWorkers": 2,
+          "activeWallSecondsLowerBound": 1662.3219674997963,
+          "exactActiveWallSeconds": 1662.3219674997963,
+          "calendarElapsedSecondsLowerBound": 1662.339,
+          "exactCalendarElapsedSeconds": 1662.339,
+          "observedClockDifferenceSeconds": 0.017032500203640666
+        },
+        {
+          "stage": "candidate/observed/routine",
+          "status": "failed",
+          "endUnknown": false,
+          "timedGames": 3,
+          "completedGames": 0,
+          "resumedGames": 0,
+          "finishedWorkers": 0,
+          "replayEqualityFailures": 1,
+          "activeWallSecondsLowerBound": 546.3265419169329,
+          "exactActiveWallSeconds": 546.3265419169329,
+          "calendarElapsedSecondsLowerBound": 546.308,
+          "exactCalendarElapsedSeconds": 546.308,
+          "observedClockDifferenceSeconds": -0.018541916932917957
+        }
+      ]
+    },
+    {
+      "status": "finished",
+      "startedAt": "2026-10-20T01:56:35.795086+00:00",
+      "endedAt": "2026-10-20T01:59:07.130504+00:00",
+      "observedThroughAt": "2026-10-20T01:59:07.130504+00:00",
+      "activeWallSecondsLowerBound": 151.3353645829484,
+      "exactActiveWallSeconds": 151.3353645829484,
+      "calendarElapsedSecondsLowerBound": 151.335,
+      "exactCalendarElapsedSeconds": 151.335,
+      "observedClockDifferenceSeconds": -0.0003645829483787111,
+      "endKnown": true,
+      "exitCode": 1,
+      "designSha256": "9bcb9d0512a763dd352dab9d8585988a02160fe7abda3b478585c688a2dc1161",
+      "command": [
+        "bash",
+        "projects/second-look-fresh/phase2.sh",
+        "--phase2"
+      ],
+      "amendmentSha256": null,
+      "provenance": {
+        "appCommit": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+        "recordsCommit": "aed714ada579782ce73630596e59c8b65e74cb30",
+        "games": 60
+      },
+      "replayEqualityFailures": 1,
+      "replayEqualityFailuresByArmProfile": {
+        "baseline": {
+          "phone": 0,
+          "desktop": 0,
+          "routine": 0
+        },
+        "candidate": {
+          "phone": 0,
+          "desktop": 0,
+          "routine": 1
+        }
+      },
+      "cliTimeoutFailures": 0,
+      "cliTimeoutLimitsSeconds": [],
+      "stages": [
+        {
+          "stage": "preparation",
+          "status": "complete",
+          "endUnknown": false,
+          "activeWallSecondsLowerBound": 7.673237000126392,
+          "exactActiveWallSeconds": 7.673237000126392,
+          "calendarElapsedSecondsLowerBound": 7.673,
+          "exactCalendarElapsedSeconds": 7.673,
+          "observedClockDifferenceSeconds": -0.00023700012639160661
+        },
+        {
+          "stage": "baseline/CLI/phone",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 0,
+          "resumedGames": 60,
+          "completedGames": 0,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 0.41842429200187325,
+          "exactActiveWallSeconds": 0.41842429200187325,
+          "calendarElapsedSecondsLowerBound": 0.418,
+          "exactCalendarElapsedSeconds": 0.418,
+          "observedClockDifferenceSeconds": -0.0004242920018732721
+        },
+        {
+          "stage": "baseline/CLI/desktop",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 0,
+          "resumedGames": 60,
+          "completedGames": 0,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 0.4144120831042528,
+          "exactActiveWallSeconds": 0.4144120831042528,
+          "calendarElapsedSecondsLowerBound": 0.415,
+          "exactCalendarElapsedSeconds": 0.415,
+          "observedClockDifferenceSeconds": 0.0005879168957471648
+        },
+        {
+          "stage": "baseline/CLI/routine",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 0,
+          "resumedGames": 60,
+          "completedGames": 0,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 0.41656925017014146,
+          "exactActiveWallSeconds": 0.41656925017014146,
+          "calendarElapsedSecondsLowerBound": 0.416,
+          "exactCalendarElapsedSeconds": 0.416,
+          "observedClockDifferenceSeconds": -0.0005692501701414776
+        },
+        {
+          "stage": "baseline/observed/phone",
+          "status": "complete",
+          "endUnknown": false,
+          "timedGames": 0,
+          "completedGames": 0,
+          "resumedGames": 60,
+          "finishedWorkers": 2,
+          "activeWallSecondsLowerBound": 0.6045441245660186,
+          "exactActiveWallSeconds": 0.6045441245660186,
+          "calendarElapsedSecondsLowerBound": 0.605,
+          "exactCalendarElapsedSeconds": 0.605,
+          "observedClockDifferenceSeconds": 0.00045587543398140085
+        },
+        {
+          "stage": "baseline/observed/desktop",
+          "status": "complete",
+          "endUnknown": false,
+          "timedGames": 0,
+          "completedGames": 0,
+          "resumedGames": 60,
+          "finishedWorkers": 2,
+          "activeWallSecondsLowerBound": 0.6131304581649601,
+          "exactActiveWallSeconds": 0.6131304581649601,
+          "calendarElapsedSecondsLowerBound": 0.613,
+          "exactCalendarElapsedSeconds": 0.613,
+          "observedClockDifferenceSeconds": -0.0001304581649601566
+        },
+        {
+          "stage": "baseline/observed/routine",
+          "status": "complete",
+          "endUnknown": false,
+          "timedGames": 0,
+          "completedGames": 0,
+          "resumedGames": 60,
+          "finishedWorkers": 1,
+          "activeWallSecondsLowerBound": 0.6250787922181189,
+          "exactActiveWallSeconds": 0.6250787922181189,
+          "calendarElapsedSecondsLowerBound": 0.625,
+          "exactCalendarElapsedSeconds": 0.625,
+          "observedClockDifferenceSeconds": -0.00007879221811890602
+        },
+        {
+          "stage": "candidate/CLI/phone",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 0,
+          "resumedGames": 60,
+          "completedGames": 0,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 0.41341941663995385,
+          "exactActiveWallSeconds": 0.41341941663995385,
+          "calendarElapsedSecondsLowerBound": 0.413,
+          "exactCalendarElapsedSeconds": 0.413,
+          "observedClockDifferenceSeconds": -0.00041941663995387346
+        },
+        {
+          "stage": "candidate/CLI/desktop",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 0,
+          "resumedGames": 60,
+          "completedGames": 0,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 0.40258887503296137,
+          "exactActiveWallSeconds": 0.40258887503296137,
+          "calendarElapsedSecondsLowerBound": 0.403,
+          "exactCalendarElapsedSeconds": 0.403,
+          "observedClockDifferenceSeconds": 0.0004111249670386563
+        },
+        {
+          "stage": "candidate/CLI/routine",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 0,
+          "resumedGames": 60,
+          "completedGames": 0,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 0.4202936659567058,
+          "exactActiveWallSeconds": 0.4202936659567058,
+          "calendarElapsedSecondsLowerBound": 0.42,
+          "exactCalendarElapsedSeconds": 0.42,
+          "observedClockDifferenceSeconds": -0.0002936659567058242
+        },
+        {
+          "stage": "candidate/observed/phone",
+          "status": "complete",
+          "endUnknown": false,
+          "timedGames": 0,
+          "completedGames": 0,
+          "resumedGames": 60,
+          "finishedWorkers": 2,
+          "activeWallSecondsLowerBound": 0.6151910424232483,
+          "exactActiveWallSeconds": 0.6151910424232483,
+          "calendarElapsedSecondsLowerBound": 0.615,
+          "exactCalendarElapsedSeconds": 0.615,
+          "observedClockDifferenceSeconds": -0.0001910424232482999
+        },
+        {
+          "stage": "candidate/observed/desktop",
+          "status": "complete",
+          "endUnknown": false,
+          "timedGames": 0,
+          "completedGames": 0,
+          "resumedGames": 60,
+          "finishedWorkers": 2,
+          "activeWallSecondsLowerBound": 0.41091949958354235,
+          "exactActiveWallSeconds": 0.41091949958354235,
+          "calendarElapsedSecondsLowerBound": 0.411,
+          "exactCalendarElapsedSeconds": 0.411,
+          "observedClockDifferenceSeconds": 0.00008050041645762951
+        },
+        {
+          "stage": "candidate/observed/routine",
+          "status": "failed",
+          "endUnknown": false,
+          "replayEqualityFailures": 1,
+          "activeWallSecondsLowerBound": 138.30755608296022,
+          "exactActiveWallSeconds": 138.30755608296022,
+          "calendarElapsedSecondsLowerBound": 138.308,
+          "exactCalendarElapsedSeconds": 138.308,
+          "observedClockDifferenceSeconds": 0.0004439170397745329
+        }
+      ]
+    },
+    {
+      "status": "finished",
+      "startedAt": "2026-10-20T05:26:34.644537+00:00",
+      "endedAt": "2026-10-20T10:33:10.106068+00:00",
+      "observedThroughAt": "2026-10-20T10:33:10.106068+00:00",
+      "activeWallSecondsLowerBound": 18395.445549041964,
+      "exactActiveWallSeconds": 18395.445549041964,
+      "calendarElapsedSecondsLowerBound": 18395.462,
+      "exactCalendarElapsedSeconds": 18395.462,
+      "observedClockDifferenceSeconds": 0.016450958035420626,
+      "endKnown": true,
+      "exitCode": 1,
+      "designSha256": "9bcb9d0512a763dd352dab9d8585988a02160fe7abda3b478585c688a2dc1161",
+      "command": [
+        "bash",
+        "projects/second-look-fresh/phase2-amended.sh",
+        "--phase2"
+      ],
+      "amendmentSha256": "c301bc3e56ec45b233b3868d231e4e602719e97bfab511468058359a4cab2c54",
+      "provenance": {
+        "appCommit": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+        "recordsCommit": "aed714ada579782ce73630596e59c8b65e74cb30",
+        "games": 60
+      },
+      "replayEqualityFailures": 1,
+      "replayEqualityFailuresByArmProfile": {
+        "baseline": {
+          "phone": 0,
+          "desktop": 0,
+          "routine": 0
+        },
+        "candidate": {
+          "phone": 0,
+          "desktop": 0,
+          "routine": 1
+        }
+      },
+      "cliTimeoutFailures": 0,
+      "cliTimeoutLimitsSeconds": [],
+      "stages": [
+        {
+          "stage": "preparation",
+          "status": "complete",
+          "endUnknown": false,
+          "activeWallSecondsLowerBound": 10.417609333992004,
+          "exactActiveWallSeconds": 10.417609333992004,
+          "calendarElapsedSecondsLowerBound": 10.418,
+          "exactCalendarElapsedSeconds": 10.418,
+          "observedClockDifferenceSeconds": 0.0003906660079948665
+        },
+        {
+          "stage": "baseline/CLI/phone",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 0,
+          "resumedGames": 60,
+          "completedGames": 0,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 0.4059202913194895,
+          "exactActiveWallSeconds": 0.4059202913194895,
+          "calendarElapsedSecondsLowerBound": 0.406,
+          "exactCalendarElapsedSeconds": 0.406,
+          "observedClockDifferenceSeconds": 0.00007970868051054847
+        },
+        {
+          "stage": "baseline/CLI/desktop",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 0,
+          "resumedGames": 60,
+          "completedGames": 0,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 0.6079769167117774,
+          "exactActiveWallSeconds": 0.6079769167117774,
+          "calendarElapsedSecondsLowerBound": 0.608,
+          "exactCalendarElapsedSeconds": 0.608,
+          "observedClockDifferenceSeconds": 0.000023083288222536247
+        },
+        {
+          "stage": "baseline/CLI/routine",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 0,
+          "resumedGames": 60,
+          "completedGames": 0,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 0.6075854580849409,
+          "exactActiveWallSeconds": 0.6075854580849409,
+          "calendarElapsedSecondsLowerBound": 0.607,
+          "exactCalendarElapsedSeconds": 0.607,
+          "observedClockDifferenceSeconds": -0.0005854580849409263
+        },
+        {
+          "stage": "baseline/observed/phone",
+          "status": "complete",
+          "endUnknown": false,
+          "timedGames": 0,
+          "completedGames": 0,
+          "resumedGames": 60,
+          "finishedWorkers": 2,
+          "activeWallSecondsLowerBound": 1.0119708748534322,
+          "exactActiveWallSeconds": 1.0119708748534322,
+          "calendarElapsedSecondsLowerBound": 1.012,
+          "exactCalendarElapsedSeconds": 1.012,
+          "observedClockDifferenceSeconds": 0.00002912514656783216
+        },
+        {
+          "stage": "baseline/observed/desktop",
+          "status": "complete",
+          "endUnknown": false,
+          "timedGames": 0,
+          "completedGames": 0,
+          "resumedGames": 60,
+          "finishedWorkers": 2,
+          "activeWallSecondsLowerBound": 0.8099632919766009,
+          "exactActiveWallSeconds": 0.8099632919766009,
+          "calendarElapsedSecondsLowerBound": 0.81,
+          "exactCalendarElapsedSeconds": 0.81,
+          "observedClockDifferenceSeconds": 0.0000367080233991679
+        },
+        {
+          "stage": "baseline/observed/routine",
+          "status": "complete",
+          "endUnknown": false,
+          "timedGames": 0,
+          "completedGames": 0,
+          "resumedGames": 60,
+          "finishedWorkers": 1,
+          "activeWallSecondsLowerBound": 0.8174275001510978,
+          "exactActiveWallSeconds": 0.8174275001510978,
+          "calendarElapsedSecondsLowerBound": 0.818,
+          "exactCalendarElapsedSeconds": 0.818,
+          "observedClockDifferenceSeconds": 0.0005724998489021749
+        },
+        {
+          "stage": "candidate/CLI/phone",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 0,
+          "resumedGames": 60,
+          "completedGames": 0,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 0.6124834581278265,
+          "exactActiveWallSeconds": 0.6124834581278265,
+          "calendarElapsedSecondsLowerBound": 0.612,
+          "exactCalendarElapsedSeconds": 0.612,
+          "observedClockDifferenceSeconds": -0.0004834581278264638
+        },
+        {
+          "stage": "candidate/CLI/desktop",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 0,
+          "resumedGames": 60,
+          "completedGames": 0,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 0.6152585418894887,
+          "exactActiveWallSeconds": 0.6152585418894887,
+          "calendarElapsedSecondsLowerBound": 0.615,
+          "exactCalendarElapsedSeconds": 0.615,
+          "observedClockDifferenceSeconds": -0.00025854188948870593
+        },
+        {
+          "stage": "candidate/CLI/routine",
+          "status": "complete",
+          "endUnknown": false,
+          "requestedGames": 60,
+          "pendingGames": 60,
+          "resumedGames": 0,
+          "completedGames": 60,
+          "failedGames": 0,
+          "activeWallSecondsLowerBound": 11178.985333708115,
+          "exactActiveWallSeconds": 11178.985333708115,
+          "calendarElapsedSecondsLowerBound": 11178.978,
+          "exactCalendarElapsedSeconds": 11178.978,
+          "observedClockDifferenceSeconds": -0.007333708115766058
+        },
+        {
+          "stage": "candidate/observed/phone",
+          "status": "complete",
+          "endUnknown": false,
+          "timedGames": 0,
+          "completedGames": 0,
+          "resumedGames": 60,
+          "finishedWorkers": 2,
+          "activeWallSecondsLowerBound": 0.4204262918792665,
+          "exactActiveWallSeconds": 0.4204262918792665,
+          "calendarElapsedSecondsLowerBound": 0.421,
+          "exactCalendarElapsedSeconds": 0.421,
+          "observedClockDifferenceSeconds": 0.0005737081207334849
+        },
+        {
+          "stage": "candidate/observed/desktop",
+          "status": "complete",
+          "endUnknown": false,
+          "timedGames": 0,
+          "completedGames": 0,
+          "resumedGames": 60,
+          "finishedWorkers": 2,
+          "activeWallSecondsLowerBound": 0.4141165418550372,
+          "exactActiveWallSeconds": 0.4141165418550372,
+          "calendarElapsedSecondsLowerBound": 0.414,
+          "exactCalendarElapsedSeconds": 0.414,
+          "observedClockDifferenceSeconds": -0.00011654185503723324
+        },
+        {
+          "stage": "candidate/observed/routine",
+          "status": "failed",
+          "endUnknown": false,
+          "timedGames": 49,
+          "completedGames": 0,
+          "resumedGames": 0,
+          "finishedWorkers": 0,
+          "replayEqualityFailures": 1,
+          "activeWallSecondsLowerBound": 7199.719476833008,
+          "exactActiveWallSeconds": 7199.719476833008,
+          "calendarElapsedSecondsLowerBound": 7199.743,
+          "exactCalendarElapsedSeconds": 7199.743,
+          "observedClockDifferenceSeconds": 0.02352316699216317
+        }
+      ]
+    }
+  ],
+  "measurementCodeUnchanged": true,
+  "measurementSourceHashes": {
+    "projects/second-look-fresh/rules.mjs": {
+      "expectedSha256": "f42838071f2b683a285bde69e007badf80d3c745e14870c2c5b3a60abefde82e",
+      "actualSha256": "f42838071f2b683a285bde69e007badf80d3c745e14870c2c5b3a60abefde82e"
+    },
+    "projects/second-look-fresh/prepare.mjs": {
+      "expectedSha256": "760546d22e870043ddee2c0b06e13f0a5ae205ab3b27254253bb7551a873d847",
+      "actualSha256": "760546d22e870043ddee2c0b06e13f0a5ae205ab3b27254253bb7551a873d847"
+    },
+    "projects/second-look-fresh/candidate.mjs": {
+      "expectedSha256": "cf8491042104e009aa8cb18b51cbb9128fc2666c71e5921e64fbfff7befe1484",
+      "actualSha256": "cf8491042104e009aa8cb18b51cbb9128fc2666c71e5921e64fbfff7befe1484"
+    },
+    "projects/second-look-fresh/runtime.mjs": {
+      "expectedSha256": "d5d1180aee655ac2eb944cc347ca84bc01e4c1f73bd5f88dfbf48c53e3ff3ee8",
+      "actualSha256": "d5d1180aee655ac2eb944cc347ca84bc01e4c1f73bd5f88dfbf48c53e3ff3ee8"
+    },
+    "projects/second-look-fresh/build.mjs": {
+      "expectedSha256": "c25834a7be20204f25f624934fb5fe0fda87a0ad237c9d735d2ac7b4102a167c",
+      "actualSha256": "c25834a7be20204f25f624934fb5fe0fda87a0ad237c9d735d2ac7b4102a167c"
+    },
+    "projects/second-look-fresh/probe.mjs": {
+      "expectedSha256": "0ca0912f1ab72833e825f50f5e521cf57828dcaa02e862997834e24cdac6e62e",
+      "actualSha256": "0ca0912f1ab72833e825f50f5e521cf57828dcaa02e862997834e24cdac6e62e"
+    },
+    "projects/second-look-fresh/common.mjs": {
+      "expectedSha256": "c6a63d6f6fe8928d159092e751b10d99b837584d568e90ae57c5415c32705092",
+      "actualSha256": "c6a63d6f6fe8928d159092e751b10d99b837584d568e90ae57c5415c32705092"
+    },
+    "projects/second-look-fresh/reference.mjs": {
+      "expectedSha256": "442833d5208f0930c98ee4712c20ebedc5c9429071b02b616069c665608e98d2",
+      "actualSha256": "442833d5208f0930c98ee4712c20ebedc5c9429071b02b616069c665608e98d2"
+    },
+    "projects/second-look-fresh/analyze.mjs": {
+      "expectedSha256": "cd4f71eb6ef7e7c89c41008c404ebb1d02524e88e557246a960bba1e1a62685f",
+      "actualSha256": "cd4f71eb6ef7e7c89c41008c404ebb1d02524e88e557246a960bba1e1a62685f"
+    },
+    "projects/second-look-fresh/phase2.sh": {
+      "expectedSha256": "337a1953325bffa157cfb9f187f0486bad1b2c9c02b21744de57ae06ab58dfa8",
+      "actualSha256": "337a1953325bffa157cfb9f187f0486bad1b2c9c02b21744de57ae06ab58dfa8"
+    },
+    "projects/accuracy-vs-chesscom/build-evidence.mjs": {
+      "expectedSha256": "407d1655322b4871d2114a91a451e5ec21372757c22f0fca372772200662217e",
+      "actualSha256": "407d1655322b4871d2114a91a451e5ec21372757c22f0fca372772200662217e"
+    }
+  },
+  "protocolUnchanged": true,
+  "protocolSha256": "b4eec4a7fef9e6baf2f6365e040abe0647273776da3ad2d7ff393dd581346a43"
+}
