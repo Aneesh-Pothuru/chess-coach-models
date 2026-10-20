@@ -192,6 +192,10 @@ bridge/run.sh projects/break-ready/coverage.mjs
 bridge/run.sh projects/break-ready/analyze.mjs
 bridge/run.sh projects/break-ready/describe.mjs
 
+# The central strike: the positions structure-breaks scored, read by where the
+# other king stands, with no new engine search.
+bridge/run.sh projects/central-strike/analyze.mjs
+
 # The learner's solve chances: his puzzle attempts replayed through the app's
 # learner, on a record rebuilt from the memory cards and on the profile as the
 # app holds it.

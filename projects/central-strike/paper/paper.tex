@@ -21,8 +21,10 @@ while the other king is still in the centre, against \CAwayFirst\% and \CAwaySec
 left. Measured against a random move in the same positions, the lift is \LiftFirst{} points
 (\LiftFirstCi) on the earlier half of his games and \LiftSecond{} (\LiftSecondCi) on the later
 one. The earlier interval reaches 0, so by the rule fixed before any score was read by the king
-there is no signal, though both halves point the same way. STRONGABSTRACT Even with the king in
-the centre, the central break trails his own move by \GainFirst{} and \GainSecond{} points. The
+there is no signal, though both halves point the same way. Strong players' positions do not lean
+that way: their central breaks are sound \StrongCCentre\% of the time with the king in the centre
+and \StrongCAway\% with it away, and their lift is \StrongLift{} (\StrongLiftCi). Even with the king
+in the centre, the central break trails his own move by \GainFirst{} and \GainSecond{} points. The
 coach's moment may hold at his level, but it is not shown here, and it would not make the break a
 better choice than his own move: the verdict on a break stays the engine's.
 \end{abstract}
@@ -106,7 +108,10 @@ points more often than a random move, and the strong player's \StrongReferee; th
 
 The lift is \LiftFirst{} points (\LiftFirstCi) on the earlier half and \LiftSecond{}
 (\LiftSecondCi) on the later one. Both are positive, but the earlier interval reaches 0, so by the
-rule there is no signal. STRONGVERDICT
+rule there is no signal. The strong players' positions are silent: their lift is \StrongLift{}
+points (\StrongLiftCi), and their central breaks are sound about as often with the king in the
+centre as with it away (\StrongCCentre\% and \StrongCAway\%), so the lean in his games does not
+show in theirs.
 
 The strike's gain answers the second question whatever the first: with the king in the centre, the
 central break is sound \GainFirst{} and \GainSecond{} points less often than his own move
@@ -130,7 +135,11 @@ away; his move gives up \LostACentreFirst{} and \LostACentreSecond.
 the lift is \StrictFirst{} (\StrictFirstCi) and \StrictSecond{} (\StrictSecondCi). With both queens
 on the board, it is \QueensFirst{} (\QueensFirstCi) and \QueensSecond{} (\QueensSecondCi). For the
 breaks that land off the d- and e-files, the same lift is \FlankFirst{} (\FlankFirstCi) and
-\FlankSecond{} (\FlankSecondCi), holding 0 on both halves. STRONGOTHER
+\FlankSecond{} (\FlankSecondCi), holding 0 on both halves. For strong players the stricter
+reading's lift is \StrongStrict{} (\StrongStrictCi) and the lift with both queens on
+\StrongQueens{} (\StrongQueensCi), both holding 0, while their flank breaks' lift is
+\StrongFlank{} (\StrongFlankCi), above 0: in strong players' positions it is the flank breaks,
+not the central ones, that gain on a random move when the king is in the centre.
 
 \paragraph{Finding it.} He played a central break in \PlayedCentreFirst\% and
 \PlayedCentreSecond\% of his positions with the king in the centre, and \PlayedAwayFirst\% and
@@ -180,7 +189,8 @@ and leave the moment to the engine. A king still in the centre may be a reason t
 central break, and both halves of his games lean that way, but at this size the lean is not shown,
 and where it shows most the break is still sound less often than his own move. A test on Lichess
 games at his band, with many more positions, could settle the lean; it would not change the second
-answer.
+answer. Strong players' positions show no lean, so there is nothing to borrow from stronger play
+either.
 
 \section{Caveats}
 

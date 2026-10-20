@@ -185,6 +185,11 @@ g.def('StrongQueens', pts(D.strong.queensOn.lift.value)).def('StrongQueensCi', c
 g.def('StrongFlank', pts(D.strong.flank.lift.value)).def('StrongFlankCi', ciWords(D.strong.flank.lift.ci))
 g.def('StrongCCentre', pts(D.strong.byCondition.centre.C.value, 0)).def('StrongCAway', pts(D.strong.byCondition.away.C.value, 0))
 g.def('StrongSCentre', pts(D.strong.byCondition.centre.A.value, 0))
+claim(S.reading === 'silent' && holds0(S.lift), "the strong players' positions are silent")
+claim(Math.abs(D.strong.byCondition.centre.C.value - D.strong.byCondition.away.C.value) < 0.03, "the strong players' central breaks are sound about as often with the king in the centre as away")
+claim(below0(S.gain), "the strong players' central breaks trail their own move with the king in the centre")
+claim(holds0(D.strong.stricter.lift) && holds0(D.strong.queensOn.lift), "the strong players' stricter and queens-on lifts hold 0")
+claim(above0(D.strong.flank.lift) && D.strong.flank.lift.value > S.lift.value, "the strong players' flank breaks gain on a random move with the king in the centre, more than their central breaks")
 
 // ---- two positions ----
 const source = privateDir(SOURCE)

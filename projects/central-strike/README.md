@@ -14,8 +14,21 @@ break sound more often when the other king is still in the centre than when it
 has left, beyond what the king's position does for any move, and is it then
 as sound as his own move?
 
-**The answer.** Not run yet. The rule below was committed before any score was
-read by the king's position.
+**The answer.** No signal, by the rule below, which was committed before any
+score was read by the king's position; both controls passed. In his positions
+a central break is sound about three times in ten while the other king is still
+in the centre and about one time in seven once it has left. Against a random
+move in the same positions, the lift is 13 points on the earlier half of his
+games, its interval reaching 0, and 23 on the later half, above 0: both halves
+lean the coach's way, but only one shows it. Strong players' positions are
+silent: their central breaks are sound about as often with the king in the
+centre as with it away. And even with the king in the centre, the central break
+is sound less often than his own move, by more than 25 points on each half. So
+the app's pawn-break lesson stays as it is: a king still in the centre may be a
+reason to look at the central break, but that is not shown here, and it would
+not make the break a better choice than his own move. The numbers are in
+[`results/central-strike.md`](results/central-strike.md), written by
+`analyze.mjs`; the paper is [`paper/paper.pdf`](paper/paper.pdf).
 
 If the king marks the moment, the app can name a king still in the centre as
 the time to look at the central break; if the break is then as sound as his own
@@ -143,8 +156,9 @@ No language model judges anything here.
 | File | What it does |
 |---|---|
 | `lib.mjs` | The study's constants and readings: the central breaks, where the other king stands, the queens. |
+| `lib.test.mjs` | The readings, the lift and the verdicts on small cases (`bridge/run.sh --test projects/central-strike/lib.test.mjs`). |
 | `analyze.mjs` | Joins structure-breaks' rows to its candidates, applies the rule and the descriptions; writes `results/central-strike.json` and `.md`. |
-| `paper/generate.mjs` | Writes `paper/generated.tex`, every number and table the paper prints, from `results/`, and refuses to write when a claim the paper makes no longer holds. |
+| `paper/generate.mjs` | Writes `paper/generated.tex`, every number, table and position the paper prints, from `results/` and the private rows (the two positions rescored), and refuses to write when a claim the paper makes no longer holds. |
 | `paper/paper.tex` | The paper. |
 
 ## Running it
