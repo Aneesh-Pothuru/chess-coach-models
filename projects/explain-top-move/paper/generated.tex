@@ -49,10 +49,10 @@
 \newcommand{\KeptTrainConcreteVsBase}{+6.8 [3.2, 10.6]}
 \newcommand{\KeptTrainTextsChanged}{87}
 \newcommand{\KeptVariant}{v8}
-\newcommand{\RoundCount}{26}
-\newcommand{\RoundCountCap}{26}
-\newcommand{\KeptRoundCount}{23}
-\newcommand{\UnjudgedKept}{1, 2, 11 and 14}
+\newcommand{\RoundCount}{28}
+\newcommand{\RoundCountCap}{28}
+\newcommand{\KeptRoundCount}{25}
+\newcommand{\UnjudgedKept}{1, 2, 11, 14 and 28}
 \newcommand{\RoundsTable}{%
 \begin{tabularx}{\textwidth}{l L rrrr r r}
 \toprule
@@ -75,6 +75,16 @@ v10 & Say the natural capture that only trades as the trade it is & \multicolumn
 v11 & Five text defects, fixed where the texts are written & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} &  \\
 v12 & Say what the natural defense to the better move costs & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 19--9 / 22--12 \\
 v13 & Leave out the moves the defense sentence does not need (\emph{not kept}) & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 0--16 / 4--24 \\
+\bottomrule
+\end{tabularx}
+}
+\newcommand{\RoundsTableTwo}{%
+\begin{tabularx}{\textwidth}{l L rrrr r r}
+\toprule
+ & & \multicolumn{2}{c}{test (\%)} & \multicolumn{2}{c}{train (\%)} & texts & judge \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+variant & change & faithful & concrete & faithful & concrete & changed & train / test \\
+\midrule
 v14 & Say an amount in the pieces it is made of & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} &  \\
 v15 & Say what a quiet reply defends & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 22--1 / 8--0 \\
 v16 & Tell an endgame's passed pawns' story & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 37--2 / 18--3 \\
@@ -88,6 +98,8 @@ v23 & A capture that was a trap & \multicolumn{5}{c}{\emph{graded on rebuilt doc
 v24 & Where the other side's pawn is when one queens & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 8--6 / 6--2 \\
 v25 & The square the better move keeps their king out of & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 14--0 / 6--0 \\
 v26 & The piece the better move brings into play & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 22--0 / 18--0 \\
+v28 & No absence said before a reason & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} &  \\
+v29 & The pin that keeps a piece from taking the reply & \multicolumn{5}{c}{\emph{graded on rebuilt documents (Table~\ref{tab:rebuilt})}} & 12--0 / 4--0 \\
 \bottomrule
 \end{tabularx}
 }
@@ -124,6 +136,7 @@ round & judged & train & test & the rule says \\
 24 & round 24 (11 moments) & 8--6 (0) & 6--2 (0) & keep \\
 25 & round 25 (10 moments) & 14--0 (0) & 6--0 (0) & keep \\
 26 & round 26 (20 moments) & 22--0 (0) & 18--0 (0) & keep \\
+29 & round 29 (8 moments) & 12--0 (0) & 4--0 (0) & keep \\
 \bottomrule
 \end{tabular}
 }
@@ -172,6 +185,10 @@ v25 & test & 153 & 153 & 130 & 144 & 152 & 0 \\
 v25 & train & 180 & 179 & 152 & 166 & 179 & 0 \\
 v26 & test & 153 & 153 & 130 & 144 & 152 & 4 \\
 v26 & train & 180 & 179 & 152 & 166 & 179 & 3 \\
+v28 & test & 153 & 153 & 130 & 144 & 152 & 2 \\
+v28 & train & 180 & 179 & 152 & 166 & 179 & 1 \\
+v29 & test & 153 & 153 & 130 & 144 & 152 & 0 \\
+v29 & train & 180 & 179 & 152 & 166 & 179 & 0 \\
 \bottomrule
 \end{tabular}
 }
@@ -180,54 +197,70 @@ v26 & train & 180 & 179 & 152 & 166 & 179 & 3 \\
 \toprule
 variant & split & moments & faithful & concrete & named\_deep & faithfulAll & texts changed \\
 \midrule
-v16, endgame set & test & 184 & 181 & 162 & 158 & 180 & 3 \\
-v16, endgame set & train & 219 & 213 & 170 / 172 & 204 & 213 & 19 \\
-v17, endgame set & test & 184 & 181 & 162 & 158 & 180 & 94 \\
-v17, endgame set & train & 219 & 213 & 172 & 204 & 213 & 116 \\
-v17b, endgame set & test & 184 & 181 & 162 & 158 & 180 & 94 \\
-v17b, endgame set & train & 219 & 213 & 172 & 204 & 213 & 116 \\
-v17c, endgame set & test & 184 & 181 & 162 & 158 & 180 & 29 \\
-v17c, endgame set & train & 219 & 213 & 172 & 204 & 213 & 41 \\
-v18, endgame set & test & 572 & 561 & 481 & 529 & 560 & 1 \\
-v18, endgame set & train & 612 & 598 & 491 & 573 & 598 & 8 \\
-v19, endgame set & test & 572 & 561 & 481 & 529 & 560 & 43 \\
-v19, endgame set & train & 612 & 598 & 491 & 573 & 598 & 38 \\
-v20b, endgame set & test & 572 & 561 & 481 / 482 & 529 & 560 & 19 \\
-v20b, endgame set & train & 612 & 598 & 491 / 493 & 573 & 598 & 22 \\
-v21, endgame set & test & 572 & 561 & 482 & 529 & 560 & 2 \\
-v21, endgame set & train & 612 & 598 & 493 & 573 & 598 & 3 \\
-v22, endgame set & test & 572 & 561 & 482 & 529 & 560 & 7 \\
-v22, endgame set & train & 612 & 598 & 493 & 573 & 598 & 5 \\
-v22b, endgame set & test & 572 & 561 & 482 & 529 & 560 & 7 \\
-v22b, endgame set & train & 612 & 598 & 493 & 573 & 598 & 5 \\
-v23, endgame set & test & 572 & 561 & 482 & 529 & 560 & 7 \\
-v23, endgame set & train & 612 & 598 & 493 & 573 & 598 & 9 \\
-v24, endgame set & test & 572 & 561 & 482 & 529 & 560 & 1 \\
-v24, endgame set & train & 612 & 598 & 493 & 573 & 598 & 4 \\
-v25, endgame set & test & 572 & 561 & 482 & 529 & 560 & 2 \\
-v25, endgame set & train & 612 & 598 & 493 & 573 & 598 & 5 \\
-v26, endgame set & test & 572 & 561 & 482 & 529 & 560 & 5 \\
-v26, endgame set & train & 612 & 598 & 493 & 573 & 598 & 3 \\
-v18, second endgame set & test & 494 & 490 & 407 & 458 & 490 & 4 \\
-v18, second endgame set & train & 517 & 509 & 420 & 468 & 509 & 2 \\
-v19, second endgame set & test & 494 & 490 & 407 & 458 & 490 & 36 \\
-v19, second endgame set & train & 517 & 509 & 420 & 468 & 509 & 20 \\
-v20b, second endgame set & test & 494 & 490 & 407 / 408 & 458 & 490 & 18 \\
-v20b, second endgame set & train & 517 & 509 & 420 / 425 & 468 & 509 & 19 \\
-v21, second endgame set & test & 494 & 490 & 408 & 458 & 490 & 4 \\
-v21, second endgame set & train & 517 & 509 & 425 & 468 & 509 & 2 \\
-v22, second endgame set & test & 494 & 490 & 408 & 458 & 490 & 5 \\
-v22, second endgame set & train & 517 & 509 & 425 & 468 & 509 & 1 \\
-v22b, second endgame set & test & 494 & 490 & 408 & 458 & 490 & 5 \\
-v22b, second endgame set & train & 517 & 509 & 425 & 468 & 509 & 1 \\
-v23, second endgame set & test & 494 & 490 & 408 & 458 & 490 & 8 \\
-v23, second endgame set & train & 517 & 509 & 425 & 468 & 509 & 6 \\
-v24, second endgame set & test & 494 & 490 & 408 & 458 & 490 & 1 \\
-v24, second endgame set & train & 517 & 509 & 425 & 468 & 509 & 3 \\
-v25, second endgame set & test & 494 & 490 & 408 & 458 & 490 & 1 \\
-v25, second endgame set & train & 517 & 509 & 425 & 468 & 509 & 2 \\
-v26, second endgame set & test & 494 & 490 & 408 & 458 & 490 & 0 \\
-v26, second endgame set & train & 517 & 509 & 425 & 468 & 509 & 5 \\
+v16 & test & 184 & 181 & 162 & 158 & 180 & 3 \\
+v16 & train & 219 & 213 & 170 / 172 & 204 & 213 & 19 \\
+v17 & test & 184 & 181 & 162 & 158 & 180 & 94 \\
+v17 & train & 219 & 213 & 172 & 204 & 213 & 116 \\
+v17b & test & 184 & 181 & 162 & 158 & 180 & 94 \\
+v17b & train & 219 & 213 & 172 & 204 & 213 & 116 \\
+v17c & test & 184 & 181 & 162 & 158 & 180 & 29 \\
+v17c & train & 219 & 213 & 172 & 204 & 213 & 41 \\
+v18 & test & 572 & 561 & 481 & 529 & 560 & 1 \\
+v18 & train & 612 & 598 & 491 & 573 & 598 & 8 \\
+v19 & test & 572 & 561 & 481 & 529 & 560 & 43 \\
+v19 & train & 612 & 598 & 491 & 573 & 598 & 38 \\
+v20b & test & 572 & 561 & 481 / 482 & 529 & 560 & 19 \\
+v20b & train & 612 & 598 & 491 / 493 & 573 & 598 & 22 \\
+v21 & test & 572 & 561 & 482 & 529 & 560 & 2 \\
+v21 & train & 612 & 598 & 493 & 573 & 598 & 3 \\
+v22 & test & 572 & 561 & 482 & 529 & 560 & 7 \\
+v22 & train & 612 & 598 & 493 & 573 & 598 & 5 \\
+v22b & test & 572 & 561 & 482 & 529 & 560 & 7 \\
+v22b & train & 612 & 598 & 493 & 573 & 598 & 5 \\
+v23 & test & 572 & 561 & 482 & 529 & 560 & 7 \\
+v23 & train & 612 & 598 & 493 & 573 & 598 & 9 \\
+v24 & test & 572 & 561 & 482 & 529 & 560 & 1 \\
+v24 & train & 612 & 598 & 493 & 573 & 598 & 4 \\
+v25 & test & 572 & 561 & 482 & 529 & 560 & 2 \\
+v25 & train & 612 & 598 & 493 & 573 & 598 & 5 \\
+v26 & test & 572 & 561 & 482 & 529 & 560 & 5 \\
+v26 & train & 612 & 598 & 493 & 573 & 598 & 3 \\
+v28 & test & 572 & 561 & 482 & 529 & 560 & 1 \\
+v28 & train & 612 & 598 & 493 & 573 & 598 & 2 \\
+v29 & test & 572 & 561 & 482 & 529 & 560 & 2 \\
+v29 & train & 612 & 598 & 493 & 573 & 598 & 4 \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\RebuiltEndgameTwoTable}{%
+\begin{tabular}{ll r rrrr r}
+\toprule
+variant & split & moments & faithful & concrete & named\_deep & faithfulAll & texts changed \\
+\midrule
+v18 & test & 494 & 490 & 407 & 458 & 490 & 4 \\
+v18 & train & 517 & 509 & 420 & 468 & 509 & 2 \\
+v19 & test & 494 & 490 & 407 & 458 & 490 & 36 \\
+v19 & train & 517 & 509 & 420 & 468 & 509 & 20 \\
+v20b & test & 494 & 490 & 407 / 408 & 458 & 490 & 18 \\
+v20b & train & 517 & 509 & 420 / 425 & 468 & 509 & 19 \\
+v21 & test & 494 & 490 & 408 & 458 & 490 & 4 \\
+v21 & train & 517 & 509 & 425 & 468 & 509 & 2 \\
+v22 & test & 494 & 490 & 408 & 458 & 490 & 5 \\
+v22 & train & 517 & 509 & 425 & 468 & 509 & 1 \\
+v22b & test & 494 & 490 & 408 & 458 & 490 & 5 \\
+v22b & train & 517 & 509 & 425 & 468 & 509 & 1 \\
+v23 & test & 494 & 490 & 408 & 458 & 490 & 8 \\
+v23 & train & 517 & 509 & 425 & 468 & 509 & 6 \\
+v24 & test & 494 & 490 & 408 & 458 & 490 & 1 \\
+v24 & train & 517 & 509 & 425 & 468 & 509 & 3 \\
+v25 & test & 494 & 490 & 408 & 458 & 490 & 1 \\
+v25 & train & 517 & 509 & 425 & 468 & 509 & 2 \\
+v26 & test & 494 & 490 & 408 & 458 & 490 & 0 \\
+v26 & train & 517 & 509 & 425 & 468 & 509 & 5 \\
+v28 & test & 494 & 490 & 408 & 458 & 490 & 5 \\
+v28 & train & 517 & 509 & 425 & 468 & 509 & 5 \\
+v29 & test & 494 & 490 & 408 & 458 & 490 & 0 \\
+v29 & train & 517 & 509 & 425 & 468 & 509 & 2 \\
 \bottomrule
 \end{tabular}
 }
@@ -521,6 +554,48 @@ the five of Table~\ref{tab:defects} & 0 & 0 \\
 \newcommand{\RoundTwentySixTrainOld}{0}
 \newcommand{\RoundTwentySixTestNew}{18}
 \newcommand{\RoundTwentySixTestOld}{0}
+\newcommand{\RoundTwentyEightDefectsGames}{3}
+\newcommand{\RoundTwentyEightDefectsEnd}{3}
+\newcommand{\RoundTwentyEightDefectsEndTwo}{10}
+\newcommand{\RoundTwentyEightDefects}{16}
+\newcommand{\RoundTwentyEightChangedTrain}{8}
+\newcommand{\RoundTwentyEightChangedTest}{8}
+\newcommand{\RoundTwentyEightQuoteAbsent}{The concrete reason for the engine's preference is not established.}
+\newcommand{\RoundTwentyEightQuoteMaterial}{The lines shown do not establish a material advantage for either continuation.}
+\newcommand{\RoundTwentyEightQuoteGuard}{After c5, your pawn no longer guards b5, and Bb5+ follows.}
+\newcommand{\RoundTwentyNinePinnedPawns}{two}
+\newcommand{\RoundTwentyNinePinnerPawns}{zero}
+\newcommand{\RoundTwentyNinePinnedKnights}{four}
+\newcommand{\RoundTwentyNinePinnerKnights}{zero}
+\newcommand{\RoundTwentyNinePinnedBishops}{one}
+\newcommand{\RoundTwentyNinePinnerBishops}{four}
+\newcommand{\RoundTwentyNinePinnedRooks}{one}
+\newcommand{\RoundTwentyNinePinnerRooks}{three}
+\newcommand{\RoundTwentyNinePinnedQueens}{zero}
+\newcommand{\RoundTwentyNinePinnerQueens}{one}
+\newcommand{\RoundTwentyNineJudged}{8}
+\newcommand{\RoundTwentyNineAbsentBeside}{one}
+\newcommand{\PadTwentyNineGrowth}{80}
+\newcommand{\PadTwentyNineGrowthMin}{77}
+\newcommand{\PadTwentyNineGrowthMax}{82}
+\newcommand{\PadTwentyNineFillerMin}{79}
+\newcommand{\PadTwentyNineFillerMax}{91}
+\newcommand{\PadTwentyNineRestating}{five}
+\newcommand{\PadTwentyNineNeutral}{five}
+\newcommand{\PadTwentyNineNeutralUnchanged}{10}
+\newcommand{\PadTwentyNineNeutralN}{10}
+\newcommand{\RoundTwentyNineQuote}{After Be7, your bishop no longer guards h4: the rook on e1 pins it to your king, and Nh4 follows.}
+\newcommand{\RoundTwentyNineQuoteSafe}{it is safe from your knight on d2: the bishop on b4 pins the knight to your king}
+\newcommand{\RoundTwentyNineChanged}{8}
+\newcommand{\RoundTwentyNineChangedTrain}{6}
+\newcommand{\RoundTwentyNineChangedTest}{2}
+\newcommand{\RoundTwentyNineSampled}{8}
+\newcommand{\RoundTwentyNinePer}{20}
+\newcommand{\RoundTwentyNineSeed}{20261029}
+\newcommand{\RoundTwentyNineTrainNew}{12}
+\newcommand{\RoundTwentyNineTrainOld}{0}
+\newcommand{\RoundTwentyNineTestNew}{4}
+\newcommand{\RoundTwentyNineTestOld}{0}
 \newcommand{\LongerPicked}{305}
 \newcommand{\LongerDecided}{326}
 \newcommand{\LongerRounds}{3, 4, 5, 7, 7b, 8 and 9}
@@ -587,6 +662,10 @@ the five of Table~\ref{tab:defects} & 0 & 0 \\
 \newcommand{\PadTwentySixN}{20}
 \newcommand{\PadTwentySixUnchanged}{20}
 \newcommand{\PadTwentySixSame}{0}
+\newcommand{\PadTwentyNineDecoy}{0}
+\newcommand{\PadTwentyNineN}{20}
+\newcommand{\PadTwentyNineUnchanged}{20}
+\newcommand{\PadTwentyNineSame}{0}
 \newcommand{\ControlsTable}{%
 \begin{tabularx}{\textwidth}{L l l}
 \toprule
@@ -612,6 +691,7 @@ padding control, round 23: the decoy preferred & 0 of 20 (20 the shorter text, 0
 padding control, round 24: the decoy preferred & 0 of 20 (10 the shorter text, 10 same) & no drift \\
 padding control, round 25: the decoy preferred & 0 of 20 (10 the shorter text, 10 same) & no drift \\
 padding control, round 26: the decoy preferred & 0 of 20 (20 the shorter text, 0 same) & no drift \\
+padding control, round 29: the decoy preferred & 0 of 20 (20 the shorter text, 0 same) & no drift \\
 \bottomrule
 \end{tabularx}
 }
@@ -648,12 +728,12 @@ padding control, round 26: the decoy preferred & 0 of 20 (20 the shorter text, 0
 \newcommand{\ExampleCount}{8}
 \newcommand{\ReproLinesMatched}{27}
 \newcommand{\ReproLines}{27}
-\newcommand{\AppCommit}{\texttt{f4bd63f}}
-\newcommand{\RecordsCommit}{\texttt{aed714a}}
+\newcommand{\AppCommit}{\texttt{3ff95c4}}
+\newcommand{\RecordsCommit}{\texttt{248fed3}}
 \newcommand{\RerunSearches}{the capture searches on it (88 kept) and the defense searches (51 kept)}
 \newcommand{\RerunEvidence}{review-evidence/7}
-\newcommand{\RerunTextsSentence}{Its texts equal the recorded texts of v26, the last kept round, on all 333 moments of round 26's documents.}
-\newcommand{\AppKeptThrough}{26}
+\newcommand{\RerunTextsSentence}{Its texts equal the recorded texts of v29, the last kept round, on all 333 moments of round 29's documents.}
+\newcommand{\AppKeptThrough}{29}
 \newcommand{\AppKeptSentence}{The app at that commit carries every kept round.}
 \newcommand{\RerunTestMoments}{153}
 \newcommand{\RerunTestShared}{146}

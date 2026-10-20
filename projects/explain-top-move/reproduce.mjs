@@ -29,9 +29,11 @@
 // split by the games in <variant>/endgame-set2.json (the state's endgame_set2).
 // A round that fixes text defects keeps their counts in the records
 // (<variant>/defects.json, written by defects.mjs over both variants' texts when
-// the round ran, with the endgame set's under "endgames" where it ran there too);
-// the report carries them, checked against the moments behind each count. And it says which kept rounds after the kept variant the pinned
-// app carries, so the paper can say how far the app has come.
+// the round ran, with the endgame set's under "endgames" and the second endgame
+// set's under "endgames2" where it ran there too); the report carries them,
+// checked against the moments behind each count. And it says which kept rounds
+// after the kept variant the pinned app carries, so the paper can say how far
+// the app has come.
 
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -49,8 +51,8 @@ const DIMS = ['faithful', 'concrete', 'named_deep', 'faithfulAll'];
 // it re-read round 5's judgments on the moments whose texts v6 changes from v4.
 // Round 17's judges read a seeded sample of the moments it changed
 // (round17/sample.json, drawn from round17/changed.json), and its score counts
-// that sample alone; so do round 19's, round 20b's, round 21's, round 22's,
-// round 23's and round 24's, whose draws take every moment they changed. Round 20 failed its grades before
+// that sample alone; so do the later rounds that name a sample, whose draws
+// from round 21's on take every moment they changed. Round 20 failed its grades before
 // any judge ran, so its variant 20b is the round judged. Round 22b judged again
 // every moment round 22's judges read, on its final wording, so round 22 is
 // decided on both, as round 17 is.
@@ -83,6 +85,7 @@ const ROUNDS = [
   { round: '24', dirs: ['round24'], sample: 'round24' },
   { round: '25', dirs: ['round25'], sample: 'round25' },
   { round: '26', dirs: ['round26'], sample: 'round26' },
+  { round: '29', dirs: ['round29'], sample: 'round29' },
 ];
 // The rounds judged before the length check, whose streak of longer texts it tested.
 const BEFORE_CHECK = ['3', '4', '5', '7', '7b', '8', '9'];
@@ -108,15 +111,16 @@ const appDefends = () => existsSync(join(CHESS_DIR, 'src', 'services', 'review',
  * 17's `stakesSentence`, round 17c's score rounding, round 18's
  * `checkWithReason`, round 19's `guardGivenUp`, round 20b's `chasedAway`,
  * round 21's `pawnEnding`, round 22b's `orderReason`, round 23's `trapTaken`,
- * round 25's `keptOut`, round 26's `intoPlay`; round 24's `raceLeft` is in the
- * pawn runs' detector beside it.
+ * round 25's `keptOut`, round 26's `intoPlay`, round 28's `reasonFollows`,
+ * round 29's `pinSafe`; round 24's `raceLeft` is in the pawn runs' detector
+ * beside it.
  */
 function appCarries() {
   const lessonFile = join(CHESS_DIR, 'src', 'services', 'knowledge', 'detectors', 'lesson.ts');
   const lesson = existsSync(lessonFile) ? readFileSync(lessonFile, 'utf8') : '';
   const pawnRunsFile = join(CHESS_DIR, 'src', 'services', 'knowledge', 'detectors', 'pawnRuns.ts');
   const pawnRuns = existsSync(pawnRunsFile) ? readFileSync(pawnRunsFile, 'utf8') : '';
-  return { v10: lesson.includes('an even trade'), v11: /\btakesBack\b/.test(lesson), v12: appDefends(), v14: /\bmaterialChange\b/.test(lesson), v15: /\bquietDefense\b/.test(lesson), v16: /\bpawnRuns\b/.test(lesson), v17b: /\bstakesSentence\b/.test(lesson), v17c: /\bmateDistance\(score\.cp\b/.test(lesson), v18: /\bcheckWithReason\b/.test(lesson), v19: /\bguardGivenUp\b/.test(lesson), v20b: /\bchasedAway\b/.test(lesson), v21: /\bpawnEnding\b/.test(lesson), v22b: /\borderReason\b/.test(lesson), v23: /\btrapTaken\b/.test(lesson), v24: /\braceLeft\b/.test(pawnRuns), v25: /\bkeptOut\b/.test(lesson), v26: /\bintoPlay\b/.test(lesson) };
+  return { v10: lesson.includes('an even trade'), v11: /\btakesBack\b/.test(lesson), v12: appDefends(), v14: /\bmaterialChange\b/.test(lesson), v15: /\bquietDefense\b/.test(lesson), v16: /\bpawnRuns\b/.test(lesson), v17b: /\bstakesSentence\b/.test(lesson), v17c: /\bmateDistance\(score\.cp\b/.test(lesson), v18: /\bcheckWithReason\b/.test(lesson), v19: /\bguardGivenUp\b/.test(lesson), v20b: /\bchasedAway\b/.test(lesson), v21: /\bpawnEnding\b/.test(lesson), v22b: /\borderReason\b/.test(lesson), v23: /\btrapTaken\b/.test(lesson), v24: /\braceLeft\b/.test(pawnRuns), v25: /\bkeptOut\b/.test(lesson), v26: /\bintoPlay\b/.test(lesson), v28: /\breasonFollows\b/.test(lesson), v29: /\bpinSafe\b/.test(lesson) };
 }
 
 function rerun(dir) {
@@ -255,7 +259,7 @@ function main() {
     let defects = null;
     if (existsSync(defectsFile)) {
       const recordedDefects = JSON.parse(readFileSync(defectsFile, 'utf8'));
-      // The endgame set's counts, where the round ran there too, sit under "endgames" and name its moments.
+      // The endgame sets' counts, where the round ran there too, sit under "endgames" and "endgames2" and name their moments.
       const side = (sides, k, moments, where) => {
         const { counts, moments: ids } = sides[k];
         if (Object.keys(counts).some(d => counts[d] !== ids[d]?.length)) throw new Error(`${v}/defects.json: a ${where}${k} count does not match its moments`);
@@ -266,6 +270,10 @@ function main() {
       if (recordedDefects.endgames) {
         if (!setAfter) throw new Error(`${v}/defects.json counts the endgame set, where the round has no rebuilt texts`);
         defects.endgames = { base: side(recordedDefects.endgames, 'base', setAfter, 'endgame set '), variant: side(recordedDefects.endgames, v, setAfter, 'endgame set ') };
+      }
+      if (recordedDefects.endgames2) {
+        if (!second) throw new Error(`${v}/defects.json counts the second endgame set, where the round has no rebuilt texts`);
+        defects.endgames2 = { base: side(recordedDefects.endgames2, 'base', second.after, 'second endgame set '), variant: side(recordedDefects.endgames2, v, second.after, 'second endgame set ') };
       }
     }
     return { variant: v, sameMoments, splits, gradesEqual, defects, endgames, endgames2 };
@@ -373,13 +381,13 @@ function renderRebuilt(rebuilt) {
     ...rebuilt.filter(r => r.endgames2).map(r => `${r.variant} on the second endgame set (${r.endgames2.games.train + r.endgames2.games.test} games outside the 60 and the first set, ${r.endgames2.games.train} train and ${r.endgames2.games.test} test, drawn with seed ${r.endgames2.seed}): ${r.endgames2.sameMoments ? 'the same moments as its base' : 'not the same moments as its base'}; its grades ${r.endgames2.gradesEqual ? 'equal' : 'differ from'} the base's.`),
     '',
     ...rebuilt.filter(r => r.defects).flatMap(r => {
-      const set = r.defects.endgames;
+      const sets = [['endgame set', r.defects.endgames], ['second endgame set', r.defects.endgames2]].filter(([, s]) => s);
       return [
-        `The text defects ${r.variant} fixes, as \`defects.mjs\` counted them in each variant's texts (the records' \`${r.variant}/defects.json\`)${set ? ', on the round\'s documents and on the endgame set' : ''}:`,
+        `The text defects ${r.variant} fixes, as \`defects.mjs\` counted them in each variant's texts (the records' \`${r.variant}/defects.json\`)${sets.length ? `, on the round's documents and on ${sets.map(([name]) => `the ${name}`).join(' and on ')}` : ''}:`,
         '',
-        `| defect | base | ${r.variant} |${set ? ` base, endgame set | ${r.variant}, endgame set |` : ''}`,
-        `|---|---|---|${set ? '---|---|' : ''}`,
-        ...Object.keys(r.defects.base).map(d => `| ${d} | ${r.defects.base[d]} | ${r.defects.variant[d]} |${set ? ` ${set.base[d]} | ${set.variant[d]} |` : ''}`),
+        `| defect | base | ${r.variant} |${sets.map(([name]) => ` base, ${name} | ${r.variant}, ${name} |`).join('')}`,
+        `|---|---|---|${sets.map(() => '---|---|').join('')}`,
+        ...Object.keys(r.defects.base).map(d => `| ${d} | ${r.defects.base[d]} | ${r.defects.variant[d]} |${sets.map(([, s]) => ` ${s.base[d]} | ${s.variant[d]} |`).join('')}`),
         '',
       ];
     }),

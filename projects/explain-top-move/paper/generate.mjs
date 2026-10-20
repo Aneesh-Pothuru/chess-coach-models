@@ -100,7 +100,7 @@ const roundRows = variants.map(v => {
 const judgeKey = (round, variant) => (/^v\d+[b-z]$/.test(variant) ? (judgeOf.has(`${round} and ${round}b`) ? `${round} and ${round}b` : `${round}b`) : String(round));
 const verdictOf = r => judgeOf.get(judgeKey(r.round, r.variant));
 const unjudged = state.rounds.filter(r => !verdictOf(r)).map(r => r.round);
-claim(unjudged.join() === '1,2,11,14', 'the judge read every kept round but rounds 1, 2, 11 and 14');
+claim(unjudged.join() === '1,2,11,14,28', 'the judge read every kept round but rounds 1, 2, 11, 14 and 28');
 claim(state.rounds.filter(verdictOf).every(r => verdictOf(r).keepByRule), 'every kept round the judge read was preferred on both halves');
 claim(['5', '9', '13'].every(r => !judgeOf.get(r).keepByRule), 'the judge did not prefer rounds 5, 9 and 13');
 const newShare = j => (j.tally.train.new + j.tally.test.new) / (j.tally.train.new + j.tally.train.old + j.tally.test.new + j.tally.test.old);
@@ -117,13 +117,17 @@ for (const v of [...kept.keys(), ...notKept.keys()].filter(v => rebuilt.has(v) &
   const named = first && !/\(not kept\)$/.test(first) ? v.slice(0, -1) : v;
   roundRows.push(`${v} & ${esc(changeLine(named) ?? '')}${kept.has(v) ? '' : ' (\\emph{not kept})'} & \\multicolumn{5}{c}{\\emph{graded on rebuilt documents (Table~\\ref{tab:rebuilt})}} & ${tally(judge)} \\\\`);
 }
-g.block('RoundsTable', [
+// Two parts of one table, so that each fits on a page.
+const roundsTable = rows => [
   '\\begin{tabularx}{\\textwidth}{l L rrrr r r}', '\\toprule',
   ' & & \\multicolumn{2}{c}{test (\\%)} & \\multicolumn{2}{c}{train (\\%)} & texts & judge \\\\',
   '\\cmidrule(lr){3-4}\\cmidrule(lr){5-6}',
   'variant & change & faithful & concrete & faithful & concrete & changed & train / test \\\\', '\\midrule',
-  ...roundRows, '\\bottomrule', '\\end{tabularx}',
-].join('\n'));
+  ...rows, '\\bottomrule', '\\end{tabularx}',
+].join('\n');
+const roundsHalf = Math.ceil(roundRows.length / 2);
+g.block('RoundsTable', roundsTable(roundRows.slice(0, roundsHalf)));
+g.block('RoundsTableTwo', roundsTable(roundRows.slice(roundsHalf)));
 
 // ---- the judge rounds, as reproduce.mjs recomputed them
 g.block('JudgeTable', [
@@ -133,7 +137,7 @@ g.block('JudgeTable', [
 ].join('\n'));
 // ---- a round graded on documents rebuilt for it, beside its base on the same documents
 const both = (s, d) => (s.base[d] === s.variant[d] ? String(s.variant[d]) : `${s.base[d]} / ${s.variant[d]}`);
-// Two tables, the 60 games' and the endgame sets', so that each fits on a page.
+// Two tables, the 60 games' and the endgame sets', the second in two parts, so that each fits on a page.
 const rebuiltRow = (name, s) => `${name} & ${s.split} & ${s.moments} & ${DIMS.map(d => both(s, d)).join(' & ')} & ${s.textsChanged} \\\\`;
 const rebuiltTable = (rows) => [
   '\\begin{tabular}{ll r rrrr r}', '\\toprule',
@@ -142,10 +146,8 @@ const rebuiltTable = (rows) => [
   '\\bottomrule', '\\end{tabular}',
 ].join('\n');
 g.block('RebuiltTable', rebuiltTable(repro.rebuilt.flatMap(r => r.splits.map(s => rebuiltRow(r.variant, s)))));
-g.block('RebuiltEndgameTable', rebuiltTable([
-  ...repro.rebuilt.filter(r => r.endgames).flatMap(r => r.endgames.splits.map(s => rebuiltRow(`${r.variant}, endgame set`, s))),
-  ...repro.rebuilt.filter(r => r.endgames2).flatMap(r => r.endgames2.splits.map(s => rebuiltRow(`${r.variant}, second endgame set`, s))),
-]));
+g.block('RebuiltEndgameTable', rebuiltTable(repro.rebuilt.filter(r => r.endgames).flatMap(r => r.endgames.splits.map(s => rebuiltRow(r.variant, s)))));
+g.block('RebuiltEndgameTwoTable', rebuiltTable(repro.rebuilt.filter(r => r.endgames2).flatMap(r => r.endgames2.splits.map(s => rebuiltRow(r.variant, s)))));
 const ten = rebuilt.get('v10');
 claim(ten?.sameMoments && ten.gradesEqual, "round 10's grades equal its base's on the documents rebuilt for it");
 const tenSplit = s => ten.splits.find(x => x.split === s);
@@ -867,6 +869,105 @@ claim(sampledFully(r26, twentySixSets) && r26.sample.drawn === r26.sample.of, "r
 for (const [k, q] of Object.entries(TWENTY_SIX_QUOTES)) g.def(`RoundTwentySix${k}`, esc(q));
 sampledDefs('RoundTwentySix', r26, twentySixSets);
 
+// ---- round 28: no absence said before a reason, on round 26's three sets. It corrects a text
+// defect, so it counts it as rounds 11, 14 and 17c did, and no judge reads it
+const twentyEight = rebuilt.get('v28');
+const twentyEightSets = [twentyEight, twentyEight?.endgames, twentyEight?.endgames2];
+claim(twentyEightSets.every(r => r?.sameMoments && r.gradesEqual), "round 28's grades equal its base's in all three sets");
+const twentyEightCounts = [twentyEight.defects, twentyEight.defects?.endgames, twentyEight.defects?.endgames2];
+claim(twentyEightCounts.every(Boolean), 'round 28 counts its defect in all three sets');
+claim(twentyEightCounts.every(s => s.base.absentBeforeReason > 0 && s.variant.absentBeforeReason === 0), 'round 28 removes its defect from all three sets');
+claim(twentyEightCounts.every(s => Object.keys(s.base).every(d => d === 'absentBeforeReason' || (s.base[d] === 0 && s.variant[d] === 0))), "none of the counter's other defects appears in round 28's texts or its base's");
+{
+  const recorded = read(join(flow, 'v28', 'defects.json'));
+  const defectIds = new Set([recorded, recorded.endgames, recorded.endgames2].flatMap(s => s.base.moments.absentBeforeReason));
+  const changed = [[], ['endgames'], ['endgames2']].flatMap((sub) => {
+    const before = new Map(jsonl(join(flow, 'v28', 'rebuilt', ...sub, 'base.results.jsonl')).map(m => [m.id, m.textHash]));
+    return jsonl(join(flow, 'v28', 'rebuilt', ...sub, 'v28.results.jsonl')).filter(m => m.textHash !== before.get(m.id)).map(m => m.id);
+  });
+  claim(changed.length === defectIds.size && changed.every(id => defectIds.has(id)), 'round 28 changes the texts of its defect moments and no other');
+}
+const twentyNinePatch = readFileSync(join(flow, 'v29', 'change.patch'), 'utf8');
+const TWENTY_EIGHT_QUOTES = {
+  QuoteAbsent: "The concrete reason for the engine's preference is not established.",
+  QuoteMaterial: 'The lines shown do not establish a material advantage for either continuation.',
+  QuoteGuard: 'After c5, your pawn no longer guards b5, and Bb5+ follows.',
+};
+claim(Object.values(TWENTY_EIGHT_QUOTES).every(q => twentyNinePatch.includes(q)), "the app's tests for rounds 28 and 29 pin the sentences the paper quotes for round 28");
+g.def('RoundTwentyEightDefectsGames', String(twentyEightCounts[0].base.absentBeforeReason))
+  .def('RoundTwentyEightDefectsEnd', String(twentyEightCounts[1].base.absentBeforeReason))
+  .def('RoundTwentyEightDefectsEndTwo', String(twentyEightCounts[2].base.absentBeforeReason))
+  .def('RoundTwentyEightDefects', String(twentyEightCounts.reduce((n, s) => n + s.base.absentBeforeReason, 0)))
+  .def('RoundTwentyEightChangedTrain', String(changedIn(twentyEightSets, 'train'))).def('RoundTwentyEightChangedTest', String(changedIn(twentyEightSets, 'test')));
+for (const [k, q] of Object.entries(TWENTY_EIGHT_QUOTES)) g.def(`RoundTwentyEight${k}`, esc(q));
+
+// ---- round 29: the pin that keeps a piece from taking the reply, on round 28's three sets; its
+// seeded draw takes every moment it changed. Its point stands among the played move's points
+const twentyNine = rebuilt.get('v29');
+const twentyNineSets = [twentyNine, twentyNine?.endgames, twentyNine?.endgames2];
+claim(twentyNineSets.every(r => r?.sameMoments && r.gradesEqual), "round 29's grades equal its base's in all three sets");
+const TWENTY_NINE_QUOTES = {
+  Quote: 'After Be7, your bishop no longer guards h4: the rook on e1 pins it to your king, and Nh4 follows.',
+  QuoteSafe: 'it is safe from your knight on d2: the bishop on b4 pins the knight to your king',
+};
+claim(Object.values(TWENTY_NINE_QUOTES).every(q => twentyNinePatch.includes(q)), "round 29's tests pin the words the paper quotes");
+const r29 = judgeOf.get('29');
+claim(r29?.keepByRule, 'the judge preferred round 29 on both halves');
+claim(sampledFully(r29, twentyNineSets) && r29.sample.drawn === r29.sample.of, "round 29's judges read every moment it changed");
+{
+  const PIECES = ['pawn', 'knight', 'bishop', 'rook', 'queen'];
+  const PIECE = `(${PIECES.join('|')})`;
+  const SAFE = new RegExp(`^it is safe from (?:your|their) ${PIECE} on [a-h][1-8]: the ${PIECE} on [a-h][1-8] pins the \\1 to (?:your|their) king$`);
+  const ALLOWED = /^What .+ allowed/;
+  const dir = join(judgeDir, 'round29');
+  const items = read(join(dir, 'items-r1.json')).items;
+  const keys = ['r1', 'r2'].map(r => read(join(dir, `key-${r}.json`)));
+  const answers = ['r1', 'r2'].map(r => new Map(read(join(dir, `out-${r}.judge.json`)).answers.map(a => [a.id, a.choice])));
+  const verdicts = id => [0, 1].map(i => { const c = answers[i].get(id); return c === 'same' ? 'same' : keys[i][id][c]; });
+  const version = (item, side) => (keys[0][item.id].X === side ? item.versionX : item.versionY);
+  const allowed = (item, side) => version(item, side).find(x => ALLOWED.test(x.heading))?.text ?? '';
+  const point = item => allowed(item, 'new').split(' · ')[0].split('; ').at(-1);
+  claim(items.length === r29.sample.judged, 'the judge items of round 29 are its judged moments');
+  claim(items.every((item) => {
+    const [after, before] = [version(item, 'new'), version(item, 'old')];
+    const [points, ...line] = allowed(item, 'old').split(' · ');
+    return SAFE.test(point(item)) && points !== '' && !/^\d+\./.test(points) && allowed(item, 'new') === [`${points}; ${point(item)}`, ...line].join(' · ')
+      && after.length === before.length && after.every((x, i) => x.heading === before[i].heading && (x.text === before[i].text || ALLOWED.test(x.heading)));
+  }), "every card round 29's judges read differs from the base's by the point alone, after the section's other points, so no moment of the three sets gets the guard's pin");
+  claim(items.every(item => verdicts(item.id).every(v => v === 'new')), "both runs preferred round 29's texts on every moment its judges read");
+  const named = (group, piece) => items.filter(item => point(item).match(SAFE)[group] === piece).length;
+  for (const piece of PIECES) g.def(`RoundTwentyNinePinned${Name(piece)}s`, word(named(1, piece))).def(`RoundTwentyNinePinner${Name(piece)}s`, word(named(2, piece)));
+  claim(['knight', 'pawn', 'bishop', 'rook'].every(p => named(1, p) > 0) && named(1, 'queen') === 0, 'the pieces round 29 names as pinned are knights, pawns, a bishop and a rook');
+  claim(['bishop', 'rook', 'queen'].every(p => named(2, p) > 0) && named(2, 'pawn') + named(2, 'knight') === 0, 'the pinners round 29 names are bishops, rooks and a queen');
+  const absentBeside = items.filter(item => version(item, 'new').find(x => x.heading === 'The difference')?.text.includes(TWENTY_EIGHT_QUOTES.QuoteAbsent)).length;
+  claim(absentBeside > 0, "a card round 29's judges read still says the reason is not established beside the point");
+  g.def('RoundTwentyNineJudged', String(items.length)).def('RoundTwentyNineAbsentBeside', word(absentBeside));
+  const cdir = join(judgeDir, 'controls', 'round29');
+  const pad = read(join(cdir, 'padding.json'));
+  claim(pad.section === 'allowed' && pad.growthOf === 'the whole card', "round 29's padding control pads the section on what the played move allowed, as long as the card's growth");
+  const kindOf = new Map(pad.padding.map(p => [p.moment, p.kind]));
+  const ckeys = ['r1', 'r2'].map(r => read(join(cdir, `key-${r}.json`)));
+  const byKind = { restate: { new: 0, old: 0, same: 0, reasons: [] }, generic: { new: 0, old: 0, same: 0, reasons: [] } };
+  ['r1', 'r2'].forEach((r, i) => read(join(cdir, `out-${r}.judge.json`)).answers.forEach((a) => {
+    const t = byKind[kindOf.get(a.id)];
+    t[a.choice === 'same' ? 'same' : ckeys[i][a.id][a.choice]] += 1;
+    t.reasons.push(a.reason);
+  }));
+  const restating = pad.padding.filter(p => p.kind === 'restate');
+  claim(restating.length > 0 && restating.every(p => p.filler.includes("it is the engine's first choice here")), "round 29's restating filler says the line is the engine's first choice");
+  claim(byKind.restate.reasons.every(r => /first choice/.test(r)), "every reason the judges gave on round 29's restating decoys names its words on the engine's first choice");
+  claim(byKind.generic.new === 0 && byKind.generic.old > 0, "on round 29's neutral decoys alone the shorter text won every decided comparison");
+  const fifteenPad = read(join(judgeDir, 'controls', 'round15', 'padding.json'));
+  claim(fifteenPad.section === 'allowed' && fifteenPad.padding.filter(p => p.kind === 'restate').every(p => !p.filler.includes('first choice')), "round 15's restating filler in the same section restates the line alone");
+  const added = pad.padding.map(p => p.added);
+  g.def('PadTwentyNineGrowth', String(pad.target)).def('PadTwentyNineGrowthMin', String(Math.min(...pad.growth))).def('PadTwentyNineGrowthMax', String(Math.max(...pad.growth)))
+    .def('PadTwentyNineFillerMin', String(Math.min(...added))).def('PadTwentyNineFillerMax', String(Math.max(...added)))
+    .def('PadTwentyNineRestating', word(restating.length)).def('PadTwentyNineNeutral', word(pad.padding.length - restating.length))
+    .def('PadTwentyNineNeutralUnchanged', String(byKind.generic.old)).def('PadTwentyNineNeutralN', String(byKind.generic.new + byKind.generic.old + byKind.generic.same));
+}
+for (const [k, q] of Object.entries(TWENTY_NINE_QUOTES)) g.def(`RoundTwentyNine${k}`, esc(q));
+sampledDefs('RoundTwentyNine', r29, twentyNineSets);
+
 // ---- the judge's controls, as reproduce.mjs recomputed them
 const c = repro.controls;
 claim(c.length.matchesRecorded, 'the length check recomputed from its answers matches the score the records keep');
@@ -905,7 +1006,7 @@ const pad18 = c.perRound.find(p => p.round === '18');
 claim(pad18?.kind === 'padding', 'round 18 carried a padding control');
 g.def('PadEighteenDecoy', String(pad18.decoy)).def('PadEighteenN', String(pad18.comparisons))
   .def('PadEighteenUnchanged', String(pad18.unchanged)).def('PadEighteenSame', String(pad18.same));
-for (const [round, name] of [['19', 'Nineteen'], ['20b', 'Twenty'], ['21', 'TwentyOne'], ['22', 'TwentyTwo'], ['23', 'TwentyThree'], ['24', 'TwentyFour'], ['25', 'TwentyFive'], ['26', 'TwentySix']]) {
+for (const [round, name] of [['19', 'Nineteen'], ['20b', 'Twenty'], ['21', 'TwentyOne'], ['22', 'TwentyTwo'], ['23', 'TwentyThree'], ['24', 'TwentyFour'], ['25', 'TwentyFive'], ['26', 'TwentySix'], ['29', 'TwentyNine']]) {
   const pad = c.perRound.find(p => p.round === round);
   claim(pad?.kind === 'padding', `round ${round} carried a padding control`);
   g.def(`Pad${name}Decoy`, String(pad.decoy)).def(`Pad${name}N`, String(pad.comparisons))

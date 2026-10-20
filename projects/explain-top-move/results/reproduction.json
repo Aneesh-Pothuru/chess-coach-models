@@ -1,8 +1,8 @@
 {
   "eval": "explain-top-move reproduction",
   "chess": {
-    "pinned_commit": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
-    "records_commit": "aed714ada579782ce73630596e59c8b65e74cb30",
+    "pinned_commit": "3ff95c4b72897a416c08e29fd20ee7c7e16ea941",
+    "records_commit": "248fed3d1e5fb0f74a0f902413e76acd3aa1c437",
     "carries": {
       "v10": true,
       "v11": true,
@@ -20,7 +20,9 @@
       "v23": true,
       "v24": true,
       "v25": true,
-      "v26": true
+      "v26": true,
+      "v28": true,
+      "v29": true
     }
   },
   "recomputed": {
@@ -52,7 +54,7 @@
       ]
     },
     "textsMatch": {
-      "variant": "v26",
+      "variant": "v29",
       "of": 333,
       "same": 333
     }
@@ -877,6 +879,46 @@
       },
       "keepByRule": true,
       "recordedReason": "the piece the better move brings into play (6c): when nothing else explains the better move of an inaccuracy, mistake, blunder or miss (its section has no point, its line ends with no more material than the played one in the lesson's read, and the headline does not name the reply's threat), and the better move takes nothing from a position where the mover is not in check, the better move's points say which of the mover's knights, bishops, rooks and queens it brings into play: one that had at most three squares to go to before the move, has at least three more after it and at least three more than the played move leaves it, the largest gain and the moved piece on a tie (\"d5 was better: it brings the bishop on c8 into play, with 5 squares to go to instead of none.\"); as the section's only point it gives the reason in the headline, the difference and the takeaway, and the retry card's hint and reveal show it; 6c's count, under a bar set before counting: 87 of the 414 training lessons whose better move is quiet gave no reason (21.0%; 69 of 376 on test, counted after the bar decided); measured on round 25's three sets, it changes 20 moments (11 train, 9 test), no grade changes and all 154 new claims are graded true; judge model, pairwise and blind, two runs with the order reversed, on every changed moment (the seeded sample of 20 per set and split, seed 20261026, takes all) with a 10-moment padding control in the same batches: 22 to 0 on train and 18 to 0 on test, the decoy preferred in none of its 20 comparisons; the judges name a true, concrete reason where the base said none was established, and on several the engine's line using the piece (v26/change.md)"
+    },
+    {
+      "round": "29",
+      "judged": "round29",
+      "moments": 8,
+      "sample": {
+        "of": 8,
+        "drawn": 8,
+        "judged": 8,
+        "per": 20,
+        "seed": 20261029,
+        "reproduced": true,
+        "extras": 0,
+        "extrasTally": {
+          "train": {
+            "new": 0,
+            "old": 0,
+            "same": 0
+          },
+          "test": {
+            "new": 0,
+            "old": 0,
+            "same": 0
+          }
+        }
+      },
+      "tally": {
+        "train": {
+          "new": 12,
+          "old": 0,
+          "same": 0
+        },
+        "test": {
+          "new": 4,
+          "old": 0,
+          "same": 0
+        }
+      },
+      "keepByRule": true,
+      "recordedReason": "the pin that keeps a piece from taking the reply (his 10...Be7): round 19's guard sentence names the pin when the moved piece, alone of the mover's, still attacks the square from where it went but an enemy piece pins it there to the king (not pinned where it stood) and it has no legal move to the square after the reply (\"After Be7, your bishop no longer guards h4: the rook on e1 pins it to your king, and Nh4 follows.\"), and \"What X allowed\" ends with the reply's safety from a pinned piece whose capture would win material by the static exchange, when no legal capture there wins any and the king is in check from nothing but the reply (\"it is safe from your knight on d2: the bishop on b4 pins the knight to your king\"); measured on round 28's three sets with round 28 as the base, it changes 8 moments (6 train, 2 test), every one by the point (the guard's pin reaches no key moment), no grade changes and all 8 new claims are graded true; judge model, pairwise and blind, two runs with the order reversed, on every changed moment (the seeded sample of 20 per set and split, seed 20261029, takes all) with a 10-moment padding control in the same batches: 12 to 0 on train and 4 to 0 on test, the decoy preferred in none of its 20 comparisons; the judges name the true, concrete reason the reply cannot simply be taken (v29/change.md)"
     }
   ],
   "controls": {
@@ -1198,6 +1240,17 @@
       },
       {
         "round": "26",
+        "kind": "padding",
+        "comparisons": 20,
+        "decoy": 0,
+        "unchanged": 20,
+        "same": 0,
+        "decoyShareOfAll": 0,
+        "decoyShareOfDecided": 0,
+        "drifted": false
+      },
+      {
+        "round": "29",
         "kind": "padding",
         "comparisons": 20,
         "decoy": 0,
@@ -3218,6 +3271,341 @@
               "faithfulAll": 509
             },
             "textsChanged": 5
+          }
+        ],
+        "sameMoments": true,
+        "gradesEqual": true
+      }
+    },
+    {
+      "variant": "v28",
+      "sameMoments": true,
+      "splits": [
+        {
+          "split": "test",
+          "moments": 153,
+          "base": {
+            "faithful": 153,
+            "concrete": 130,
+            "named_deep": 144,
+            "faithfulAll": 152
+          },
+          "variant": {
+            "faithful": 153,
+            "concrete": 130,
+            "named_deep": 144,
+            "faithfulAll": 152
+          },
+          "textsChanged": 2
+        },
+        {
+          "split": "train",
+          "moments": 180,
+          "base": {
+            "faithful": 179,
+            "concrete": 152,
+            "named_deep": 166,
+            "faithfulAll": 179
+          },
+          "variant": {
+            "faithful": 179,
+            "concrete": 152,
+            "named_deep": 166,
+            "faithfulAll": 179
+          },
+          "textsChanged": 1
+        }
+      ],
+      "gradesEqual": true,
+      "defects": {
+        "base": {
+          "lowercaseReveal": 0,
+          "recaptureOutright": 0,
+          "quietForcing": 0,
+          "unsettledVsOutright": 0,
+          "pieceOverAmount": 0,
+          "amountNamesUnwon": 0,
+          "fallenGivenBack": 0,
+          "gradeScoreDiffers": 0,
+          "absentBeforeReason": 3
+        },
+        "variant": {
+          "lowercaseReveal": 0,
+          "recaptureOutright": 0,
+          "quietForcing": 0,
+          "unsettledVsOutright": 0,
+          "pieceOverAmount": 0,
+          "amountNamesUnwon": 0,
+          "fallenGivenBack": 0,
+          "gradeScoreDiffers": 0,
+          "absentBeforeReason": 0
+        },
+        "endgames": {
+          "base": {
+            "lowercaseReveal": 0,
+            "recaptureOutright": 0,
+            "quietForcing": 0,
+            "unsettledVsOutright": 0,
+            "pieceOverAmount": 0,
+            "amountNamesUnwon": 0,
+            "fallenGivenBack": 0,
+            "gradeScoreDiffers": 0,
+            "absentBeforeReason": 3
+          },
+          "variant": {
+            "lowercaseReveal": 0,
+            "recaptureOutright": 0,
+            "quietForcing": 0,
+            "unsettledVsOutright": 0,
+            "pieceOverAmount": 0,
+            "amountNamesUnwon": 0,
+            "fallenGivenBack": 0,
+            "gradeScoreDiffers": 0,
+            "absentBeforeReason": 0
+          }
+        },
+        "endgames2": {
+          "base": {
+            "lowercaseReveal": 0,
+            "recaptureOutright": 0,
+            "quietForcing": 0,
+            "unsettledVsOutright": 0,
+            "pieceOverAmount": 0,
+            "amountNamesUnwon": 0,
+            "fallenGivenBack": 0,
+            "gradeScoreDiffers": 0,
+            "absentBeforeReason": 10
+          },
+          "variant": {
+            "lowercaseReveal": 0,
+            "recaptureOutright": 0,
+            "quietForcing": 0,
+            "unsettledVsOutright": 0,
+            "pieceOverAmount": 0,
+            "amountNamesUnwon": 0,
+            "fallenGivenBack": 0,
+            "gradeScoreDiffers": 0,
+            "absentBeforeReason": 0
+          }
+        }
+      },
+      "endgames": {
+        "seed": 20261014,
+        "games": {
+          "test": 80,
+          "train": 80
+        },
+        "splits": [
+          {
+            "split": "test",
+            "moments": 572,
+            "base": {
+              "faithful": 561,
+              "concrete": 482,
+              "named_deep": 529,
+              "faithfulAll": 560
+            },
+            "variant": {
+              "faithful": 561,
+              "concrete": 482,
+              "named_deep": 529,
+              "faithfulAll": 560
+            },
+            "textsChanged": 1
+          },
+          {
+            "split": "train",
+            "moments": 612,
+            "base": {
+              "faithful": 598,
+              "concrete": 493,
+              "named_deep": 573,
+              "faithfulAll": 598
+            },
+            "variant": {
+              "faithful": 598,
+              "concrete": 493,
+              "named_deep": 573,
+              "faithfulAll": 598
+            },
+            "textsChanged": 2
+          }
+        ],
+        "sameMoments": true,
+        "gradesEqual": true
+      },
+      "endgames2": {
+        "seed": 20261014,
+        "games": {
+          "test": 65,
+          "train": 65
+        },
+        "splits": [
+          {
+            "split": "test",
+            "moments": 494,
+            "base": {
+              "faithful": 490,
+              "concrete": 408,
+              "named_deep": 458,
+              "faithfulAll": 490
+            },
+            "variant": {
+              "faithful": 490,
+              "concrete": 408,
+              "named_deep": 458,
+              "faithfulAll": 490
+            },
+            "textsChanged": 5
+          },
+          {
+            "split": "train",
+            "moments": 517,
+            "base": {
+              "faithful": 509,
+              "concrete": 425,
+              "named_deep": 468,
+              "faithfulAll": 509
+            },
+            "variant": {
+              "faithful": 509,
+              "concrete": 425,
+              "named_deep": 468,
+              "faithfulAll": 509
+            },
+            "textsChanged": 5
+          }
+        ],
+        "sameMoments": true,
+        "gradesEqual": true
+      }
+    },
+    {
+      "variant": "v29",
+      "sameMoments": true,
+      "splits": [
+        {
+          "split": "test",
+          "moments": 153,
+          "base": {
+            "faithful": 153,
+            "concrete": 130,
+            "named_deep": 144,
+            "faithfulAll": 152
+          },
+          "variant": {
+            "faithful": 153,
+            "concrete": 130,
+            "named_deep": 144,
+            "faithfulAll": 152
+          },
+          "textsChanged": 0
+        },
+        {
+          "split": "train",
+          "moments": 180,
+          "base": {
+            "faithful": 179,
+            "concrete": 152,
+            "named_deep": 166,
+            "faithfulAll": 179
+          },
+          "variant": {
+            "faithful": 179,
+            "concrete": 152,
+            "named_deep": 166,
+            "faithfulAll": 179
+          },
+          "textsChanged": 0
+        }
+      ],
+      "gradesEqual": true,
+      "defects": null,
+      "endgames": {
+        "seed": 20261014,
+        "games": {
+          "test": 80,
+          "train": 80
+        },
+        "splits": [
+          {
+            "split": "test",
+            "moments": 572,
+            "base": {
+              "faithful": 561,
+              "concrete": 482,
+              "named_deep": 529,
+              "faithfulAll": 560
+            },
+            "variant": {
+              "faithful": 561,
+              "concrete": 482,
+              "named_deep": 529,
+              "faithfulAll": 560
+            },
+            "textsChanged": 2
+          },
+          {
+            "split": "train",
+            "moments": 612,
+            "base": {
+              "faithful": 598,
+              "concrete": 493,
+              "named_deep": 573,
+              "faithfulAll": 598
+            },
+            "variant": {
+              "faithful": 598,
+              "concrete": 493,
+              "named_deep": 573,
+              "faithfulAll": 598
+            },
+            "textsChanged": 4
+          }
+        ],
+        "sameMoments": true,
+        "gradesEqual": true
+      },
+      "endgames2": {
+        "seed": 20261014,
+        "games": {
+          "test": 65,
+          "train": 65
+        },
+        "splits": [
+          {
+            "split": "test",
+            "moments": 494,
+            "base": {
+              "faithful": 490,
+              "concrete": 408,
+              "named_deep": 458,
+              "faithfulAll": 490
+            },
+            "variant": {
+              "faithful": 490,
+              "concrete": 408,
+              "named_deep": 458,
+              "faithfulAll": 490
+            },
+            "textsChanged": 0
+          },
+          {
+            "split": "train",
+            "moments": 517,
+            "base": {
+              "faithful": 509,
+              "concrete": 425,
+              "named_deep": 468,
+              "faithfulAll": 509
+            },
+            "variant": {
+              "faithful": 509,
+              "concrete": 425,
+              "named_deep": 468,
+              "faithfulAll": 509
+            },
+            "textsChanged": 2
           }
         ],
         "sameMoments": true,
