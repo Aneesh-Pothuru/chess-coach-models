@@ -1,0 +1,713 @@
+{
+  "schema": 1,
+  "app": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+  "records": "aed714ada579782ce73630596e59c8b65e74cb30",
+  "datasetKind": "amended",
+  "purpose": "Operational counts and timings only; no additional chess measures or verdicts.",
+  "timingDefinitions": {
+    "recorded": "Supervisor seconds use its monotonic clock, as recorded; they are not replaced by UTC intervals.",
+    "utc": "Start-to-terminal intervals use the recorded UTC timestamps. Clock changes can also affect these intervals.",
+    "gaps": "Between-attempt gaps are separate from invocation time. Stages may overlap, so their sums are not total study wall time.",
+    "unknown": "An unknown termination time remains null even when the later audit event has a timestamp.",
+    "workers": "Worker seconds and instrument seconds are recorded elapsed times, not CPU usage. Clock behavior during sleep can differ from supervisor timings. Abruptly interrupted tails may have unrecorded work; that time is not invented or treated as zero.",
+    "retries": "Recovered failures count failed requests, not missing final scores. A terminal-unavailable attempt leaves a row pending until a later successful invocation."
+  },
+  "byMonth": {
+    "2026-07": {
+      "completedRows": 42656,
+      "streamCheckpointedSeconds": 136.4534509642981,
+      "completedAvailabilitySeconds": {
+        "seconds": 9098.022812203086,
+        "describeMoveSeconds": 8696.291300995423,
+        "worstPieceSeconds": 165.11308890575103,
+        "splitsSeconds": 23.768802218005987,
+        "tradeReaderSeconds": 28.544328013978983,
+        "noteSideSeconds": 1.5361097820394938,
+        "backfillSeconds": 36.36411778900001
+      },
+      "scoreWorkerSeconds": 39490.383942123,
+      "completedRowInstrumentTotals": {
+        "maiaSeconds": 3077.650446473175,
+        "engineSeconds": 34687.84530523192,
+        "tablebaseSeconds": 1636.1553219159987,
+        "rowSeconds": 39403.44012827713,
+        "newGameSeconds": 318.4508744089534,
+        "maiaCalls": 42656,
+        "maiaBands": 66720,
+        "bestCalls": 38660,
+        "scoreCalls": 83480,
+        "tablebaseCalls": 4172,
+        "tablebaseUnavailable": 176,
+        "tablebaseRetries": 176,
+        "tablebaseRetrySeconds": 246.33025111999586,
+        "newGameCalls": 38660
+      },
+      "failedAttemptInstrumentTotals": {
+        "maiaSeconds": 0.2222552079987654,
+        "engineSeconds": 0,
+        "tablebaseSeconds": 69.41575262500014,
+        "rowSeconds": 69.6383555410023,
+        "newGameSeconds": 0,
+        "maiaCalls": 4,
+        "maiaBands": 6,
+        "bestCalls": 0,
+        "scoreCalls": 0,
+        "tablebaseCalls": 16,
+        "tablebaseUnavailable": 16,
+        "tablebaseRetries": 12,
+        "tablebaseRetrySeconds": 28.021394416000227,
+        "newGameCalls": 0
+      },
+      "invocations": 8,
+      "completedInvocations": 2,
+      "stoppedInvocations": 6,
+      "interruptedInvocationsWithUnknownTailTiming": 0,
+      "recoveryMarkersAfterLoggedStop": 0,
+      "workersWithIncompleteRetryReconciliation": 0,
+      "stopReasons": {
+        "requested-sigterm": 2,
+        "tablebase-outcome-unavailable": 4
+      },
+      "tablebase": {
+        "retryEvents": 188,
+        "retryStatuses": {
+          "offline": 6,
+          "unsupported": 182
+        },
+        "recoveredProbes": 130,
+        "recoveredProbeRetries": 176,
+        "recoveredProbeAttemptCounts": {
+          "2": 96,
+          "3": 22,
+          "4": 12
+        },
+        "terminalUnavailableAttempts": 4,
+        "terminalUnavailableStatuses": {
+          "offline": 2,
+          "unsupported": 2
+        },
+        "terminalUnavailableRetries": 12,
+        "terminalUnavailableCalls": 16,
+        "interruptedRetryChains": 0,
+        "interruptedChainRetryEvents": 0,
+        "unrecordedAdditionalProbeAttempts": 0,
+        "finalUnscoredRows": 0
+      }
+    },
+    "2026-08": {
+      "completedRows": 42611,
+      "streamCheckpointedSeconds": 215.3963037924841,
+      "completedAvailabilitySeconds": {
+        "seconds": 3930.5287993129486,
+        "describeMoveSeconds": 3778.9920762782945,
+        "worstPieceSeconds": 67.62255205541229,
+        "splitsSeconds": 10.549963850024211,
+        "tradeReaderSeconds": 5.619542499979976,
+        "noteSideSeconds": 0.47480631597121614,
+        "backfillSeconds": 0
+      },
+      "scoreWorkerSeconds": 38600.679014124005,
+      "completedRowInstrumentTotals": {
+        "maiaSeconds": 2646.7294055799516,
+        "engineSeconds": 30123.386872361945,
+        "tablebaseSeconds": 2990.087321756035,
+        "rowSeconds": 35761.91097858013,
+        "newGameSeconds": 274.9727082140964,
+        "maiaCalls": 42611,
+        "maiaBands": 66283,
+        "bestCalls": 38608,
+        "scoreCalls": 83425,
+        "tablebaseCalls": 4312,
+        "tablebaseUnavailable": 309,
+        "tablebaseRetries": 309,
+        "tablebaseRetrySeconds": 426.5634074579952,
+        "newGameCalls": 38608
+      },
+      "failedAttemptInstrumentTotals": {
+        "maiaSeconds": 0.8275518320011905,
+        "engineSeconds": 2790.0383294580006,
+        "tablebaseSeconds": 30.743587458000576,
+        "rowSeconds": 2821.610337251001,
+        "newGameSeconds": 0.06289441600030113,
+        "maiaCalls": 11,
+        "maiaBands": 19,
+        "bestCalls": 7,
+        "scoreCalls": 17,
+        "tablebaseCalls": 16,
+        "tablebaseUnavailable": 16,
+        "tablebaseRetries": 12,
+        "tablebaseRetrySeconds": 28.022146460000048,
+        "newGameCalls": 7
+      },
+      "invocations": 18,
+      "completedInvocations": 2,
+      "stoppedInvocations": 16,
+      "interruptedInvocationsWithUnknownTailTiming": 0,
+      "recoveryMarkersAfterLoggedStop": 0,
+      "workersWithIncompleteRetryReconciliation": 0,
+      "stopReasons": {
+        "inexact-best-score": 3,
+        "inexact-move-score": 4,
+        "requested-sigterm": 5,
+        "tablebase-outcome-unavailable": 4
+      },
+      "tablebase": {
+        "retryEvents": 321,
+        "retryStatuses": {
+          "offline": 3,
+          "unsupported": 318
+        },
+        "recoveredProbes": 226,
+        "recoveredProbeRetries": 309,
+        "recoveredProbeAttemptCounts": {
+          "2": 160,
+          "3": 49,
+          "4": 17
+        },
+        "terminalUnavailableAttempts": 4,
+        "terminalUnavailableStatuses": {
+          "unsupported": 4
+        },
+        "terminalUnavailableRetries": 12,
+        "terminalUnavailableCalls": 16,
+        "interruptedRetryChains": 0,
+        "interruptedChainRetryEvents": 0,
+        "unrecordedAdditionalProbeAttempts": 0,
+        "finalUnscoredRows": 0
+      }
+    },
+    "2026-09": {
+      "completedRows": 42754,
+      "streamCheckpointedSeconds": 299.71212625084445,
+      "completedAvailabilitySeconds": {
+        "seconds": 3403.6492302479764,
+        "describeMoveSeconds": 3273.449476799568,
+        "worstPieceSeconds": 58.60215793697461,
+        "splitsSeconds": 9.253975718030434,
+        "tradeReaderSeconds": 4.97320498995481,
+        "noteSideSeconds": 0.3389910379353674,
+        "backfillSeconds": 0
+      },
+      "scoreWorkerSeconds": 44747.798767874,
+      "completedRowInstrumentTotals": {
+        "maiaSeconds": 2846.6696850199505,
+        "engineSeconds": 31833.33731661801,
+        "tablebaseSeconds": 2133.4593503640217,
+        "rowSeconds": 36815.367107100974,
+        "newGameSeconds": 326.9514764778018,
+        "maiaCalls": 42754,
+        "maiaBands": 66497,
+        "bestCalls": 38574,
+        "scoreCalls": 83425,
+        "tablebaseCalls": 4534,
+        "tablebaseUnavailable": 354,
+        "tablebaseRetries": 354,
+        "tablebaseRetrySeconds": 472.56245223500457,
+        "newGameCalls": 38574
+      },
+      "failedAttemptInstrumentTotals": {
+        "maiaSeconds": 0.595174166999619,
+        "engineSeconds": 7855.049117749,
+        "tablebaseSeconds": 54.44602574900054,
+        "rowSeconds": 7910.091112874999,
+        "newGameSeconds": 0.05265620800014585,
+        "maiaCalls": 9,
+        "maiaBands": 16,
+        "bestCalls": 2,
+        "scoreCalls": 3,
+        "tablebaseCalls": 28,
+        "tablebaseUnavailable": 28,
+        "tablebaseRetries": 21,
+        "tablebaseRetrySeconds": 49.04070074900092,
+        "newGameCalls": 2
+      },
+      "invocations": 18,
+      "completedInvocations": 2,
+      "stoppedInvocations": 16,
+      "interruptedInvocationsWithUnknownTailTiming": 0,
+      "recoveryMarkersAfterLoggedStop": 0,
+      "workersWithIncompleteRetryReconciliation": 0,
+      "stopReasons": {
+        "inexact-best-score": 1,
+        "inexact-move-score": 1,
+        "requested-sigterm": 7,
+        "tablebase-outcome-unavailable": 7
+      },
+      "tablebase": {
+        "retryEvents": 375,
+        "retryStatuses": {
+          "unsupported": 375
+        },
+        "recoveredProbes": 270,
+        "recoveredProbeRetries": 354,
+        "recoveredProbeAttemptCounts": {
+          "2": 203,
+          "3": 50,
+          "4": 17
+        },
+        "terminalUnavailableAttempts": 7,
+        "terminalUnavailableStatuses": {
+          "unsupported": 7
+        },
+        "terminalUnavailableRetries": 21,
+        "terminalUnavailableCalls": 28,
+        "interruptedRetryChains": 0,
+        "interruptedChainRetryEvents": 0,
+        "unrecordedAdditionalProbeAttempts": 0,
+        "finalUnscoredRows": 0
+      }
+    }
+  },
+  "stages": {
+    "analysis": {
+      "all": {
+        "attempts": 1,
+        "completedJobs": 1,
+        "stoppedJobs": 0,
+        "unfinishedJobs": 0,
+        "stopReasons": {},
+        "recordedInvocationSeconds": {
+          "seconds": 17.98406762490049,
+          "knownSeconds": 17.98406762490049,
+          "unknownIntervals": 0,
+          "intervals": 1
+        },
+        "utcInvocationSeconds": {
+          "seconds": 17.98402,
+          "knownSeconds": 17.98402,
+          "unknownIntervals": 0,
+          "intervals": 1
+        },
+        "betweenAttemptUtcSeconds": {
+          "seconds": 0,
+          "knownSeconds": 0,
+          "unknownIntervals": 0,
+          "intervals": 0
+        },
+        "firstStartToLastEndUtcSeconds": 17.98402,
+        "alreadyCompleteChecks": 0,
+        "restartBackoffs": 0,
+        "restartBackoffSeconds": 0
+      }
+    },
+    "backfill": {
+      "2026-07": {
+        "attempts": 20,
+        "completedJobs": 20,
+        "stoppedJobs": 0,
+        "unfinishedJobs": 0,
+        "stopReasons": {},
+        "recordedInvocationSeconds": {
+          "seconds": 145.9399732062593,
+          "knownSeconds": 145.9399732062593,
+          "unknownIntervals": 0,
+          "intervals": 20
+        },
+        "utcInvocationSeconds": {
+          "seconds": 159.33371,
+          "knownSeconds": 159.33371,
+          "unknownIntervals": 0,
+          "intervals": 20
+        },
+        "betweenAttemptUtcSeconds": {
+          "seconds": 135013.331036,
+          "knownSeconds": 135013.331036,
+          "unknownIntervals": 0,
+          "intervals": 19
+        },
+        "firstStartToLastEndUtcSeconds": 135172.664746,
+        "alreadyCompleteChecks": 0,
+        "restartBackoffs": 0,
+        "restartBackoffSeconds": 0
+      },
+      "2026-08": {
+        "attempts": 20,
+        "completedJobs": 20,
+        "stoppedJobs": 0,
+        "unfinishedJobs": 0,
+        "stopReasons": {},
+        "recordedInvocationSeconds": {
+          "seconds": 105.50216658320278,
+          "knownSeconds": 105.50216658320278,
+          "unknownIntervals": 0,
+          "intervals": 20
+        },
+        "utcInvocationSeconds": {
+          "seconds": 450.258037,
+          "knownSeconds": 450.258037,
+          "unknownIntervals": 0,
+          "intervals": 20
+        },
+        "betweenAttemptUtcSeconds": {
+          "seconds": 131688.260875,
+          "knownSeconds": 131688.260875,
+          "unknownIntervals": 0,
+          "intervals": 19
+        },
+        "firstStartToLastEndUtcSeconds": 132138.518912,
+        "alreadyCompleteChecks": 0,
+        "restartBackoffs": 0,
+        "restartBackoffSeconds": 0
+      },
+      "2026-09": {
+        "attempts": 20,
+        "completedJobs": 20,
+        "stoppedJobs": 0,
+        "unfinishedJobs": 0,
+        "stopReasons": {},
+        "recordedInvocationSeconds": {
+          "seconds": 104.60850050160661,
+          "knownSeconds": 104.60850050160661,
+          "unknownIntervals": 0,
+          "intervals": 20
+        },
+        "utcInvocationSeconds": {
+          "seconds": 126.425294,
+          "knownSeconds": 126.425294,
+          "unknownIntervals": 0,
+          "intervals": 20
+        },
+        "betweenAttemptUtcSeconds": {
+          "seconds": 130029.691028,
+          "knownSeconds": 130029.691028,
+          "unknownIntervals": 0,
+          "intervals": 19
+        },
+        "firstStartToLastEndUtcSeconds": 130156.116322,
+        "alreadyCompleteChecks": 0,
+        "restartBackoffs": 0,
+        "restartBackoffSeconds": 0
+      }
+    },
+    "positions": {
+      "2026-07": {
+        "attempts": 2,
+        "completedJobs": 1,
+        "stoppedJobs": 1,
+        "unfinishedJobs": 0,
+        "stopReasons": {
+          "reviewer-amendment-sigterm": 1
+        },
+        "recordedInvocationSeconds": {
+          "seconds": null,
+          "knownSeconds": 3011.013857250102,
+          "unknownIntervals": 1,
+          "intervals": 2
+        },
+        "utcInvocationSeconds": {
+          "seconds": null,
+          "knownSeconds": 3011.048934,
+          "unknownIntervals": 1,
+          "intervals": 2
+        },
+        "betweenAttemptUtcSeconds": {
+          "seconds": null,
+          "knownSeconds": 0,
+          "unknownIntervals": 1,
+          "intervals": 1
+        },
+        "firstStartToLastEndUtcSeconds": 5053.947232,
+        "alreadyCompleteChecks": 19,
+        "restartBackoffs": 0,
+        "restartBackoffSeconds": 0
+      },
+      "2026-08": {
+        "attempts": 1,
+        "completedJobs": 1,
+        "stoppedJobs": 0,
+        "unfinishedJobs": 0,
+        "stopReasons": {},
+        "recordedInvocationSeconds": {
+          "seconds": 1984.0547175002284,
+          "knownSeconds": 1984.0547175002284,
+          "unknownIntervals": 0,
+          "intervals": 1
+        },
+        "utcInvocationSeconds": {
+          "seconds": 1984.067508,
+          "knownSeconds": 1984.067508,
+          "unknownIntervals": 0,
+          "intervals": 1
+        },
+        "betweenAttemptUtcSeconds": {
+          "seconds": 0,
+          "knownSeconds": 0,
+          "unknownIntervals": 0,
+          "intervals": 0
+        },
+        "firstStartToLastEndUtcSeconds": 1984.067508,
+        "alreadyCompleteChecks": 19,
+        "restartBackoffs": 0,
+        "restartBackoffSeconds": 0
+      },
+      "2026-09": {
+        "attempts": 1,
+        "completedJobs": 1,
+        "stoppedJobs": 0,
+        "unfinishedJobs": 0,
+        "stopReasons": {},
+        "recordedInvocationSeconds": {
+          "seconds": 1720.400645290967,
+          "knownSeconds": 1720.400645290967,
+          "unknownIntervals": 0,
+          "intervals": 1
+        },
+        "utcInvocationSeconds": {
+          "seconds": 1720.387123,
+          "knownSeconds": 1720.387123,
+          "unknownIntervals": 0,
+          "intervals": 1
+        },
+        "betweenAttemptUtcSeconds": {
+          "seconds": 0,
+          "knownSeconds": 0,
+          "unknownIntervals": 0,
+          "intervals": 0
+        },
+        "firstStartToLastEndUtcSeconds": 1720.387123,
+        "alreadyCompleteChecks": 19,
+        "restartBackoffs": 0,
+        "restartBackoffSeconds": 0
+      }
+    },
+    "score": {
+      "2026-07": {
+        "attempts": 4,
+        "completedJobs": 1,
+        "stoppedJobs": 3,
+        "unfinishedJobs": 0,
+        "stopReasons": {
+          "stage-failure": 3
+        },
+        "recordedInvocationSeconds": {
+          "seconds": 19820.11117162509,
+          "knownSeconds": 19820.11117162509,
+          "unknownIntervals": 0,
+          "intervals": 4
+        },
+        "utcInvocationSeconds": {
+          "seconds": 19820.149483,
+          "knownSeconds": 19820.149483,
+          "unknownIntervals": 0,
+          "intervals": 4
+        },
+        "betweenAttemptUtcSeconds": {
+          "seconds": 285.224263,
+          "knownSeconds": 285.224263,
+          "unknownIntervals": 0,
+          "intervals": 3
+        },
+        "firstStartToLastEndUtcSeconds": 20105.373746,
+        "alreadyCompleteChecks": 16,
+        "restartBackoffs": 0,
+        "restartBackoffSeconds": 0
+      },
+      "2026-08": {
+        "attempts": 9,
+        "completedJobs": 1,
+        "stoppedJobs": 8,
+        "unfinishedJobs": 0,
+        "stopReasons": {
+          "stage-failure": 8
+        },
+        "recordedInvocationSeconds": {
+          "seconds": 17153.592964667827,
+          "knownSeconds": 17153.592964667827,
+          "unknownIntervals": 0,
+          "intervals": 9
+        },
+        "utcInvocationSeconds": {
+          "seconds": 19327.01233,
+          "knownSeconds": 19327.01233,
+          "unknownIntervals": 0,
+          "intervals": 9
+        },
+        "betweenAttemptUtcSeconds": {
+          "seconds": 65350.977051999995,
+          "knownSeconds": 65350.977051999995,
+          "unknownIntervals": 0,
+          "intervals": 8
+        },
+        "firstStartToLastEndUtcSeconds": 84677.989382,
+        "alreadyCompleteChecks": 8,
+        "restartBackoffs": 0,
+        "restartBackoffSeconds": 0
+      },
+      "2026-09": {
+        "attempts": 9,
+        "completedJobs": 1,
+        "stoppedJobs": 8,
+        "unfinishedJobs": 0,
+        "stopReasons": {
+          "stage-failure": 8
+        },
+        "recordedInvocationSeconds": {
+          "seconds": 18482.588343748823,
+          "knownSeconds": 18482.588343748823,
+          "unknownIntervals": 0,
+          "intervals": 9
+        },
+        "utcInvocationSeconds": {
+          "seconds": 22429.115277,
+          "knownSeconds": 22429.115277,
+          "unknownIntervals": 0,
+          "intervals": 9
+        },
+        "betweenAttemptUtcSeconds": {
+          "seconds": 1361.398342,
+          "knownSeconds": 1361.398342,
+          "unknownIntervals": 0,
+          "intervals": 8
+        },
+        "firstStartToLastEndUtcSeconds": 23790.513619,
+        "alreadyCompleteChecks": 0,
+        "restartBackoffs": 0,
+        "restartBackoffSeconds": 0
+      }
+    },
+    "stream": {
+      "2026-07": {
+        "attempts": 1,
+        "completedJobs": 1,
+        "stoppedJobs": 0,
+        "unfinishedJobs": 0,
+        "stopReasons": {},
+        "recordedInvocationSeconds": {
+          "seconds": 136.91031137527898,
+          "knownSeconds": 136.91031137527898,
+          "unknownIntervals": 0,
+          "intervals": 1
+        },
+        "utcInvocationSeconds": {
+          "seconds": 136.909746,
+          "knownSeconds": 136.909746,
+          "unknownIntervals": 0,
+          "intervals": 1
+        },
+        "betweenAttemptUtcSeconds": {
+          "seconds": 0,
+          "knownSeconds": 0,
+          "unknownIntervals": 0,
+          "intervals": 0
+        },
+        "firstStartToLastEndUtcSeconds": 136.909746,
+        "alreadyCompleteChecks": 20,
+        "restartBackoffs": 0,
+        "restartBackoffSeconds": 0
+      },
+      "2026-08": {
+        "attempts": 1,
+        "completedJobs": 1,
+        "stoppedJobs": 0,
+        "unfinishedJobs": 0,
+        "stopReasons": {},
+        "recordedInvocationSeconds": {
+          "seconds": 216.06195479119197,
+          "knownSeconds": 216.06195479119197,
+          "unknownIntervals": 0,
+          "intervals": 1
+        },
+        "utcInvocationSeconds": {
+          "seconds": 216.061069,
+          "knownSeconds": 216.061069,
+          "unknownIntervals": 0,
+          "intervals": 1
+        },
+        "betweenAttemptUtcSeconds": {
+          "seconds": 0,
+          "knownSeconds": 0,
+          "unknownIntervals": 0,
+          "intervals": 0
+        },
+        "firstStartToLastEndUtcSeconds": 216.061069,
+        "alreadyCompleteChecks": 20,
+        "restartBackoffs": 0,
+        "restartBackoffSeconds": 0
+      },
+      "2026-09": {
+        "attempts": 1,
+        "completedJobs": 1,
+        "stoppedJobs": 0,
+        "unfinishedJobs": 0,
+        "stopReasons": {},
+        "recordedInvocationSeconds": {
+          "seconds": 300.3821415831335,
+          "knownSeconds": 300.3821415831335,
+          "unknownIntervals": 0,
+          "intervals": 1
+        },
+        "utcInvocationSeconds": {
+          "seconds": 300.379162,
+          "knownSeconds": 300.379162,
+          "unknownIntervals": 0,
+          "intervals": 1
+        },
+        "betweenAttemptUtcSeconds": {
+          "seconds": 0,
+          "knownSeconds": 0,
+          "unknownIntervals": 0,
+          "intervals": 0
+        },
+        "firstStartToLastEndUtcSeconds": 300.379162,
+        "alreadyCompleteChecks": 20,
+        "restartBackoffs": 0,
+        "restartBackoffSeconds": 0
+      }
+    }
+  },
+  "powerEvidence": {
+    "recorded": true,
+    "proximityWindowSeconds": 60,
+    "interpretation": "Temporal coincidence is operational evidence, not a proof of the exact rejected engine flag.",
+    "byMonth": {
+      "2026-07": {
+        "engineStoppedWorkers": 0,
+        "nearDarkWake": 0,
+        "nearWake": 0,
+        "nearSleep": 0,
+        "noNearbyRecordedPowerEvent": 0
+      },
+      "2026-08": {
+        "engineStoppedWorkers": 7,
+        "nearDarkWake": 7,
+        "nearWake": 0,
+        "nearSleep": 7,
+        "noNearbyRecordedPowerEvent": 0
+      },
+      "2026-09": {
+        "engineStoppedWorkers": 2,
+        "nearDarkWake": 0,
+        "nearWake": 2,
+        "nearSleep": 0,
+        "noNearbyRecordedPowerEvent": 0
+      }
+    }
+  },
+  "analysisSeconds": 17.385367666836828,
+  "inputSha256": {
+    "app-pin": "88b701326b8d039cb512547af94028b9c24f5d286971358d7f54fbdcecb8ee70",
+    "full-analysis": "4006b99d9067739c43e1134f9e7ece768337b95c29455e96ad27ebf55507dde7",
+    "operations.py": "ff04bd2811bbfc233ed0a294b9fab4ad9d913ad5d4a04a3d78a10201dbd7a9b6",
+    "phase2-manifest": "0f0f51d13a8c991522cba398969b110ab05e68a9571b5bd20ffdb607635f80a1",
+    "positions-2026-07": "bcf4e6e2217901cdb544f44701fed94007cdd6c23d4edc2d658ecafd132eb142",
+    "positions-2026-08": "1043ec3155773013acb4b78561e51156f76aec3756c23a3be4435aad9a412d81",
+    "positions-2026-09": "a92d6b234d03de4695f1a9ed14404abd3d4d59e1cbad73a3fe236858dcf2209c",
+    "power-health": "9de2e03b72798078fe838bd1b0da61fad6d267b65dd933e884ec8e0021812df0",
+    "scored-2026-07-0-of-2.events.jsonl": "cdffbe269b9e872f52c4b8f16651c6c1603fefb637232c53fb85a8da34f3f7d9",
+    "scored-2026-07-0-of-2.json": "98f06fe30267b4b0f657942ad94f883039628e803f194d10d74cd92cb204d001",
+    "scored-2026-07-1-of-2.events.jsonl": "909521f72295d194adb98fa0120d03d5cdb01eeca0562b338fd50622eb9c4842",
+    "scored-2026-07-1-of-2.json": "a588d6be257d126bc01b7e5a7cbf46eda0d8a426391e1cfe072dda4a294911c5",
+    "scored-2026-08-0-of-2.events.jsonl": "73e61a50c7b097ba459c3d8c0a44229f1bc03d08e16288f78042aba2b552e789",
+    "scored-2026-08-0-of-2.json": "9e7dedd78956d8f413c2ac181984f8f7677d4edd39c8e4b5133b0fcf02961a87",
+    "scored-2026-08-1-of-2.events.jsonl": "d9dce6164bff82815829f808603c326e8fbd6fcbe499d3ddf65ccb64e066baa0",
+    "scored-2026-08-1-of-2.json": "35b5de206f66c1b4f3f96fda4a36f9926e8b67747c139d1d154336b0b1b60f56",
+    "scored-2026-09-0-of-2.events.jsonl": "1767397d35a78495436e4de9d53ee812f367380d18aa1d281767ccdb4f4ab010",
+    "scored-2026-09-0-of-2.json": "09bc2094dafe3223b121f275788c92babd302cc7fb7d945d6f9d560e01cd9b09",
+    "scored-2026-09-1-of-2.events.jsonl": "a0b0fbc6f3141552fdfcc88169ca0387467d6382bab6499897822bd0ce8ab823",
+    "scored-2026-09-1-of-2.json": "0cda2f640b531d9a36dd5add4550a83f7f05fff0d2845a49aff3152f59855107",
+    "stage-events": "72f1ca56fe266822f263b8bc87240d5834b03911d85e09405031a65129ef37d5",
+    "stream-2026-07": "fb7dd8899d016505ae51a463d70776e763612ceeba31ffae381acb25cd658603",
+    "stream-2026-08": "80694f07ab872cad81a09dd9121c8e1b50f5a0683ab09dcb6413970ceb8fdd1d",
+    "stream-2026-09": "12150f6efb3ddee559fd627741dee17426807e11f866c1f1d0a3199a456c2de7"
+  }
+}

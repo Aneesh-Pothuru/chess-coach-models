@@ -214,7 +214,8 @@ scripts, then the paper. No language model judges anything here.
 | `prepare_amendment.py`, `migration-manifest.json` | Archive the stopped journals and freeze their content hashes for backfill. |
 | `score.mjs` | Reads Maia, the engine and tablebase through the app; resumes score shards. Its timing mode writes counts and times only. |
 | `analyze.py` | Checks complete full-run inputs and writes the fixed measures, verdicts, splits and descriptions to `results/rules.json` and `results/rules.md`. |
-| `test_stream.py`, `tests-positions.mjs`, `tests-score.mjs`, `test_analysis.py`, `test_runner.py` | Synthetic filter, detector, sampling, migration, referee, bootstrap, decision and process-control checks. |
+| `operations.py` | After analysis, reconciles completed checkpoints and logs into aggregate timings, retries and stop counts in `results/operations.json` and `results/operations.md`. |
+| `test_stream.py`, `tests-positions.mjs`, `tests-score.mjs`, `test_analysis.py`, `test_runner.py`, `test_operations.py` | Synthetic filter, detector, sampling, migration, referee, bootstrap, decision, process-control and operational-report checks. |
 | `implementation-notes.md` | Reviewed readings and the amended scan's resume procedure. |
 | `phase1.py` | The historical timing report generator, from before the amendments. |
 | `freeze.py`, `phase2-manifest.json` | Freeze and verify the rule and code by content hashes that survive rebasing. |
@@ -239,4 +240,7 @@ projects/rules-of-thumb/phase2.sh --reviewed
 
 # The launcher returns its PID and private driver log path.
 cat private/rules-of-thumb/full/driver.json
+
+# After the driver completes scoring and analysis:
+nice -n 10 .venv/bin/python projects/rules-of-thumb/operations.py --run full
 ```
