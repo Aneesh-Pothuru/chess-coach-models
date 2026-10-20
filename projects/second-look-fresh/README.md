@@ -697,3 +697,117 @@ CHESS_DIR="$PWD/.cache/chess/f4bd63f19b343f686fb97ea4cf70b211c0bddc0a" \
 node projects/second-look-fresh/third-amendment.mjs --freeze
 .venv/bin/python scripts/check_private.py
 ```
+
+## Fourth acquisition amendment, approved before the comparison
+
+The third amendment refused the stopped replay because its trace could
+not establish deadline termination. That condition required evidence the
+trace never recorded: the watchdog's arming and the search's terminal
+status. This amendment replaces that deadline-evidence condition. It is
+written after that refusal, before any further replay, and before any
+deciding metric has been computed or read.
+
+The preserved power log records a low-battery system sleep and a wake on
+AC during the rejected replay. Every differing reading, position and
+record is downstream of the one adaptive search spanning that suspension.
+Sleep is an outside event, independent of the arm and its result. This
+does not establish which terminal path the search took.
+
+A replay is an infrastructure failure when it fails the unchanged
+equality check, the power log records system sleep inside it, and every
+differing row is downstream of a search in progress when that sleep began.
+It receives exactly one further observed replay of the same game. Accept
+that further replay only if it reproduces the canonical document exactly.
+There is no third attempt. Any other mismatch, or any mismatch on the
+further replay, stops the run. The second amendment's human-policy failure
+rule remains in force, with the same total limit of two attempts. A clock
+divergence without a recorded system sleep does not qualify under this
+replacement condition.
+
+Check dependency from the preserved rows, call order and pinned app source,
+without computing a chess class, share or verdict. The classifier accounts
+for the raw adaptive reading, its retained verification reading, its
+position, its record and any derived document summary. It refuses an
+unaccounted difference. The source files used in this proof are checked
+against the preserved diagnostic's content hashes in both app copies.
+
+The power log's sleep entry announces a transition; client acknowledgements
+can follow while the machine is still executing. Its timestamps have
+one-second precision. Use the last sleep acknowledgement's second, or the
+sleep entry's second if there is none, to bound that transition. A search
+must have started before that second ends and must span the recorded wake.
+Require a single matching sleep interval inside the replay, with no
+intervening sleep or dark wake. In the preserved replay the wrapper entered
+the adaptive call during the last acknowledgement's second. These log
+boundaries establish overlap with suspension; they do not reconstruct a
+watchdog deadline.
+
+Keep every produced canonical document, observation, rejection,
+classification, log and manifest. Replace nothing. The previous refusal
+remains reported under the third rule; this rule gives the same preserved
+bytes a separate classification. Keep every original equality,
+completeness, reference and comparison check. Save each newly prescribed
+output once, before checking it, whatever its result.
+
+The machine is now on AC. Before each replay, require AC power and an open
+lid, retain both command outputs, and wait while either cannot be
+established. Keep the third amendment's checks before the quiet window
+and immediately before launch. A failed final check restarts the gate.
+Keep the second amendment's five continuous quiet minutes, one-minute
+load strictly below six, no `npm run verify:pr` or `vitest` process, and
+all its sampling and clock-gap checks. Do not shorten that window when
+outside work holds the gate.
+
+Keep both `caffeinate -i` and `-s` assertions throughout each replay and
+keep the acquisition awake through the remaining work. Verify that the
+assertion processes stay alive. Run detached in separate sessions with
+file logs, one replay at a time at nice ten. At most two heavy processes
+may run. Retain each replay's power log and calendar and Python monotonic
+clocks, and report their divergence. Retain every failed call's error
+reason. Unknown or failed power-log capture stops acceptance.
+
+Apply this rule first to the preserved stopped replay. If it qualifies,
+run its one retry, then the remaining six first replays in frozen order.
+Apply the rule to each new observation. Only sixty accepted observations
+permit the original registered reference and analysis scripts. The two
+reference shards remain at nice ten. Stop before the README's answer and
+the paper's conclusions.
+
+Report the rejected and accepted attempts separately. Do not silently
+mix retries into first-pass timing estimates. Keep the second amendment's
+separate timings for every replay in the specified heavy-outside-load
+window, and retain the sleep-interrupted replay's calendar, monotonic
+and Node review times. Give each new attempt's timing and clock divergence
+separately in the private report and report aggregate groups publicly.
+Neither a quiet gate nor a power assertion licenses replacing an output.
+
+The new namespace is `private/second-look-fresh/fourth-acquisition/`.
+Its execution binding copies the already frozen measurement scripts and
+study pin from the preserved execution root. It does not fetch, rebuild
+canonicals or change either app copy. It keeps the earlier bindings intact
+and checks the public README as exact manifest-bound appends. The fourth
+manifest freezes this section and the preceding diagnosis and stopped
+checkpoint. A separate code manifest freezes the new driver, dependency
+classifier, generated observation wrapper and binding by content hash.
+Neither manifest records a lab-branch commit.
+
+Register and check this amendment before any new replay:
+
+```bash
+node projects/second-look-fresh/fourth-register.mjs --protocol
+node projects/second-look-fresh/fourth-register.mjs --code
+.venv/bin/python scripts/check_private.py
+```
+
+Commit the registration and code, then launch:
+
+```bash
+.venv/bin/python projects/second-look-fresh/fourth-launch.py --phase2
+```
+
+The launcher prints the detached driver PID and private log path. It runs
+the unchanged reference and analysis steps only after the accepted
+observation check succeeds. Generate the descriptive report from the
+preserved bytes with `node projects/second-look-fresh/fourth-report.mjs
+--snapshot`. After a successful registered analysis, use `--after-analysis`
+instead. These commands write no README answer or paper conclusion.
