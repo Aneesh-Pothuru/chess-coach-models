@@ -97,7 +97,8 @@ def evidence(case, rid, named, scenes_only=False):
     if scenes_only:
         args.append('--scenes-only')
     args += [f'{k}={os.path.abspath(v)}' for k, v in named.items()]
-    env = dict(os.environ, NODE_OPTIONS=(os.environ.get('NODE_OPTIONS', '') + ' ' + OFFLINE).strip())
+    env = dict(os.environ, NODE_OPTIONS=(os.environ.get('NODE_OPTIONS', '') + ' ' + OFFLINE).strip(),
+               EVIDENCE_MAIA_DIR=os.path.join(EVAL, 'maia'))
     p = subprocess.run(args, cwd=repo, capture_output=True, text=True, env=env, timeout=900)
     if p.returncode != 0:
         raise RuntimeError(f'evidence.mts failed: {p.stderr[-600:]}')

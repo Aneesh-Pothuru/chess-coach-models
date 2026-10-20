@@ -1,12 +1,18 @@
 // The evidence a grader reads beside a day's video scripts: the brief without its
-// bulk (every citable fact kept), the day's games and turning points one line
-// each, analyze.cjs's digest (the engine's lines, what was played, the lesson
-// lines), each turning point's findability at his band (the Maia step's, which
-// the live digest is printed before), and for every board scene of the scripts given:
-// the position as the archive replays it, what was played there and next, the
-// engine's best move and its best reply, the threats and readings, what each
-// piece hits and guards, and each move the scene plays, replayed in order, with
-// whether it is the game's own move and what the knowledge service says it does.
+// bulk (every citable fact kept), the video grammar's fixed milestone card, the
+// day's games and turning points one line each, analyze.cjs's digest (the
+// engine's lines, what was played, the lesson lines), each turning point's
+// findability at his band (the Maia step's, which the live digest is printed
+// before), and for every board scene of the scripts given: the position as the
+// archive replays it, what was played there and next, the engine's best move and
+// its best reply, how players at his band play there when the move is his (the
+// Maia-2 reading `coach engine find` and `engine human` give), the engine's plan
+// lines and the Maia step's human plan where the routine computed them, the
+// threats and readings, what each piece hits and guards, and each move the scene
+// plays, replayed in order, with whether it is the game's own move, what the
+// knowledge service says it does, and after a move the game did not play, the
+// engine's best reply and its line. The engine writes nothing into the case:
+// its eval cache is off and the Maia weights come from EVIDENCE_MAIA_DIR.
 // Run from a case checkout with its tsx:
 //   (cd <case>/repo && node_modules/.bin/tsx <bin>/evidence.mts <D> [--scenes-only] <name>=<video.json> ...)
 import { createRequire } from 'node:module'
@@ -52,6 +58,79 @@ const bare = (san: string) => String(san).replace(/[!?]+$/, '').replace(/[+#]+$/
 
 const rowsFile = join(root, 'coach-log', 'review-analysis', `${id}.json`)
 const rows: any[] = existsSync(rowsFile) ? JSON.parse(readFileSync(rowsFile, 'utf8')) : []
+const analysisFile = join(root, 'tools', 'coach-review', '.cache', 'analysis.json')
+const analysis: any[] = existsSync(analysisFile) ? JSON.parse(readFileSync(analysisFile, 'utf8')) : []
+
+const core = await import(pathToFileURL(join(root, 'src/core/chess/index.ts')).href)
+const score = await import(pathToFileURL(join(root, 'src/core/score/index.ts')).href)
+const { createNodeEngine, nodeHumanModel } = await import(pathToFileURL(join(root, 'src/adapters/node/engine/index.ts')).href)
+const maiaDir = process.env.EVIDENCE_MAIA_DIR
+let service: any = null
+const engine = () => (service ??= createNodeEngine({ root, tablebase: false, evalCache: false, ...(maiaDir ? { human: nodeHumanModel({ dir: maiaDir }) } : {}) }))
+const briefFile = join(root, 'coach-log', 'briefs', `${id}.json`)
+const briefRecord = existsSync(briefFile) ? JSON.parse(readFileSync(briefFile, 'utf8')).record ?? {} : {}
+const rapid = Math.round(Number(briefRecord.ratingTo ?? briefRecord.ratingFrom ?? 1150))
+const pct = (p: number) => `${Math.round(p * 100)}%`
+const uciOf = (fen: string, san: string): string | null => {
+  try {
+    const m = new Chess(fen).move(bare(san))
+    return m.from + m.to + (m.promotion ?? '')
+  } catch {
+    return null
+  }
+}
+const sansOf = (fen: string, ucis: string[], n: number): string[] => {
+  const c = new Chess(fen)
+  const out: string[] = []
+  for (const u of ucis.slice(0, n)) {
+    try {
+      out.push(c.move({ from: u.slice(0, 2), to: u.slice(2, 4), promotion: u[4] }).san)
+    } catch {
+      break
+    }
+  }
+  return out
+}
+const hisView = (e: any, meIsWhite: boolean): string => {
+  if (!e) return 'no reading'
+  if (e.kind === 'terminal') return `the game is over, ${e.result}`
+  const sign = meIsWhite ? 1 : -1
+  if (e.kind === 'mate') return e.mate * sign > 0 ? `mate in ${Math.abs(e.mate)} for him` : `mate in ${Math.abs(e.mate)} for them`
+  const cp = score.cpOf(e) * sign
+  return `${cp >= 0 ? '+' : ''}${(cp / 100).toFixed(1)}`
+}
+
+async function maia(fen: string, moves: Array<[string, string]>): Promise<string | null> {
+  const pos = core.position(fen, [])
+  let band: number | null = null
+  const parts: string[] = []
+  const seen = new Set<string>()
+  for (const [label, san] of moves) {
+    const uci = uciOf(fen, san)
+    if (!uci || seen.has(uci)) continue
+    seen.add(uci)
+    const f = await engine().findability(pos, uci, rapid)
+    if (f === 'unavailable') return null
+    band = f.band
+    parts.push(`${label} ${bare(san)} ${pct(f.p)} (rank ${f.rank ?? '-'})`)
+  }
+  if (band === null) return null
+  const hp = await engine().humanPolicy(pos, { bands: [band] })
+  if (hp === 'unavailable') return null
+  const top = Object.entries(hp.bands[0].policy as Record<string, number>).sort((a, b) => b[1] - a[1]).slice(0, 3)
+  return `players at his level (Maia-2 band ${band}, for his chess.com rapid ${rapid}) play here most often ${top.map(([u, p]) => `${core.uciToSan(fen, u) ?? u} ${pct(p)}`).join(', ')}; ${parts.join('; ')}`
+}
+
+async function bestReply(fen: string, meIsWhite: boolean): Promise<string> {
+  try {
+    const set = await engine().bestMoves(core.position(fen, []), { budget: 'best', multiPv: 1, cache: 'use' })
+    const l = set.lines?.[0]
+    if (!l) return 'no legal reply'
+    return `the engine's best reply ${sansOf(fen, [l.move], 1)[0] ?? l.move} (${hisView(l.eval, meIsWhite)} for him after it; its line ${sansOf(fen, l.pv ?? [l.move], 6).join(' ')})`
+  } catch {
+    return 'the engine could not read it'
+  }
+}
 
 const PIECE: Record<string, string> = { p: 'pawn', n: 'knight', b: 'bishop', r: 'rook', q: 'queen', k: 'king' }
 const FILES = 'abcdefgh'
@@ -146,6 +225,10 @@ async function scene(where: string, s: any): Promise<string[]> {
     out.push(`   the move played here: ${moveLabel(ply, played)} (${(ply % 2 === 0) === !!g.meIsWhite ? 'his' : 'theirs'}); engine eval before and after (his view, in pawns: plus is good for him): ${pawns((g.evals || [])[ply])} -> ${pawns((g.evals || [])[ply + 1])}`)
     out.push(`   engine's best here: ${best ?? 'not stored'}${best === played ? ' (the move played)' : ''}; engine's best reply to ${played}: ${reply ?? 'not stored'}`)
     out.push(`   what was played from here: ${line(sans.slice(ply, ply + 10), ply)}${ply + 10 >= sans.length ? ` (game over, ${g.termination ?? g.result})` : ' ...'}`)
+    if ((ply % 2 === 0) === !!g.meIsWhite) {
+      const m = await maia(fen, [['his move', played], ...(best ? [["the engine's best", best] as [string, string]] : [])])
+      if (m) out.push(`   ${m}`)
+    }
   } else {
     out.push(`   the game ended here (${g.termination ?? g.result})`)
   }
@@ -166,6 +249,13 @@ async function scene(where: string, s: any): Promise<string[]> {
       return `${k === 'w' ? 'White' : 'Black'} loose ${(x.loose || []).join(' ') || 'none'} (attacked ${(x.looseAttacked || []).join(' ') || 'none'}), king ${x.king?.square ?? '?'} with attackers near it ${(x.king?.ringAttackers || []).join(' ') || 'none'}, passed pawns ${(x.pawns?.passed || []).join(' ') || 'none'}`
     }
     out.push(`   readings: ${r('w')}; ${r('b')}`)
+  }
+  const ag = analysis.find((x: any) => x.url && x.url === g.url) ?? analysis.find((x: any) => x.opp === g.opp && (x.sans || []).join(' ') === sans.join(' '))
+  for (const pl of ag?.plans || []) {
+    if (pl.ply !== ply) continue
+    for (const a of pl.alts || []) out.push(`   the engine's plan line here (analyze.cjs): ${a.line}`)
+    const hp = pl.humanPlan
+    if (hp?.steps?.length) out.push(`   the human plan here (the Maia step's plan walk at band ${hp.elo}): ${hp.steps.map((x: any) => `${x.san} (${x.who === 'you' ? 'his' : 'theirs'}, ${pct(x.prob ?? 0)})`).join(', ')}`)
   }
   out.push(`   what each piece hits and guards on screen (by line of sight, pins ignored):`)
   out.push(...relations(fen).map((l) => `     ${l}`))
@@ -188,7 +278,7 @@ async function scene(where: string, s: any): Promise<string[]> {
       }
       const own = gp < sans.length && cur === fens[gp] && bare(sans[gp]) === bare(san)
       const what = await does(cur, san)
-      out.push(`   beat ${k} plays ${san}: ${own ? `the game's own move ${moveLabel(gp, sans[gp])}` : 'not what the game played here (a line that could have happened)'}; what it does: ${what}`)
+      out.push(`   beat ${k} plays ${san}: ${own ? `the game's own move ${moveLabel(gp, sans[gp])}` : 'not what the game played here (a line that could have happened)'}; what it does: ${what}${own ? '' : `; then ${await bestReply(next, !!g.meIsWhite)}`}`)
       cur = next
       if (own) gp++
     }
@@ -206,6 +296,8 @@ if (!scenesOnly) {
   const { games, clock, assignments, inputs, profile, ...lean } = brief
   lines.push('THE BRIEF (every key but games, clock, assignments, inputs and profile, which follow in short form or are left out; every citable number is in facts):')
   lines.push(JSON.stringify(lean))
+  lines.push('')
+  lines.push("THE VIDEO GRAMMAR'S FIXED CARD (a rule of the video contract every day may restate, not a fact of the day): the clock milestones 8:00 at move 10, 5:30 at 20, 3:00 at 30, 1:30 at 40.")
   lines.push('')
   lines.push(`THE ASSIGNMENTS (title, state, attempts): ${JSON.stringify((assignments || []).map((a: any) => [a.title, a.state, a.attempts?.attempts ?? null]))}`)
   lines.push('')
@@ -249,4 +341,5 @@ for (const { name, file } of named) {
   if (!n) lines.push('   (no board scenes)')
   lines.push('')
 }
+service?.dispose?.()
 process.stdout.write(lines.join('\n') + '\n')

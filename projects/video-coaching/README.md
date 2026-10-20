@@ -58,7 +58,9 @@ main branch with a video script (2026-10-03 and 2026-10-16 have none).
 
 A few of the brief's facts differ between the day's own brief and the one
 prepare writes again (the annotations were written from the first); both
-configs face the same difference.
+configs face the same difference. The Maia-2 weights the routine's Maia step
+downloads are in place only in the 2026-09-25 case (a calibration call
+fetched them); in the others, a writer that asks Maia downloads them first.
 
 ## Configs
 
@@ -107,9 +109,16 @@ split; 2026-09-26 fails the plumbing check.
   the clock's turning points, a line per game, the digest, each turning
   point's findability at his band, and for every board scene the position as
   the archive replays it, what was played there and next, the engine's best
-  move and reply, the threats and readings, what each piece hits and guards
+  move and reply, how players at his band play there when the move is his
+  (the Maia-2 reading `coach engine find` and `engine human` give: their most
+  common moves, and his move's and the best move's share and rank), the
+  engine's plan lines and the Maia step's human plan where the routine
+  computed them, the threats and readings, what each piece hits and guards
   before and after the scene's moves (chess.js's attack map, pins ignored),
-  and what the app's move describer says each move does.
+  what the app's move describer says each move does, and after each move the
+  game did not play, the engine's best reply and its line (the `best` budget,
+  as `coach engine best` reads it). It also carries the video grammar's fixed
+  clock-milestone card. The evidence's engine writes nothing into the case.
 - `bin/judge.py`, Sonnet 5.5, blind and pairwise in both orders (a side wins
   a criterion only when both orders agree): truth, coaching, listening,
   overall. Controls (`batch.py controls`, on each day's baseline run): the
@@ -156,6 +165,18 @@ the archive's evals as White's view, where the archive stores the player's,
 and printed findability the live digest does not have; both were fixed, and
 the candidate's level sub-point was pointed at the findability the live
 routine does have, before this rule was committed.
+
+One grader change came after the pilot's first grading (the 2026-09-25 pair):
+the evidence did not yet carry what the writer's own tools show (the Maia-2
+reading of a scene's position, the engine's reply to a move the game did not
+play, the plan lines and the human plan, the fixed milestone card), so the
+audit graded a claim the writer had read from `coach engine find`,
+`coach engine best` or the Maia step's plan walk as unsupported, which charged
+a script for using the routine's tools. The evidence now carries them, for
+both configs alike, and every script, the published ones and every run
+including the pilot's, is graded with it; the first grading of the 2026-09-25
+pair is kept in the eval directory and reported beside the result. The rule
+did not change.
 
 ## Pilot, spend and usage
 
