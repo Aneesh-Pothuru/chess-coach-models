@@ -23,7 +23,7 @@ const jsonl = (path) => readFileSync(path, 'utf8').split('\n').filter(Boolean).m
 const r = json(join(resultsDir(FLOW), 'offset.json'))
 const pin = json(join(LAB_DIR, 'bridge', 'chess.json'))
 const engineApi = await chess('src/services/engine/index.ts')
-const { DEFAULT_LICHESS_OFFSET, LICHESS_OFFSET_RANGE, MAIA_ELO_START, MAIA_ELO_END, MAIA_ELO_INTERVAL, MAIA_CATEGORY_COUNT, defaultMaiaElo } = engineApi
+const { DEFAULT_LICHESS_OFFSET, OPPONENT_LICHESS_OFFSET, LICHESS_OFFSET_RANGE, MAIA_ELO_START, MAIA_ELO_END, MAIA_ELO_INTERVAL, MAIA_CATEGORY_COUNT, defaultMaiaElo } = engineApi
 const g = new Generated('projects/maia-rating-offset/paper/generate.mjs')
 /** A count with a thousands separator: 32{,}988. */
 const count = (x) => x.toLocaleString('en-US').replace(/,/g, '{,}')
@@ -39,6 +39,14 @@ g.def('MaiaStart', String(MAIA_ELO_START)).def('MaiaEnd', String(MAIA_ELO_END)).
 g.def('AppCommit', `\\texttt{${pin.commit.slice(0, 7)}}`)
 // The chess.com rating below which every player is in the lowest band, at the app's offset.
 g.def('LowestBelow', String(MAIA_ELO_START - DEFAULT_LICHESS_OFFSET))
+// The paper says the app took the player-offsets project's split: the player at this offset, his opponents above it.
+const playerOffsets = json(join(LAB_DIR, 'projects', 'maia-player-offsets', 'results', 'offsets.json'))
+const split = playerOffsets.kept
+if (!(OPPONENT_LICHESS_OFFSET > DEFAULT_LICHESS_OFFSET && split?.kind === 'A' && split.him === DEFAULT_LICHESS_OFFSET && split.opp === OPPONENT_LICHESS_OFFSET)) throw new Error("the app's offsets are not the split the player-offsets project kept: the paper says it took it")
+// And that no cell of that project's punish guard got worse under the split.
+const guard = Object.values(playerOffsets.tests.A.guard)
+if (!(guard.length > 0 && guard.every((c) => c.pass && c.difference <= 0))) throw new Error("a punish guard cell got worse under the split: the paper says none did")
+g.def('AppOpponentOffset', String(OPPONENT_LICHESS_OFFSET))
 
 // ---- the moves ----
 const positions = readFileSync(join(LAB_DIR, 'projects', FLOW, 'positions.mts'), 'utf8')

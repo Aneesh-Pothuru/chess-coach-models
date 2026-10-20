@@ -18,7 +18,8 @@ the \Games{} rapid games of the player's archive: at every offset from \OffsetMi
 any number was computed, the fitting half of the games chose \Fitted, the app's own number, so it
 stays; the held-out half chose it too. Beside the verdict, a single offset hides a split: Maia-2
 predicts the player's own moves best at \BestHim{} and his opponents' at \BestOpp, with intervals
-that do not overlap. Whether separate offsets beat one is a question for its own rule.
+that do not overlap. A later project tested separate offsets by a rule of its own, and the app
+took its answer: it now reads his opponents at \AppOpponentOffset{} and keeps \AppOffset{} for him.
 \end{abstract}
 
 \section{The question}
@@ -122,10 +123,13 @@ for the weakest third and \GainHigh{} for the strongest.
 One offset moves both players at once, so it cannot follow the split: every offset that fits his
 opponents better than \AppOffset{} fits him worse, and every one that fits him better fits them
 worse. \AppOffset{} is where the two balance. Whether an offset for the player and another for
-his opponents would beat one on held-out games is a question for its own project, with its rule
+his opponents would beat one on held-out games was a question for its own project, with its rule
 written first: these looks chose where to look, so they cannot also be the test. A split would
 also move both directions of the punish odds, which the punish-odds project found calibrated at
-\AppOffset, so it would have to keep them so.
+\AppOffset, so it would have to keep them so. The player-offsets project asked it on the same
+halves: its rule kept \AppOffset{} for the player and chose \AppOpponentOffset{} for his
+opponents, without the punish odds' Brier score getting worse in any of its guard's cells, and
+the app took that split.
 
 \begin{table}[!htbp]
 \centering\small
@@ -176,11 +180,13 @@ players: Maia-2's probability of the move played and its first choice.}\label{fi
 
 \section{What it means for the app}
 
-Nothing to port. The app's \AppOffset{} is the offset this player's games choose, so the punish
-odds, how findable a move is and the Maia bot stand as they are. The app lets the player change
-the offset; any offset from \BestAllLo{} to \BestAllHi, the range the best one takes over the
-draws, fits these games about as well. The split between the player and his opponents is the next question for this
-part of the app.
+Nothing to port from this rule. The app's \AppOffset{} is the one offset this player's games
+choose. The app lets the player change the offset; any offset from \BestAllLo{} to \BestAllHi,
+the range the best one takes over the draws, fits these games about as well. The split between
+the player and his opponents was the next question for this part of the app, and the
+player-offsets project answered it: the app now converts his opponents' ratings at
+\AppOpponentOffset{} where a review prices their replies (the punish odds and the lessons'
+defenses), and keeps \AppOffset{} for him.
 
 \section{Limitations}
 

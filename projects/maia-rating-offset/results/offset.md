@@ -1,6 +1,6 @@
 # Maia-2 rating offset: results
 
-Written by fit.mjs. App commit 3a377486e8ae214f86f1e948f69231248f79f8a0; 656 games and 34025 counted moves from its archive (fitting half 328 games, 17242 moves; held-out half 328 games, 16783 moves). Bootstrap: 1000 draws over games, seed 7.
+Written by fit.mjs. App commit 3eb8afd0c17fbd344a126af1f87eee873ce52793; 656 games and 34025 counted moves from its archive (fitting half 328 games, 17242 moves; held-out half 328 games, 16783 moves). Bootstrap: 1000 draws over games, seed 7.
 
 **Verdict.** The fitting half's best offset is 250, the app's own, so 250 stays. The held-out half's best is 250.
 

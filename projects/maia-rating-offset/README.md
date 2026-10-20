@@ -4,8 +4,9 @@
 ratings come from chess.com, and its engine service converts them by adding a
 hand-set 250 points (`DEFAULT_LICHESS_OFFSET` in the app's
 `src/services/engine/maia/levels.ts`, which calls it "a default, not a
-measurement"). Every Maia number the app gives rests on that offset: the
-punish odds, how findable a move is, and the Maia bot's model of the player.
+measurement"). When this project ran, every Maia number the app gave rested on
+that offset: the punish odds, how findable a move is, and the Maia bot's model
+of the player.
 Which offset makes Maia-2 most likely to play the moves actually played in the
 player's games, by him and by his opponents, each at their own chess.com
 rating?
@@ -14,7 +15,10 @@ rating?
 own number, and so did the held-out half and the games as a whole. Beside the
 verdict, one offset hides a split: Maia-2 predicts the player's own moves best
 at a lower offset and his opponents' at a higher one, a question for a project
-of its own. The numbers are in the paper, [`paper/paper.pdf`](paper/paper.pdf),
+of its own. [`maia-player-offsets`](../maia-player-offsets/) asked it by its
+own rule, and the app took its answer: it reads his opponents at 400
+(`OPPONENT_LICHESS_OFFSET`) where a review prices their replies, and keeps 250
+for him. The numbers are in the paper, [`paper/paper.pdf`](paper/paper.pdf),
 and the script's report, [`results/offset.md`](results/offset.md).
 
 ## The moves
