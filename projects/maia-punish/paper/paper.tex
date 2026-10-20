@@ -21,8 +21,10 @@ player's errors (which the opponents punish) and for the opponents' (which the p
 on verified replies and on all of them. Of the player's errors that cost at least \StepAt{} points
 of winning chances, \PlayerUnpunished\% went unpunished, and the odds tell the punished from the
 unpunished with an area under the ROC curve of \PlayerAuc. The app now prices every error with
-these odds. The lab recomputes the analysis byte for byte from the recorded events, and a rerun
-on engine evidence rebuilt on the app as it now runs reaches the same verdicts.
+these odds, and since the player-offsets project it reads his opponents at a higher band than
+this check did. The lab recomputes the analysis byte for byte from the recorded events, and a
+rerun on engine evidence rebuilt on the app at \AppCommit, with each reply priced at the band
+that app gives it, reaches the same verdicts.
 \end{abstract}
 
 \section{The question}
@@ -51,7 +53,8 @@ routine-profile reviews. Each error is an event with:
 \item \textbf{E2}: the reply played gave away at most \EAt{} points (an equally good alternative
 counts; a secondary outcome);
 \item $\boldsymbol{q}$: Maia-2's probability of the punishing reply at the replier's band
-(\BandMin{} to \BandMax{} in these games), read from the replier's chess.com rapid rating.
+(\BandMin{} to \BandMax{} in these games), read from the replier's chess.com rapid rating plus
+\PlayerOffset, the app's offset for either player when this check ran.
 \end{itemize}
 
 The events run in two directions: the player's errors, which the opponents reply to, and the
@@ -146,7 +149,10 @@ at \ExampleABand, and the opponent played it.}\label{fig:exa}\end{figure}
 at \ExampleBBand, and the opponent played \ExampleBPlayed{} instead.}\label{fig:exb}\end{figure}
 
 \paragraph{In the app.} The review service now prices every error of at least \ErrorAt{} points
-with these odds, computed as here (the replier's band, the engine's best answer). Game Review
+with these odds, computed as here (the replier's band, the engine's best answer), with one change
+since: the player-offsets project found that Maia-2 predicts his opponents' moves better with
+\OpponentOffset{} added to their ratings, so the app reads an opponent's reply at that band and
+keeps \PlayerOffset{} for the player's own replies. Game Review
 shows the line under a mistake, and the routine's teaching pass picks its deep looks by the
 winning chances lost times the odds. A turning point with no odds of its own is ranked at
 \AppPrior, the share of the player's errors punished in this check.
@@ -156,10 +162,13 @@ winning chances lost times the odds. A turning point with no odds of its own is 
 \paragraph{Recomputed.} The lab runs the analysis (\texttt{analyze.mjs}) over the events the
 records keep, and its results \RecomputedIdentical. The records are read at \RecordsCommit.
 
-\paragraph{Rerun.} The lab rebuilt the routine evidence for the same games on the app as it now
-runs (\AppCommit), found the errors and their punishing replies again, ran Maia-2 on each, and
-reran the analysis: \RerunEvents{} events against \RecordedEvents{} recorded, since the rebuilt
-evidence differs in detail. Every verdict holds again; no Brier score moves by more than
+\paragraph{Rerun.} The lab rebuilt the routine evidence for the same games on the app at
+\AppCommit, found the errors and their punishing replies again, and ran Maia-2 on each at the
+band that app gives the replier: an opponent's rating plus \OpponentOffset{} after the player's
+error, the player's plus \PlayerOffset{} after an opponent's. Every band and probability matches
+the odds the app's own review recorded for that reply. The analysis then ran on \RerunEvents{}
+events against \RecordedEvents{} recorded, since the rebuilt evidence differs in detail. Every
+verdict holds again; no Brier score moves by more than
 \RerunBrierMove{} and no area under the curve by more than \RerunAucMove{}
 (Table~\ref{tab:repro}).
 

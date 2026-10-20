@@ -1,6 +1,6 @@
 % Written by projects/maia-calibration/paper/generate.mjs; do not edit by hand.
 
-\newcommand{\AppCommit}{\texttt{3a37748}}
+\newcommand{\AppCommit}{\texttt{3eb8afd}}
 \newcommand{\Draws}{1{,}000}
 \newcommand{\Seed}{7}
 \newcommand{\MinFitMoves}{300}
@@ -10,9 +10,10 @@
 \newcommand{\HeldMoves}{12{,}526}
 \newcommand{\HisMoves}{34{,}025}
 \newcommand{\HisGames}{648}
-\newcommand{\KeptOffset}{250}
-\newcommand{\PunishExact}{521}
-\newcommand{\PunishAll}{684}
+\newcommand{\PlayerOffset}{250}
+\newcommand{\OpponentOffset}{400}
+\newcommand{\PunishExact}{579}
+\newcommand{\PunishAll}{679}
 \newcommand{\PunishGames}{60}
 \newcommand{\BenchMonth}{June 2025}
 \newcommand{\BenchPerBand}{5{,}000}
@@ -31,22 +32,22 @@
 test & raw & tempered & tempered $-$ raw & \\
 \midrule
 1. Lichess, held-out half (log-likelihood per move) & $-$1.4944 & $-$1.4915 & 0.0029 [0.0014, 0.0044] & passes \\
-2. the player's games (log-likelihood per move) & $-$1.3929 & $-$1.3998 & $-$0.0068 [$-$0.0078, $-$0.0058] & fails \\
-3. punish events, verified (Brier score) & 0.1527 & 0.1542 & 0.0015 [$-$0.0005, 0.0037] & passes \\
-\phantom{3.} punish events, all (Brier score) & 0.1550 & 0.1563 & 0.0013 [$-$0.0005, 0.0032] & \\
+2. the player's games (log-likelihood per move) & $-$1.3910 & $-$1.3964 & $-$0.0054 [$-$0.0064, $-$0.0043] & fails \\
+3. punish events, verified (Brier score) & 0.1641 & 0.1665 & 0.0024 [0.0002, 0.0048] & fails \\
+\phantom{3.} punish events, all (Brier score) & 0.1526 & 0.1536 & 0.0010 [$-$0.0010, 0.0031] & \\
 \bottomrule
 \end{tabular}
 }
 \newcommand{\TestOneDiff}{0.0029}
 \newcommand{\TestOneCI}{[0.0014, 0.0044]}
-\newcommand{\TestTwoLoss}{0.0068}
-\newcommand{\TestTwoLossCI}{[0.0058, 0.0078]}
-\newcommand{\TestThreeDiff}{0.0015}
-\newcommand{\TestThreeCI}{[$-$0.0005, 0.0037]}
-\newcommand{\TestThreeAllDiff}{0.0013}
-\newcommand{\TestThreeAllCI}{[$-$0.0005, 0.0032]}
-\newcommand{\PunishRaw}{0.153}
-\newcommand{\PunishTempered}{0.154}
+\newcommand{\TestTwoLoss}{0.0054}
+\newcommand{\TestTwoLossCI}{[0.0043, 0.0064]}
+\newcommand{\TestThreeDiff}{0.0024}
+\newcommand{\TestThreeCI}{[0.0002, 0.0048]}
+\newcommand{\TestThreeAllDiff}{0.0010}
+\newcommand{\TestThreeAllCI}{[$-$0.0010, 0.0031]}
+\newcommand{\PunishRaw}{0.164}
+\newcommand{\PunishTempered}{0.167}
 \newcommand{\TempMin}{1.02}
 \newcommand{\TempMax}{1.13}
 \newcommand{\FitMovesMin}{620}
@@ -65,12 +66,13 @@ test & raw & tempered & tempered $-$ raw & \\
 \newcommand{\LichGapMax}{5.2}
 \newcommand{\LichTGapMin}{$-$1.1}
 \newcommand{\LichTGapMax}{3.4}
-\newcommand{\HisGapMin}{$-$1.3}
-\newcommand{\HisGapMax}{1.1}
-\newcommand{\HisTGapMin}{1.8}
-\newcommand{\HisTGapMax}{4.6}
+\newcommand{\HisGapMin}{$-$0.7}
+\newcommand{\HisGapMax}{2.5}
+\newcommand{\HisGapAll}{0.6}
+\newcommand{\LichGapAll}{3.4}
+\newcommand{\HisTGapMax}{3.2}
 \newcommand{\HisBandLow}{<1100}
-\newcommand{\HisBandHigh}{1400}
+\newcommand{\HisBandHigh}{1600}
 \newcommand{\GapFigure}{%
 \begin{tikzpicture}
 \begin{axis}[name=lichess, ylabel={confidence $-$ played, points}, width=0.48\textwidth, height=0.4\textwidth, xmin=-0.6, xmax=10.6, ymin=-6, ymax=6,
@@ -85,9 +87,9 @@ test & raw & tempered & tempered $-$ raw & \\
 \begin{axis}[at={(lichess.east)}, anchor=west, xshift=0.8cm, width=0.48\textwidth, height=0.4\textwidth, xmin=-0.6, xmax=10.6, ymin=-6, ymax=6,
   xtick={0,1,2,3,4,5,6,7,8,9,10}, xticklabels={{<1100},{1100},{1200},{1300},{1400},{1500},{1600},{1700},{1800},{1900},{2000+}}, xticklabel style={font=\tiny, rotate=60, anchor=east}, grid=major,
   title={the player's games}, legend pos=south west, legend cell align=left, legend style={font=\scriptsize}]
-\addplot[black, mark=*, mark size=1.2pt] coordinates {(0,-1.26) (1,0.23) (2,1.08) (3,0.49) (4,-0.64)};
+\addplot[black, mark=*, mark size=1.2pt] coordinates {(0,-0.39) (1,-0.70) (2,0.86) (3,0.03) (4,2.50) (5,1.89) (6,2.12)};
 \addlegendentry{raw}
-\addplot[red!70!black, dashed, mark=square*, mark size=1.2pt] coordinates {(0,-4.01) (1,-1.89) (2,-1.75) (3,-2.36) (4,-4.62)};
+\addplot[red!70!black, dashed, mark=square*, mark size=1.2pt] coordinates {(0,-3.16) (1,-2.82) (2,-1.95) (3,-2.84) (4,-1.52) (5,-0.02) (6,-0.24)};
 \addlegendentry{tempered}
 \draw[gray] (axis cs:-0.6,0) -- (axis cs:10.6,0);
 \end{axis}
@@ -100,13 +102,13 @@ test & raw & tempered & tempered $-$ raw & \\
 \cmidrule(lr){4-6}\cmidrule(lr){7-10}
 band & fitting moves & $T$ & played & raw & tempered & moves & played & raw & tempered \\
 \midrule
-<1100 & 2{,}537 & 1.082 & 46.2 & 49.8 & 47.0 & 6{,}652 & 52.9 & 51.7 & 48.9 \\
-1100 & 729 & 1.064 & 49.2 & 54.2 & 52.0 & 5{,}906 & 54.1 & 54.3 & 52.2 \\
-1200 & 833 & 1.085 & 51.3 & 54.2 & 51.5 & 6{,}893 & 53.1 & 54.1 & 51.3 \\
-1300 & 946 & 1.088 & 52.2 & 54.9 & 52.0 & 13{,}691 & 54.8 & 55.3 & 52.5 \\
-1400 & 814 & 1.125 & 53.1 & 56.0 & 52.0 & 883 & 56.5 & 55.9 & 51.9 \\
-1500 & 823 & 1.058 & 49.2 & 54.4 & 52.5 &  & & & \\
-1600 & 841 & 1.068 & 52.8 & 54.7 & 52.5 &  & & & \\
+<1100 & 2{,}537 & 1.082 & 46.2 & 49.8 & 47.0 & 4{,}070 & 52.7 & 52.3 & 49.5 \\
+1100 & 729 & 1.064 & 49.2 & 54.2 & 52.0 & 4{,}904 & 55.0 & 54.3 & 52.2 \\
+1200 & 833 & 1.085 & 51.3 & 54.2 & 51.5 & 5{,}782 & 53.6 & 54.5 & 51.7 \\
+1300 & 946 & 1.088 & 52.2 & 54.9 & 52.0 & 9{,}610 & 54.9 & 54.9 & 52.0 \\
+1400 & 814 & 1.125 & 53.1 & 56.0 & 52.0 & 5{,}545 & 53.0 & 55.5 & 51.5 \\
+1500 & 823 & 1.058 & 49.2 & 54.4 & 52.5 & 4{,}091 & 54.6 & 56.5 & 54.6 \\
+1600 & 841 & 1.068 & 52.8 & 54.7 & 52.5 & 23 & 47.8 & 49.9 & 47.6 \\
 1700 & 1{,}001 & 1.018 & 55.2 & 57.6 & 57.0 &  & & & \\
 1800 & 833 & 1.034 & 53.4 & 56.9 & 55.8 &  & & & \\
 1900 & 620 & 1.071 & 53.3 & 57.4 & 55.1 &  & & & \\

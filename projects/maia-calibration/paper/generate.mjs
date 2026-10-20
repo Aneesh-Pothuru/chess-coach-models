@@ -77,10 +77,12 @@ g.def('TestThreeDiff', fixed(t.punish.observed, 4)).def('TestThreeCI', iv(t.puni
 g.def('TestThreeAllDiff', fixed(t.punishAll.observed, 4)).def('TestThreeAllCI', iv(t.punishAll))
 g.def('PunishRaw', fixed(t.punish.raw, 3)).def('PunishTempered', fixed(t.punish.tempered, 3))
 if (r.adopted !== (t.lichessHeld.pass && t.his.pass && t.punish.pass)) throw new Error('the verdict does not follow from the three tests')
-// The paper says: not adopted, the first and third tests pass, the second fails, and the Brier score rose without the interval clearing zero.
-if (r.adopted || !t.lichessHeld.pass || t.his.pass || !t.punish.pass) throw new Error('the verdict is not the one the paper reports')
+// The paper says: not adopted, the first test passes and the second and third fail; the Brier score of the
+// verified punish events rose with its interval above zero, and that of all of them by an interval that holds zero.
+if (r.adopted || !t.lichessHeld.pass || t.his.pass || t.punish.pass) throw new Error('the verdict is not the one the paper reports')
 if (!(t.his.interval[1] < 0)) throw new Error("the paper says tempering lowers the likelihood of the player's moves")
-if (!(t.punish.observed > 0 && t.punish.interval[0] < 0)) throw new Error('the paper says the Brier score rose by an amount whose interval holds zero')
+if (!(t.punish.interval[0] > 0)) throw new Error('the paper says the Brier score rose with its interval above zero')
+if (!(t.punishAll.interval[0] <= 0 && t.punishAll.interval[1] >= 0)) throw new Error('the paper says the rise on all non-book replies holds zero')
 
 // ---- each band's temperature ----
 const bands = maiaBands()
@@ -113,11 +115,15 @@ const hisBands = bands.filter((_, i) => his[i])
 const hisRaw = his.filter(Boolean).map((c) => gapOf(c, 'raw')), hisT = his.filter(Boolean).map((c) => gapOf(c, 'tempered'))
 if (!lichRaw.every((x) => x > 0)) throw new Error('the paper says Maia-2 is overconfident on Lichess in every band')
 if (!hisT.every((x) => x < 0)) throw new Error("the paper says tempering makes Maia-2 underconfident in every band of the player's games")
-if (!(Math.max(...hisRaw.map(Math.abs)) < Math.min(...lichRaw))) throw new Error("the paper says the player's games show a smaller gap than any Lichess band")
+// Over all the moves: each band's gap weighted by its moves.
+const overall = (cs) => (100 * cs.reduce((a, c) => a + c.moves * (c.raw - c.played), 0)) / cs.reduce((a, c) => a + c.moves, 0)
+const hisAll = overall(his.filter(Boolean)), lichAll = overall(lich)
+if (!(Math.abs(hisAll) < lichAll)) throw new Error("the paper says the player's games show a smaller gap than the Lichess held-out half over all their moves")
 g.def('LichGapMin', fixed(Math.min(...lichRaw), 1)).def('LichGapMax', fixed(Math.max(...lichRaw), 1))
 g.def('LichTGapMin', fixed(Math.min(...lichT), 1)).def('LichTGapMax', fixed(Math.max(...lichT), 1))
 g.def('HisGapMin', fixed(Math.min(...hisRaw), 1)).def('HisGapMax', fixed(Math.max(...hisRaw), 1))
-g.def('HisTGapMin', fixed(-Math.max(...hisT), 1)).def('HisTGapMax', fixed(-Math.min(...hisT), 1))
+g.def('HisGapAll', fixed(hisAll, 1)).def('LichGapAll', fixed(lichAll, 1))
+g.def('HisTGapMax', fixed(-Math.min(...hisT), 1))
 g.def('HisBandLow', esc(bandName(hisBands[0]))).def('HisBandHigh', esc(bandName(hisBands.at(-1))))
 const coords = (vals, idx) => vals.map((v, j) => `(${idx[j]},${v.toFixed(2)})`).join(' ')
 const allIdx = bands.map((_, i) => i)

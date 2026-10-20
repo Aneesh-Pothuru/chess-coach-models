@@ -74,6 +74,9 @@ const { DEFAULT_LICHESS_OFFSET, OPPONENT_LICHESS_OFFSET, defaultMaiaElo } = awai
 if (!(OPPONENT_LICHESS_OFFSET > DEFAULT_LICHESS_OFFSET)) throw new Error("the app no longer reads the opponents at a larger offset than the player: the paper says it does")
 if (!events.every((e) => e.band === defaultMaiaElo(e.rating, DEFAULT_LICHESS_OFFSET))) throw new Error("the recorded events were not priced at the player's offset for both sides: the paper says they were")
 g.def('PlayerOffset', String(DEFAULT_LICHESS_OFFSET)).def('OpponentOffset', String(OPPONENT_LICHESS_OFFSET))
+// The split is the one the player-offsets project kept, whose held-out opponents' moves it predicts better.
+const split = json(join(projectDir('maia-player-offsets'), 'results', 'offsets.json'))
+if (!(split.kept?.him === DEFAULT_LICHESS_OFFSET && split.kept?.opp === OPPONENT_LICHESS_OFFSET && split.tests[split.adopted]?.bySide?.opponents?.interval95?.[0] > 0)) throw new Error("the app's offsets are not the player-offsets project's split, or it no longer predicts the opponents' moves better: the paper says both")
 
 // The secondary outcome on all replies, where it does not beat the base rate for the player's errors.
 const allPlayerE2 = results['ALL|player-err'].e2

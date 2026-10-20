@@ -9,7 +9,10 @@ before a review is built on it?
 
 **The answer.** Yes, by the rule below, in both directions (the player's errors
 and the opponents') and on both sets of replies. The review service prices
-every error with these odds (the app's `src/services/review/punish.ts`). The
+every error with these odds (the app's `src/services/review/punish.ts`), and
+since [`maia-player-offsets`](../maia-player-offsets/) it reads his opponents'
+replies at a higher band than this check did; the lab's rerun on evidence
+rebuilt on that app, priced the same way, reaches the same verdicts. The
 numbers are in the paper, [`paper/paper.pdf`](paper/paper.pdf), and the lab's
 reproduction of them in [`results/reproduction.md`](results/reproduction.md).
 

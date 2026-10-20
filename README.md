@@ -32,9 +32,9 @@ Two kinds of work live here:
 
 | Project | The question | What the app took |
 |---|---|---|
-| [maia-rating-offset](projects/maia-rating-offset/) ([paper](projects/maia-rating-offset/paper/paper.pdf)) | Which chess.com-to-Lichess rating offset makes Maia-2 most likely to play the moves in the player's games? | Confirmed: the app's +250 stays |
+| [maia-rating-offset](projects/maia-rating-offset/) ([paper](projects/maia-rating-offset/paper/paper.pdf)) | Which chess.com-to-Lichess rating offset makes Maia-2 most likely to play the moves in the player's games? | Confirmed: the app's +250 stays as the one offset, and stays the player's own since the side split below |
 | [maia-player-offsets](projects/maia-player-offsets/) ([paper source](projects/maia-player-offsets/paper/paper.tex)) | Do separate player and opponent offsets, or an offset that changes with rating, predict held-out moves better while keeping the punish odds calibrated? | Shipped (chess PR 132): the player stays at +250 and his opponents are read at +400 in the punish odds and the lesson defenses; both candidates improved move likelihood and passed the punish guard, and the rule chose the side split |
-| [maia-calibration](projects/maia-calibration/) ([paper](projects/maia-calibration/paper/paper.pdf)) | Does a temperature for each Maia band, fitted on Lichess, make its probabilities truer on the player's games? | Not adopted: it helps on Lichess and hurts on the player's games, where Maia-2 is already about as confident as it is right |
+| [maia-calibration](projects/maia-calibration/) ([paper](projects/maia-calibration/paper/paper.pdf)) | Does a temperature for each Maia band, fitted on Lichess, make its probabilities truer on the player's games? | Not adopted: it helps on Lichess and hurts on the player's games and the punish odds, where Maia-2 is already about as confident as it is right |
 
 ### The coach and the training
 
@@ -130,7 +130,7 @@ metrics.
 - **Maia-2 benchmark** ([report](reports/maia_benchmark.md)). Maia-2's rating-conditioned move
   prediction, scored on rated rapid games from June 2025, well after its training data ends, with
   Maia's own evaluation filters. Its accuracy lands near the published figures. On Lichess its
-  confidence runs a little above its accuracy; on the player's games, at the app's rating offset, it
+  confidence runs a little above its accuracy; on the player's games, at the app's rating offsets, it
   does not ([maia-calibration](projects/maia-calibration/)).
 - **Graded-opponent scorer** ([report](reports/graded_opponent.md)). Stockfish finds the moves that
   give away more than 10 points of win%, and Maia-2 gives the chance that a player at a band, or 200
@@ -196,7 +196,8 @@ committed.
 ## Open issues
 
 - [#2](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/2): calibrate the hazard model
-  for chess.com ratings (the rating offset for Maia-2 is settled by maia-rating-offset).
+  for chess.com ratings (the rating offsets for Maia-2 are settled by maia-rating-offset and
+  maia-player-offsets).
 - [#3](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/3): scale the Lichess run to
   production sample caps.
 - [#4](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/4): the neural hazard head, kept

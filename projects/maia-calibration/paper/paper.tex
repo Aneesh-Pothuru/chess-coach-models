@@ -15,8 +15,8 @@ The coaching app reads Maia-2's probabilities as chances: the odds that a mistak
 how findable a move is, the moves its Maia bot samples. The lab's benchmark found Maia-2 more
 confident than right on Lichess in every band. We fitted a temperature for each band on
 \FitMoves{} Lichess moves and tested it by a rule fixed before any number was computed. It
-improves the held-out Lichess moves and does not hurt the punish odds, but it makes the player's
-own games less likely, so it is not adopted. On his games, at the rating offsets the app uses,
+improves the held-out Lichess moves, but it makes the player's own games less likely and the
+punish odds worse, so it is not adopted. On his games, at the rating offsets the app uses,
 Maia-2 is already about as sure as it is right, and softening it makes it less sure than right.
 The app keeps the raw policy. Scored by the app's own Maia-2, the Lichess sample also reproduces
 the benchmark's first-choice count exactly.
@@ -77,14 +77,15 @@ reply was played, does not rise.
 
 \section{Results}
 
-Not adopted: the temperatures pass the first and third tests and fail the second
+Not adopted: the temperatures pass the first test and fail the second and the third
 (Table~\ref{tab:tests}). Fitted on Lichess, every band's temperature is above one, from
 \TempMin{} to \TempMax{} (Figure~\ref{fig:temps}), so every band is softened; each had at least
 \FitMovesMin{} fitting moves. On the Lichess held-out half, the softer policy raises the mean
 log-likelihood of the moves played by \TestOneDiff{} per move \TestOneCI. On the player's games
-it lowers it by \TestTwoLoss{} per move \TestTwoLossCI, and the rule stops there. On the punish
-events the Brier score moves from \PunishRaw{} to \PunishTempered, a rise of \TestThreeDiff{}
-\TestThreeCI{} whose interval holds zero, so the third test passes.
+it lowers it by \TestTwoLoss{} per move \TestTwoLossCI, and the rule stops there. The punish
+events fail too: their Brier score rises from \PunishRaw{} to \PunishTempered, by \TestThreeDiff{}
+\TestThreeCI, an interval entirely above zero. On all non-book replies the rise,
+\TestThreeAllDiff{} \TestThreeAllCI, holds zero.
 
 \begin{table}[!htbp]
 \centering\scriptsize
@@ -108,10 +109,11 @@ band's policy is softened.}
 Maia-2's mean probability of its first choice with how often that choice is the move played. On
 the Lichess held-out half Maia-2 is more confident than right in every band, by \LichGapMin{} to
 \LichGapMax{} points, and the temperature brings that to between \LichTGapMin{} and
-\LichTGapMax. On the player's games there is little to correct: in the bands he and his opponents
+\LichTGapMax. On the player's games there is less to correct: in the bands he and his opponents
 occupy (\HisBandLow{} to \HisBandHigh), the gap runs from \HisGapMin{} to \HisGapMax{} points,
-smaller in every band than the smallest on Lichess, and softening turns it into
-underconfidence of \HisTGapMin{} to \HisTGapMax{} points. One reading, not tested here: the
+and over all his games' moves it is \HisGapAll{} points against \LichGapAll{} on the Lichess
+held-out half. Softening turns every band of his games underconfident, by up to \HisTGapMax{}
+points. One reading, not tested here: the
 rating offsets were chosen on these games for the same likelihood, and a higher band is a sharper
 policy, so the offsets already set how sure Maia-2 is about them.
 

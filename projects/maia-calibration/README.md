@@ -9,10 +9,11 @@ the move played. Does a temperature for each band, fitted on Lichess games,
 make the probabilities truer on the player's own games?
 
 **The answer.** Not adopted. Fitted on Lichess, every band's temperature
-softens Maia-2, and that improves the held-out Lichess moves and leaves the
-punish odds' Brier score within noise, but it makes the player's own games
-less likely: on his games, at the app's offset, Maia-2 is already about as
-sure as it is right. Scored by the app's Maia-2, the Lichess sample also
+softens Maia-2, and that improves the held-out Lichess moves, but it makes the
+player's own games less likely and the punish odds' Brier score worse: on his
+games, at the app's offsets, Maia-2 is already about as sure as it is right.
+(Before the app read his opponents at their own offset, the punish odds' rise
+held zero; at the split, on evidence rebuilt for it, it does not.) Scored by the app's Maia-2, the Lichess sample also
 gives exactly the benchmark's first-choice count. The numbers are in the
 paper, [`paper/paper.pdf`](paper/paper.pdf), and the script's report,
 [`results/calibration.md`](results/calibration.md).
