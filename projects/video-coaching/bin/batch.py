@@ -320,7 +320,9 @@ def cmd_controls(args):
             j = subprocess.run([sys.executable, os.path.join(BIN, 'judge.py'), os.path.join(CASES, i), base, '--control', 'same'], capture_output=True, text=True)
             log(other, f'{i} control same: {j.stdout.strip() or j.stderr.strip()[-300:]}')
         wb, wc = spoken_words(base), spoken_words(cand)
-        extra = max(MIN_DECOY_WORDS, (wc - wb) if (wb and wc) else MIN_DECOY_WORDS)
+        if not (wb and wc):
+            continue
+        extra = max(MIN_DECOY_WORDS, wc - wb)
         if not os.path.exists(os.path.join(base, 'decoy', f'{i}.video.json')):
             d = subprocess.run([sys.executable, os.path.join(BIN, 'decoy.py'), os.path.join(CASES, i), base, '--words', str(extra)], capture_output=True, text=True)
             log(other, f'{i} decoy +{extra} words: {d.stdout.strip() or d.stderr.strip()[-300:]}')
