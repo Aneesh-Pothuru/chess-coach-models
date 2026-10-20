@@ -9,10 +9,21 @@ export const BUDGET = 'check'
 export const MARGIN = 1
 export const DRAWS = 2000
 export const SEED = 20261018
+export const BASE_SECONDS = 600
+export const CLOCK_SLACK = 60
 
-export function tenMinutes(game, parseTimeControl) {
-  const tc = parseTimeControl(typeof game.time_control === 'string' ? game.time_control : null)
-  return tc !== null && tc.base === 600 && tc.inc === 0
+export function tenMinutes(game, timeControlOf) {
+  const tc = timeControlOf(game)
+  return tc.base === BASE_SECONDS && tc.inc === 0
+}
+
+export function clocksSayTenMinutes(game) {
+  const clocks = Array.isArray(game.clocks) ? game.clocks : []
+  if (clocks.length < 2 || clocks.some((x) => typeof x !== 'number')) return false
+  return [0, 1].every((side) => {
+    const own = clocks.filter((_, i) => i % 2 === side)
+    return own[0] <= BASE_SECONDS && own[0] >= BASE_SECONDS - CLOCK_SLACK && own.every((x, i) => i === 0 || x <= own[i - 1])
+  })
 }
 
 export function gitCommit(dir) {

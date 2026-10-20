@@ -1,14 +1,14 @@
 import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { CHESS_DIR, chess, privateDir, resultsDir } from '../../bridge/lib/chess.mjs'
-import { gitCommit, PROJECT, DECOY_DROP, tenMinutes } from './lib.mjs'
+import { gitCommit, PROJECT, DECOY_DROP, clocksSayTenMinutes, tenMinutes } from './lib.mjs'
 
 const N = await chess('src/adapters/node/engine/index.ts')
 const E = await chess('src/services/engine/index.ts')
 const Sc = await chess('src/core/score/index.ts')
 const C = await chess('src/core/chess/index.ts')
 const K = await chess('src/services/knowledge/index.ts')
-const { parseTimeControl } = await chess('src/core/game/index.ts')
+const { timeControlOf } = await chess('tools/coach-review/rule-metrics.cjs')
 const { ARCHIVE_SUBDIR, loadArchiveGames } = await chess('src/adapters/node/archive/days.ts')
 
 const engine = N.createNodeEngine({ root: CHESS_DIR, tablebase: false, evalCache: false })
@@ -33,7 +33,7 @@ function moveOf(fen, san) {
 const all = loadArchiveGames({ dir: join(CHESS_DIR, ARCHIVE_SUBDIR) })
 const games = all
   .filter((g) => {
-    if (!tenMinutes(g, parseTimeControl)) {
+    if (!tenMinutes(g, timeControlOf)) {
       skip('game: not 10|0')
       return false
     }
@@ -41,6 +41,12 @@ const games = all
   })
   .sort((a, b) => a.endTime - b.endTime)
 const trainGames = Math.floor((games.length * 2) / 3)
+const unstated = games.filter((g) => typeof g.time_control !== 'string')
+const cohort = {
+  stated: games.length - unstated.length,
+  unstated: unstated.length,
+  unstatedClocksTenMinutes: unstated.filter(clocksSayTenMinutes).length,
+}
 
 const positions = []
 let examined = 0
@@ -139,6 +145,7 @@ const count = (f) => positions.filter(f).length
 const summary = {
   app: { commit: gitCommit(CHESS_DIR), archive: ARCHIVE_SUBDIR },
   games: games.length,
+  cohort,
   trainGames,
   heldoutGames: games.length - trainGames,
   examined,

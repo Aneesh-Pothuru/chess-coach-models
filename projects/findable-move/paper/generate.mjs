@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url'
 import { Chess } from 'chess.js'
 import { chess, privateDir, resultsDir } from '../../../bridge/lib/chess.mjs'
 import { Generated, fixed, line, movesTex, percent, word } from '../../paper.mjs'
-import { DRAWS, PROJECT, ROLLOUTS, readJsonl } from '../lib.mjs'
+import { CLOCK_SLACK, DRAWS, PROJECT, ROLLOUTS, readJsonl } from '../lib.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const E = await chess('src/services/engine/index.ts')
@@ -41,6 +41,10 @@ const S = setup.skipped
 const same = (S['turning: the move he would find is the best'] ?? 0) + (S['plan: the move he would find is the best'] ?? 0)
 const withTwo = setup.examined - (S['plan: fewer than 2 candidates'] ?? 0) - (S['turning: fewer than 2 candidates'] ?? 0)
 g.def('Games', String(setup.games)).def('TrainGames', String(setup.trainGames)).def('HeldoutGames', String(setup.heldoutGames))
+const cohort = setup.cohort
+claim(cohort && cohort.stated + cohort.unstated === setup.games, 'the games with and without a stated time control add up')
+claim(cohort.unstated > 0 && cohort.unstatedClocksTenMinutes === cohort.unstated, 'the clocks of every game with no stated time control agree with ten minutes and no increment')
+g.def('Unstated', String(cohort.unstated)).def('ClockSlack', String(CLOCK_SLACK))
 g.def('Examined', count(setup.examined)).def('WithTwo', count(withTwo)).def('SameAsBest', count(same)).def('SameAsBestPct', percent(same / withTwo, 0))
 g.def('Entering', String(setup.entering)).def('Turning', String(setup.byKind.turning)).def('Plans', String(setup.byKind.plan))
 g.def('TrainPositions', String(setup.bySplit.train)).def('HeldoutPositions', String(setup.bySplit.heldout))

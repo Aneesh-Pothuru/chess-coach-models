@@ -17,7 +17,7 @@ Means in win% with 95% intervals from 2,000 bootstrap draws over games. The rule
 
 - The engine's root gap B − F: 1.01 (0.94 to 1.08) win%; in human hands, −D_F: 1.27 (0.34 to 2.21).
 - Share of positions where F scores above B: 0.4401.
-- F over the move he played, at turning points: 14.64 (12.81 to 16.44) win%.
+- F over the move he played, at the 338 turning points where he played neither B nor F: 14.64 (12.81 to 16.44) win%.
 - Maia-2 at his band plays B 0.0911 and F 0.3318 of the time (means).
 - D_F by the best move's kind: quiet -0.85 (-1.85 to 0.16); forcing -3.24 (-6.17 to -0.44).
 - D_F by position: turning -1.55 (-2.86 to -0.29); plan -0.68 (-2.05 to 0.66).

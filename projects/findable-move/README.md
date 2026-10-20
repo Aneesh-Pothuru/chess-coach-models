@@ -17,8 +17,9 @@ no trap the engine missed. Neither "holds up" (a cost above one win% is not
 ruled out) nor "the engine's best is worth the trouble" (a cost above one win%
 is not shown) was met. The cost is clearest when the engine's best is forcing,
 a capture or a check, and may be nothing when it is quiet, a split described
-but not tested. At his turning points, the move he would find scores far above
-the move he played. The numbers are in
+but not tested. At his turning points where he played neither the engine's
+best nor the move he would find, the move he would find scores far above the
+move he played. The numbers are in
 [`results/findable-move.md`](results/findable-move.md), written by
 `analyze.mjs`, and the paper, [`paper/paper.pdf`](paper/paper.pdf).
 
@@ -30,7 +31,13 @@ calculation.
 ## The positions
 
 His 10-minute games (600 seconds, no increment) in the app's archive at the
-pinned commit (`bridge/chess.json`), read through the archive service. Two
+pinned commit (`bridge/chess.json`), read through the archive service. A game
+whose record states no time control counts as 10 minutes with no increment,
+as the app's routines read it (`timeControlOf` in
+`tools/coach-review/rule-metrics.cjs`). `positions.mjs` counts those games
+and checks that their clocks agree: each side's first reading lies within
+`CLOCK_SLACK` seconds below 600 and never rises (`cohort` in
+[`results/positions.json`](results/positions.json)). Two
 kinds of position, both with him to move:
 
 - **Turning points** (`deep`): the review's teaching moments, with up to five

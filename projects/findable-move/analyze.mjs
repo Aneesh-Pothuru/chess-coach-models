@@ -158,7 +158,7 @@ const md = [
   '',
   `- The engine's root gap B − F: ${ci(report.described.all.rootGap)} win%; in human hands, −D_F: ${ci(report.described.all.minusDF)}.`,
   `- Share of positions where F scores above B: ${report.described.all.shareFAhead}.`,
-  `- F over the move he played, at turning points: ${ci(report.described.all.fOverPlayed)} win%.`,
+  `- F over the move he played, at the ${report.described.all.fOverPlayed.n} turning points where he played neither B nor F: ${ci(report.described.all.fOverPlayed)} win%.`,
   `- Maia-2 at his band plays B ${report.described.all.meanPHisBest} and F ${report.described.all.meanPHisFindable} of the time (means).`,
   `- D_F by the best move's kind: ${Object.entries(report.described.all.byBestKind).map(([k, v]) => `${k} ${ci(v)}`).join('; ')}.`,
   `- D_F by position: ${Object.entries(report.described.all.byKind).map(([k, v]) => `${k} ${ci(v)}`).join('; ')}.`,

@@ -22,7 +22,8 @@ before the run the verdict is \emph{\Verdict}: a cost of more than \Margin{} win
 ruled out nor shown. Over both sets it cost \MinusDF{} win\% in human hands, against the
 \RootGap{} the engine's own evaluation says it gives up: no hidden practical edge, and no hidden
 trap. The cost is clearest when the engine's best is forcing and may be nothing when it is quiet.
-At his turning points the move he would find scores \FOverP{} win\% above the move he played.
+Among those positions, at the \FOverPN{} turning points where he played neither move, the move he
+would find scores \FOverP{} win\% above the one he played.
 \end{abstract}
 
 \section{The question}
@@ -49,7 +50,10 @@ The question is whether F, played on by people at these bands, scores as well as
 
 \paragraph{The positions.} His 10-minute games (no increment) in the app's archive at commit
 \texttt{\AppCommit}: \Games{} games, in order of their end time, the earlier two thirds
-(\TrainGames) for training and the later third (\HeldoutGames) held out. Nothing is fitted, so
+(\TrainGames) for training and the later third (\HeldoutGames) held out. \Unstated{} of the games
+state no time control in their record; the app reads such a game as ten minutes with no
+increment, and the clocks of every one agree: each side's first reading lies within
+\ClockSlack{} seconds below ten minutes, and neither side ever gains time. Nothing is fitted, so
 the two sets are two replications. Two kinds of position, both with him to move: the review's
 turning points, with up to five engine lines from the routine's deep search, and its plan
 checkpoints, with up to three. The candidates are the first moves of those lines, each with its
