@@ -4,7 +4,7 @@
 
 ## Controls
 
-- The referee tells moves apart: passed. His move minus a random move: first half 36.3 (30.8 to 42.0), second half 37.6 (31.7 to 43.4) points; the strong player's move minus a random move 51.7 (48.6 to 54.7) points.
+- The referee tells moves apart: passed. His move minus a random move: first half 36.3 (30.8 to 42.0), second half 37.6 (31.7 to 43.4) points; the strong player's move minus a random move 51.8 (48.9 to 54.9) points.
 - Null: passed. A second random move against the first: first half -1.4 (-5.6 to 2.9), second half -2.4 (-6.2 to 1.6) points.
 
 ## His positions: the share of each arm's moves that are sound (%)
@@ -20,7 +20,7 @@
 |---|---|---|---|---|
 | First half | 9.2 (6.7 to 12.0) | 7.5 (6.1 to 9.2) | 7.1 (5.7 to 8.9) | |
 | Second half | 8.1 (5.8 to 10.7) | 6.1 (4.9 to 7.5) | 5.9 (4.7 to 7.3) | |
-| Strong players | | | | 11.7 (9.8 to 13.5) |
+| Strong players | | | | 11.5 (9.7 to 13.4) |
 
 ## By structure, halves pooled (%)
 
@@ -58,7 +58,7 @@
 
 ## Strong players' positions (%)
 
-Over 1200 positions: B 22.8 (20.5 to 25.1), S 68.8 (66.1 to 71.4), R 17.0 (14.9 to 19.2), R2 17.6 (15.4 to 19.7); B minus S -46.0 (-49.2 to -42.8) points.
+Over 1200 positions: B 22.5 (20.3 to 24.7), S 68.9 (66.3 to 71.5), R 17.1 (15.0 to 19.2), R2 17.9 (15.8 to 20.1); B minus S -46.5 (-49.7 to -43.4) points.
 
 ## The win% given up, and the share of breaks that are the referee's best
 
@@ -66,4 +66,4 @@ Over 1200 positions: B 22.8 (20.5 to 25.1), S 68.8 (66.1 to 71.4), R 17.0 (14.9 
 |---|---|---|---|
 | First half | 15.41 (13.51 to 17.34) | 5.61 (4.82 to 6.46) | 8.5 (5.5 to 11.8) |
 | Second half | 15.35 (13.57 to 17.19) | 5.48 (4.48 to 6.68) | 6.0 (3.8 to 8.5) |
-| Strong players | 13.42 (12.72 to 14.13) | 3.09 (2.80 to 3.37) | 8.8 (7.4 to 10.4) |
+| Strong players | 13.45 (12.77 to 14.15) | 3.09 (2.81 to 3.39) | 8.5 (7.1 to 10.0) |
