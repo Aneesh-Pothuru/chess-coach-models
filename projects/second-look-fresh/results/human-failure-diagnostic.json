@@ -1,0 +1,145 @@
+{
+  "schema": "second-look-fresh-preserved-human-failure-diagnostic/1",
+  "appCommit": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+  "recordsCommit": "aed714ada579782ce73630596e59c8b65e74cb30",
+  "casesSha256": "ba26913e6c35403b132b614029216ff6209f6231c83a0fb8381140fcc9250ed6",
+  "candidateSha256": "8f1d16bc8d412dd2f9584c6eec3aea82ac3eefa22d15aed9be4ff6b05f0e89e1",
+  "designSha256": "9bcb9d0512a763dd352dab9d8585988a02160fe7abda3b478585c688a2dc1161",
+  "amendmentSha256": "c301bc3e56ec45b233b3868d231e4e602719e97bfab511468058359a4cab2c54",
+  "stoppedAcquisitionManifestSha256": "80627e461645b670f18b38cce57f78f5d956deb7d360b2167cb20f920796b931",
+  "originalAmendedRunLogSha256": "ffd335411cfb276d544857f321af71c11e6e9d2dcac7370b107559396063d8ad",
+  "classifierSha256": "aeecc796086692c13fde1f593e4df44553300259f23a06eaa3ac809cfa90cd5f",
+  "generatorSha256": "720c09c911f4ec89f43a16022b76a70ed96971ae991a10aeb5d73ebcf5e47a05",
+  "sourceProof": {
+    "schema": "second-look-fresh-human-failure-sources/1",
+    "appCommit": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+    "hashes": {
+      "src/services/review/pipeline/run.ts": "688b4ce947ce43660c58674f62f789245ef79ee089cca3b7c17965d62e1d462b",
+      "src/services/review/pipeline/teaching.ts": "bd1e208f79ade3b9ed7cdb90eb8e3ed5b2aedeccc9dcfcf1b372720bdb91f009",
+      "src/services/review/pipeline/evidence.ts": "de7daaa2e8d6a987955bd745e0e107fcbdcdfc361af176d3b610ca54cfd0400f",
+      "src/services/review/pipeline/rebuild.ts": "325c0f1b819b5f2a28efa493878f4d9e543cc326dd642b84d62b62bd485ae545",
+      "src/services/review/pipeline/defenses.ts": "f5d36721d84043087c502bd6a0358f345dfb10cba2cef25d07133b796a15446c",
+      "src/services/review/pipeline/captures.ts": "5be1d5231f629b7691ea69f076c0a06efe49ac399dbf5125aa1b4669a22f69fd",
+      "src/services/review/punish.ts": "8ed184d68bb20340a2197d8c8b9a06214041e9679f87e0e6676a686ec43c6d9a",
+      "src/services/review/moments.ts": "a813308f15237c1f373198db070c53f1173db54acca5d29c61d310c3eb3a4497",
+      "src/services/review/profiles.ts": "79c6d83c9a7b812be23a55d3bdc372cb968567b50caf2d5562f3558db7d50e47",
+      "src/services/engine/budgets.ts": "f142b5a837c87943da9e256358de8acfbbc30891c0f725bec494c9157435f099",
+      "src/services/engine/service.ts": "19a969de3d80fd6971ccb593d25a4b8e58a4fbab4fdd21ae1a55fe67a38662c9",
+      "src/services/engine/uci/session.ts": "24d0f36e968eedc46b6ac349797c620904dadcdf9c6bd4157781dc7ee7795a64",
+      "src/adapters/node/engine/index.ts": "82105d615d8526b1449448259372f9ae60fc19a1ecd0ba4a31a22902cd0b61c4"
+    },
+    "candidatePostVerificationUnchanged": true,
+    "sourceSetSha256": "2aa7e8b98ddf0df747120f2ae87cf56bfe8d79404850a73052ccbcf32075bc1a"
+  },
+  "sourceAnchors": [
+    {
+      "path": "src/services/review/punish.ts",
+      "line": 61,
+      "purpose": "A caught human-policy failure disables the persistent policy object."
+    },
+    {
+      "path": "src/services/review/pipeline/run.ts",
+      "line": 286,
+      "purpose": "Human policy is primed before teaching."
+    },
+    {
+      "path": "src/services/review/pipeline/run.ts",
+      "line": 297,
+      "purpose": "Teaching receives punishment odds only when policy priming succeeds."
+    },
+    {
+      "path": "src/services/review/pipeline/teaching.ts",
+      "line": 204,
+      "purpose": "The optional policy changes the teaching-selection input."
+    },
+    {
+      "path": "src/services/review/pipeline/teaching.ts",
+      "line": 205,
+      "purpose": "Teaching targets are selected before the teaching-search loop."
+    },
+    {
+      "path": "src/services/review/pipeline/teaching.ts",
+      "line": 220,
+      "purpose": "A teaching search can replace retained deep evidence at its target."
+    },
+    {
+      "path": "src/services/review/pipeline/rebuild.ts",
+      "line": 119,
+      "purpose": "Record refinement reads that position’s retained deep evidence."
+    },
+    {
+      "path": "src/services/review/pipeline/rebuild.ts",
+      "line": 262,
+      "purpose": "Earlier stability labels affect explanation text."
+    },
+    {
+      "path": "src/services/review/pipeline/run.ts",
+      "line": 302,
+      "purpose": "The core document is constructed before later auxiliary probes."
+    },
+    {
+      "path": "src/services/review/pipeline/defenses.ts",
+      "line": 29,
+      "purpose": "The later human-policy call belongs to defense probing."
+    }
+  ],
+  "classification": {
+    "schema": "second-look-fresh-human-fallback-classification/1",
+    "accepted": true,
+    "reasons": [],
+    "aggregate": {
+      "pairedReviews": 1,
+      "differingPositionRows": 4,
+      "differingRecordRows": 4,
+      "observedVerificationLooks": 35,
+      "completeObservedVerificationLooks": 35,
+      "canonicalLatestVerificationReadingsEqual": 35,
+      "canonicalVerificationHistoriesEqualIgnoringStability": 35,
+      "untouchedCanonicalVerificationEvidenceExactlyEqual": 31,
+      "earlierStabilityLabelsNotRetainedAfterTeaching": 4,
+      "failedEngineCalls": 0,
+      "failedHumanPolicyCalls": 2,
+      "failedHumanPolicyCallsBeforeTeaching": 1,
+      "failedHumanPolicyCallsAfterTeaching": 1,
+      "canonicalTeachingTargets": 4,
+      "replayTeachingTargets": 4,
+      "differingTeachingTargetSlots": 1,
+      "sharedTeachingPrefixEqual": true,
+      "canonicalOnlyTeachingRows": 1,
+      "replayOnlyTeachingRows": 1,
+      "sharedTeachingRowsAfterSubstitution": 2,
+      "unresolvedDifferingRows": 0,
+      "exceptionTextRetained": false
+    },
+    "conclusion": "all differing rows follow the human-policy fallback through changed teaching selection and subsequent teaching searches",
+    "uniqueCausalityProven": false,
+    "limitation": "No canonical raw call trace, hash-memory snapshot, retained exception text or counterfactual replay establishes a unique underlying cause. The later defense failure cannot cause the already-built core document."
+  },
+  "timing": {
+    "replayBeginsAfter": "2026-10-20T10:29:15.881803+00:00",
+    "reproductionFailureAt": "2026-10-20T10:33:10.102064+00:00",
+    "calendarWindowSeconds": 234.221,
+    "monotonicWindowSeconds": 234.21920366724953,
+    "measuredReviewSeconds": 234.11503137500026,
+    "failedHumanCalls": [
+      {
+        "phase": "before teaching",
+        "seconds": 0.08668049999978393
+      },
+      {
+        "phase": "after teaching",
+        "seconds": 0.041598416999913755
+      }
+    ],
+    "callUtcTimestampsAvailable": false,
+    "limitation": "The log lines bound the replay window. Calls retain monotonic durations and ordering, but no individual UTC start or end timestamps."
+  },
+  "noNewSearchOrJudgment": true,
+  "interpretation": [
+    "The first human-policy rejection disables the persistent reply-policy object and removes the punishment-odds callback from teaching. Retained canonical punishment entries show that its policy object remained available.",
+    "Teaching selection changes one target after a shared prefix. The two unshared target rows and the later shared teaching rows account for the final differences. Subsequent teaching searches use the same analyst without a new-game reset.",
+    "The later human-policy rejection is in defense probing after construction of the core document. It cannot cause the differing core rows.",
+    "Earlier stability labels are omitted when evidence enters history. In the frozen source these labels affect explanation text, not teaching selection. The compared reading fields and reconstructed verification histories are unchanged.",
+    "This establishes a downstream control-flow explanation, not a unique underlying failure cause or a counterfactual engine result."
+  ]
+}

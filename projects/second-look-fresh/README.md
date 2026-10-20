@@ -313,6 +313,112 @@ availability and human-model loading can affect runtime. Record failed
 calls and stop on document or replay inconsistencies. No public game id,
 account name, game link or per-game output belongs in this project.
 
+## Second acquisition amendment, approved before the comparison
+
+The first amended batch stopped at a retained observed replay that did not
+reproduce its canonical document. The preserved bytes show that its raw
+verification evidence agrees with the canonical verification history.
+Every differing position and record lies in the later routine teaching
+branch. A failed human-policy call precedes that branch's changed target
+selection and search history. Another failed call comes after document
+construction and cannot explain those core differences. The source and
+byte [diagnosis](results/human-failure-diagnostic.md) is reported separately;
+it runs no engine and computes no
+class, share or verdict.
+
+The reviewer reported heavy outside load on this Mac from 02:00 through
+03:40 Pacific on 20 October 2026, while these replays were running. The old
+trace retained failed-call flags and durations, but not error reasons.
+Load is a plausible acquisition cause, not a proved cause. This amendment
+is approved and committed before another observed replay or any deciding
+metric. Its manifest freezes this section, the preceding amendment, the
+stopped-output manifest and the diagnostic by content hash.
+
+Keep every canonical document, first replay, accepted observation and log
+already produced. Their hashes stay fixed. The frozen baseline and device
+outputs stay fixed too. No output is replaced. Apply the following
+classification to every retained or new amended routine replay, using the
+unchanged equality check on positions, records, coverage and provenance.
+A matching replay is accepted. A mismatch is an infrastructure failure
+only if it recorded failed calls and every differing row is downstream of
+those calls. Otherwise it stops the run.
+
+The downstream test is conservative. It requires equal verification
+readings for every raw look, unchanged coverage and provenance, unchanged
+non-deep position fields, and changed records only at the changed
+positions. The first relevant failure must be an after-verification
+human-policy call before teaching searches. The retained teaching targets,
+their order, evidence histories and calls must account for every changed
+row: a target selected on only one side, or a common target reached after
+the teaching histories have diverged. A shared teaching prefix must agree.
+Each final reading must belong to its side's retained verification or
+teaching history. Any unaccounted row, earlier engine failure, or missing
+dependency evidence stops the run. Source hashes bind this explanation to
+the measured app. This is a source and data dependency test; it does not
+claim a unique counterfactual cause.
+
+For this source path, require exactly one target substitution, equal
+target counts and an equal shared teaching prefix. The canonical
+punishment entries must establish policy availability, while the replay
+records its absence. Require complete raw verification readings, equal
+retained verification histories apart from stability labels discarded by
+teaching, and exactly equal evidence at the last verification event.
+These are conservative refusal conditions for the dependency diagnosis.
+They do not authorize a retry because a reading is incomplete.
+
+An infrastructure failure receives exactly one further observed replay of
+the same game, after the quiet gate below. Keep the rejected first replay
+in place and save the additional output separately before testing it.
+Retain every failed call's error name, message, stack and cause when
+provided, privately, along with call order, stage and timestamps. If the
+additional replay reproduces the canonical document exactly, its bytes
+become the accepted observation and both attempts are reported. Any
+additional mismatch or acquisition failure stops the run; there is no
+third attempt. A process interruption with no completed output is
+inspected before resumption, never silently retried. Completeness, a
+class, a share and the direction of a comparison cannot authorize a retry.
+
+First run the one eligible retry, then the ten unmade first replays in
+frozen game order, one game at a time. The same classification applies to
+each new first replay. Before each replay, require no active
+`npm run verify:pr` or `vitest` process anywhere on the machine and a
+one-minute load average strictly below 6 for five continuous minutes.
+Sample every five seconds. A blocking process, load at or above the limit,
+failed scan, sampling gap over fifteen seconds, or clock drift over two
+seconds restarts the window. Keep the readings and a hashed receipt
+privately. A passed gate does not reserve the machine against later work.
+Run detached with file logs, nice 10 and at most two heavy processes.
+
+Report every first replay and additional replay separately, with its
+acceptance, failure classification and elapsed time. Mark any replay whose
+measured interval overlaps 02:00--03:40 Pacific on that date as measured
+under heavy outside load. Keep first-pass and retry timing summaries
+separate, and distinguish loaded first-pass times from later quiet-gated
+times. The registered analysis uses the accepted observation for each
+game; explicitly label any timing aggregate that includes an accepted
+retry. Do not silently pool first and additional attempts or substitute
+quiet times for the loaded first-pass measurements.
+
+The lab pin advanced after this study's acquisition. The study continues
+to use its frozen app and records, not the newer lab pin. An isolated
+execution directory inside this project's private namespace contains
+byte-identical copies of the registered measurement and bridge files and
+a study pin with the app and records identities in the design manifest.
+Its cache and data links resolve only inside this clone. It records the
+copied files and binding by content hash, verifies the original design,
+candidate and determinism checks, and leaves the lab pin untouched.
+No candidate, canonical document or phase-one search is rebuilt for this
+path binding.
+
+All prior checks remain, including exact reproduction and the immutable
+stopped manifests. Only the approved additional observation can satisfy
+the observation requirement after a classified infrastructure failure.
+When all sixty observations are accepted, run the registered reference
+and analysis scripts without changing them. The sets, evidence treatment,
+budgets, estimator, bootstrap and decision rule do not change. Report the
+result, then stop before changing the README's answer or the paper's
+conclusions. The app port remains separate.
+
 ## Files
 
 | File | What it does |
@@ -337,6 +443,12 @@ account name, game link or per-game output belongs in this project.
 | `acquisition-report.mjs` | Write descriptive incompleteness counts by arm, profile and original or rebuilt routine batch, with missing observed coverage explicit. |
 | `acquisition-status.mjs` | Write the stopped acquisition audit, verify all frozen and first outputs, and refuse active workers or deciding outputs. |
 | `replay-diagnostic.mjs` | Aggregate reproduction differences, evidence availability and failed calls in retained rejected first replays; compute no chess verdict. |
+| `human-failure-diagnostic.mjs`, `generate-human-failure-diagnostic.mjs` | Check the preserved mismatch against the measured app's teaching dependencies; retain exact row locations privately and publish only aggregates. |
+| `second-amendment-manifest.json`, `second-amendment-code.json` | Freeze the second acquisition protocol, diagnostic, stopped outputs, execution binding and new acquisition source by content hash. |
+| `frozen-runtime.mjs` | Bind unchanged measurement files to the original study pin inside this clone, without rebuilding or moving the lab pin. |
+| `second-amendment.mjs`, `second-probe-source.mjs` | Preserve each new observation, retain call errors, apply the approved failure classification and enforce exact reproduction before acceptance. |
+| `quiet.py`, `second-launch.py`, `second-run.py` | Gate each replay on the prescribed quiet window, launch detached with file logs, and run the registered reference and analysis after complete acceptance. |
+| `second-report.mjs` | Report the retained attempts and timing groups, including loaded first passes and quiet-gated retries, without changing the analysis. |
 | `paper/` | The paper, generated quantities, table formatter and claim checks. |
 
 ## The stopped acquisition
@@ -455,3 +567,36 @@ report, checks its prose claims and the frozen content manifests, and
 refuses if the recorded failure or absent deciding outputs change.
 The manifests survive a rebase of the lab branch. The app pin and records
 commit still identify the inputs. No PDF is built.
+
+## Running the second acquisition amendment
+
+The earlier stopped report and its commands describe the preserved first
+amended run. The second amendment above is the sole authorization for a
+further observation. Its diagnostic can be regenerated from the same bytes:
+
+```bash
+CHESS_DIR="$PWD/.cache/chess/f4bd63f19b343f686fb97ea4cf70b211c0bddc0a" \
+  bridge/run.sh projects/second-look-fresh/generate-human-failure-diagnostic.mjs --preserved
+```
+
+After its protocol and source manifests are committed, launch:
+
+```bash
+.venv/bin/python projects/second-look-fresh/second-launch.py --phase2
+```
+
+The launcher prints its PID and private log paths. The driver first checks
+the private execution binding and all frozen output hashes. It runs one
+prescribed observation after each fresh quiet receipt, saves and classifies
+it, then checks all sixty accepted observations. Only then does it run
+the original `reference.mjs --phase2 --shard 0/2` and `--shard 1/2`
+at nice 10, followed by the original `analyze.mjs --phase2`.
+It writes no README answer, paper conclusion, commit, push or app port.
+
+Logs, quiet receipts, exclusive attempt-start records, every produced
+observation and classifications live under
+`private/second-look-fresh/second-acquisition/`. A process interruption
+after an attempt-start record blocks another search until inspected.
+An already produced observation is recovered from its retained bytes.
+Reference checkpoints resume as registered. The old launcher is not used
+to bypass this amendment's gate.
