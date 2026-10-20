@@ -326,8 +326,10 @@ g.def('BreakDFirst', fixed(breakRel[0].meanD, 1)).def('BreakDSecond', fixed(brea
 const retreatRel = byKind.retreat.halves.map((h) => h.under)
 g.def('RetreatDFirst', fixed(retreatRel[0].meanD, 1)).def('RetreatDSecond', fixed(retreatRel[1].meanD, 1)).def('RetreatPerGameFirst', fixed(retreatRel[0].perGame, 2)).def('RetreatPerGameSecond', fixed(retreatRel[1].perGame, 2))
 const checkRel = byKind.check.halves.map((h) => h.over)
+const checkRef = byKind.check.halves.map((h) => h.ref)
 g.def('CheckDFirst', fixed(checkRel[0].meanD, 1)).def('CheckDSecond', fixed(checkRel[1].meanD, 1))
-claim(checkRel.every((h, i) => h.meanD < A[i].differMeanD), 'his extra checks give up less on average than his other differences')
+g.def('CheckRefFirst', fixed(checkRef[0].meanD, 1)).def('CheckRefSecond', fixed(checkRef[1].meanD, 1))
+claim(checkRel.every((h, i) => h.meanD < checkRef[i].meanD), 'his extra checks give up less on average than his other differences, the check reference')
 
 claim(byKind['pawn-break'].halves.every((h) => h.R >= 1.4 && h.R <= 1.7), 'pawn breaks come about half again as often as the band above would play them')
 const size = (k) => byKind[k].halves.map((h) => Math.abs(Math.log(h.R)))
