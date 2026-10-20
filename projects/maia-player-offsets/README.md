@@ -26,6 +26,30 @@ generator writes `paper/generated.tex`. No PDF is built in this run.
 `results/phase1.md` remains the counts and cost projection written before
 effects. The frozen rule below is preserved in `protocol.md`.
 
+## Beside the verdict: lesson defenses
+
+On the same 324 held-out reviews, the app requests a defense policy at 563
+moments, all with the opponent defending. A changes six natural defense
+moves, adds a defense at seven moments and removes one at two. The number
+of emitted probes goes from 247 to 252. Among the 245 paired probes, the
+reported probability changes by a median +1.0 percentage point; the
+quartiles are -0.3 and +3.5, and the range is -8.3 to +14.3. The app applies
+no probability cutoff, so there are no threshold crossings to count.
+
+This is a description beside the verdict, not a new rule or calibration
+test. [`results/defenses.md`](results/defenses.md) separates policy requests,
+selected defenses and emitted probes. `defenses.mts` imports the app's
+pipeline and Node engine, changing only the defender's band to +400 for an
+opponent. The app keeps the modal reply only when its board code calls it a
+qualifying defense, then rounds its probability to three decimals. Missing
+defenses are not assigned zero probability. These replies follow a
+counterfactual better move, so the actual next game move is not their outcome.
+
+The lab's app pin advanced after the main study. `defenses-manifest.json`
+records both app commits, review-input hashes and source hashes; the measured
+defense dependencies match between those commits. The original reviews,
+main rule and verdict are unchanged.
+
 ## The data
 
 The app and records are the commits in `bridge/chess.json`, checked against
@@ -327,6 +351,7 @@ check helps expose that selection but cannot remove it.
 | `protocol.md`, `protocol-manifest.json`, `freeze.mjs` | Approved rule text and reproducible content hashes; fixed before effects. |
 | `tests.mjs` | Synthetic checks for side mapping, ties, Holm, event weighting and the guard; never reads the player's data. |
 | `call-sites.md` | Conversion callers and later port scope. |
+| `defenses.mts`, `defenses-manifest.json`, `launch-defenses.py` | Descriptive lesson-defense comparison, content provenance and detached two-worker launcher. |
 | `results/` | Script-written phase-1 counts, final effects, runtime and execution reports. |
 | `paper/` | Result paper, checked number generator and generated TeX; no PDF build here. |
 
@@ -411,3 +436,21 @@ checked presentation were completed afterward. Obtain the lab's review;
 do not push. All per-game and per-position files stay under
 `private/maia-player-offsets/`; `results/` contains only aggregates written
 by scripts.
+
+The lesson-defense description has its own inputs and detached launcher:
+
+```bash
+bridge/run.sh projects/maia-player-offsets/defenses.mts --prepare
+.venv/bin/python projects/maia-player-offsets/launch-defenses.py
+.venv/bin/python projects/maia-player-offsets/launch-defenses.py --status
+# Once both detached workers complete:
+bridge/run.sh projects/maia-player-offsets/defenses.mts --report
+```
+
+It runs at most two workers at nice 10, with independent sessions and private
+logs. Completed-game checkpoints resume; a second launch is refused while
+recorded workers survive. Reporting replays the app selector on cached app
+readings before writing the two aggregate defense reports. Probability-change
+quartiles use sorted values at index round(q * (n - 1)). The pinned Maia
+weights were copied from the earlier checkout within this clone and verified;
+no download or package installation was needed.
