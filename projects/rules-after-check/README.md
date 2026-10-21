@@ -1,0 +1,165 @@
+# Does a rule of thumb choose better once the tactics are checked?
+
+**The question.** [rules-of-thumb](../rules-of-thumb/) found that no rule of
+thumb chooses a better move than the one a player at his level would naturally
+play: wherever the move a rule points to differs from the natural move, it is
+sound less often, for every rule with enough data. Its held-out examples say
+why. Most of the rule moves that failed lose material by the app's own blunder
+check, and most of the rest pass over a check, a capture or a promotion that
+the natural move took. That run asked each rule to choose the move with no
+tactics checked first. A coach, and several of the app's lessons ("No
+tactics? Improve the piece doing the least."), put the checks, captures and
+threats first and the rule second. So the fair test of such a lesson is the
+rule after the check: in positions with no tactics on the board, and among the
+moves the app's blunder check passes, is the move a rule points to, as players
+at his level would play it, sound as often as the move they would naturally
+play among those same moves?
+
+**The answer.** Not run yet. The rule below is committed before any position
+is read for this question.
+
+If a rule holds after the check, a lesson can teach it as the move to look for
+once nothing is hanging. If it does no better than the natural move, the rule
+explains a move and says where to look, but does not choose one. If it does
+worse, a lesson that teaches it should tell him to compare its move with the
+others before playing it.
+
+## The positions
+
+The positions rules-of-thumb scored, read and never changed: its phase two
+(run `full`, app `f4bd63f19b343f686fb97ea4cf70b211c0bddc0a`, records
+`aed714ada579782ce73630596e59c8b65e74cb30`), for each of the 13 rules with a
+verdict. Lucena and Philidor came up too rarely there and are left out here
+too. Train is July and August 2026 pooled (8,000 positions per rule), held out
+is September 2026 (4,000 per rule): middlegames and endgames from Lichess
+rated games at 10 minutes with no increment, the mover rated 1250 to 1649 on
+Lichess. Each row keeps its FEN, the legal moves that show the rule
+(`ruleMoves`), R, N and the move played, the mover's and the opponent's Maia
+bands, the referee's evidence and the soundness of each move. Its journals
+and the null addition's journals are inputs, checked by content hash before
+the first row is read.
+
+## The check
+
+Two readings, both by the app's knowledge service at app commit
+`3437a711843006926c0804394b9087c5a55d4bcf` (the app's main when this rule was
+written). At `f4bd63f` the blunder check counted the capturing piece of an
+even trade as newly loose, so it flagged every even trade; the app fixed that
+before `3437a71`. Both readings are board code, so they run as their own pass
+and write one record per row.
+
+- **A quiet position**, the "no tactics" of a lesson: the mover is not in
+  check, and `describePosition(fen).threats` gives neither side a mate in one
+  (`mateInOne`) or a winning capture (`winningCaptures`). The positions that
+  are not quiet are counted, and left out of the verdict.
+- **A move passes the check** when `safetyCheck(fen, uci).verdict` is `safe`:
+  the reply cannot mate at once, no piece of the mover's is newly left to be
+  taken for a gain (the capturing piece of an even or winning capture is not
+  counted), and the move deserts no defence.
+
+## The moves compared
+
+In each quiet position, with **S** the legal moves that pass the check and
+**SR** the rule's moves (`ruleMoves`) that pass it:
+
+- **Rs**: the move Maia-2 rates most likely at the mover's band among SR. A
+  quiet position where SR is empty has no rule move after the check: it is
+  counted, and left out of the comparisons below.
+- **Ns**: the move Maia-2 rates most likely at the mover's band among S.
+- **R0s**: with k the size of SR, k moves drawn at random without replacement
+  from S sorted by UCI, by rules-of-thumb's sampler
+  (`sampleWithoutReplacement` with `detect.mjs`'s `seeded()`, keyed by the
+  row's `month:game:rule`, a NUL and `after-check`), and the one of them
+  Maia-2 rates most likely. A rule with no information after the check.
+- N, R and the move played come from the original row.
+
+Ties break as R's did (`score.mjs`'s `pick()`: the higher probability, then
+the UCI that sorts first). Maia-2's policy
+comes from the app's `humanPolicy` at `f4bd63f`, with the bands the original
+scorer asked for; it must reproduce the row's R and N, or the worker stops.
+
+## The referee
+
+As rules-of-thumb's null addition refereed (its `null-readings.md`): with seven
+men or fewer, the row's stored tablebase probe, outcomes compared exactly,
+with no new tablebase request. Otherwise a move that is R, N, the move played
+or the null's R0 keeps its stored soundness, and matching labels must agree.
+Every other move is scored by Stockfish at `grade` through the app at
+`f4bd63f`, once per position: the hash cleared (`newGame()`), evaluation
+caching off, the best searched first with one line, then each new move among
+Rs, Ns and R0s scored and judged against that best by the app's window (3
+win%, `acceptsAlternative`). The share of these positions whose fresh best
+move differs from the stored one is reported.
+
+## The measures
+
+For each rule, on the train months and on the held-out month separately, over
+the quiet positions where SR is not empty:
+
+- **The lift after the check**: S(Rs) minus S(Ns), paired by position, where
+  S is the share sound. This decides.
+- **Against the natural move**: S(Rs) minus S(N), paired by position.
+- **The content after the check**: S(Rs) minus S(R0s), paired by position.
+- **The lift where Rs is not Ns**.
+- **Coverage**: the share of the rule's positions that are quiet, the share of
+  those where SR is not empty, and the shares where Rs is R and Ns is N.
+
+Intervals are 95%, from the bootstrap over games rules-of-thumb used (2,000
+resamples, seed 20261018), every measure of a rule and period sharing the same
+resamples. A ratio with no positions under it stays undefined and is counted,
+never read as 0.
+
+## The rule, fixed before any position is read
+
+**The control comes first.** The check must be able to rescue a rule's move.
+Pooled over the 13 rules, in the quiet positions where R does not pass the
+check and SR is not empty, S(Rs) minus S(R) must have its 95% interval above
+0 on both periods. If it does not, no rule gets a verdict, since a lift this
+design could not see would read as none.
+
+**Then, for each rule**, on both periods:
+
+- the rule **holds after the check** when the lift after the check has its
+  95% interval above 0;
+- it **misleads after the check** when that interval lies below 0;
+- it **does no better than the natural move** otherwise, including when the
+  two periods disagree.
+
+A rule with fewer than 300 held-out quiet positions where SR is not empty gets
+no verdict: "not enough data (n=…)". The content after the check and the
+comparison with N describe, and change no verdict.
+
+**Also reported, without a rule:** each measure over all the rule's positions
+where SR is not empty, quiet or not; the lift after the check in the splits
+of rules-of-thumb that a quiet position leaves open (the mover's material, the
+divider's phase, whether Rs is a capture or a check, and the mover's king
+danger, read as `splitsOf` reads them, at `3437a71`); S(Ns) minus S(N) in
+quiet positions; and for each rule with a verdict, eight held-out quiet positions
+where Rs is not Ns, drawn as rules-of-thumb's examples were (the same sampler,
+keyed by the rule's id and `after-check`), with FEN, Rs, Ns, R, N, the move
+played and the referee's best in SAN, and whether each is sound with its win%.
+The examples are Lichess positions (CC0), committed without a game id or link.
+
+## Caveats
+
+- **Two app commits.** The check is the app's reading now, and Maia-2 and
+  Stockfish are the run's, so every R and N is the one rules-of-thumb scored.
+- **A quiet position by board code.** No mate in one and no winning capture
+  for either side is the app's reading of "no tactics". A deeper tactic, a
+  fork two moves away, still counts as quiet.
+- **One move for a plan.** As in rules-of-thumb, a rule is tested as the next
+  move his level would play for it.
+
+## Who runs it
+
+The scoring needs Maia-2 once per quiet position and Stockfish wherever Rs,
+Ns or R0s is a new move, so it runs on the owner's Mac through the session
+that runs Codex there, like rules-of-thumb. rules-of-thumb's null addition
+took about 25 worker hours, 14 of them in Stockfish, for one new move per
+position. This one scores up to three new moves against one best search, but
+only in quiet positions, so it should take about as long, and at most about
+twice as long. Rows go under `private/rules-after-check/`, which git
+ignores, and only aggregates are committed, by the scripts, then the paper.
+The scripts, their synthetic tests and a content freeze of this rule and of
+the inputs come first, reviewed before the first position is read. No
+language model judges anything.
