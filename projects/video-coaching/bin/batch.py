@@ -443,16 +443,21 @@ def cmd_report(args):
     # usable day, including days a partial batch has not written yet.
     control_days = {i for i, r in rows.items() if case_ready(i) or r['reps']}
     controls_complete = bool(control_days) and all(control_days <= set(rep['controls'][kind]) for kind in ('same', 'decoy'))
+    # The audit guards compare both first-run scripts on every day. A missing
+    # audit must not silently drop that day from truth or coaching share.
+    audits_complete = bool(control_days) and all(
+        rows[i]['reps'] and all(audited(rows[i]['reps'][0], k) for k in ('audit', 'auditBase'))
+        for i in control_days)
     null = rep['all'].get('null.coaching')
     ratio = rep['all'].get('lengthRatio')
     rep['rule'] = {
         '1 coaching better on train': above(rep['train'].get('judge.coaching')),
         '2 coaching better held out': above(rep['heldOut'].get('judge.coaching')),
         '3 overall not worse': not below(rep['all'].get('judge.overall')),
-        '4 truth not worse': not above(rep['all'].get('audit.false.minusBase')) and not above(rep['all'].get('audit.boardClaimsFalse.minusBase')),
+        '4 truth not worse': audits_complete and not above(rep['all'].get('audit.false.minusBase')) and not above(rep['all'].get('audit.boardClaimsFalse.minusBase')),
         '5 check passes as often': (rep['all']['pass'] or {}).get('est', 0) >= (rep['all']['pass.base'] or {}).get('est', 0),
         '6 controls clean': controls_complete and same_wins == 0 and decoy_wins <= len(rep['controls']['decoy']) // 4 and bool(null) and null['lo'] <= 0 <= null['hi'],
-        '7 coaching moves made more often': above(rep['all'].get('audit.coachingShare.minusBase')),
+        '7 coaching moves made more often': audits_complete and above(rep['all'].get('audit.coachingShare.minusBase')),
         '8 not much longer': bool(ratio and ratio['est'] <= 1.3),
     }
     rep['kept'] = all(rep['rule'].values())
