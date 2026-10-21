@@ -200,6 +200,17 @@ bridge/run.sh projects/break-ready/describe.mjs
 # other king stands, with no new engine search.
 bridge/run.sh projects/central-strike/analyze.mjs
 
+# Rules of thumb: Lichess 10-minute games at his band and the band above, each
+# rule's move against the move the band would naturally play, refereed by
+# Stockfish and the tablebase, then a random set of moves of the same size as a
+# control. Both runs resume where they stopped and check their frozen rules
+# first; the project's README says how a repeat restores those rules and pins.
+projects/rules-of-thumb/phase2.sh --reviewed
+nice -n 10 .venv/bin/python projects/rules-of-thumb/operations.py --run full
+projects/rules-of-thumb/null.sh --reviewed
+CHESS_DIR="$PWD/.cache/chess/f4bd63f19b343f686fb97ea4cf70b211c0bddc0a" \
+  bridge/run.sh projects/rules-of-thumb/why.mjs
+
 # The learner's solve chances: his puzzle attempts replayed through the app's
 # learner, on a record rebuilt from the memory cards and on the profile as the
 # app holds it.

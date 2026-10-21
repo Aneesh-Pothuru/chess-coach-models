@@ -1,3 +1,276 @@
 % Written by projects/rules-of-thumb/paper/generate.mjs; do not edit by hand.
 
-\newcommand{\StudyStatus}{The full study has not run. This is a deferred paper scaffold. The implementation and timing record are in the project results directory. The answer and paper follow the full scan and review.}
+\newcommand{\AppCommit}{f4bd63f19b}
+\newcommand{\GamesMonth}{30,000}
+\newcommand{\GamesAll}{90,000}
+\newcommand{\PositionsAll}{4,294,043}
+\newcommand{\TrainMonths}{July and August 2026}
+\newcommand{\HeldMonth}{September 2026}
+\newcommand{\HisLow}{1250}
+\newcommand{\HisHigh}{1449}
+\newcommand{\AboveLow}{1450}
+\newcommand{\AboveHigh}{1649}
+\newcommand{\MaiaHis}{1300}
+\newcommand{\MaiaAbove}{1500}
+\newcommand{\Cap}{4,000}
+\newcommand{\MinHeld}{300}
+\newcommand{\GradeNodes}{250,000}
+\newcommand{\Window}{3}
+\newcommand{\Draws}{2,000}
+\newcommand{\Seed}{20261018}
+\newcommand{\Scored}{128,021}
+\newcommand{\NRules}{15}
+\newcommand{\Judged}{13}
+\newcommand{\LucenaHeld}{6}
+\newcommand{\PhilidorHeld}{30}
+\newcommand{\LeastLift}{2.1}
+\newcommand{\LeastLiftName}{the rule of the square}
+\newcommand{\MostLift}{49.5}
+\newcommand{\MostLiftName}{the pawn break}
+\newcommand{\StepUpName}{the outpost}
+\newcommand{\StepUpGap}{3.1}
+\newcommand{\StepUpGapCi}{0.6 to 5.6}
+\newcommand{\OpenAvail}{66}
+\newcommand{\WorstAvail}{63}
+\newcommand{\FindLow}{6}
+\newcommand{\FindHigh}{62}
+\newcommand{\VerdictTable}{%
+\begin{table}[ht]
+\centering\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lrrrrrlll@{}}
+\toprule
+ & \begin{tabular}[b]{@{}l@{}}Held-out \\ positions\end{tabular} & \begin{tabular}[b]{@{}l@{}}$R$ \\ sound\end{tabular} & \begin{tabular}[b]{@{}l@{}}$N$ \\ sound\end{tabular} & \begin{tabular}[b]{@{}l@{}}$A$ \\ sound\end{tabular} & \begin{tabular}[b]{@{}l@{}}Lift, \\ train\end{tabular} & \begin{tabular}[b]{@{}l@{}}Lift, \\ held out\end{tabular} & Verdict & \begin{tabular}[b]{@{}l@{}}A step \\ up\end{tabular} \\
+\midrule
+Active king & 4,000 & 57.8 & 82.9 & 78.7 & $-$25.2 & $-$25.1 {\scriptsize($-$26.8, $-$23.5)} & It misleads & no \\
+Opposition & 1,435 & 82.3 & 93.3 & 91.4 & $-$9.3 & $-$11.0 {\scriptsize($-$12.9, $-$9.1)} & It misleads & no \\
+Rule of the square & 2,582 & 96.1 & 98.2 & 96.9 & $-$2.0 & $-$2.1 {\scriptsize($-$2.8, $-$1.4)} & It misleads & no \\
+Rook behind the passed pawn & 4,000 & 35.3 & 77.5 & 71.4 & $-$42.3 & $-$42.2 {\scriptsize($-$43.9, $-$40.6)} & It misleads & no \\
+Cutting the king off & 1,398 & 42.4 & 83.8 & 78.9 & $-$41.7 & $-$41.3 {\scriptsize($-$44.1, $-$38.6)} & It misleads & no \\
+Outside passed pawn & 1,303 & 67.8 & 84.8 & 81.3 & $-$16.6 & $-$17.0 {\scriptsize($-$19.2, $-$14.9)} & It misleads & no \\
+Trading when ahead & 4,000 & 71.4 & 84.2 & 76.3 & $-$11.9 & $-$12.8 {\scriptsize($-$14.1, $-$11.4)} & It misleads & no \\
+Lucena position & 6 & 100.0 & 100.0 & 100.0 & 0.0 & 0.0 {\scriptsize(0.0, 0.0)} & not enough data & no \\
+Philidor position & 30 & 86.7 & 93.3 & 96.7 & $-$9.6 & $-$6.7 {\scriptsize($-$20.0, 6.7)} & not enough data & no \\
+Open file & 4,000 & 42.7 & 74.1 & 67.8 & $-$31.8 & $-$31.4 {\scriptsize($-$33.2, $-$29.6)} & It misleads & no \\
+Rook on the seventh & 4,000 & 47.0 & 76.8 & 70.3 & $-$29.0 & $-$29.8 {\scriptsize($-$31.5, $-$28.0)} & It misleads & no \\
+Outpost & 4,000 & 43.3 & 75.0 & 67.0 & $-$32.2 & $-$31.6 {\scriptsize($-$33.3, $-$29.9)} & It misleads & yes \\
+Pawn break & 4,000 & 24.8 & 74.4 & 64.9 & $-$48.9 & $-$49.5 {\scriptsize($-$51.3, $-$47.8)} & It misleads & no \\
+Passed pawn & 4,000 & 44.3 & 77.9 & 70.6 & $-$33.1 & $-$33.7 {\scriptsize($-$35.3, $-$31.9)} & It misleads & no \\
+Worst piece & 4,000 & 34.6 & 75.5 & 67.6 & $-$40.3 & $-$40.8 {\scriptsize($-$42.6, $-$39.1)} & It misleads & no \\
+\bottomrule
+\end{tabular}
+\caption{The preregistered verdicts. $R$, $N$ and $A$ sound: the share of held-out positions where the rule's move, the natural move and the move played are sound, in percent; the lift is $R$'s soundness minus $N$'s in points, held out with its 95\% interval from 2,000 bootstrap draws over games (for every judged rule the train interval lies below 0 as well). A step up: the band above plays $R$ more often than his band, on both periods.}
+\label{tab:verdicts}
+\end{table}
+}
+\newcommand{\NBetter}{twelve}
+\newcommand{\NoDiffName}{cutting the king off}
+\newcommand{\NoDiffContent}{0.4}
+\newcommand{\NoDiffContentCi}{$-$2.5 to 3.1}
+\newcommand{\NoDiffContentTrain}{0.3}
+\newcommand{\NoDiffContentTrainCi}{$-$1.7 to 2.1}
+\newcommand{\NullLow}{16.8}
+\newcommand{\NullHigh}{65.0}
+\newcommand{\ContentLow}{2.7}
+\newcommand{\ContentLowName}{the worst piece}
+\newcommand{\ContentHigh}{52.2}
+\newcommand{\ContentHighName}{trading when ahead}
+\newcommand{\CondLow}{6.5}
+\newcommand{\CondLowName}{the rule of the square}
+\newcommand{\CondHigh}{55.8}
+\newcommand{\CondHighName}{the outside passed pawn}
+\newcommand{\SameLow}{6}
+\newcommand{\SameLowName}{the pawn break}
+\newcommand{\SameHigh}{69}
+\newcommand{\SameHighName}{the outside passed pawn}
+\newcommand{\FreshSearches}{102,887}
+\newcommand{\ControlTable}{%
+\begin{table}[ht]
+\centering\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{@{}lrlllrl@{}}
+\toprule
+ & \begin{tabular}[b]{@{}l@{}}Random rule's \\ lift, held out\end{tabular} & \begin{tabular}[b]{@{}l@{}}Content, \\ train\end{tabular} & \begin{tabular}[b]{@{}l@{}}Content, \\ held out\end{tabular} & Reading & \begin{tabular}[b]{@{}l@{}}$R$ is $N$, \\ held out\end{tabular} & \begin{tabular}[b]{@{}l@{}}Lift where $R$ is \\ not $N$, held out\end{tabular} \\
+\midrule
+Active king & $-$32.1 & 7.6 {\scriptsize(6.5, 8.6)} & 7.0 {\scriptsize(5.5, 8.5)} & better & 23 & $-$32.4 {\scriptsize($-$34.4, $-$30.4)} \\
+Opposition & $-$18.0 & 8.9 {\scriptsize(7.4, 10.4)} & 7.0 {\scriptsize(4.9, 9.0)} & better & 33 & $-$16.4 {\scriptsize($-$19.1, $-$13.7)} \\
+Rule of the square & $-$16.8 & 14.8 {\scriptsize(13.8, 15.8)} & 14.6 {\scriptsize(13.1, 16.2)} & better & 67 & $-$6.5 {\scriptsize($-$8.7, $-$4.4)} \\
+Rook behind the passed pawn & $-$48.0 & 5.7 {\scriptsize(4.7, 6.7)} & 5.8 {\scriptsize(4.3, 7.2)} & better & 7 & $-$45.4 {\scriptsize($-$47.2, $-$43.8)} \\
+Cutting the king off & $-$41.7 & 0.3 {\scriptsize($-$1.7, 2.1)} & 0.4 {\scriptsize($-$2.5, 3.1)} & no different & 6 & $-$44.1 {\scriptsize($-$46.9, $-$41.1)} \\
+Outside passed pawn & $-$45.5 & 27.1 {\scriptsize(24.9, 29.5)} & 28.5 {\scriptsize(25.4, 31.7)} & better & 69 & $-$55.8 {\scriptsize($-$61.1, $-$50.4)} \\
+Trading when ahead & $-$65.0 & 51.6 {\scriptsize(50.3, 52.7)} & 52.2 {\scriptsize(50.5, 54.0)} & better & 62 & $-$33.7 {\scriptsize($-$36.9, $-$30.3)} \\
+Open file & $-$42.5 & 11.5 {\scriptsize(10.4, 12.7)} & 11.1 {\scriptsize(9.4, 12.7)} & better & 16 & $-$37.4 {\scriptsize($-$39.4, $-$35.3)} \\
+Rook on the seventh & $-$52.5 & 23.4 {\scriptsize(22.3, 24.6)} & 22.8 {\scriptsize(21.2, 24.4)} & better & 21 & $-$37.6 {\scriptsize($-$39.6, $-$35.5)} \\
+Outpost & $-$53.6 & 20.0 {\scriptsize(18.8, 21.2)} & 21.9 {\scriptsize(20.3, 23.6)} & better & 25 & $-$42.0 {\scriptsize($-$44.1, $-$39.8)} \\
+Pawn break & $-$54.1 & 3.7 {\scriptsize(2.7, 4.7)} & 4.6 {\scriptsize(3.1, 6.1)} & better & 6 & $-$52.4 {\scriptsize($-$54.3, $-$50.5)} \\
+Passed pawn & $-$48.8 & 12.5 {\scriptsize(11.4, 13.7)} & 15.2 {\scriptsize(13.6, 16.8)} & better & 23 & $-$44.0 {\scriptsize($-$45.9, $-$41.8)} \\
+Worst piece & $-$43.5 & 5.5 {\scriptsize(4.3, 6.6)} & 2.7 {\scriptsize(1.1, 4.3)} & better & 11 & $-$45.9 {\scriptsize($-$47.8, $-$44.0)} \\
+\bottomrule
+\end{tabular}
+\caption{The control added after the run. The random rule's lift is the soundness of $R_0$ minus $N$'s, whose interval lies below 0 on both periods for every rule; the rule's content is $R$'s minus $R_0$'s, in points with 95\% intervals from the same 2,000 draws over games. Reading: better than chance when the content's interval lies above 0 on both periods, no different otherwise. $R$ is $N$: the share of held-out positions where the rule's move is the natural move, in percent.}
+\label{tab:control}
+\end{table}
+}
+\newcommand{\FailThreat}{eight}
+\newcommand{\FailQuiet}{nine}
+\newcommand{\FailLevel}{nine}
+\newcommand{\FailMiddle}{six}
+\newcommand{\FailDanger}{two}
+\newcommand{\NoFailNames}{the rule of the square, the outside passed pawn and trading when ahead}
+\newcommand{\ThreatGapLow}{14}
+\newcommand{\ThreatGapHigh}{30}
+\newcommand{\AkThreat}{37}
+\newcommand{\AkNoThreat}{67}
+\newcommand{\FailureTable}{%
+\begin{table}[ht]
+\centering\footnotesize
+\begin{tabularx}{\textwidth}{@{}lL@{}}
+\toprule
+Rule & Failure conditions: the cell, and $R$'s soundness there minus the rest, held out \\
+\midrule
+Active king & they threaten ($-$30), material level ($-$18), $R$ quiet ($-$42) \\
+Opposition & they threaten ($-$14), material level ($-$13), king safe ($-$18) \\
+Rule of the square & none \\
+Rook behind the passed pawn & they threaten ($-$22), material level ($-$20), middlegame ($-$22), $R$ quiet ($-$41), king in danger ($-$12) \\
+Cutting the king off & $R$ quiet ($-$26) \\
+Outside passed pawn & none \\
+Trading when ahead & none \\
+Open file & they threaten ($-$15), material level ($-$20), middlegame ($-$19), $R$ quiet ($-$35) \\
+Rook on the seventh & they threaten ($-$21), material level ($-$17), $R$ quiet ($-$20), king in danger ($-$16) \\
+Outpost & material level ($-$16), middlegame ($-$16), $R$ quiet ($-$24) \\
+Pawn break & they threaten ($-$18), material level ($-$15), middlegame ($-$17), $R$ quiet ($-$47) \\
+Passed pawn & they threaten ($-$20), material level ($-$16), middlegame ($-$22), $R$ quiet ($-$16) \\
+Worst piece & they threaten ($-$18), material level ($-$19), middlegame ($-$21), $R$ quiet ($-$15) \\
+\bottomrule
+\end{tabularx}
+\caption{Where the rule's move fails: a cell of a split, read before the move, where $R$ is sound at least 10 points less often than in the rest of the split, with the difference's 95\% interval below 0, on the train months and the held-out month. The difference shown is the held-out one, in points.}
+\label{tab:failures}
+\end{table}
+}
+\newcommand{\ExN}{104}
+\newcommand{\ExPer}{eight}
+\newcommand{\ExRules}{13}
+\newcommand{\ExSound}{48}
+\newcommand{\ExUnsound}{56}
+\newcommand{\ExMate}{two}
+\newcommand{\ExLoses}{36}
+\newcommand{\ExCaught}{38}
+\newcommand{\ExForcing}{15}
+\newcommand{\ExQuiet}{three}
+\newcommand{\ExSoundFlagged}{six}
+\newcommand{\ExNFlagged}{11}
+\newcommand{\ExRFlagged}{44}
+\newcommand{\ExNSound}{86}
+\newcommand{\ExNForcing}{53}
+\newcommand{\ExRForcing}{22}
+\newcommand{\ExStockfish}{91}
+\newcommand{\ExTablebase}{13}
+\newcommand{\ExampleTable}{%
+\begin{table}[ht]
+\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+ & \begin{tabular}[b]{@{}l@{}}$R$ \\ sound\end{tabular} & \begin{tabular}[b]{@{}l@{}}Allows \\ mate\end{tabular} & \begin{tabular}[b]{@{}l@{}}Loses \\ material\end{tabular} & \begin{tabular}[b]{@{}l@{}}Passes over \\ a forcing move\end{tabular} & \begin{tabular}[b]{@{}l@{}}A quieter \\ choice\end{tabular} & \begin{tabular}[b]{@{}l@{}}$N$ \\ forcing\end{tabular} & \begin{tabular}[b]{@{}l@{}}Flagged: \\ $R$ / $N$\end{tabular} \\
+\midrule
+Active king & 5 & 0 & 0 & 3 & 0 & 4 & 0 / 0 \\
+Opposition & 5 & 0 & 1 & 1 & 1 & 2 & 2 / 0 \\
+Rule of the square & 8 & 0 & 0 & 0 & 0 & 4 & 1 / 1 \\
+Rook behind the passed pawn & 4 & 1 & 3 & 0 & 0 & 3 & 5 / 2 \\
+Cutting the king off & 2 & 0 & 5 & 1 & 0 & 4 & 7 / 1 \\
+Outside passed pawn & 2 & 0 & 5 & 1 & 0 & 6 & 5 / 0 \\
+Trading when ahead & 4 & 0 & 1 & 2 & 1 & 5 & 1 / 0 \\
+Open file & 4 & 0 & 2 & 2 & 0 & 4 & 3 / 0 \\
+Rook on the seventh & 4 & 0 & 4 & 0 & 0 & 5 & 4 / 1 \\
+Outpost & 2 & 0 & 4 & 2 & 0 & 4 & 4 / 0 \\
+Pawn break & 3 & 0 & 4 & 1 & 0 & 3 & 4 / 4 \\
+Passed pawn & 1 & 1 & 5 & 1 & 0 & 5 & 6 / 1 \\
+Worst piece & 4 & 0 & 2 & 1 & 1 & 4 & 2 / 1 \\
+\midrule
+All & 48 & 2 & 36 & 15 & 3 & 53 & 44 / 11 \\
+\bottomrule
+\end{tabular}
+\caption{The 104 held-out examples, 8 a rule drawn at random where $R$ is not $N$, read after the results by the app's blunder check. Each unsound rule move is counted once, under the first kind that fits in the column order. $N$ forcing: the natural move is a check, a capture or a promotion. Flagged: the moves the check says allow mate or lose material, sound or not.}
+\label{tab:examples}
+\end{table}
+}
+\newcommand{\FaBoard}{%
+\chessboard[setfen={2k2r2/pp4Q1/2pP4/5r2/8/8/PPK5/8 b - - 7 42}, boardfontsize=11pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={f5-d5}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={f5-f7}]
+}
+\newcommand{\FaFen}{\fen{2k2r2/pp4Q1/2pP4/5r2/8/8/PPK5/8 b - - 7 42}}
+\newcommand{\FaMover}{Black}
+\newcommand{\FaBand}{1300}
+\newcommand{\FaR}{\symrook{}d5}
+\newcommand{\FaRWp}{0}
+\newcommand{\FaRSound}{unsound}
+\newcommand{\FaN}{\symrook{}5f7}
+\newcommand{\FaNWp}{54}
+\newcommand{\FaNSound}{sound}
+\newcommand{\FaBest}{\symrook{}5f7}
+\newcommand{\FaBestWp}{54}
+\newcommand{\FaBestSound}{sound}
+\newcommand{\FaMate}{\symqueen{}c7\#}
+\newcommand{\FbBoard}{%
+\chessboard[setfen={3Q4/6q1/3p1bk1/3P4/4n1N1/1P6/P1n3PP/5R1K w - - 2 38}, boardfontsize=11pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={h2-h4}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={d8-e8}]
+}
+\newcommand{\FbFen}{\fen{3Q4/6q1/3p1bk1/3P4/4n1N1/1P6/P1n3PP/5R1K w - - 2 38}}
+\newcommand{\FbMover}{White}
+\newcommand{\FbBand}{1500}
+\newcommand{\FbR}{h4}
+\newcommand{\FbRWp}{3}
+\newcommand{\FbRSound}{unsound}
+\newcommand{\FbN}{\symqueen{}e8+}
+\newcommand{\FbNWp}{100}
+\newcommand{\FbNSound}{sound}
+\newcommand{\FbBest}{\symqueen{}e8+}
+\newcommand{\FbBestWp}{98}
+\newcommand{\FbBestSound}{sound}
+\newcommand{\FcBoard}{%
+\chessboard[setfen={4k3/2P5/8/1p4p1/1P3p2/P2Kp2P/6P1/8 w - - 1 49}, boardfontsize=11pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={d3-e2}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={c7-c8}]
+}
+\newcommand{\FcFen}{\fen{4k3/2P5/8/1p4p1/1P3p2/P2Kp2P/6P1/8 w - - 1 49}}
+\newcommand{\FcMover}{White}
+\newcommand{\FcBand}{1300}
+\newcommand{\FcR}{\symking{}e2}
+\newcommand{\FcRWp}{50}
+\newcommand{\FcRSound}{unsound}
+\newcommand{\FcN}{c8=\symqueen{}+}
+\newcommand{\FcNWp}{100}
+\newcommand{\FcNSound}{sound}
+\newcommand{\FcBest}{c8=\symqueen{}+}
+\newcommand{\FcBestWp}{96}
+\newcommand{\FcBestSound}{sound}
+\newcommand{\FdBoard}{%
+\chessboard[setfen={6k1/5pp1/3Bp2p/1p6/rP2P1P1/5K1P/8/8 b - - 1 32}, boardfontsize=14pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={a4-b4}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={a4-a3}]
+}
+\newcommand{\FdFen}{\fen{6k1/5pp1/3Bp2p/1p6/rP2P1P1/5K1P/8/8 b - - 1 32}}
+\newcommand{\FdMover}{Black}
+\newcommand{\FdBand}{1300}
+\newcommand{\FdR}{\symrook{}xb4}
+\newcommand{\FdRWp}{35}
+\newcommand{\FdRSound}{unsound}
+\newcommand{\FdN}{\symrook{}a3+}
+\newcommand{\FdNWp}{87}
+\newcommand{\FdNSound}{sound}
+\newcommand{\FdBest}{\symrook{}a3+}
+\newcommand{\FdBestWp}{85}
+\newcommand{\FdBestSound}{sound}
+\newcommand{\FdLoss}{4}
+\newcommand{\OpLosing}{five}
+\newcommand{\OpCaptures}{eight}
+\newcommand{\FeBoard}{%
+\chessboard[setfen={8/8/7k/P5pp/8/KP4R1/5rP1/8 w - - 0 37}, boardfontsize=14pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={g3-c3}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={b3-b4}]
+}
+\newcommand{\FeFen}{\fen{8/8/7k/P5pp/8/KP4R1/5rP1/8 w - - 0 37}}
+\newcommand{\FeMover}{White}
+\newcommand{\FeBand}{1500}
+\newcommand{\FeR}{\symrook{}c3}
+\newcommand{\FeRWp}{71}
+\newcommand{\FeRSound}{unsound}
+\newcommand{\FeN}{a6}
+\newcommand{\FeNWp}{50}
+\newcommand{\FeNSound}{unsound}
+\newcommand{\FeBest}{b4}
+\newcommand{\FeBestWp}{81}
+\newcommand{\FeBestSound}{sound}
+\newcommand{\FeKing}{h6}

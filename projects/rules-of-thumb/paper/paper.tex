@@ -1,10 +1,293 @@
-\documentclass{article}
+\documentclass[11pt]{article}
 \input{../../preamble}
 \input{generated}
-\title{Which rules of thumb hold at his level?}
+
+\title{Which rules of thumb hold at his level?\\[0.3em]
+\large The app's rules of thumb, followed as players at his level would follow them, on
+\Scored{} Lichess positions refereed by Stockfish}
 \author{Chess Coach research lab}
 \date{}
+
 \begin{document}
 \maketitle
-\StudyStatus
+
+\begin{abstract}
+A human coach explains a middlegame or endgame move by a rule of thumb: walk the king toward the
+pawns, put the rook behind the passed pawn, take the open file. The app teaches fifteen such rules,
+and its board code says when a move shows one. In rated 10-minute Lichess games between players at
+his level and the band above, the move a rule points to, as a player at that level would play it,
+is sound less often than the move such a player would naturally play, for all \Judged{} rules with
+enough positions, on the train months and on the held-out month: by \LeastLift{} points for
+\LeastLiftName{} up to \MostLift{} for \MostLiftName. That verdict, fixed before the run, cannot by
+itself tell a rule from a random choice, so a control added after it draws in each position as many
+random legal moves as the rule had and keeps the one Maia-2 likes best. That move trails the natural
+move too, by \NullLow{} to \NullHigh{} points, and against it \NBetter{} rules point to better
+moves than chance on both periods; only \NoDiffName{} does not. The rules carry information, then,
+but following one where it differs from the natural move costs \CondLow{} to \CondHigh{} points. In
+\ExN{} held-out examples, \ExCaught{} of the \ExUnsound{} unsound rule moves allow mate or lose
+material by the app's own blunder check, and \ExForcing{} more pass over a check, a capture or a
+promotion that the natural move took. A rule of thumb is a reason to look at a move once the checks,
+captures and threats are seen, not a reason to play it.
+\end{abstract}
+
+\section{The question}
+
+A coach explains a move by a rule of thumb more often than by a line: the king is a fighting piece
+once the queens are off, a rook belongs behind a passed pawn, a knight is strongest on a square no
+pawn can attack. The app teaches these rules as concepts, and its move detectors say when a move
+shows one. That is the kind of understanding a player can carry from one game to the next, so it is
+worth knowing which rules hold at his level.
+
+In the middlegames and endgames that players at his level reach, how often is the move a rule points
+to sound, is it sounder than the move a player at his level would naturally play, and where does the
+rule fail? A rule that holds is one the app can teach as a way to choose a move. One that does no
+better than the natural move is not worth a lesson for that, and one that does worse misleads.
+
+\section{How it was measured}
+
+\paragraph{The games.} Rated standard Lichess games at 10 minutes with no increment, his time
+control, \GamesMonth{} a month in file order: \TrainMonths{} to train on and \HeldMonth{} held out,
+\GamesAll{} games with \PositionsAll{} middlegame and endgame positions in all, the phase read by
+the app's divider. A game enters when both players are in his band or the band above: his band is
+\HisLow{} to \HisHigh{} on Lichess, around his chess.com rapid rating by the app's offset, and the
+band above \AboveLow{} to \AboveHigh. On Maia-2's scale they read \MaiaHis{} and \MaiaAbove.
+
+\paragraph{The rules.} Fifteen, each read by the app's own code at commit \texttt{\AppCommit}. A
+move shows a rule when the app's move description holds a finding of that concept for the mover
+with the tone of a gain. The outside passed pawn, the Lucena position and the Philidor position
+are only ever written as notes, so their notes count, each for the side the position is for;
+trading when ahead is read from its technique reader, which the move description could not reach
+(a gap reported to the app and since fixed); and the worst piece is read from the app's activity
+reading: a move by the piece the app names the mover's worst, after which it has more legal moves.
+Tactics and mates are left out: they are calculation, which the puzzles train.
+
+\paragraph{The positions.} For each rule, a game gives at most one position, drawn at random among
+its positions where the rule is available (some legal move shows it), up to \Cap{} a month for
+each rule: \Scored{} positions in all.
+
+\paragraph{The moves compared.} In each position, $R$ is the rule's move: among the legal moves
+that show the rule, the one Maia-2 rates most likely at the mover's band, the rule as a player at
+that band would play it. $N$, the natural move, is Maia-2's most likely move of all, and $A$ the
+move played.
+
+\paragraph{The referee.} Stockfish through the app's engine service at its grading budget of
+\GradeNodes{} nodes, the hash cleared before each position: the best is searched with one line, and
+each move is scored at the same budget. A move is \emph{sound} when it gives up no more than
+\Window{} win\% against the best. With seven men or fewer the app's tablebase probe decides: a move
+is sound when it keeps the mover's outcome.
+
+\paragraph{The rule, fixed before any position was scored.} The \emph{lift} is $R$'s soundness
+minus $N$'s, paired by position, with 95\% intervals from \Draws{} bootstrap draws over games (seed
+\Seed). A rule is taught when the lift's interval lies above 0 on the train months and on the
+held-out month; it misleads when it lies below 0 on both; it is no better than the natural move
+otherwise; and under \MinHeld{} held-out positions there is not enough data. Reported beside the
+verdict, a rule is a \emph{step up} when the band above plays $R$ more often than his band, the
+difference's interval above 0 on both periods. A split of the positions, read before the move, is a
+\emph{failure condition} when in one of its cells $R$ is sound at least 10 points less often than
+in the rest, with the difference's interval below 0, on both periods.
+
+\section{The verdicts: every rule misleads}
+
+Every rule with enough data misleads (Table~\ref{tab:verdicts}). On the held-out month the rule's
+move is sound less often than the natural move by \LeastLift{} points for \LeastLiftName{} up to
+\MostLift{} for \MostLiftName, and the train months give the same verdicts. The rule's move is
+sound less often than the move actually played as well, for every rule. The Lucena and Philidor
+positions came up \LucenaHeld{} and \PhilidorHeld{} times in the held-out month, too few for a
+verdict.
+
+Only \StepUpName{} is a step up: players in the band above play its move \StepUpGap{} points more
+often than players in his band (\StepUpGapCi{} on the held-out month). How findable the rules' moves
+are varies widely: at his band Maia-2 gives the rule's move \FindLow\% on average for the rarest and
+\FindHigh\% for the most common.
+
+\VerdictTable
+
+\section{A rule with no information}
+
+The run's review found that the lift's zero is not a neutral rule's. $R$ is the move Maia-2 likes
+best among the moves that show the rule and $N$ the one it likes best of all, so $R$ is $N$ wherever
+$N$ shows the rule, and wherever $R$ differs, Maia-2 rated it lower. Any subset of the legal moves
+would trail $N$, or at best tie it, by this measure. So a control, written down before it was computed, draws in each
+scored position as many legal moves at random as the rule had, without replacement and seeded by
+the position, and keeps the one Maia-2 likes best, $R_0$, refereed as $R$ was. The \emph{random
+rule's lift}, $R_0$'s soundness minus $N$'s, is what a rule with no information shows; the
+\emph{rule's content}, $R$'s minus $R_0$'s, is what the rule adds to chance. It changes no verdict.
+
+The random rule misleads too, and by more: its held-out lift lies \NullLow{} to \NullHigh{} points
+below 0 (Table~\ref{tab:control}). Against it, \NBetter{} rules point to better moves than chance on
+both periods, from \ContentLow{} points for \ContentLowName{} to \ContentHigh{} for
+\ContentHighName. Only \NoDiffName{} reads no differently from chance: its content is
+\NoDiffContentTrain{} points (\NoDiffContentTrainCi) on the train months and \NoDiffContent{}
+(\NoDiffContentCi) held out. The random moves took \FreshSearches{} fresh Stockfish searches, and
+each found the best the run had stored.
+
+So the rules know something: the moves they point to are sound more often than moves drawn at
+random in the same number. But wherever the rule's move is not the natural move it is sound less
+often, by \CondLow{} points for \CondLowName{} up to \CondHigh{} for \CondHighName{} on the held-out
+month, for every rule on both periods. How often the two agree varies just as widely, from \SameLow\%
+of the held-out positions for \SameLowName{} to \SameHigh\% for \SameHighName.
+
+\ControlTable
+
+\section{Where the rules fail}
+
+The failure conditions were fixed with the rule (Table~\ref{tab:failures}). The rule's move fails
+when it is quiet for \FailQuiet{} rules, when the material is level for \FailLevel, when the
+opponent has a threat (a mate in one or a winning capture, by the app's reading of the position)
+for \FailThreat, in the middlegame for \FailMiddle, and when the mover's king shows a danger sign
+for \FailDanger. With a threat on the board the gap is \ThreatGapLow{} to \ThreatGapHigh{} points:
+the active king's move is sound \AkThreat\% of the time when the opponent threatens something and
+\AkNoThreat\% when not. No rule fails where there is no threat or where its move is a capture or a
+check, and \NoFailNames{} have no failure condition at all.
+
+Level material is probably in part the referee's doing, an inference this study does not test: a
+fixed window in win\% is narrower in centipawns where the game is balanced than where it is won or
+lost, so fewer moves pass it.
+
+\FailureTable
+
+\section{What the examples show}
+
+The control added \ExPer{} held-out positions for each judged rule, drawn at random among those
+where the rule's move is not the natural move: \ExN{} in all, \ExStockfish{} refereed by Stockfish
+and \ExTablebase{} by the tablebase (\path{results/examples.md}). After the results, each was read
+with the app's own blunder check, the reading its live coach makes before it warns about a move
+(Table~\ref{tab:examples}, \path{results/why.md}): whether a move allows mate in one, and whether it
+loses material, either as a capture the capture war says loses or by leaving a piece that can be
+taken for a gain, newly loose or loose already. The capturing piece of an even trade is not counted,
+since taking it back is the trade.
+
+Of the \ExUnsound{} rule moves the referee found unsound, the check flags \ExCaught: \ExMate{} allow
+mate and \ExLoses{} lose material. Of the rest, \ExForcing{} pass over a check, a capture or a
+promotion that the natural move took, and only \ExQuiet{} were a quieter choice that was simply
+worse. The check flags \ExSoundFlagged{} of the \ExSound{} sound rule moves too, and the natural move
+\ExNFlagged{} times in \ExN. The natural move is a check, a capture or a promotion in \ExNForcing{}
+of the examples, the rule's move in \ExRForcing. Figure~\ref{fig:kinds} shows one rule move of each
+of the first three kinds, chosen to show them; every example is in the results.
+
+\ExampleTable
+
+\begin{figure}[ht]
+\centering
+\begin{subfigure}[t]{0.32\textwidth}
+\centering
+\FaBoard\\[0.3em]
+{\scriptsize \FaFen}
+\caption{\FaMover{} to move. The rook goes behind White's passed d-pawn with \FaR{} (red), and
+\FaMate{} follows. The best, \FaBest{} (green), is the natural move: it closes the seventh rank.}
+\label{fig:mate}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.32\textwidth}
+\centering
+\FbBoard\\[0.3em]
+{\scriptsize \FbFen}
+\caption{\FbMover{} to move, the queen on d8 attacked by the bishop on f6. The rule pushes the
+passed h-pawn, \FbR{} (red), and leaves her there: \FbRWp\% to win, against \FbBestWp\% after the
+natural move and best, \FbBest{} (green), which moves her with check.}
+\label{fig:loose}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.32\textwidth}
+\centering
+\FcBoard\\[0.3em]
+{\scriptsize \FcFen}
+\caption{\FcMover{} to move. The king takes the opposition with \FcR{} (red), \FcRWp\% to win,
+while the c-pawn can queen with check: \FcBest{} (green), the natural move and best, \FcBestWp\%.}
+\label{fig:forcing}
+\end{subfigure}
+\caption{Three held-out positions where the rule's move is unsound: it allows mate, it leaves the
+queen to be taken, and it passes over a promotion. Arrows: the rule's move in red, the referee's
+best in green; win\% is the mover's, by Stockfish at \GradeNodes{} nodes.}
+\label{fig:kinds}
+\end{figure}
+
+\section{Do the detectors read too widely?}
+
+The study tests each rule as the app's board code reads it, so a misleading verdict may be the
+detector's fault. In the examples most detectors read their rule as it is taught: the king walks
+toward the pawns, the rook goes behind a passed pawn or to the seventh rank, a knight or bishop lands
+on a square no pawn can attack, a pawn strikes a chain. What fails is not the reading but the
+moment, as above. Two read wider than a coach would (Figure~\ref{fig:wide}).
+
+\paragraph{The outside passed pawn} is read from a note the app writes on any move after which the
+mover has a new passed pawn far from the other pawns and from their king. The note does not ask what
+the move gave for it. All \OpCaptures{} of its examples' rule moves are captures, and \OpLosing{} of
+them lose material by the capture war, each a rook for a pawn (Figure~\ref{fig:wide}a). Its verdict is in part the reading's, though its moves are still sound far
+more often than random ones. The app writes the same note on such a move in Game Review, beside the
+warning that the rook is lost.
+
+\paragraph{Cutting the king off} is read on any rook move, in a rook ending, to a file with nothing
+else on it between their king and one of the mover's passed pawns. It does not ask whether their
+king could reach the pawn without the cut, and it is the one rule whose moves are no better than
+chance (Figure~\ref{fig:wide}b).
+
+\paragraph{The worst piece and the open file} are each available in most positions (\WorstAvail\%
+and \OpenAvail\% of the held-out ones): nearly any rook move to a file without the mover's pawns
+shows the open file, and the worst piece, the lab's own reading rather than the app's, takes any move
+that gives the least mobile piece more moves. Such a rule rarely says when; the worst piece carries
+the least content of the twelve.
+
+\begin{figure}[ht]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\FdBoard\\[0.3em]
+{\footnotesize \FdFen}
+\caption{\FdMover{} to move. \FdR{} (red) takes the pawn and leaves Black an outside passed b-pawn,
+which the note names, but the bishop takes the rook back: the capture war counts \FdLoss{} points
+lost. The best, \FdBest{} (green), is the natural move.}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\FeBoard\\[0.3em]
+{\footnotesize \FeFen}
+\caption{\FeMover{} to move. \FeR{} (red) puts the rook on the empty c-file between the black king
+on \FeKing{} and White's queenside pawns, which that king was nowhere near, and leaves g2 to the black
+rook. The best, \FeBest{} (green), pushes the b-pawn.}
+\end{subfigure}
+\caption{Two readings wider than a coach's, from the held-out examples. Arrows as in
+Figure~\ref{fig:kinds}.}
+\label{fig:wide}
+\end{figure}
+
+\section{What it means for the app}
+
+A rule of thumb is a reason to look at a move and a way to explain one; at his level it is not a way
+to choose one. The rules point to better moves than chance, so they belong in the app's teaching.
+But the move a rule points to, played as his level would play it, is sound less often than the move
+his level plays naturally, and where the two differ the rule's move mostly ignores something
+forcing: a piece left loose, a mate in one allowed, a check, capture or promotion passed over. The
+app's own blunder check catches most of these.
+
+The app already uses its rules that way in Game Review: it praises a rule only on a move that gave
+up less than its praise bar, and names a rule the player missed only on Stockfish's best move. Its
+pawn-break lesson now says to check what a break leaves hanging before playing it (chess PR 130,
+after the commit measured here), and its worst-piece lesson begins ``No tactics?''. Its open-file and outpost lessons teach their rule with no such check,
+and the evidence here says they should start from it: look at every check, capture and threat first,
+then use the rule to choose among the moves that survive.
+
+Two readings are for the review to weigh. The outside passed pawn's note is a fact about the board
+written whatever the move cost, so it appears beside a blunder as if it were the move's reason. And
+the cut-off reading carries no information at this level; the app's endgame drill for it is a
+position where the cut is the answer, which this study does not test.
+
+A next round can test the coach's advice as a coach gives it: the rule's move among the moves the
+blunder check passes, against the natural move. It needs the positions and the evidence this run
+stored, and Stockfish only for the moves that change.
+
+\section{Caveats}
+
+\begin{itemize}[nosep]
+\item \textbf{Not his games.} The positions are Lichess players' in his band and the band above, by
+  the app's conversion of his rating; his own games are too few for most rules.
+\item \textbf{One move for a plan.} A rule is tested as the next move his level would play for it,
+  not as a plan over several moves.
+\item \textbf{Sound is not instructive.} A sound move can be the second-best plan; the lift compares
+  the rule's move only with the natural move.
+\item \textbf{A strong baseline.} Maia-2's most likely move at the mover's band is sound more often
+  than the move actually played, for every rule (Table~\ref{tab:verdicts}).
+\item \textbf{Added afterwards.} The control, the examples and their reading by the blunder check
+  were added after the rule was applied. They describe and change no verdict, and the examples are
+  few, \ExPer{} a rule.
+\end{itemize}
+
 \end{document}

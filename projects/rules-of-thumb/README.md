@@ -8,8 +8,41 @@ a move shows one. In the middlegames and endgames players at his level reach,
 how often is the move a rule points to sound, is it sounder than the move a
 player at his level would naturally play, and where does the rule fail?
 
-**The answer.** Not run yet. The rule below was committed before any position
-was scored.
+**The answer.** No rule of thumb chooses a better move than the one a player
+at his level would naturally play. By the rule committed below before any
+position was scored, all 13 rules with enough data mislead: on the train
+months and on the held-out month, the move a rule points to, as a player at his
+band would play it, is sound less often than the natural move, by about 2
+points for the rule of the square up to about 50 for the pawn break, and less
+often than the move actually played as well. The Lucena and Philidor positions
+came up too rarely for a verdict, and only the outpost is a step up: the band
+above plays it more often than his band.
+
+That verdict cannot by itself tell a rule from a random choice (see "Added
+after the rule was applied"), and the control says the rules do carry
+information. A random set of legal moves the same size, picked the same way,
+trails the natural move by 17 to 65 points, and 12 rules point to better moves
+than that on both periods, from about 3 points (the worst piece) to about 52
+(trading when ahead); cutting the king off points no differently from chance.
+So a rule knows something, but wherever its move differs from the natural move
+it is sound less often, by about 7 to 56 points, for every rule on both
+periods. The held-out examples say why: of the 56 rule moves the referee found
+unsound, the app's own blunder check flags 38 (2 allow mate, 36 lose material),
+and 15 more pass over a check, a capture or a promotion that the natural move
+took; only 3 were simply quieter. The rules fail most when the opponent has a
+threat (8 rules) and when their move is quiet (9). Most detectors read their
+rule as it is taught. Two read wider than a coach would: the outside passer's
+note counts captures that give a rook for a pawn (5 of its 8 examples), and
+the cut-off reader takes any rook move to an empty file between their king and
+a passed pawn, which carries nothing at this level.
+
+For the app, a rule of thumb is a reason to look at a move and a way to explain
+one, not a way to choose it: checks, captures and threats first, then the rule
+among the moves that survive. Game Review already uses the rules that way, and
+the pawn-break lesson already checks first; the open-file and outpost lessons
+do not yet. The outside passer's note appears beside a blunder as if it were
+the move's reason, which is for the review to weigh. The paper is
+[`paper/paper.pdf`](paper/paper.pdf).
 
 A rule that holds, with the cases where it fails, is what the app can teach
 as theory and use to explain a better move in the review. A rule that does
@@ -268,7 +301,9 @@ scripts, then the paper. No language model judges anything here.
 | `freeze_null.py`, `null-manifest.json`, `null-input-manifest.json` | Freeze the addition and the original inputs by content hash, leaving phase two's freeze unchanged. |
 | `run_null.py`, `null.sh` | Run September, July and August, then analysis and examples, with detached file logs and two heavy workers. |
 | `tests-null-score.mjs`, `tests-null-examples.mjs`, `test_null_analysis.py`, `test_null_runner.py` | Synthetic checks for the addition's sampling, referee, examples, analysis, provenance and process control. |
-| `paper/` | The deferred paper scaffold and its checked generator. |
+| `frozen-readme.md`, `answer_check.py` | The README as it stood before the answer, and the check that it matches both frozen rules and that the answer is the README's only change before `## Files`. |
+| `why.mjs`, `tests-why.mjs` | Reads the held-out examples with the app's blunder check and capture war, after the results, and writes `results/why.json` and `results/why.md`; synthetic checks of its readings. |
+| `paper/` | The paper and its generator, which checks every claim the paper makes against `results/`. |
 
 ## Running it
 
@@ -307,4 +342,23 @@ CHESS_DIR="$PWD/.cache/chess/f4bd63f19b343f686fb97ea4cf70b211c0bddc0a" \
 .venv/bin/python projects/rules-of-thumb/freeze_null.py
 projects/rules-of-thumb/null.sh --reviewed
 cat private/rules-of-thumb/null/driver.json
+```
+
+The answer was written after both runs, so the README no longer matches the
+frozen rule digests. `frozen-readme.md` keeps the README as it stood before
+the answer, and `answer_check.py` checks that it matches both frozen rules and
+that, up to `## Files`, the README differs from it only in the answer. A
+repeat of either run checks the frozen rules first, so it runs with
+`frozen-readme.md` in the README's place, and phase two with the bridge pinned
+to the app it measured (`phase2-manifest.json`). The examples' reading and the
+paper need only the committed results:
+
+```bash
+python3 projects/rules-of-thumb/answer_check.py
+CHESS_DIR="$PWD/.cache/chess/f4bd63f19b343f686fb97ea4cf70b211c0bddc0a" \
+  bridge/run.sh projects/rules-of-thumb/tests-why.mjs
+CHESS_DIR="$PWD/.cache/chess/f4bd63f19b343f686fb97ea4cf70b211c0bddc0a" \
+  bridge/run.sh projects/rules-of-thumb/why.mjs
+bridge/run.sh projects/rules-of-thumb/paper/generate.mjs
+(cd projects/rules-of-thumb/paper && latexmk -pdf paper.tex)
 ```
