@@ -15,7 +15,7 @@ import { classify } from './lib.mts'
 const load = (rel: string) => import(pathToFileURL(join(CHESS_DIR, rel)).href)
 const K = await load('src/services/knowledge/index.ts')
 const L = await load('src/services/learner/index.ts')
-const S = await load('src/data/strategy.ts')
+const S = await load('src/services/exercises/index.ts')
 
 const read = (rel: string) => JSON.parse(fs.readFileSync(join(CHESS_DIR, rel), 'utf8'))
 const misses: any[] = read('public/coach/mistake-deck.json')
@@ -78,7 +78,7 @@ for (const t of themes) {
 const quizRows = quizzes.map((q) => {
   const evals = q.options.map((o: any) => o.eval)
   const order = [...evals.keys()].sort((a, b) => evals[b] - evals[a])
-  const right = q.options.filter((_: any, i: number) => S.quizCorrect(q, i)).length
+  const right = q.options.filter((_: any, i: number) => S.planCorrect(q, i)).length
   const top = q.options[order[0]]
   const forcing = /[x+#]/.test(top.move)
   const lead = evals[order[0]] - evals[order[1]]

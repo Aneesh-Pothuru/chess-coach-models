@@ -17,7 +17,7 @@ const load = (rel: string) => import(pathToFileURL(join(CHESS_DIR, rel)).href)
 const K = await load('src/services/knowledge/index.ts')
 const C = await load('src/core/chess/index.ts')
 const Sc = await load('src/core/score/index.ts')
-const S = await load('src/data/strategy.ts')
+const S = await load('src/services/exercises/index.ts')
 const E = await load('src/adapters/node/engine/index.ts')
 
 const arg = (name: string, d: number) => {
@@ -81,7 +81,7 @@ for (const { it, me, passed } of items) {
     const top = [...it.options].sort((a: any, b: any) => b.eval - a.eval).slice(0, 3)
     quiz =
       top.length === 3 &&
-      top.filter((o: any) => o.eval >= top[0].eval - S.PLAN_QUIZ_MARGIN).length === 1 &&
+      top.filter((_: any, i: number) => S.planCorrect({ options: top }, i)).length === 1 &&
       !/[x+#]/.test(top[0].move) &&
       top[0].eval - top[1].eval < 200
   }
