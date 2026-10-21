@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Build one eval case: a checkout of the app at the code under test, with the
-# coach data as main held it just before period ID landed, ID's prepare run
-# again, and the period's published writing put back in place except the video
-# script, which is what a writer run writes.
+# coach data as main held it just before period ID landed and ID's prepare run
+# again, so a writer run writes the period's review and its video script, as the
+# routine's step 4 does.
 #   make-case.sh <ID> <case-dir> [code-ref]      ID is YYYY-Www (weekly) or YYYY-MM (monthly)
 # Layout: <case-dir>/repo is the checkout the writer works in; <case-dir>/meta
 # holds what the harness knows about the case (never visible to the writer).
@@ -12,12 +12,10 @@
 # code under test, chess.com cut off except the player's monthly game archives
 # (the aggregate's games the engine did not analyse; a past window's archive
 # never changes), so the brief on disk is the one `coach digest` renders, with
-# prepare's own mark. Then the period's annotations and rule ledger as they
-# landed go back in place, and the published video script is run through the
-# checker with them (the plumbing check): a case is usable only when the
-# period's own files pass the code under test, so a writer's failures are its
-# video script's. The video script is then removed and the starting state
-# committed, so the writer's changes are the only diff.
+# prepare's own mark. The published review and its video script are run through
+# the checker against that brief (the plumbing check, which decides nothing), and
+# the starting state is committed, so the writer's changes are the only diff. A
+# case is usable when prepare exited 0 and its mark vouches for the brief.
 set -euo pipefail
 ID="$1"; CASE="$2"; CODE="${3:-$(python3 -c "import json;print(json.load(open('$(dirname "$0")/../../../bridge/chess.json'))['commit'])")}"
 REPO="${CHESS_DIR:-/home/user/chess}"
@@ -58,19 +56,16 @@ set -e
 PREP_SECONDS=$(( $(date +%s) - start ))
 git show "$L:coach-log/briefs/$ID.json" > "$META/frozen-brief.json" 2>/dev/null || rm -f "$META/frozen-brief.json"
 [ -f "coach-log/briefs/$ID.json" ] && cp "coach-log/briefs/$ID.json" "$META/regen-brief.json"
-# The period's writing as it landed, but the video script.
-PUBLISHED=("coach-log/review-annotations/$ID.json" coach-log/rules.json public/coach/rules.json)
-for f in "${PUBLISHED[@]}"; do
-  git checkout -q "$L" -- "$f" 2>/dev/null || echo "not in the landing commit: $f" >> "$META/published-missing.txt"
-done
-git show "$L:coach-log/review-annotations/$ID.video.json" > "$META/published-video.json"
 git add -A
-git commit -q -m "eval case $ID: the coach data after prepare, and the period's writing but its video script"
+git commit -q -m "eval case $ID: the coach data after prepare"
 BASE=$(git rev-parse HEAD)
 MARK="tools/coach-review/.cache/prepared/$ID.json"
 cp "$MARK" "$META/prepare-mark.json" 2>/dev/null || true
-# The plumbing check: the period's own files, the published video script with
-# them, through the code under test's checker against the regenerated brief.
+# The plumbing check, which decides nothing: the published review and its video
+# script through the code under test's checker against the regenerated brief.
+git show "$L:coach-log/review-annotations/$ID.json" > "$META/published-annotations.json"
+git show "$L:coach-log/review-annotations/$ID.video.json" > "$META/published-video.json"
+cp "$META/published-annotations.json" "coach-log/review-annotations/$ID.json"
 cp "$META/published-video.json" "coach-log/review-annotations/$ID.video.json"
 set +e
 npm run --silent coach -- "$KIND" check --date "$ID" > "$META/reference-check.json" 2> "$META/reference-check.err"
@@ -88,7 +83,7 @@ if (!r.ok) { console.error(r.why); process.exit(1) }
 " 2> "$META/prepared.err"
 VOUCHED=$?
 set -e
-USABLE=$([ "$VOUCHED" -eq 0 ] && [ "$PREP" -eq 0 ] && [ "$REF" -eq 0 ] && echo true || echo false)
+USABLE=$([ "$VOUCHED" -eq 0 ] && [ "$PREP" -eq 0 ] && echo true || echo false)
 GAMES=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['record'].get('games'))" "coach-log/briefs/$ID.json" 2>/dev/null || echo null)
 cat > "$META/case.json" <<JSON
 { "id": "$ID", "kind": "$KIND", "code": "$CODE_SHA", "landing": "$L", "parent": "$P", "base": "$BASE", "games": $GAMES, "usable": $USABLE, "prepareExit": $PREP, "prepareSeconds": $PREP_SECONDS, "vouched": $([ "$VOUCHED" -eq 0 ] && echo true || echo false), "referenceCheckExit": $REF }

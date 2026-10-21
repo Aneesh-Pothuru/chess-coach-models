@@ -6,8 +6,8 @@ synthetic voice. The daily routine's video prompt took five moves of a strong
 human coach after a blind test ([video-coaching](../video-coaching/README.md),
 chess PR 161). This project asks the same question of the period videos: it
 replays past weeks and months through the routines' writer with the app's own
-code, offline, writing only the video script, and compares a candidate prompt
-with the live ones.
+code, offline, and compares the video scripts a candidate prompt and the live
+ones write.
 
 ## Result
 
@@ -49,13 +49,21 @@ its CLI-era archive: the weeks 2026-W35 to 2026-W42 and the months 2026-08 and
   stay reachable, because the aggregate counts the games the engine did not
   analyse from them, as the period's own prepare did, and a past month's
   archive never changes;
-- the period's annotations and rule ledger (`coach-log/rules.json`,
-  `public/coach/rules.json`) as they landed, put back in place: only the video
-  script is missing, so a writer run writes the video for the review the
-  period published, and nothing else;
-- the published video script run through the code under test's checker with
-  those files (the plumbing check, `meta/reference-check.json`): a case is
-  usable only when it passes, so a writer run's failures are its own script's.
+- the published review and its video script run through the code under test's
+  checker against that brief (the plumbing check, `meta/reference-check.json`),
+  which decides nothing. A case is usable when prepare exits 0 and its mark
+  vouches for the brief on disk.
+
+A writer run writes the whole of step 4, the review and its video script
+together, as the live routine does, and the graders read only the video script.
+The first design wrote the video alone beside the published review, as the
+daily study did, and needed the published review to pass the plumbing check.
+Before any writer run, two of the first three cases built that way failed it:
+2026-W35's review predates the summary and the section takeaways the strict
+check now requires (178 errors), and 2026-09's quotes the brief it was written
+from, whose counts moved when prepare ran again (169 games then, 172 now: 42
+errors); only 2026-W42's passed. So each run writes both files, and two runs on
+a period may show different boards.
 
 ## Configs
 
@@ -76,10 +84,10 @@ its CLI-era archive: the weeks 2026-W35 to 2026-W42 and the months 2026-08 and
 Both run as the routines do: Opus 5.5 (the triggers' model) with no effort
 setting, headless Claude Code with nothing inherited from this session
 (`bin/claude-clean.sh`), in a private `/tmp`. A short preamble
-(`bin/preamble-weekly.md`, `bin/preamble-monthly.md`) fixes the period, says
-which steps ran, and asks for the video script alone, done when
-`coach <weekly|monthly> check` exits 0 and its warnings are read. The harness
-runs the final check itself. One run per period and config; on four weeks (the
+(`bin/preamble-weekly.md`, `bin/preamble-monthly.md`, the period-writer
+study's) fixes the period's id, says prepare already ran, and stops the writer
+after the strict check (weekly steps 2 to 6, monthly 2 to 5: no render,
+publish, commit or push). The harness runs the final check itself. One run per period and config; on four weeks (the
 first two of each split: 2026-W35, W37, W36 and W38) a second baseline run,
 judged against the first, gives the judge's noise floor.
 
@@ -95,11 +103,11 @@ and 2026-09. A period whose case is not usable drops out of its split.
 The daily study's graders, reading a period's evidence:
 
 - `bin/grade.py`, no model: the final check, every check the writer ran
-  (rounds, first-draft errors), files it changed besides the video script,
-  commands it should not have run, the script's shape (scenes, beats,
-  questions, pauses, spoken words, and its length heard once: words at 2.6 a
-  second plus every pause), cost, minutes, and how far the subscription's
-  usage windows moved.
+  (rounds, first-draft errors), commands it should not have run, the files it
+  changed besides the video script (the review, the ledger and a weekly study
+  are the run's own), the script's shape (scenes, beats, questions, pauses,
+  spoken words, and its length heard once: words at 2.6 a second plus every
+  pause), cost, minutes, and how far the subscription's usage windows moved.
 - `bin/audit.py`, Sonnet 5.5, pointwise: the claims in words that the
   evidence contradicts or does not carry (false, unsupported, misleading, or
   "holds", which counts for nothing), and for each board scene its kind (a
