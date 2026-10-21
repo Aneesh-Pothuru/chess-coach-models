@@ -163,3 +163,56 @@ ignores, and only aggregates are committed, by the scripts, then the paper.
 The scripts, their synthetic tests and a content freeze of this rule and of
 the inputs come first, reviewed before the first position is read. No
 language model judges anything.
+
+## Files
+
+| File | What it does |
+|---|---|
+| `app-pins.json`, `checkout.py` | Select the two app checkouts through the bridge, using the existing dependencies. |
+| `freeze.py`, `manifest.json`, `input-manifest.json` | Freeze the rule, source, apps and predecessor inputs by content hash, without reading position rows. |
+| `readings.md` | The implementation's readings for the owner's review before the run. |
+| `common.mjs` | Read-only input joins, frozen provenance and resumable two-shard journals. |
+| `board.mjs` | Read quietness and every legal move's safety with the check app. |
+| `score.mjs` | Reproduce R and N, choose Rs, Ns and R0s, and reuse or obtain referee readings. |
+| `analyze.py` | The control, shared game bootstrap, verdicts and descriptions; writes `results/rules.json` and `results/rules.md`. |
+| `examples.mjs` | The held-out examples; writes `results/examples.json` and `results/examples.md`. |
+| `run.py`, `run.sh` | Detached, logged stages, two heavy workers, checkpoint resumption and the UTC pause. |
+| `tests-*.mjs`, `test_*.py` | Synthetic checks; no study rows, engine searches or Maia inference. |
+| `cost.py` | A cost estimate from the null addition's published timings; writes `results/cost.json` and `results/cost.md`. |
+
+## Running it
+
+Prepare the second app only if it is absent. No package install is needed.
+
+```bash
+.venv/bin/python projects/rules-after-check/checkout.py
+```
+
+The checks below are synthetic. The app's imports still go through the
+bridge, with the check app for the board tests and the measured app for the
+scorer, examples and shared mechanics.
+
+```bash
+CHESS_DIR="$PWD/.cache/chess/3437a711843006926c0804394b9087c5a55d4bcf" nice -n 10 bridge/run.sh projects/rules-after-check/tests-board.mjs
+CHESS_DIR="$PWD/.cache/chess/f4bd63f19b343f686fb97ea4cf70b211c0bddc0a" nice -n 10 bridge/run.sh projects/rules-after-check/tests-score.mjs
+CHESS_DIR="$PWD/.cache/chess/f4bd63f19b343f686fb97ea4cf70b211c0bddc0a" nice -n 10 bridge/run.sh projects/rules-after-check/tests-common.mjs
+CHESS_DIR="$PWD/.cache/chess/f4bd63f19b343f686fb97ea4cf70b211c0bddc0a" nice -n 10 bridge/run.sh projects/rules-after-check/tests-examples.mjs
+nice -n 10 .venv/bin/python projects/rules-after-check/test_analysis.py
+nice -n 10 .venv/bin/python projects/rules-after-check/test_runner.py
+.venv/bin/python projects/rules-after-check/cost.py
+.venv/bin/python projects/rules-after-check/freeze.py --write
+.venv/bin/python scripts/check_private.py
+```
+
+Commit the freeze and stop for review. Only after the owner authorizes the
+run, this command starts or resumes the whole pipeline. It returns the
+detached driver's pid and log path. Do not launch another while it runs.
+
+```bash
+.venv/bin/python projects/rules-after-check/freeze.py
+sh projects/rules-after-check/run.sh --reviewed
+```
+
+Logs, driver status, shard metadata and per-row files stay under
+`private/rules-after-check/full/`. Only script-written aggregates and the
+registered CC0 examples reach `results/`. The answer and paper follow review.

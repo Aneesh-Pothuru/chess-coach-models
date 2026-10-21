@@ -1,0 +1,113 @@
+{
+  "schema": 1,
+  "purpose": "Phase-one operational estimate only; no new row or chess measure is read.",
+  "apps": {
+    "check": "3437a711843006926c0804394b9087c5a55d4bcf",
+    "score": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+    "records": "aed714ada579782ce73630596e59c8b65e74cb30"
+  },
+  "referenceByMonth": {
+    "2026-07": {
+      "rows": 42656,
+      "workerSeconds": 18797.60919775,
+      "stoppedWorkerJobs": 0,
+      "maiaSeconds": 2333.511160709871,
+      "engineSeconds": 16448.61295003995,
+      "newGameSeconds": 214.9587771840036,
+      "tablebaseSeconds": 0.03578512197809092,
+      "bestCalls": 34393,
+      "scoreCalls": 34393,
+      "failedEngineSeconds": 0
+    },
+    "2026-08": {
+      "rows": 42611,
+      "workerSeconds": 16454.216477833,
+      "stoppedWorkerJobs": 0,
+      "maiaSeconds": 2238.408330810966,
+      "engineSeconds": 14201.506626863935,
+      "newGameSeconds": 192.9263468419837,
+      "tablebaseSeconds": 0.04017956402152228,
+      "bestCalls": 34137,
+      "scoreCalls": 34137,
+      "failedEngineSeconds": 0
+    },
+    "2026-09": {
+      "rows": 42754,
+      "workerSeconds": 52978.904467750006,
+      "stoppedWorkerJobs": 0,
+      "maiaSeconds": 32540.641469212987,
+      "engineSeconds": 20418.397275014824,
+      "newGameSeconds": 269.0864062440594,
+      "tablebaseSeconds": 0.09245294806872695,
+      "bestCalls": 34357,
+      "scoreCalls": 34357,
+      "failedEngineSeconds": 0
+    }
+  },
+  "referenceTotals": {
+    "rows": 128021,
+    "workerSeconds": 88230.730143333,
+    "stoppedWorkerJobs": 0,
+    "maiaSeconds": 37112.56096073383,
+    "engineSeconds": 51068.516851918714,
+    "newGameSeconds": 676.9715302700467,
+    "tablebaseSeconds": 0.16841763406834015,
+    "bestCalls": 102887,
+    "scoreCalls": 102887,
+    "failedEngineSeconds": 0
+  },
+  "assumptions": {
+    "workers": 2,
+    "maximumNewMovesPerPosition": 3,
+    "referenceSearchCalls": 205774,
+    "meanRecordedSecondsPerSearch": 0.24817769422725278,
+    "retainedNonEngineWorkerSeconds": 37162.213291414286
+  },
+  "scenarios": {
+    "predecessorReference": {
+      "workerSeconds": 88230.730143333,
+      "workerHours": 24.508536150925835,
+      "idealTwoWorkerElapsedHours": 12.254268075462917
+    },
+    "threeNewMovesAtPredecessorFreshSearchShare": {
+      "workerSeconds": 139299.2469952517,
+      "workerHours": 38.69423527645881,
+      "idealTwoWorkerElapsedHours": 19.347117638229406
+    },
+    "threeNewMovesAtEveryPredecessorRow": {
+      "workerSeconds": 164250.0396620828,
+      "workerHours": 45.62501101724522,
+      "idealTwoWorkerElapsedHours": 22.81250550862261
+    }
+  },
+  "newBoardPassSeconds": null,
+  "wholeRunElapsedHours": null,
+  "provenance": {
+    "sourceAggregate": "projects/rules-of-thumb/results/null.json",
+    "sourceAggregateSha256": "c66bde9e442394b0c1bd9f54ae0c1faca6d350072bd35899c375e046c32693d3",
+    "sourceNullManifestSha256": "e3b8037573152e49058786c4f1680489bb935b44d9ebc57f5643b5a2a84be91b",
+    "ruleReadmeSha256": "af9c9fd3902e8cab9f18ab357bd752d05fc78b622f5ad72c65fb440cf00e0b8f",
+    "appPinsSha256": "fcc2105e4762f7a75fd3968b8e4556f286430872e8563806abe06ff77c1d9152",
+    "generatorSha256": "1f52b4c6a4ccb1a81fdcde3e71847da1a667cf5b0deeb35d7e0d393c5289502e"
+  },
+  "referenceMetadataPaths": [
+    "private/rules-of-thumb/null/scored-2026-07-0-of-2.json",
+    "private/rules-of-thumb/null/scored-2026-07-1-of-2.json",
+    "private/rules-of-thumb/null/scored-2026-08-0-of-2.json",
+    "private/rules-of-thumb/null/scored-2026-08-1-of-2.json",
+    "private/rules-of-thumb/null/scored-2026-09-0-of-2.json",
+    "private/rules-of-thumb/null/scored-2026-09-1-of-2.json"
+  ],
+  "referenceStageEventPath": "private/rules-of-thumb/null/stage-events.jsonl",
+  "referenceWorkerEventPattern": "private/rules-of-thumb/null/scored-<month>-<shard>-of-2.events.jsonl",
+  "unmeasured": [
+    "new board-pass runtime",
+    "new quiet and safe-move population",
+    "new move reuse rate"
+  ],
+  "timingCaveats": [
+    "Elapsed timers are not CPU usage.",
+    "Supervisor and worker clocks can differ across machine suspension.",
+    "An ideal two-worker duration excludes board work, the blackout, resumes and machine interruptions."
+  ]
+}
