@@ -1,0 +1,299 @@
+% Written by projects/period-video-coaching/paper/generate.mjs; do not edit by hand.
+
+\newcommand{\CandidateBullet}{%
+\begin{quote}\small
+The video coaches the way a strong coach works with a player at his level, in every board scene that teaches a move of his, from the evidence alone and inside the period video grammar's chapters and rules:
+\begin{itemize}[nosep]
+\item ask before you tell: the scene's first pause asks what he would play there, open (``What would you play here? Pick two moves.''), before any question that narrows it to a kind of move and before any arrow;
+\item name the habit, then its replacement: say what kind of move he kept playing and how (its scan step, the seconds it got, what it left behind, as the dailies and the archive say) and how often it came back this period, and show at the board how the rule that answers it replaces that habit;
+\item and then what: after the better move, play or say their best reply and why the move still holds, so the line stops where its gain is clear (the turning point's engine line in coach-log/review-analysis/<date>.json, or \texttt{npm run -{}-silent coach -{}- engine best <fen>});
+\item pitch it at his level: say whether this is a miss most players at his rating make or one he could have found, from how often players at his band play the best move there (the \texttt{find} the day's Maia step archived on that turning point in coach-log/review-analysis/<date>.json, or \texttt{npm run -{}-silent coach -{}- engine find <fen> <uci> -{}-rapid <his rating>}), in words and never as a percentage (under about 15\%: a pattern to learn; half or more: his to find); on a hung piece, the mirror instead, as the video grammar says;
+\item praise with a board: on a move he got right, name what it saw.
+\end{itemize}
+\end{quote}
+}
+\newcommand{\CaseSpan}{weeks 35 to 42 and the months of August and September 2026}
+\newcommand{\AllPeriods}{ten}
+\newcommand{\Cases}{ten}
+\newcommand{\CasesCap}{Ten}
+\newcommand{\WeeksN}{eight}
+\newcommand{\MonthsN}{two}
+\newcommand{\AppCommit}{3eb8afd0c1}
+\newcommand{\RefFailedN}{nine}
+\newcommand{\RefPassed}{week 42}
+\newcommand{\RefErrorsMin}{22}
+\newcommand{\RefErrorsMax}{271}
+\newcommand{\TrainN}{five}
+\newcommand{\HeldN}{five}
+\newcommand{\TrainCases}{weeks 35, 37, 39 and 41, and August}
+\newcommand{\HeldCases}{weeks 36, 38, 40 and 42, and September}
+\newcommand{\WeekGamesMin}{19}
+\newcommand{\WeekGamesMax}{59}
+\newcommand{\MonthGames}{307 (August) and 172 (September)}
+\newcommand{\WriterRuns}{24}
+\newcommand{\NullN}{four}
+\newcommand{\NullCases}{weeks 35, 36, 37 and 38}
+\newcommand{\WordsPerSecond}{2.6}
+\newcommand{\MinDecoyWords}{40}
+\newcommand{\Spent}{225}
+\newcommand{\Cap}{276}
+\newcommand{\PilotCap}{50}
+\newcommand{\WriterSpend}{155}
+\newcommand{\GraderSpend}{63}
+\newcommand{\LostSpend}{6.50}
+\newcommand{\SevenDayFirst}{55}
+\newcommand{\SevenDayLast}{68}
+\newcommand{\PublishedN}{ten}
+\newcommand{\PubOpenQuestion}{15}
+\newcommand{\PubHabitNamed}{90}
+\newcommand{\PubReplacement}{81}
+\newcommand{\PubThenWhat}{19}
+\newcommand{\PubLevel}{38}
+\newcommand{\PubLevelTrue}{63}
+\newcommand{\PubPraiseNamed}{0}
+\newcommand{\PubOpenQuestionAll}{30}
+\newcommand{\PubMoments}{2.1}
+\newcommand{\PubScenes}{3.4}
+\newcommand{\BaseOpenQuestion}{16}
+\newcommand{\BaseHabitNamed}{84}
+\newcommand{\BaseReplacement}{79}
+\newcommand{\BaseThenWhat}{28}
+\newcommand{\BaseLevel}{11}
+\newcommand{\BaseLevelTrue}{100}
+\newcommand{\BasePraiseNamed}{0}
+\newcommand{\BaseOpenQuestionAll}{38}
+\newcommand{\BaseMoments}{1.9}
+\newcommand{\BaseScenes}{3.6}
+\newcommand{\CandOpenQuestion}{95}
+\newcommand{\CandHabitNamed}{76}
+\newcommand{\CandReplacement}{74}
+\newcommand{\CandThenWhat}{83}
+\newcommand{\CandLevel}{65}
+\newcommand{\CandLevelTrue}{90}
+\newcommand{\CandPraiseNamed}{100}
+\newcommand{\CandOpenQuestionAll}{98}
+\newcommand{\CandMoments}{3.1}
+\newcommand{\CandScenes}{6.0}
+\newcommand{\PubSplit}{0.0}
+\newcommand{\PubPositions}{2.1}
+\newcommand{\PubToldHabitNamed}{90}
+\newcommand{\PubToldReplacement}{81}
+\newcommand{\PubToldLevel}{38}
+\newcommand{\BaseSplit}{0.0}
+\newcommand{\BasePositions}{1.9}
+\newcommand{\BaseToldHabitNamed}{84}
+\newcommand{\BaseToldReplacement}{79}
+\newcommand{\BaseToldLevel}{11}
+\newcommand{\CandSplit}{1.2}
+\newcommand{\CandPositions}{2.1}
+\newcommand{\CandToldHabitNamed}{100}
+\newcommand{\CandToldReplacement}{100}
+\newcommand{\CandToldLevel}{95}
+\newcommand{\MovesTable}{%
+\begin{tabular}{lrrr}
+\toprule
+In the moment scenes & Published & Today's prompts & Candidate \\
+\midrule
+Asks what he would play before any hint & 15\% {\footnotesize (20)} & 16\% {\footnotesize (19)} & 95\% {\footnotesize (21)} \\
+Names the habit behind the mistake & 90\% {\footnotesize (21)} & 84\% {\footnotesize (19)} & 76\% {\footnotesize (29)} \\
+Ends on the habit that replaces it & 81\% {\footnotesize (21)} & 79\% {\footnotesize (19)} & 74\% {\footnotesize (31)} \\
+Plays out their best reply to the better move & 19\% {\footnotesize (21)} & 28\% {\footnotesize (18)} & 83\% {\footnotesize (24)} \\
+Says whether the miss is normal at his level & 38\% {\footnotesize (21)} & 11\% {\footnotesize (19)} & 65\% {\footnotesize (31)} \\
+\quad and that agrees with the evidence & 63\% {\footnotesize (8)} & 100\% {\footnotesize (2)} & 90\% {\footnotesize (20)} \\
+\midrule
+\multicolumn{4}{l}{\emph{Counted once per position taught}} \\
+Names the habit behind the mistake & 90\% {\footnotesize (21)} & 84\% {\footnotesize (19)} & 100\% {\footnotesize (21)} \\
+Ends on the habit that replaces it & 81\% {\footnotesize (21)} & 79\% {\footnotesize (19)} & 100\% {\footnotesize (21)} \\
+Says whether the miss is normal at his level & 38\% {\footnotesize (21)} & 11\% {\footnotesize (19)} & 95\% {\footnotesize (21)} \\
+\midrule
+Praise names what the good move saw & -- & -- & 100\% {\footnotesize (11)} \\
+Any board scene: an open question first & 30\% {\footnotesize (33)} & 38\% {\footnotesize (34)} & 98\% {\footnotesize (46)} \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\ShareBase}{44}
+\newcommand{\ShareCand}{79}
+\newcommand{\ShareDiff}{+0.36 {\footnotesize (+0.24 to +0.47)}}
+\newcommand{\BaseHeard}{6.4}
+\newcommand{\BaseWords}{873}
+\newcommand{\BaseCost}{6.13}
+\newcommand{\BaseMinutes}{18}
+\newcommand{\BaseRounds}{6.3}
+\newcommand{\BasePassed}{10}
+\newcommand{\BaseRuns}{10}
+\newcommand{\BaseBoardScenes}{3.6}
+\newcommand{\BaseQuestions}{4.2}
+\newcommand{\BaseAllScenes}{11.4}
+\newcommand{\BaseWeekHeard}{6.3}
+\newcommand{\BaseWeekUnder}{zero}
+\newcommand{\BaseWeekIn}{eight}
+\newcommand{\BaseWeekOver}{zero}
+\newcommand{\BaseMonthHeard}{6.5}
+\newcommand{\BaseMonthUnder}{one}
+\newcommand{\BaseMonthIn}{one}
+\newcommand{\BaseMonthOver}{zero}
+\newcommand{\CandHeard}{8.6}
+\newcommand{\CandWords}{1165}
+\newcommand{\CandCost}{6.48}
+\newcommand{\CandMinutes}{19}
+\newcommand{\CandRounds}{7.1}
+\newcommand{\CandPassed}{10}
+\newcommand{\CandRuns}{10}
+\newcommand{\CandBoardScenes}{6.0}
+\newcommand{\CandQuestions}{9.7}
+\newcommand{\CandAllScenes}{13.5}
+\newcommand{\CandWeekHeard}{8.9}
+\newcommand{\CandWeekUnder}{zero}
+\newcommand{\CandWeekIn}{one}
+\newcommand{\CandWeekOver}{seven}
+\newcommand{\CandMonthHeard}{7.5}
+\newcommand{\CandMonthUnder}{one}
+\newcommand{\CandMonthIn}{zero}
+\newcommand{\CandMonthOver}{one}
+\newcommand{\PubHeard}{7.6}
+\newcommand{\PubWeekHeard}{7.9}
+\newcommand{\WeekTargetLo}{five}
+\newcommand{\WeekTargetHi}{eight}
+\newcommand{\PubMonthHeard}{6.6}
+\newcommand{\MonthTargetLo}{six}
+\newcommand{\MonthTargetHi}{nine}
+\newcommand{\BaseRendered}{5.1}
+\newcommand{\BaseWeekRendered}{5.1}
+\newcommand{\BaseWeekRenderedUnder}{four}
+\newcommand{\BaseWeekRenderedIn}{four}
+\newcommand{\BaseWeekRenderedOver}{zero}
+\newcommand{\BaseMonthRendered}{5.1}
+\newcommand{\BaseMonthRenderedUnder}{two}
+\newcommand{\BaseMonthRenderedIn}{zero}
+\newcommand{\BaseMonthRenderedOver}{zero}
+\newcommand{\CandRendered}{6.8}
+\newcommand{\CandWeekRendered}{7.0}
+\newcommand{\CandWeekRenderedUnder}{zero}
+\newcommand{\CandWeekRenderedIn}{seven}
+\newcommand{\CandWeekRenderedOver}{one}
+\newcommand{\CandMonthRendered}{5.8}
+\newcommand{\CandMonthRenderedUnder}{one}
+\newcommand{\CandMonthRenderedIn}{one}
+\newcommand{\CandMonthRenderedOver}{zero}
+\newcommand{\RenderedShare}{79}
+\newcommand{\EstimateOff}{6}
+\newcommand{\RenderedRatio}{1.35}
+\newcommand{\Voice}{af\_heart}
+\newcommand{\VoiceSpeed}{0.97}
+\newcommand{\LengthTable}{%
+\begin{tabular}{lcrrrrrrr}
+\toprule
+ & Grammar & Published & \multicolumn{3}{c}{Today's prompts} & \multicolumn{3}{c}{Candidate} \\
+\cmidrule(lr){4-6}\cmidrule(lr){7-9}
+ & minutes & heard once & heard once & rendered & inside & heard once & rendered & inside \\
+\midrule
+Weeks & 5 to 8 & 7.9 & 6.3 & 5.1 & 4 of 8 & 8.9 & 7.0 & 7 of 8 \\
+Months & 6 to 9 & 6.6 & 6.5 & 5.1 & 0 of 2 & 7.5 & 5.8 & 1 of 2 \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\MonthLengthText}{rendered, the candidate's August and September videos last 4.4 and 7.3 minutes and today's 5.8 and 4.4, against the grammar's six to nine}
+\newcommand{\RecentWeeks}{weeks 39, 40, 41 and 42}
+\newcommand{\PubRecentHeard}{6.5}
+\newcommand{\BaseRecentHeard}{6.6}
+\newcommand{\LengthCap}{1.3}
+\newcommand{\LengthRatio}{1.37}
+\newcommand{\LengthRatioInterval}{1.37 {\footnotesize (1.20 to 1.52)}}
+\newcommand{\TrainTruth}{+0.20 {\footnotesize ($-$0.40 to +0.80)}}
+\newcommand{\TrainCoaching}{+1.00 {\footnotesize (+1.00 to +1.00)}}
+\newcommand{\TrainListening}{$-$0.20 {\footnotesize ($-$0.80 to +0.40)}}
+\newcommand{\TrainOverall}{+0.60 {\footnotesize ($-$0.20 to +1.00)}}
+\newcommand{\HeldTruth}{$-$0.20 {\footnotesize ($-$0.80 to +0.40)}}
+\newcommand{\HeldCoaching}{+1.00 {\footnotesize (+1.00 to +1.00)}}
+\newcommand{\HeldListening}{0.00 {\footnotesize ($-$0.80 to +0.80)}}
+\newcommand{\HeldOverall}{+0.60 {\footnotesize (+0.20 to +1.00)}}
+\newcommand{\AllTruth}{0.00 {\footnotesize ($-$0.50 to +0.50)}}
+\newcommand{\AllCoaching}{+1.00 {\footnotesize (+1.00 to +1.00)}}
+\newcommand{\AllListening}{$-$0.10 {\footnotesize ($-$0.60 to +0.40)}}
+\newcommand{\AllOverall}{+0.60 {\footnotesize (+0.20 to +1.00)}}
+\newcommand{\AllNullCoaching}{0.00 {\footnotesize ($-$0.75 to +0.75)}}
+\newcommand{\TruthWins}{three}
+\newcommand{\TruthLosses}{three}
+\newcommand{\TruthTies}{four}
+\newcommand{\CoachingWins}{ten}
+\newcommand{\CoachingLosses}{zero}
+\newcommand{\CoachingTies}{zero}
+\newcommand{\ListeningWins}{three}
+\newcommand{\ListeningLosses}{four}
+\newcommand{\ListeningTies}{three}
+\newcommand{\OverallWins}{seven}
+\newcommand{\OverallLosses}{one}
+\newcommand{\OverallTies}{two}
+\newcommand{\NullDecisive}{two}
+\newcommand{\Decided}{102}
+\newcommand{\SecondShare}{54}
+\newcommand{\SameN}{ten}
+\newcommand{\SameBroken}{zero}
+\newcommand{\DecoyN}{ten}
+\newcommand{\DecoyCoaching}{zero}
+\newcommand{\DecoyLostListening}{ten}
+\newcommand{\DecoyLostOverall}{ten}
+\newcommand{\DecoyLostCoaching}{nine}
+\newcommand{\DecoyAdded}{326}
+\newcommand{\BaseFalse}{2.30}
+\newcommand{\BaseUnsupported}{3.4}
+\newcommand{\BaseMisleading}{2.2}
+\newcommand{\BaseBoardFalse}{0.90}
+\newcommand{\CandFalse}{1.40}
+\newcommand{\CandUnsupported}{5.1}
+\newcommand{\CandMisleading}{1.9}
+\newcommand{\CandBoardFalse}{0.90}
+\newcommand{\PubFalse}{11.7}
+\newcommand{\PubBoardFalse}{2.5}
+\newcommand{\FalseDiff}{$-$0.90 {\footnotesize ($-$2.30 to +0.60)}}
+\newcommand{\BoardDiff}{0.00 {\footnotesize ($-$1.00 to +1.00)}}
+\newcommand{\FirstGradedPeriod}{week 35}
+\newcommand{\FirstTruth}{preferred the candidate}
+\newcommand{\NowTruth}{preferred the candidate}
+\newcommand{\FirstCoaching}{preferred the candidate}
+\newcommand{\NowCoaching}{preferred the candidate}
+\newcommand{\FirstListening}{preferred today's prompt}
+\newcommand{\NowListening}{preferred today's prompt}
+\newcommand{\FirstOverall}{preferred the candidate}
+\newcommand{\NowOverall}{preferred the candidate}
+\newcommand{\RegradedN}{four}
+\newcommand{\RegradeShare}{10}
+\newcommand{\RegradeMax}{26}
+\newcommand{\RuleTable}{%
+\begin{tabular}{lrl}
+\toprule
+Condition & Estimate (95\% interval) & Holds \\
+\midrule
+Coaching on the train periods above 0 & +1.00 {\footnotesize (+1.00 to +1.00)} & yes \\
+Coaching on the held-out periods above 0 & +1.00 {\footnotesize (+1.00 to +1.00)} & yes \\
+Overall not below 0 & +0.60 {\footnotesize (+0.20 to +1.00)} & yes \\
+False claims per script not up & $-$0.90 {\footnotesize ($-$2.30 to +0.60)} & yes \\
+False board claims per script not up & 0.00 {\footnotesize ($-$1.00 to +1.00)} & yes \\
+The check passes as often & 10 of 10 {\footnotesize (today's: 10)} & yes \\
+Controls clean (noise floor: coaching) & 0.00 {\footnotesize ($-$0.75 to +0.75)} & yes \\
+Coaching moves made more often & +0.36 {\footnotesize (+0.24 to +0.47)} & yes \\
+At most 1.3 times as long & 1.37 {\footnotesize (1.20 to 1.52)} & \textbf{no} \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\Kept}{no}
+\newcommand{\PeriodTable}{%
+\begin{tabular}{llrccccrrrr}
+\toprule
+ & & & \multicolumn{4}{c}{Judge, from the candidate's side} & \multicolumn{2}{c}{Minutes heard once} & \multicolumn{2}{c}{Coaching share} \\
+\cmidrule(lr){4-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}
+Period & Split & Games & Truth & Coaching & Listening & Overall & Today & Candidate & Today & Candidate \\
+\midrule
+Week 35 & train & 55 & + & + & $-$ & + & 6.5 & 9.5 & 40 & 73 \\
+Week 37 & train & 19 & 0 & + & $-$ & + & 6.1 & 9.3 & 50 & 100 \\
+Week 39 & train & 59 & $-$ & + & 0 & $-$ & 6.2 & 7.7 & 50 & 69 \\
+Week 41 & train & 34 & 0 & + & 0 & + & 6.5 & 10.4 & 60 & 69 \\
+August & train & 307 & + & + & + & + & 7.3 & 5.6 & 44 & 56 \\
+Week 36 & held out & 32 & 0 & + & 0 & 0 & 5.6 & 8.2 & 40 & 59 \\
+Week 38 & held out & 49 & $-$ & + & $-$ & 0 & 6.1 & 9.3 & 40 & 93 \\
+Week 40 & held out & 33 & + & + & + & + & 6.7 & 8.3 & 40 & 100 \\
+Week 42 & held out & 34 & $-$ & + & + & + & 7.0 & 8.5 & 40 & 100 \\
+September & held out & 172 & 0 & + & $-$ & + & 5.6 & 9.4 & 30 & 71 \\
+\bottomrule
+\end{tabular}
+}

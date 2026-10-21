@@ -11,7 +11,24 @@ ones write.
 
 ## Result
 
-Not run yet. The rule below was fixed before the candidate's first run.
+Not kept by the rule, on length alone ([paper](paper/paper.pdf)). Judged
+blind in both orders, the candidate's coaching won on all ten periods, train
+and held out alike, and it won overall on most of them; its listening verdicts
+were even, where the daily study's candidate never won listening. The audit
+finds it asking his move before any hint, playing the better move on to their
+best reply and saying whether the miss is normal at his level in most moment
+scenes, where today's prompts do each rarely, with no more false claims. The
+controls were clean: the same script tied with itself on every period, and
+the decoy that pads today's script with words that say nothing new never won
+coaching. Every condition of the rule held but the eighth: heard once, the
+candidate's videos are longer than the rule's bound of 1.3 times today's, so
+the rule keeps today's prompts. Timed after the result in the app's own voice
+(`bin/rendered.py`, deciding nothing), the candidate's weekly videos average
+inside the five to eight minutes the video grammar asks for, where today's sit
+at its floor, so whether to take the bullet anyway is the owner's call.
+`results/report.json` holds the numbers as `batch.py report` computed them,
+the app commit the cases ran on and what was spent; `results/runs.json` each
+run's, with each first run's rendered length.
 
 ## Question
 
@@ -143,6 +160,11 @@ The daily study's graders, reading a period's evidence:
   as the candidate added on that period (at least 40), in beats that restate
   their board scene with no square, move, piece, number or question it does
   not already have.
+- `bin/rendered.py`, no model, added after the result and deciding nothing:
+  each first run's video length as the app renders it, the app's own plan of
+  the run's script voiced by its Kokoro voice and timed by its own timeline
+  (`bin/rendered.mts`), with no frames or encoding. The video grammar's
+  minutes are this length; the rule's is the length heard once.
 
 ## The rule, fixed before the candidate's first run
 
@@ -227,8 +249,15 @@ bin/batch.py judge --config coach-moves --vs baseline
 bin/batch.py judge --config baseline --vs baseline          # the noise floor: run 1 against run 2
 bin/batch.py controls --config coach-moves --vs baseline
 bin/batch.py report --config coach-moves --vs baseline
+bin/rendered.py --venv <kokoro venv> --cache <cache dir>    # each first run's rendered length, on the CPU
+bin/export.py --config coach-moves --vs baseline            # results/
 python3 -m unittest test_boot test_controls test_audits   # the report's guards
 ```
+
+The paper: `bridge/run.sh projects/period-video-coaching/paper/generate.mjs`
+writes `paper/generated.tex` from `results/` and refuses when a claim no longer
+holds (`node --test paper/generate.test.mjs` checks that it refuses without
+both controls on every period); `latexmk -pdf paper.tex` in `paper/` builds it.
 
 The evidence's Maia-2 weights are read from `$EVAL_ROOT/maia`. The per-run
 files (the scripts, the streams, the audits with their quotes) hold the

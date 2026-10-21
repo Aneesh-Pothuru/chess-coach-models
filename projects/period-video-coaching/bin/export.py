@@ -86,8 +86,14 @@ def run_row(config, i, k):
             'forbidden': sorted(g.get('forbidden') or {}), 'minutes': round((g.get('seconds') or 0) / 60, 1),
             'cost': round(u.get('cost') or 0, 2), 'turns': u.get('turns'),
             'windows': {n: v for n, v in (g.get('windows') or {}).items() if n != 'statuses'},
-            'audit': audit_row(audit), 'told': told(video, audit),
+            'audit': audit_row(audit), 'told': told(video, audit), 'rendered': rendered(d),
             'earlier': earlier(d, ['audit.json', 'judge-vs-baseline.json', 'judge-control-same.json', 'judge-control-decoy.json'])}
+
+
+def rendered(d):
+    """The video's length as the app renders it (bin/rendered.py), when it was timed."""
+    r = load(os.path.join(d, 'rendered.json'))
+    return {'seconds': r['seconds'], 'estimatedSeconds': r.get('estimatedSeconds'), 'voice': r.get('voice'), 'speed': r.get('speed')} if r else None
 
 
 def verdict(path):
@@ -106,8 +112,10 @@ def main():
     for i in IDS:
         c = load(os.path.join(CASES, i, 'meta', 'case.json'))
         if c:
-            cases[i] = {'split': 'train' if i in TRAIN else 'heldOut', 'usable': c.get('usable'), 'games': c.get('games'),
+            ref = load(os.path.join(CASES, i, 'meta', 'reference-check.json')) or {}
+            cases[i] = {'kind': c.get('kind'), 'split': 'train' if i in TRAIN else 'heldOut', 'usable': c.get('usable'), 'games': c.get('games'),
                         'code': c.get('code'), 'data': c.get('parent'), 'referenceCheckExit': c.get('referenceCheckExit'),
+                        'referenceErrors': len(ref['errors']) if isinstance(ref.get('errors'), list) else None,
                         'published': audit_row(load(os.path.join(CASES, i, 'meta', 'audit-published.json'))),
                         'publishedEarlier': earlier(os.path.join(CASES, i, 'meta'), ['audit-published.json']),
                         'publishedTold': told(load(os.path.join(CASES, i, 'meta', 'published-video.json')),

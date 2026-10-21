@@ -233,6 +233,15 @@ projects/period-writer/bin/batch.py report --config threat-order --vs baseline
 projects/period-writer/bin/kinds.py --configs baseline,threat-order
 projects/period-writer/bin/export.py --config threat-order --vs baseline
 
+# The review videos: past days (the daily video alone) and past weeks and months
+# (the review and its video) written by two prompts on the owner's subscription,
+# under each eval's cap and outside the routines' hours, then audited, judged
+# blind with the controls, and exported. Each project's README gives the cases
+# and the order; the scripts, streams and audits stay in their EVAL_ROOT.
+EVAL_ROOT=/tmp/video-coaching projects/video-coaching/bin/export.py --config coach-moves --vs baseline
+EVAL_ROOT=/tmp/period-video projects/period-video-coaching/bin/rendered.py --venv <kokoro venv> --cache <cache dir>
+EVAL_ROOT=/tmp/period-video projects/period-video-coaching/bin/export.py --config coach-moves --vs baseline
+
 make papers   # each paper's generated.tex, then its PDF
 ```
 
