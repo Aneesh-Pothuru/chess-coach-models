@@ -1,6 +1,6 @@
 // Reporting only: format the already-validated aggregates supplied by the
 // paper generator. This module reads no file and computes no study measure.
-import { esc, fixed, percent } from '../../paper.mjs'
+import { esc, fixed, percent } from './format.mjs'
 
 const PROFILES = ['phone', 'desktop', 'routine']
 const DEVICES = ['phone', 'desktop']
@@ -117,7 +117,7 @@ export function addTables(g, report, execution) {
       fixed(row?.mean, digits), fixed(row?.median, digits), fixed(row?.p90, digits)]
   })), 'Candidate minus baseline on the same attempted plies. These are descriptive distributions, without an adoption threshold.'))
 
-  addExecutionTable(g, execution)
+  if (execution !== undefined) addExecutionTable(g, execution)
 
   g.block('CoverageTable', table(`llrrrrrr${right}`, [
     'profile', 'arm', 'flags', 'looks', 'retries', 'unknown', stack(['incomplete', 'looks']),

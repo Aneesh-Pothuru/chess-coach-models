@@ -1,113 +1,138 @@
 % Written by second-look-fresh/paper/generate.mjs; do not edit by hand.
 
 \newcommand{\Cases}{60}
-\newcommand{\Plies}{3917}
-\newcommand{\Candidates}{3}
+\newcommand{\Plies}{3,917}
 \newcommand{\VerifyNodes}{750,000}
 \newcommand{\AdaptiveNodes}{1,500,000}
-\newcommand{\Threads}{1}
+\newcommand{\Candidates}{three}
+\newcommand{\ReferenceNodes}{7,500,000}
+\newcommand{\Threads}{one}
 \newcommand{\HashSize}{128}
 \newcommand{\DeviceHashSize}{64}
 \newcommand{\DeterminismComparisons}{8}
-\newcommand{\DeterminismPositions}{2}
-\newcommand{\DeterminismSearches}{12}
-\newcommand{\Draws}{2000}
+\newcommand{\DeterminismPositions}{two}
+\newcommand{\Draws}{2,000}
 \newcommand{\PoissonMean}{1}
 \newcommand{\Seed}{20261014}
+\newcommand{\Effects}{seven}
 \newcommand{\Confidence}{95}
-\newcommand{\Effects}{7}
 \newcommand{\CorrectedConfidence}{99.285714}
 \newcommand{\AgreementLine}{5}
 \newcommand{\QualityMargin}{1}
-\newcommand{\ReferenceNodes}{7,500,000}
-\newcommand{\RetryWord}{one}
-\newcommand{\FrozenFiles}{600}
-\newcommand{\ArchivedFiles}{63}
-\newcommand{\FirstGames}{50}
-\newcommand{\AcceptedGames}{49}
-\newcommand{\RejectedGames}{1}
-\newcommand{\MissingFirstGames}{10}
-\newcommand{\MissingAcceptedGames}{11}
-\newcommand{\OriginalObservedGames}{3}
-\newcommand{\OriginalMissingGames}{57}
-\newcommand{\AmendedHours}{5.110}
-\newcommand{\AmendedCalendarHours}{5.110}
-\newcommand{\AmendedBuildHours}{3.105}
-\newcommand{\AmendedReplayHours}{2.000}
-\newcommand{\AmendedClockDifference}{0.016}
-\newcommand{\ElapsedHours}{17.82}
-\newcommand{\CalendarHours}{35.20}
-\newcommand{\ClockDifferenceHours}{17.38}
-\newcommand{\UnallocatedHours}{1.46}
-\newcommand{\EstimatedHours}{9.05}
-\newcommand{\ReservedHours}{13.58}
-\newcommand{\OriginalTimeouts}{10}
-\newcommand{\OriginalReplayFailures}{3}
-\newcommand{\BuildTimeoutSeconds}{3,600}
+\newcommand{\ReferenceRetries}{one}
+\newcommand{\ReferencePositions}{2,536}
+\newcommand{\PhoneMissChange}{$-$4.67}
+\newcommand{\PhoneMissChangeInterval}{$-$9.63 to $-$0.06}
+\newcommand{\DesktopBaselineError}{4.20}
+\newcommand{\DesktopCandidateError}{6.00}
+\newcommand{\DesktopErrorChange}{$+$1.80}
+\newcommand{\DesktopErrorInterval}{$+$0.01 to $+$3.49}
+\newcommand{\PairedDepthMedian}{zero}
+\newcommand{\AcceptedRetries}{two}
+\newcommand{\OriginalIncomplete}{8}
+\newcommand{\Amendments}{four}
+\newcommand{\OriginalObserved}{three}
+\newcommand{\OriginalMissing}{57}
+\newcommand{\ContinuationHours}{5.07}
+\newcommand{\QuietHours}{2.04}
+\newcommand{\ReplayMinutes}{13.22}
+\newcommand{\ReferenceWorkers}{two}
+\newcommand{\ReferenceHours}{2.80}
+\newcommand{\AnalysisSeconds}{1.432}
 \newcommand{\AppCommit}{f4bd63f19b343f686fb97ea4cf70b211c0bddc0a}
 \newcommand{\RecordsCommit}{aed714ada579782ce73630596e59c8b65e74cb30}
-\newcommand{\DesignDigest}{9bcb9d0512a763dd352dab9d8585988a02160fe7abda3b478585c688a2dc1161}
-\newcommand{\AmendmentDigest}{c301bc3e56ec45b233b3868d231e4e602719e97bfab511468058359a4cab2c54}
-\newcommand{\AcquisitionCodeDigest}{79a694c4ff3d6dd07d289f57d6ab8bd5c58640dfea93b9120e42ca4d328c1059}
-\newcommand{\StoppedDigest}{80627e461645b670f18b38cce57f78f5d956deb7d360b2167cb20f920796b931}
 \newcommand{\Engine}{stockfish@18.0.8/stockfish-18-lite-single/nn-9067e33176e8}
 \newcommand{\TimeControls}{%
 59 games at 600 seconds with 0 seconds increment; 1 game at 900 seconds with 10 seconds increment.
 }
-\newcommand{\FailureDescription}{%
-The rejected replay has 35 raw second looks, all guard-complete. Its canonical and replay final deep evidence are also complete. The saved positions differ only in deep evidence on 4 rows; 4 record rows differ. Coverage and provenance agree. No recorded engine call failed. There were two failed human-policy calls after verification. The retained call trace records their failure flags and durations, but no error reason.
+\newcommand{\GapTable}{%
+{\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\textwidth}{@{}ll>{\raggedleft\arraybackslash}X>{\raggedleft\arraybackslash}Xl@{}}
+\toprule
+device & arm & \shortstack[r]{miss: n/N \\ \% [95\% CI]} & \shortstack[r]{extra: n/N \\ \% [95\% CI]} & absolute bar \\
+\midrule
+phone & baseline & \shortstack[r]{28/340 \\ 8.24 [5.18, 11.67]} & \shortstack[r]{24/336 \\ 7.14 [4.23, 10.04]} & differs \\
+phone & candidate & \shortstack[r]{12/337 \\ 3.56 [1.87, 5.24]} & \shortstack[r]{14/339 \\ 4.13 [1.67, 6.90]} & unclear \\
+desktop & baseline & \shortstack[r]{20/340 \\ 5.88 [3.66, 8.36]} & \shortstack[r]{26/346 \\ 7.51 [4.81, 10.48]} & unclear \\
+desktop & candidate & \shortstack[r]{9/337 \\ 2.67 [1.09, 4.34]} & \shortstack[r]{11/339 \\ 3.24 [1.22, 5.68]} & unclear \\
+\bottomrule
+\end{tabularx}
+\par\smallskip\raggedright Counts give the numerator and its own denominator. Each arm uses its own routine.\par
 }
-\newcommand{\FirstReplayDescription}{%
-Across all 50 retained first journals, including the rejected output, 0 of 1942 attempted second looks are guard-incomplete. The rejected subset has 0 incomplete looks out of 35. These counts describe only the produced journals; the 10 missing first replays leave the full-batch raw count unknown.
+}
+\newcommand{\GapChangeTable}{%
+{\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\textwidth}{@{}ll>{\raggedleft\arraybackslash}Xl@{}}
+\toprule
+device & share & \shortstack[r]{change (percentage points) \\ corrected CI} & device narrows \\
+\midrule
+phone & miss & \shortstack[r]{$-$4.67 \\ {[$-$9.63, $-$0.06]}} & yes \\
+phone & extra & \shortstack[r]{$-$3.01 \\ {[$-$7.89, 2.65]}} &  \\
+desktop & miss & \shortstack[r]{$-$3.21 \\ {[$-$7.33, 0.64]}} & no \\
+desktop & extra & \shortstack[r]{$-$4.27 \\ {[$-$8.78, 0.35]}} &  \\
+\bottomrule
+\end{tabularx}
+\par\smallskip\raggedright Changes are candidate minus baseline. Decision intervals have 99.285714\% coverage.\par
+}
+}
+\newcommand{\QualityTable}{%
+{\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\textwidth}{@{}lr>{\raggedleft\arraybackslash}X>{\raggedleft\arraybackslash}X>{\raggedleft\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+profile & common & \shortstack[r]{baseline wrong \\ n/N; \%} & \shortstack[r]{candidate wrong \\ n/N; \%} & \shortstack[r]{change (points) \\ corrected CI} & guard \\
+\midrule
+phone & 1000 & \shortstack[r]{58/1000 \\ 5.80} & \shortstack[r]{56/1000 \\ 5.60} & \shortstack[r]{$-$0.20 \\ {[$-$1.93, 1.45]}} & unclear \\
+desktop & 1000 & \shortstack[r]{42/1000 \\ 4.20} & \shortstack[r]{60/1000 \\ 6.00} & \shortstack[r]{1.80 \\ {[0.01, 3.49]}} & unclear \\
+routine & 2384 & \shortstack[r]{55/2384 \\ 2.31} & \shortstack[r]{68/2384 \\ 2.85} & \shortstack[r]{0.55 \\ {[$-$0.27, 1.37]}} & unclear \\
+\bottomrule
+\end{tabularx}
+\par\smallskip\raggedright Wrong verdicts are measured against the fixed reference on common attempted looks. Changes are candidate minus baseline in percentage points; corrected intervals have 99.285714\% coverage.\par
+}
+}
+\newcommand{\CostTable}{%
+{\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\textwidth}{@{}llr>{\raggedleft\arraybackslash}X>{\raggedleft\arraybackslash}X@{}}
+\toprule
+profile & arm & looks & \shortstack[r]{seconds/look \\ mean / median / p90} & \shortstack[r]{retained depth \\ mean / median / p90 (n)} \\
+\midrule
+phone & baseline & 1000 & 2.617 / 2.091 / 6.276 & \shortstack[r]{18.4 / 17.0 / 19.0 \\ n = 1000} \\
+phone & candidate & 1000 & 2.182 / 1.771 / 5.357 & \shortstack[r]{18.3 / 17.0 / 19.0 \\ n = 1000} \\
+desktop & baseline & 1000 & 2.485 / 2.054 / 6.262 & \shortstack[r]{18.3 / 17.0 / 19.0 \\ n = 1000} \\
+desktop & candidate & 1000 & 2.132 / 1.719 / 5.210 & \shortstack[r]{18.1 / 17.0 / 19.0 \\ n = 1000} \\
+routine & baseline & 2384 & 1.468 / 0.862 / 3.320 & \shortstack[r]{22.0 / 17.0 / 19.0 \\ n = 2384} \\
+routine & candidate & 2384 & 1.336 / 0.783 / 2.697 & \shortstack[r]{21.7 / 17.0 / 19.0 \\ n = 2384} \\
+\bottomrule
+\end{tabularx}
+\par\smallskip\raggedright Seconds include the reset, candidate and restricted played-move searches, and any adaptive retry. Depth is retained at verification, before teaching.\par
+}
 }
 \newcommand{\AcquisitionTable}{%
-{\footnotesize
-\setlength{\tabcolsep}{3pt}
-\begin{tabularx}{\textwidth}{@{}ll>{\raggedleft\arraybackslash}X>{\raggedleft\arraybackslash}X>{\raggedleft\arraybackslash}X>{\raggedleft\arraybackslash}X>{\raggedleft\arraybackslash}X@{}}
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\textwidth}{@{}ll>{\raggedleft\arraybackslash}X>{\raggedleft\arraybackslash}X>{\raggedleft\arraybackslash}X>{\raggedleft\arraybackslash}X@{}}
 \toprule
-arm / profile & batch & \shortstack[r]{final deep \\ incomplete / all} & \shortstack[r]{app \\ partial} & \shortstack[r]{observed \\ games / all} & \shortstack[r]{observed looks \\ incomplete / all} & \shortstack[r]{full-batch \\ incomplete} \\
+arm / profile & batch & \shortstack[r]{final deep \\ incomplete / all} & \shortstack[r]{app \\ partial} & \shortstack[r]{observed \\ games / all} & \shortstack[r]{raw looks \\ incomplete / all} \\
 \midrule
-baseline / phone & frozen & 0 / 1000 & 0 & 60 / 60 & 0 / 1000 & 0 \\
-baseline / desktop & frozen & 0 / 1000 & 0 & 60 / 60 & 0 / 1000 & 0 \\
-baseline / routine & frozen & 0 / 2384 & 0 & 60 / 60 & 0 / 2384 & 0 \\
-candidate / phone & frozen & 0 / 1000 & 0 & 60 / 60 & 0 / 1000 & 0 \\
-candidate / desktop & frozen & 0 / 1000 & 0 & 60 / 60 & 0 / 1000 & 0 \\
-candidate / routine & original & 8 / 2388 & 8 & 3 / 60 & 0 / 99 & unknown \\
-candidate / routine & rebuilt & 0 / 2384 & 0 & 49 / 60 & 0 / 1907 & unknown \\
-\bottomrule
-\end{tabularx}
-\par\smallskip\raggedright Final deep evidence is retained after teaching; observed looks use accepted pre-teaching replays. Both incomplete columns apply the registered evidence-availability condition. App partial is the separately reported \texttt{coverage.partial} count. The original routine batch is superseded. Missing accepted replays leave full-batch pre-teaching counts unknown. The diagnostic is not study evidence.\par
+baseline / phone & frozen & 0 / 1,000 & 0 & 60 / 60 & 0 / 1,000 \\
+baseline / desktop & frozen & 0 / 1,000 & 0 & 60 / 60 & 0 / 1,000 \\
+baseline / routine & frozen & 0 / 2,384 & 0 & 60 / 60 & 0 / 2,384 \\
+candidate / phone & frozen & 0 / 1,000 & 0 & 60 / 60 & 0 / 1,000 \\
+candidate / desktop & frozen & 0 / 1,000 & 0 & 60 / 60 & 0 / 1,000 \\
+candidate / routine & superseded & 8 / 2,388 & 8 & 3 / 60 & unknown / unknown \\
+candidate / routine & rebuilt & 0 / 2,384 & 0 & 60 / 60 & 0 / 2,384 \\
+\bottomrule\end{tabularx}
+\par\smallskip\raggedright Final deep evidence is saved after teaching; raw looks use accepted pre-teaching replays. The superseded batch's 3 observed games contain 0 incomplete looks out of 99; its full-batch count is unknown. App partial is the separate \texttt{coverage.partial} count.\par}
 }
-}
-\newcommand{\ExecutionTable}{%
-{\footnotesize
-\setlength{\tabcolsep}{3pt}
-\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}Xrrr@{}}
-\toprule
-stage & monotonic h & calendar h & difference h \\
-\midrule
-preparation & 0.015 & 0.015 & 0.000 \\
-baseline, CLI, phone & 0.340 & 0.340 & $-$0.000 \\
-baseline, CLI, desktop & 0.762 & 0.762 & $-$0.000 \\
-baseline, CLI, routine (lower bounds) & 3.469 & 3.469 & 0.000 \\
-baseline, observed, phone & 0.456 & 0.456 & 0.000 \\
-baseline, observed, desktop & 0.542 & 0.542 & $-$0.000 \\
-baseline, observed, routine & 2.416 & 2.416 & 0.000 \\
-candidate, CLI, phone & 0.345 & 0.345 & 0.000 \\
-candidate, CLI, desktop & 0.436 & 0.436 & 0.000 \\
-candidate, CLI, routine & 6.005 & 23.386 & 17.381 \\
-candidate, observed, phone & 0.381 & 0.381 & 0.000 \\
-candidate, observed, desktop & 0.462 & 0.462 & 0.000 \\
-candidate, observed, routine & 2.190 & 2.190 & 0.000 \\
-references & 0.000 & 0.000 & 0.000 \\
-analysis & 0.000 & 0.000 & 0.000 \\
-\midrule
-invocation totals (lower bounds) & 17.820 & 35.202 & 17.381 \\
-known gaps between invocations & -- & 3.494 & -- \\
-unallocated gaps after unknown ends & -- & 1.463 & -- \\
-full observed calendar span & -- & 40.158 & -- \\
-\bottomrule
-\end{tabularx}
-\par\smallskip\raggedright Both clocks use the same output-observation boundaries, including launch and exit overhead. An unobserved end leaves both durations as lower bounds. Calendar minus monotonic elapsed is an unattributed difference over observed windows, not a bound on an unobserved difference. Neither clock measures CPU time. Between-invocation gaps are separate.\par
-}
+\newcommand{\ProvenanceTable}{%
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\textwidth}{@{}lX@{}}\toprule
+design manifest & \texttt{9bcb9d0512a763dd352dab9d8585988a02160fe7abda3b478585c688a2dc1161} \\
+candidate manifest & \texttt{8f1d16bc8d412dd2f9584c6eec3aea82ac3eefa22d15aed9be4ff6b05f0e89e1} \\
+comparison report & \texttt{889b6b50e65815200f9a378adf5b8063e84a1ccda4dc17f73f5e0d65b3f4ac58} \\
+final acquisition report & \texttt{a5a578d244f85c34c7701530fbbaf20fa1b05abfe7a6f4864ebef2915d70a72e} \\
+final acquisition amendment & \texttt{d393a2f6140ca18a3a40e45c64370202979917d5057efa23a909470de6d8af48} \\
+\bottomrule\end{tabularx}}
 }

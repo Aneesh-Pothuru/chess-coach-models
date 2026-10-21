@@ -498,6 +498,7 @@ export function validateExecutionReport(execution, compare, rule, design, amendm
 export function validateReports({ compare, phase1, execution, rule, design, amendment }) {
   object(compare, 'comparison')
   object(rule, 'rule')
+  validateDesign(design, compare)
   same(rule.profiles, ['phone', 'desktop', 'routine'], 'fixed profile family')
   same(rule.devices, ['phone', 'desktop'], 'fixed device family')
   claim(rule.effects === 2 * rule.devices.length + rule.profiles.length, 'the seven-effect decision family')
@@ -618,7 +619,10 @@ export function validateReports({ compare, phase1, execution, rule, design, amen
   }
   for (const p of rule.profiles) same(compare.quality[p].status, derived.quality[p], `${p}: independent quality rule`)
   same(compare.decision, derived.decision, 'independent final disposition')
-  validateExecutionReport(execution, compare, rule, design, amendment)
+  // The original execution report is a preserved stopped checkpoint. The
+  // final paper validates the later completed acquisition separately; passing
+  // the old report here must still satisfy the original complete-run checks.
+  if (execution !== undefined) validateExecutionReport(execution, compare, rule, design, amendment)
   return derived
 }
 

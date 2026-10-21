@@ -2,209 +2,246 @@
 \input{../../preamble}
 \input{generated}
 
-\title{Does a fresh second look bring the reviews together?\\[0.3em]
-\large Acquisition stopped before the registered comparison}
+\title{Does a fresh second look bring the reviews together?}
 \author{Chess Coach research lab}
 \date{}
 
 \begin{document}
 \maketitle
 
+% claim: results-summary
 \begin{abstract}
-The comparison has no verdict. The amended acquisition produced all
-\Cases{} candidate routine documents. Of \FirstGames{} first observed
-replays, \AcceptedGames{} reproduced their canonical documents and
-\RejectedGames{} failed the unchanged equality check. The rejected first
-output was retained. References and analysis did not start. No miss share,
-extra share, paired change or quality-guard result was computed. This is
-an acquisition report, with the rule still fixed for a complete comparison.
+Clearing the engine before each second look lowered every device gap's point
+estimate on the \Cases{} frozen games. The phone met the registered narrowing
+rule; the desktop did not. Neither device established absolute agreement
+with the routine. Every quality guard was inconclusive against the
+\QualityMargin-point margin. The decision is \emph{do not keep: inconclusive}.
+The current app stays in place. Lower disagreement with the routine did not
+establish that a cleared look preserved its judgment against the reference.
 \end{abstract}
 
-\section{The data and candidate}
-The study keeps the predecessor's frozen sample and order: \Cases{} games,
-both players, \Plies{} plies. \TimeControls{}
-The app measured is \texttt{\AppCommit}; records are at
-\texttt{\RecordsCommit}. The baseline was rebuilt here on those frozen games.
-The games belong to one player and were sampled
-for an accuracy study. They are not a fresh holdout.
+\section{The question and the data}
+% claim: candidate
+The candidate clears the analyst's memory immediately before each initial
+second look and its optional adaptive retry, at every profile. It exposes
+the engine's existing \texttt{newGame} method on the review port, calls it,
+and waits for readiness after \texttt{ucinewgame}. The initial look keeps
+\VerifyNodes{} nodes and \Candidates{} candidates; an adaptive retry keeps
+\AdaptiveNodes{} nodes. There is no reset between the candidate search and
+the restricted search of the played move. Sweeps, flags, quotas, adaptation,
+evidence retention, classification, tablebase, teaching and cache policy are
+unchanged. Teaching searches and manual rechecks are outside the candidate.
+The question is whether this change brings the devices closer to the routine
+without worsening the second look's judgment.
 
-The candidate exposes the existing \texttt{newGame} method on the review
-engine port and awaits it before each initial verification look and its
-adaptive retry. The engine sends \texttt{ucinewgame} and waits for readiness.
-The initial look keeps \VerifyNodes{} nodes and \Candidates{} candidates;
-the adaptive retry keeps \AdaptiveNodes{} nodes. It does not clear between
-the candidate search and the restricted search of the played move. Budgets,
-flags, quotas, adaptation, retention, classification, tablebase, teaching
-and cache policy are unchanged. Teaching and manual rechecks are outside
-the change.
+% claim: data
+The data are the predecessor's frozen games, in the same order, with both
+players' moves: \Cases{} games and \Plies{} plies. \TimeControls{}
+No game was filtered by time control. These are the player's games already
+studied by \texttt{phone-vs-routine}, not a new holdout.
+The measured app is \texttt{\AppCommit}; its records are at
+\texttt{\RecordsCommit}. The predecessor's older published result is context;
+the baseline for this test was rebuilt here.
 
-Each game uses a fresh Node engine, \Engine, \Threads{} thread and
-\HashSize{} MB hash, with no evaluation cache. The unchanged evidence
-builder produces canonical documents. Separate observed replays capture
-calls and accepted verification evidence before routine teaching can replace
-it. Each replay must reproduce the canonical positions, records, coverage
-and provenance. Per-game files stay private.
+% claim: instruments
+The unchanged evidence builder made a canonical document for every arm,
+profile and game. Each game used a fresh Node engine, \Engine,
+\Threads{} thread, \HashSize{} MB hash and no evaluation cache.
+Separate observed replays captured engine calls and verification evidence
+before routine teaching could replace it. An accepted replay had to reproduce
+the canonical positions, records, coverage and provenance exactly.
 
-The permitted phase-one determinism check passed all
+% claim: determinism
+Before comparison, cleared raw evidence matched in all
 \DeterminismComparisons{} cross-profile comparisons on
-\DeterminismPositions{} positions at both verification budgets,
-\DeterminismSearches{} searches. This checks cleared raw evidence on that
-small slice. It does not establish reproducibility of a complete review.
+\DeterminismPositions{} positions at both verification budgets.
+That small check did not require equal final reviews: profiles can select
+different retries, retain different evidence or add routine teaching.
 
-\section{The registered rule remains fixed}
-The gap measures use the app's \texttt{isSerious} on final records.
-Each device is compared with its own arm's routine. The miss share is
-routine serious plies absent from the device's serious set, divided by
-routine serious plies. The extra share is device serious plies absent from
-the routine's set, divided by device serious plies. All played plies of
-both sides count. Unknown records are not serious under that instrument.
-Shares pool counts over games. Changes are candidate minus baseline.
+\section{The method and the rule}
+% claim: gap-method
+The app's \texttt{isSerious} reads the final records. A miss is a routine
+serious ply absent from the device's serious set; an extra is a device serious
+ply absent from the routine's set. Miss share divides by routine serious
+plies; extra share divides by device serious plies. Each arm uses its own
+routine. All played plies count, including both sides, terminal and tablebase
+records. Unknown classes are not serious under that instrument. Estimates
+pool counts over games. Changes are candidate minus baseline.
 
-The bootstrap uses \Draws{} Poisson(\PoissonMean) draws over games,
-seed \Seed, with shared game weights across arms and profiles.
-Ordinary percentile intervals have \Confidence\% nominal coverage.
-The \Effects{} decision effects use Bonferroni intervals with
-\CorrectedConfidence\% nominal coverage and linearly interpolated quantiles.
+% claim: bootstrap
+The paired bootstrap uses \Draws{} Poisson(\PoissonMean) draws over games,
+seed \Seed, with the same game weights across arms, profiles and measures.
+Ratios are subtracted within each draw. Ordinary percentile intervals have
+\Confidence\% nominal coverage. The \Effects{} decision effects---the device
+gap changes and profile quality changes---use Bonferroni intervals with
+\CorrectedConfidence\% nominal coverage. Quantiles use linear interpolation.
 Invalid estimates cannot pass.
 
-For each device, both point changes must be negative. At least one corrected
-upper bound must be below zero, and the other's lower bound must be at most
-zero. Both devices must pass to establish narrowing. Absolute agreement is
-reported only when all device shares' ordinary upper bounds fall below
-\AgreementLine\%. It provides no alternate route to keeping the candidate.
+% claim: decision-rule
+A device's gap narrows when both point changes are negative, at least one
+corrected upper bound is below zero, and the other corrected lower bound is
+at most zero. Both devices must pass. Absolute agreement
+requires every device share's ordinary upper bound below \AgreementLine\%.
+This descriptive bar provides no alternate route to keeping the candidate.
 
-The quality guard uses each profile's common attempted second looks,
-including incomplete ones. A fresh \ReferenceNodes-node search with
-\Candidates{} candidates and full history supplies the reference. An
-incomplete or non-exact reference gets \RetryWord{} fresh retry at the same
+% claim: quality-method
+The quality guard uses, separately for each profile, the plies both arms
+attempted to verify, including incomplete looks. It reads evidence before
+teaching. A fresh \ReferenceNodes-node search with \Candidates{} candidates,
+full history and no evaluation cache supplies the reference. An incomplete
+or non-exact reference gets \ReferenceRetries{} fresh retry at the same
 budget; the first valid attempt is used. An unresolved reference blocks the
-affected guard. The app's \texttt{judgeMove} and \texttt{isSerious} supply
-raw serious-or-not verdicts. Incomplete arm evidence counts as incorrect.
-Candidate minus baseline error must have a corrected upper bound below
-\QualityMargin{} percentage point at every profile. A lower bound above
-that margin means worse; otherwise the guard is inconclusive. Keep for a
-port only when both device gaps narrow and every quality guard passes.
-Time and depth are descriptive, without an adoption threshold.
+affected guard. The app's \texttt{judgeMove} and \texttt{isSerious} give the
+raw serious-or-not verdicts. Incomplete arm evidence counts as incorrect
+against a valid reference. ``Error'' here means disagreement with this
+reference, not a proven chess error.
 
-\section{The acquisition stopped}
-The original candidate routine acquisition repeatedly failed exact
-reproduction. Its calendar elapsed time greatly exceeded its monotonic
-elapsed time. The reviewer judged sleep the most likely acquisition
-failure and approved a complete replacement of the routine batch before
-any deciding metric. The README recorded the amendment separately before
-the rebuild. The original measurement protocol remained unchanged.
+% claim: decision-rule
+Candidate minus baseline error must have a corrected upper bound strictly
+below \QualityMargin{} percentage point at every profile. A corrected lower
+bound above that margin rejects the candidate as worse; otherwise that guard
+is inconclusive. Keep for a port only when both device gaps narrow and all
+quality guards pass. Time and depth have no adoption threshold.
 
-The amendment archived \ArchivedFiles{} original routine files and froze
-\FrozenFiles{} baseline and candidate device files by content hash.
-Those bytes still match. The replacement used a separate private namespace.
-It kept each first prescribed output, whatever its completeness. A narrow
-persistence wrapper saved the first observed document and trace before the
-existing equality gate. No search, review call, evidence calculation or
-decision rule changed. A saved first replay could not be replaced to pass.
-
-The replacement built every canonical routine document without a logged
-build failure or timeout. The observed stage stopped on a reproduction
-failure. All \AcceptedGames{} accepted files equal their first journals
-byte for byte and pass the canonical comparison. The rejected first output
-is retained, without an accepted timing file. Another \MissingFirstGames{}
-games have no first observed replay. No produced output was rerun or replaced.
-The completed-acquisition manifest, reference manifest and comparison
-outputs are absent. The registered disposition remains uncomputed.
-
-\FailureDescription{}
-These are acquisition diagnostics, not comparisons of serious-error rates.
-A failed human-policy call and a changed teaching result can occur together;
-these observations alone do not establish the cause. The failure remains
-subject to the same equality gate.
-
-\section{Incomplete evidence and missing observations}
-Table~\ref{tab:acquisition} distinguishes final saved evidence from accepted
-pre-teaching traces. Final deep evidence can include teaching replacements
-and cannot recover a missing verification trace. The original routine has
-only \OriginalObservedGames{} accepted observed games; the other
-\OriginalMissingGames{} are unknown. The rebuilt routine has
-\MissingAcceptedGames{} games without an accepted replay. The app's saved
-\texttt{coverage.partial} count has its own meaning and is shown separately.
+\section{Results}
+% claim: gap-results
+\subsection{The gap}
+Every device share fell (Table~\ref{tab:gaps}). The phone's miss change was
+\PhoneMissChange{} percentage points, with corrected interval
+\PhoneMissChangeInterval. Its extra-share interval includes zero, which the
+registered narrowing rule allows. Both desktop change intervals include
+zero, so the desktop does not pass (Table~\ref{tab:changes}). Each device's
+candidate extra-share upper bound remains above the absolute agreement bar.
 
 \begin{table}[ht]
-\centering\scriptsize
-\AcquisitionTable
-\caption{Descriptive acquisition counts. Guard-incomplete evidence fails
-completeness or exact-score requirements. Unknown full-batch counts are not
-zero. The rebuilt routine batch has not passed acquisition.}
+\centering\GapTable
+\caption{Final serious-error sets. Shares have ordinary \Confidence\%
+intervals. Each arm uses its own routine as comparator.}
+\label{tab:gaps}
+\end{table}
+
+\begin{table}[ht]
+\centering\GapChangeTable
+\caption{Paired changes and the registered narrowing decision.}
+\label{tab:changes}
+\end{table}
+
+% claim: quality-results
+\subsection{The quality guard}
+The \ReferencePositions{} distinct reference positions all resolved on their
+first attempt. No common look was guard-incomplete in either arm, and all
+\Draws{} bootstrap draws were valid. Yet every quality interval spans the
+\QualityMargin-point margin (Table~\ref{tab:quality}). The phone's error
+point estimate fell; the routine's rose. The desktop's error rose from
+\DesktopBaselineError\% to \DesktopCandidateError\%, a change of
+\DesktopErrorChange{} points (\DesktopErrorInterval). Its corrected lower
+bound is above zero but below the registered margin. This is evidence of
+more reference disagreement; it does not meet the rule's rejection condition
+of worsening beyond the margin. Nor does it establish noninferiority.
+
+\begin{table}[ht]
+\centering\QualityTable
+\caption{Disagreement with the fixed higher-budget reference on common
+attempted looks. The guard is inconclusive at every profile.}
+\label{tab:quality}
+\end{table}
+
+% claim: cost-results
+\subsection{Time and depth}
+Mean recorded seconds per look and mean retained depth were lower for the
+candidate at every profile (Table~\ref{tab:cost}). Median retained depth was
+unchanged, and the median paired depth change was \PairedDepthMedian{} at every profile.
+These are descriptive measurements on a shared machine. The accepted cost
+sample includes retained first outputs from a reported period of outside
+load and prescribed accepted retries; quiet timings did not replace loaded
+ones. It does not establish a device speedup or isolate the reset's time cost.
+
+\begin{table}[ht]
+\centering\CostTable
+\caption{Accepted observed replays, including initial and adaptive searches.
+Depth is retained before teaching. These are Node profile measurements.}
+\label{tab:cost}
+\end{table}
+
+\section{Acquisition history}
+% claim: acquisition
+The original candidate routine acquisition failed exact reproduction. An
+approved amendment rebuilt that entire batch while preserving the baseline
+and device outputs. The replacement then encountered a human-policy failure
+whose changed rows followed routine teaching, and a later search spanning
+documented sleep. Their first outputs were preserved. A rule requiring proof
+of deadline termination refused the latter: that terminal cause was not
+recorded. A later approved rule allowed a prescribed retry on the documented
+sleep and downstream-row evidence without claiming deadline proof.
+The \Amendments{} amendments were committed before any further replay and
+before any deciding metric was computed or read. The final accepted sample
+contains \AcceptedRetries{} prescribed retries; each passed the unchanged
+canonical equality check. No candidate, estimator, bootstrap or threshold
+was changed after a deciding result.
+
+% claim: incomplete
+All accepted study traces are guard-complete. So are all produced first
+traces in the rebuilt batch, including its rejected outputs. Completeness
+therefore did not establish full-review reproduction. The superseded routine
+has \OriginalIncomplete{} incomplete final deep entries and only
+\OriginalObserved{} observed games; its other \OriginalMissing{} raw traces
+are unknown. Table~\ref{tab:acquisition} keeps saved final evidence, raw
+verification evidence and the app's \texttt{coverage.partial} separate.
+
+\begin{table}[ht]
+\centering\AcquisitionTable
+\caption{Incomplete evidence before and after the routine rebuild. The
+superseded batch is excluded from the comparison. Unknown is not zero.}
 \label{tab:acquisition}
 \end{table}
 
-\FirstReplayDescription{}
-The rejected first replay remains outside accepted study evidence. The
-original private diagnostic also remains outside it. The table and retained
-first-output counts do not change the registered treatment of incomplete
-looks and do not justify replacing an output.
+% claim: runtime
+The final continuation completed in \ContinuationHours{} calendar hours,
+including \QuietHours{} hours waiting for quiet gates and
+\ReplayMinutes{} minutes in replay processes. The longer of the
+\ReferenceWorkers{} parallel reference workers took \ReferenceHours{} hours;
+analysis took \AnalysisSeconds{} seconds. Its new replay power logs contain
+no sleep or wake event. These times describe the final continuation only,
+not the earlier acquisitions, and are not CPU time. A pre-launch gate does
+not reserve the shared machine. The preserved reports retain the earlier
+timings and clock divergences.
 
-\section{Recorded time}
-The amended invocation took \AmendedHours{} monotonic hours and
-\AmendedCalendarHours{} calendar hours. Its routine build took
-\AmendedBuildHours{} hours and its observed stage \AmendedReplayHours{}
-hours. Calendar minus monotonic elapsed was \AmendedClockDifference{}
-seconds over that invocation. This failure therefore did not accompany the
-large clock gap seen in the earlier acquisition. It does not establish the
-cause of either failure.
+\section{Discussion}
+% claim: results-summary
+The lower gap estimates are useful evidence about this fixed change, but
+they are insufficient under its rule. Narrowing was established only for
+the phone, and none of the quality guards established noninferiority.
+Agreement between reviews and agreement with the reference are different
+requirements; improving the former did not establish the latter here.
 
-Across all invocations, recorded elapsed time is at least \ElapsedHours{}
-monotonic hours and \CalendarHours{} calendar hours. The observed clock
-difference is \ClockDifferenceHours{} hours. A session restart ended the
-initial invocation without a final timestamp, leaving lower bounds and
-\UnallocatedHours{} hours of unallocated gap before resumption. Neither
-clock measures CPU time. Stage boundaries are output-observation times;
-they include launch and exit overhead and are not sums of concurrent worker
-seconds. The machine is shared. The phase-one estimate was \EstimatedHours{}
-hours, or \ReservedHours{} with its slowdown reserve; it was not a bound.
-
-\begin{table}[ht]
-\centering\small
-\ExecutionTable
-\caption{Recorded stage time across all invocations, including the original
-and amended routine acquisitions. Reference and analysis stages were not
-reached. Gaps between invocations are separate.}
-\end{table}
-
-The original acquisition logged \OriginalTimeouts{} CLI timeouts at the
-unchanged \BuildTimeoutSeconds-second limit. It also logged
-\OriginalReplayFailures{} reproduction rejections. The amended acquisition
-logged \RejectedGames{} reproduction rejection and no CLI timeout.
-The launcher started an idle-sleep helper scoped to the wrapper's lifetime.
-The amended run was detached with file output and the registered worker
-limit. All project workers have stopped. No search budget or timeout was
-changed in response to a failure.
-
-\section{What the app takes}
-Not yet. The acquisition gate must pass before this study can supply a
-verdict. No app port or saved-review migration was made. A kept candidate
-would clear the analyst before the selected initial second looks and
-adaptive retries on phone, desktop and routine. Sweeps, quotas, tablebase,
-teaching and saved-review policy would remain as they are. Game Review opens
+% claim: app
+Nothing. This study supplies no app port or saved-review migration. A kept
+candidate would clear the analyst before selected second looks and adaptive
+retries on phone, desktop and routine. At the measured pin, Game Review opens
 a saved device review first and offers the routine's review for comparison
-when available. Saved judgments remain until an explicit rebuild.
+when available. Existing saved judgments remain until an explicit rebuild.
 
-Actual devices use a \DeviceHashSize{} MB hash and an evaluation cache.
-Clearing the hash leaves that cache policy unchanged. Other analyst work
-could interleave between reset and search. This serial, uncached Node design
-does not settle those device questions. The planned higher-budget fresh
-reference is not ground truth and may favor the fresh candidate's search
-path. Its guard covers common attempted looks, not every move or coaching
-text. None of those quality comparisons was reached here.
+% claim: limits
+The frozen games are reused, so the game bootstrap describes uncertainty
+within this sample rather than a new-player validation. The reference is
+higher-budget Stockfish evidence, not ground truth; its fresh search path
+may favor the candidate. The guard covers common attempted looks, not all
+plies or coaching text. Actual devices have a \DeviceHashSize{} MB hash and
+an evaluation cache; this serial, uncached Node study uses \HashSize{} MB.
+It does not settle cache hits or interleaved analyst work on a device.
+
+\section{Conclusion}
+% claim: results-summary
+Do not keep: inconclusive. The registered combination of narrowing and
+preserved quality was not established. The current second look remains.
 
 \section{Record}
-The original measurement sources and protocol match the committed content
-manifest, SHA-256 \texttt{\DesignDigest}. The amendment has digest
-\texttt{\AmendmentDigest}; its acquisition-code manifest has digest
-\texttt{\AcquisitionCodeDigest}. The stopped-output manifest has digest
-\texttt{\StoppedDigest}. These identities survive a rebase of the lab branch.
-The only later additions are descriptive acquisition reporting and paper
-checks. No deciding metric was computed or read, and no registered candidate,
-set, estimator, bootstrap, threshold or comparison was changed.
-
-The paper generator recomputes the descriptive counts from the saved files,
-checks their hashes and the preserved reproduction failure, and refuses to
-write if these claims no longer hold. No PDF is compiled.
+% claim: record
+The publication manifest freezes the original protocol, measurement sources,
+final aggregates, source audit and preserved acquisition reports by content
+hash. The paper generator checks those public bytes, the registered
+calculation relations and every tagged prose claim before writing its
+quantities. It does not rerun searches or the bootstrap. The principal
+content identities are below; they do not depend on a research-branch commit.
+\ProvenanceTable
 \end{document}

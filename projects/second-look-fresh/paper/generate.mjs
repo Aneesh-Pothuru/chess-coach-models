@@ -1,199 +1,82 @@
-// Acquisition-only paper. No comparison or chess verdict is computed here.
-// Every empirical claim is checked against recomputed descriptive aggregates,
-// immutable acquired bytes, original source hashes and timestamped run logs.
-import { existsSync, readFileSync, readdirSync, realpathSync, statSync } from 'node:fs'
-import { join } from 'node:path'
+// Final publication only: frozen public aggregates, no app or private inputs.
+// Refuses to write when a tagged prose claim or source identity no longer holds.
+import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { createHash } from 'node:crypto'
-import { Generated, esc, fixed, percent, word } from '../../paper.mjs'
-import { RULE } from '../rules.mjs'
-import { readDesign, verifyDesignCode } from '../provenance.mjs'
-import { readAmendment } from '../execution.mjs'
-import { collectStatus } from '../acquisition-status.mjs'
-import { claim, validateDesign, validateAmendment, validateSourceClaims } from './checks.mjs'
-import { addAcquisitionTable } from './acquisition.mjs'
-import { addExecutionTable } from './tables.mjs'
+import { join } from 'node:path'
+import { Generated, esc, fixed, percent, word } from './format.mjs'
+import { loadPublicationInputs } from '../publication.mjs'
+import { validateFinalClaims } from './final-checks.mjs'
+import { addTables } from './tables.mjs'
 
 const dir = fileURLToPath(new URL('.', import.meta.url))
-const lab = fileURLToPath(new URL('../../../', import.meta.url))
-const read = path => JSON.parse(readFileSync(path, 'utf8'))
-const hash = bytes => createHash('sha256').update(bytes).digest('hex')
-const same = (a, b, label) => claim(JSON.stringify(a) === JSON.stringify(b), label)
-const local = path => {
-  const result = realpathSync(path)
-  claim(result.startsWith(realpathSync(lab) + '/'), 'paper inputs stay inside this clone')
-  return result
-}
-const r = read(join(dir, '../results/acquisition-status.json'))
-// This reads and recomputes all seven cells, first journals and diagnostics,
-// revalidates original and acquired hashes, re-parses execution logs, rejects
-// active workers or deciding outputs, and never creates a missing checkpoint.
-same(r, await collectStatus({ writeCheckpoint: false }), 'the stopped report exactly reproduces from the preserved files')
-claim(r.status === 'blocked: exact reproduction failed' && r.noVerdict
-  && !r.exactReproductionPassed && r.acceptedExactReproductionPassed,
-  'acquisition stopped at the original equality gate, with no verdict')
-claim(r.noDecidingOutputs && r.noDecidingOutputsBeforeAmendment
-  && r.referencesNotStarted && r.analysisNotStarted && r.noActiveWorkers,
-  'references and deciding analysis never started and the project workers stopped')
-claim(r.firstOutputsRetained && r.frozenAndArchivedUnchanged,
-  'frozen outputs, archived originals and every produced first output are unchanged')
-
-const phase1 = read(join(dir, '../results/phase1.json'))
-const execution = read(join(dir, '../results/execution.json'))
-const pin = read(join(lab, 'bridge/chess.json'))
-const root = local(join(lab, 'private/second-look-fresh'))
-const prepared = read(join(root, 'manifest.json'))
-const candidate = read(join(root, 'candidate-manifest.json'))
-const casesBytes = readFileSync(join(root, 'cases.json'))
-const cases = JSON.parse(casesBytes)
-const appDir = local(join(lab, '.cache/chess', pin.commit))
-const candidateDir = local(join(lab, '.cache/chess/candidates/second-look-fresh'))
-const design = readDesign(), amendment = readAmendment(), code = verifyDesignCode()
-validateDesign(design, r)
-validateAmendment(amendment, design)
-claim(code.designSha256 === r.designSha256 && code.protocolUnchanged
-  && amendment.amendmentSha256 === r.amendmentSha256, 'original protocol and approved amendment are intact')
-claim(r.appCommit === pin.commit && r.recordsCommit === pin.records
-  && prepared.appCommit === pin.commit && prepared.recordsCommit === pin.records,
-  'the pin and prepared provenance match the acquisition')
-claim(r.casesSha256 === prepared.casesSha256 && r.casesSha256 === hash(casesBytes)
-  && cases.length === RULE.games && r.games === RULE.games, 'the complete frozen sample is retained')
-claim(candidate.candidateSha256 === r.candidateSha256, 'the measured candidate matches its manifest')
-const source = validateSourceClaims({ appDir, candidateDir, candidateManifest: candidate,
-  recipePath: join(dir, '../candidate.mjs'), pin })
-for (const [arm, checkout] of [['baseline', appDir], ['candidate', candidateDir]]) {
-  claim(local(join(checkout, 'tools/coach-review/.cache')) === local(join(root, arm, 'runtime-cache')),
-    'each runtime cache stays in its own private arm directory')
-}
-same(phase1.rule, RULE, 'phase one and the current fixed rule agree')
-claim(phase1.phase === 1 && phase1.comparisonComputed === false,
-  'the timing and determinism phase computed no comparison')
-for (const key of ['appCommit', 'recordsCommit', 'casesSha256', 'candidateSha256'])
-  same(phase1[key], r[key], `phase-one ${key} agrees`)
-claim(phase1.counts.games === r.games
-  && phase1.counts.plies === cases.reduce((n, c) => n + c.plies, 0)
-  && phase1.counts.positions === phase1.counts.plies + r.games,
-  'sample counts describe all frozen plies and positions')
-claim(Object.values(phase1.counts.timeControls).reduce((a, b) => a + b, 0) === r.games,
-  'time-control counts cover the full sample')
-claim(phase1.nodeOptions.Threads === 1 && phase1.nodeOptions.Hash === 128,
-  'the Node study uses the registered thread and hash settings')
-const d = phase1.determinism
-claim(d.passed && d.identical === d.pairedComparisons && d.candidateSha256 === r.candidateSha256
-  && d.positions === 2 && d.profiles === RULE.profiles.length
-  && d.searches === d.positions * d.profiles * d.budgets.length
-  && d.pairedComparisons === d.positions * (d.profiles - 1) * d.budgets.length,
-  'the same candidate passed the small raw-search determinism gate')
-claim(d.budgets.length === 2 && d.budgets[1] === 2 * d.budgets[0]
-  && RULE.referenceNodes === 10 * d.budgets[0], 'the registered verification and reference budgets agree')
-
-const first = r.retainedFirstReplays
-const old = r.rows.find(row => row.acquisition === 'original')
-const rebuilt = r.rows.find(row => row.acquisition === 'rebuilt')
-claim(rebuilt.canonicalGames === r.games && first.rejectedGames === 1
-  && first.producedGames === first.acceptedGames + first.rejectedGames
-  && first.producedGames + first.missingGames === r.games
-  && rebuilt.observedGames === first.acceptedGames && first.missingGames > 0,
-  'the full canonical batch and stopped first-replay acquisition have the stated coverage')
-claim(old.observedMissingGames > 0 && old.fullBatchObservedGuardIncomplete === null
-  && rebuilt.observedMissingGames > 0 && rebuilt.fullBatchObservedGuardIncomplete === null
-  && first.fullBatchGuardIncompleteLooks === null,
-  'missing raw traces leave full-batch incompleteness unknown')
-const diagnostic = r.rejectedReplayDiagnostic
-claim(diagnostic.rejectedReplays === first.rejectedGames
-  && diagnostic.observedPreTeachingEvidence.evidence === first.rejectedSubset.attemptedLooks
-  && diagnostic.observedPreTeachingEvidence.guardIncomplete === 0
-  && diagnostic.finalPostTeachingEvidence.canonical.guardIncomplete === 0
-  && diagnostic.finalPostTeachingEvidence.replay.guardIncomplete === 0,
-  'the rejected replay and both final documents have complete exact evidence')
-claim(diagnostic.changedPositionRows > 0
-  && diagnostic.changedPositionRows === diagnostic.changedDeepEvidenceRows
-  && diagnostic.changedNonDeepPositionRows === 0 && diagnostic.changedRecordRows > 0
-  && diagnostic.comparableComponentMismatchReviews.coverage === 0
-  && diagnostic.comparableComponentMismatchReviews.provenance === 0,
-  'the differing positions change only deep evidence; records differ and coverage and provenance agree')
-claim(diagnostic.calls.failedEngineCalls === 0 && diagnostic.calls.failedHumanPolicyCalls > 0
-  && diagnostic.calls.failedHumanPolicyCalls === diagnostic.calls.byStageAndMethod['after-verification/humanPolicy'].failed
-  && diagnostic.calls.withRecordedErrorOrReasonFields === 0,
-  'the trace has later human-policy failures, no engine-call failures and no recorded error reason')
-
-// collectStatus has re-parsed and exactly reconciled execution.json to logs.
-claim(!execution.lastInvocationSucceeded && execution.successfulInvocations === 0
-  && execution.runs[0].endKnown === false && execution.timingIsLowerBound,
-  'the acquisition has no successful invocation and an initially unobserved end')
-const amended = execution.runs.filter(run => run.amendmentSha256 !== null)
-claim(amended.length === 1, 'the replacement ran in a single prescribed invocation')
-const current = amended[0]
-const originals = execution.runs.filter(run => run.amendmentSha256 === null)
-const stage = key => current.stages.find(row => row.stage === key)
-claim(current.replayEqualityFailures === first.rejectedGames && current.cliTimeoutFailures === 0
-  && stage('candidate/CLI/routine').status === 'complete'
-  && stage('candidate/CLI/routine').failedGames === 0
-  && stage('candidate/CLI/routine').completedGames === r.games,
-  'the rebuilt canonical batch completed without a logged build failure or timeout')
-claim(Math.abs(current.observedClockDifferenceSeconds) < 1
-  && execution.observedClockDifferenceSeconds > 3600,
-  'the new failure has no large calendar-minus-monotonic gap, while the original acquisition does')
-const originalReplayFailures = originals.reduce((sum, run) => sum + run.replayEqualityFailures, 0)
-const originalTimeouts = originals.reduce((sum, run) => sum + run.cliTimeoutFailures, 0)
-claim(originals.reduce((sum, run) => sum + run.replayEqualityFailuresByArmProfile.candidate.routine, 0) >= 2,
-  'original routine reproduction failed repeatedly')
-claim(originalTimeouts > 0 && execution.cliTimeoutLimitsSeconds.length === 1,
-  'the original CLI logged timeouts at one unchanged limit')
-const launches = readdirSync(join(root, 'run-log')).filter(name => name.endsWith('-launcher.json'))
-  .map(name => read(join(root, 'run-log', name)))
-const amendedLaunches = launches.filter(row => row.amendmentSha256 === r.amendmentSha256)
-claim(amendedLaunches.length === 1 && amendedLaunches[0].command.includes('--amended')
-  && amendedLaunches[0].pid === amendedLaunches[0].processGroup
-  && statSync(local(join(root, 'run-log', amendedLaunches[0].log))).isFile(),
-  'the amended wrapper has its own recorded process group and a regular output file')
-claim(amendedLaunches.some(row => Number.isInteger(row.awakeHelperPid) && row.awakeHelperPid > 0)
-  && readFileSync(join(dir, '../launch.py'), 'utf8').includes('["/usr/bin/caffeinate", "-i", "-w", str(child.pid)]'),
-  'the launcher recorded a scoped idle-sleep helper')
-claim(!existsSync(join(dir, 'paper.pdf')), 'this project has no compiled PDF')
-
+const inputs = loadPublicationInputs()
+const { compare: c, acquisition: a, phase1: p, rule, hashes, sourceClaims } = inputs
+const validated = validateFinalClaims(inputs, readFileSync(join(dir, 'paper.tex'), 'utf8'))
 const g = new Generated('second-look-fresh/paper/generate.mjs')
-const nums = {
-  Cases: r.games, Plies: phase1.counts.plies, Candidates: RULE.referenceMultiPv,
-  VerifyNodes: d.budgets[0].toLocaleString('en-US'), AdaptiveNodes: d.budgets[1].toLocaleString('en-US'),
-  Threads: phase1.nodeOptions.Threads, HashSize: phase1.nodeOptions.Hash, DeviceHashSize: source.deviceHash,
-  DeterminismComparisons: d.pairedComparisons, DeterminismPositions: d.positions,
-  DeterminismSearches: d.searches, Draws: RULE.draws, PoissonMean: 1, Seed: RULE.seed,
-  Confidence: percent(1 - RULE.alpha, 0), Effects: RULE.effects,
-  CorrectedConfidence: percent(1 - RULE.alpha / RULE.effects, 6),
-  AgreementLine: percent(RULE.agreement, 0), QualityMargin: percent(RULE.qualityMargin, 0),
-  ReferenceNodes: RULE.referenceNodes.toLocaleString('en-US'), RetryWord: word(RULE.referenceAttempts - 1),
-  FrozenFiles: r.frozenFiles, ArchivedFiles: r.archivedFiles,
-  FirstGames: first.producedGames, AcceptedGames: first.acceptedGames, RejectedGames: first.rejectedGames,
-  MissingFirstGames: first.missingGames, MissingAcceptedGames: rebuilt.observedMissingGames,
-  OriginalObservedGames: old.observedGames, OriginalMissingGames: old.observedMissingGames,
-  AmendedHours: fixed(current.exactActiveWallSeconds / 3600, 3),
-  AmendedCalendarHours: fixed(current.exactCalendarElapsedSeconds / 3600, 3),
-  AmendedBuildHours: fixed(stage('candidate/CLI/routine').activeWallSecondsLowerBound / 3600, 3),
-  AmendedReplayHours: fixed(stage('candidate/observed/routine').activeWallSecondsLowerBound / 3600, 3),
-  AmendedClockDifference: fixed(current.observedClockDifferenceSeconds, 3),
-  ElapsedHours: fixed(execution.activeWallSecondsLowerBound / 3600, 2),
-  CalendarHours: fixed(execution.calendarElapsedSecondsLowerBound / 3600, 2),
-  ClockDifferenceHours: fixed(execution.observedClockDifferenceSeconds / 3600, 2),
-  UnallocatedHours: fixed(execution.unallocatedGapSeconds / 3600, 2),
-  EstimatedHours: fixed(phase1.estimate.totalWallHours, 2),
-  ReservedHours: fixed(phase1.estimate.planningHoursAtOneAndHalfSpeedCost, 2),
-  OriginalTimeouts: originalTimeouts, OriginalReplayFailures: originalReplayFailures,
-  BuildTimeoutSeconds: execution.cliTimeoutLimitsSeconds[0].toLocaleString('en-US'),
+const count = n => n.toLocaleString('en-US')
+const pp = n => `${n > 0 ? '$+$' : ''}${percent(n, 2)}`
+const ci = interval => `${pp(interval.lo)} to ${pp(interval.hi)}`
+const stages = a.driver.stageTiming
+const stage = name => stages.find(row => row.group === name)
+const definitions = {
+  Cases: count(c.games), Plies: count(p.counts.plies),
+  VerifyNodes: count(p.determinism.budgets[0]), AdaptiveNodes: count(p.determinism.budgets[1]),
+  Candidates: word(rule.referenceMultiPv), ReferenceNodes: count(rule.referenceNodes),
+  Threads: word(c.nodeOptions.Threads), HashSize: c.nodeOptions.Hash, DeviceHashSize: sourceClaims.deviceHash,
+  DeterminismComparisons: count(p.determinism.pairedComparisons), DeterminismPositions: word(p.determinism.positions),
+  Draws: count(rule.draws), PoissonMean: 1, Seed: String(rule.seed), Effects: word(rule.effects),
+  Confidence: percent(1 - rule.alpha, 0), CorrectedConfidence: percent(c.correctedCoverage, 6),
+  AgreementLine: percent(rule.agreement, 0), QualityMargin: percent(rule.qualityMargin, 0),
+  ReferenceRetries: word(rule.referenceAttempts - 1), ReferencePositions: count(c.reference.positions),
+  PhoneMissChange: pp(c.gaps.phone.deltaMiss.value), PhoneMissChangeInterval: ci(c.gaps.phone.deltaMiss.corrected),
+  DesktopBaselineError: percent(c.quality.desktop.baselineError.value, 2),
+  DesktopCandidateError: percent(c.quality.desktop.candidateError.value, 2),
+  DesktopErrorChange: pp(c.quality.desktop.deltaError.value), DesktopErrorInterval: ci(c.quality.desktop.deltaError.corrected),
+  PairedDepthMedian: word(c.cost.phone.commonLookChange.acceptedDepth.median),
+  AcceptedRetries: word(a.acquisition.allAcceptedRetries), OriginalIncomplete: count(validated.original.savedPostTeachingGuardIncomplete),
+  Amendments: word(inputs.amendments.length),
+  OriginalObserved: word(validated.original.observedGames), OriginalMissing: count(validated.original.observedMissingGames),
+  ContinuationHours: fixed(a.driver.runs[0].finishedCalendarSeconds / 3600, 2),
+  QuietHours: fixed(a.driver.quiet.completedWaitCalendarSeconds.sum / 3600, 2),
+  ReplayMinutes: fixed(stage('replay-processes').calendarSeconds.sum / 60, 2),
+  ReferenceWorkers: word(stage('reference-workers').finishedProcesses),
+  ReferenceHours: fixed(stage('reference-workers').calendarSeconds.max / 3600, 2),
+  AnalysisSeconds: fixed(stage('analysis').calendarSeconds.sum, 3),
+  AppCommit: esc(c.appCommit), RecordsCommit: esc(c.recordsCommit), Engine: esc(c.engine),
 }
-for (const [name, value] of Object.entries(nums)) g.def(name, value)
-for (const [name, value] of Object.entries({ AppCommit: r.appCommit, RecordsCommit: r.recordsCommit,
-  DesignDigest: r.designSha256, AmendmentDigest: r.amendmentSha256,
-  AcquisitionCodeDigest: r.acquisitionCodeSha256, StoppedDigest: r.stoppedAcquisitionManifestSha256,
-  Engine: phase1.engine })) g.def(name, esc(value))
-g.block('TimeControls', Object.entries(phase1.counts.timeControls).map(([key, count]) => {
-  const tc = JSON.parse(key)
-  claim(Number.isInteger(tc.base) && Number.isInteger(tc.inc), 'time-control units are seconds')
-  return `${count} ${count === 1 ? 'game' : 'games'} at ${tc.base} seconds with ${tc.inc} seconds increment`
+for (const [name, value] of Object.entries(definitions)) g.def(name, value)
+g.block('TimeControls', Object.entries(p.counts.timeControls).map(([label, n]) => {
+  const control = JSON.parse(label)
+  return `${count(n)} ${n === 1 ? 'game' : 'games'} at ${count(control.base)} seconds with ${count(control.inc)} seconds increment`
 }).join('; ') + '.')
-g.block('FailureDescription', `The rejected replay has ${diagnostic.observedPreTeachingEvidence.evidence} raw second looks, all guard-complete. Its canonical and replay final deep evidence are also complete. The saved positions differ only in deep evidence on ${diagnostic.changedDeepEvidenceRows} rows; ${diagnostic.changedRecordRows} record rows differ. Coverage and provenance agree. No recorded engine call failed. There were ${word(diagnostic.calls.failedHumanPolicyCalls)} failed human-policy calls after verification. The retained call trace records their failure flags and durations, but no error reason.`)
-g.block('FirstReplayDescription', `Across all ${first.producedGames} retained first journals, including the rejected output, ${first.guardIncompleteLooks} of ${first.attemptedLooks} attempted second looks are guard-incomplete. The rejected subset has ${first.rejectedSubset.guardIncompleteLooks} incomplete looks out of ${first.rejectedSubset.attemptedLooks}. These counts describe only the produced journals; the ${first.missingGames} missing first replays leave the full-batch raw count unknown.`)
-addAcquisitionTable(g, r)
-addExecutionTable(g, execution)
+const printedTables = new Set(['GapTable', 'GapChangeTable', 'QualityTable', 'CostTable'])
+addTables({ block(name, latex) { if (printedTables.has(name)) g.block(name, latex) } }, c)
+
+const stack = lines => `\\shortstack[r]{${lines.join(' \\\\ ')}}`
+const right = '>{\\raggedleft\\arraybackslash}X'
+const nat = n => n === null ? 'unknown' : count(n)
+const acquisitionLabel = { frozen: 'frozen', 'original-superseded': 'superseded', 'rebuilt-current-accepted': 'rebuilt' }
+g.block('AcquisitionTable', [
+  '{\\footnotesize\\setlength{\\tabcolsep}{3pt}',
+  `\\begin{tabularx}{\\textwidth}{@{}ll${right}${right}${right}${right}@{}}`,
+  '\\toprule', ['arm / profile', 'batch', stack(['final deep', 'incomplete / all']),
+    stack(['app', 'partial']), stack(['observed', 'games / all']),
+    stack(['raw looks', 'incomplete / all'])].join(' & ') + ' \\\\', '\\midrule',
+  ...a.rows.map(row => [esc(`${row.arm} / ${row.profile}`), acquisitionLabel[row.acquisition],
+    `${nat(row.savedPostTeachingGuardIncomplete)} / ${nat(row.savedPostTeachingDeep)}`,
+    nat(row.savedAppCoveragePartial), `${nat(row.observedGames)} / ${nat(row.canonicalGames)}`,
+    `${nat(row.fullBatchObservedGuardIncomplete)} / ${nat(row.fullBatchObservedLooks)}`].join(' & ') + ' \\\\'),
+  '\\bottomrule\\end{tabularx}',
+  `\\par\\smallskip\\raggedright Final deep evidence is saved after teaching; raw looks use accepted pre-teaching replays. The superseded batch's ${nat(validated.original.observedGames)} observed games contain ${nat(validated.original.observedGuardIncomplete)} incomplete looks out of ${nat(validated.original.observedLooks)}; its full-batch count is unknown. App partial is the separate \\texttt{coverage.partial} count.\\par}`,
+].join('\n'))
+g.block('ProvenanceTable', [
+  '{\\footnotesize\\setlength{\\tabcolsep}{3pt}',
+  '\\begin{tabularx}{\\textwidth}{@{}lX@{}}\\toprule',
+  ...Object.entries({ 'design manifest': hashes.design, 'candidate manifest': c.candidateSha256,
+    'comparison report': hashes.compare, 'final acquisition report': hashes.acquisition,
+    'final acquisition amendment': hashes.fourthAmendment }).map(([label, digest]) =>
+    `${label} & \\texttt{${digest}} \\\\`),
+  '\\bottomrule\\end{tabularx}}',
+].join('\n'))
 g.write(join(dir, 'generated.tex'))
-console.log('Wrote the checked acquisition-only paper quantities; no comparison or PDF compilation.')
+console.log(`Wrote final paper quantities after ${validated.checked.length} claim groups; no searches, estimates or PDF compilation.`)

@@ -5,13 +5,40 @@ routine starts its second look with the engine's earlier work in memory.
 If each look clears that memory first, do the devices name the routine's
 serious errors more often? Does the cleared look judge at least as well?
 
-**The answer.** The comparison did not run. The approved replacement
-acquisition built all 60 candidate routine documents. Of 50 first observed
-replays, 49 reproduced their canonical documents and one failed the
-unchanged equality check. Its first output is retained; ten first replays
-remain unmade. References and analysis never started. The rule has no verdict.
-The [acquisition report](results/acquisition-status.md) gives the counts;
-the [execution report](results/execution.md) gives every recorded stage.
+**The answer.** Do not keep: inconclusive; the app keeps its current second look.
+The phone met the narrowing rule (miss share 8.24% → 3.56%,
+change −4.67 points, corrected interval −9.63 to −0.06),
+the desktop did not, and every quality guard was inconclusive against the
+one-point margin, while the desktop's error against the reference rose from
+4.20% to 6.00% (+1.80 points, corrected interval 0.01 to 3.49).
+The study used 60 frozen games of one player. Acquisition needed
+four amendments ([first](#acquisition-amendment-approved-before-the-comparison), [second](#second-acquisition-amendment-approved-before-the-comparison), [third](#third-acquisition-amendment-approved-before-the-comparison), [fourth](#fourth-acquisition-amendment-approved-before-the-comparison)),
+each committed before any further replay and before any deciding metric
+was computed or read. The device profiles are the app's Node build, not
+measurements on real phones or desktops. The [results](results/compare.md),
+[acquisition report](results/fourth-acquisition.md) and
+[paper source](paper/paper.tex) give the completed record.
+
+<!-- PUBLICATION_COMMANDS_START -->
+The sections below preserve the registered protocol and historical stopped-stage
+reports as written. Their original bytes are kept in
+[the acquisition README](publication/registered-README.md). The frozen acquisition
+launchers retain that earlier README identity; they are historical commands,
+not publication rebuild commands. Publication changes no acquired output or
+measurement source. Rebuild and check this answer, the lab table and the paper
+from the committed aggregates with:
+
+```bash
+node projects/second-look-fresh/publication.mjs --write
+node projects/second-look-fresh/paper/generate.mjs
+node projects/second-look-fresh/publication.mjs --check
+node projects/second-look-fresh/publication.mjs --check-private
+```
+
+The last command additionally checks the preserved private input hashes in this
+clone; it is not needed to generate the public paper. No PDF compiler was
+available for this publication, so the checked TeX source is provided.
+<!-- PUBLICATION_COMMANDS_END -->
 
 ## The data
 
