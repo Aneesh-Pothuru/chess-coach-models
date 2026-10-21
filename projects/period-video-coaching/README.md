@@ -128,8 +128,12 @@ The daily study's graders, reading a period's evidence:
   readings, what each piece hits and guards before and after the scene's
   moves (chess.js's attack map, pins ignored), what the app's move describer
   says each move does, and after each move the game did not play, the
-  engine's best reply and its line. The evidence's engine writes nothing into
-  the case.
+  engine's best reply and its line; and, added after the pilot, the time he
+  took on each of his moves in the scene's game, with the clock he had left
+  (the pilot's candidate cited the long thinks that led to a turning point,
+  which the evidence could not check). Every period is graded with that
+  evidence, the pilot's period again included. The evidence's engine writes
+  nothing into the case.
 - `bin/judge.py`, Sonnet 5.5, blind and pairwise in both orders (a side wins
   a criterion only when both orders agree): truth, coaching, listening,
   overall. The coaching criterion is the daily's, with the period's own duty
@@ -186,19 +190,22 @@ text at fault (a check it cannot pass, an instruction the live routine cannot
 follow), a fixed candidate gets a new name and starts over. The full eval runs
 only on the owner's budget.
 
-The pilot stops at $50 of model calls at list price (`EVAL_CAP`). It was
-fixed at $40; the container restarted nine minutes into its first two writer
-runs, which were lost and start again, and the ledger carries what they spent
-(about $6.50, from their streams, rounded up), so the cap rose by $10 to cover
-them:
+The pilot stops at $50 of model calls at list price (`EVAL_CAP`):
 `ledger.jsonl` in the eval directory sums every call's `total_cost_usd`, and
 `batch.py` starts no writer whose expected cost, with the runs in flight and
-what grading still owes, would pass the cap. The calls run on the owner's
-subscription, whose limits the live routines share, so `batch.py` also starts
-no writer or grader while the five-hour window is at 45% or more or the
-seven-day window at 60% or more, or from 11:30 to 14:45 UTC (16:30 on Mondays
-and on the 1st), the hours the daily, weekly and monthly routines fire and
-land.
+what grading still owes, would pass the cap. The cap was fixed at $40; the
+container restarted nine minutes into the pilot's first two writer runs, which
+were lost and started again, and the ledger carries what they spent (about
+$6.50, from their streams, rounded up), so the cap rose by $10 to cover them.
+The calls run on the owner's subscription, whose limits the live routines
+share, so `batch.py` also starts no writer or grader while the five-hour window
+is at 45% or more or the seven-day window at 60% or more, or from 11:30 to
+14:45 UTC (16:30 on Mondays and on the 1st), the hours the daily, weekly and
+monthly routines fire and land.
+
+The pilot ran 2026-W35 alone: after the restart, the cap held back the August
+pair, whose two writers together would have passed it, so 2026-08 runs first
+in the full eval.
 
 ## Running it
 

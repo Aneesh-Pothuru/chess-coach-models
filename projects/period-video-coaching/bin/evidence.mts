@@ -11,8 +11,10 @@
 // and readings, what each piece hits and guards, and each move the scene plays,
 // replayed in order, with whether it is the game's own move, what the knowledge
 // service says it does, and after a move the game did not play, the engine's best
-// reply and its line. The engine writes nothing into the case: its eval cache is
-// off and the Maia weights come from EVIDENCE_MAIA_DIR.
+// reply and its line; and the time he took on each of his moves in the scene's
+// game, with the clock he had left (the pilot's scripts cite think times of moves
+// that were not turning points). The engine writes nothing into the case: its
+// eval cache is off and the Maia weights come from EVIDENCE_MAIA_DIR.
 // Run from a case checkout with its tsx:
 //   (cd <case>/repo && node_modules/.bin/tsx <bin>/evidence.mts <ID> [--scenes-only] <name>=<video.json> ...)
 import { createRequire } from 'node:module'
@@ -229,7 +231,8 @@ async function scene(where: string, s: any): Promise<string[]> {
     return out
   }
   const sans: string[] = g.sans || []
-  const fens: string[] = review.archivedSeries(g).fens
+  const series = review.archivedSeries(g)
+  const fens: string[] = series.fens
   if (!Number.isFinite(ply) && b.fen) ply = fens.findIndex((f: string) => f.split(' ').slice(0, 4).join(' ') === String(b.fen).split(' ').slice(0, 4).join(' '))
   if (!Number.isFinite(ply) || ply < 0 || ply > sans.length) {
     out.push(`   ply ${b.ply} is outside the game (${sans.length} plies)`)
@@ -238,6 +241,11 @@ async function scene(where: string, s: any): Promise<string[]> {
   const fen = fens[ply]
   const toMove = ply % 2 === 0 ? 'White' : 'Black'
   out.push(`   game: he played ${g.meIsWhite ? 'White' : 'Black'} against ${g.opp}; result ${g.result}; ${sans.length} plies`)
+  const records: any[] = series.review?.records || []
+  const clockLine = sans
+    .map((san, i) => ((i % 2 === 0) === !!g.meIsWhite ? `${moveLabel(i, san)} ${series.think[i] == null ? 'no time' : review.fmtThink(series.think[i])}${typeof records[i]?.clockSec === 'number' ? ` (${review.fmtClockLeft(records[i].clockSec)} left)` : ''}` : null))
+    .filter(Boolean)
+  out.push(`   his time on each of his moves in this game, the seconds he thought and the clock he had left after it: ${clockLine.join(', ')}`)
   out.push(`   the position on screen (after ply ${ply}, ${toMove} to move${ply > 0 ? `, the last move ${moveLabel(ply - 1, sans[ply - 1])}` : ''}): ${fen}`)
   if (ply < sans.length) {
     const played = sans[ply]
