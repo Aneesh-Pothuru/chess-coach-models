@@ -335,6 +335,14 @@ held-out game, but uses the engine's single best reply as its outcome and
 retains the verified set's outcome selection. Its all-reply
 check helps expose that selection but cannot remove it.
 
+An audit after the study found that `events.mjs`, `fit.mjs`, `evidence.mjs`,
+`review-one.mts`, `run-phase2.mjs` and `recover-review-timeouts.mjs` accept a
+routine review that is marked partial or stops before the game's last ply.
+When `defenses.mts` later read the same held-out review files, every one was
+complete and covered every ply, so the published guard is not known to be
+affected. The scripts stay as `protocol-manifest.json` froze them; a rerun
+should add those checks before it freezes again.
+
 ## Files and running it
 
 | File | What it does |
