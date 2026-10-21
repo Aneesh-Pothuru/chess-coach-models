@@ -1,0 +1,203 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Does a rule of thumb choose better once the tactics are checked?\\[0.3em]
+\large The app's rules of thumb after its blunder check, in quiet positions from \Inherited{}
+Lichess positions refereed by Stockfish}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+A coach puts the checks, captures and threats first and a rule of thumb second, and so do several of
+the app's lessons. The previous study found that no rule of thumb chooses a better move than the one
+a player at his level would naturally play, mostly because the rule's move left a piece to be taken
+or passed over a tactic. This one tests the rule as the lessons teach it: in positions with no tactic
+on the board by the app's reading, and among the moves the app's blunder check passes, is the move a
+rule points to, as his level would play it, sound as often as the move his level naturally plays
+among the same moves? The rule, fixed before any position was read, first asks a control to show
+that the check can rescue a rule's move. It does not: where the rule's own move fails the check, the
+next rule move that passes it is no sounder, its soundness minus the rule move's \ControlTrain{}
+points on the train months and \ControlHeld{} held out, both intervals across 0, so no rule receives
+a verdict. The descriptions
+are clear all the same. In a quiet position the check rarely touches the rule's move, and that move
+is sound less often than the natural one for all \NWith{} rules with data, on both periods: by
+\LiftLow{} points for \LiftLowName{} up to \LiftHigh{} for \LiftHighName{} held out. Over all
+positions, tactics included, the gap is \RatioLow{} to \RatioHigh{} times its quiet size. The rules
+still point to sounder moves than chance, \NContent{} of them on both periods. A rule of thumb tells
+a player where to look and explains a move; at his level it does not choose one, even after the
+tactics.
+\end{abstract}
+
+\section{The question}
+
+The previous study asked each of the app's rules of thumb to choose a move with no tactics checked
+first: among the legal moves that show the rule, the one Maia-2 rates most likely at the mover's
+band. No rule chose better than the natural move, the one Maia-2 rates most likely of all, and its
+held-out examples said why. Most of the rule's unsound moves lose material by the app's own blunder
+check, and most of the rest pass over a check, a capture or a promotion that the natural move took.
+
+A coach would not give the rule that way. Several of the app's lessons begin ``No tactics?'', and
+after that study its open-file and outpost lessons put the checks, captures and threats first too.
+So the fair test of such a lesson is the rule after the check. In positions with no tactic on the
+board, and among the moves the app's blunder check passes, is the move a rule points to, as players
+at his level would play it, sound as often as the move they would naturally play among those same
+moves? If it is sounder, a lesson can teach the rule as the move to look for once nothing is
+hanging. If it is no sounder, the rule explains a move and says where to look, but does not choose
+one. If it is less sound, a lesson that teaches it should tell him to compare its move with the
+others before playing it.
+
+\section{How it was measured}
+
+\paragraph{The positions.} The \Inherited{} positions the previous study scored for its \NRules{}
+rules with a verdict, read and never changed: middlegames and endgames from rated 10-minute Lichess
+games with no increment, the mover rated \BandLow{} to \BandHigh{} on Lichess (his band and the one
+above), with \TrainMonths{} to train on and \HeldMonth{} held out, at most one position a game for
+each rule. Each keeps the rule's legal moves, the moves that study compared and the referee's
+evidence for them.
+
+\paragraph{The check.} Two readings by the app's knowledge service at commit \texttt{\CheckCommit}.
+A position is \emph{quiet}, the lessons' ``no tactics'', when the mover is not in check and neither
+side has a mate in one or a winning capture, by the app's description of the position. A move
+\emph{passes the check} when the app's safety check calls it safe: the reply cannot mate at once, no
+piece of the mover's is newly left to be taken for a gain (the capturing piece of an even trade is
+not counted), and the move deserts no defence.
+
+\paragraph{The moves compared.} In each quiet position, $R_s$ is the rule's move after the check:
+among the rule's moves that pass it, the one Maia-2 rates most likely at the mover's band. $N_s$,
+the natural move after the check, is Maia-2's most likely move among all the moves that pass.
+$R_{0s}$ is the move Maia-2 likes best among as many passing moves as $R_s$ had to choose from,
+drawn at random: a rule with no information. $R$ and $N$ are the previous study's rule move and
+natural move, before the check. Maia-2 is the app's at commit \texttt{\ScoreCommit}, the one that
+study measured, and every $R$ and $N$ was reproduced before a position was scored.
+
+\paragraph{The referee.} A move the previous study scored keeps its soundness, and with seven men or
+fewer its stored tablebase probe decides. Every other move is scored by Stockfish through the app's
+engine service at \texttt{\ScoreCommit}, at its grading budget, against one fresh search for the best
+in that position: a move is \emph{sound} when it stays within the app's window of the best. All
+\FreshSearches{} fresh searches found the best that study had stored. The scoring took
+\WorkerHours{} worker hours on two workers.
+
+\paragraph{The rule, fixed before any position was read.} The \emph{lift} is $R_s$'s soundness
+minus $N_s$'s, paired by position over the quiet positions where some rule move passes the check,
+with 95\% intervals from \Draws{} bootstrap draws over games (seed \Seed). A control comes first:
+pooled over the rules, in the quiet positions where $R$ fails the check and some rule move passes
+it, $R_s$'s soundness minus $R$'s must have its interval above 0 on both periods, or no rule gets a
+verdict, since a lift this design could not see would read as none. Then a rule holds after the check
+when its lift's interval lies above 0 on the train months and on the held-out month, misleads when it
+lies below 0 on both, and does no better than the natural move otherwise; with fewer than
+\MinHeld{} held-out positions there is not enough data. The \emph{content} after the check,
+$R_s$'s soundness minus $R_{0s}$'s, the same measures over every position with a safe rule move,
+quiet or not, and the lift in splits of the positions describe and change no verdict.
+
+\section{The control fails}
+
+In the quiet positions with a safe rule move, the rule's own move fails the check only rarely:
+\ControlShareTrain\% of them on the train months and \ControlShareHeld\% held out, which leaves the
+control \ControlTrainN{} and \ControlHeldN{} positions (Table~\ref{tab:control}). Where it fails, the
+next rule move that passes the check is no sounder: $R_s$'s soundness minus $R$'s is
+\ControlTrain{} points (\ControlTrainCi) on the train months and \ControlHeld{} (\ControlHeldCi)
+held out. By the rule, then, no rule receives a verdict, and everything below describes. This study
+does not separate the two ways the control can fail: a quiet move the check flags may be sound after
+all, or the next rule move may be no better.
+
+\ControlTable
+
+\section{What the measures describe}
+
+\paragraph{The check changes little in a quiet position.} Where some rule move passes it, the rule's
+own move passes it in \RsRLow\% to \RsRHigh\% of the positions, for every rule on both periods, so
+$R_s$ is nearly always $R$; the natural move passes it in \NsNLow\% to \NsNHigh\%, and the check moves
+the natural move's soundness by at most \NaturalMax{} points for every rule with data. What the check
+removes is whole positions: \ThinName{} has a rule move that passes it in only \ThinSafe\% of its
+quiet positions held out, which leaves \ThinHeld{}, too few for a verdict even had the control
+passed, and \LowSafeNames{} have one in \LowSafeLow\% to \LowSafeHigh\% of theirs. How many of a
+rule's positions are quiet at all varies from \QuietLow\% for \QuietLowName{} to \QuietHigh\% for
+\QuietHighName.
+
+\paragraph{The rule's move still trails the natural move.} After the check the rule's move is sound
+less often than the natural move, for all \NWith{} rules with data, on the train months and on the
+held-out month, every interval below 0 (Table~\ref{tab:descriptions}): by \LiftLow{} points for
+\LiftLowName{} up to \LiftHigh{} for \LiftHighName{} held out. Where the two moves differ, the rule's
+is sound less often by \CondLow{} points for \CondLowName{} up to \CondHigh{} for \CondHighName. This
+is the previous study's finding again, in the positions where its two main reasons, a piece left to
+be taken and a tactic passed over, are gone by the app's reading.
+
+\paragraph{The rules still carry information.} Against the move Maia-2 likes best among as many safe
+moves drawn at random, \NContent{} rules point to sounder moves on both periods, from \ContentLow{}
+points for \ContentLowName{} to \ContentHigh{} for \ContentHighName{} held out. The rook behind the
+passed pawn does so on the train months, by \RbpContentTrain{} points (\RbpContentTrainCi), but not
+held out (\RbpContentHeld, \RbpContentHeldCi), and cutting the king off reads no differently from
+chance, \CutContentHeld{} points (\CutContentHeldCi) held out, as in the previous study.
+
+\DescriptionTable
+
+\section{With a tactic on the board}
+
+Over every position with a safe rule move, quiet or not, the gap is larger for each of the \NWith{}
+rules on both periods: \RatioLow{} to \RatioHigh{} times its size in the quiet positions, from
+\RatioLowName{} to \RatioHighName, and \AllLow{} to \AllHigh{} points held out
+(Table~\ref{tab:descriptions}). The quiet positions are among them, so in the rest, where the mover is
+in check or either side has a mate in one or a winning capture, the gap is larger still. A tactic on
+the board is where a rule's move falls furthest behind the natural one, which is the order the
+lessons teach: the tactics first.
+
+\section{Where the gap is smallest}
+
+The splits describe and decide nothing (Table~\ref{tab:splits}). For all \NForcing{} rules whose
+move after the check is a capture or a check in some positions and neither in others, on both
+periods, the forcing move trails the natural move by less. Of the \NBigForcing{} rules with at least
+\ForcingMin{} forcing moves in each period, \ForcingAcrossNames{} do not clearly trail when forcing,
+their intervals across 0 on both periods (the open file: \OfForcing{} points forcing and \OfQuiet{}
+otherwise, held out). For all \NPhase{} rules that come up in both phases, the gap is larger in the
+middlegame than in the endgame on both periods, as with the passed pawn (\PpMiddle{} points against
+\PpEnd{} held out); \EndgameOnlyNames{} come up almost only in endgames. And for \NLevel{} of the
+\NMaterial{} rules with positions ahead, level and behind, the gap is largest with level material
+on both periods; the exceptions are \LevelNotNames. As in the previous study, level material may be
+in part the referee's doing, an inference this study does not test: a fixed window in win\% is
+narrower in centipawns where the game is balanced.
+
+\SplitTable
+
+\section{What it means for the app}
+
+Nothing is ported, since there is no verdict. The descriptions agree with the previous study's
+reading and narrow it. Once the checks, captures and threats are seen, the move a rule of thumb
+points to is still sound less often than the move his level plays naturally, and most of all with a
+tactic on the board. A rule tells him where to look and explains a move; it does not choose one.
+
+That is how the app now teaches its rules. Its worst-piece lesson begins ``No tactics?'', its
+pawn-break lesson says to check what a break leaves hanging before playing it, and since chess PR
+165, after the commits measured here, its open-file and outpost lessons start from the checks,
+captures and threats, the open-file lesson saying that the file tells him where to look, not what to
+play. Game Review already uses the rules that way, as the previous study found.
+
+A round that wants a verdict needs a control with more to see. The check changes the rule's move in
+\ControlShareTrain\% and \ControlShareHeld\% of the quiet positions with a safe rule move, so its
+rescues are few; a control built from positions where a rule's move is known to leave a piece to be
+taken while another rule move is safe would test the check itself.
+
+\section{Caveats}
+
+\begin{itemize}[nosep]
+\item \textbf{No verdict.} The control failed, so every number here describes; none was a test the
+  rule set.
+\item \textbf{Not his games.} The positions are Lichess players' in his band and the band above;
+  his own games are too few for most rules.
+\item \textbf{Quiet by board code.} No mate in one and no winning capture for either side is the
+  app's reading of ``no tactics''. A deeper tactic, a fork two moves away, still counts as quiet.
+\item \textbf{One move for a plan.} A rule is tested as the next move his level would play for it,
+  not as a plan over several moves, and a sound move can still be the second-best plan.
+\item \textbf{A strong baseline.} The natural move is Maia-2's most likely move at the mover's band,
+  which the previous study found sound more often than the move actually played.
+\item \textbf{Two app commits.} The check is the app's reading at \texttt{\CheckCommit}, after a fix
+  to its even-trade reading; Maia-2 and the referee are the previous study's, at
+  \texttt{\ScoreCommit}, so every $R$ and $N$ is the one it scored.
+\item \textbf{No examples.} The rule draws held-out examples only for rules with a verdict, so this
+  paper shows no positions.
+\end{itemize}
+
+\end{document}

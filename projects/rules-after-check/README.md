@@ -15,8 +15,39 @@ moves the app's blunder check passes, is the move a rule points to, as players
 at his level would play it, sound as often as the move they would naturally
 play among those same moves?
 
-**The answer.** Not run yet. The rule below is committed before any position
-is read for this question.
+**The answer.** No verdict. The rule below puts a control first, and it
+failed: in the quiet positions where the rule's own move fails the app's
+blunder check, the next rule move that passes the check is sound no more often
+than the move it replaces, on either period. This design could not show the
+check rescuing a rule's move, so by the rule no rule of thumb gets a verdict,
+and what follows describes.
+
+In a quiet position the check rarely changes the rule's move: where some rule
+move passes it, the rule's own move passes it 95 to 100 percent of the time,
+so the rule after the check is nearly the rule before it. That move is sound
+less often than the move his level naturally plays among the moves that pass,
+for all 12 rules with data, on the train months and on the held-out month: by
+about 1 point for the rule of the square, 6 to 11 for the opposition, trading
+when ahead and the active king, 14 to 25 for the passed pawn, the rook on the
+seventh, the open file, the worst piece, the outpost and the rook behind the
+passed pawn, and about 30 for cutting the king off and the pawn break. The
+outside passed pawn came up in a quiet position with a safe rule move only 12
+times in the held-out month. Over every position with a safe rule move, quiet
+or not, the gap is larger for each of the 12, from about a quarter larger to
+more than double: a tactic on the board, a check to answer or a mate in one or
+winning capture for either side, is where a rule's move falls furthest behind.
+The gap is smallest where the rule's move is itself a capture or a check, and
+in endgames. The rules still point to sounder moves than the same number of
+safe moves drawn at random: 10 of the 12 on both periods, though not the rook
+behind the passed pawn or cutting the king off on the held-out month.
+
+For the app nothing is ported, since there is no verdict. The description
+agrees with [rules-of-thumb](../rules-of-thumb/): a rule of thumb tells him
+where to look and explains a move, but it does not choose one, even once the
+checks, captures and threats are seen. The app's open-file and outpost lessons
+now put the tactics first, and the open-file lesson says the file tells him
+where to look, not what to play (chess PR 165). The paper is
+[`paper/paper.pdf`](paper/paper.pdf).
 
 If a rule holds after the check, a lesson can teach it as the move to look for
 once nothing is hanging. If it does no better than the natural move, the rule
@@ -179,6 +210,9 @@ language model judges anything.
 | `run.py`, `run.sh` | Detached, logged stages, two heavy workers, checkpoint resumption and the UTC pause. |
 | `tests-*.mjs`, `test_*.py` | Synthetic checks; no study rows, engine searches or Maia inference. |
 | `cost.py` | A cost estimate from the null addition's published timings; writes `results/cost.json` and `results/cost.md`. |
+| `operations.py`, `test_operations.py`, `operations-manifest.json` | The run's execution report from its logs, without parsing a study row; writes `results/operations.json` and `results/operations.md`. |
+| `frozen-readme.md`, `answer_check.py` | The README as it stood when frozen, and the check that the answer is its only change before `## Files` and that every other frozen source is unchanged. |
+| `paper/` | The paper and its generator, which checks every claim the paper makes against `results/`. |
 
 ## Running it
 
@@ -216,3 +250,20 @@ sh projects/rules-after-check/run.sh --reviewed
 Logs, driver status, shard metadata and per-row files stay under
 `private/rules-after-check/full/`. Only script-written aggregates and the
 registered CC0 examples reach `results/`. The answer and paper follow review.
+
+The answer was written after the run, so the README no longer matches the
+freeze, and rules-of-thumb's README answer was brought up to date with the app
+after the run (chess PRs 165 and 166). `frozen-readme.md` keeps this README as
+it stood, and `answer_check.py` checks that it matches the freeze, that the
+README differs from it only in the answer up to `## Files`, and that every
+other frozen file is unchanged but the predecessor's README, which its own
+answer check confirms changed only in its answer. A repeat of the run checks
+the freeze first, so it runs with `frozen-readme.md` in the README's place and
+rules-of-thumb's README as it stood at lab commit `f09cc32`. The paper needs
+only the committed results:
+
+```bash
+.venv/bin/python projects/rules-after-check/answer_check.py
+bridge/run.sh projects/rules-after-check/paper/generate.mjs
+(cd projects/rules-after-check/paper && latexmk -pdf paper.tex)
+```

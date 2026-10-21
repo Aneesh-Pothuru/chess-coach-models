@@ -211,6 +211,14 @@ projects/rules-of-thumb/null.sh --reviewed
 CHESS_DIR="$PWD/.cache/chess/f4bd63f19b343f686fb97ea4cf70b211c0bddc0a" \
   bridge/run.sh projects/rules-of-thumb/why.mjs
 
+# Rules after the check: the positions rules-of-thumb scored, read by the app's
+# blunder check, each rule's move among the moves it passes against the natural
+# move among them, refereed by Stockfish where a move is new. The run resumes
+# where it stopped and checks its frozen rule first; the project's README says
+# how a repeat restores it.
+sh projects/rules-after-check/run.sh --reviewed
+nice -n 10 .venv/bin/python projects/rules-after-check/operations.py
+
 # The learner's solve chances: his puzzle attempts replayed through the app's
 # learner, on a record rebuilt from the memory cards and on the profile as the
 # app holds it.

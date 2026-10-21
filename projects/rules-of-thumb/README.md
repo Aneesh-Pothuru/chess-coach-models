@@ -37,11 +37,15 @@ the cut-off reader takes any rook move to an empty file between their king and
 a passed pawn, which carries nothing at this level.
 
 For the app, a rule of thumb is a reason to look at a move and a way to explain
-one, not a way to choose it: checks, captures and threats first, then the rule
-among the moves that survive. Game Review already uses the rules that way, and
-the pawn-break lesson already checks first; the open-file and outpost lessons
-do not yet. The outside passer's note appears beside a blunder as if it were
-the move's reason, which is for the review to weigh. The paper is
+one, not a way to choose it: checks, captures and threats first. Game Review
+already uses the rules that way, the pawn-break lesson already checked first,
+and since chess PR 165 the open-file and outpost lessons do too. The outside
+passer's note appeared beside a blunder as if it were the move's reason; since
+chess PR 166 the review holds a technique note back on a move that gives its
+piece away. The next round, [rules-after-check](../rules-after-check/), tested
+the rule among the moves the blunder check passes, in positions with no tactic
+on the board: its control failed, so it gives no verdict, but there too the
+rule's move is sound less often than the natural move. The paper is
 [`paper/paper.pdf`](paper/paper.pdf).
 
 A rule that holds, with the cases where it fails, is what the app can teach

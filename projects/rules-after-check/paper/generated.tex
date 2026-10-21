@@ -1,0 +1,154 @@
+% Written by projects/rules-after-check/paper/generate.mjs; do not edit by hand.
+
+\newcommand{\CheckCommit}{3437a71184}
+\newcommand{\ScoreCommit}{f4bd63f19b}
+\newcommand{\RecordsCommit}{aed714ada5}
+\newcommand{\TrainMonths}{July and August 2026}
+\newcommand{\HeldMonth}{September 2026}
+\newcommand{\BandLow}{1250}
+\newcommand{\BandHigh}{1649}
+\newcommand{\HisHigh}{1449}
+\newcommand{\Inherited}{127,914}
+\newcommand{\NRules}{13}
+\newcommand{\Draws}{2,000}
+\newcommand{\Seed}{20261018}
+\newcommand{\MinHeld}{300}
+\newcommand{\RunHours}{4.7}
+\newcommand{\WorkerHours}{9.3}
+\newcommand{\ControlTrain}{$-$1.0}
+\newcommand{\ControlTrainCi}{$-$6.5 to 4.5}
+\newcommand{\ControlTrainN}{292}
+\newcommand{\ControlTrainGames}{288}
+\newcommand{\ControlHeld}{2.3}
+\newcommand{\ControlHeldCi}{$-$6.0 to 10.1}
+\newcommand{\ControlHeldN}{175}
+\newcommand{\ControlHeldGames}{173}
+\newcommand{\ControlShareTrain}{0.9}
+\newcommand{\ControlShareHeld}{1.1}
+\newcommand{\PrimaryTrain}{30,758}
+\newcommand{\PrimaryHeld}{15,489}
+\newcommand{\ControlTable}{%
+\begin{table}[ht]
+\centering\footnotesize
+\begin{tabular}{@{}lrrrl@{}}
+\toprule
+Period & \begin{tabular}[b]{@{}l@{}}Quiet positions with \\ a safe rule move\end{tabular} & \begin{tabular}[b]{@{}l@{}}Control \\ positions\end{tabular} & Games & \begin{tabular}[b]{@{}l@{}}$R_s$ minus $R$, \\ points\end{tabular} \\
+\midrule
+Train & 30,758 & 292 & 288 & $-$1.0 {\scriptsize($-$6.5, 4.5)} \\
+Held out & 15,489 & 175 & 173 & 2.3 {\scriptsize($-$6.0, 10.1)} \\
+\bottomrule
+\end{tabular}
+\caption{The control, pooled over the 13 rules: the quiet positions where the rule's move $R$ fails the app's blunder check and some rule move passes it, and the soundness of $R_s$, the rule's move after the check, minus $R$'s, paired by position, with its 95\% interval from 2,000 draws over games. The rule asked for the interval to lie above 0 on both periods.}
+\label{tab:control}
+\end{table}
+}
+\newcommand{\NWith}{twelve}
+\newcommand{\ThinName}{the outside passed pawn}
+\newcommand{\ThinHeld}{12}
+\newcommand{\ThinTrain}{17}
+\newcommand{\LiftLow}{1.3}
+\newcommand{\LiftLowName}{the rule of the square}
+\newcommand{\LiftHigh}{32.0}
+\newcommand{\LiftHighName}{the pawn break}
+\newcommand{\RsRLow}{95.5}
+\newcommand{\RsRHigh}{100.0}
+\newcommand{\NsNLow}{93.9}
+\newcommand{\NsNHigh}{100.0}
+\newcommand{\NaturalMax}{0.9}
+\newcommand{\ThinSafe}{8}
+\newcommand{\LowSafeNames}{cutting the king off, the passed pawn and the worst piece}
+\newcommand{\LowSafeLow}{76}
+\newcommand{\LowSafeHigh}{82}
+\newcommand{\QuietLow}{12}
+\newcommand{\QuietHigh}{72}
+\newcommand{\QuietLowName}{the outside passed pawn}
+\newcommand{\QuietHighName}{the opposition}
+\newcommand{\CondLow}{6.7}
+\newcommand{\CondLowName}{the rule of the square}
+\newcommand{\CondHigh}{36.4}
+\newcommand{\CondHighName}{the pawn break}
+\newcommand{\NContent}{ten}
+\newcommand{\ContentNotNames}{the rook behind the passed pawn and cutting the king off}
+\newcommand{\ContentLow}{3.4}
+\newcommand{\ContentLowName}{the opposition}
+\newcommand{\ContentHigh}{36.8}
+\newcommand{\ContentHighName}{trading when ahead}
+\newcommand{\RbpContentTrain}{2.1}
+\newcommand{\RbpContentTrainCi}{0.2 to 3.8}
+\newcommand{\RbpContentHeld}{2.1}
+\newcommand{\RbpContentHeldCi}{$-$0.5 to 4.6}
+\newcommand{\CutContentHeld}{$-$1.1}
+\newcommand{\CutContentHeldCi}{$-$4.9 to 2.8}
+\newcommand{\RatioLow}{1.3}
+\newcommand{\RatioHigh}{2.4}
+\newcommand{\RatioLowName}{the opposition}
+\newcommand{\RatioHighName}{the active king}
+\newcommand{\AllLow}{2.1}
+\newcommand{\AllHigh}{47.6}
+\newcommand{\FreshSearches}{84,198}
+\newcommand{\DescriptionTable}{%
+\begin{table}[ht]
+\centering\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lrrrrrlrl@{}}
+\toprule
+ & \begin{tabular}[b]{@{}l@{}}Held-out \\ positions\end{tabular} & \begin{tabular}[b]{@{}l@{}}Quiet \\ share\end{tabular} & \begin{tabular}[b]{@{}l@{}}$R_s$ \\ sound\end{tabular} & \begin{tabular}[b]{@{}l@{}}$N_s$ \\ sound\end{tabular} & \begin{tabular}[b]{@{}l@{}}Lift, \\ train\end{tabular} & \begin{tabular}[b]{@{}l@{}}Lift, \\ held out\end{tabular} & \begin{tabular}[b]{@{}l@{}}Lift, all \\ positions\end{tabular} & \begin{tabular}[b]{@{}l@{}}Content, \\ held out\end{tabular} \\
+\midrule
+Active king & 2,245 & 59 & 72.5 & 82.3 & $-$10.7 & $-$9.8 {\scriptsize($-$11.5, $-$8.2)} & $-$23.3 & 7.5 {\scriptsize(5.7, 9.4)} \\
+Opposition & 1,015 & 72 & 85.8 & 94.3 & $-$6.0 & $-$8.5 {\scriptsize($-$10.6, $-$6.4)} & $-$10.6 & 3.4 {\scriptsize(1.3, 5.7)} \\
+Rule of the square & 1,552 & 60 & 97.2 & 98.5 & $-$1.2 & $-$1.3 {\scriptsize($-$2.0, $-$0.6)} & $-$2.1 & 10.0 {\scriptsize(8.3, 11.6)} \\
+Rook behind the passed pawn & 1,307 & 35 & 51.0 & 75.7 & $-$25.3 & $-$24.6 {\scriptsize($-$27.5, $-$21.6)} & $-$41.3 & 2.1 {\scriptsize($-$0.5, 4.6)} \\
+Cutting the king off & 552 & 52 & 53.3 & 82.2 & $-$28.6 & $-$29.0 {\scriptsize($-$33.1, $-$25.0)} & $-$37.6 & $-$1.1 {\scriptsize($-$4.9, 2.8)} \\
+Outside passed pawn & 12 & 12 & 58.3 & 75.0 & 0.0 & $-$16.7 {\scriptsize($-$42.9, 0.0)} & $-$4.6 & 8.3 {\scriptsize($-$36.4, 50.0)} \\
+Trading when ahead & 1,033 & 27 & 77.6 & 84.4 & $-$6.9 & $-$6.8 {\scriptsize($-$8.8, $-$4.8)} & $-$11.8 & 36.8 {\scriptsize(33.3, 40.2)} \\
+Open file & 1,454 & 38 & 54.1 & 71.1 & $-$18.0 & $-$17.0 {\scriptsize($-$20.0, $-$14.0)} & $-$30.5 & 7.0 {\scriptsize(4.3, 9.6)} \\
+Rook on the seventh & 1,176 & 31 & 59.5 & 76.7 & $-$16.2 & $-$17.2 {\scriptsize($-$20.1, $-$14.2)} & $-$28.1 & 14.9 {\scriptsize(12.0, 18.0)} \\
+Outpost & 1,259 & 34 & 53.8 & 73.9 & $-$20.7 & $-$20.2 {\scriptsize($-$23.0, $-$17.3)} & $-$30.3 & 13.0 {\scriptsize(10.0, 16.0)} \\
+Pawn break & 1,620 & 44 & 39.5 & 71.5 & $-$30.5 & $-$32.0 {\scriptsize($-$34.8, $-$29.1)} & $-$47.6 & 3.6 {\scriptsize(0.9, 6.4)} \\
+Passed pawn & 1,031 & 32 & 64.3 & 79.1 & $-$14.4 & $-$14.8 {\scriptsize($-$17.5, $-$12.2)} & $-$29.2 & 12.6 {\scriptsize(9.6, 15.6)} \\
+Worst piece & 1,233 & 37 & 52.6 & 75.1 & $-$20.1 & $-$22.5 {\scriptsize($-$25.5, $-$19.4)} & $-$36.4 & 4.7 {\scriptsize(2.0, 7.4)} \\
+\bottomrule
+\end{tabular}
+\caption{What the measures describe, with no verdict. Held-out positions: quiet ones where some rule move passes the check. Quiet share: of all the rule's held-out positions, in percent. $R_s$ and $N_s$ sound: the share of those positions where the rule's move and the natural move after the check are sound, in percent. The lift is $R_s$'s soundness minus $N_s$'s in points, with its 95\% interval from 2,000 draws over games (for every rule with data the train interval lies below 0 as well); over all positions it is the same lift over every position with a safe rule move, quiet or not. The content is $R_s$'s soundness minus that of $R_{0s}$, the move Maia-2 likes best among as many safe moves drawn at random.}
+\label{tab:descriptions}
+\end{table}
+}
+\newcommand{\NForcing}{eight}
+\newcommand{\ForcingAcrossNames}{the open file and the rook on the seventh}
+\newcommand{\ForcingMin}{50}
+\newcommand{\NBigForcing}{four}
+\newcommand{\OfForcing}{$-$4.1}
+\newcommand{\OfQuiet}{$-$17.9}
+\newcommand{\NPhase}{eight}
+\newcommand{\EndgameOnlyNames}{the active king, the opposition, the rule of the square and cutting the king off}
+\newcommand{\PpMiddle}{$-$25.1}
+\newcommand{\PpEnd}{$-$9.7}
+\newcommand{\NMaterial}{eleven}
+\newcommand{\NLevel}{nine}
+\newcommand{\LevelNotNames}{the rule of the square and cutting the king off}
+\newcommand{\SplitTable}{%
+\begin{table}[ht]
+\centering\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+ & \begin{tabular}[b]{@{}l@{}}$R_s$ \\ quiet\end{tabular} & \begin{tabular}[b]{@{}l@{}}$R_s$ \\ forcing\end{tabular} & \begin{tabular}[b]{@{}l@{}}Middle- \\ game\end{tabular} & Endgame & Ahead & Level & Behind \\
+\midrule
+Active king & $-$10 {\scriptsize(2,244)} & 0 {\scriptsize(1)} & -- & $-$10 {\scriptsize(2,245)} & $-$9 {\scriptsize(778)} & $-$14 {\scriptsize(875)} & $-$4 {\scriptsize(592)} \\
+Opposition & $-$8 {\scriptsize(1,015)} & -- & -- & $-$8 {\scriptsize(1,015)} & $-$4 {\scriptsize(230)} & $-$11 {\scriptsize(642)} & $-$6 {\scriptsize(143)} \\
+Rule of the square & $-$1 {\scriptsize(1,549)} & 0 {\scriptsize(3)} & -- & $-$1 {\scriptsize(1,552)} & $-$1 {\scriptsize(1,205)} & $-$1 {\scriptsize(329)} & $-$6 {\scriptsize(18)} \\
+Rook behind the passed pawn & $-$25 {\scriptsize(1,298)} & 11 {\scriptsize(9)} & $-$33 {\scriptsize(397)} & $-$21 {\scriptsize(910)} & $-$23 {\scriptsize(587)} & $-$31 {\scriptsize(454)} & $-$18 {\scriptsize(266)} \\
+Cutting the king off & $-$29 {\scriptsize(552)} & -- & -- & $-$29 {\scriptsize(552)} & $-$16 {\scriptsize(176)} & $-$34 {\scriptsize(341)} & $-$46 {\scriptsize(35)} \\
+Trading when ahead & -- & $-$7 {\scriptsize(1,033)} & $-$8 {\scriptsize(806)} & $-$4 {\scriptsize(227)} & $-$7 {\scriptsize(1,033)} & -- & -- \\
+Open file & $-$18 {\scriptsize(1,356)} & $-$4 {\scriptsize(98)} & $-$19 {\scriptsize(976)} & $-$12 {\scriptsize(478)} & $-$15 {\scriptsize(351)} & $-$19 {\scriptsize(794)} & $-$14 {\scriptsize(309)} \\
+Rook on the seventh & $-$18 {\scriptsize(1,113)} & 2 {\scriptsize(63)} & $-$19 {\scriptsize(347)} & $-$16 {\scriptsize(829)} & $-$12 {\scriptsize(420)} & $-$22 {\scriptsize(476)} & $-$15 {\scriptsize(280)} \\
+Outpost & $-$21 {\scriptsize(1,142)} & $-$10 {\scriptsize(117)} & $-$23 {\scriptsize(720)} & $-$17 {\scriptsize(539)} & $-$19 {\scriptsize(413)} & $-$22 {\scriptsize(662)} & $-$16 {\scriptsize(184)} \\
+Pawn break & $-$32 {\scriptsize(1,619)} & 0 {\scriptsize(1)} & $-$34 {\scriptsize(1,239)} & $-$25 {\scriptsize(381)} & $-$29 {\scriptsize(280)} & $-$34 {\scriptsize(1,086)} & $-$24 {\scriptsize(254)} \\
+Passed pawn & $-$16 {\scriptsize(870)} & $-$9 {\scriptsize(161)} & $-$25 {\scriptsize(342)} & $-$10 {\scriptsize(689)} & $-$13 {\scriptsize(476)} & $-$17 {\scriptsize(402)} & $-$14 {\scriptsize(153)} \\
+Worst piece & $-$23 {\scriptsize(1,210)} & $-$9 {\scriptsize(23)} & $-$25 {\scriptsize(714)} & $-$18 {\scriptsize(519)} & $-$18 {\scriptsize(312)} & $-$27 {\scriptsize(662)} & $-$15 {\scriptsize(259)} \\
+\bottomrule
+\end{tabular}
+\caption{The lift in quiet positions in each cell of a split, held out, in points, with the cell's positions in brackets; a dash is a cell with none. Forcing: $R_s$ is a capture or gives check. The phase is the app's divider's, and material is the mover's, both read before the move by the app at the check's commit. The splits describe and decide nothing.}
+\label{tab:splits}
+\end{table}
+}

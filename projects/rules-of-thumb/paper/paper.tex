@@ -212,8 +212,9 @@ moment, as above. Two read wider than a coach would (Figure~\ref{fig:wide}).
 mover has a new passed pawn far from the other pawns and from their king. The note does not ask what
 the move gave for it. All \OpCaptures{} of its examples' rule moves are captures, and \OpLosing{} of
 them lose material by the capture war, each a rook for a pawn (Figure~\ref{fig:wide}a). Its verdict is in part the reading's, though its moves are still sound far
-more often than random ones. The app writes the same note on such a move in Game Review, beside the
-warning that the rook is lost.
+more often than random ones. The app wrote the same note on such a move in Game Review, beside the
+warning that the rook is lost; since chess PR 166, after the commit measured here, the review holds a
+technique note back on a move that gives its piece away.
 
 \paragraph{Cutting the king off} is read on any rook move, in a rook ending, to a file with nothing
 else on it between their king and one of the mover's passed pawns. It does not ask whether their
@@ -261,18 +262,21 @@ app's own blunder check catches most of these.
 The app already uses its rules that way in Game Review: it praises a rule only on a move that gave
 up less than its praise bar, and names a rule the player missed only on Stockfish's best move. Its
 pawn-break lesson now says to check what a break leaves hanging before playing it (chess PR 130,
-after the commit measured here), and its worst-piece lesson begins ``No tactics?''. Its open-file and outpost lessons teach their rule with no such check,
-and the evidence here says they should start from it: look at every check, capture and threat first,
-then use the rule to choose among the moves that survive.
+after the commit measured here), and its worst-piece lesson begins ``No tactics?''. Its open-file
+and outpost lessons taught their rule with no such check, and the evidence here says they should
+start from it; since chess PR 165 they do, looking at every check, capture and threat first and
+treating the open file or the hole as where to look once those are answered.
 
-Two readings are for the review to weigh. The outside passed pawn's note is a fact about the board
-written whatever the move cost, so it appears beside a blunder as if it were the move's reason. And
-the cut-off reading carries no information at this level; the app's endgame drill for it is a
+Two readings were for the review to weigh. The outside passed pawn's note was a fact about the board
+written whatever the move cost, so it appeared beside a blunder as if it were the move's reason; the
+review now holds it back on a move that gives its piece away (chess PR 166). And the cut-off reading
+carries no information at this level; the app's endgame drill for it is a
 position where the cut is the answer, which this study does not test.
 
-A next round can test the coach's advice as a coach gives it: the rule's move among the moves the
-blunder check passes, against the natural move. It needs the positions and the evidence this run
-stored, and Stockfish only for the moves that change.
+The next round, rules-after-check, tested the coach's advice as a coach gives it: the rule's move
+among the moves the blunder check passes, in positions with no tactic on the board, against the
+natural move among the same moves. Its control failed, so it gives no verdict, but there too the
+rule's move is sound less often than the natural move, for every rule with enough positions.
 
 \section{Caveats}
 
