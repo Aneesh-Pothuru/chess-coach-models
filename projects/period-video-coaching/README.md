@@ -176,6 +176,13 @@ the listening criterion, each script's length against its grammar's target
 (weekly five to eight minutes, monthly six to nine), check rounds, cost and
 minutes, and the audit of every published script against its case's brief.
 
+The report applies the rule to unrounded values, and a period with a missing
+audit (of either config's first run) or a missing control fails the items that
+need it (4, 6 and 7) rather than dropping out of them: the guards the
+[video-coaching](../video-coaching/README.md) report took from a later audit,
+added here before the full eval and tested by `test_boot.py`,
+`test_controls.py` and `test_audits.py`.
+
 The five moves are one change: a kept result shows they help together, not
 which of them does. With five periods a split, rules 1 and 2 hold only when
 the candidate wins coaching on nearly every period of each.
@@ -220,6 +227,7 @@ bin/batch.py judge --config coach-moves --vs baseline
 bin/batch.py judge --config baseline --vs baseline          # the noise floor: run 1 against run 2
 bin/batch.py controls --config coach-moves --vs baseline
 bin/batch.py report --config coach-moves --vs baseline
+python3 -m unittest test_boot test_controls test_audits   # the report's guards
 ```
 
 The evidence's Maia-2 weights are read from `$EVAL_ROOT/maia`. The per-run

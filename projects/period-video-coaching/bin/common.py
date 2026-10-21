@@ -193,4 +193,6 @@ def boot(xs, stat=None, n=4000, seed=7):
         vals.append(stat(sample))
     vals.sort()
     flat = [v for k in keys for v in xs[k]]
-    return {'est': round(stat(flat), 3), 'lo': round(vals[int(0.025 * n)], 3), 'hi': round(vals[int(0.975 * n) - 1], 3), 'n': len(flat), 'cases': len(keys)}
+    # These values decide the rule's strict bounds and length cap. Round only
+    # when displaying them, never before the comparisons in batch.cmd_report.
+    return {'est': stat(flat), 'lo': vals[int(0.025 * n)], 'hi': vals[int(0.975 * n) - 1], 'n': len(flat), 'cases': len(keys)}
