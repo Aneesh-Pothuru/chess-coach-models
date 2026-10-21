@@ -1,0 +1,154 @@
+{
+  "schema": 1,
+  "apps": {
+    "check": "3437a711843006926c0804394b9087c5a55d4bcf",
+    "score": "f4bd63f19b343f686fb97ea4cf70b211c0bddc0a",
+    "records": "aed714ada579782ce73630596e59c8b65e74cb30"
+  },
+  "data": {
+    "source": "rules-of-thumb original Lichess rated standard 600+0 positions",
+    "license": "CC0",
+    "heldout": "2026-09"
+  },
+  "controlPassed": false,
+  "selection": {
+    "positionsPerRule": 8,
+    "population": "held-out quiet rows with surviving rule moves, Rs different from Ns, and a registered verdict",
+    "seed": "rule id, NUL, after-check through detect.mjs seeded()",
+    "method": "partial Fisher-Yates without replacement",
+    "order": "original positions file order",
+    "outcomeSelection": false,
+    "insufficientCandidates": "stop; do not replace positions or silently reduce the sample"
+  },
+  "readings": {
+    "soundness": "each saved judgment, checked against the evidence that produced it",
+    "winPercent": "app winPercentFor for the original mover; tablebaseWdl of saved child categories for tablebase moves",
+    "best": "fresh after-check exact first line when this position needed a search; original exact first line otherwise; app fifty-move bestUciFor for tablebases",
+    "reuse": "R, N and played retain original evidence; a reused null R0 retains its null evidence; new Rs or Ns use fresh after-check evidence",
+    "differentSearches": "identical SAN may carry different win% when separate saved searches supplied the candidate and best"
+  },
+  "provenance": {
+    "manifestSha256": "1184564623f21ad28c523d4786367dd01f5a06965efcf15583f54000c6f14668",
+    "analysisSha256": "29bdcd1e855433d8463394c650f43e381ffb894b96d9fa018c2f60ab0a96b279",
+    "generatorSha256": "faa74bced79331995bf8f72f4128e4677596ccb478e78e4244140544ee880905",
+    "completedInputs": [
+      {
+        "stage": "checked",
+        "month": "2026-09",
+        "shard": 0,
+        "outputSha256": "0d91eb69c847659cf2ebb4c1c3a9f54ee9df4848431d4c3edab203d14fa38c8a",
+        "manifestSha256": "0ec2a458a1792458dde91a93ed7178f5620ef8023d5bfb9b3f80c59561b1c7b8"
+      },
+      {
+        "stage": "checked",
+        "month": "2026-09",
+        "shard": 1,
+        "outputSha256": "554d45ee4abd75bc3fd7a2edd4264b0525bc970d6a197d36e3e059d862a41aca",
+        "manifestSha256": "8fb2e6ab81d9538220f0e6d765e4ce4c540c8095666a7eab264c7fa63844d6b6"
+      },
+      {
+        "stage": "scored",
+        "month": "2026-09",
+        "shard": 0,
+        "outputSha256": "4e89d6075a13e2c369f653f83c8c54966cb2b4cbc39ce57070c1679e2e15700d",
+        "manifestSha256": "ca871d8f03589a9db09d5023bb5b36d81f91a470f5a21b4202daf2c0850498bf"
+      },
+      {
+        "stage": "scored",
+        "month": "2026-09",
+        "shard": 1,
+        "outputSha256": "03f94076e64802d286393b3b242f9eab49ffbd79019c1c8b030c1f7bd6f2853d",
+        "manifestSha256": "99e98e90c7433fe3aa375cfb90d33d93bc822b181632dc08cbf90dc9b3b37446"
+      }
+    ]
+  },
+  "summary": {
+    "rules": 0,
+    "positions": 0,
+    "referees": {
+      "stockfish": 0,
+      "tablebase": 0
+    },
+    "bestSources": {
+      "original": 0,
+      "fresh": 0,
+      "tablebase": 0
+    },
+    "sound": {
+      "Rs": 0,
+      "Ns": 0,
+      "R": 0,
+      "N": 0,
+      "A": 0,
+      "best": 0
+    }
+  },
+  "excluded": [
+    {
+      "rule": "active-king",
+      "reason": "control failed",
+      "positions": 2245
+    },
+    {
+      "rule": "opposition",
+      "reason": "control failed",
+      "positions": 1015
+    },
+    {
+      "rule": "square-rule",
+      "reason": "control failed",
+      "positions": 1552
+    },
+    {
+      "rule": "rook-behind-passer",
+      "reason": "control failed",
+      "positions": 1307
+    },
+    {
+      "rule": "cut-off-king",
+      "reason": "control failed",
+      "positions": 552
+    },
+    {
+      "rule": "outside-passer",
+      "reason": "control failed",
+      "positions": 12
+    },
+    {
+      "rule": "trade-when-ahead",
+      "reason": "control failed",
+      "positions": 1033
+    },
+    {
+      "rule": "open-file",
+      "reason": "control failed",
+      "positions": 1454
+    },
+    {
+      "rule": "rook-on-the-seventh",
+      "reason": "control failed",
+      "positions": 1176
+    },
+    {
+      "rule": "outpost",
+      "reason": "control failed",
+      "positions": 1259
+    },
+    {
+      "rule": "pawn-break",
+      "reason": "control failed",
+      "positions": 1620
+    },
+    {
+      "rule": "passed-pawn",
+      "reason": "control failed",
+      "positions": 1031
+    },
+    {
+      "rule": "worst-piece",
+      "reason": "control failed",
+      "positions": 1233
+    }
+  ],
+  "rules": {}
+}
