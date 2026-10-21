@@ -186,7 +186,11 @@ text at fault (a check it cannot pass, an instruction the live routine cannot
 follow), a fixed candidate gets a new name and starts over. The full eval runs
 only on the owner's budget.
 
-The pilot stops at $40 of model calls at list price (`EVAL_CAP`):
+The pilot stops at $50 of model calls at list price (`EVAL_CAP`). It was
+fixed at $40; the container restarted nine minutes into its first two writer
+runs, which were lost and start again, and the ledger carries what they spent
+(about $6.50, from their streams, rounded up), so the cap rose by $10 to cover
+them:
 `ledger.jsonl` in the eval directory sums every call's `total_cost_usd`, and
 `batch.py` starts no writer whose expected cost, with the runs in flight and
 what grading still owes, would pass the cap. The calls run on the owner's
