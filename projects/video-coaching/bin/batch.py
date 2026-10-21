@@ -439,6 +439,10 @@ def cmd_report(args):
     below = lambda b: bool(b and b['hi'] < 0)
     decoy_wins = sum(1 for f in rep['controls']['decoy'].values() if f.get('coaching') == 'candidate')
     same_wins = sum(1 for f in rep['controls']['same'].values() for c in CRITERIA if f.get(c) != 'tie')
+    # An unrun or missing control is not a tie. Both controls are owed on every
+    # usable day, including days a partial batch has not written yet.
+    control_days = {i for i, r in rows.items() if case_ready(i) or r['reps']}
+    controls_complete = bool(control_days) and all(control_days <= set(rep['controls'][kind]) for kind in ('same', 'decoy'))
     null = rep['all'].get('null.coaching')
     ratio = rep['all'].get('lengthRatio')
     rep['rule'] = {
@@ -447,7 +451,7 @@ def cmd_report(args):
         '3 overall not worse': not below(rep['all'].get('judge.overall')),
         '4 truth not worse': not above(rep['all'].get('audit.false.minusBase')) and not above(rep['all'].get('audit.boardClaimsFalse.minusBase')),
         '5 check passes as often': (rep['all']['pass'] or {}).get('est', 0) >= (rep['all']['pass.base'] or {}).get('est', 0),
-        '6 controls clean': same_wins == 0 and decoy_wins <= len(rep['controls']['decoy']) // 4 and bool(null) and null['lo'] <= 0 <= null['hi'],
+        '6 controls clean': controls_complete and same_wins == 0 and decoy_wins <= len(rep['controls']['decoy']) // 4 and bool(null) and null['lo'] <= 0 <= null['hi'],
         '7 coaching moves made more often': above(rep['all'].get('audit.coachingShare.minusBase')),
         '8 not much longer': bool(ratio and ratio['est'] <= 1.3),
     }
