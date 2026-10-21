@@ -11,7 +11,8 @@ ones write.
 
 ## Result
 
-Not kept by the rule, on length alone ([paper](paper/paper.pdf)). Judged
+Adopted on the owner's call (chess PR 167) after the rule turned it down on
+length alone ([paper](paper/paper.pdf)). Judged
 blind in both orders, the candidate's coaching won on all ten periods, train
 and held out alike, and it won overall on most of them; its listening verdicts
 were even, where the daily study's candidate never won listening. The audit
@@ -25,7 +26,8 @@ candidate's videos are longer than the rule's bound of 1.3 times today's, so
 the rule keeps today's prompts. Timed after the result in the app's own voice
 (`bin/rendered.py`, deciding nothing), the candidate's weekly videos average
 inside the five to eight minutes the video grammar asks for, where today's sit
-at its floor, so whether to take the bullet anyway is the owner's call.
+at its floor, so whether to take the bullet anyway was the owner's call, and
+the owner took it: both prompts carry it as tested.
 `results/report.json` holds the numbers as `batch.py report` computed them,
 the app commit the cases ran on and what was spent; `results/runs.json` each
 run's, with each first run's rendered length.

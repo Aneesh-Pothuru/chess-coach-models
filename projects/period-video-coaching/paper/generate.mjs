@@ -73,7 +73,7 @@ g.def('WeeksN', word(weeks.length)).def('MonthsN', word(months.length))
 claim(periods.length === usable.length && usable.length === all.length, 'every period was usable, and written and judged under both prompts')
 const commits = [...new Set(all.map((i) => R.cases[i].code))]
 claim(commits.length === 1, 'every case runs the app at one commit')
-g.def('AppCommit', commits[0].slice(0, 10))
+g.def('AppCommit', commits[0].slice(0, 10)).def('PortPR', '167')
 const refFailed = all.filter((i) => R.cases[i].referenceErrors > 0)
 const refPassed = all.filter((i) => R.cases[i].referenceErrors === 0)
 claim(refPassed.length === 1 && refFailed.length === all.length - 1, 'only one published review passes today\'s strict check')
