@@ -284,6 +284,15 @@ anything.
 | `tests-readings.mjs` | The readings on positions built by hand. |
 | `june.py` | Streams the June 2026 games for the count before the rule. |
 | `availability.mjs` | The count before the rule, with no move scored; writes `results/availability.json` and `results/availability.md`. |
+| `readings.md` | Implementation choices for the owner's review before scoring. |
+| `common.mjs` | Frozen input checks, two-shard journals, checkpoint recovery and process limits. |
+| `scan.mjs`, `select.mjs` | Scan every game, draw one split per game and unit, then merge in file order and cap each unit. |
+| `score.mjs` | Referee each retained occurrence once, sharing its best and distinct F/B readings across units. |
+| `analyze.py`, `examples.mjs` | Registered shared-game bootstrap, control, verdicts and descriptions; the held-out examples. |
+| `freeze.py`, `manifest.json`, `input-manifest.json` | Content freeze of the rule, sources, app, dependencies and stream inputs. |
+| `run.py`, `run.sh` | Detached driver, two heavy workers, power checks and automatic UTC pauses. |
+| `timing.py`, `timing-manifest.json` | Counts and timings from the July slice, and the full-run cost estimate. |
+| `tests-*.mjs`, `test_*.py` | Synthetic tests for scanning, selection, scoring, resampling, examples and orchestration. |
 
 ## Running it
 
@@ -300,3 +309,42 @@ would, scoring nothing:
 .venv/bin/python projects/tiebreak-rules/june.py
 CHESS_DIR="$(projects/tiebreak-rules/app.sh)" bridge/run.sh projects/tiebreak-rules/availability.mjs
 ```
+
+The scripts below use the already prepared checkout. No install or new June
+count is needed. Synthetic checks read no study position or soundness:
+
+```bash
+export CHESS_DIR="$PWD/.cache/chess/ffee8dbb166f77dcc75721b6cca28d37703f4515"
+nice -n 10 bridge/run.sh projects/tiebreak-rules/tests-readings.mjs
+nice -n 10 bridge/run.sh projects/tiebreak-rules/tests-scan.mjs
+nice -n 10 bridge/run.sh projects/tiebreak-rules/tests-common.mjs
+nice -n 10 bridge/run.sh projects/tiebreak-rules/tests-score.mjs
+nice -n 10 bridge/run.sh projects/tiebreak-rules/tests-examples.mjs
+nice -n 10 .venv/bin/python projects/tiebreak-rules/test_analysis.py
+nice -n 10 .venv/bin/python projects/tiebreak-rules/test_runner.py
+```
+
+Freeze before the July timing pass. Its route scans and selects only; it
+never starts the referee or the outcome analysis. The detached driver
+returns a pid and a log path. Keep the lid open. The full run requires AC;
+the short timing slice records the power source and may use battery.
+
+```bash
+nice -n 10 .venv/bin/python projects/tiebreak-rules/freeze.py --write
+sh projects/tiebreak-rules/run.sh --timing --limit 300
+```
+
+After the timing report, run the privacy check, commit locally, and stop for
+the owner's review before any scoring. Only after that review, the full run
+starts or resumes with:
+
+```bash
+.venv/bin/python projects/tiebreak-rules/freeze.py
+sh projects/tiebreak-rules/run.sh --reviewed
+```
+
+The run writes logs and checkpoints under `private/tiebreak-rules/`. The
+full route scans and selects each month, scores the retained positions, then
+writes `results/rules.json`, `results/rules.md`, `results/examples.json` and
+`results/examples.md`. The timing route writes `results/timing.json` and
+`results/timing.md`. The answer and paper follow the owner's review.
