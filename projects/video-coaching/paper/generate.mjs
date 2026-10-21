@@ -198,6 +198,7 @@ g.def('CoachingSplit', word(split('coaching')))
 const controls = Object.entries(U.controls).filter(([i]) => days.includes(i)).map(([, c]) => c)
 const same = controls.filter((c) => c.same)
 const decoy = controls.filter((c) => c.decoy)
+claim(same.length === days.length && decoy.length === days.length, 'both controls cover every judged day')
 const sameBroken = same.filter((c) => CRITERIA.some((k) => c.same.final[k] !== 'tie')).length
 const decoyCoach = decoy.filter((c) => c.decoy.final.coaching === 'candidate').length
 const decoyLost = (k) => decoy.filter((c) => c.decoy.final[k] === 'reference').length
