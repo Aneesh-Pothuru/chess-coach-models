@@ -80,6 +80,7 @@ const describedNothing = phaseAttackingRows.filter((r) => r.named.length === 0).
 g.def('PhaseAttackingNothing', percent(describedNothing / phaseAttackingRows.length, 0))
 
 const E = T.endgame
+claim(E.competency === 'conv.technique', 'endgame positions feed conversion')
 g.def('EndgameItems', String(E.items)).def('EndgameDefensive', String(n(E.shape, 'defensive'))).def('EndgameCompetency', `\\texttt{${E.competency}}`)
 
 const HP = T.hangingPiece
@@ -118,7 +119,7 @@ const showMiss = (name, test, what) => {
   return r
 }
 showMiss('Def', (r) => PHASES.includes(r.theme) && r.shape === 'defensive' && r.played === 'allowedMate', 'a missed defence against mate filed under a phase')
-showMiss('Win', (r) => PHASES.includes(r.theme) && r.shape === 'attacking' && r.best === 'wins' && r.bestDelta >= 3 && r.playedDelta >= 0, 'a missed win filed under a phase')
+showMiss('Win', (r) => r.theme === 'endgame' && r.shape === 'attacking' && r.best === 'wins' && r.bestDelta >= 3 && r.playedDelta >= 0, 'a missed win filed under conversion')
 // The rule's own limit: defensive-move items it reads as a win he missed, by how much the best line wins.
 const defWins = rows.misses.filter((r) => r.theme === 'defensiveMove' && r.shape === 'attacking' && r.best === 'wins')
 g.def('DefWinsSmall', String(defWins.filter((r) => r.bestDelta <= 2).length)).def('DefWins', String(defWins.length))
