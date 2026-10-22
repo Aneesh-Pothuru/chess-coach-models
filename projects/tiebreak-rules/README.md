@@ -58,7 +58,9 @@ bishop's colour counts in the middlegame and the endgame, not the opening.
 
 For the app, the two rules can be taught as the way to choose between two
 moves that look equally good, never as a reason to overrule one that looks
-better. The paper is [`paper/paper.pdf`](paper/paper.pdf).
+better. Since chess PR 181 a strategy lesson teaches them that way, with
+keeping the bishop counting most in the opening and the bishop's colour in the
+middlegame and the endgame. The paper is [`paper/paper.pdf`](paper/paper.pdf).
 
 If a rule breaks the tie, a lesson can teach it as the way to choose between
 two natural moves, and Game Review can name it where he played the move that
