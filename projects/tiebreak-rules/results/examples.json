@@ -1,0 +1,1622 @@
+{
+  "schema": 1,
+  "datasetKind": "tiebreak-rules-examples",
+  "app": "ffee8dbb166f77dcc75721b6cca28d37703f4515",
+  "data": {
+    "source": "Lichess rated standard 600+0",
+    "license": "CC0",
+    "heldout": "2026-09"
+  },
+  "selection": {
+    "positionsPerUnit": 6,
+    "units": [
+      "tension",
+      "trades-ahead",
+      "trades-behind",
+      "bishop-for-knight",
+      "knight-for-bishop",
+      "bishop-colour",
+      "trades-level",
+      "hang"
+    ],
+    "population": "held-out kept positions where exactly one of F and B is sound",
+    "method": "partial Fisher-Yates without replacement",
+    "seed": "unit id, NUL, examples through detect.mjs seeded()",
+    "order": "original selected occurrence file order",
+    "verdictGate": false,
+    "controlGate": false,
+    "insufficientCandidates": "stop; do not replace positions or reduce the sample"
+  },
+  "readings": {
+    "soundness": "saved F/B judgments checked against their stored referee evidence",
+    "winPercent": "app winPercentFor for the original mover; saved child tablebaseWdl for tablebases",
+    "best": "first exact Stockfish line, or app bestUciFor with fifty-move tablebase policy",
+    "played": "SAN only; the played move was not scored",
+    "outcomeSelection": "exactly one of F and B is sound, as registered"
+  },
+  "provenance": {
+    "manifestSha256": "71ed806d53543b191f8774bb5e0b05b0e3bde646184099a5ad0975f78446791f",
+    "analysisSha256": "00cfba583828f58bb50d85c9c046749537997e1460d6a8f1f4fea94e073d70e6",
+    "generatorSha256": "eec09e5fd85308e23c04961fe74cb19f8acf49a4e4d1d89422b2b29bbcc6a3f4",
+    "positionInputs": [
+      {
+        "month": "2026-09",
+        "outputSha256": "c40f7869d9cb9b4b8a140b7e02e26b51e882325ba4f1d828b33b1c38a5aab674"
+      }
+    ],
+    "completedInputs": [
+      {
+        "stage": "scored",
+        "month": "2026-09",
+        "shard": 0,
+        "outputSha256": "2149430da2a7fa2e8b3e56838225c5697641a1549c3607aa746906603e9e9438"
+      },
+      {
+        "stage": "scored",
+        "month": "2026-09",
+        "shard": 1,
+        "outputSha256": "486a906c957288880019f78474d254db36bc48ebda8f4cf9d87ccd4d8968e46c"
+      }
+    ]
+  },
+  "summary": {
+    "units": 8,
+    "positions": 48,
+    "referees": {
+      "stockfish": 48,
+      "tablebase": 0
+    },
+    "orders": {
+      "follow-first": 19,
+      "break-first": 29
+    },
+    "soundF": 23,
+    "soundB": 25
+  },
+  "units": {
+    "tension": {
+      "keptPositions": 3000,
+      "eligiblePositions": 1455,
+      "summary": {
+        "positions": 6,
+        "referees": {
+          "stockfish": 6,
+          "tablebase": 0
+        },
+        "orders": {
+          "follow-first": 1,
+          "break-first": 5
+        },
+        "soundF": 2,
+        "soundB": 4
+      },
+      "examples": [
+        {
+          "number": 1,
+          "fen": "rnb1kbnr/pp3ppp/2pp1q2/4p3/3PP3/2N2N2/PPP2PPP/R1BQKB1R w KQkq - 0 5",
+          "band": 1500,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "c1g5",
+              "san": "Bg5",
+              "sound": true,
+              "winPercent": 67.6211637485054
+            },
+            "B": {
+              "uci": "d4e5",
+              "san": "dxe5",
+              "sound": false,
+              "winPercent": 65.57392814366
+            },
+            "played": {
+              "uci": "d4e5",
+              "san": "dxe5"
+            },
+            "best": {
+              "uci": "c1g5",
+              "san": "Bg5"
+            }
+          }
+        },
+        {
+          "number": 2,
+          "fen": "r2qkb1r/ppp1ppp1/2n2n1p/3p1b2/2PP4/2N1PN2/PP3PPP/R1BQKB1R w KQkq - 3 6",
+          "band": 1500,
+          "stratum": "follow-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "a2a3",
+              "san": "a3",
+              "sound": false,
+              "winPercent": 52.94226081270875
+            },
+            "B": {
+              "uci": "c4d5",
+              "san": "cxd5",
+              "sound": true,
+              "winPercent": 61.743385997576716
+            },
+            "played": {
+              "uci": "h2h3",
+              "san": "h3"
+            },
+            "best": {
+              "uci": "c4d5",
+              "san": "cxd5"
+            }
+          }
+        },
+        {
+          "number": 3,
+          "fen": "2kr3r/1p1qb3/p2p3p/2p1ppp1/2P1P3/P2PBN1P/1P3PP1/R2Q1RK1 w - - 0 15",
+          "band": 1300,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "b2b4",
+              "san": "b4",
+              "sound": false,
+              "winPercent": 69.60308990696248
+            },
+            "B": {
+              "uci": "e4f5",
+              "san": "exf5",
+              "sound": true,
+              "winPercent": 78.88795193695529
+            },
+            "played": {
+              "uci": "e4f5",
+              "san": "exf5"
+            },
+            "best": {
+              "uci": "e4f5",
+              "san": "exf5"
+            }
+          }
+        },
+        {
+          "number": 4,
+          "fen": "r1bq1rk1/ppp1b1pp/3pp3/4Pp2/5P2/2PBP1P1/PP4P1/RN1QK2R b KQ - 0 11",
+          "band": 1500,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "b7b6",
+              "san": "b6",
+              "sound": false,
+              "winPercent": 51.19644756166626
+            },
+            "B": {
+              "uci": "d6e5",
+              "san": "dxe5",
+              "sound": true,
+              "winPercent": 57.94073444653804
+            },
+            "played": {
+              "uci": "d6e5",
+              "san": "dxe5"
+            },
+            "best": {
+              "uci": "d6e5",
+              "san": "dxe5"
+            }
+          }
+        },
+        {
+          "number": 5,
+          "fen": "1r4k1/4Rp2/7p/pp3bp1/5P2/P1r3P1/6BP/R5K1 w - - 1 28",
+          "band": 1500,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "g2d5",
+              "san": "Bd5",
+              "sound": true,
+              "winPercent": 44.04501867400794
+            },
+            "B": {
+              "uci": "f4g5",
+              "san": "fxg5",
+              "sound": false,
+              "winPercent": 40.453161641669574
+            },
+            "played": {
+              "uci": "f4g5",
+              "san": "fxg5"
+            },
+            "best": {
+              "uci": "g2d5",
+              "san": "Bd5"
+            }
+          }
+        },
+        {
+          "number": 6,
+          "fen": "r2q1rk1/p3bppp/1p2p3/2ppP3/Q1PPnN2/4P3/PP4PP/R1B2RK1 w - - 0 16",
+          "band": 1300,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "a4c2",
+              "san": "Qc2",
+              "sound": false,
+              "winPercent": 45.4103562397001
+            },
+            "B": {
+              "uci": "c4d5",
+              "san": "cxd5",
+              "sound": true,
+              "winPercent": 55.68256609665036
+            },
+            "played": {
+              "uci": "c4d5",
+              "san": "cxd5"
+            },
+            "best": {
+              "uci": "c4d5",
+              "san": "cxd5"
+            }
+          }
+        }
+      ]
+    },
+    "trades-ahead": {
+      "keptPositions": 1196,
+      "eligiblePositions": 673,
+      "summary": {
+        "positions": 6,
+        "referees": {
+          "stockfish": 6,
+          "tablebase": 0
+        },
+        "orders": {
+          "follow-first": 2,
+          "break-first": 4
+        },
+        "soundF": 1,
+        "soundB": 5
+      },
+      "examples": [
+        {
+          "number": 1,
+          "fen": "r1b1k2r/ppp1npp1/2np1q1p/4p3/2BbP3/2NPBN1P/PPP2PP1/R2Q1RK1 w kq - 1 9",
+          "band": 1500,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "c3d5",
+              "san": "Nd5",
+              "sound": false,
+              "winPercent": 52.29967635676993
+            },
+            "B": {
+              "uci": "e3d4",
+              "san": "Bxd4",
+              "sound": true,
+              "winPercent": 54.5896437602999
+            },
+            "played": {
+              "uci": "f3h2",
+              "san": "Nh2"
+            },
+            "best": {
+              "uci": "c3b5",
+              "san": "Nb5"
+            }
+          }
+        },
+        {
+          "number": 2,
+          "fen": "r2q1rk1/p1p3pp/bpn1pp2/8/P1NP4/1P2P3/5PPP/R2QKB1R b - - 2 13",
+          "band": 1500,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "c6b4",
+              "san": "Nb4",
+              "sound": true,
+              "winPercent": 58.12008926446735
+            },
+            "B": {
+              "uci": "a6c4",
+              "san": "Bxc4",
+              "sound": false,
+              "winPercent": 49.81589683200524
+            },
+            "played": {
+              "uci": "a6c4",
+              "san": "Bxc4"
+            },
+            "best": {
+              "uci": "d8e7",
+              "san": "Qe7"
+            }
+          }
+        },
+        {
+          "number": 3,
+          "fen": "1nbqk2r/r3bppp/p2p4/1ppQ2B1/4P3/2N2N2/PPP2PPP/R3K2R w KQk - 1 11",
+          "band": 1500,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "e1g1",
+              "san": "O-O",
+              "sound": false,
+              "winPercent": 49.63179865593352
+            },
+            "B": {
+              "uci": "g5e7",
+              "san": "Bxe7",
+              "sound": true,
+              "winPercent": 55.31881623684916
+            },
+            "played": {
+              "uci": "e1g1",
+              "san": "O-O"
+            },
+            "best": {
+              "uci": "g5e7",
+              "san": "Bxe7"
+            }
+          }
+        },
+        {
+          "number": 4,
+          "fen": "rnb1k2r/pp2qppp/2pp3n/2b1p3/2B1N2N/3P2PP/PPP2P1K/R1BQ1R2 w kq - 2 14",
+          "band": 1500,
+          "stratum": "follow-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "c1g5",
+              "san": "Bg5",
+              "sound": false,
+              "winPercent": 66.40030811678618
+            },
+            "B": {
+              "uci": "c1h6",
+              "san": "Bxh6",
+              "sound": true,
+              "winPercent": 69.52513126315361
+            },
+            "played": {
+              "uci": "d1f3",
+              "san": "Qf3"
+            },
+            "best": {
+              "uci": "c1h6",
+              "san": "Bxh6"
+            }
+          }
+        },
+        {
+          "number": 5,
+          "fen": "rnb1k2r/pp3ppp/1bpp1q2/8/3NP1n1/2N1B3/PPPQBPPP/R3K2R w KQkq - 4 10",
+          "band": 1300,
+          "stratum": "follow-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "e1c1",
+              "san": "O-O-O",
+              "sound": false,
+              "winPercent": 52.48335896523929
+            },
+            "B": {
+              "uci": "e2g4",
+              "san": "Bxg4",
+              "sound": true,
+              "winPercent": 63.892984846379605
+            },
+            "played": {
+              "uci": "e1c1",
+              "san": "O-O-O"
+            },
+            "best": {
+              "uci": "e2g4",
+              "san": "Bxg4"
+            }
+          }
+        },
+        {
+          "number": 6,
+          "fen": "rn2kb1r/pp2pp1p/2p2np1/8/2BPb3/5NN1/PP1B1PPP/2R2RK1 w kq - 2 12",
+          "band": 1500,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "f3e5",
+              "san": "Ne5",
+              "sound": false,
+              "winPercent": 41.34315034157369
+            },
+            "B": {
+              "uci": "g3e4",
+              "san": "Nxe4",
+              "sound": true,
+              "winPercent": 55.59168418448287
+            },
+            "played": {
+              "uci": "g3e4",
+              "san": "Nxe4"
+            },
+            "best": {
+              "uci": "c4f7",
+              "san": "Bxf7+"
+            }
+          }
+        }
+      ]
+    },
+    "trades-behind": {
+      "keptPositions": 2383,
+      "eligiblePositions": 1313,
+      "summary": {
+        "positions": 6,
+        "referees": {
+          "stockfish": 6,
+          "tablebase": 0
+        },
+        "orders": {
+          "follow-first": 5,
+          "break-first": 1
+        },
+        "soundF": 4,
+        "soundB": 2
+      },
+      "examples": [
+        {
+          "number": 1,
+          "fen": "r2q1rk1/3pnpb1/bp2p1p1/p3n1Np/4P3/2P3Q1/PP1N1PPP/R1B1KB1R w KQ - 2 14",
+          "band": 1500,
+          "stratum": "follow-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "f1a6",
+              "san": "Bxa6",
+              "sound": true,
+              "winPercent": 51.84020844121936
+            },
+            "B": {
+              "uci": "d2f3",
+              "san": "Ndf3",
+              "sound": false,
+              "winPercent": 39.393451294358464
+            },
+            "played": {
+              "uci": "f1a6",
+              "san": "Bxa6"
+            },
+            "best": {
+              "uci": "f1a6",
+              "san": "Bxa6"
+            }
+          }
+        },
+        {
+          "number": 2,
+          "fen": "r2qkbnr/pp3ppp/2n1p3/2ppP3/3P2b1/2N2N2/PPP1BPPP/R1BQ1RK1 b kq - 2 7",
+          "band": 1500,
+          "stratum": "follow-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "g4f3",
+              "san": "Bxf3",
+              "sound": true,
+              "winPercent": 59.989528148674815
+            },
+            "B": {
+              "uci": "d8b6",
+              "san": "Qb6",
+              "sound": false,
+              "winPercent": 45.95854804780486
+            },
+            "played": {
+              "uci": "g8e7",
+              "san": "Nge7"
+            },
+            "best": {
+              "uci": "g4f3",
+              "san": "Bxf3"
+            }
+          }
+        },
+        {
+          "number": 3,
+          "fen": "rnbqkbnr/pp3ppp/8/2p1p3/2BpP3/1P3P1N/PBPP2PP/RN1QK2R b KQkq - 1 6",
+          "band": 1300,
+          "stratum": "follow-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "c8h3",
+              "san": "Bxh3",
+              "sound": true,
+              "winPercent": 62.43673063917167
+            },
+            "B": {
+              "uci": "h7h6",
+              "san": "h6",
+              "sound": false,
+              "winPercent": 54.498352059546825
+            },
+            "played": {
+              "uci": "b8c6",
+              "san": "Nc6"
+            },
+            "best": {
+              "uci": "c8h3",
+              "san": "Bxh3"
+            }
+          }
+        },
+        {
+          "number": 4,
+          "fen": "rnbqkb1r/1p3pp1/p2p1n1p/3Np3/4P3/3B1N2/PPP2PPP/R1BQK2R b KQkq - 1 8",
+          "band": 1500,
+          "stratum": "follow-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "f6d5",
+              "san": "Nxd5",
+              "sound": true,
+              "winPercent": 54.224297894606856
+            },
+            "B": {
+              "uci": "c8e6",
+              "san": "Be6",
+              "sound": false,
+              "winPercent": 45.04550396254112
+            },
+            "played": {
+              "uci": "c8e6",
+              "san": "Be6"
+            },
+            "best": {
+              "uci": "f6d5",
+              "san": "Nxd5"
+            }
+          }
+        },
+        {
+          "number": 5,
+          "fen": "r1q2rk1/p2n1pbp/b1p1p1p1/1pPp1nP1/1B1P4/1P3N1B/P2QPP1P/RN2K2R w KQ - 6 16",
+          "band": 1300,
+          "stratum": "follow-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "h3f5",
+              "san": "Bxf5",
+              "sound": false,
+              "winPercent": 50.276153192001395
+            },
+            "B": {
+              "uci": "b1c3",
+              "san": "Nc3",
+              "sound": true,
+              "winPercent": 55.773409985166744
+            },
+            "played": {
+              "uci": "h3f5",
+              "san": "Bxf5"
+            },
+            "best": {
+              "uci": "b1c3",
+              "san": "Nc3"
+            }
+          }
+        },
+        {
+          "number": 6,
+          "fen": "rn2kbnr/ppp1pppp/2b1q3/8/8/2N2N2/PPPPBPPP/R1BQ1RK1 b kq - 7 6",
+          "band": 1500,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "c6f3",
+              "san": "Bxf3",
+              "sound": false,
+              "winPercent": 33.353695120062184
+            },
+            "B": {
+              "uci": "b8d7",
+              "san": "Nd7",
+              "sound": true,
+              "winPercent": 36.19200356575048
+            },
+            "played": {
+              "uci": "c6f3",
+              "san": "Bxf3"
+            },
+            "best": {
+              "uci": "g8f6",
+              "san": "Nf6"
+            }
+          }
+        }
+      ]
+    },
+    "bishop-for-knight": {
+      "keptPositions": 3000,
+      "eligiblePositions": 1579,
+      "summary": {
+        "positions": 6,
+        "referees": {
+          "stockfish": 6,
+          "tablebase": 0
+        },
+        "orders": {
+          "follow-first": 3,
+          "break-first": 3
+        },
+        "soundF": 3,
+        "soundB": 3
+      },
+      "examples": [
+        {
+          "number": 1,
+          "fen": "rnbqkb1r/pp3ppp/2p1p2n/3pP3/3P4/5N2/PPP2PPP/RNBQKB1R w KQkq - 1 5",
+          "band": 1300,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "h2h3",
+              "san": "h3",
+              "sound": false,
+              "winPercent": 54.95449603745888
+            },
+            "B": {
+              "uci": "c1h6",
+              "san": "Bxh6",
+              "sound": true,
+              "winPercent": 57.131105741498935
+            },
+            "played": {
+              "uci": "c1h6",
+              "san": "Bxh6"
+            },
+            "best": {
+              "uci": "c1h6",
+              "san": "Bxh6"
+            }
+          }
+        },
+        {
+          "number": 2,
+          "fen": "2kr1bnr/ppp3pp/5p2/5b2/3PN3/2P1pPB1/PP4PP/R2K1B1R b - - 1 13",
+          "band": 1300,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "c7c5",
+              "san": "c5",
+              "sound": true,
+              "winPercent": 40.8084390675291
+            },
+            "B": {
+              "uci": "f5e4",
+              "san": "Bxe4",
+              "sound": false,
+              "winPercent": 37.82269364766759
+            },
+            "played": {
+              "uci": "c7c5",
+              "san": "c5"
+            },
+            "best": {
+              "uci": "g8e7",
+              "san": "Ne7"
+            }
+          }
+        },
+        {
+          "number": 3,
+          "fen": "r2q1rk1/ppp1nppp/3b4/3P1n2/5p2/2NB3P/PPP2QP1/2KRR3 w - - 5 16",
+          "band": 1300,
+          "stratum": "follow-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "g2g4",
+              "san": "g4",
+              "sound": false,
+              "winPercent": 12.519393136296173
+            },
+            "B": {
+              "uci": "d3f5",
+              "san": "Bxf5",
+              "sound": true,
+              "winPercent": 14.540801215840354
+            },
+            "played": {
+              "uci": "g2g4",
+              "san": "g4"
+            },
+            "best": {
+              "uci": "c3b5",
+              "san": "Nb5"
+            }
+          }
+        },
+        {
+          "number": 4,
+          "fen": "rnbq1rk1/ppppnppp/1b6/1P2p3/Q7/B1P5/P2PPPPP/RN2KBNR w KQ - 1 6",
+          "band": 1500,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "e2e3",
+              "san": "e3",
+              "sound": true,
+              "winPercent": 42.68863060981179
+            },
+            "B": {
+              "uci": "a3e7",
+              "san": "Bxe7",
+              "sound": false,
+              "winPercent": 35.346082798513365
+            },
+            "played": {
+              "uci": "c3c4",
+              "san": "c4"
+            },
+            "best": {
+              "uci": "g1f3",
+              "san": "Nf3"
+            }
+          }
+        },
+        {
+          "number": 5,
+          "fen": "2k5/ppp1q2p/3b4/4nb2/5B2/2P5/PP4PP/RN1BR2K w - - 1 22",
+          "band": 1500,
+          "stratum": "follow-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "b1d2",
+              "san": "Nd2",
+              "sound": true,
+              "winPercent": 55.59168418448287
+            },
+            "B": {
+              "uci": "f4e5",
+              "san": "Bxe5",
+              "sound": false,
+              "winPercent": 52.39152574834706
+            },
+            "played": {
+              "uci": "b1d2",
+              "san": "Nd2"
+            },
+            "best": {
+              "uci": "b1d2",
+              "san": "Nd2"
+            }
+          }
+        },
+        {
+          "number": 6,
+          "fen": "1k1r3r/1p1q1p2/1Q1p1nb1/1n2pN2/pP2P1P1/P2P3P/1B2BP2/R3K2R b KQ - 1 24",
+          "band": 1500,
+          "stratum": "follow-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "d8c8",
+              "san": "Rc8",
+              "sound": false,
+              "winPercent": 23.869359706743182
+            },
+            "B": {
+              "uci": "g6f5",
+              "san": "Bxf5",
+              "sound": true,
+              "winPercent": 40.986441154085384
+            },
+            "played": {
+              "uci": "d8c8",
+              "san": "Rc8"
+            },
+            "best": {
+              "uci": "g6f5",
+              "san": "Bxf5"
+            }
+          }
+        }
+      ]
+    },
+    "knight-for-bishop": {
+      "keptPositions": 3000,
+      "eligiblePositions": 1597,
+      "summary": {
+        "positions": 6,
+        "referees": {
+          "stockfish": 6,
+          "tablebase": 0
+        },
+        "orders": {
+          "follow-first": 2,
+          "break-first": 4
+        },
+        "soundF": 2,
+        "soundB": 4
+      },
+      "examples": [
+        {
+          "number": 1,
+          "fen": "r2qkb1r/1p2p1pp/p1p2p1n/5b2/2pP4/2NnPN2/PP1Q1PPP/R1BR2K1 b kq - 1 11",
+          "band": 1500,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "d3c1",
+              "san": "Nxc1",
+              "sound": false,
+              "winPercent": 77.24945149239733
+            },
+            "B": {
+              "uci": "e7e6",
+              "san": "e6",
+              "sound": true,
+              "winPercent": 79.97066738661006
+            },
+            "played": {
+              "uci": "d8c7",
+              "san": "Qc7"
+            },
+            "best": {
+              "uci": "e7e5",
+              "san": "e5"
+            }
+          }
+        },
+        {
+          "number": 2,
+          "fen": "r1bnr1k1/ppp2ppp/3b4/8/2N5/3B4/PPP2PPP/R1B2RK1 w - - 2 13",
+          "band": 1500,
+          "stratum": "follow-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "c4d6",
+              "san": "Nxd6",
+              "sound": true,
+              "winPercent": 56.67962794387496
+            },
+            "B": {
+              "uci": "c1e3",
+              "san": "Be3",
+              "sound": false,
+              "winPercent": 50.46024700028845
+            },
+            "played": {
+              "uci": "c4d6",
+              "san": "Nxd6"
+            },
+            "best": {
+              "uci": "c4d6",
+              "san": "Nxd6"
+            }
+          }
+        },
+        {
+          "number": 3,
+          "fen": "2r3k1/p4ppp/4p1n1/4Pb2/2pN4/6BP/5PP1/2R3K1 w - - 2 28",
+          "band": 1300,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "d4f5",
+              "san": "Nxf5",
+              "sound": false,
+              "winPercent": 22.04658929761425
+            },
+            "B": {
+              "uci": "d4b5",
+              "san": "Nb5",
+              "sound": true,
+              "winPercent": 23.80251372198494
+            },
+            "played": {
+              "uci": "d4b5",
+              "san": "Nb5"
+            },
+            "best": {
+              "uci": "d4f5",
+              "san": "Nxf5"
+            }
+          }
+        },
+        {
+          "number": 4,
+          "fen": "r5k1/5ppp/4pn2/1pNpN3/2bP1P2/2P5/1P3PPP/4K2R w K - 7 22",
+          "band": 1300,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "e5c4",
+              "san": "Nxc4",
+              "sound": false,
+              "winPercent": 32.94571208942188
+            },
+            "B": {
+              "uci": "e1d2",
+              "san": "Kd2",
+              "sound": true,
+              "winPercent": 60.43059266170111
+            },
+            "played": {
+              "uci": "e1d2",
+              "san": "Kd2"
+            },
+            "best": {
+              "uci": "e1d2",
+              "san": "Kd2"
+            }
+          }
+        },
+        {
+          "number": 5,
+          "fen": "r2q1rk1/p1p2ppp/2pbp3/3p4/3Pn3/4P1B1/PPPN1PPP/R2Q1RK1 b - - 1 11",
+          "band": 1500,
+          "stratum": "follow-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "e4g3",
+              "san": "Nxg3",
+              "sound": true,
+              "winPercent": 49.44771046316659
+            },
+            "B": {
+              "uci": "f7f5",
+              "san": "f5",
+              "sound": false,
+              "winPercent": 47.05773918729125
+            },
+            "played": {
+              "uci": "e4g3",
+              "san": "Nxg3"
+            },
+            "best": {
+              "uci": "e4g3",
+              "san": "Nxg3"
+            }
+          }
+        },
+        {
+          "number": 6,
+          "fen": "r1b1k2r/ppqp1p2/3bp2p/4np2/1P1p1B2/P2B3N/2P1QPPP/RN3RK1 b kq - 2 13",
+          "band": 1500,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "e5d3",
+              "san": "Nxd3",
+              "sound": false,
+              "winPercent": 27.741092678759244
+            },
+            "B": {
+              "uci": "b7b6",
+              "san": "b6",
+              "sound": true,
+              "winPercent": 31.817086097856773
+            },
+            "played": {
+              "uci": "e5g4",
+              "san": "Ng4"
+            },
+            "best": {
+              "uci": "h8g8",
+              "san": "Rg8"
+            }
+          }
+        }
+      ]
+    },
+    "bishop-colour": {
+      "keptPositions": 3000,
+      "eligiblePositions": 1262,
+      "summary": {
+        "positions": 6,
+        "referees": {
+          "stockfish": 6,
+          "tablebase": 0
+        },
+        "orders": {
+          "follow-first": 2,
+          "break-first": 4
+        },
+        "soundF": 4,
+        "soundB": 2
+      },
+      "examples": [
+        {
+          "number": 1,
+          "fen": "5rk1/2Bbnppp/p3p3/8/1bPP4/1P4N1/P3KP1P/R2R4 w - - 6 21",
+          "band": 1300,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "d4d5",
+              "san": "d5",
+              "sound": false,
+              "winPercent": 65.57392814366
+            },
+            "B": {
+              "uci": "a2a3",
+              "san": "a3",
+              "sound": true,
+              "winPercent": 78.45548408574753
+            },
+            "played": {
+              "uci": "c4c5",
+              "san": "c5"
+            },
+            "best": {
+              "uci": "g3e4",
+              "san": "Ne4"
+            }
+          }
+        },
+        {
+          "number": 2,
+          "fen": "r1b1nrk1/pp1p1pp1/2q1p2p/2p5/2P1N3/2PP3P/P4PP1/RN1Q1RK1 b - - 2 14",
+          "band": 1300,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "b7b6",
+              "san": "b6",
+              "sound": true,
+              "winPercent": 68.81849068891515
+            },
+            "B": {
+              "uci": "d7d5",
+              "san": "d5",
+              "sound": false,
+              "winPercent": 64.14742687583961
+            },
+            "played": {
+              "uci": "b7b6",
+              "san": "b6"
+            },
+            "best": {
+              "uci": "b7b6",
+              "san": "b6"
+            }
+          }
+        },
+        {
+          "number": 3,
+          "fen": "1kr2b1r/1pp1p1p1/5n1p/Q7/2R5/8/PP3PPP/5RK1 b - - 3 20",
+          "band": 1300,
+          "stratum": "follow-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "e7e6",
+              "san": "e6",
+              "sound": true,
+              "winPercent": 12.239825327013463
+            },
+            "B": {
+              "uci": "b7b6",
+              "san": "b6",
+              "sound": false,
+              "winPercent": 2.842170943040401e-14
+            },
+            "played": {
+              "uci": "e7e5",
+              "san": "e5"
+            },
+            "best": {
+              "uci": "e7e6",
+              "san": "e6"
+            }
+          }
+        },
+        {
+          "number": 4,
+          "fen": "r4k1r/1p1n2pp/p3b3/2ppp3/8/1PNB1P2/P1P3PP/4RRK1 b - - 0 20",
+          "band": 1500,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "d5d4",
+              "san": "d4",
+              "sound": false,
+              "winPercent": 54.40703011199585
+            },
+            "B": {
+              "uci": "b7b5",
+              "san": "b5",
+              "sound": true,
+              "winPercent": 62.43673063917167
+            },
+            "played": {
+              "uci": "b7b5",
+              "san": "b5"
+            },
+            "best": {
+              "uci": "b7b5",
+              "san": "b5"
+            }
+          }
+        },
+        {
+          "number": 5,
+          "fen": "r2q1rk1/2p2pp1/bp3n1p/p3p3/1n1pP3/1P1P2NP/P1PNBPP1/R1Q2RK1 b - - 5 14",
+          "band": 1300,
+          "stratum": "follow-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "c7c5",
+              "san": "c5",
+              "sound": true,
+              "winPercent": 52.2078114090291
+            },
+            "B": {
+              "uci": "b6b5",
+              "san": "b5",
+              "sound": false,
+              "winPercent": 47.792188590970895
+            },
+            "played": {
+              "uci": "d8d7",
+              "san": "Qd7"
+            },
+            "best": {
+              "uci": "f8e8",
+              "san": "Re8"
+            }
+          }
+        },
+        {
+          "number": 6,
+          "fen": "rn3rk1/1b2q1pp/2p1p3/1p1pP2B/pP2p3/P3P2R/1BPQ1PP1/1K5R b - - 1 20",
+          "band": 1300,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "h7h6",
+              "san": "h6",
+              "sound": true,
+              "winPercent": 33.84658155893267
+            },
+            "B": {
+              "uci": "g7g6",
+              "san": "g6",
+              "sound": false,
+              "winPercent": 20.746448997086347
+            },
+            "played": {
+              "uci": "h7h6",
+              "san": "h6"
+            },
+            "best": {
+              "uci": "c6c5",
+              "san": "c5"
+            }
+          }
+        }
+      ]
+    },
+    "trades-level": {
+      "keptPositions": 3000,
+      "eligiblePositions": 1623,
+      "summary": {
+        "positions": 6,
+        "referees": {
+          "stockfish": 6,
+          "tablebase": 0
+        },
+        "orders": {
+          "follow-first": 0,
+          "break-first": 6
+        },
+        "soundF": 1,
+        "soundB": 5
+      },
+      "examples": [
+        {
+          "number": 1,
+          "fen": "r2q1rk1/1pp1bpp1/p1npbn1p/3N4/1P2P3/P2QBN2/2P1BPPP/R4RK1 b - - 8 13",
+          "band": 1300,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "c6e5",
+              "san": "Ne5",
+              "sound": false,
+              "winPercent": 26.3607828099544
+            },
+            "B": {
+              "uci": "e6d5",
+              "san": "Bxd5",
+              "sound": true,
+              "winPercent": 44.13578474153803
+            },
+            "played": {
+              "uci": "c6e5",
+              "san": "Ne5"
+            },
+            "best": {
+              "uci": "f6g4",
+              "san": "Ng4"
+            }
+          }
+        },
+        {
+          "number": 2,
+          "fen": "r2q1rk1/pp3pp1/2n2bbp/8/3Np3/1BP1B2P/PP3PP1/R2QR1K1 w - - 2 17",
+          "band": 1500,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "d1g4",
+              "san": "Qg4",
+              "sound": false,
+              "winPercent": 43.77296159574105
+            },
+            "B": {
+              "uci": "d4c6",
+              "san": "Nxc6",
+              "sound": true,
+              "winPercent": 57.040902594456966
+            },
+            "played": {
+              "uci": "d4c6",
+              "san": "Nxc6"
+            },
+            "best": {
+              "uci": "d4c6",
+              "san": "Nxc6"
+            }
+          }
+        },
+        {
+          "number": 3,
+          "fen": "r3nrk1/2p1qpp1/b1p1p2p/p7/3P2Q1/2NB4/PPP2PPP/R4RK1 w - - 2 15",
+          "band": 1500,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "g4e4",
+              "san": "Qe4",
+              "sound": false,
+              "winPercent": 49.26363724400336
+            },
+            "B": {
+              "uci": "d3a6",
+              "san": "Bxa6",
+              "sound": true,
+              "winPercent": 54.86333135073832
+            },
+            "played": {
+              "uci": "d3a6",
+              "san": "Bxa6"
+            },
+            "best": {
+              "uci": "d3a6",
+              "san": "Bxa6"
+            }
+          }
+        },
+        {
+          "number": 4,
+          "fen": "r1bq1rk1/ppp2ppp/1bnp4/3Np3/1P2P1n1/P1PP1N2/3BBPPP/R2Q1RK1 w - - 1 12",
+          "band": 1300,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "a3a4",
+              "san": "a4",
+              "sound": true,
+              "winPercent": 62.95343100667657
+            },
+            "B": {
+              "uci": "d5b6",
+              "san": "Nxb6",
+              "sound": false,
+              "winPercent": 56.67962794387496
+            },
+            "played": {
+              "uci": "d5b6",
+              "san": "Nxb6"
+            },
+            "best": {
+              "uci": "h2h3",
+              "san": "h3"
+            }
+          }
+        },
+        {
+          "number": 5,
+          "fen": "6k1/p3rpp1/B1P2n1p/3r4/4qP2/4p2P/P5PQ/3RR1K1 b - - 0 30",
+          "band": 1300,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "e3e2",
+              "san": "e2",
+              "sound": false,
+              "winPercent": 62.78152022123593
+            },
+            "B": {
+              "uci": "d5d1",
+              "san": "Rxd1",
+              "sound": true,
+              "winPercent": 84.081440416202
+            },
+            "played": {
+              "uci": "d5d1",
+              "san": "Rxd1"
+            },
+            "best": {
+              "uci": "d5d1",
+              "san": "Rxd1"
+            }
+          }
+        },
+        {
+          "number": 6,
+          "fen": "r1bqk2r/pppp1ppp/2n2n2/8/1bPN4/2N5/PP2PPPP/R1BQKB1R w KQkq - 1 6",
+          "band": 1300,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "c1d2",
+              "san": "Bd2",
+              "sound": false,
+              "winPercent": 21.54451591425247
+            },
+            "B": {
+              "uci": "d4c6",
+              "san": "Nxc6",
+              "sound": true,
+              "winPercent": 50.73636275599663
+            },
+            "played": {
+              "uci": "d4c6",
+              "san": "Nxc6"
+            },
+            "best": {
+              "uci": "g2g3",
+              "san": "g3"
+            }
+          }
+        }
+      ]
+    },
+    "hang": {
+      "keptPositions": 1260,
+      "eligiblePositions": 714,
+      "summary": {
+        "positions": 6,
+        "referees": {
+          "stockfish": 6,
+          "tablebase": 0
+        },
+        "orders": {
+          "follow-first": 4,
+          "break-first": 2
+        },
+        "soundF": 6,
+        "soundB": 0
+      },
+      "examples": [
+        {
+          "number": 1,
+          "fen": "r2q1rk1/2p2pp1/p1n4p/8/1pP1Pbb1/1P3N2/PB1NQPPP/R2R2K1 b - - 5 18",
+          "band": 1300,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "d8e7",
+              "san": "Qe7",
+              "sound": true,
+              "winPercent": 46.23301956955016
+            },
+            "B": {
+              "uci": "c6d4",
+              "san": "Nd4",
+              "sound": false,
+              "winPercent": 17.18961348869425
+            },
+            "played": {
+              "uci": "d8c8",
+              "san": "Qc8"
+            },
+            "best": {
+              "uci": "d8e7",
+              "san": "Qe7"
+            }
+          }
+        },
+        {
+          "number": 2,
+          "fen": "r2qr1k1/pp1b2bp/3p2p1/3Pp3/4n3/2P1BN1P/PP3PP1/RN2RK2 w - - 6 16",
+          "band": 1500,
+          "stratum": "follow-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "b1d2",
+              "san": "Nbd2",
+              "sound": true,
+              "winPercent": 12.845581170326469
+            },
+            "B": {
+              "uci": "e3g5",
+              "san": "Bg5",
+              "sound": false,
+              "winPercent": 5.882255957786384
+            },
+            "played": {
+              "uci": "b1d2",
+              "san": "Nbd2"
+            },
+            "best": {
+              "uci": "f1g1",
+              "san": "Kg1"
+            }
+          }
+        },
+        {
+          "number": 3,
+          "fen": "8/2Q2ppk/p4q1p/8/b2NR2P/2P5/1P3PP1/6K1 b - - 4 30",
+          "band": 1300,
+          "stratum": "break-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "f6g6",
+              "san": "Qg6",
+              "sound": true,
+              "winPercent": 8.453196045763804
+            },
+            "B": {
+              "uci": "a4c2",
+              "san": "Bc2",
+              "sound": false,
+              "winPercent": 6.413060406412313
+            },
+            "played": {
+              "uci": "f6g6",
+              "san": "Qg6"
+            },
+            "best": {
+              "uci": "a4b5",
+              "san": "Bb5"
+            }
+          }
+        },
+        {
+          "number": 4,
+          "fen": "r4rk1/p3b1pp/2Nq4/1P1n4/p7/4PP2/P2P2PP/1RB2RK1 b - - 0 24",
+          "band": 1300,
+          "stratum": "follow-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "e7d8",
+              "san": "Bd8",
+              "sound": true,
+              "winPercent": 85.36744923340227
+            },
+            "B": {
+              "uci": "d5b4",
+              "san": "Nb4",
+              "sound": false,
+              "winPercent": 83.225651959869
+            },
+            "played": {
+              "uci": "a7a6",
+              "san": "a6"
+            },
+            "best": {
+              "uci": "e7f6",
+              "san": "Bf6"
+            }
+          }
+        },
+        {
+          "number": 5,
+          "fen": "3r1rk1/1p1q1pp1/p6p/2Q5/8/1P2B3/P4PPP/R3R1K1 w - - 0 25",
+          "band": 1300,
+          "stratum": "follow-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "h2h3",
+              "san": "h3",
+              "sound": true,
+              "winPercent": 83.8833174979795
+            },
+            "B": {
+              "uci": "a1d1",
+              "san": "Rad1",
+              "sound": false,
+              "winPercent": 20.746448997086333
+            },
+            "played": {
+              "uci": "c5c4",
+              "san": "Qc4"
+            },
+            "best": {
+              "uci": "c5h5",
+              "san": "Qh5"
+            }
+          }
+        },
+        {
+          "number": 6,
+          "fen": "3k4/1pp2p2/p6P/8/4bN2/1P2P1r1/P2P4/2R1KR2 b - - 2 28",
+          "band": 1300,
+          "stratum": "follow-first",
+          "referee": "stockfish",
+          "moves": {
+            "F": {
+              "uci": "g3g8",
+              "san": "Rg8",
+              "sound": true,
+              "winPercent": 10.77902616908051
+            },
+            "B": {
+              "uci": "g3h3",
+              "san": "Rh3",
+              "sound": false,
+              "winPercent": 3.06560033360266
+            },
+            "played": {
+              "uci": "g3g4",
+              "san": "Rg4"
+            },
+            "best": {
+              "uci": "c7c6",
+              "san": "c6"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
