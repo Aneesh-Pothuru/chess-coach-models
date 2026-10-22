@@ -219,6 +219,14 @@ CHESS_DIR="$PWD/.cache/chess/f4bd63f19b343f686fb97ea4cf70b211c0bddc0a" \
 sh projects/rules-after-check/run.sh --reviewed
 nice -n 10 .venv/bin/python projects/rules-after-check/operations.py
 
+# Tie-break rules: Lichess 10-minute games at his band and the band above, in
+# quiet positions where the two moves the band would most likely play are one
+# that follows a coach's rule and one that breaks it, both refereed by Stockfish
+# and the tablebase. The run resumes where it stopped and checks its frozen rule
+# first; the project's README says how a repeat restores it.
+.venv/bin/python projects/tiebreak-rules/freeze.py
+sh projects/tiebreak-rules/run.sh --reviewed
+
 # The learner's solve chances: his puzzle attempts replayed through the app's
 # learner, on a record rebuilt from the memory cards and on the profile as the
 # app holds it.

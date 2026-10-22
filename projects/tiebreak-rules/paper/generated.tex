@@ -1,0 +1,280 @@
+% Written by projects/tiebreak-rules/paper/generate.mjs; do not edit by hand.
+
+\newcommand{\AppCommit}{ffee8dbb16}
+\newcommand{\TrainMonths}{July and August 2026}
+\newcommand{\HeldMonth}{September 2026}
+\newcommand{\BandLow}{1250}
+\newcommand{\HisHigh}{1449}
+\newcommand{\AboveLow}{1450}
+\newcommand{\BandHigh}{1649}
+\newcommand{\Draws}{2,000}
+\newcommand{\Seed}{20261021}
+\newcommand{\MinHeld}{300}
+\newcommand{\MinOrder}{100}
+\newcommand{\PerMonth}{30,000}
+\newcommand{\Cap}{3,000}
+\newcommand{\MinPly}{8}
+\newcommand{\MinPlies}{30}
+\newcommand{\Nodes}{250,000}
+\newcommand{\WindowWp}{3}
+\newcommand{\LeadMin}{2}
+\newcommand{\LevelWithin}{1}
+\newcommand{\TablebaseMen}{seven}
+\newcommand{\CoachShare}{80}
+\newcommand{\NoInfoShare}{50}
+\newcommand{\Games}{90,000}
+\newcommand{\Skipped}{0}
+\newcommand{\Entering}{2,055,801}
+\newcommand{\InUnit}{837,954}
+\newcommand{\MaiaCalls}{837,954}
+\newcommand{\Scored}{54,353}
+\newcommand{\UnitRows}{59,616}
+\newcommand{\GamesTrain}{24,121}
+\newcommand{\GamesHeld}{12,043}
+\newcommand{\ThinName}{ahead in development}
+\newcommand{\ThinHeld}{1,196}
+\newcommand{\ThinHeldFollow}{329}
+\newcommand{\CoverageTable}{%
+\begin{table}[ht]
+\centering\footnotesize
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+ & \begin{tabular}[b]{@{}l@{}}In situation, \\ held out\end{tabular} & \begin{tabular}[b]{@{}l@{}}Split, \\ held out\end{tabular} & \begin{tabular}[b]{@{}l@{}}Kept, \\ train\end{tabular} & \begin{tabular}[b]{@{}l@{}}Kept, \\ held out\end{tabular} & \begin{tabular}[b]{@{}l@{}}Follow- \\ first\end{tabular} & \begin{tabular}[b]{@{}l@{}}Break- \\ first\end{tabular} \\
+\midrule
+Tension & 49,779 & 22,180 & 6,000 & 3,000 & 960 & 2,040 \\
+Ahead in development & 3,359 & 1,454 & 2,462 & 1,196 & 329 & 867 \\
+Behind in development & 6,651 & 2,888 & 4,879 & 2,383 & 1,565 & 818 \\
+Bishop for knight & 48,681 & 13,805 & 6,000 & 3,000 & 1,518 & 1,482 \\
+Knight for bishop & 8,975 & 6,306 & 6,000 & 3,000 & 2,308 & 692 \\
+Bishop's colour & 189,254 & 7,644 & 6,000 & 3,000 & 1,501 & 1,499 \\
+\midrule
+Level development & 60,057 & 28,609 & 6,000 & 3,000 & 1,012 & 1,988 \\
+The control & 267,036 & 1,442 & 2,436 & 1,260 & 799 & 461 \\
+\bottomrule
+\end{tabular}
+\caption{Where each unit comes up. In situation: the held-out quiet positions in the unit's situation. Split: those where one of the two natural moves follows the unit's rule and the other breaks it. Kept: at most one position a game, drawn at random among its splits, and at most 3,000 a month. The last two columns divide the held-out kept positions by the move Maia-2 rates first: the one that follows, or the one that breaks.}
+\label{tab:coverage}
+\end{table}
+}
+\newcommand{\ControlTrain}{29.1}
+\newcommand{\ControlTrainCi}{26.3 to 31.8}
+\newcommand{\ControlTrainN}{2,436}
+\newcommand{\ControlOneTrain}{76}
+\newcommand{\ControlHeld}{28.5}
+\newcommand{\ControlHeldCi}{24.4 to 32.4}
+\newcommand{\ControlHeldN}{1,260}
+\newcommand{\ControlOneHeld}{75}
+\newcommand{\TenTrain}{$-$0.4}
+\newcommand{\TenTrainCi}{$-$2.2 to 1.5}
+\newcommand{\TenHeld}{$-$1.5}
+\newcommand{\TenHeldCi}{$-$4.1 to 1.1}
+\newcommand{\TrTrain}{4.5}
+\newcommand{\TrTrainCi}{2.6 to 6.3}
+\newcommand{\TrHeld}{1.1}
+\newcommand{\TrHeldCi}{$-$1.8 to 3.9}
+\newcommand{\BkTrain}{5.6}
+\newcommand{\BkTrainCi}{4.3 to 6.9}
+\newcommand{\BkHeld}{4.0}
+\newcommand{\BkHeldCi}{2.1 to 5.9}
+\newcommand{\ColTrain}{3.4}
+\newcommand{\ColTrainCi}{1.8 to 5.0}
+\newcommand{\ColHeld}{4.0}
+\newcommand{\ColHeldCi}{1.7 to 6.1}
+\newcommand{\BkBfHeld}{17}
+\newcommand{\ColBfHeld}{10}
+\newcommand{\OneLow}{54}
+\newcommand{\OneHigh}{55}
+\newcommand{\BkOneTrain}{55}
+\newcommand{\BkOneHeld}{54}
+\newcommand{\ColOneTrain}{54}
+\newcommand{\ColOneHeld}{54}
+\newcommand{\AgainstLow}{5}
+\newcommand{\AgainstHigh}{12}
+\newcommand{\RuleTable}{%
+\begin{table}[ht]
+\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{@{}llllL@{}}
+\toprule
+Rule & \begin{tabular}[b]{@{}l@{}}Balanced lift, \\ train\end{tabular} & \begin{tabular}[b]{@{}l@{}}Balanced lift, \\ held out\end{tabular} & \begin{tabular}[b]{@{}l@{}}Break-first lift, \\ held out\end{tabular} & Verdict \\
+\midrule
+Keep the tension & $-$0.4 {\scriptsize($-$2.2, 1.5)} & $-$1.5 {\scriptsize($-$4.1, 1.1)} & $-$17.2 {\scriptsize($-$20.0, $-$14.3)} & does no better than Maia-2's order \\
+Trades and development & 4.5 {\scriptsize(2.6, 6.3)} & 1.1 {\scriptsize($-$1.8, 3.9)} & $-$16.1 {\scriptsize($-$19.4, $-$12.7)} & does no better than Maia-2's order \\
+Bishop over knight & 5.6 {\scriptsize(4.3, 6.9)} & 4.0 {\scriptsize(2.1, 5.9)} & $-$16.6 {\scriptsize($-$19.6, $-$13.5)} & breaks the tie \\
+Pawns off the bishop's colour & 3.4 {\scriptsize(1.8, 5.0)} & 4.0 {\scriptsize(1.7, 6.1)} & $-$10.3 {\scriptsize($-$13.4, $-$7.0)} & breaks the tie \\
+\midrule
+The control & 29.1 {\scriptsize(26.3, 31.8)} & 28.5 {\scriptsize(24.4, 32.4)} & 16.3 {\scriptsize(9.5, 22.9)} & passes \\
+\bottomrule
+\end{tabularx}
+\caption{The verdicts. The balanced lift is the mean, over the two orders, of the share of positions where the move that follows the rule is sound less the share where the move that breaks it is, in points, with its 95\% interval from 2,000 draws over games; a rule of two units takes the mean of its units' lifts on every draw. The break-first lift is the same difference where Maia-2 rates the move that breaks the rule first: a rule is worth switching to when its interval lies above 0 on both periods, and none does.}
+\label{tab:rules}
+\end{table}
+}
+\newcommand{\BfnTrain}{9.5}
+\newcommand{\BfnTrainCi}{7.7 to 11.1}
+\newcommand{\BfnHeld}{8.1}
+\newcommand{\BfnHeldCi}{5.8 to 10.7}
+\newcommand{\NfbTrain}{1.7}
+\newcommand{\NfbTrainCi}{$-$0.4 to 3.8}
+\newcommand{\NfbHeld}{$-$0.1}
+\newcommand{\NfbHeldCi}{$-$3.1 to 2.9}
+\newcommand{\BehindTrain}{5.1}
+\newcommand{\BehindTrainCi}{3.0 to 7.0}
+\newcommand{\BehindHeld}{3.8}
+\newcommand{\BehindHeldCi}{1.0 to 6.6}
+\newcommand{\AheadTrain}{3.9}
+\newcommand{\AheadTrainCi}{0.8 to 6.9}
+\newcommand{\AheadHeld}{$-$1.5}
+\newcommand{\AheadHeldCi}{$-$6.4 to 3.1}
+\newcommand{\LevelTrain}{0.7}
+\newcommand{\LevelTrainCi}{$-$1.1 to 2.5}
+\newcommand{\LevelHeld}{$-$1.1}
+\newcommand{\LevelHeldCi}{$-$3.7 to 1.5}
+\newcommand{\UnitTable}{%
+\begin{table}[ht]
+\centering\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lrrrlllr@{}}
+\toprule
+ & \begin{tabular}[b]{@{}l@{}}Held-out \\ positions\end{tabular} & \begin{tabular}[b]{@{}l@{}}F \\ sound\end{tabular} & \begin{tabular}[b]{@{}l@{}}B \\ sound\end{tabular} & \begin{tabular}[b]{@{}l@{}}Lift, \\ follow-first\end{tabular} & \begin{tabular}[b]{@{}l@{}}Lift, \\ break-first\end{tabular} & \begin{tabular}[b]{@{}l@{}}Balanced \\ lift\end{tabular} & \begin{tabular}[b]{@{}l@{}}F when only \\ one is sound\end{tabular} \\
+\midrule
+Tension & 3,000 & 57 & 65 & 14.1 {\scriptsize(9.7, 18.3)} & $-$17.2 {\scriptsize($-$20.0, $-$14.3)} & $-$1.5 {\scriptsize($-$4.1, 1.1)} & 49 \\
+Ahead in development & 1,196 & 52 & 59 & 10.9 {\scriptsize(2.9, 19.4)} & $-$14.0 {\scriptsize($-$18.6, $-$9.1)} & $-$1.5 {\scriptsize($-$6.4, 3.1)} & 48 \\
+Behind in development & 2,383 & 67 & 56 & 25.8 {\scriptsize(22.5, 29.1)} & $-$18.2 {\scriptsize($-$23.0, $-$13.6)} & 3.8 {\scriptsize(1.0, 6.6)} & 53 \\
+Bishop for knight & 3,000 & 63 & 54 & 27.1 {\scriptsize(23.6, 30.5)} & $-$10.8 {\scriptsize($-$14.2, $-$7.1)} & 8.1 {\scriptsize(5.8, 10.7)} & 57 \\
+Knight for bishop & 3,000 & 66 & 54 & 22.2 {\scriptsize(19.3, 25.0)} & $-$22.4 {\scriptsize($-$27.7, $-$17.3)} & $-$0.1 {\scriptsize($-$3.1, 2.9)} & 50 \\
+Bishop's colour & 3,000 & 67 & 63 & 18.3 {\scriptsize(15.0, 21.5)} & $-$10.3 {\scriptsize($-$13.4, $-$7.0)} & 4.0 {\scriptsize(1.7, 6.1)} & 54 \\
+\midrule
+Level development & 3,000 & 55 & 63 & 19.2 {\scriptsize(15.0, 23.4)} & $-$21.4 {\scriptsize($-$24.6, $-$18.3)} & $-$1.1 {\scriptsize($-$3.7, 1.5)} & 49 \\
+The control & 1,260 & 62 & 30 & 40.7 {\scriptsize(36.0, 45.0)} & 16.3 {\scriptsize(9.5, 22.9)} & 28.5 {\scriptsize(24.4, 32.4)} & 75 \\
+\bottomrule
+\end{tabular}
+\caption{Each unit apart, held out. F and B sound: the share of positions where the move that follows and the move that breaks the unit's rule is sound, in percent. The lifts are F's share less B's in points, in each order and as their mean, with 95\% intervals. F when only one is sound: among the positions where exactly one of the two is sound, the share where it is F, as the mean of the two orders' shares, in percent.}
+\label{tab:units}
+\end{table}
+}
+\newcommand{\BfnCloseBfTrain}{4.2}
+\newcommand{\BfnCloseBfTrainCi}{0.8 to 7.6}
+\newcommand{\BfnCloseBfHeld}{2.4}
+\newcommand{\BfnCloseBfHeldCi}{$-$2.2 to 7.3}
+\newcommand{\BfnClearBfHeld}{26}
+\newcommand{\ColCloseBfTrain}{$-$1.5}
+\newcommand{\ColCloseBfTrainCi}{$-$4.6 to 1.4}
+\newcommand{\ColCloseBfHeld}{$-$2.1}
+\newcommand{\ColCloseBfHeldCi}{$-$6.2 to 2.2}
+\newcommand{\ColClearBfHeld}{20}
+\newcommand{\LevelCloseTrain}{4.9}
+\newcommand{\LevelCloseHeld}{3.8}
+\newcommand{\TenCloseTrain}{4.3}
+\newcommand{\TenCloseHeld}{3.2}
+\newcommand{\CloseShareLow}{41}
+\newcommand{\CloseShareHigh}{56}
+\newcommand{\BfnOpenHeld}{10.2}
+\newcommand{\BfnMiddleHeld}{7.0}
+\newcommand{\ColOpenHeld}{$-$2.7}
+\newcommand{\ColMiddleHeld}{5.5}
+\newcommand{\ColEndHeld}{6.0}
+\newcommand{\NfbOpenHeld}{8.5}
+\newcommand{\NfbMiddleHeld}{$-$4.4}
+\newcommand{\BfnHisHeld}{11.5}
+\newcommand{\BfnAboveHeld}{4.9}
+\newcommand{\BehindBishopHeld}{21.5}
+\newcommand{\BehindKnightHeld}{8.6}
+\newcommand{\CloseTable}{%
+\begin{table}[ht]
+\centering\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{@{}lrllrll@{}}
+\toprule
+ & \multicolumn{3}{c}{Close calls} & \multicolumn{3}{c}{Clear first choice} \\
+\cmidrule(lr){2-4}\cmidrule(l){5-7}
+ & Positions & \begin{tabular}[b]{@{}l@{}}Balanced \\ lift\end{tabular} & \begin{tabular}[b]{@{}l@{}}Break-first \\ lift\end{tabular} & Positions & \begin{tabular}[b]{@{}l@{}}Balanced \\ lift\end{tabular} & \begin{tabular}[b]{@{}l@{}}Break-first \\ lift\end{tabular} \\
+\midrule
+Tension & 1,414 & 3.2 {\scriptsize($-$0.4, 6.8)} & $-$2.8 {\scriptsize($-$7.3, 1.7)} & 1,586 & $-$2.5 {\scriptsize($-$6.3, 1.2)} & $-$26.9 {\scriptsize($-$30.6, $-$23.0)} \\
+Ahead in development & 563 & 2.1 {\scriptsize($-$4.4, 8.2)} & $-$0.3 {\scriptsize($-$7.8, 7.4)} & 633 & 0.5 {\scriptsize($-$7.0, 8.0)} & $-$22.9 {\scriptsize($-$29.2, $-$16.3)} \\
+Behind in development & 1,167 & $-$1.8 {\scriptsize($-$6.0, 2.2)} & $-$12.6 {\scriptsize($-$18.6, $-$6.7)} & 1,216 & 5.0 {\scriptsize(0.4, 9.3)} & $-$27.8 {\scriptsize($-$35.8, $-$19.9)} \\
+Bishop for knight & 1,673 & 9.8 {\scriptsize(6.4, 13.1)} & 2.4 {\scriptsize($-$2.2, 7.3)} & 1,327 & 7.2 {\scriptsize(3.7, 10.8)} & $-$26.2 {\scriptsize($-$31.0, $-$21.1)} \\
+Knight for bishop & 1,219 & $-$6.2 {\scriptsize($-$10.3, $-$2.2)} & $-$17.4 {\scriptsize($-$23.9, $-$11.0)} & 1,781 & $-$1.7 {\scriptsize($-$6.5, 3.2)} & $-$33.6 {\scriptsize($-$42.7, $-$24.8)} \\
+Bishop's colour & 1,659 & 3.4 {\scriptsize(0.3, 6.5)} & $-$2.1 {\scriptsize($-$6.2, 2.2)} & 1,341 & 5.2 {\scriptsize(1.9, 8.5)} & $-$19.9 {\scriptsize($-$24.8, $-$14.9)} \\
+\midrule
+Level development & 1,409 & 3.8 {\scriptsize(0.2, 7.5)} & $-$3.0 {\scriptsize($-$7.9, 2.1)} & 1,591 & 0.7 {\scriptsize($-$3.1, 4.6)} & $-$32.8 {\scriptsize($-$36.8, $-$29.1)} \\
+The control & 718 & 26.5 {\scriptsize(21.4, 31.6)} & 21.4 {\scriptsize(13.8, 28.7)} & 542 & 26.1 {\scriptsize(19.0, 33.0)} & 3.1 {\scriptsize($-$10.0, 16.2)} \\
+\bottomrule
+\end{tabular}
+\caption{Close calls against a clear first choice, held out, in points with 95\% intervals. A close call: Maia-2's probability of its second move is at least half its probability of its first. The break-first lift is F's soundness less B's where Maia-2 rates B first. The splits describe and decide nothing.}
+\label{tab:close}
+\end{table}
+}
+\newcommand{\SplitTable}{%
+\begin{table}[ht]
+\centering\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+ & \begin{tabular}[b]{@{}l@{}}1250 to \\ 1449\end{tabular} & \begin{tabular}[b]{@{}l@{}}1450 to \\ 1649\end{tabular} & Opening & \begin{tabular}[b]{@{}l@{}}Middle- \\ game\end{tabular} & Endgame \\
+\midrule
+Tension & $-$2 {\scriptsize(1,299)} & $-$1 {\scriptsize(1,701)} & $-$2 {\scriptsize(1,304)} & $-$3 {\scriptsize(1,261)} & 5 {\scriptsize(435)} \\
+Ahead in development & $-$1 {\scriptsize(538)} & $-$2 {\scriptsize(658)} & $-$4 {\scriptsize(763)} & 2 {\scriptsize(433)} & -- \\
+Behind in development & 0 {\scriptsize(1,083)} & 7 {\scriptsize(1,300)} & 2 {\scriptsize(1,598)} & 7 {\scriptsize(785)} & -- \\
+Bishop for knight & 12 {\scriptsize(1,450)} & 5 {\scriptsize(1,550)} & 10 {\scriptsize(1,354)} & 7 {\scriptsize(1,509)} & $-$3 {\scriptsize(137)} \\
+Knight for bishop & $-$2 {\scriptsize(1,275)} & 1 {\scriptsize(1,725)} & 8 {\scriptsize(1,061)} & $-$4 {\scriptsize(1,715)} & $-$6 {\scriptsize(224)} \\
+Bishop's colour & 4 {\scriptsize(1,364)} & 4 {\scriptsize(1,636)} & $-$3 {\scriptsize(572)} & 6 {\scriptsize(1,704)} & 6 {\scriptsize(724)} \\
+\midrule
+Level development & 1 {\scriptsize(1,332)} & $-$3 {\scriptsize(1,668)} & 0 {\scriptsize(1,450)} & $-$3 {\scriptsize(1,550)} & -- \\
+The control & 30 {\scriptsize(572)} & 27 {\scriptsize(688)} & 23 {\scriptsize(211)} & 30 {\scriptsize(930)} & 24 {\scriptsize(119)} \\
+\bottomrule
+\end{tabular}
+\caption{The balanced lift by the mover's band and by phase, held out, in points, with the cell's positions in brackets; a dash is a cell with none. The bands are the mover's Lichess rating; the phase is the app's divider's. The splits describe and decide nothing; every cell's interval is in \texttt{results/rules.json}.}
+\label{tab:splits}
+\end{table}
+}
+\newcommand{\BfnExamplesF}{three}
+\newcommand{\BfnExamplesB}{three}
+\newcommand{\ColExamplesF}{four}
+\newcommand{\ColExamplesB}{two}
+\newcommand{\BfnFourSide}{White}
+\newcommand{\BfnFourBand}{the band above his}
+\newcommand{\BfnFourF}{6.~e3}
+\newcommand{\BfnFourB}{6.~\symbishop{}xe7}
+\newcommand{\BfnFourPlayed}{6.~c4}
+\newcommand{\BfnFourBest}{6.~\symknight{}f3}
+\newcommand{\BfnFourFWin}{43}
+\newcommand{\BfnFourBWin}{35}
+\newcommand{\ColTwoSide}{Black}
+\newcommand{\ColTwoBand}{his band}
+\newcommand{\ColTwoF}{14\ldots{}b6}
+\newcommand{\ColTwoB}{14\ldots{}d5}
+\newcommand{\ColTwoPlayed}{14\ldots{}b6}
+\newcommand{\ColTwoBest}{14\ldots{}b6}
+\newcommand{\ColTwoFWin}{69}
+\newcommand{\ColTwoBWin}{64}
+\newcommand{\BfnSixSide}{Black}
+\newcommand{\BfnSixBand}{the band above his}
+\newcommand{\BfnSixF}{24\ldots{}\symrook{}c8}
+\newcommand{\BfnSixB}{24\ldots{}\symbishop{}xf5}
+\newcommand{\BfnSixPlayed}{24\ldots{}\symrook{}c8}
+\newcommand{\BfnSixBest}{24\ldots{}\symbishop{}xf5}
+\newcommand{\BfnSixFWin}{24}
+\newcommand{\BfnSixBWin}{41}
+\newcommand{\ExampleFigure}{%
+\begin{figure}[ht]
+\centering
+\begin{subfigure}[t]{0.32\textwidth}
+\centering
+\chessboard[setfen={rnbq1rk1/ppppnppp/1b6/1P2p3/Q7/B1P5/P2PPPPP/RN2KBNR w KQ - 1 6}, boardfontsize=11pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={a3-e7}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={e2-e3}]
+\caption{Bishop for knight, break-first: 6.~e3 is sound, 6.~\symbishop{}xe7 is not.}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.32\textwidth}
+\centering
+\chessboard[setfen={r1b1nrk1/pp1p1pp1/2q1p2p/2p5/2P1N3/2PP3P/P4PP1/RN1Q1RK1 b - - 2 14}, boardfontsize=11pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={d7-d5}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={b7-b6}]
+\caption{The bishop's colour, break-first: 14\ldots{}b6 is sound, 14\ldots{}d5 is not.}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.32\textwidth}
+\centering
+\chessboard[setfen={1k1r3r/1p1q1p2/1Q1p1nb1/1n2pN2/pP2P1P1/P2P3P/1B2BP2/R3K2R b KQ - 1 24}, boardfontsize=11pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={d8-c8}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={g6-f5}]
+\caption{Bishop for knight, follow-first: 24\ldots{}\symbishop{}xf5 is sound, 24\ldots{}\symrook{}c8 is not.}
+\end{subfigure}
+\caption{Three of the held-out examples, drawn at random among the positions where exactly one of the two natural moves is sound. Green: the sound move; red: the unsound one.}
+\label{fig:examples}
+\end{figure}
+}

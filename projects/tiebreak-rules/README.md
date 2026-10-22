@@ -17,7 +17,48 @@ tie. In quiet positions where the two moves Maia-2 rates most likely at his
 level are one that follows the rule and one that breaks it, is the one that
 follows it sound more often, beyond what Maia-2's own order says?
 
-**The answer.** Not yet: the rule below is fixed before any position is scored.
+**The answer.** Two of the four rules break the tie: bishop over knight, and
+pawns off the bishop's colour. In quiet positions where the two moves Maia-2
+rates most likely at the mover's band are one that follows the rule and one
+that breaks it, the move that follows is sound more often than Maia-2's own
+order accounts for, by about 4 points held out for each rule, with the
+interval above 0 on the train months and on the held-out month. Keeping the
+tension does no better than Maia-2's order on either period, and trading by
+development breaks the tie on the train months but not held out, so by the
+rule it does no better either. The planted control passed first: a move that
+leaves a piece to be taken for a gain loses the tie by 28 to 29 points on both
+periods, so the design sees a rule that works.
+
+The two rules break a tie; they do not overrule a first choice. Neither is
+worth switching to: where Maia-2 rates the move that breaks the rule first,
+that move is still sound more often than the second move, which follows it, by
+about 17 points for bishop over knight and 10 for the bishop's colour held
+out. Where only one of the two moves is sound, it is the rule's move about 54
+times in 100 for each, not the coach's four games in five.
+
+A rule of two units is read as the mean of its halves, because a lean towards
+quiet moves, or towards trades, would lift one half and sink the other. Bishop
+over knight's halves differ: keeping the bishop rather than giving it for a
+knight breaks the tie by about 8 points held out, while taking a bishop with a
+knight does no better than Maia-2's order. That fits a rule that holds only
+for keeping the bishop, and as well one that holds both ways beside a lean
+towards the quiet move, which the mean cancels. The trade units side with the
+rule both ways: there, a trade that takes a bishop fares better against the
+quiet move than one that takes a knight. Of trading by development's halves,
+trading when behind breaks the tie on both periods and keeping pieces on when
+ahead does not.
+
+The splits decide nothing, but they say where the two rules count. In close
+calls, where Maia-2 rates its second move at least half as likely as its
+first, keeping the bishop where the first choice gives it for a knight is
+sound as often as that first choice or more, and keeping a pawn off the
+bishop's colour where the first choice puts one on it about as often. The lift
+for keeping the bishop is larger in the opening and in his band, and the
+bishop's colour counts in the middlegame and the endgame, not the opening.
+
+For the app, the two rules can be taught as the way to choose between two
+moves that look equally good, never as a reason to overrule one that looks
+better. The paper is [`paper/paper.pdf`](paper/paper.pdf).
 
 If a rule breaks the tie, a lesson can teach it as the way to choose between
 two natural moves, and Game Review can name it where he played the move that
@@ -293,6 +334,8 @@ anything.
 | `run.py`, `run.sh` | Detached driver, two heavy workers, power checks and automatic UTC pauses. |
 | `timing.py`, `timing-manifest.json` | Counts and timings from the July slice, and the full-run cost estimate. |
 | `tests-*.mjs`, `test_*.py` | Synthetic tests for scanning, selection, scoring, resampling, examples and orchestration. |
+| `frozen-readme.md`, `answer_check.py` | The README as it stood when frozen, and the check that the answer is its only change before `## Files` and that every other frozen source is unchanged. |
+| `paper/` | The paper and its generator, which checks every claim the paper makes against `results/` and the rule. |
 
 ## Running it
 
@@ -348,3 +391,23 @@ full route scans and selects each month, scores the retained positions, then
 writes `results/rules.json`, `results/rules.md`, `results/examples.json` and
 `results/examples.md`. The timing route writes `results/timing.json` and
 `results/timing.md`. The answer and paper follow the owner's review.
+
+The run stopped once, between September's scan and its selection, when the
+freeze check found cache files that another checkout's test runner, sharing
+the run's installed packages on the same machine, had written among them. Only
+that test runner reads them. Once they were moved aside the freeze held again,
+and the run resumed from its checkpoints and ran to the end.
+
+The answer was written after the run, so the README no longer matches the
+freeze. `frozen-readme.md` keeps this README as it stood, and
+`answer_check.py` checks that it matches the freeze, that the README differs
+from it only in the answer up to `## Files`, and that every other frozen
+source is unchanged. A repeat of the run checks the freeze first, so it runs
+with `frozen-readme.md` in the README's place. The paper needs only the
+committed results:
+
+```bash
+.venv/bin/python projects/tiebreak-rules/answer_check.py
+bridge/run.sh projects/tiebreak-rules/paper/generate.mjs
+(cd projects/tiebreak-rules/paper && latexmk -pdf paper.tex)
+```

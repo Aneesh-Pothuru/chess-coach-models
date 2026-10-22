@@ -1,0 +1,326 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Does a coach's rule pick the better of his level's two natural moves?\\[0.3em]
+\large Four rules for the quiet moments of a game, as tie-breakers between the two moves Maia-2
+rates most likely, in \Games{} Lichess games refereed by Stockfish}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+A coach's rules for the quiet moments of a game are not meant to choose a move alone: his student
+names a few normal moves, and the rule says which of them to play. This study asks four such rules,
+from a titled player's review of a club player's rapid games, only to break that tie. In quiet
+positions from \Games{} Lichess games in the player's band and the one above, where the two moves
+Maia-2 rates most likely at the mover's band are one that follows a rule and one that breaks it, is
+the one that follows sound more often than Maia-2's own order accounts for? The rule, fixed before
+any position was scored, first asks a planted control to show that the design sees a rule known to
+hold, and it does: a move that leaves a piece to be taken for a gain loses the tie by
+\ControlTrain{} points on the train months and \ControlHeld{} held out. Two rules then break the
+tie, their intervals above 0 on both periods: bishop over knight, by \BkTrain{} and \BkHeld{}
+points, and pawns off the bishop's colour, by \ColTrain{} and \ColHeld. Keeping the tension does no
+better than Maia-2's order, and trading by development breaks the tie on the train months only.
+Neither winner overrules a first choice. Where Maia-2 rates the move that breaks the rule first,
+that move is still sound more often than the rule's, by \BkBfHeld{} and \ColBfHeld{} points held
+out, and where only one of the two is sound, bishop over knight's move is that one \BkOneHeld\% of
+the time held out, not the coach's four games in five. The two rules choose between two moves that
+look about equally good; they are no reason to play the one that looks worse.
+\end{abstract}
+
+\section{The question}
+
+A titled player reviewing the rapid games of an adult player rated about 1100 gives rules for the
+quiet moments of a game, when nothing is hanging and no tactic is on the board: keep the tension
+unless taking gains something; avoid even trades when ahead in development and look for them when
+behind; keep the pawns off the bishop's colour; and prefer the bishop to the knight, the better
+trade, he says, about four games in five.\footnote{\url{https://www.youtube.com/watch?v=PcGDehRSqTM}}
+His fifth rule, the central break while the other king is still in the centre, was tested in an
+earlier study and showed no signal.
+
+Two earlier studies asked a rule of thumb to choose the move: among the legal moves that show the
+rule, the one Maia-2 rates most likely at the mover's band. The rule's move, one his level plays
+less often, was sound less often than the move his level would naturally play, before the tactics
+were checked and after. The coach does not use his rules that way. The student names a few normal
+moves, and the rule says which of them to play. So this study asks a rule only to break a tie. In
+quiet positions where the two moves Maia-2 rates most likely at his level are one that follows the
+rule and one that breaks it, is the one that follows it sound more often, beyond what Maia-2's own
+order says?
+
+If a rule breaks the tie, a lesson can teach it as the way to choose between two natural moves, and
+Game Review can name it where he played the move that breaks it and his other natural move followed
+it. If it does no better than Maia-2's order, it explains a move but does not choose between his
+candidates. If it misleads, a lesson that teaches it should say where it fails.
+
+\section{How it was measured}
+
+\paragraph{The rules.} Four rules, read as six units (Table~\ref{tab:design}). A unit has a
+situation and reads each legal move: the move \emph{follows} the unit's rule, \emph{breaks} it, or
+neither. A rule of two units reads two mirrored halves, so that a liking for quiet moves over
+trades in general, or for trades over quiet moves, cancels between them. Every reading is the app's
+knowledge service at commit \texttt{\AppCommit}. A \emph{quiet move} is not a capture and gives no
+check. An \emph{even trade} is a capture that gives no check and that the app's capture war scores
+0: what it takes, less the opponent's best continuation on its square. A \emph{lever} is a pawn of
+the mover's that attacks a pawn of the opponent's. Development has no reading in the app, so it is
+defined here: a side's undeveloped count is its knights and bishops on their starting squares, plus
+one when its king stands on its starting square, and the mover's lead is the opponent's count less
+the mover's. Material is level when the mover's points are within \LevelWithin{} of the
+opponent's, which keeps out the rules about trading when ahead or behind in material.
+
+\begin{table}[ht]
+\centering\footnotesize
+\begin{tabularx}{\textwidth}{@{}lLLL@{}}
+\toprule
+Unit & Situation & Follows & Breaks \\
+\midrule
+Tension & the mover has a lever whose capture is an even trade & a quiet move that moves no lever's pawn & a lever's capture that is an even trade \\
+Ahead in development & not an endgame, material level, an even trade of a piece on, the mover \LeadMin{} or more ahead in development & a quiet move & an even trade of a piece \\
+Behind in development & the same, the mover \LeadMin{} or more behind & an even trade of a piece & a quiet move \\
+Bishop for knight & the mover can give a bishop for a knight in an even trade, and cannot take a bishop with a knight so & a quiet move & the bishop taking the knight \\
+Knight for bishop & the mover can take a bishop with a knight in an even trade, and cannot give a bishop for a knight so & the knight taking the bishop & a quiet move \\
+Bishop's colour & the mover has one bishop, and quiet pawn moves to squares of both colours & a quiet pawn move to a square of the other colour & a quiet pawn move to a square of the bishop's colour \\
+\midrule
+Level development & as ahead in development, with development level & a quiet move & an even trade of a piece \\
+The control & any position where a rule's unit is in its situation & a quiet move after which the opponent has no winning capture & a quiet piece move that leaves the piece to be taken for a gain \\
+\bottomrule
+\end{tabularx}
+\caption{The units. The six above the line read the four rules: keep the tension and pawns off
+the bishop's colour are a unit each, trades and development reads its two halves, ahead and behind
+in development, and bishop over knight its two, bishop for knight and knight for bishop. Level
+development is a reference, and no rule: it shows how a quiet move fares against an even trade when
+development says nothing. The control is planted: a move that leaves its piece to be taken for a
+gain is known to be the worse of two far more often than not.}
+\label{tab:design}
+\end{table}
+
+\paragraph{The positions.} Lichess rated games at 10 minutes with no increment, his own time
+control, that ended normally or on time, with at least \MinPlies{} plies, both players rated
+\BandLow{} to \BandHigh{}: the first \PerMonth{} such games of each month, \TrainMonths{} to train
+on and \HeldMonth{} held out. A position enters from ply \MinPly{} on when the move just played
+captured nothing, the mover is not in check and has two legal moves or more, and the app gives
+neither side a mate in one or a winning capture. $M_1$ and $M_2$ are the two moves Maia-2, the
+app's, rates most likely at the mover's band, \BandLow{} to \HisHigh{} (his) or the band above. A
+position \emph{splits} for a unit when it is in the unit's situation and one of $M_1$ and $M_2$
+follows the unit's rule and the other breaks it: $F$ is the move that follows and $B$ the move that
+breaks. It is \emph{follow-first} when $M_1$ is $F$ and \emph{break-first} when $M_1$ is $B$. Each
+game gives a unit at most one position, drawn at random among its splits, and each unit keeps the
+first \Cap{} a month.
+
+\paragraph{The referee.} With \TablebaseMen{} men or fewer the app's tablebase probe decides, and a
+move is \emph{sound} when it keeps the mover's outcome. Otherwise Stockfish, through the app's
+engine service at its grading budget of \Nodes{} nodes with the hash cleared for each position,
+searches the best and then scores $F$ and $B$, and a move is sound when it gives up no more than
+\WindowWp{} win\% against that best. The move played is recorded and not scored.
+
+\paragraph{The run.} The rule, every script, the app's code and its installed packages were frozen
+by hash before any position was scored, and each stage of the run checked the freeze before it
+started. Once, between two stages, the check found cache files that another checkout's test runner,
+sharing the run's installed packages on the same machine, had written among them. Only that test
+runner reads them; once they were moved aside the freeze held again, and the run resumed from its
+checkpoints.
+
+\paragraph{The measures.} The \emph{lift} is $F$'s share sound less $B$'s, paired by position, in
+points. The move Maia-2 rates first is likely to be sound more often than its second, which adds
+to the lift in the follow-first positions and takes from it in the break-first ones. The
+\emph{balanced lift} is the mean of the two orders' lifts, which cancels that advantage when it is
+the same in both orders, so a rule that carries no information reads about 0 whatever share of
+its splits come in each order. A rule's lift is its unit's balanced lift, or the mean of its two
+units' on every draw. \emph{When only one is sound} is the share of the positions with exactly one
+of $F$ and $B$ sound where it is $F$, the mean of the two orders' shares: a rule with no
+information reads \NoInfoShare\%, and the coach's four games in five would read \CoachShare\%.
+\emph{Against the first choice} is $F$'s share sound less $M_1$'s: what playing the rule's move in
+every split would gain over playing Maia-2's first choice.
+
+\paragraph{The rule, fixed before any position was scored.} Intervals are 95\%, from \Draws{}
+bootstrap draws over games (seed \Seed), within each period, every unit's measures on a draw using
+the positions of the games drawn. The control comes first: its balanced lift must have its interval
+above 0 on both periods, with enough data, or no rule receives a verdict. Then a rule \emph{breaks
+the tie} when its lift's interval lies above 0 on the train months and on the held-out month,
+\emph{misleads} when it lies below 0 on both, and \emph{does no better than Maia-2's order}
+otherwise. A rule whose units have fewer than \MinHeld{} held-out positions, or fewer than
+\MinOrder{} in either order, has not enough data. Beside the verdict, and changing none, a rule is
+\emph{worth switching to} when its lift in the break-first positions has its interval above 0 on
+both periods: there his level's first move breaks the rule and its second follows it, so the rule
+is a reason to play the second.
+
+\section{What was scored}
+
+The scan read the first \PerMonth{} games of each month, \Games{} in all. \Entering{} positions
+entered it, and Maia-2 read the \InUnit{} of them that stand in some unit's situation, and no
+other. The draw and the cap kept \Scored{} positions, from \GamesTrain{} games on the train months
+and \GamesHeld{} held out; a position can serve several units, so the units read \UnitRows{} in
+all. Tension, bishop for knight, knight for bishop and the bishop's colour filled the cap of
+\Cap{} every month (Table~\ref{tab:coverage}). The rarest split is being \ThinName: \ThinHeld{}
+positions held out, \ThinHeldFollow{} of them follow-first. So every unit passes the rule's counts
+of \MinHeld{} held-out positions and \MinOrder{} in each order.
+
+\CoverageTable
+
+\section{The control passes}
+
+The control's balanced lift is \ControlTrain{} points (\ControlTrainCi) over \ControlTrainN{}
+positions on the train months and \ControlHeld{} (\ControlHeldCi) over \ControlHeldN{} held out,
+both intervals above 0: the design sees a rule known to hold, and the rules receive verdicts. Where
+only one of its two moves is sound, it is the move that leaves nothing to be taken
+\ControlOneTrain\% of the time on the train months and \ControlOneHeld\% held out. The control
+holds against Maia-2's order as well: where Maia-2 rates the move that leaves a piece to be taken
+first, its second move is sound more often (Table~\ref{tab:rules}). Every rule's interval lies below
+the control's on both periods, so what follows is about rules that tip a choice, not rules that
+decide one.
+
+\section{Two rules break the tie}
+
+Bishop over knight breaks the tie by \BkTrain{} points (\BkTrainCi) on the train months and
+\BkHeld{} (\BkHeldCi) held out, and pawns off the bishop's colour by \ColTrain{} (\ColTrainCi) and
+\ColHeld{} (\ColHeldCi) (Table~\ref{tab:rules}). Keeping the tension does no better than Maia-2's
+order, at \TenTrain{} points (\TenTrainCi) and \TenHeld{} (\TenHeldCi). Trading by development
+breaks the tie on the train months, by \TrTrain{} points (\TrTrainCi), but not held out, at
+\TrHeld{} (\TrHeldCi); the periods disagree, so by the rule it does no better than Maia-2's order
+either.
+
+\RuleTable
+
+\section{A tie-breaker, not a reason to switch}
+
+The balanced lift is half the difference between two leads: how far Maia-2's first choice leads
+its second in soundness where the first follows the rule, and how far it leads where the first
+breaks it. For the two winners the first choice leads by more where it follows the rule, which is
+the rule's information, but it leads in both orders, on both periods (Table~\ref{tab:units}). So
+neither winner is worth switching to, and no rule is: every rule's break-first lift lies below 0 on
+both periods. Where Maia-2 rates the move that breaks the rule first, that move is sound more often
+than the second, the rule's, by \BkBfHeld{} points for bishop over knight and \ColBfHeld{} for the
+bishop's colour held out.
+
+The other measures say the same. Where only one of the two moves is sound, it is the rule's move
+\BkOneTrain\% of the time on the train months and \BkOneHeld\% held out for bishop over knight, and
+\ColOneTrain\% and \ColOneHeld\% for the bishop's colour: above the \NoInfoShare\% of a rule with
+no information, and below the \CoachShare\% that the coach's four games in five would read. And
+playing the rule's move in every split, in place of Maia-2's first choice, costs \AgainstLow{} to
+\AgainstHigh{} points of soundness held out across the four rules, every interval below 0 on both
+periods.
+
+\section{The halves}
+
+A rule of two units is read as the mean of its halves, because a lean towards quiet moves, or
+towards trades, lifts one half and sinks the other by as much. The halves are reported apart and
+decide nothing (Table~\ref{tab:units}).
+
+Bishop over knight's halves differ. Keeping the bishop rather than giving it for a knight lifts by
+\BfnTrain{} points (\BfnTrainCi) on the train months and \BfnHeld{} (\BfnHeldCi) held out, while
+taking a bishop with a knight reads \NfbTrain{} (\NfbTrainCi) and \NfbHeld{} (\NfbHeldCi), across
+0 on both. That fits a rule that holds only for keeping the bishop, and as well one that holds both
+ways beside a lean towards the quiet move, which the mean cancels; the halves cannot tell the two
+apart. The trade units side with the rule both ways. In each of them, on both periods, a trade
+that takes a bishop fares better against the quiet move than one that takes a knight, and when
+behind in development, the trade lifts by \BehindBishopHeld{} points held out where it takes a
+bishop and loses by \BehindKnightHeld{} where it takes a knight, both intervals clear of 0 on both
+periods.
+
+Of trading by development's halves, trading when behind lifts by \BehindTrain{} points
+(\BehindTrainCi) and \BehindHeld{} (\BehindHeldCi), and keeping the pieces on when ahead by
+\AheadTrain{} (\AheadTrainCi) on the train months but \AheadHeld{} (\AheadHeldCi) held out. The
+reference, a quiet move against an even trade of a piece with development level, reads
+\LevelTrain{} (\LevelTrainCi) and \LevelHeld{} (\LevelHeldCi): with development level, neither the
+quiet move nor the trade fares better than Maia-2's order says.
+
+\UnitTable
+
+\section{Where the two rules count}
+
+\paragraph{Close calls.} A close call is a position where Maia-2 rates its second move at least half
+as likely as its first: \CloseShareLow\% to \CloseShareHigh\% of a rule unit's held-out positions
+(Table~\ref{tab:close}). There a tie-breaker matters most, since his level plays either move. In close calls, keeping the bishop where the first choice gives it for a knight
+is sounder than that first choice by \BfnCloseBfTrain{} points (\BfnCloseBfTrainCi) on the train
+months, and by \BfnCloseBfHeld{} (\BfnCloseBfHeldCi) held out, where the interval spans 0. A pawn
+kept off the bishop's colour where the first choice puts one on it reads \ColCloseBfTrain{}
+(\ColCloseBfTrainCi) and \ColCloseBfHeld{} (\ColCloseBfHeldCi), about as sound as that first
+choice. Where the first choice is clear, it wins: there, following the rule against it costs
+\BfnClearBfHeld{} points for keeping the bishop and \ColClearBfHeld{} for the bishop's colour held
+out, below 0 on both periods.
+
+A quiet move also fares better against an even trade in close calls when development is level, by
+\LevelCloseTrain{} and \LevelCloseHeld{} points with both intervals above 0, and so does keeping the
+tension on the train months, by \TenCloseTrain{} points, though not held out, at \TenCloseHeld. Part
+of a quiet move's lift in a close call may be that lean, which this study does not separate. The
+bishop's colour compares two quiet pawn moves, so no such lean touches it.
+
+\CloseTable
+
+\paragraph{Phase and band.} Keeping the bishop lifts most in the opening, by \BfnOpenHeld{} points
+held out against \BfnMiddleHeld{} in the middlegame, where it still lifts on both periods, and more
+in his band than in the band above, by \BfnHisHeld{} against \BfnAboveHeld{}
+(Table~\ref{tab:splits}). Taking a bishop with a knight lifts in the opening, by \NfbOpenHeld, and
+misleads in the middlegame, at \NfbMiddleHeld, both clear of 0 on both periods. The bishop's colour
+lifts in the middlegame and the endgame, by \ColMiddleHeld{} and \ColEndHeld{} points held out,
+above 0 on both periods, and not in the opening, at \ColOpenHeld{} with its interval across 0 on
+both; it lifts in both bands.
+
+\SplitTable
+
+\section{Examples}
+
+The rule draws six held-out examples a unit, at random among the positions where exactly one of
+the two moves is sound. For keeping the bishop, the rule's move is the sound one in
+\BfnExamplesF{} of its six and the other move in \BfnExamplesB; for the bishop's colour, in
+\ColExamplesF{} and \ColExamplesB. Figure~\ref{fig:examples} shows three.
+
+In the first, White, in \BfnFourBand, can give a bishop for a knight with \BfnFourB, which Maia-2
+rates first, ahead of the quiet \BfnFourF. By the referee, White's win\% is \BfnFourFWin{} after
+the quiet move and \BfnFourBWin{} after the trade; the referee's best is \BfnFourBest, and the game went
+\BfnFourPlayed. In the second, Black, in \ColTwoBand, can put a pawn on the bishop's colour with
+\ColTwoB, Maia-2's first choice, or keep it off with \ColTwoF, which was played and is the referee's
+best: Black's win\% is \ColTwoFWin{} after it and \ColTwoBWin{} after \ColTwoB. The third is one
+where the rule is wrong. Black, in \BfnSixBand, played the quiet \BfnSixF, Maia-2's first choice,
+but giving the bishop for the knight with \BfnSixB{} is the referee's best: Black's win\% is
+\BfnSixBWin{} after the trade and \BfnSixFWin{} after the quiet move.
+
+\ExampleFigure
+
+\section{What it means for the app}
+
+Two of the coach's four rules carry information that his level's own order of moves lacks, and
+they read best as he gives them: as the way to choose between two normal moves. A lesson can teach
+them as tie-breakers. When two moves look about equally good and one gives the bishop for a knight,
+play the other; when two pawn moves look about equally good, push the one that goes to the other
+colour from the bishop. Neither is a reason to overrule a move that looks better: where his level's
+first choice breaks the rule, that first choice is still sound more often than the rule's move, and
+only in a close call is the rule's move about as sound. The bishop's colour counts in the
+middlegame as in the endgame, where the app's catalogue already teaches it, and not in the opening.
+
+Keeping the tension and trading by development did not choose between his two natural moves, so a
+lesson that teaches them explains a move, but should not offer them as the way to choose one.
+
+\section{Caveats}
+
+\begin{itemize}[nosep]
+\item \textbf{Maia-2's order is the yardstick.} The balanced lift assumes the first choice's lead
+  over the second is about the same in the two orders. A rule whose follow-first positions differ
+  in kind from its break-first ones could lean either way, so each order's lift is reported, and
+  the control shows the design sees a rule known to hold.
+\item \textbf{Halves are not tests.} Only a rule's mean was tested. A half's lift can carry a lean
+  towards quiet moves or towards trades, so the halves describe where a rule's lift sits, not which
+  half holds.
+\item \textbf{Many splits.} The splits are many, and some cells will read clear of 0 by chance; they
+  describe and decide nothing.
+\item \textbf{Not his games.} The positions are Lichess players' in his band and the band above;
+  his own games are too few for a test like this.
+\item \textbf{Two candidates.} The coach's student names a few normal moves. The test takes the
+  two Maia-2 rates most likely at the mover's band, and only where one follows the rule and the
+  other breaks it.
+\item \textbf{Quiet by board code.} No mate in one and no winning capture for either side is the
+  app's reading of a quiet moment. A deeper tactic, a fork two moves away, still counts as quiet.
+\item \textbf{Even by the capture war.} A trade the app's capture war calls even can still lose to a
+  tactic it does not see; that is the referee's to find, and part of what a rule's move is judged on.
+\item \textbf{Development by the starting squares.} The app has no reading of development, so the
+  count of undeveloped minor pieces and the king on its square is this study's. A rook not yet
+  connected or a queen out early does not count.
+\item \textbf{One move for a plan.} A rule is tested on the next move, not as a plan over several,
+  and a sound move can still be the second-best plan.
+\item \textbf{Sound within a window.} A move is sound within \WindowWp{} win\% of the best; a rule
+  whose gain is smaller than that, or comes later than the referee's search sees, reads as none.
+\end{itemize}
+
+\end{document}
