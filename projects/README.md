@@ -227,6 +227,11 @@ nice -n 10 .venv/bin/python projects/rules-after-check/operations.py
 .venv/bin/python projects/tiebreak-rules/freeze.py
 sh projects/tiebreak-rules/run.sh --reviewed
 
+# The app's sounds: his picks, rendered from earshot's bank (no player data;
+# the project's README says which earshot commit and what it needs).
+python3 projects/board-sounds/collect.py
+python3 projects/board-sounds/render.py <earshot checkout> <out dir>
+
 # The learner's solve chances: his puzzle attempts replayed through the app's
 # learner, on a record rebuilt from the memory cards and on the profile as the
 # app holds it.
