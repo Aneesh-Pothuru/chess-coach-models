@@ -1,0 +1,207 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Can the review teach a move from his lessons instead of the engine's top line?\\[0.3em]
+\large The lesson pick at the player's turning points}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+At each of the player's turning points the daily review teaches a better move and the line from
+it. He asked for the move his study lessons teach, whenever the engine says it holds, named with
+the lesson's rule, instead of the engine's top line. The app's lesson pick chooses among the
+review's stored engine lines that hold for him: within \Window{} win\% of the engine's first line,
+or keeping a won game won. Among those it takes the move a lesson teaches for a purpose his own
+move lacked, reading each move's purpose with the board code. At \TrainTPs{} turning points up to
+\TrainUntil{} and \HeldTPs{} after, a lesson taught the pick at \TrainCoverage\% and
+\HeldCoverage\%. The pick gave up \TrainCost{} and \HeldCost{} win\% against the engine's first
+line, and never left the holding verdicts. Players at his band choose it more often than the
+engine's first line, by \TrainFind{} and \HeldFind{} points of Maia-2's probability. By the rule
+fixed before the run, the pick is kept. It is the engine's first line at about \TrainIsTop\% of
+turning points; where it is not, his band chooses it \TrainGainWhere{} and \HeldGainWhere{}
+points more often. The lessons it names are few: \LessonsAll{} of the \Lessons, and two chapters
+carry \TwoShare\% of the lesson picks, which shows where the next round should go.
+\end{abstract}
+
+\section{The question}
+
+The daily review teaches, at each turning point, a better move and the line from it: the
+engine's first line, or the move players at his band would likely play among those the engine
+says hold. Since the app has study lessons (\Lessons{} of them, each a video and a written lesson
+whose recommended moves were checked with Stockfish), the player asked for that move to come from
+what the lessons teach whenever the engine says it holds: a queen trade, a rook to an open file,
+a pawn break, a defence that meets the threat, named with the lesson's rule.
+
+Two earlier studies bound what such a pick may claim. A rule of thumb explains a move but should
+not choose it (rules-of-thumb), and a sound move he would find costs about what the engine says
+it gives up (findable-move). So the lessons only choose among moves the engine already says hold.
+At his turning points, how often does such a move exist, what does it cost against the engine's
+first line, and do players at his band choose it more often than that first line?
+
+\section{How it was measured}
+
+\paragraph{The positions.} Every turning point in the app's archive with him to move and at least
+one stored engine line: \Examined{} turning points. The \SkippedGames{} games of the two days read
+while the change was designed are left out. The candidates are the first moves of the stored
+lines, up to \MaxCandidates{}, from the routine's deep search, each with its stored evaluation in
+his view.
+No new engine search was run.
+
+\paragraph{What holds.} Each candidate is graded against the engine's first line, E, by the
+review's own grading. It \emph{holds} for him when it is \emph{best}, within \Window{} win\% of
+E (the review's window), or \emph{keeps} the result: E's position is won (at least \KeptWon{}
+win\%, or a mate) and the candidate's still is.
+
+\paragraph{His band.} The Maia-2 level of his rating at the game with the app's offset
+(+\Offset), and a move's \emph{share} is Maia-2's probability for it at that band. N, the natural
+move, is the holding candidate with the largest share.
+
+\paragraph{The pick.} The board code reads what each move is for, from the move and its line:
+it meets a threat, wins material, trades queens, takes an open file with a rook, breaks with a
+pawn, improves the worst piece, and so on. The study service reads the same purposes from every
+move the lessons recommend, and for a purpose offers the lesson chapters whose lesson is tagged
+with one of its ideas, ranked by how well the chapter's own recommended moves match it. L, the
+lesson pick, is the holding candidate his band chooses most often among those a lesson teaches
+for a purpose his move lacked (\texttt{lesson}); else among those a lesson teaches
+(\texttt{lesson-shared}); else the natural move; else E. His move's purposes are read with the
+line the routine stored to punish it. The code is the app's at commit \texttt{\AppCommit}.
+
+\paragraph{The rule, fixed before the run.} Train: the turning points up to \TrainUntil, the
+first two thirds. Held out: the rest, up to \HeldoutUntil. On both, three bars. \emph{Coverage}:
+a lesson teaches L (\texttt{lesson} or \texttt{lesson-shared}) at \CoverageBar\% of turning points
+or more. \emph{Cost}: L's mean win\% loss against E is at most \CostBar, and no L falls outside the
+holding verdicts. \emph{Findability}: L's share minus E's, paired by turning point, has its 95\%
+interval above zero, from \Draws{} bootstrap draws over games (a game's turning points move
+together). The pick is kept when all three pass on both.
+
+\section{The verdict}
+
+\RuleTable
+
+All three bars pass on both splits (Table~\ref{tab:rule}), so the pick is kept. A lesson teaches
+the pick at most turning points, and at most of them for a purpose his own move lacked. The pick
+gives up \TrainCostMean{} and \HeldCostMean{} win\% on average. The largest losses, \TrainWorst{} and
+\HeldWorst{} win\%, come from the \KeepsPicks{} picks that keep a won game won; every pick that
+loses more than the window is one of them (\OverWindow{} in all). Players at his band choose the
+pick a few points more often than the engine's first line, on both splits.
+
+\section{What the pick looks like}
+
+\PurposeTable
+
+These numbers describe; none of them carries a rule.
+
+\paragraph{Mostly the engine's move.} L is E at \TrainIsTop\% of train turning points and
+\HeldIsTop\% of held-out ones: a lesson teaches the engine's own first line at \TrainTopTaught\%
+and \HeldTopTaught\%. Where L is not E (\TrainDiffers{} and \HeldDiffers{} turning points), his
+band chooses L \TrainGainWhere{} and \HeldGainWhere{} points more often than E. The average gain
+in Table~\ref{tab:rule} is this gain spread over every turning point.
+
+\paragraph{A little less natural than the natural move.} L is N at \TrainIsNatural\% of turning
+points on both splits, and its share is \TrainVsNatural{} and \HeldVsNatural{} points below N's:
+choosing the move a lesson teaches, rather than the one his band likes best, costs a little
+findability.
+
+\paragraph{Defence first.} The pick is most often taught for meeting a threat, \ThreatShare\% of
+the lesson picks, then for a rook on an open file and for winning material
+(Table~\ref{tab:purposes}).
+
+\paragraph{Few chapters.} The \TaughtN{} lesson picks name \LessonsAll{} lessons and \ChaptersAll{}
+chapters. One chapter carries \FirstShare\% of them: ``\FirstIdea'' from ``\FirstTitle'', named for
+meeting a threat and for winning material alike, though \FirstNotQueen\% of its picks do not move
+the queen. With ``\SecondIdea'' from ``\SecondTitle'' the two carry \TwoShare\%. The ranking reads
+only the ideas a purpose shares with a chapter's tags, so one chapter stands for most defences.
+
+\section{Four positions}
+
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\EaBoard\\[0.4em]
+{\footnotesize FEN \EaFen}
+\caption{\EaSide{} to move. The pick (green) is \EaPick{} (\EaPickUci), chosen by \EaPShare\% of
+his band; the engine's first line (blue) is \EaTop{} (\EaTopUci), at \EaTShare\%; the pick gives
+up \EaLoss{} win\%. The board code: ``\EaSays''. The chapter: ``\EaIdea'' from ``\EaTitle''. He
+played \EaPlayed{} (\EaPlayedUci).}
+\label{fig:queens}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\EbBoard\\[0.4em]
+{\footnotesize FEN \EbFen}
+\caption{\EbSide{} to move. The pick is \EbPick{} (\EbPickUci), at \EbPShare\%; the engine's
+first line is \EbTop{} (\EbTopUci), at \EbTShare\%; the pick gives up \EbLoss{} win\%. The board
+code: ``\EbSays''. The chapter: ``\EbIdea'' from ``\EbTitle''. He played \EbPlayed{}
+(\EbPlayedUci).}
+\label{fig:piece}
+\end{subfigure}\\[1em]
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\EcBoard\\[0.4em]
+{\footnotesize FEN \EcFen}
+\caption{\EcSide{} to move. The pick is \EcPick{} (\EcPickUci), at \EcPShare\%; the engine's
+first line is \EcTop{} (\EcTopUci), at \EcTShare\%; the pick gives up \EcLoss{} win\%. The board
+code: ``\EcSays''. The chapter: ``\EcIdea'' from ``\EcTitle''. He played \EcPlayed{}
+(\EcPlayedUci).}
+\label{fig:break}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\EdBoard\\[0.4em]
+{\footnotesize FEN \EdFen}
+\caption{\EdSide{} to move. The pick is \EdPick{} (\EdPickUci), at \EdPShare\%; the engine's
+first line is \EdTop{} (\EdTopUci), at \EdTShare\%; the pick gives up \EdLoss{} win\%. The board
+code: ``\EdSays''. The chapter named, ``\EdIdea'', moves the queen and takes a pawn; the pick
+does neither. He played \EdPlayed{} (\EdPlayedUci).}
+\label{fig:misfit}
+\end{subfigure}
+\caption{The pick in green, the engine's first line in blue, each with the share of his band
+that chooses it and the chapter the study service ranks first for the pick's purpose. In the
+last the pick is a defence and the lesson is on defence, but the chapter does not fit the move.}
+\label{fig:examples}
+\end{figure}
+
+The four positions illustrate the summary; they test nothing. Each is the held-out turning point
+where the pick, taught for a purpose his move lacked and not the engine's first line, gains most
+share over that first line: among the queen trades, the worst piece improved or an outpost taken,
+the pawn breaks, and the picks naming the most named chapter that do not move the queen.
+
+
+\section{What the app can take}
+
+\begin{itemize}[nosep]
+\item The pick goes into the review's \texttt{teach}: among the moves that hold for him, the move
+  a lesson teaches, with what it does on the board and the chapters that teach it. The daily video
+  can then teach that move and its rule instead of the engine's verdict. Whether the video
+  coaches better for it is a separate study (lesson-videos).
+\item The chapter a pick names needs a fit check. Ranking chapters by the ideas their tags share
+  with a purpose lets one chapter stand for most defences; a next round could rank them by how
+  closely the chapter's own positions match this one: the piece that moves, what it captures, the
+  threat it meets.
+\item At \TrainNoLesson\% and \HeldNoLesson\% of turning points no holding move is one a lesson
+  teaches. New purposes for the board code (an attack on the king,
+  prophylaxis, a weak square) would let the lessons teach more of them.
+\end{itemize}
+
+\section{Caveats}
+
+\begin{itemize}[nosep]
+\item \textbf{Only the stored lines.} The candidates are the up to \MaxCandidates{} moves the
+  review kept. The live \texttt{teach} also weighs his band's likeliest moves.
+\item \textbf{The board code's purposes.} A move is taught for what the board code reads in it;
+  a move can do more than its purposes say, or less.
+\item \textbf{A lesson teaches a move} when a chapter's tags share an idea with the move's
+  purpose. That says the lesson is on the right topic, not that the chapter's rule explains this
+  position, as the last example shows.
+\item \textbf{Share is not understanding.} Maia-2's share says how often players at his band
+  choose a move, not whether he would follow the lesson behind it.
+\item \textbf{The cost is the engine's.} In human hands a sound move he would find costs about
+  what the engine says (findable-move); this study did not play the picks on.
+\end{itemize}
+
+\end{document}

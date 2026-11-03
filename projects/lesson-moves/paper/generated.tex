@@ -1,0 +1,187 @@
+% Written by projects/lesson-moves/paper/generate.mjs; do not edit by hand.
+
+\newcommand{\AppCommit}{f7a8b12a01}
+\newcommand{\Lessons}{74}
+\newcommand{\Chapters}{527}
+\newcommand{\TrainUntil}{2026-09-16}
+\newcommand{\HeldoutUntil}{2026-11-02}
+\newcommand{\Draws}{10,000}
+\newcommand{\CoverageBar}{50}
+\newcommand{\CostBar}{1.5}
+\newcommand{\Window}{3}
+\newcommand{\KeptWon}{88}
+\newcommand{\Offset}{250}
+\newcommand{\Examined}{1,511}
+\newcommand{\SkippedGames}{seven}
+\newcommand{\MaxCandidates}{five}
+\newcommand{\TrainTPs}{1,023}
+\newcommand{\TrainGames}{399}
+\newcommand{\HeldTPs}{488}
+\newcommand{\HeldGames}{191}
+\newcommand{\TrainCoverage}{77.3}
+\newcommand{\TrainNoLesson}{22.7}
+\newcommand{\TrainFresh}{63.7}
+\newcommand{\TrainCost}{0.32 (0.26 to 0.38)}
+\newcommand{\TrainCostMean}{0.32}
+\newcommand{\TrainWorst}{10.2}
+\newcommand{\TrainFind}{3.0 (2.2 to 3.9)}
+\newcommand{\TrainFindMean}{3.0}
+\newcommand{\TrainVsNatural}{$-$2.8 ($-$3.5 to $-$2.2)}
+\newcommand{\TrainIsTop}{74}
+\newcommand{\TrainIsNatural}{87}
+\newcommand{\TrainTopTaught}{68}
+\newcommand{\TrainLessonsNamed}{20}
+\newcommand{\TrainChaptersNamed}{25}
+\newcommand{\HeldCoverage}{71.1}
+\newcommand{\HeldNoLesson}{28.9}
+\newcommand{\HeldFresh}{58.0}
+\newcommand{\HeldCost}{0.37 (0.29 to 0.46)}
+\newcommand{\HeldCostMean}{0.37}
+\newcommand{\HeldWorst}{11.1}
+\newcommand{\HeldFind}{3.6 (2.5 to 4.8)}
+\newcommand{\HeldFindMean}{3.6}
+\newcommand{\HeldVsNatural}{$-$2.3 ($-$3.0 to $-$1.6)}
+\newcommand{\HeldIsTop}{74}
+\newcommand{\HeldIsNatural}{87}
+\newcommand{\HeldTopTaught}{59}
+\newcommand{\HeldLessonsNamed}{21}
+\newcommand{\HeldChaptersNamed}{25}
+\newcommand{\RuleTable}{%
+\begin{table}[ht]\centering\small
+\begin{tabular}{lrr}
+\toprule
+ & Train & Held out \\
+\midrule
+Turning points (games) & 1,023 (399) & 488 (191) \\
+\textbf{Taught by a lesson} (bar: 50\%) & \textbf{77.3\%} & \textbf{71.1\%} \\
+\quad for a purpose his move lacked & 63.7\% & 58.0\% \\
+\textbf{Loss against E}, win\% (bar: 1.5) & \textbf{0.32 (0.26 to 0.38)} & \textbf{0.37 (0.29 to 0.46)} \\
+\quad largest; picks outside the holding verdicts & 10.2; 0 & 11.1; 0 \\
+\textbf{Share of L minus share of E}, points (bar: above 0) & \textbf{3.0 (2.2 to 3.9)} & \textbf{3.6 (2.5 to 4.8)} \\
+\bottomrule
+\end{tabular}
+\caption{The rule's three measures on each split. Intervals are 95\% percentiles of 10,000 bootstrap draws over games. A share is Maia-2's probability for the move at his band, so a point is one percent of his band's choices.}
+\label{tab:rule}
+\end{table}
+}
+\newcommand{\KeepsPicks}{41}
+\newcommand{\OverWindow}{nine}
+\newcommand{\TrainDiffers}{261}
+\newcommand{\HeldDiffers}{127}
+\newcommand{\TrainGainWhere}{11.9 (8.7 to 15.2)}
+\newcommand{\HeldGainWhere}{14.0 (10.0 to 18.4)}
+\newcommand{\ThreatShare}{36}
+\newcommand{\Purposes}{17}
+\newcommand{\TaughtN}{1,138}
+\newcommand{\ChaptersAll}{26}
+\newcommand{\LessonsAll}{21}
+\newcommand{\FirstShare}{39}
+\newcommand{\TwoShare}{55}
+\newcommand{\FirstTitle}{Choose a defense that changes the threat}
+\newcommand{\FirstIdea}{Move the queen while taking the loose pawn}
+\newcommand{\SecondTitle}{Give your rook an entry square}
+\newcommand{\SecondIdea}{Move the rook that has no job}
+\newcommand{\FirstNotQueen}{77}
+\newcommand{\PurposeTable}{%
+\begin{table}[ht]\centering\small
+\begin{tabular}{lrr}
+\toprule
+The pick & Train & Held out \\
+\midrule
+meets a threat & 285 & 122 \\
+a rook to an open file & 111 & 70 \\
+wins material & 127 & 46 \\
+develops & 59 & 16 \\
+mates & 47 & 10 \\
+a pawn break & 29 & 19 \\
+trades queens & 26 & 18 \\
+improves the worst piece & 23 & 8 \\
+offers a queen trade & 17 & 10 \\
+pushes a passed pawn & 15 & 7 \\
+castles & 17 & 5 \\
+takes the centre & 12 & 4 \\
+an ending technique & 7 & 4 \\
+a rook to the seventh rank & 5 & 5 \\
+takes an outpost & 6 & 1 \\
+trades when ahead & 5 & 1 \\
+trades into a pawn ending & 0 & 1 \\
+\midrule
+Taught by a lesson, all purposes & 791 & 347 \\
+\bottomrule
+\end{tabular}
+\caption{The purpose a lesson teaches the pick for, as the board code reads it from the move and its engine line. These counts describe; they carry no rule.}
+\label{tab:purposes}
+\end{table}
+}
+\newcommand{\EaSide}{Black}
+\newcommand{\EaFen}{\fen{2r2rk1/pp4pp/5p2/2qp1n2/P7/1P3PP1/3Q2KP/4RR2 b - - 4 31}}
+\newcommand{\EaPick}{31\ldots{}\symqueen{}c2}
+\newcommand{\EaPickUci}{\uci{c5c2}}
+\newcommand{\EaTop}{31\ldots{}d4}
+\newcommand{\EaTopUci}{\uci{d5d4}}
+\newcommand{\EaPlayed}{31\ldots{}\symqueen{}a3}
+\newcommand{\EaPlayedUci}{\uci{c5a3}}
+\newcommand{\EaPShare}{40}
+\newcommand{\EaTShare}{24}
+\newcommand{\EaLoss}{0.8}
+\newcommand{\EaPurpose}{trades queens}
+\newcommand{\EaSays}{its line trades queens, and with fewer pieces the extra material counts for more}
+\newcommand{\EaTitle}{Trade for a reason and inspect what remains}
+\newcommand{\EaIdea}{Clear the passer’s path and offer the queens}
+\newcommand{\EaBoard}{%
+\chessboard[setfen={2r2rk1/pp4pp/5p2/2qp1n2/P7/1P3PP1/3Q2KP/4RR2 b - - 4 31}, boardfontsize=11pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=blue!60!black, markmoves={d5-d4}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={c5-c2}]
+}
+\newcommand{\EbSide}{White}
+\newcommand{\EbFen}{\fen{3r1rk1/pp3ppp/1n6/3p4/4p2N/1PP5/P4PPP/3RR1K1 w - - 1 22}}
+\newcommand{\EbPick}{22.~\symknight{}f5}
+\newcommand{\EbPickUci}{\uci{h4f5}}
+\newcommand{\EbTop}{22.~g4}
+\newcommand{\EbTopUci}{\uci{g2g4}}
+\newcommand{\EbPlayed}{22.~c4}
+\newcommand{\EbPlayedUci}{\uci{c3c4}}
+\newcommand{\EbPShare}{66}
+\newcommand{\EbTShare}{under 1}
+\newcommand{\EbLoss}{1.1}
+\newcommand{\EbPurpose}{improves the worst piece}
+\newcommand{\EbSays}{it brings the knight on h4, the piece with the fewest moves (3), to f5, where it has 8}
+\newcommand{\EbTitle}{Improve the piece with the weakest job}
+\newcommand{\EbIdea}{A central knight needs something to do}
+\newcommand{\EbBoard}{%
+\chessboard[setfen={3r1rk1/pp3ppp/1n6/3p4/4p2N/1PP5/P4PPP/3RR1K1 w - - 1 22}, boardfontsize=11pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=blue!60!black, markmoves={g2-g4}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={h4-f5}]
+}
+\newcommand{\EcSide}{White}
+\newcommand{\EcFen}{\fen{r3k2r/pppbqpb1/2n1p2p/3p2p1/3P2P1/2PBPN2/PP1NQPP1/2KR3R w kq - 4 13}}
+\newcommand{\EcPick}{13.~e4}
+\newcommand{\EcPickUci}{\uci{e3e4}}
+\newcommand{\EcTop}{13.~\symknight{}b3}
+\newcommand{\EcTopUci}{\uci{d2b3}}
+\newcommand{\EcPlayed}{13.~\symknight{}e5}
+\newcommand{\EcPlayedUci}{\uci{f3e5}}
+\newcommand{\EcPShare}{35}
+\newcommand{\EcTShare}{7}
+\newcommand{\EcLoss}{0.5}
+\newcommand{\EcPurpose}{a pawn break}
+\newcommand{\EcSays}{a pawn break: the e-pawn strikes at d5, and trades there open lines}
+\newcommand{\EcTitle}{Read the pawn structure before choosing a plan}
+\newcommand{\EcIdea}{Attack the supporting pawn}
+\newcommand{\EcBoard}{%
+\chessboard[setfen={r3k2r/pppbqpb1/2n1p2p/3p2p1/3P2P1/2PBPN2/PP1NQPP1/2KR3R w kq - 4 13}, boardfontsize=11pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=blue!60!black, markmoves={d2-b3}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={e3-e4}]
+}
+\newcommand{\EdSide}{White}
+\newcommand{\EdFen}{\fen{6k1/1p3p2/p5p1/7p/8/5QPP/Pbq1rP2/3R2K1 w - - 3 30}}
+\newcommand{\EdPick}{30.~\symrook{}d8+}
+\newcommand{\EdPickUci}{\uci{d1d8}}
+\newcommand{\EdTop}{30.~\symrook{}d7}
+\newcommand{\EdTopUci}{\uci{d1d7}}
+\newcommand{\EdPlayed}{30.~\symking{}f1}
+\newcommand{\EdPlayedUci}{\uci{g1f1}}
+\newcommand{\EdPShare}{82}
+\newcommand{\EdTShare}{4}
+\newcommand{\EdLoss}{0.1}
+\newcommand{\EdPurpose}{meets a threat}
+\newcommand{\EdSays}{it moves the rook on d1 out of attack, to d8}
+\newcommand{\EdTitle}{Choose a defense that changes the threat}
+\newcommand{\EdIdea}{Move the queen while taking the loose pawn}
+\newcommand{\EdBoard}{%
+\chessboard[setfen={6k1/1p3p2/p5p1/7p/8/5QPP/Pbq1rP2/3R2K1 w - - 3 30}, boardfontsize=11pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=blue!60!black, markmoves={d1-d7}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={d1-d8}]
+}

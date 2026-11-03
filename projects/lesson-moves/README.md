@@ -15,8 +15,19 @@ the engine already says hold. At his turning points, how often does such a
 move exist, what does it cost against the engine's first line, and is it a
 move his band plays more often than that first line?
 
-**The answer.** Written after the run, below the design, from
-[`results/lesson-moves.md`](results/lesson-moves.md).
+**The answer.** Kept, by the rule below, which was committed before the run.
+On both splits a lesson teaches the pick at most turning points, and at most
+of them for a purpose his own move lacked; the pick gives up a fraction of a
+win% against the engine's first line on average and never leaves the holding
+verdicts (its few large losses keep a won game won); and players at his band
+choose it more often than the engine's first line. The pick is mostly the
+engine's first line; where it is not, his band chooses it far more often than
+the engine's move, though a little less often than the move it likes best.
+Described, not tested: the lessons it names are few, and one chapter of the
+defence lesson stands for most defences, often without fitting the move, so
+the next round is a check that the chapter a pick names fits the position.
+The numbers are in [`results/lesson-moves.md`](results/lesson-moves.md),
+written by `measure.mjs`, and the paper, [`paper/paper.pdf`](paper/paper.pdf).
 
 ## What the app does (the change measured)
 
@@ -72,7 +83,8 @@ change was designed.
 1. **Coverage**: the share of turning points where L is taught by a lesson
    (`lesson` or `lesson-shared`), and where it is taught for a purpose his move
    lacked (`lesson`).
-2. **Cost**: L's win% loss against E (`lichessWinPercent` in his view).
+2. **Cost**: L's win% loss against E, in his view (the app's `winPercentFor`,
+   as `gradeEvals` reads it).
 3. **Findability**: L's share minus E's share, paired by turning point, with a
    95% interval from 10,000 bootstrap resamples of games (a game's turning
    points move together).
@@ -90,7 +102,7 @@ the report says which, and the port waits.
 ```bash
 make chess
 CHESS_DIR=<the app at the change> bridge/run.sh projects/lesson-moves/measure.mjs
-bridge/run.sh projects/lesson-moves/paper/generate.mjs
+CHESS_DIR=<the app at the change> bridge/run.sh projects/lesson-moves/paper/generate.mjs
 ```
 
 `measure.mjs` writes one row per turning point to `private/lesson-moves/`
