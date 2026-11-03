@@ -4,7 +4,7 @@ added to its board scenes until it is as long as asked, with nothing new in them
 (no square, move, piece or number the scene does not already say, and no new
 question, pause or advice), the rest of the script unchanged.
 
-  decoy.py <case-dir> <run-dir> --words N [--model claude-sonnet-5-5]
+  decoy.py <case-dir> <run-dir> --words N [--model claude-sonnet-5-5] [--tag <candidate>]
 
 N is how many spoken words to add over the whole script (the candidate's spoken
 words over the baseline's on the case). Writes <run-dir>/decoy/<id>.video.json,
@@ -53,11 +53,13 @@ def main():
     case, run = sys.argv[1], sys.argv[2]
     extra = int(float(opt('--words', '60')))
     model = opt('--model', 'claude-sonnet-5-5')
+    tag = opt('--tag')
+    folder = os.path.join(run, 'decoy' if not tag else f'decoy-{tag}')
     rid = json.load(open(os.path.join(case, 'meta', 'case.json')))['id']
     src = os.path.join(run, 'out', 'coach-log', 'review-annotations', f'{rid}.video.json')
     script = json.load(open(src))
     boards = [(i, s) for i, s in enumerate(script.get('scenes') or []) if s.get('board') and s.get('beats')]
-    os.makedirs(os.path.join(run, 'decoy'), exist_ok=True)
+    os.makedirs(folder, exist_ok=True)
     total = sum(words(scene_text(s)) for _, s in boards) or 1
     asks = []
     for i, s in boards:
@@ -92,9 +94,9 @@ def main():
             at = max(0, min(len(beats), int(b.get('after') or len(beats))))
             beats.insert(at, {'say': b['say'], 'caption': b['caption']})
         out['scenes'][i]['beats'] = beats
-    json.dump(out, open(os.path.join(run, 'decoy', f'{rid}.video.json'), 'w'), ensure_ascii=False, indent=1)
+    json.dump(out, open(os.path.join(folder, f'{rid}.video.json'), 'w'), ensure_ascii=False, indent=1)
     added = sum(r['words'] for r in report if r['kept'])
-    json.dump({'id': rid, 'target': extra, 'added': added, 'beats': report, 'cost': cost}, open(os.path.join(run, 'decoy', 'report.json'), 'w'), indent=1)
+    json.dump({'id': rid, 'target': extra, 'added': added, 'beats': report, 'cost': cost}, open(os.path.join(folder, 'report.json'), 'w'), indent=1)
     print(json.dumps({'id': rid, 'target': extra, 'added': added, 'kept': sum(r['kept'] for r in report), 'of': len(report), 'cost': round(cost, 3)}))
 
 

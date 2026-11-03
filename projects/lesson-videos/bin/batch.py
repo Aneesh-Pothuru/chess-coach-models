@@ -35,6 +35,7 @@ RUNS = os.path.join(EVAL, 'runs')
 LOGS = os.path.join(EVAL, 'logs')
 BASELINE, CANDIDATE = 'baseline', 'lesson-moves'
 CONFIGS = [BASELINE, CANDIDATE]
+ACTIVE = list(CONFIGS)
 DAYS = ['2026-10-13', '2026-10-14', '2026-10-15', '2026-10-17', '2026-10-18', '2026-10-19',
         '2026-10-20', '2026-10-22', '2026-10-24', '2026-10-25', '2026-10-27', '2026-10-28']
 TRAIN = DAYS[0::2]
@@ -118,7 +119,7 @@ def quiet_hours(now=None):
 
 def grade_files():
     out = []
-    for config in CONFIGS:
+    for config in ACTIVE:
         for i in IDS:
             p = os.path.join(run_dir(config, i), 'grade.json')
             if os.path.exists(p):
@@ -133,7 +134,7 @@ def expected_cost():
 
 def in_flight(skip=None):
     """The runs a batch holds now: a lock and no grade yet."""
-    return [run_dir(c, i) for c in CONFIGS for i in IDS
+    return [run_dir(c, i) for c in ACTIVE for i in IDS
             if run_dir(c, i) != skip and os.path.exists(run_dir(c, i) + '.lock') and not os.path.exists(os.path.join(run_dir(c, i), 'grade.json'))]
 
 
@@ -187,8 +188,9 @@ def cmd_runs(args):
     """Writer runs, each config at its own case of the day, in day order (train and held-out days interleaved)."""
     configs = (opt('--configs', argv=args) or ','.join(CONFIGS)).split(',')
     jobs = int(opt('--jobs', 2, argv=args))
+    ACTIVE[:] = sorted(set(configs) | {BASELINE})
     asked = positional(args)
-    ids = [i for i in (asked or [i for pair in zip(TRAIN, HELD_OUT) for i in pair]) if case_ready(i)]
+    ids = [i for i in (asked or [i for pair in zip(TRAIN, HELD_OUT) for i in pair]) if case_ready(i, configs)]
     todo = [(c, i) for i in ids for c in configs if not os.path.exists(os.path.join(run_dir(c, i), 'grade.json'))]
     tag = '+'.join(configs)
     log(tag, f'{len(todo)} runs to do: ' + ', '.join(f'{c} {i}' for c, i in todo))
@@ -272,6 +274,17 @@ def cmd_judge(args):
         list(ex.map(one, work))
 
 
+def decoy_tag(config):
+    """A later candidate's decoy matches its own added words, so its control files carry its name."""
+    return None if config == CANDIDATE else config
+
+
+def decoy_paths(base, i, tag):
+    folder = 'decoy' if tag is None else f'decoy-{tag}'
+    judged = 'judge-control-decoy.json' if tag is None else f'judge-control-decoy-{tag}.json'
+    return os.path.join(base, folder, f'{i}.video.json'), os.path.join(base, judged)
+
+
 def spoken_words(run):
     g = load(os.path.join(run, 'grade.json')) or {}
     return (g.get('shape') or {}).get('words')
@@ -281,11 +294,14 @@ def cmd_controls(args):
     """On the baseline's run: its script on both sides, and a decoy that adds as many spoken words as the candidate added."""
     config, other = opt('--config', CANDIDATE, argv=args), opt('--vs', BASELINE, argv=args)
     ids = positional(args) or IDS
+    tag = decoy_tag(config)
+    tagged = [] if tag is None else ['--tag', tag]
     for i in ids:
         base, cand = run_dir(other, i), run_dir(config, i)
         if not (video_of(base, i) and os.path.exists(os.path.join(cand, 'grade.json'))):
             continue
-        owed_files = [f for f in ('judge-control-same.json', 'judge-control-decoy.json') if not os.path.exists(os.path.join(base, f))]
+        decoy_script, decoy_judged = decoy_paths(base, i, tag)
+        owed_files = [f for f in (os.path.join(base, 'judge-control-same.json'), decoy_judged) if not os.path.exists(f)]
         if not owed_files or not wait_room(other, f'{i} controls'):
             continue
         if not os.path.exists(os.path.join(base, 'judge-control-same.json')):
@@ -295,12 +311,12 @@ def cmd_controls(args):
         if not (wb and wc):
             continue
         extra = max(MIN_DECOY_WORDS, wc - wb)
-        if not os.path.exists(os.path.join(base, 'decoy', f'{i}.video.json')):
-            d = subprocess.run([sys.executable, os.path.join(BIN, 'decoy.py'), evidence_case(i), base, '--words', str(extra)], capture_output=True, text=True)
-            log(other, f'{i} decoy +{extra} words: {d.stdout.strip() or d.stderr.strip()[-300:]}')
-        if os.path.exists(os.path.join(base, 'decoy', f'{i}.video.json')) and not os.path.exists(os.path.join(base, 'judge-control-decoy.json')):
-            j = subprocess.run([sys.executable, os.path.join(BIN, 'judge.py'), evidence_case(i), base, '--control', 'decoy'], capture_output=True, text=True)
-            log(other, f'{i} control decoy: {j.stdout.strip() or j.stderr.strip()[-300:]}')
+        if not os.path.exists(decoy_script):
+            d = subprocess.run([sys.executable, os.path.join(BIN, 'decoy.py'), evidence_case(i), base, '--words', str(extra), *tagged], capture_output=True, text=True)
+            log(other, f'{i} decoy +{extra} words{"" if tag is None else " for " + tag}: {d.stdout.strip() or d.stderr.strip()[-300:]}')
+        if os.path.exists(decoy_script) and not os.path.exists(decoy_judged):
+            j = subprocess.run([sys.executable, os.path.join(BIN, 'judge.py'), evidence_case(i), base, '--control', 'decoy', *tagged], capture_output=True, text=True)
+            log(other, f'{i} control decoy{"" if tag is None else " for " + tag}: {j.stdout.strip() or j.stderr.strip()[-300:]}')
 
 
 SCORE = {'candidate': 1.0, 'reference': -1.0, 'tie': 0.0}
@@ -328,7 +344,7 @@ def read_days(config, other):
         rows[i] = {'grade': g, 'gradeBase': gb,
                    'audit': load(os.path.join(a, 'audit.json')), 'auditBase': load(os.path.join(b, 'audit.json')),
                    'judge': load(os.path.join(a, f'judge-vs-{other}.json')),
-                   'same': load(os.path.join(b, 'judge-control-same.json')), 'decoy': load(os.path.join(b, 'judge-control-decoy.json'))}
+                   'same': load(os.path.join(b, 'judge-control-same.json')), 'decoy': load(decoy_paths(b, i, decoy_tag(config))[1])}
     return rows
 
 

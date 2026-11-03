@@ -5,13 +5,13 @@ engine verdicts).
 
   judge.py <case-dir> <run-dir> --against <other-run-dir> [--model claude-sonnet-5-5]
   judge.py <case-dir> <run-dir> --control same            the run's script on both sides (every criterion should tie)
-  judge.py <case-dir> <run-dir> --control decoy           the run's decoy (bin/decoy.py) as the candidate, the run's script as the reference
+  judge.py <case-dir> <run-dir> --control decoy [--tag <candidate>]  the run's decoy (bin/decoy.py) as the candidate, the run's script as the reference
 
 Both scripts are shown as A and B, twice, in both orders. A side wins a
 criterion only when it wins in both orders; anything else is a tie. The
 evidence is the graders' (bin/evidence.mts) with both scripts' board scenes.
 Writes <run-dir>/judge-vs-<other config>.json, judge-control-same.json or
-judge-control-decoy.json.
+judge-control-decoy.json (judge-control-decoy-<tag>.json with --tag).
 """
 import json, os, random, sys
 
@@ -59,7 +59,9 @@ def main():
     if control == 'same':
         files, name = {'candidate': mine, 'reference': mine}, 'judge-control-same.json'
     elif control == 'decoy':
-        files, name = {'candidate': os.path.join(run, 'decoy', f'{rid}.video.json'), 'reference': mine}, 'judge-control-decoy.json'
+        tag = opt('--tag')
+        folder, name = ('decoy', 'judge-control-decoy.json') if not tag else (f'decoy-{tag}', f'judge-control-decoy-{tag}.json')
+        files = {'candidate': os.path.join(run, folder, f'{rid}.video.json'), 'reference': mine}
     else:
         files = {'candidate': mine, 'reference': video_file(against, rid)}
         name = f'judge-vs-{os.path.normpath(against).split(os.sep)[-3]}.json'

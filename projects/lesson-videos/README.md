@@ -23,7 +23,8 @@ what the position is about before the move more often and gave an idea to
 reuse more often, but said what the better move does no more often, so the
 share of the three moves he asked for rose by an interval that does not clear
 zero: the condition that failed. Heard once, the scripts are about as long.
-Whether to ship the change anyway is the owner's call. The numbers are in
+The owner chose a second round that fixes the gap before anything ships
+([Round 2](#round-2-the-scene-of-his-move-names-the-better-move)). The numbers are in
 [`results/report.json`](results/report.json) (the rule as `batch.py report`
 computed it, exported by `bin/export.py`) and the paper,
 [`paper/paper.pdf`](paper/paper.pdf).
@@ -202,6 +203,37 @@ the seven-day window is at 60% or more or the five-hour window at 45% or more
 window), or from 11:30 to 14:45 UTC (16:30 on Mondays), the hours the daily and
 weekly routines fire and land.
 
+## Round 2: the scene of his move names the better move
+
+Fixed before its first run. Round 1 failed on the asked share alone. The audit
+counts every moment scene as owing all three asked moves, and a segment
+usually takes two scenes, because a board scene cannot take a move back: the
+first plays his move and its refutation, the second plays the better move from
+the same position. In both configs, the scenes that play the better move
+nearly always said what it does, and no scene that showed only his move did.
+
+- `lesson-moves-2`: round 1's candidate plus one sentence in the daily
+  prompt's video coaching, after the one that asks what the better move is
+  for: "A segment that plays his move in one scene and the better move in the
+  next says what the better move is for in both: his move's scene ends by
+  naming the better move and what it is for, in teach's words, before the next
+  scene plays it." The change's branch carries it at 284a31b; the cases run
+  24f056f, round 1's eval commit (4d0e9d3) with that sentence and nothing else.
+- The same twelve days, split and cases built the same way. Only
+  `lesson-moves-2` writes; round 1's baseline runs, their audits and their
+  same-script controls are read again unchanged, since the days, the code and
+  the graders are the same.
+- The same audit and judge. The decoy control is made again on the baseline's
+  runs to match `lesson-moves-2`'s added words (`decoy-lesson-moves-2/` and
+  `judge-control-decoy-lesson-moves-2.json` beside round 1's files).
+- The same nine conditions, `lesson-moves-2` against `baseline`. Kept only
+  when all hold, and then the change ships with the sentence; otherwise it
+  does not ship. The sentence may make his move's scene say what the next
+  scene says again: the judge's listening and overall verdicts and the length
+  condition read that.
+- About $75 more, approved by the owner, so the cap becomes $205
+  (`EVAL_CAP=205`) for both rounds together.
+
 ## Running it
 
 ```
@@ -213,6 +245,12 @@ bin/batch.py audit
 bin/batch.py judge
 bin/batch.py controls
 bin/batch.py report
+bin/make-case.sh 2026-10-13 $EVAL_ROOT/cases/lesson-moves-2/2026-10-13 24f056f  # round 2, each day
+bin/batch.py runs --configs lesson-moves-2 --jobs 2
+bin/batch.py audit --configs lesson-moves-2
+bin/batch.py judge --config lesson-moves-2
+bin/batch.py controls --config lesson-moves-2
+bin/batch.py report --config lesson-moves-2
 bin/export.py                            # results/
 bridge/run.sh projects/lesson-videos/paper/generate.mjs   # from the repository's root
 ```
