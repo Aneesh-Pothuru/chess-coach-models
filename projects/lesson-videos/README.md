@@ -8,7 +8,25 @@ change that makes the review teach from his study lessons.
 
 ## Result
 
-Written after the run, below the design, from `results/report.json`.
+Not kept by the rule below, which was committed before the first run: one
+condition failed, the second half of the seventh. Every review of both configs
+passed the final check. The change's videos spoke no verdict line on any of the
+twelve days, against three to six a day for today's code. Judging blind in both
+orders, the judge preferred the change's coaching and its whole script on every
+day, train and held out alike, and never preferred today's code on truth or
+listening; the same script on both sides tied every criterion on every day, and
+the decoy never won coaching. The audit found fewer false claims in the
+change's scripts and more misleading ones (a lesson's rule in words the lesson
+does not use, a findability line that reads as if he had played the move), and
+every better move either config taught sound. The change's moment scenes said
+what the position is about before the move more often and gave an idea to
+reuse more often, but said what the better move does no more often, so the
+share of the three moves he asked for rose by an interval that does not clear
+zero: the condition that failed. Heard once, the scripts are about as long.
+Whether to ship the change anyway is the owner's call. The numbers are in
+[`results/report.json`](results/report.json) (the rule as `batch.py report`
+computed it, exported by `bin/export.py`) and the paper,
+[`paper/paper.pdf`](paper/paper.pdf).
 
 ## Question
 
@@ -196,6 +214,7 @@ bin/batch.py judge
 bin/batch.py controls
 bin/batch.py report
 bin/export.py                            # results/
+bridge/run.sh projects/lesson-videos/paper/generate.mjs   # from the repository's root
 ```
 
 The per-run files (the reviews, the streams, the audits with their quotes)

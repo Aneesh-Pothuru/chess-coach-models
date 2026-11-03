@@ -1,0 +1,223 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Does the daily review teach better when it teaches the move a lesson teaches?\\[0.3em]
+\large The lesson pick, its prompt and a check on verdict talk, replayed on \Days{} past days}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The app's daily routine writes a review of the player's games every day, with a narrated video.
+He asked it to stop telling him what the engine thinks of a position and to teach the way people
+learn: at each key moment, a sound move a player at his level can find, what it does on the board,
+and the idea behind it from the study lessons he follows. One change does all three parts: the
+review's \texttt{teach} command picks the move a lesson teaches among the moves the engine says
+hold for him, the routine's prompt asks for that move, what it does and the lesson's rule, and the
+routine's checker refuses a video line that says who is better. We replayed the whole review on
+\Days{} past days, once with today's code and once with the change, with the routine's own model,
+tools and checker. Every review passed the check. The change's videos spoke no verdict line on any
+day, against \BaseVerdictMin{} to \BaseVerdictMax{} a day today. Judging blind in both orders, a
+model preferred the change's coaching and its whole script on all \Days{} days, and both controls
+held. An audit against the evidence found fewer false claims in the change's scripts
+(\CandFalse{} per script against \BaseFalse), with more misleading ones (\CandMisleading{} against
+\BaseMisleading), mostly lesson rules and findability worded loosely. Its moment scenes said what
+the position is about before the move more often (\CandAboutFirst\% against \BaseAboutFirst\%), but
+what the better move does no more often (\CandPurposeNamed\% against \BasePurposeNamed\%), so the
+share of the three moves he asked for rose by \AskedDiff{} points, an interval that does not clear
+zero. That is the one condition of the rule fixed before the first run that did not hold, so by its
+rule the change is not kept, and shipping it is the owner's call.
+\end{abstract}
+
+\section{The question}
+
+Each day the routine has a model review the day's games and write the annotations the app shows
+and a narrated video script: scenes with a board from one of his games and beats with a spoken
+line, a caption, the moves played on the board and pauses where he is meant to think. Before the
+change, the better move it taught at a turning point was the move players at his band most often
+choose among those the engine says hold, else the engine's move, and its videos often said who
+stood better: ``level'', ``you are winning'', ``the engine agrees''.
+
+The player asked for the review to teach from his study lessons instead: a sound move he can find,
+what it does on the board and the idea behind it, from a lesson when one fits, even when it is not
+the engine's first choice, as long as the engine says it keeps his position. The lesson-moves
+study measured the move such a review would teach on every turning point of his archive: a lesson
+teaches it at most turning points, it gives up a fraction of a win\% against the engine's first
+line, and players at his band choose it more often than that first line. This study asks whether
+the review the routine writes with the change teaches better, without becoming less true or much
+longer.
+
+\section{The change}
+
+The change is the app at \texttt{\ChangeCommit}, in three parts that ship together:
+\begin{itemize}[nosep]
+\item \textbf{The pick.} \texttt{coach review teach} reads what each move that holds for him is for
+  (it meets a threat, wins material, trades queens, breaks with a pawn, puts a rook on an open file,
+  and so on) and the lesson chapters that teach it, and teaches the move his band plays most often
+  among those a lesson teaches for a purpose his move lacked, with the chapters and their rules.
+\item \textbf{The prompt.} The daily prompt asks for that move, what it does in teach's words and
+  the chapter's rule in the writer's own, a moment that opens with what the position is about, and
+  no line that says who is better.
+\item \textbf{The check.} \texttt{daily check} refuses a video line that says who is better, by the
+  same rule this study counts verdict lines with. It applies from the day after the change ships;
+  the replayed days are older, so the change's cases run an eval-only commit
+  (\texttt{\CandCommit}) that moves that date before them and changes nothing else.
+\end{itemize}
+Today's code is the app's main at \texttt{\BaseCommit}.
+
+\section{The cases and the writer}
+
+A case is a past day whose review landed on the app's main with a video script: \Days{} days from
+\FirstDay{} to \LastDay, with \GamesMin{} to \GamesMax{} games each (\GamesAll{} in all). Each config
+has its own case of each day: a checkout of the app at the config's code with the coach data as
+main held it just before that day's review landed and the day's archived engine analysis, with the
+day's brief written again by that code's \texttt{coach daily prepare}, offline. The review itself,
+its annotations and its video script, is what a writer run writes. The split was fixed before any
+run, interleaved by date: train is \TrainDays; held out is \HeldDays.
+
+The writer runs as the routine does: Opus 5.5, headless, with nothing inherited from the session
+that launched it, the study lessons' server attached as the live routine has it, and a short
+preamble that names the day, says which steps ran and asks for the review, done when the routine's
+check passes. Each config wrote every day once (\WriterRuns{} runs in all).
+
+\section{The graders}
+
+A script with no model reads each run: the final check, the check rounds, files changed, commands
+it should not have run, how often it ran \texttt{teach}, the video lines that say who is better by
+the change's own rule (run on both configs' scripts), the annotations' moments that link a lesson,
+the script's shape, its length heard once (spoken words at \WordsPerSecond{} a second plus every
+pause), cost and minutes.
+
+Sonnet 5.5 audits each video script alone against the evidence it was written from: the brief
+without its bulk, the day's games and turning points, the engine digest, how often players at his
+band find the engine's move, and for every board scene the position as the archive, the engine,
+Maia-2 and the board code read it, with the engine's best reply after each move the game did not
+play; and the study lessons, every lesson's title and what it teaches, with the sections of each
+lesson a script names. It lists the claims the evidence contradicts (\emph{false}), does not carry
+(\emph{unsupported}) or slants (\emph{misleading}), and for each board scene its kind, its false
+board claims, whether it says who is better, and for a moment scene whether it says what the
+position is about before the move, what the better move does, an idea to reuse, a lesson and
+whether the lesson fits, whether the better move is sound, and the coaching moves of the earlier
+video study.
+
+Sonnet 5.5 also judges each day's two scripts blind, in both orders, on truth, coaching, listening
+and overall, with the player's ask in its instructions; a side wins a criterion only when both
+orders agree. Two controls check the judge on every day: today's script against itself, and against
+a decoy that adds as many spoken words as the change added that day (at least \MinDecoyWords), in
+beats that restate their scene with nothing new.
+
+\section{The rule}
+
+A day scores $+1$ when the change wins a criterion, $-1$ when it loses and $0$ for a tie; intervals
+are 95\% percentile bootstrap intervals over days. The change ships only when every condition of
+Table~\ref{tab:rule} holds, fixed before its first run.
+
+\begin{table}[h]
+\centering
+\small\RuleTable
+\caption{The rule, fixed before the change's first run. Coaching and overall are the judge's scores
+per day; the claim rows, the asked moves and the unsound better moves are the audit's numbers per
+script, the change minus today's code; the verdict lines are the script's own count; the length is
+the change's script heard once over today's on the same day. Kept: \Kept.}
+\label{tab:rule}
+\end{table}
+
+\section{What the judge preferred}
+
+The judge preferred the change's coaching on all \Days{} days, and its whole script overall on all
+\Days: \TrainCoaching{} on the train days and \HeldCoaching{} held out. Truth went to the change on
+\TruthWins{} days and to today's code on \TruthLosses, with \TruthTies{} ties; listening to the change
+on \ListeningWins{} and to today's code on \ListeningLosses. Table~\ref{tab:days} gives each day. Of
+the \Decided{} decided verdicts in single orders, \SecondShare\% went to the script shown second.
+
+The controls held. Today's script against itself tied every criterion on every day
+(\SameBroken{} broken). The decoy, today's script with about \DecoyAdded{} spoken words of
+restatement added, won coaching on \DecoyCoaching{} days and lost listening on
+\DecoyLostListening{} and overall on \DecoyLostOverall: the judge does not reward added words.
+
+\section{What the writing did}
+
+\begin{table}[h]
+\centering
+\small\ItemsTable
+\caption{What the audit finds in the moment scenes, pooled over the \Days{} days: the share of the
+scenes that owe an item and make it, with the number owing it in brackets.}
+\label{tab:items}
+\end{table}
+
+\paragraph{No verdict talk.} Today's code spoke \BaseVerdictLines{} lines a day that say who is
+better (\BaseVerdictMin{} to \BaseVerdictMax); the change spoke none. The audit, reading every board
+scene, found \BaseVerdictScenes{} scenes a day saying who is better in today's scripts and
+\CandVerdictScenes{} in the change's.
+
+\paragraph{The asked moves.} The change's moment scenes said what the position is about before
+the move in \CandAboutFirst\% of them (today's: \BaseAboutFirst\%) and gave an idea to reuse in
+\CandTakeaway\% (\BaseTakeaway\%), but said what the better move does on the board in
+\CandPurposeNamed\% (\BasePurposeNamed\%). Per day, the share of the three it made rose by
+\AskedDiff{} points (Table~\ref{tab:items}). Every moment scene owes all three, including the scenes
+that show what he played before the better move, which is part of why neither config makes them in
+every scene.
+
+\paragraph{Lessons.} The change's annotations link a study lesson on \CandLinked\% of their moments
+(\CandLinkedN{} of \CandMomentsN), today's on \BaseLinked\% (\BaseLinkedN{} of \BaseMomentsN). The audit
+found the change's moment scenes naming a lesson in \CandLessonNamed\% of them, and the lesson
+fitting what the scene teaches in \CandLessonFits\% of those.
+
+\paragraph{Truth.} The change's scripts carried \CandFalse{} false claims per script against
+\BaseFalse{} today, a difference of \FalseDiff, and \CandBoardFalse{} false board claims against
+\BaseBoardFalse{} (\BoardDiff). They carried more misleading claims, \CandMisleading{} per script
+against \BaseMisleading, and about as many unsupported ones (\CandUnsupported{} against
+\BaseUnsupported). Most of the added misleading claims are of two kinds: a lesson's rule said in
+words the lesson does not use, and a line on how often his band finds a move followed by one that
+reads as if he had played it. The better moves both
+taught were sound by the evidence in every moment scene that owed one.
+
+\paragraph{Length, the check and cost.} Heard once, the change's videos run \CandHeard{} minutes on
+average against \BaseHeard{} (a ratio of \LengthRatio{} on the same day). Every run passed the final
+check, in \CandRounds{} check rounds on average against \BaseRounds. The change ran \texttt{teach}
+\CandTeach{} times a day (today's code: \BaseTeach). A run cost \CandCost{} dollars against \BaseCost{}
+and took \CandMinutes{} minutes against \BaseMinutes. The eval spent \Spent{} dollars of a \Budget{}
+budget (\WriterSpend{} on writing, \GraderSpend{} on grading), and the subscription's seven-day window
+went from \SevenDayFirst\% to \SevenDayLast\%.
+
+\begin{table}[h]
+\centering
+\scriptsize\setlength{\tabcolsep}{4pt}\DayTable
+\caption{Each day: the judge's verdict on each criterion from the change's side ($+$ the change, $-$
+today's code, 0 a tie), the change's length over today's, the verdict lines each spoke, and the share
+of the asked moves each made.}
+\label{tab:days}
+\end{table}
+
+\section{What the app can take}
+
+\begin{itemize}[nosep]
+\item By the rule the change is not kept: the share of the moves he asked for did not rise clearly.
+  Everything else the rule asks for held, with the judge preferring the change on every day, so
+  whether to ship it is the owner's call.
+\item The part that did not move is the better move's purpose: the prompt asks the writer to say
+  what the move is for in \texttt{teach}'s words, and it does so no more often than today. A next
+  round could ask for that sentence on the better move's own beat.
+\item Two kinds of loose wording grew: lesson rules said in other words than the lesson's, and
+  findability lines that read as if he had played the move. The first is the chapter fit the
+  lesson-moves study names as its next round; the second is a wording fix in the prompt's level
+  line.
+\item The change ships as one: the pick in \texttt{teach}, the prompt, and the check on verdict talk.
+  This study shows what they do together, not which part does it.
+\end{itemize}
+
+\section{Caveats}
+
+\begin{itemize}[nosep]
+\item \textbf{One run per config and day.} There is no second run of today's code for a noise floor;
+  the same-script and decoy controls stand in for it.
+\item \textbf{A model judges.} The judge and the audit are Sonnet 5.5 with the evidence, not the
+  player; the controls show the judge neither invents differences nor rewards length.
+\item \textbf{The days are past days.} The writer reads the same data the routine read, but the
+  lessons' server serves today's lessons.
+\end{itemize}
+
+\end{document}
