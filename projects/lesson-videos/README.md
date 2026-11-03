@@ -179,9 +179,10 @@ every call's `total_cost_usd` at list price, and `batch.py` starts no writer
 whose expected cost, with the runs in flight and what grading still owes,
 would pass the cap. The calls run on the owner's subscription, whose limits
 the live routines share, so `batch.py` also starts no writer or grader while
-the five-hour window is at 45% or more or the seven-day window at 60% or more,
-or from 11:30 to 14:45 UTC (16:30 on Mondays), the hours the daily and weekly
-routines fire and land.
+the seven-day window is at 60% or more or the five-hour window at 45% or more
+(when the subscription reports one: at the start it reported only the seven-day
+window), or from 11:30 to 14:45 UTC (16:30 on Mondays), the hours the daily and
+weekly routines fire and land.
 
 ## Running it
 

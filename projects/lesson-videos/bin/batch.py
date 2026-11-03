@@ -148,15 +148,16 @@ def owed(run):
 
 
 def room():
-    """Why no model call should start now, or None: the live routines' hours and the usage bars."""
+    """Why no model call should start now, or None: the live routines' hours and the usage bars (the five-hour
+    window's only when the subscription reports it)."""
     if quiet_hours():
         return 'quiet hours around the live routines'
     w = probe() or latest_windows() or {}
-    if w.get('five_hour') is None or w.get('seven_day') is None:
+    if w.get('seven_day') is None:
         return 'usage windows unreadable'
     if w['seven_day'] >= SEVEN_DAY_BAR:
         return f"seven-day window at {w['seven_day']} (bar {SEVEN_DAY_BAR})"
-    if w['five_hour'] >= FIVE_HOUR_BAR:
+    if w.get('five_hour') is not None and w['five_hour'] >= FIVE_HOUR_BAR:
         return f"five-hour window at {w['five_hour']} (bar {FIVE_HOUR_BAR})"
     return None
 
