@@ -29,7 +29,16 @@ the position is about before the move more often (\CandAboutFirst\% against \Bas
 what the better move does no more often (\CandPurposeNamed\% against \BasePurposeNamed\%), so the
 share of the three moves he asked for rose by \AskedDiff{} points, an interval that does not clear
 zero. That is the one condition of the rule fixed before the first run that did not hold, so by its
-rule the change is not kept, and shipping it is the owner's call.
+rule the change is not kept. A second round, designed after reading the first round's scene audits
+and run on the same days, added one sentence to the prompt: the scene that shows his move ends on
+the better move and what it does. With it every moment scene said what the better move does, the
+share of the asked moves rose by \TwoAskedDiff{} points, the judge preferred the change on
+\TwoCoachingWins{} of the \Days{} days, and every condition of the rule held, so the second round is
+kept. Its scripts carried more false claims than today's (\TwoFalse{} per script against
+\BaseFalse), inside the noise. The owner,
+watching a day replayed with it, found that it still names a lesson and plays a line without saying
+why each move works; the app's next version, which reads every move of both lines on the board, is
+not measured here.
 \end{abstract}
 
 \section{The question}
@@ -192,21 +201,100 @@ of the asked moves each made.}
 \label{tab:days}
 \end{table}
 
+\section{Round 2: the scene of his move names the better move}
+
+Round 1's audit marks, for each moment scene, whether it teaches a better move and whether it says
+what that move does. Split that way (Table~\ref{tab:scenes}), the gap was structural: in both
+configs the scenes that teach a better move nearly always said what it does, and the scenes that
+show only his move never did, though the audit holds every moment scene to all three asked moves.
+Round 2 changes one thing, a sentence in the routine's prompt: a segment that plays his move in
+one scene and the better move in the next says what the better move is for in both, the scene of
+his move ending on the better move and what it does, in \texttt{teach}'s words, before the next
+scene plays it. The change is the app at \texttt{\TwoChangeCommit}, run as \texttt{\TwoCommit}
+with the verdict check moved onto the replayed days as in round 1. Everything else was fixed before
+the run and is round 1's: the \Days{} days and their split, the writer, the graders and the rule.
+Today's code was not run again: round 2 reads round 1's baseline runs and their audits unchanged.
+The decoy was made again from today's script to the length of round 2's.
+
+\begin{table}[h]
+\centering
+\small\ScenesTable
+\caption{Moment scenes that say what the better move does, by whether the audit reads the scene as
+teaching a better move or as showing only his move, pooled over the \Days{} days, with the number of
+scenes in brackets. In round 2 every scene named a better move, so the audit read none as showing
+only his move.}
+\label{tab:scenes}
+\end{table}
+
+\paragraph{The rule.} Every condition held (Table~\ref{tab:rule2}), so round 2 is kept. The judge
+preferred its coaching on \TwoCoachingWins{} days and tied on \TwoCoachingTies, and its whole script
+on \TwoOverallWins; truth went to round 2 on \TwoTruthWins{} days, to today's code on
+\TwoTruthLosses{} and tied on \TwoTruthTies{} (Table~\ref{tab:days2}). The decoy, today's script with
+about \TwoDecoyAdded{} words of restatement added, won no day's coaching and lost listening on all
+\Days. Every run passed the final check.
+
+\begin{table}[h]
+\centering
+\small\TwoRuleTable
+\caption{Round 2 against the rule fixed before round 1, over the \Days{} days unless a row says
+otherwise. The judge's rows are the mean verdict from round 2's side ($+1$ round 2, $-1$ today's
+code), the audit's rows per script, round 2 minus today's code.}
+\label{tab:rule2}
+\end{table}
+
+\paragraph{The asked moves.} Round 2's moment scenes said what the better move does in
+\TwoPurposeNamed\% of them (today's: \BasePurposeNamed\%; round 1: \CandPurposeNamed\%), said what the
+position is about first in \TwoAboutFirst\% and gave an idea to reuse in \TwoTakeaway\%
+(Table~\ref{tab:items2}). Per day the share of the three rose by \TwoAskedDiff{} points, an
+interval clear of zero, where round 1's was \AskedDiff.
+
+\paragraph{What it cost.} Round 2's scripts carried \TwoFalse{} false claims per script against
+\BaseFalse{} today (\TwoFalseDiff) and round 1's \CandFalse, \TwoBoardFalse{} false board claims
+against \BaseBoardFalse{} (\TwoBoardDiff), and \TwoMisleading{} misleading ones against
+\BaseMisleading: more than today on each, inside the noise, where round 1 had fewer false claims
+than today. They followed the better move to their best reply in \TwoThenWhat\% of the scenes
+that owed it, against \BaseThenWhat\% today, but in about as many scenes (\TwoThenMade{} of
+\TwoThenOwed, against \BaseThenMade{} of \BaseThenOwed): the scenes of his move now name a better
+move, so the audit holds them to following it too, and they leave that to the next scene. Its videos ran
+\TwoHeard{} minutes heard once, \TwoLengthRatio{} times today's on the same day, and spoke no verdict
+line. A run cost \TwoCost{} dollars; the round spent \TwoSpent{} dollars and both rounds
+\BothSpent{}, under the \TwoCap{} the owner approved for the second round.
+
+\begin{table}[h]
+\centering
+\small\ItemsTwoTable
+\caption{What the audit finds in the moment scenes in each round, pooled over the \Days{} days: the
+share of the scenes that owe an item and make it, with the number owing it in brackets.}
+\label{tab:items2}
+\end{table}
+
+\begin{table}[h]
+\centering
+\scriptsize\setlength{\tabcolsep}{4pt}\TwoDayTable
+\caption{Each day in round 2: the judge's verdict on each criterion from round 2's side ($+$ round 2,
+$-$ today's code, 0 a tie), the length over today's, the verdict lines it spoke, and the share of
+the asked moves each made.}
+\label{tab:days2}
+\end{table}
+
 \section{What the app can take}
 
 \begin{itemize}[nosep]
-\item By the rule the change is not kept: the share of the moves he asked for did not rise clearly.
-  Everything else the rule asks for held, with the judge preferring the change on every day, so
-  whether to ship it is the owner's call.
-\item The part that did not move is the better move's purpose: the prompt asks the writer to say
-  what the move is for in \texttt{teach}'s words, and it does so no more often than today. A next
-  round could ask for that sentence on the better move's own beat.
-\item Two kinds of loose wording grew: lesson rules said in other words than the lesson's, and
-  findability lines that read as if he had played the move. The first is the chapter fit the
-  lesson-moves study names as its next round; the second is a wording fix in the prompt's level
-  line.
-\item The change ships as one: the pick in \texttt{teach}, the prompt, and the check on verdict talk.
-  This study shows what they do together, not which part does it.
+\item By the rule, round 1 is not kept and round 2 is: with the sentence that ends the scene of his
+  move on the better move and what it does, every condition held.
+\item The owner judged a day replayed with round 2 short of what he asked for: its scenes say what
+  the better move is for, but a lesson is named rather than taught, and the line is played without
+  saying why each move works, so it builds no pattern he can recognise. The audit's items do not
+  ask for that, which is why the rule passed a version he did not want.
+\item The next version reads every move of the line his move allowed and of the line the pick
+  starts on the board (a check, a trade, a take-back, a threat, what the move is for), and its
+  prompt teaches the lesson's method on his position before any move, plays his move's line to
+  what it costs, gives each move of the better line its job, and ends on the cue that the idea is
+  on. Measuring it needs items for those, an audit that each move's stated job matches the board,
+  and the owner's own judgement of a replayed day.
+\item False claims rose a little in round 2, inside the noise. A version that says more about each
+  move has more to get wrong, so its round should hold false board claims at least as tightly as
+  this rule does.
 \end{itemize}
 
 \section{Caveats}
@@ -218,6 +306,9 @@ of the asked moves each made.}
   player; the controls show the judge neither invents differences nor rewards length.
 \item \textbf{The days are past days.} The writer reads the same data the routine read, but the
   lessons' server serves today's lessons.
+\item \textbf{Round 2 was designed after round 1.} Its sentence answers a gap round 1's audits of
+  the same days showed, held-out days included, so round 2 is not an independent test: a new set of
+  days would be.
 \end{itemize}
 
 \end{document}

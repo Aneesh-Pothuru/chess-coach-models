@@ -8,7 +8,21 @@ change that makes the review teach from his study lessons.
 
 ## Result
 
-Not kept by the rule below, which was committed before the first run: one
+Round 2 is kept by the rule; round 1 is not. With round 2's one sentence (the
+scene of his move ends on the better move and what it does), every moment
+scene said what the better move does, the share of the three asked moves rose
+by an interval clear of zero, the judge preferred it on all days but one with
+both controls clean, and all nine conditions held. Its scripts carried a few
+more false claims than today's, inside the noise, and followed the better move
+to their reply less often ([Round 2](#round-2-the-scene-of-his-move-names-the-better-move)).
+The owner then watched a day replayed with it and judged it short of what he
+asked for: it names a lesson instead of teaching it and plays a line without
+saying why each move works. So the app does not take round 2 as it stands; it
+takes a next version that reads every move of both lines on the board, which
+this project has not measured. Round 2's numbers are in
+[`results/report-lesson-moves-2.json`](results/report-lesson-moves-2.json).
+
+Round 1: not kept by the rule below, which was committed before the first run: one
 condition failed, the second half of the seventh. Every review of both configs
 passed the final check. The change's videos spoke no verdict line on any of the
 twelve days, against three to six a day for today's code. Judging blind in both
@@ -234,6 +248,12 @@ nearly always said what it does, and no scene that showed only his move did.
 - About $75 more, approved by the owner, so the cap becomes $205
   (`EVAL_CAP=205`) for both rounds together.
 
+Outcome: every condition held, so round 2 is kept by the rule
+(`results/report-lesson-moves-2.json`, `results/runs-lesson-moves-2.json`;
+`bin/scenes.py` writes the scene split in `results/scenes.json`). The rule's
+"then the change ships" was overtaken by the owner's judgement of a replayed
+day, above.
+
 ## Running it
 
 ```
@@ -252,6 +272,8 @@ bin/batch.py judge --config lesson-moves-2
 bin/batch.py controls --config lesson-moves-2
 bin/batch.py report --config lesson-moves-2
 bin/export.py                            # results/
+bin/export.py --config lesson-moves-2    # results/*-lesson-moves-2.json
+bin/scenes.py                            # results/scenes.json
 bridge/run.sh projects/lesson-videos/paper/generate.mjs   # from the repository's root
 ```
 

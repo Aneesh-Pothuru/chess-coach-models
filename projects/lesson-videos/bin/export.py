@@ -4,7 +4,8 @@
 results/runs.json (each run's numbers, each day's judge verdicts, the controls,
 the audits' counts and tallies, and the audit of each published script when one
 was run). No quote, game, opponent or position from a review leaves the eval
-directory.
+directory. A later candidate (round 2's lesson-moves-2) writes
+results/report-<config>.json and results/runs-<config>.json beside them.
 
   export.py [--config lesson-moves --vs baseline]
 """
@@ -13,7 +14,7 @@ import json, os, sys
 BIN = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BIN)
 from common import EVAL, PROJECT, ledger, load, opt, spoken_seconds  # noqa: E402
-from batch import BASELINE, CANDIDATE, CRITERIA, HELD_OUT, IDS, MIN_DECOY_WORDS, TRAIN, case_dir, run_dir  # noqa: E402
+from batch import BASELINE, CANDIDATE, CRITERIA, HELD_OUT, IDS, MIN_DECOY_WORDS, TRAIN, case_dir, decoy_paths, decoy_tag, run_dir  # noqa: E402
 
 
 def audit_row(a):
@@ -75,8 +76,9 @@ def main():
     controls = {}
     for i in IDS:
         base = run_dir(other, i)
-        c = {'same': verdict(os.path.join(base, 'judge-control-same.json')), 'decoy': verdict(os.path.join(base, 'judge-control-decoy.json'))}
-        rep = load(os.path.join(base, 'decoy', 'report.json'))
+        decoy_script, decoy_judged = decoy_paths(base, i, decoy_tag(config))
+        c = {'same': verdict(os.path.join(base, 'judge-control-same.json')), 'decoy': verdict(decoy_judged)}
+        rep = load(os.path.join(os.path.dirname(decoy_script), 'report.json'))
         if rep:
             beats = rep.get('beats') or []
             c['decoyText'] = {'target': rep.get('target'), 'added': rep.get('added'), 'beats': len(beats),
@@ -94,9 +96,18 @@ def main():
             'writer': 'claude-opus-5-5', 'graders': 'claude-sonnet-5-5',
             'method': {'wordsPerSecond': spoken_seconds.__defaults__[0], 'minDecoyWords': MIN_DECOY_WORDS}}
     usage = {'sevenDay': {'first': windows[0]['seven_day'] if windows else None, 'last': windows[-1]['seven_day'] if windows else None}}
-    json.dump({**meta, 'report': report, 'spend': spend, 'spent': round(sum(spend.values()), 2), 'usage': usage},
-              open(os.path.join(out, 'report.json'), 'w'), indent=1)
-    json.dump({**meta, 'runs': runs, 'pairs': pairs, 'controls': controls}, open(os.path.join(out, 'runs.json'), 'w'), indent=1)
+    suffix = '' if config == CANDIDATE else f'-{config}'
+    extra = {}
+    if suffix:
+        starts = [(load(os.path.join(run_dir(config, i), 'run.json')) or {}).get('started') for i in IDS]
+        first = min((t for t in starts if t), default=None)
+        mine = [r for r in ledger() if first and r.get('t', 0) >= first and r.get('kind') != 'hold']
+        extra = {'round': {'firstWriter': first, 'spent': round(sum(r.get('cost') or 0 for r in mine), 2),
+                           'sevenDay': {'first': next((r['windows']['seven_day'] for r in mine if (r.get('windows') or {}).get('seven_day') is not None), None),
+                                        'last': next((r['windows']['seven_day'] for r in reversed(mine) if (r.get('windows') or {}).get('seven_day') is not None), None)}}}
+    json.dump({**meta, 'report': report, 'spend': spend, 'spent': round(sum(spend.values()), 2), 'usage': usage, **extra},
+              open(os.path.join(out, f'report{suffix}.json'), 'w'), indent=1)
+    json.dump({**meta, 'runs': runs, 'pairs': pairs, 'controls': controls}, open(os.path.join(out, f'runs{suffix}.json'), 'w'), indent=1)
     print(json.dumps({'runs': len(runs), 'pairs': len(pairs), 'kept': report.get('kept'), 'spent': round(sum(spend.values()), 2)}))
 
 
