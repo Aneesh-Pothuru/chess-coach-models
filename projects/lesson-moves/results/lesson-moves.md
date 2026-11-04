@@ -1,6 +1,6 @@
 # lesson-moves: the lesson pick at his turning points
 
-Written by `measure.mjs` on the app at `f7a8b12a011e399d727856955ef1e88e7ac173bc`: 74 lessons, 527 chapters, the archive's turning points with him to move.
+Written by `measure.mjs` on the app at `4ba253b9e654248622c0069c62fbe72f26f316ee`: 74 lessons, 493 chapters, the archive's turning points with him to move.
 
 | | train | held out |
 |---|---|---|
@@ -28,7 +28,7 @@ The lessons a lesson pick names, by what the pick is for (both splits; described
 |---|---|
 | meets-threat | V31 "Choose a defense that changes the threat", ch. 14 "Move the queen while taking the loose pawn": 334; V07 "Choose the right kind of defense", ch. 11 "A counterattack that is fast enough": 49; V07 "Choose the right kind of defense", ch. 5 "A check takes priority over the bishop attack": 24 |
 | open-file | V27 "Give your rook an entry square", ch. 12 "Move the rook that has no job": 181 |
-| wins-material | V31 "Choose a defense that changes the threat", ch. 14 "Move the queen while taking the loose pawn": 112; V40 "Calculate the defense inside the combination", ch. 28 "A blockaded pawn and a forcing check": 13; V12 "Test your move against their reply", ch. 4 "A defender may be unable to capture": 13; V15 "Recognize tactics during an ordinary game", ch. 9 "A knight attacks king, queen, and rook": 11; 3 more |
+| wins-material | V31 "Choose a defense that changes the threat", ch. 14 "Move the queen while taking the loose pawn": 112; V40 "Calculate the defense inside the combination", ch. 28 "A blockaded pawn and a forcing check": 13; V41 "Improve with a tactic in reserve", ch. 13 "The knight defends f7 and sets a trap": 13; V15 "Recognize tactics during an ordinary game", ch. 10 "A knight attacks king, queen, and rook": 11; 3 more |
 | develops | V34 "Develop with a purpose as White", ch. 8 "Black’s e pawn stops the golden plan": 75 |
 | mate | V33 "Prove that the king has no escape", ch. 14 "The checking queen is protected": 57 |
 | pawn-break | V08 "Read the pawn structure before choosing a plan", ch. 6 "Attack the supporting pawn": 48 |
@@ -40,10 +40,10 @@ The lessons a lesson pick names, by what the pick is for (both splits; described
 | takes-centre | V35 "Respond to White’s center as Black", ch. 6 "Central support shapes the recapture": 16 |
 | ending-technique | V23 "An active king and real targets", ch. 11 "Send the king to the target first": 4; V68 "Active rook defense: checks need a purpose", ch. 3 "Keep the attacking king out": 4; V24 "Opposition and the pawn ending", ch. 13 "Black to move: the king steps inside": 2; V24 "Opposition and the pawn ending", ch. 24 "White to move: Black keeps the opposition": 1 |
 | seventh-rank | V27 "Give your rook an entry square", ch. 6 "Two rooks on the seventh rank": 10 |
-| outpost | V13 "Build a useful outpost for your knight", ch. 8 "Trade off the only challenger": 7 |
+| outpost | V13 "Build a useful outpost for your knight", ch. 8 "Remove a minor-piece challenger": 7 |
 | trades-when-ahead | V14 "Trade for a reason and inspect what remains", ch. 18 "Clear the passer’s path and offer the queens": 6 |
 | trades-into-ending | V11 "Choose the ending before you trade", ch. 4 "Quick trades turn the king into a piece": 1 |
 
-Verdict lines (the app's `verdictTalk`) in the 25 daily videos since 2026-10-01: 99.
+Verdict lines (the app's `verdictTalk`) in the 26 daily videos since 2026-10-01: 104.
 
-Skipped: {"game: a day read while designing":7}.
+Skipped: {"game: a day read while designing":7,"game: after the held-out days":16}.

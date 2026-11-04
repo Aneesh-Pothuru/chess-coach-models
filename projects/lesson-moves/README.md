@@ -32,8 +32,8 @@ written by `measure.mjs`, and the paper, [`paper/paper.pdf`](paper/paper.pdf).
 ## What the app does (the change measured)
 
 The change is the app's own code at the commit the report names. It shipped
-in chess PR 230 (merge commit 4ba253b), so the generator runs at any pin from
-that commit on:
+in chess PR 230 (merge commit 4ba253b), and the lab's pin is that commit, so
+both scripts run at the pin:
 
 - `movePurposes` (`src/services/knowledge/purpose/purposes.ts`) reads what a
   move is for on the board, from the move and its engine line: it meets a
@@ -102,8 +102,8 @@ the report says which, and the port waits.
 
 ```bash
 make chess
-CHESS_DIR=<the app at the change> bridge/run.sh projects/lesson-moves/measure.mjs
-CHESS_DIR=<the app at the change> bridge/run.sh projects/lesson-moves/paper/generate.mjs
+bridge/run.sh projects/lesson-moves/measure.mjs
+bridge/run.sh projects/lesson-moves/paper/generate.mjs
 ```
 
 `measure.mjs` writes one row per turning point to `private/lesson-moves/`

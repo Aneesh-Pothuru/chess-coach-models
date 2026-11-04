@@ -266,9 +266,9 @@ EVAL_ROOT=/tmp/period-video projects/period-video-coaching/bin/export.py --confi
 # The lesson move: what each sound move at his turning points is for, the lessons
 # that teach it and how often his level plays it (Maia-2 and the board code, no
 # engine search or model spend), then the daily review replayed with it, as
-# above. The measure runs at the app commit its report names.
-CHESS_DIR=<the app at the change> bridge/run.sh projects/lesson-moves/measure.mjs
-CHESS_DIR=<the app at the change> bridge/run.sh projects/lesson-moves/paper/generate.mjs
+# above.
+bridge/run.sh projects/lesson-moves/measure.mjs
+bridge/run.sh projects/lesson-moves/paper/generate.mjs
 EVAL_ROOT=/tmp/lesson-videos projects/lesson-videos/bin/export.py --config lesson-moves-2
 EVAL_ROOT=/tmp/lesson-videos projects/lesson-videos/bin/scenes.py
 

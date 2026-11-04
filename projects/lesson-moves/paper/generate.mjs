@@ -5,7 +5,7 @@
 // first line, the chapters named), and four positions. It refuses to write
 // when a claim the paper makes no longer holds.
 //
-//   CHESS_DIR=<the app at the change> bridge/run.sh projects/lesson-moves/paper/generate.mjs
+//   bridge/run.sh projects/lesson-moves/paper/generate.mjs
 
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
@@ -43,9 +43,12 @@ g.def('Window', String(E.ACCEPT_WINDOW_WP)).def('KeptWon', String(K.JUDGMENT_THR
 claim(D.holds.join(',') === R.TEACHING_HOLDS.player.join(',') && D.holds.join(',') === 'best,keeps', "the holding verdicts are the review's for his moves: best and keeps")
 claim(R.GRADE_BANDS.found === E.ACCEPT_WINDOW_WP, "best is the review's window")
 claim(rows.length === out.examined && out.examined === T.turningPoints + H.turningPoints, 'every examined turning point is a row of one split')
-const skippedGames = Object.entries(out.skipped).filter(([k]) => k.startsWith('game:')).reduce((s, [, n]) => s + n, 0)
-claim(skippedGames === Object.values(out.skipped).reduce((s, n) => s + n, 0), 'only whole games were left out')
-g.def('Examined', count(out.examined)).def('SkippedGames', word(skippedGames)).def('MaxCandidates', word(Math.max(...rows.map((r) => r.candidates))))
+const SKIP_DESIGN = 'game: a day read while designing'
+const SKIP_LATER = 'game: after the held-out days'
+claim(Object.keys(out.skipped).every((k) => k === SKIP_DESIGN || k === SKIP_LATER), 'only whole games were left out: those of the days read while designing and those after the held-out days')
+const skippedLater = out.skipped[SKIP_LATER] ?? 0
+g.def('Examined', count(out.examined)).def('SkippedGames', word(out.skipped[SKIP_DESIGN] ?? 0)).def('MaxCandidates', word(Math.max(...rows.map((r) => r.candidates))))
+g.def('SkippedLater', skippedLater > 0 ? `, and so are the ${word(skippedLater)} games played after ${D.heldoutUntil}, when the held-out split ends` : '')
 for (const [p, s] of [['Train', T], ['Held', H]]) g.def(`${p}TPs`, count(s.turningPoints)).def(`${p}Games`, String(s.games))
 
 // ---- the verdict ----

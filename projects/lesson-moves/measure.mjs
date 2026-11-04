@@ -5,7 +5,7 @@
 // at his band. Writes one row per turning point to private/lesson-moves/ and
 // the aggregates the README's rule reads to results/.
 //
-//   CHESS_DIR=<the app at the change> bridge/run.sh projects/lesson-moves/measure.mjs
+//   bridge/run.sh projects/lesson-moves/measure.mjs
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
