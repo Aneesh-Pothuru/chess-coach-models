@@ -19,7 +19,8 @@ The owner then watched a day replayed with it and judged it short of what he
 asked for: it names a lesson instead of teaching it and plays a line without
 saying why each move works. So the app does not take round 2 as it stands; it
 takes a next version that reads every move of both lines on the board, which
-this project has not measured. Round 2's numbers are in
+this project has not measured. The owner judged that version's replay of one day a lot better, and it
+shipped as chess PR 230 (merge commit 4ba253b). Round 2's numbers are in
 [`results/report-lesson-moves-2.json`](results/report-lesson-moves-2.json).
 
 Round 1: not kept by the rule below, which was committed before the first run: one

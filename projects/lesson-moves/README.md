@@ -31,8 +31,9 @@ written by `measure.mjs`, and the paper, [`paper/paper.pdf`](paper/paper.pdf).
 
 ## What the app does (the change measured)
 
-The change is the app's own code at the commit the report names (a branch of
-the app until it merges):
+The change is the app's own code at the commit the report names. It shipped
+in chess PR 230 (merge commit 4ba253b), so the generator runs at any pin from
+that commit on:
 
 - `movePurposes` (`src/services/knowledge/purpose/purposes.ts`) reads what a
   move is for on the board, from the move and its engine line: it meets a
