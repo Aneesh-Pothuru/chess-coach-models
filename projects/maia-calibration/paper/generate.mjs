@@ -114,7 +114,11 @@ const lichRaw = lich.map((c) => gapOf(c, 'raw')), lichT = lich.map((c) => gapOf(
 const hisBands = bands.filter((_, i) => his[i])
 const hisRaw = his.filter(Boolean).map((c) => gapOf(c, 'raw')), hisT = his.filter(Boolean).map((c) => gapOf(c, 'tempered'))
 if (!lichRaw.every((x) => x > 0)) throw new Error('the paper says Maia-2 is overconfident on Lichess in every band')
-if (!hisT.every((x) => x < 0)) throw new Error("the paper says tempering makes Maia-2 underconfident in every band of the player's games")
+// The paper names the one band tempering does not turn underconfident, and says it lands within a tenth of a point.
+const evenT = hisBands.filter((_, i) => hisT[i] >= 0)
+if (evenT.length !== 1) throw new Error("the paper says tempering makes Maia-2 underconfident in every band of the player's games but one")
+const evenGap = hisT[hisBands.indexOf(evenT[0])]
+if (!(evenGap < 0.1)) throw new Error("the paper says the band tempering leaves is within a tenth of a point")
 // Over all the moves: each band's gap weighted by its moves.
 const overall = (cs) => (100 * cs.reduce((a, c) => a + c.moves * (c.raw - c.played), 0)) / cs.reduce((a, c) => a + c.moves, 0)
 const hisAll = overall(his.filter(Boolean)), lichAll = overall(lich)
@@ -123,7 +127,7 @@ g.def('LichGapMin', fixed(Math.min(...lichRaw), 1)).def('LichGapMax', fixed(Math
 g.def('LichTGapMin', fixed(Math.min(...lichT), 1)).def('LichTGapMax', fixed(Math.max(...lichT), 1))
 g.def('HisGapMin', fixed(Math.min(...hisRaw), 1)).def('HisGapMax', fixed(Math.max(...hisRaw), 1))
 g.def('HisGapAll', fixed(hisAll, 1)).def('LichGapAll', fixed(lichAll, 1))
-g.def('HisTGapMax', fixed(-Math.min(...hisT), 1))
+g.def('HisTGapMax', fixed(-Math.min(...hisT), 1)).def('HisTEvenBand', esc(bandName(evenT[0]))).def('HisTEvenGap', fixed(evenGap, 2))
 g.def('HisBandLow', esc(bandName(hisBands[0]))).def('HisBandHigh', esc(bandName(hisBands.at(-1))))
 const coords = (vals, idx) => vals.map((v, j) => `(${idx[j]},${v.toFixed(2)})`).join(' ')
 const allIdx = bands.map((_, i) => i)
