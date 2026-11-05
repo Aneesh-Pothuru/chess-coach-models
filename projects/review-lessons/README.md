@@ -48,10 +48,18 @@ card itself uses.
   purposes of the reply (his line), with the reply-threat idea, as the daily's
   `teach` command offers them.
 - **C, the candidate**: when his mistake is one of `allows-mate`,
-  `deserted-guard`, `bad-capture`, `unsafe-square`, `opens-line` or
-  `allows-tactic` (with a named tactic), the chapter the study service
-  matches to it; else B. `ignored-threat` and `loses-material` fall back to B,
-  because what they need is the defence or the better move, which B reads.
+  `deserted-guard`, `bad-capture` or `allows-tactic` (with a named tactic),
+  the chapter the study service matches to it; else B. `ignored-threat` and
+  `loses-material` fall back to B, because what they need is the defence or
+  the better move, which B reads.
+
+**Changed after the train round, before any held-out verdict.** C first
+named a chapter for `unsafe-square` and `opens-line` too. On train, the
+judge's verdicts on those moments favoured B while every other kind
+favoured C (`results/train-six-kinds.json`, its `kinds`), so both now fall
+back to B (`MISTAKE_CHAPTER_KINDS` in the study service). The rule below is
+unchanged and is applied to this C; train is judged again on it, the
+verdicts of unchanged pairs kept.
 
 ## The rule, fixed before the run
 
@@ -78,6 +86,13 @@ every game from 2026-09-17 to 2026-11-04 except those of 2026-10-31,
 4. **Controls**, held out: 20 moments with the same chapter on both sides
    (the judge should answer "same"), and 20 moments with C's chapter against
    a chapter drawn at random from the other lessons (C should win).
+
+5. **Each path against a decoy**, held out, reported beside the rule and
+   not part of it: for each way C names a chapter (`via`: `mistake`, `fix`,
+   `reply`), up to 20 moments with C's chapter against a chapter drawn at
+   random from the other lessons, both orders. If C is kept, the Game Review
+   links a chapter only from the paths where C wins at least 14 of them (the
+   decoy bar).
 
 **What counts.** C is kept when the controls hold (at least 16 of 20 same, and
 C winning at least 14 of 20 decoys, both orders), and on held out: C's wins
