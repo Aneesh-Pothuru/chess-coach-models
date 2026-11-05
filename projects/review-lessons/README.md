@@ -8,11 +8,24 @@ chapters whose recommended moves are read the same way (`lessonsFor`). That
 matcher concentrates: on his older games one chapter of the defence lesson
 is its pick at more than 40% of his mistakes, whatever the defence was (the
 open item [lesson-moves](../lesson-moves/) left). The lessons also show
-wrong moves on purpose, 115 of them, each in a chapter about that mistake: a
+wrong moves on purpose, 114 of them, each in a chapter about that mistake: a
 guard that walks away, a defended piece taken, a square that was not safe, a
 line opened, a mate allowed. Can the app read his mistake the way those
 chapters show it, on the board, and link the chapter that shows the same
 mistake? And does such a link fit the moment better than the daily's?
+
+**The answer.** Kept, by the rule below, which was committed before the run;
+the one change made after the train round, before any held-out verdict, is
+recorded under "The positions". Held out, the judge preferred the chapter
+showing the same mistake far more often than the daily's pick, both controls
+held, the candidate named a chapter as often as the daily's matcher, and its
+links spread over more chapters, the most named one taking a smaller share.
+Each way the candidate names a chapter beat a chapter drawn from another
+lesson often enough to be shown, the same-mistake links clearly, the links
+that come from the daily's reading only near the bar. The numbers are in
+[`results/review-lessons.md`](results/review-lessons.md), written by
+`judge.mjs`, and [`results/measure.md`](results/measure.md), written by
+`measure.mjs`, and the paper, [`paper/paper.pdf`](paper/paper.pdf).
 
 ## What the app does (the change measured)
 
@@ -106,8 +119,10 @@ the report says which, and nothing is ported.
 
 ```bash
 make chess
+CHESS_DIR=<checkout of the change> bridge/run.sh projects/review-lessons/games.mjs --concurrency 4
 CHESS_DIR=<checkout of the change> bridge/run.sh projects/review-lessons/measure.mjs
-CHESS_DIR=<checkout of the change> bridge/run.sh projects/review-lessons/judge.mjs
+JUDGE_MODEL=<model> CHESS_DIR=<checkout of the change> bridge/run.sh projects/review-lessons/judge.mjs
+CHESS_DIR=<checkout of the change> bridge/run.sh projects/review-lessons/paper/generate.mjs
 ```
 
 `measure.mjs` writes one row per moment to `private/review-lessons/` and the

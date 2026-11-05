@@ -1,0 +1,207 @@
+% Written by projects/review-lessons/paper/generate.mjs; do not edit by hand.
+
+\newcommand{\AppCommit}{816c07c243}
+\newcommand{\Lessons}{74}
+\newcommand{\Chapters}{493}
+\newcommand{\WrongMoves}{114}
+\newcommand{\WithMistakes}{41}
+\newcommand{\TrainUntil}{2026-09-16}
+\newcommand{\HeldFrom}{2026-09-17}
+\newcommand{\HeldUntil}{2026-11-04}
+\newcommand{\TrainEvery}{eight}
+\newcommand{\Inspected}{2026-10-31, 2026-11-02, 2026-11-03}
+\newcommand{\InspectedN}{three}
+\newcommand{\JudgeTrain}{60}
+\newcommand{\JudgeHeld}{120}
+\newcommand{\Controls}{20}
+\newcommand{\Draws}{10,000}
+\newcommand{\SameBar}{16}
+\newcommand{\DecoyBar}{14}
+\newcommand{\CoverageSlack}{2}
+\newcommand{\MistakePlies}{six}
+\newcommand{\TrainGames}{59}
+\newcommand{\TrainMoments}{334}
+\newcommand{\TrainDiffer}{41}
+\newcommand{\TrainBCoverage}{86.8}
+\newcommand{\TrainCCoverage}{87.1}
+\newcommand{\TrainBChapters}{18}
+\newcommand{\TrainCChapters}{28}
+\newcommand{\TrainBLessons}{17}
+\newcommand{\TrainCLessons}{20}
+\newcommand{\TrainBTop}{44.5}
+\newcommand{\TrainCTop}{39.2}
+\newcommand{\TrainViaMistake}{42}
+\newcommand{\TrainViaFix}{171}
+\newcommand{\TrainViaReply}{78}
+\newcommand{\TrainViaNone}{43}
+\newcommand{\TrainRead}{33}
+\newcommand{\HeldGames}{223}
+\newcommand{\HeldMoments}{1,225}
+\newcommand{\HeldDiffer}{115}
+\newcommand{\HeldBCoverage}{87.4}
+\newcommand{\HeldCCoverage}{87.6}
+\newcommand{\HeldBChapters}{24}
+\newcommand{\HeldCChapters}{35}
+\newcommand{\HeldBLessons}{21}
+\newcommand{\HeldCLessons}{25}
+\newcommand{\HeldBTop}{41.5}
+\newcommand{\HeldCTop}{36.9}
+\newcommand{\HeldViaMistake}{120}
+\newcommand{\HeldViaFix}{623}
+\newcommand{\HeldViaReply}{330}
+\newcommand{\HeldViaNone}{152}
+\newcommand{\HeldRead}{32}
+\newcommand{\TopTitle}{Move the queen while taking the loose pawn}
+\newcommand{\TopLesson}{Choose a defense that changes the threat}
+\newcommand{\ReadWrong}{47}
+\newcommand{\KindTable}{%
+\begin{table}[ht]\centering\small
+\begin{tabularx}{\textwidth}{lLrrrc}
+\toprule
+Kind & What the board code sees & Lessons & Train & Held out & C links \\
+\midrule
+\texttt{allows-mate} & the line mates within three of their moves & 16 & 15 & 40 & yes \\
+\texttt{bad-capture} & his capture loses the exchange, and they take back on that square & 9 & 3 & 18 & yes \\
+\texttt{unsafe-square} & their first move takes the moved piece and wins the exchange & 7 & 9 & 50 & no \\
+\texttt{opens-line} & their first move captures along a line through the square his piece left & 4 & 5 & 7 & no \\
+\texttt{deserted-guard} & the moved piece guarded a piece that now has no guard, and they take it within three plies & 5 & 10 & 25 & yes \\
+\texttt{ignored-threat} & their first move takes a piece of his that was already loose & 4 & 22 & 94 & no \\
+\texttt{allows-tactic} & a move of theirs in the line wins material with a tactic the board code names & 2 & 30 & 79 & yes \\
+\texttt{loses-material} & the line loses two points or more, their capture within three plies & 0 & 16 & 82 & no \\
+none & no kind fits, or the line loses no material & & 224 & 830 & \\
+\bottomrule
+\end{tabularx}
+\caption{What his move got wrong, read from the move and the reply line the review's lesson shows, in the order the reader tries them at the capture it reads. \emph{Lessons}: the lessons' wrong moves read as that kind. \emph{Train}, \emph{Held out}: his moments. \emph{C links}: C names the chapter showing the same mistake for this kind; the others fall back to B.}
+\label{tab:kinds}
+\end{table}
+}
+\newcommand{\Kept}{kept}
+\newcommand{\TrainJudged}{40}
+\newcommand{\TrainWins}{30}
+\newcommand{\TrainTies}{5}
+\newcommand{\TrainLosses}{5}
+\newcommand{\TrainNet}{0.63 (0.36 to 0.84)}
+\newcommand{\HeldJudged}{113}
+\newcommand{\HeldWins}{96}
+\newcommand{\HeldTies}{7}
+\newcommand{\HeldLosses}{10}
+\newcommand{\HeldNet}{0.76 (0.65 to 0.86)}
+\newcommand{\SameSame}{20}
+\newcommand{\SameJudged}{20}
+\newcommand{\DecoyWins}{14}
+\newcommand{\DecoyJudged}{20}
+\newcommand{\DecoySame}{4}
+\newcommand{\DecoyLosses}{2}
+\newcommand{\RuleTable}{%
+\begin{table}[ht]\centering\small
+\begin{tabular}{lrr}
+\toprule
+ & Train & Held out \\
+\midrule
+Games (moments) & 59 (334) & 223 (1,225) \\
+Moments where B and C name different chapters & 41 & 115 \\
+\quad judged (both name one) & 40 & 113 \\
+\textbf{C wins / ties / losses} & \textbf{30 / 5 / 5} & \textbf{96 / 7 / 10} \\
+\textbf{(wins $-$ losses) / judged} (bar: interval above 0) & 0.63 (0.36 to 0.84) & \textbf{0.76 (0.65 to 0.86)} \\
+\textbf{Coverage}, B; C (bar: C at least B $-$ 2 points) & 86.8\%; 87.1\% & 87.4\%; \textbf{87.6\%} \\
+\textbf{Most named chapter's share}, B; C (bar: C at most B) & 44.5\%; 39.2\% & 41.5\%; \textbf{36.9\%} \\
+Distinct chapters (lessons), B; C & 18 (17); 28 (20) & 24 (21); 35 (25) \\
+\bottomrule
+\end{tabular}
+\caption{The rule's measures. A moment is a win for C when the judge preferred C in both orders, or in one with the other the same; a loss likewise for B. Intervals are 95\% percentiles of 10,000 bootstrap draws over games. Coverage is the share of moments where the matcher names a chapter.}
+\label{tab:rule}
+\end{table}
+}
+\newcommand{\ByKindTable}{%
+\begin{table}[ht]\centering\small
+\begin{tabular}{lccc}
+\toprule
+His mistake & Train, six kinds & Train, four kinds & Held out, four kinds \\
+\midrule
+\texttt{allows-mate} & 10 / 0 / 2 & 13 / 0 / 2 & 34 / 2 / 4 \\
+\texttt{deserted-guard} & 8 / 1 / 1 & 8 / 1 / 1 & 23 / 1 / 0 \\
+\texttt{bad-capture} & 2 / 1 / 0 & 2 / 1 / 0 & 15 / 2 / 1 \\
+\texttt{unsafe-square} & 1 / 3 / 4 & -- & -- \\
+\texttt{opens-line} & 1 / 0 / 4 & -- & -- \\
+\texttt{allows-tactic} & 7 / 3 / 2 & 7 / 3 / 2 & 24 / 2 / 5 \\
+\midrule
+All & 29 / 8 / 13 & 30 / 5 / 5 & 96 / 7 / 10 \\
+\bottomrule
+\end{tabular}
+\caption{C's wins / ties / losses by what his move got wrong. The first column is the train round of the candidate before it was narrowed; the kinds C no longer links by fall back to B and leave the judged pairs.}
+\label{tab:bykind}
+\end{table}
+}
+\newcommand{\SixWins}{29}
+\newcommand{\SixTies}{8}
+\newcommand{\SixLosses}{13}
+\newcommand{\SixJudged}{50}
+\newcommand{\PathTable}{%
+\begin{table}[ht]\centering\small
+\begin{tabular}{lrrrrc}
+\toprule
+C's chapter, from & Held-out moments & C wins & same & C loses & Shown \\
+\midrule
+the same mistake (\texttt{mistake}) & 120 & 19 & 0 & 1 & yes \\
+the engine's move (\texttt{fix}) & 623 & 15 & 3 & 2 & yes \\
+their reply (\texttt{reply}) & 330 & 14 & 4 & 2 & yes \\
+\bottomrule
+\end{tabular}
+\caption{Each way C names a chapter, against a chapter drawn at random from the other lessons: up to 20 held-out moments each, judged in both orders. A path is shown in the Game Review when C wins at least 14.}
+\label{tab:paths}
+\end{table}
+}
+\newcommand{\PathMistakeWins}{19}
+\newcommand{\PathMistakeJudged}{20}
+\newcommand{\PathFixWins}{15}
+\newcommand{\PathFixJudged}{20}
+\newcommand{\PathReplyWins}{14}
+\newcommand{\PathReplyJudged}{20}
+\newcommand{\EaSide}{Black}
+\newcommand{\EaFen}{\fen{rn2k2r/pppb1pbp/4p1p1/1B4B1/8/2N2P2/PPP2P1P/2KR3R b kq - 3 12}}
+\newcommand{\EaPlayed}{12\ldots{}\symbishop{}xb5}
+\newcommand{\EaPlayedUci}{\uci{d7b5}}
+\newcommand{\EaBest}{12\ldots{}h6}
+\newcommand{\EaBestUci}{\uci{h7h6}}
+\newcommand{\EaLine}{12\ldots{}\symbishop{}xb5 13.~\symrook{}d8\#}
+\newcommand{\EaLineUci}{\uci{d7b5 d1d8}}
+\newcommand{\EaKind}{\texttt{allows-mate} (\texttt{opera-mate})}
+\newcommand{\EaBLesson}{Prove that the king has no escape}
+\newcommand{\EaBChapter}{The checking queen is protected}
+\newcommand{\EaCLesson}{Check what your move leaves behind}
+\newcommand{\EaCChapter}{A bishop move that abandons d2}
+\newcommand{\EaBoard}{%
+\chessboard[setfen={rn2k2r/pppb1pbp/4p1p1/1B4B1/8/2N2P2/PPP2P1P/2KR3R b kq - 3 12}, boardfontsize=11pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={d7-b5}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={h7-h6}]
+}
+\newcommand{\EbSide}{White}
+\newcommand{\EbFen}{\fen{5r1k/p1p3b1/1p1pr2p/7n/4bp1B/2P2N1P/PP2BPRP/6RK w - - 0 28}}
+\newcommand{\EbPlayed}{28.~b4}
+\newcommand{\EbPlayedUci}{\uci{b2b4}}
+\newcommand{\EbBest}{28.~\symrook{}f1}
+\newcommand{\EbBestUci}{\uci{g1f1}}
+\newcommand{\EbLine}{28.~b4 \symbishop{}b7 29.~\symbishop{}d1 \symbishop{}xc3}
+\newcommand{\EbLineUci}{\uci{b2b4 e4b7 e2d1 g7c3}}
+\newcommand{\EbKind}{\texttt{deserted-guard}}
+\newcommand{\EbBLesson}{Improve with a tactic in reserve}
+\newcommand{\EbBChapter}{The knight defends f7 and sets a trap}
+\newcommand{\EbCLesson}{Check what your move leaves behind}
+\newcommand{\EbCChapter}{One bishop move removes both guards}
+\newcommand{\EbBoard}{%
+\chessboard[setfen={5r1k/p1p3b1/1p1pr2p/7n/4bp1B/2P2N1P/PP2BPRP/6RK w - - 0 28}, boardfontsize=11pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={b2-b4}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={g1-f1}]
+}
+\newcommand{\EcSide}{White}
+\newcommand{\EcFen}{\fen{r3k1n1/2Bb4/p3p1p1/1p1p1pq1/PQ1P4/2PBr3/1P4P1/R3R1K1 w q - 0 21}}
+\newcommand{\EcPlayed}{21.~\symrook{}xe3}
+\newcommand{\EcPlayedUci}{\uci{e1e3}}
+\newcommand{\EcBest}{21.~\symbishop{}f1}
+\newcommand{\EcBestUci}{\uci{d3f1}}
+\newcommand{\EcLine}{21.~\symrook{}xe3 \symqueen{}xe3+ 22.~\symking{}h1 \symqueen{}xd3}
+\newcommand{\EcLineUci}{\uci{e1e3 g5e3 g1h1 e3d3}}
+\newcommand{\EcKind}{\texttt{allows-tactic} (\texttt{fork})}
+\newcommand{\EcBLesson}{Choose a defense that changes the threat}
+\newcommand{\EcBChapter}{Move the queen while taking the loose pawn}
+\newcommand{\EcCLesson}{Recognize tactics during an ordinary game}
+\newcommand{\EcCChapter}{A knight attacks king, queen, and rook}
+\newcommand{\EcBoard}{%
+\chessboard[setfen={r3k1n1/2Bb4/p3p1p1/1p1p1pq1/PQ1P4/2PBr3/1P4P1/R3R1K1 w q - 0 21}, boardfontsize=11pt, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=red!75!black, markmoves={e1-e3}, pgfstyle=straightmove, arrow=to, linewidth=0.07em, color=green!50!black, markmoves={d3-f1}]
+}

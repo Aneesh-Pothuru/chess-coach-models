@@ -272,6 +272,15 @@ bridge/run.sh projects/lesson-moves/paper/generate.mjs
 EVAL_ROOT=/tmp/lesson-videos projects/lesson-videos/bin/export.py --config lesson-moves-2
 EVAL_ROOT=/tmp/lesson-videos projects/lesson-videos/bin/scenes.py
 
+# The review's lesson link, measured on the change before it landed: his games
+# reviewed as the phone does (CPU for an hour or more on four cores), the chapter
+# each matcher names, then the blind judge with its controls on the owner's
+# subscription (about 500 calls), outside the routines' hours.
+CHESS_DIR=<the change> bridge/run.sh projects/review-lessons/games.mjs --concurrency 4
+CHESS_DIR=<the change> bridge/run.sh projects/review-lessons/measure.mjs
+JUDGE_MODEL=<model> CHESS_DIR=<the change> bridge/run.sh projects/review-lessons/judge.mjs
+CHESS_DIR=<the change> bridge/run.sh projects/review-lessons/paper/generate.mjs
+
 make papers   # each paper's generated.tex, then its PDF
 ```
 

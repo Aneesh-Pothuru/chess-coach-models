@@ -1,0 +1,172 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{Which lesson chapter should a Game Review moment link to?\\[0.3em]
+\large The chapter that shows the same mistake}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The app's Game Review explains each key moment of a game, but it named no lesson, although the
+app has \Lessons{} study lessons. The daily review does name one: it reads what the engine's
+better move is for, with the board code, and offers the chapter whose recommended moves are read
+the same way (B). That matcher concentrates: one chapter takes \HeldBTop\% of the held-out moments
+it names. The lessons also play \WrongMoves{} wrong moves on purpose. The candidate (C) reads what
+his move got wrong on the board, from the move and the reply line the review's lesson uses, and
+for four kinds of mistake links the chapter whose wrong move is read the same way; otherwise it is
+B. On \HeldGames{} held-out games, a blind judge, in both orders, preferred C at \HeldWins, tied
+\HeldTies{} and preferred B at \HeldLosses{} of the \HeldJudged{} moments where both name a
+chapter and the chapters differ: (wins $-$ losses) / judged $=$ \HeldNet. The controls held, coverage stayed,
+and the most named chapter's share fell to \HeldCTop\%. By the rule fixed before the run, C is
+\Kept.
+\end{abstract}
+
+\section{The question}
+
+At a key moment where he went wrong, the review says what his move allowed and what the
+engine's move does instead. A link to the lesson that teaches the idea would turn that into
+study. The daily review already links one, by what the engine's move is for, and on his games
+one chapter, ``\TopTitle'' from ``\TopLesson'', is its pick at \HeldBTop\% of the held-out
+moments it names a chapter for, whatever his move got wrong. The lessons hold another source: the wrong moves they play on purpose,
+each in a chapter about that mistake. Can the board code read his mistake the way those chapters
+show it, and does a link to the chapter showing the same mistake fit the moment better?
+
+\section{What the app does}
+
+\paragraph{What his move got wrong.} The Knowledge service's \texttt{mistakeOf} walks his move
+and the reply line the review's lesson shows after it (Table~\ref{tab:kinds}). A mate comes
+first: the line mates within three of their moves, with the mate's pattern when the board code
+names it. Otherwise the line must lose material. The reader takes their first capture in the
+first \MistakePlies{} plies, passing over their taking of the moved piece when that exchange does
+not lose for him, and names the first kind that fits that capture, or none.
+
+\KindTable
+
+\paragraph{The lessons' wrong moves.} The scripts mark \texttt{counterexample} each wrong move
+the lessons play on purpose, and the study build reads them the same way, with the scene's moves
+after each as the line: \ReadWrong{} of the \WrongMoves{} are read as a kind, in \WithMistakes{} of the \Chapters{}
+chapters. The others lose nothing in the scene's line, or lose it in a way no kind names.
+
+\paragraph{The match.} For his mistake, a chapter is offered when one of its wrong moves is read
+as the same kind, with the same idea (the mate's pattern, the tactic) or with no idea named, and
+its lesson is tagged with one of the mistake's concepts; a wrong move set in the opening counts
+only for a mistake in the opening. The same idea counts most, then the same phase, the lesson's topic, the
+same piece moved and the same piece lost. When no chapter shows the mistake and it has an idea,
+the chapters whose own recommended moves play that idea, in lessons that list it among their
+first two tags, are offered instead.
+
+\paragraph{The two matchers.} B is the daily review's: the first chapter offered for what the
+engine's move is for, else for what their reply is for. C is the chapter matched to his mistake
+when it is one of the four kinds the last column of Table~\ref{tab:kinds} marks, else B. The code
+is the app's at commit \texttt{\AppCommit}.
+
+\section{How it was measured}
+
+\paragraph{The moments.} His rapid games in the app's archive, each reviewed the way the phone's
+Game Review reviews it. A moment is a key moment of the review where he moved, the move is graded
+an inaccuracy, mistake, miss or blunder, and the review writes a lesson for it.
+
+\paragraph{The split.} Train: one game in every \TrainEvery{} up to \TrainUntil{} (\TrainGames{}
+games, \TrainMoments{} moments), on which the change was designed. Held out: every game from
+\HeldFrom{} to \HeldUntil{} (\HeldGames{} games, \HeldMoments{} moments) except those of the
+\InspectedN{} days read while it was designed (\Inspected).
+
+\paragraph{The judge.} On the moments where B and C name different chapters (at most
+\JudgeTrain{} on train and \JudgeHeld{} held out), a model judge sees the moment as the review
+describes it (the position's FEN, his move and its grade, the engine's move, the reply line, the
+lesson's headline and its ``difference'' lines) and the two chapters, each as its lesson's title,
+its chapter's title and its narration, labelled A and B. It answers which chapter teaches what
+the moment needed, or that they are the same. Every pair is judged in both orders.
+
+\paragraph{The rule, fixed before the run.} C is kept when, held out, (wins $-$ losses) / judged
+has its 95\% interval above zero, from \Draws{} bootstrap draws over games; C's coverage is at
+least B's minus \CoverageSlack{} points; C's most named chapter takes no larger share than B's;
+on train, C's wins are not fewer than its losses; and the controls hold: \Controls{} held-out
+moments with the same chapter on both sides are read as the same at least \SameBar{} times, and
+\Controls{} with C's chapter against a chapter drawn from another lesson are won by C at least
+\DecoyBar{} times.
+
+\paragraph{Changed after the train round.} C first linked by the mistake for six kinds. On train
+(C \SixWins{} wins, \SixTies{} ties, \SixLosses{} losses of \SixJudged), the judge favoured B on
+the \texttt{unsafe-square} and \texttt{opens-line} moments and C on every other kind
+(Table~\ref{tab:bykind}, first column), so those two now fall back to B. The change was made
+before any held-out verdict, and the rule was applied unchanged to the narrowed C.
+
+\section{The verdict}
+
+\RuleTable
+
+\ByKindTable
+
+On held-out moments C wins \HeldWins{} and loses \HeldLosses{} of \HeldJudged{}
+(Table~\ref{tab:rule}), the controls hold (the same chapter read as the same \SameSame{} of
+\SameJudged{} times; C beat the decoy \DecoyWins{} of \DecoyJudged{} times), C names a chapter
+about as often as B, and it spreads the links over more chapters: \HeldCChapters{} against
+\HeldBChapters. C is \Kept.
+
+\paragraph{Where the link comes from.} Held out, C names the chapter showing the same mistake at
+\HeldViaMistake{} moments, the chapter for what the engine's move is for at \HeldViaFix, the
+chapter for what their reply is for at \HeldViaReply, and none at \HeldViaNone. Beside the rule,
+each path was judged against a decoy chapter from another lesson (Table~\ref{tab:paths}); the
+Game Review shows a link only from a path that reaches the bar.
+
+\PathTable
+
+\clearpage
+\section{Three moments}
+
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[t]{0.31\textwidth}
+\centering
+\EaBoard\\[0.4em]
+{\footnotesize FEN \EaFen}
+\caption{\EaSide{} to move. He played \EaPlayed{} (\EaPlayedUci, red); the engine preferred
+\EaBest{} (\EaBestUci, green). The line: \EaLine{} (\EaLineUci). Read as \EaKind. B: ``\EaBChapter''
+from ``\EaBLesson''. C: ``\EaCChapter'' from ``\EaCLesson''.}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.31\textwidth}
+\centering
+\EbBoard\\[0.4em]
+{\footnotesize FEN \EbFen}
+\caption{\EbSide{} to move. He played \EbPlayed{} (\EbPlayedUci); the engine preferred \EbBest{}
+(\EbBestUci). The line: \EbLine{} (\EbLineUci). Read as \EbKind. B: ``\EbBChapter'' from
+``\EbBLesson''. C: ``\EbCChapter'' from ``\EbCLesson''.}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.31\textwidth}
+\centering
+\EcBoard\\[0.4em]
+{\footnotesize FEN \EcFen}
+\caption{\EcSide{} to move. He played \EcPlayed{} (\EcPlayedUci); the engine preferred \EcBest{}
+(\EcBestUci). The line: \EcLine{} (\EcLineUci). Read as \EcKind. B: ``\EcBChapter'' from
+``\EcBLesson''. C: ``\EcCChapter'' from ``\EcCLesson''.}
+\end{subfigure}
+\caption{Held-out moments where the judge preferred C in both orders, one for each of three kinds.}
+\label{fig:moments}
+\end{figure}
+
+\section{Limits}
+
+The judge is a language model reading the review's own words and the chapters' narration; it is
+told to take the review's facts as true and not to analyse the position, so it judges fit, not
+chess. Its fairness is checked only by the two controls, and the decoy control passed with C
+winning \DecoyWins{} of \DecoyJudged, where \DecoyBar{} were needed. By path
+(Table~\ref{tab:paths}), the chapter showing the same mistake beat its decoy \PathMistakeWins{} of
+\PathMistakeJudged{} times, the chapters B's two readings name \PathFixWins{} and
+\PathReplyWins{} times: the links that come from B are the weaker part of C. The moments are one player's, at his
+level. The mistake reader names a kind from one reply line, the one the review shows; a move can
+be wrong in more ways than that line shows. A kind with few wrong moves in the lessons links few
+chapters, so C's links stay concentrated where the lessons show only one example.
+
+\section{What the app took}
+
+The Game Review's lesson panel, at his key moments, ends with the chapter C names, from the paths
+Table~\ref{tab:paths} marks as shown, as a link to watch or read the lesson with a line on why it
+fits. The study build publishes the chapters with what each one's moves are for and get wrong, so
+the review links one without loading every lesson.
+
+\end{document}

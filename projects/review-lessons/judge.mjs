@@ -5,7 +5,7 @@
 // private/review-lessons/judge/ and resumes; writes the counts, the bootstrap
 // and the rule's verdict to results/.
 //
-//   JUDGE_MODEL=<model> bridge/run.sh projects/review-lessons/judge.mjs [--jobs N] [--only train|heldout] [--dry]
+//   JUDGE_MODEL=<model> bridge/run.sh projects/review-lessons/judge.mjs [--jobs N] [--only train|heldout] [--kind pair|same|decoy|via-<path>] [--dry]
 import { spawn } from 'node:child_process'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -34,6 +34,8 @@ const jobsAt = process.argv.indexOf('--jobs')
 const JOBS = jobsAt > 0 ? Number(process.argv[jobsAt + 1]) : 4
 const onlyAt = process.argv.indexOf('--only')
 const ONLY = onlyAt > 0 ? process.argv[onlyAt + 1] : null
+const kindAt = process.argv.indexOf('--kind')
+const KIND = kindAt > 0 ? process.argv[kindAt + 1] : null
 const NARRATION_WORDS = 220
 const CLEAN = join(LAB_DIR, 'projects', 'lesson-videos', 'bin', 'claude-clean.sh')
 
@@ -168,7 +170,7 @@ const readVerdict = (item, order) => {
   return v && v.pair === pairOf(item, order) ? v : null
 }
 const calls = items.flatMap((item) => ['cb', 'bc'].map((order) => ({ item, order, file: fileOf(item, order) })))
-const owed = calls.filter((c) => !readVerdict(c.item, c.order) && (!ONLY || c.item.split === ONLY))
+const owed = calls.filter((c) => !readVerdict(c.item, c.order) && (!ONLY || c.item.split === ONLY) && (!KIND || c.item.kind === KIND))
 console.error(`${items.length} items, ${calls.length} calls, ${owed.length} owed`)
 if (dry) {
   const c = calls[0]

@@ -45,7 +45,7 @@ parity:
 
 # Each paper's numbers from what its project last wrote, then its PDF. The
 # projects' reproductions come first (projects/README.md gives the order).
-PAPERS := accuracy-vs-chesscom explain-top-move judge-in-context maia-punish maia-rating-offset maia-calibration winprob-parity focus-backtest detector-themes drill-decks think-time-rapid praise-gate learner-solve-chance band-above phone-vs-routine book-advice period-writer findable-move judge-factors his-habits positions-like-this structure-breaks break-ready central-strike rules-of-thumb rules-after-check tiebreak-rules video-coaching period-video-coaching lesson-moves lesson-videos
+PAPERS := accuracy-vs-chesscom explain-top-move judge-in-context maia-punish maia-rating-offset maia-calibration winprob-parity focus-backtest detector-themes drill-decks think-time-rapid praise-gate learner-solve-chance band-above phone-vs-routine book-advice period-writer findable-move judge-factors his-habits positions-like-this structure-breaks break-ready central-strike rules-of-thumb rules-after-check tiebreak-rules video-coaching period-video-coaching lesson-moves lesson-videos review-lessons
 
 papers:
 	bridge/run.sh projects/accuracy-vs-chesscom/paper/generate.mjs
