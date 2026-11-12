@@ -9,8 +9,15 @@ costliest errors and one best move, opened from an overview of the whole
 game, still hold most of what his errors cost him and stop where the game
 turned?
 
-**The answer.** Not run yet. The rule below is committed before the held-out
-games are reviewed.
+**The answer.** Kept, by the rule below, which was committed before any
+held-out game was reviewed. On the held-out games the walk's errors held well
+over half of what his errors cost in the median game, the whole interval
+above the bar, and more than the bar asks at the lower quartile; a stop lay
+inside the turn in every game that turned on his own moves; no walk was
+longer than five stops; and the costliest error was a stop in every game
+that had one. A walk through every marked move was twice as long in the
+median game, and longer still in the longest. The numbers are in
+[`results/review-walk.md`](results/review-walk.md), written by `measure.mjs`.
 
 ## What the app does (the change measured)
 

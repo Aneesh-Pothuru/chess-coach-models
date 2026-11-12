@@ -281,6 +281,16 @@ CHESS_DIR=<the change> bridge/run.sh projects/review-lessons/measure.mjs
 JUDGE_MODEL=<model> CHESS_DIR=<the change> bridge/run.sh projects/review-lessons/judge.mjs
 CHESS_DIR=<the change> bridge/run.sh projects/review-lessons/paper/generate.mjs
 
+# The walk through a game, measured on the change before it landed: what the
+# walk's stops hold of what his errors cost over the archive's reviews (the
+# design set), then, with the rule committed, a seeded sample of his older
+# games reviewed as the phone does (CPU on four cores, no model spend), and the
+# verdict.
+CHESS_DIR=<the change> bridge/run.sh projects/review-walk/measure.mjs
+CHESS_DIR=<the change> bridge/run.sh projects/review-walk/games.mjs --concurrency 4
+CHESS_DIR=<the change> bridge/run.sh projects/review-walk/measure.mjs
+CHESS_DIR=<the change> bridge/run.sh projects/review-walk/paper/generate.mjs
+
 make papers   # each paper's generated.tex, then its PDF
 ```
 
