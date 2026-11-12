@@ -30,8 +30,8 @@ const { readChapters } = await chess('src/adapters/content/study.ts')
 const { buildStudyFromDisk } = await chess('src/adapters/node/study/index.ts')
 // The screen's own reading of a stop: its cause note and the chapter it links.
 const { ERROR_CLASS } = await chess('src/features/gamereview/format.ts')
-const { causeOf, walkPlies } = await chess('src/features/gamereview/walkWords.ts')
-const { gameLessons, lessonLinkAt } = await chess('src/features/gamereview/lessonLink.ts')
+const { causeOf } = await chess('src/features/gamereview/walkWords.ts')
+const { lessonLinkAt } = await chess('src/features/gamereview/lessonLink.ts')
 
 const sum = (values) => values.reduce((a, b) => a + b, 0)
 const share = (n, of) => (of > 0 ? n / of : null)
@@ -83,7 +83,6 @@ function gameRow(doc) {
     turn: hisTurn ? walk.stops.some((s) => s.ply >= hisTurn.fromPly && s.ply <= hisTurn.toPly) : null,
     firstStop: walk.stops.length > 0 ? (walk.stops[0].ply + 1) / doc.records.length : null,
     errorPlies: errorStops.map((s) => s.ply),
-    stopPlies: walkPlies(walk),
   }
 }
 
@@ -137,11 +136,8 @@ function aggregate(rows) {
 
 /** What the screen says at the walk's errors, on reviews that carry the engine lines a lesson card reads. */
 function teaching(docs, rows, chapters) {
-  const counts = { stops: 0, card: 0, theirReply: 0, yourChance: 0, noCause: 0, lesson: 0, games: 0, gamesWithLesson: 0 }
+  const counts = { stops: 0, card: 0, theirReply: 0, yourChance: 0, noCause: 0, lesson: 0 }
   docs.forEach((doc, k) => {
-    if (rows[k].errorPlies.length === 0) return
-    counts.games++
-    if (gameLessons(doc, rows[k].stopPlies, chapters).length > 0) counts.gamesWithLesson++
     for (const ply of rows[k].errorPlies) {
       counts.stops++
       const card = lessonFor(doc, ply)
@@ -260,7 +256,7 @@ if (heldout && heldout.docs.length > 0) {
   const t = out.heldout.teaching
   md.push(
     ...table(`Held out: phone reviews of ${heldout.docs.length} games played before ${HELDOUT_BEFORE}`, out.heldout),
-    `- Of the walk's ${t.stops} error stops, ${t.card} have a lesson card: ${t.theirReply} say he missed their reply, ${t.yourChance} that he missed his own chance, ${t.noCause} name neither. ${t.lesson} link a lesson chapter, and ${t.gamesWithLesson} of the ${t.games} games with an error stop show at least one chapter on the overview.`,
+    `- Of the walk's ${t.stops} error stops, ${t.card} have a lesson card: ${t.theirReply} say he missed their reply, ${t.yourChance} that he missed his own chance, ${t.noCause} name neither. ${t.lesson} link a lesson chapter.`,
     '',
     '## The verdict',
     '',

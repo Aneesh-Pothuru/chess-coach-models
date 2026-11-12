@@ -48,7 +48,7 @@ Written by `measure.mjs` on the app at `e06307fe45e237417a8999f33218aac197310d1c
 | held at the lower quartile | 27% | 46% | 57% | 64% | 67% | 69% |
 | games it holds whole | 11% | 14% | 14% | 15% | 16% | 16% |
 
-- Of the walk's 212 error stops, 212 have a lesson card: 115 say he missed their reply, 50 that he missed his own chance, 47 name neither. 199 link a lesson chapter, and 77 of the 79 games with an error stop show at least one chapter on the overview.
+- Of the walk's 212 error stops, 212 have a lesson card: 115 say he missed their reply, 50 that he missed his own chance, 47 name neither. 199 link a lesson chapter.
 
 ## The verdict
 

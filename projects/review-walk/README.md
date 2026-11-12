@@ -31,15 +31,15 @@ branch of the chess pull request that ports it:
   blunder, his two costliest inaccuracies; and one best move, a brilliant
   one before a great one. An inaccuracy never takes a mistake's place,
   whatever it cost. The stops are walked in game order, and the other marked
-  moves stay one fold away.
+  moves keep their marks in the move line and on the chances graph.
 - `seenOf`, the error the overview names as what he should have seen, ranks
   the same way, so it is always the walk's costliest error.
-- The screen opens on the overview of the game (where it turned, what he
-  should have seen, the chances graph with the stops numbered, the stops as
-  a list), and one button starts the walk. A stop says what he missed when
-  its lesson card names a habit (`causeOf`: their reply, or his own chance),
-  and the overview links up to two lesson chapters the stops point to
-  (`gameLessons`).
+- The screen opens on the overview of the game (where it turned, the stops
+  as a list, and what to take into the next game from the move he should
+  have seen; the chances graph numbers the stops), and one button starts the
+  walk. A stop says what he missed when its lesson card names a habit
+  (`causeOf`: their reply, or his own chance), and links the lesson chapter
+  that shows the same mistake (`lessonLinkAt`).
 
 ## The games
 

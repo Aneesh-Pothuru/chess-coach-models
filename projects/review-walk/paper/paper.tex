@@ -1,0 +1,134 @@
+\documentclass[11pt]{article}
+\input{../../preamble}
+\input{generated}
+
+\title{How many of his marked moves should a Game Review walk through?\\[0.3em]
+\large Four costliest errors and one best move, from an overview}
+\author{Chess Coach research lab}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The app's Game Review marked every move of the player's that it graded an inaccuracy, a mistake,
+a miss or a blunder, every great or brilliant move and every mate he let slip, and its walk
+stopped at each: \DesignMomentsMedian{} stops in the median archived game, \DesignMomentsNinety{}
+at the 90th percentile and \DesignMomentsMost{} at most. It also opened on his costliest error,
+which falls anywhere from \DesignSeenAtLow\% to \DesignSeenAtHigh\% of the way into a game. The
+change opens a review on an overview of the whole game and walks at most \MaxStops{} stops: his
+\MaxErrors{} costliest mistakes, misses and blunders and \MaxHonors{} best move. On
+\HeldGames{} held-out games reviewed as the phone reviews them, the walk's errors hold
+\HeldCoverage\% of what all his errors cost in the median game (95\% interval \HeldCoverageLow\%
+to \HeldCoverageHigh\%) and \HeldQuartile\% in the lower-quartile game, and a stop lies inside
+the turn in \HeldTurnIn{} of the \HeldTurnOf{} games that turned on his own moves. By the rule
+fixed before the run, the walk is \Kept.
+\end{abstract}
+
+\section{The question}
+
+A review that is walked to its end teaches more than one that is abandoned, and the old walk was
+long: more than \LongWalk{} stops in \DesignLonger\% of the archived games. It also had no fixed
+place to begin. The screen opened on the move the player should have seen, his costliest error,
+so each game opened on a different position, with the story of the game one tap away. The
+question is what a short walk gives up. If the few costliest errors hold most of what his errors
+cost, and one of them lies where the game turned, the walk can be short and still be the review
+of the game.
+
+\section{What the app does}
+
+\paragraph{The walk.} The review service's \texttt{walkOf} reads a review's marked moves and
+picks the stops. His mistakes, misses and blunders are ranked by what they cost (the review's
+\texttt{lossPct}, the fall in his winning chances), the earlier first on a tie; then come the
+mates within \MateWithin{} moves that he let slip, the shortest first; \MaxErrors{} of these in
+all. When he made no mistake, miss or blunder, his \QuietErrors{} costliest inaccuracies stand
+in. Then \MaxHonors{} best move of his joins them, a brilliant move before a great one. An inaccuracy never
+takes a mistake's place, whatever it cost: the review grades an error an inaccuracy when the
+position stayed about as good, and that grade is the review's own judgment of how much the move
+mattered. The stops are walked in game order, and the other marked moves keep their marks in the
+move line and on the chances graph.
+
+\paragraph{The overview.} A review opens on the game as a whole: where it turned
+(\texttt{turnOf}), the stops as a list, and what to take into the next game, written from the
+move he should have seen (\texttt{seenOf}, which now ranks as the walk does, so it is always the
+walk's costliest error). The chances graph numbers the stops. One button starts the walk at the
+first stop he has not looked at.
+
+\paragraph{What a stop says.} Each error's lesson card names a habit when the board code finds
+one, and the list says which side of the board the habit is about: he missed their reply, or he
+missed his own chance. Under the engine's lines, a stop links the lesson chapter that shows the
+same mistake, when the study has one.
+
+\section{The games and the rule}
+
+The design set is the app's archive of his games as the routine reviewed them, \DesignGames{}
+games, every one read while the walk was designed, with phone reviews of 37 recent games read
+one by one. Held out are \HeldAsked{} games drawn with a fixed seed from the games played before
+\HeldBefore, each reviewed anew the way the phone's Game Review reviews it, at the app commit
+\texttt{\AppCommit}. No phone review of those games existed while the walk was designed. Their
+archive reviews are in the design set's numbers: what is held out is the phone's review of them,
+a smaller analysis with its own grades, and the one the screen walks.
+
+The rule was committed before any held-out game was reviewed. The walk is kept when, on the
+held-out games, its errors hold more than \MedianAbove\% of what his errors cost in the median
+game, with the whole 95\% interval of that median above \MedianAbove\% (\Draws{} bootstrap
+resamples of games), and at least \QuartileBar\% in the lower-quartile game; a stop lies inside
+the turn in at least \TurnBar\% of the games that turned on his own moves; and two guards hold
+that the rule's caps should make true of any game: no walk longer than \LongWalk{} stops with a
+median of at most \MaxErrors, and the costliest error a stop in every game that has an error.
+
+\section{Results}
+
+\MeasureTable
+
+Table~\ref{tab:measures} has both sets. Held out, the median bar \CheckMedian, the
+lower-quartile bar \CheckQuartile{} and the turn bar \CheckTurn; the length guard \CheckLength{}
+and the costliest-error guard \CheckSeen. The walk is \Kept.
+
+In the median held-out game the phone marks \HeldMomentsMedian{} moves, as the routine does in
+the median archived game (\DesignMomentsMedian), and the walk stops at \HeldStopsMedian. What the
+walk removes most is the long tail: a tenth of the held-out reviews mark \HeldMomentsNinety{}
+moves or more, and the longest \HeldMomentsMost, against a walk of at most \HeldStopsMost.
+
+\CapFigure
+
+\paragraph{The cap.} Four errors was a design choice, for a walk short enough to finish on a
+phone, not a fitted value. Figure~\ref{fig:caps} shows what it gives up. On the design set the
+fourth error adds \DesignFourthAdds{} points to the median game and a fifth would add
+\DesignFifthAdds; held out, \HeldFourthAdds{} and \HeldFifthAdds. The curve flattens well below
+the whole because the rest of the cost is in inaccuracies, which the walk leaves to the move
+line whenever the game has a mistake: of his mistakes, misses and blunders alone, the walk holds
+every one in \HeldSeriousWhole\% of the \HeldSeriousGames{} held-out games that have one
+(\DesignSeriousWhole\% of \DesignSeriousGames{} in the design set). Four stops ranked by cost
+alone, whatever the grade, and always filled to four, would hold \HeldByCost\% in the median
+held-out game, and would put a softened error ahead of a mistake in \HeldSoftened\% of the
+games.
+
+\paragraph{Where the old screen opened.} The costliest error comes \HeldSeenAt\% of the way into
+the median held-out game, and anywhere from \HeldSeenAtLow\% to \HeldSeenAtHigh\% between the
+lowest and highest tenth (\DesignSeenAtLow\% to \DesignSeenAtHigh\% in the design set). A screen
+that opens on it opens on a different part of every game.
+
+\paragraph{What the stops say.} Of the walk's \TeachStops{} held-out error stops, \TeachCards{}
+(\TeachCardShare\%) have a lesson card. \TeachReply{} of the cards (\TeachReplyShare\%) say he
+missed their reply, \TeachChance{} (\TeachChanceShare\%) that he missed his own chance, and
+\TeachNeither{} (\TeachNeitherShare\%) name neither. \TeachLesson{} of the stops
+(\TeachLessonShare\%) link a lesson chapter. These are counts of what the screen says, not a judgment of whether it is the right thing to say.
+
+\section{Limits}
+
+Cost is the engine's reading of winning chances, so the walk stops at what cost most by the
+engine, not at what he could most easily have found. Ranking the stops by how findable the
+better move was at his level is the next question, and it needs the human-move model on every
+stop. The held-out games are one player's, and the same games' archive reviews were part of the
+design set. The two guards are true by construction and are checked so that a later change to
+the caps cannot pass unseen.
+
+\section{What the app took}
+
+The walk, the overview a review opens on, and \texttt{seenOf}'s ranking are in the chess pull
+request this project measured, at \texttt{\AppCommit}. The pull request's later commits change
+the screen's layout and wording, not which moves the walk stops at or which chapter a stop
+links.
+
+\end{document}
