@@ -25,7 +25,7 @@ import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import { join } from 'node:path'
 import { chess, CHESS_DIR, privateDir, resultsDir } from '../../bridge/lib/chess.mjs'
-import { B, MIN_PER_LEVEL, ROUND1, SEED, aims, byDay, cat, depthOf, isPuzzle, lastAttemptAt, levelOf, looks, rated, replay, round1Root, round2Markdown, rule1, rule2, rule3 } from './lib.mjs'
+import { B, MIN_PER_LEVEL, ROUND1, SEED, aims, byDay, cat, depthOf, halvesOf, isPuzzle, lastAttemptAt, levelOf, looks, rated, replay, round1Root, round2Markdown, rule1, rule2, rule3 } from './lib.mjs'
 
 const { loadProfile } = await chess('src/adapters/node/profile/index.ts')
 const { nodeLearner } = await chess('src/adapters/node/learner/index.ts')
@@ -158,6 +158,8 @@ const rules = decideHere
       attempts: counts,
       rule1: rule1(days),
       rule2: rule2(days),
+      // Beside rule 2: the scored attempts on each of the halves' days, in time order.
+      halfDays: halvesOf(days).map((h) => h.map((d) => d.rows.length)),
       looks: looks(rows),
       selfCheck: learner.calibration(),
       today: aims(learner, bank, now),

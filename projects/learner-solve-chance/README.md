@@ -18,33 +18,60 @@ such as mate in N (`CHANNEL_WEIGHTS` in `channels.ts`), so that a record
 earned in announced sets does not overstate how he plays when nothing is
 announced. Beside it, a view per channel folds only that channel's first
 exposures, each at full weight (`foldAbilities` in `ability.ts`). Serving
-reads the headline. The learner's own notes expect the discount to read a
-player served at 75% in themed sets about 60 points under his strength.
+read the headline when the study began. The learner's own notes expect the
+discount to read a player served at 75% in themed sets about 60 points under
+his strength.
 
-**The answer.** Not settled by round 1. Its verdicts do not stand: the
-record it rebuilt from the memory cards keeps almost only his solves, because
-a miss comes back as a redemption card and the cards reviewed more than once,
-which hold all but one of the puzzles he ever missed, were left out. The
-profile as the app holds it was logged as he played, so nothing in it selects
-on the result, and round 1 named it beside the verdicts. There the headline
-rating, which serving reads, gave him a mean solve chance of 58% on puzzles he
-solved 96% of: it sits close to the difficulty he was served, so sets aim far
-below him. The view of his themed sets gave 82%, still low, with about half the
-headline's log loss. That look decides nothing, so round 2 below tests the
-view on the attempts the app records next. On that look the app's owner
-chose to adopt the view before round 2: since chess PR 78 (merged as
-`ae69a3e`) the app aims a bucket's set from its themed view, and the skill
-map's next difficulty reads the same estimate. Round 2 decides whether it
-stays. Since chess PR 79 (merged as `5c846e2`), a bucket with no attempt logged
-in its own set aims from its stored totals read alone instead of the
-headline; round 2 scores no attempt in such a bucket. Round 2 also tests
-whether the chance holds for one-move puzzles and longer ones alike, which a
-target per depth would need (rule 3). The study reruns each time the lab's
-pin moves, always on the profile at the commit round 1 measured (`d8b7712`),
-so the attempts recorded after it never reach round 1 and its numbers move
-only when the app's learner does; its verdicts and the profile's look have
-not changed since `ae69a3e`. The numbers are in the paper,
-[`paper/paper.pdf`](paper/paper.pdf), and the script's report,
+**The answer.** Round 2 ran on 14 November 2026, on the 180 scored attempts
+the app recorded from 15 October to 13 November (the profile at chess
+`d18d5d2`, read with that commit's learner). By its rules, fixed before any of
+those attempts existed:
+
+1. The headline rating under-predicts him. It gave a mean solve chance of
+   56.0% on puzzles he solved 77.8% of, a gap of 21.8 points (95% interval
+   14.8 to 26.9).
+2. The view of his themed sets does not pass, so by the rule it does not stay
+   the estimate a set's solve chance is read from. Its log loss was below the
+   headline's on both halves of the days: by 0.100 on the first (5 days, 134
+   attempts; interval -0.155 to -0.019) and by 0.072 on the second (4 days, 46
+   attempts; -0.156 to 0.020). The rule needs both intervals entirely below
+   zero, and the second half's reaches above it. That half's days hold 13,
+   12, 20 and 1 scored attempts.
+3. Whether the chance holds by depth is not answered yet: rule 3 needs 30
+   scored attempts at each level and has 29 of one move, with 151 of two or
+   more. It is checked again at the next check-in.
+
+Reported beside, deciding nothing: the view gave a mean chance of 72.7%, 5.1
+points under the 77.8% he solved (interval 0.9 to 8.3), and over all nine days
+its log loss was 0.093 below the headline's (-0.142 to -0.034). Everything is
+in [`results/round2.md`](results/round2.md), written by the script.
+
+What the app does with verdict 2 is its owner's call. The app has aimed its
+sets from the view since chess PR 78 (below), and going back to the headline
+would aim them from the estimate that verdict 1 finds about 22 points too
+low. He was asked on 14 November; until he answers, the app keeps the view.
+Round 3, below, puts rule 2 to the attempts recorded next, on twice the days.
+
+**Round 1** settled nothing. Its verdicts do not stand: the record it rebuilt
+from the memory cards keeps almost only his solves, because a miss comes back
+as a redemption card and the cards reviewed more than once, which hold all but
+one of the puzzles he ever missed, were left out. The profile as the app holds
+it was logged as he played, so nothing in it selects on the result, and round
+1 named it beside the verdicts. There the headline rating, which serving then
+read, gave him a mean solve chance of 58% on puzzles he solved 96% of: it sat
+close to the difficulty he was served, so sets aimed far below him. The view
+of his themed sets gave 82%, still low, with about half the headline's log
+loss. That look decides nothing, so round 2 tested the view on the attempts
+the app recorded next. On that look the app's owner chose to adopt the view
+before round 2: since chess PR 78 (merged as `ae69a3e`) the app aims a
+bucket's set from its themed view, and the skill map's next difficulty reads
+the same estimate. Since chess PR 79 (merged as `5c846e2`), a bucket with no
+attempt logged in its own set aims from its stored totals read alone instead
+of the headline; round 2 scores no attempt in such a bucket. Round 1 reruns
+each time the lab's pin moves, always on the profile at the commit round 1
+measured (`d8b7712`), so the attempts recorded after it never reach round 1
+and its numbers move only when the app's learner does; its verdicts and the
+profile's look have not changed since `ae69a3e`. Its report is
 [`results/solve.md`](results/solve.md), which names the app commit it
 measured.
 
@@ -230,6 +257,39 @@ Reported beside, deciding nothing:
   held under `bucketCeiling` of that level's puzzles), beside the lowest and
   highest rating among that level's puzzles in the bucket.
 
+## Round 3, fixed before any of its attempts was read
+
+Round 2 leaves the candidate where its rule puts it: not passed. Its log loss
+was lower on both halves all the same, and the half that fell short had four
+days, one of them holding a single attempt. A test on more attempts after
+seeing that is a new round, and this is it.
+
+- **The attempts.** As round 2's, at a later commit of the app read with that
+  commit's learner: every puzzle attempt in a bucket's own set that the app
+  counts as a first exposure, recorded after the last attempt in the profile
+  at the commit round 2 read (`d18d5d2`; that attempt was played at 11:23 on
+  13 November, Los Angeles time). Everything before an attempt is its
+  evidence, as the app folds it.
+- **When.** Once those attempts fall on at least twenty Los Angeles days,
+  twice round 2's. Until then nothing is decided.
+- **The rule.** Rules 1 and 2, unchanged, on those attempts. Rule 2's verdict
+  there replaces round 2's: the view is the estimate a set's solve chance is
+  read from if both halves pass, and the headline is if not. Each estimate is
+  scored on the puzzles he was served, whichever of the two the app aims from
+  by then.
+- **Known before it.** All of round 2's results. Of round 3's own attempts,
+  nothing: the last profile read is the one at `d18d5d2`.
+- **Two looks.** A second test of one candidate raises the chance that it
+  passes by luck, so both rounds' verdicts are reported side by side, and
+  round 3 is the last: no later round puts this candidate to the same rule.
+
+Rule 3 stays round 2's: it runs once, on every attempt recorded after round
+1's last by the time each level holds its 30, with the chance from the
+headline, the estimate round 2's rule 2 leaves serving. Added on 14 November,
+after rule 2's verdict and before any result by depth was read, to what it
+reports beside, deciding nothing: the statistic again on the view's chance,
+since the app may go on aiming from the view on its owner's call.
+
 ## How round 2 runs
 
 `round2.mjs` reads the app at the commit `CHESS_DIR` is checked out at: that
@@ -249,7 +309,13 @@ scored, with no result read. With `--run` it applies the rules:
 Round 2's results name the commits they read, and they are not rerun when the
 lab's pin moves. `lib.test.mjs` checks the rules' arithmetic and the report's
 sentences on made-up attempts whose answer is known; the script was committed
-before it was run with `--run`.
+(`ce47db0`) before it was run with `--run`. After that run it gained two
+things it reports beside the rules, deciding nothing: the scored attempts on
+each half's days, and rule 3's statistic on the other estimate. The first
+run's numbers reproduce byte for byte under it.
+
+Round 3 runs the same replay and rules from its own cutoff; the change that
+teaches the script that cutoff is committed before its first `--run`.
 
 Known before that run, from the count alone: at chess `d18d5d2` (the profile
 as synced on 13 November) 188 attempts on 10 days, 30 of one move and 158 of

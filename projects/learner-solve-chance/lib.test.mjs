@@ -87,10 +87,15 @@ test('rule 3 shows no difference when both levels miss the chance alike', () => 
 test('rule 3 reads the estimate rule 2 leaves serving', () => {
   // By the view both levels are off alike, a little more or less by the day; by the headline only level one is.
   const rows = Array.from({ length: 6 }, (_, i) => [...attempts(day(i), 10, i % 2 ? 10 : 8, { depth: 1, head: 0.5, view: 0.7 }), ...attempts(day(i), 10, 7, { depth: 2, head: 0.7, view: 0.5 })]).flat()
-  assert.equal(rule3(byDay(rows), 'view').verdict, 'no difference shows')
+  const byView = rule3(byDay(rows), 'view')
+  assert.equal(byView.verdict, 'no difference shows')
   const byHead = rule3(byDay(rows), 'head')
   assert.equal(byHead.verdict, 'more often at one move')
   assert.ok(Math.abs(byHead.statistic.value - 0.4) < 1e-12)
+  // Each run reports the other estimate's statistic beside its own, deciding nothing.
+  assert.equal(byView.otherEstimate.estimate, 'head')
+  assert.deepEqual(byView.otherEstimate.statistic, byHead.statistic)
+  assert.deepEqual(byHead.otherEstimate, { estimate: 'view', statistic: byView.statistic })
 })
 
 test('a difference by depth fits a shift per level on the first half and tests it on both', () => {
@@ -175,6 +180,7 @@ function reportOf(rows, serving) {
       attempts,
       rule1: rule1(days),
       rule2: rule2(days),
+      halfDays: halvesOf(days).map((h) => h.map((d) => d.rows.length)),
       looks: looks(rows),
       selfCheck: { n: 40, brier: 0.2, logLoss: 0.6, baseline: { brier: 0.21, logLoss: 0.62 }, meanPredicted: 0.7, meanObserved: 0.75 },
       today: [{ bucket: 'fork', phase: 'core', head: { rating: 1400, rd: 60, target: 1200 }, view: null, app: { from: 'totals', rating: 1500, rd: 80, target: 1300 }, bankMax: 1900, bankSize: 400 }],
@@ -200,11 +206,13 @@ test('the report says what the rules found, in each of their outcomes', () => {
   const kept = text(reportOf(clear, 'view'))
   assert.match(kept, /By the rule, the headline under-predicts him\./)
   assert.match(kept, /By the rule, both halves pass: the view stays the estimate/)
+  assert.match(kept, /The halves' days hold, in time order, 20, 20, 20 and 20 scored attempts, and 20, 20, 20 and 20 scored attempts\./)
   assert.match(kept, /each with the chance from the view of his themed sets, the estimate rule 2 leaves serving/)
   assert.match(kept, /By the rule, he solves one-move puzzles more often than the chance says, against longer ones/)
   assert.match(kept, /By the rule, both halves pass and the term is kept/)
   assert.match(kept, /\| mateIn1 \| 1300 ± 90 \| 1450 \| 600 to 1900 \(12\) \| none \| none \|/)
   assert.match(kept, /Over only the 1 bucket whose attempts include both levels \(fork; 80 one-move attempts and 80 longer\)/)
+  assert.match(kept, /On the chance from the headline rating, the estimate rule 2 did not leave serving, the statistic is \+\d+\.\d points/)
 
   // The view loses on the second half's days, so rule 3 reads the headline; both levels are off alike.
   const even = Array.from({ length: 8 }, (_, i) => [...attempts(day(i), 10, 7, { depth: 1, head: 0.7, view: i % 2 ? 0.2 : 0.7 }), ...attempts(day(i), 10, i % 2 ? 8 : 6, { head: 0.7, view: i % 2 ? 0.2 : 0.7 })]).flat()

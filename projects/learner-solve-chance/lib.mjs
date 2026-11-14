@@ -400,6 +400,7 @@ export function rule3(scoredDays, serving) {
   const bucketsOf = (level) => new Set(rows.filter((r) => r.level === level).map((r) => r.bucket))
   const both = [...bucketsOf(1)].filter((b) => bucketsOf(2).has(b)).sort()
   const inBoth = days.map((d) => ({ day: d.day, rows: d.rows.filter((r) => both.includes(r.bucket)) })).filter((d) => d.rows.length > 0)
+  const other = serving === 'view' ? 'head' : 'view'
   return {
     status: 'ran',
     serving,
@@ -407,6 +408,8 @@ export function rule3(scoredDays, serving) {
     statistic,
     verdict,
     term,
+    // Beside the test, deciding nothing: the statistic on the estimate rule 2 did not leave serving.
+    otherEstimate: { estimate: other, statistic: drawInterval(days, depthStat(other)) },
     groups: {
       one: depthGroup(days, (r) => r.level === 1),
       two: depthGroup(days, (r) => r.level === 2),
@@ -453,6 +456,7 @@ export const aimTable = (today) => [
 
 // ---------------------------------------------------------------- round 2's report
 const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
+const list = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs.at(-1)}` : String(xs[0]))
 const ivText = (x, f = pp) => `${f(x.value)} (${iv(x.interval, f)})`
 const band = (b) => `${Math.round(100 * b[0])} to ${Math.round(100 * b[1])}%`
 const SERVING = { view: 'the view of his themed sets', head: 'the headline rating' }
@@ -509,6 +513,8 @@ function rule3Markdown(r3) {
     '',
     `Under the app's present aim, one target for all of a set's puzzles (${pct(r3.presentAim.new)} while a bucket is new, ${pct(r3.presentAim.core)} after), he solved ${pct(g.one.solved.value)} of the one-move puzzles, where the book's band is ${band(r3.targets.one.band)}, and ${pct(g.two.solved.value)} of the longer ones, where it is ${band(r3.targets.two.band)}.`,
     '',
+    `On the chance from ${SERVING[r3.otherEstimate.estimate]}, the estimate rule 2 did not leave serving, the statistic is ${pp(r3.otherEstimate.statistic.value)} points (95% interval ${iv(r3.otherEstimate.statistic.interval)}${drawnAgain(r3.otherEstimate.statistic)}).`,
+    '',
     both.statistic
       ? `Over only the ${plural(both.buckets.length, 'bucket')} whose attempts include both levels (${both.buckets.join(', ')}; ${both.one} one-move attempts and ${both.two} longer), the statistic is ${pp(both.statistic.value)} points (95% interval ${iv(both.statistic.interval)}${drawnAgain(both.statistic)}).`
       : 'No bucket\'s attempts include both levels, so the statistic cannot be read within buckets.',
@@ -550,6 +556,8 @@ export function round2Markdown(report) {
     `Mean log loss per attempt, the view against the headline: ${r2.halves.map((h, i) => halfText(h, i, 'view', 'head')).join('; ')}. By the rule, ${r2.passes ? 'both halves pass: the view stays the estimate a set\'s solve chance is read from' : 'it does not pass: the view does not stay, and a set\'s solve chance goes back to the headline'}.`,
     '',
     '## Reported beside rules 1 and 2, deciding nothing',
+    '',
+    `The halves' days hold, in time order, ${rules.halfDays.map((h) => list(h)).join(' scored attempts, and ')} scored attempts.`,
     '',
     `The view's mean solve chance was ${pct(L.view.meanChance)} (gap ${pp(L.view.gap.value)} points, 95% interval ${iv(L.view.gap.interval)}). Over all the days, the view's log loss minus the headline's is ${f3(L.candidate.value)} (${f3(L.candidate.interval[0])} to ${f3(L.candidate.interval[1])}). The shift that best fits the headline's chances takes ${shiftText(L.shift.head)} points off every item's rating; the view's, ${shiftText(L.shift.view)}.`,
     '',
