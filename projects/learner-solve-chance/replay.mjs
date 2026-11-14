@@ -8,43 +8,25 @@
 // the attempts are his.
 //
 //   bridge/run.sh projects/learner-solve-chance/replay.mjs
-import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import { join } from 'node:path'
 import { chess, CHESS_DIR, LAB_DIR, privateDir } from '../../bridge/lib/chess.mjs'
+import { ROUND1, aims, cat, isPuzzle, lastAttemptAt, rated, replay, round1Root } from './lib.mjs'
 
 const { loadProfile } = await chess('src/adapters/node/profile/index.ts')
 const { nodeLearner } = await chess('src/adapters/node/learner/index.ts')
-const { LEARNER_CONTENT } = await chess('src/data/learnerContent.ts')
-const { catalogue } = await chess('src/services/learner/competencies.ts')
-const { observations, byCompetency } = await chess('src/services/learner/evidence.ts')
-const { foldAbilities } = await chess('src/services/learner/ability.ts')
-const { channelOf } = await chess('src/services/learner/channels.ts')
-const { solveChance, serveTarget, servingAbility, MIN_ATTEMPTS, LADDER_START } = await chess('src/services/learner/index.ts')
+const { observations } = await chess('src/services/learner/evidence.ts')
 const { ptDayKey } = await chess('src/core/time/index.ts')
 
 // Round 1 reads the profile at the commit it measured, with the pinned app's
 // learner: the attempts recorded after it are round 2's, and round 1 never
 // scores them.
-const ROUND1 = 'd8b771238c11c84d0c4b2a8010bb75f5f756b8d9'
 const pin = JSON.parse(fs.readFileSync(join(LAB_DIR, 'bridge', 'chess.json'), 'utf8'))
 const dir = privateDir('learner-solve-chance')
-const round1Root = join(dir, 'round1')
-const round1File = join(round1Root, 'progress', 'profile.json')
-if (!fs.existsSync(round1File)) {
-  const git = join(LAB_DIR, '.cache', 'chess-round1')
-  fs.rmSync(git, { recursive: true, force: true })
-  execFileSync('git', ['init', '-q', git])
-  execFileSync('git', ['-C', git, 'fetch', '-q', '--depth', '1', pin.repo, ROUND1])
-  fs.mkdirSync(join(round1Root, 'progress'), { recursive: true })
-  fs.writeFileSync(round1File, execFileSync('git', ['-C', git, 'show', 'FETCH_HEAD:progress/profile.json']))
-  fs.rmSync(git, { recursive: true, force: true })
-}
-const loaded = loadProfile(round1File)
+const round1 = round1Root()
+const loaded = loadProfile(join(round1, 'progress', 'profile.json'))
 if (!loaded.ok) throw new Error(`the profile does not load: ${loaded.reason}`)
 const held = loaded.profile
-const cat = catalogue(LEARNER_CONTENT.buckets)
-const endgameIds = new Set(LEARNER_CONTENT.endgameDrills.map((d) => d.id))
 
 // The bank: each puzzle's bucket and Lichess rating.
 const bank = JSON.parse(fs.readFileSync(join(CHESS_DIR, 'src', 'data', 'puzzles.json'), 'utf8'))
@@ -128,83 +110,10 @@ const rebuilt = {
 }
 
 // ---------------------------------------------------------------- the replay
-const isPuzzle = (o) => o.from === 'log' || (o.item ?? '').startsWith('puzzle:')
-const rated = (o) => channelOf(o.channel) !== null && o.first !== false
-const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x))
-
 /** The once-reviewed card a legacy log attempt is (its bucket and rating, within a second), or null. */
 const cardAt = (o) => once.find((c) => Math.abs(c.lastAt - o.at) <= MATCH_MS && itemOf.get(c.id).bucket === o.competency && itemOf.get(c.id).rating === o.difficulty)?.id ?? null
 
-/** The profile as it stood just before `t`, with the seed the whole record gives each skill. */
-function before(profile, t, seeds) {
-  const cut = { ...profile, attempts: (profile.attempts ?? []).filter((a) => a.at < t), events: (profile.events ?? []).filter((e) => e.at < t) }
-  if (!seeds) return cut
-  // The stored totals count every logged attempt too: keep them at the seed
-  // plus what is logged before t, so the seed is the same at every moment and
-  // nothing after t reaches it.
-  const obs = observations(cut, cat)
-  const stats = {}
-  for (const [b, st] of Object.entries(profile.puzzleStats ?? {})) {
-    const counted = obs.filter((o) => o.competency === b && isPuzzle(o))
-    const seed = seeds.get(b) ?? { attempts: 0, correct: 0 }
-    stats[b] = { ...st, attempts: seed.attempts + counted.length, correct: seed.correct + counted.filter((o) => o.score >= 1).length }
-  }
-  return { ...cut, puzzleStats: stats }
-}
-
-function replay(name, profile, withSeed) {
-  const all = observations(profile, cat)
-  let seeds = null
-  if (withSeed) {
-    const full = foldAbilities({ profile, catalogue: cat, observations: byCompetency(all), endgameIds, now: profile.updatedAt ?? 0 })
-    seeds = new Map([...full].filter(([, st]) => st.seed).map(([id, st]) => [id, { attempts: st.seed.attempts, correct: st.seed.correct }]))
-  }
-  const rows = []
-  const earlier = new Map()
-  for (const o of all) {
-    if (!rated(o)) continue
-    const key = `${o.competency}|${channelOf(o.channel)}`
-    const prior = earlier.get(key) ?? { n: 0, solved: 0 }
-    if (isPuzzle(o) && prior.n > 0) {
-      const t = o.at
-      const cut = before(profile, t, seeds)
-      const states = foldAbilities({ profile: cut, catalogue: cat, observations: byCompetency(observations(cut, cat)), endgameIds, now: t })
-      const st = states.get(o.competency)
-      if (!st) throw new Error(`${name}: no state for ${o.competency} at ${t}`)
-      if (seeds) {
-        const want = seeds.get(o.competency) ?? null
-        const got = st.seed ? { attempts: st.seed.attempts, correct: st.seed.correct } : null
-        if (JSON.stringify(want) !== JSON.stringify(got)) throw new Error(`${name}: the seed moved for ${o.competency} at ${t}`)
-      }
-      const view = st.channels[channelOf(o.channel)]
-      if (!view) throw new Error(`${name}: no ${channelOf(o.channel)} view for ${o.competency} at ${t}`)
-      rows.push({
-        record: name,
-        item: o.item ? o.item.slice('puzzle:'.length) : cardAt(o),
-        day: ptDayKey(t),
-        at: t,
-        bucket: o.competency,
-        channel: channelOf(o.channel),
-        difficulty: o.difficulty,
-        rd: o.difficultyRd,
-        first: o.first,
-        s: o.score >= 0.5 ? 1 : 0,
-        head: solveChance(st.ability, o.difficulty, o.difficultyRd),
-        view: solveChance({ rating: view.rating, rd: view.rd, volatility: st.ability.volatility }, o.difficulty, o.difficultyRd),
-        run: clamp(prior.solved / prior.n, 0.01, 0.99),
-        headRating: st.ability.rating,
-        headRd: st.ability.rd,
-        viewRating: view.rating,
-        viewRd: view.rd,
-        viewN: view.n,
-      })
-    }
-    earlier.set(key, { n: prior.n + 1, solved: prior.solved + (o.score >= 0.5 ? 1 : 0) })
-  }
-  return rows
-}
-
-const rows = [...replay('rebuilt', rebuilt, false), ...replay('held', held, true)]
+const rows = [...replay('rebuilt', rebuilt, false, { logItem: cardAt }), ...replay('held', held, true, { logItem: cardAt })]
 
 // ---------------------------------------------------------------- the record's shape
 const firstTries = observations(rebuilt, cat).filter((o) => isPuzzle(o) && rated(o))
@@ -217,35 +126,13 @@ const shape = {
 
 // ---------------------------------------------------------------- the learner today
 const now = held.updatedAt
-const learner = nodeLearner(round1Root, { now })
+const learner = nodeLearner(round1, { now })
 const selfCheck = learner.calibration()
-const today = learner
-  .skills(now)
-  .filter((s) => bank[s.id])
-  .map((s) => {
-    const pool = bank[s.id].map((p) => ({ id: p.id, rating: p.rating }))
-    const phase = s.attempts < MIN_ATTEMPTS ? 'new' : 'core'
-    const view = s.channels.themed
-    const serving = servingAbility(s, 'themed')
-    return {
-      bucket: s.id,
-      phase,
-      head: { rating: s.ability.rating, rd: s.ability.rd, target: serveTarget(s.ability, phase, pool, LADDER_START) },
-      view: view ? { rating: view.rating, rd: view.rd, n: view.n, target: serveTarget({ ...s.ability, rating: view.rating, rd: view.rd }, phase, pool, LADDER_START) } : null,
-      app: {
-        from: view ? 'view' : s.seed?.channel === 'themed' ? 'totals' : 'headline',
-        rating: serving.rating,
-        rd: serving.rd,
-        target: serveTarget(serving, phase, pool, LADDER_START),
-      },
-      bankMax: Math.max(...pool.map((p) => p.rating)),
-      bankSize: pool.length,
-    }
-  })
+const today = aims(learner, bank, now)
 
 // Round 2 scores what the profile records after its last attempt here.
 shape.profile = ROUND1
-shape.lastAttempt = ptDayKey(Math.max(...(held.attempts ?? []).map((a) => a.at), ...(held.events ?? []).filter(isAttempt).map((e) => e.at)))
+shape.lastAttempt = ptDayKey(lastAttemptAt(held))
 shape.syncedOn = ptDayKey(now)
 fs.writeFileSync(join(dir, 'rows.jsonl'), rows.map((r) => JSON.stringify(r)).join('\n') + '\n')
 fs.writeFileSync(join(dir, 'state.json'), JSON.stringify({ app: pin.commit, checks, log, selection, shape, selfCheck, today, now }, null, 1) + '\n')

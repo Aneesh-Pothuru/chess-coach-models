@@ -8,132 +8,18 @@
 //   bridge/run.sh projects/learner-solve-chance/fit.mjs
 import fs from 'node:fs'
 import { join } from 'node:path'
-import { chess, privateDir, resultsDir } from '../../bridge/lib/chess.mjs'
-
-const { solveChance } = await chess('src/services/learner/index.ts')
-
-const SEED = 7
-const B = 1000
-const EPS = 1e-6
-const BINS = [0.5, 0.6, 0.7, 0.8, 0.9]
-const SHIFTS = []
-for (let d = -500; d <= 500; d += 5) SHIFTS.push(d)
-
-function mulberry32(seed) {
-  let a = seed >>> 0
-  return () => {
-    a |= 0; a = (a + 0x6d2b79f5) | 0
-    let t = Math.imul(a ^ (a >>> 15), 1 | a)
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
-}
-const quantile = (sorted, q) => sorted[Math.round(q * (sorted.length - 1))]
-// As the learner's self-check scores a prediction.
-const ll = (p, s) => -(s * Math.log(Math.max(EPS, p)) + (1 - s) * Math.log(Math.max(EPS, 1 - p)))
-const brier = (p, s) => (p - s) ** 2
-const mean = (xs) => xs.reduce((a, x) => a + x, 0) / xs.length
+import { privateDir, resultsDir } from '../../bridge/lib/chess.mjs'
+import { B, SEED, aimTable, byDay, f3, iv, lookTables, looks, pct, pp, rule1, rule2, shiftText } from './lib.mjs'
 
 const dir = privateDir('learner-solve-chance')
 const rows = fs.readFileSync(join(dir, 'rows.jsonl'), 'utf8').trim().split('\n').map((l) => JSON.parse(l))
 const state = JSON.parse(fs.readFileSync(join(dir, 'state.json'), 'utf8'))
 
-/** Rows grouped by day, days in time order. */
-function byDay(set) {
-  const m = new Map()
-  for (const r of set) m.set(r.day, [...(m.get(r.day) ?? []), r])
-  return [...m.entries()].sort(([a], [b]) => (a < b ? -1 : 1)).map(([day, rs]) => ({ day, rows: rs }))
-}
-
-/** The mean of f over the rows, and its 95% interval over bootstrap draws of the days. */
-function meanInterval(days, f) {
-  const parts = days.map((d) => ({ sum: d.rows.reduce((a, r) => a + f(r), 0), n: d.rows.length }))
-  const value = parts.reduce((a, p) => a + p.sum, 0) / parts.reduce((a, p) => a + p.n, 0)
-  const rng = mulberry32(SEED)
-  const draws = []
-  for (let b = 0; b < B; b++) {
-    let s = 0, n = 0
-    for (let t = 0; t < parts.length; t++) { const p = parts[Math.floor(rng() * parts.length)]; s += p.sum; n += p.n }
-    draws.push(s / n)
-  }
-  draws.sort((a, b) => a - b)
-  return { value, interval: [quantile(draws, 0.025), quantile(draws, 0.975)] }
-}
-
-/** Share solved minus mean chance. */
-const gapOf = (days, key) => meanInterval(days, (r) => r.s - r[key])
-/** Mean log loss of `a` minus that of `b`. */
-const llDiff = (days, a, b) => meanInterval(days, (r) => ll(r[a], r.s) - ll(r[b], r.s))
-const KEYS = ['head', 'view', 'run']
-const scores = (set) => Object.fromEntries(KEYS.map((k) => [k, { brier: mean(set.map((r) => brier(r[k], r.s))), logLoss: mean(set.map((r) => ll(r[k], r.s))) }]))
-
-function reliability(set, key) {
-  const edges = [0, ...BINS, 1.0000001]
-  return edges.slice(0, -1).map((lo, i) => {
-    const inBin = set.filter((r) => r[key] >= lo && r[key] < edges[i + 1])
-    return { from: lo, to: Math.min(1, edges[i + 1]), n: inBin.length, chance: inBin.length ? mean(inBin.map((r) => r[key])) : null, solved: inBin.length ? mean(inBin.map((r) => r.s)) : null }
-  })
-}
-
-/** The shift taken off every item's rating that best fits an estimate's chances, and its interval over the days. */
-function bestShift(days, ratingKey) {
-  const perDay = days.map((d) =>
-    SHIFTS.map((sh) => d.rows.reduce((a, r) => a - ll(solveChance({ rating: r[ratingKey], rd: 0, volatility: 0 }, r.difficulty - sh, r.rd), r.s), 0)),
-  )
-  const argmax = (sum) => {
-    let bi = 0
-    sum.forEach((v, i) => { if (v > sum[bi] || (v === sum[bi] && Math.abs(SHIFTS[i]) < Math.abs(SHIFTS[bi]))) bi = i })
-    return SHIFTS[bi]
-  }
-  const rng = mulberry32(SEED)
-  const draws = []
-  for (let b = 0; b < B; b++) {
-    const sum = SHIFTS.map(() => 0)
-    for (let t = 0; t < perDay.length; t++) { const d = perDay[Math.floor(rng() * perDay.length)]; for (let i = 0; i < sum.length; i++) sum[i] += d[i] }
-    draws.push(argmax(sum))
-  }
-  draws.sort((a, b) => a - b)
-  return { shift: argmax(SHIFTS.map((_, i) => perDay.reduce((a, d) => a + d[i], 0))), interval: [quantile(draws, 0.025), quantile(draws, 0.975)], edge: [SHIFTS[0], SHIFTS[SHIFTS.length - 1]] }
-}
-
-function perBucket(set) {
-  return [...new Set(set.map((r) => r.bucket))].sort().map((b) => {
-    const rs = set.filter((r) => r.bucket === b)
-    return { bucket: b, n: rs.length, solved: mean(rs.map((r) => r.s)), head: mean(rs.map((r) => r.head)), view: mean(rs.map((r) => r.view)), difficulty: mean(rs.map((r) => r.difficulty)) }
-  })
-}
-
-/** Everything the README reports beside the verdicts, for one record. */
-function looks(set) {
-  const days = byDay(set)
-  return {
-    attempts: set.length,
-    days: days.length,
-    dayRange: [days[0].day, days[days.length - 1].day],
-    solved: mean(set.map((r) => r.s)),
-    misses: set.filter((r) => r.s === 0).length,
-    headline: { meanChance: mean(set.map((r) => r.head)), gap: gapOf(days, 'head') },
-    view: { meanChance: mean(set.map((r) => r.view)), gap: gapOf(days, 'view') },
-    run: { meanChance: mean(set.map((r) => r.run)) },
-    scores: scores(set),
-    candidate: llDiff(days, 'view', 'head'),
-    reliability: { head: reliability(set, 'head'), view: reliability(set, 'view') },
-    buckets: perBucket(set),
-    shift: { head: bestShift(days, 'headRating'), view: bestShift(days, 'viewRating') },
-  }
-}
-
 // ---------------------------------------------------------------- round 1, on the rebuilt record
 const R = rows.filter((r) => r.record === 'rebuilt')
 const days = byDay(R)
-const halves = [days.filter((_, i) => i % 2 === 0), days.filter((_, i) => i % 2 === 1)]
-const headGap = gapOf(days, 'head')
-const verdict1 = headGap.interval[0] > 0 ? 'under-predicts' : headGap.interval[1] < 0 ? 'over-predicts' : 'calibrated'
-const halfTests = halves.map((h) => {
-  const rs = h.flatMap((d) => d.rows)
-  return { days: h.length, attempts: rs.length, head: mean(rs.map((r) => ll(r.head, r.s))), view: mean(rs.map((r) => ll(r.view, r.s))), ...llDiff(h, 'view', 'head') }
-})
-const passes = halfTests.every((t) => t.value < 0 && t.interval[1] < 0)
+const { gap: headGap, verdict: verdict1 } = rule1(days)
+const { halves: halfTests, passes } = rule2(days)
 
 const held = rows.filter((r) => r.record === 'held')
 const report = {
@@ -165,29 +51,8 @@ const report = {
 }
 
 // ---------------------------------------------------------------- the report
-const f3 = (x) => (x === null ? 'n/a' : x.toFixed(3))
-const pct = (x) => (x === null ? 'n/a' : (100 * x).toFixed(1) + '%')
-const pp = (x) => (x >= 0 ? '+' : '') + (100 * x).toFixed(1)
-const iv = (i, f = pp) => `${f(i[0])} to ${f(i[1])}`
 const sel = report.selection
 const H = report.held
-const shiftText = (s) => `${s.shift} (${s.interval[0]} to ${s.interval[1]}${s.interval.includes(s.edge[1]) || s.interval.includes(s.edge[0]) ? ', at the grid\'s edge' : ''})`
-const lookTables = (L) => [
-  '| Estimate | Mean chance | Brier | Log loss |',
-  '|---|---:|---:|---:|',
-  ...KEYS.map((k) => `| ${{ head: 'Headline rating', view: 'View of the channel', run: 'Running rate' }[k]} | ${pct(L[k === 'head' ? 'headline' : k].meanChance)} | ${f3(L.scores[k].brier)} | ${f3(L.scores[k].logLoss)} |`),
-  '',
-  '| Solve chance | Headline: attempts | mean chance | solved | View: attempts | mean chance | solved |',
-  '|---|---:|---:|---:|---:|---:|---:|',
-  ...L.reliability.head.map((b, i) => {
-    const v = L.reliability.view[i]
-    return `| ${b.from.toFixed(1)} to ${b.to.toFixed(1)} | ${b.n} | ${pct(b.chance)} | ${pct(b.solved)} | ${v.n} | ${pct(v.chance)} | ${pct(v.solved)} |`
-  }),
-  '',
-  '| Bucket | Scored | Mean rating | Solved | Headline\'s chance | View\'s chance |',
-  '|---|---:|---:|---:|---:|---:|',
-  ...L.buckets.map((b) => `| ${b.bucket} | ${b.n} | ${Math.round(b.difficulty)} | ${pct(b.solved)} | ${pct(b.head)} | ${pct(b.view)} |`),
-]
 const md = [
   '# The learner\'s solve chances: results',
   '',
@@ -215,9 +80,7 @@ const md = [
   '',
   `## What each estimate would aim a set at on ${report.record.syncedOn}, when the profile round 1 read was synced`,
   '',
-  '| Bucket | Phase | Headline | Its target | Themed view | Its target | The app aims from | Its target | Hardest in the bank |',
-  '|---|---|---:|---:|---:|---:|---|---:|---:|',
-  ...report.today.map((t) => `| ${t.bucket} | ${t.phase} | ${t.head.rating} ± ${t.head.rd} | ${t.head.target} | ${t.view ? `${t.view.rating} ± ${t.view.rd} (n=${t.view.n})` : 'none'} | ${t.view ? t.view.target : 'n/a'} | ${t.app.from}, ${t.app.rating} ± ${t.app.rd} | ${t.app.target} | ${t.bankMax} |`),
+  ...aimTable(report.today),
   '',
   '## Round 1\'s rebuilt record, for completeness',
   '',

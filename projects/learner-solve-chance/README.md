@@ -230,12 +230,42 @@ Reported beside, deciding nothing:
   held under `bucketCeiling` of that level's puzzles), beside the lowest and
   highest rating among that level's puzzles in the bucket.
 
+## How round 2 runs
+
+`round2.mjs` reads the app at the commit `CHESS_DIR` is checked out at: that
+commit's profile, its bank and its learner (`bridge/checkout.sh at <sha>`
+fetches the app at a commit other than the lab's pin). Run without `--run`,
+it only counts: the attempts by day and by depth and how many of them are
+scored, with no result read. With `--run` it applies the rules:
+
+- Rules 1 and 2 run once, at the first commit read whose attempts fall on ten
+  Los Angeles days.
+- Rule 3 runs beside them when each level holds its 30 scored attempts. Where
+  one does not, it reports the counts, and a later `--run` at a later commit
+  runs rule 3 alone, on every attempt recorded by then and on the estimate
+  rule 2 left serving, while rules 1 and 2 stay as they were recorded. Once
+  rule 3 has run, the script refuses to run it at another commit.
+
+Round 2's results name the commits they read, and they are not rerun when the
+lab's pin moves. `lib.test.mjs` checks the rules' arithmetic and the report's
+sentences on made-up attempts whose answer is known; the script was committed
+before it was run with `--run`.
+
+Known before that run, from the count alone: at chess `d18d5d2` (the profile
+as synced on 13 November) 188 attempts on 10 days, 30 of one move and 158 of
+two or more, with 8 more left out as puzzles he had seen before; 180 of them
+scored, on 9 days, 29 of one move and 151 longer. So rules 1 and 2 run there,
+and rule 3 waits for its thirtieth scored one-move attempt.
+
 ## Files
 
 | File | What it does |
 |---|---|
+| `lib.mjs` | What the rounds share: the replay of the app's learner over a profile, the rules' arithmetic and the reports' tables. |
+| `lib.test.mjs` | The rules and round 2's report on made-up attempts (`bridge/run.sh --test projects/learner-solve-chance/lib.test.mjs`). |
 | `replay.mjs` | Rebuilds the record, replays the app's learner over it and over the profile as the app held it at the commit round 1 measured, and writes one row per scored attempt. |
-| `fit.mjs` | Applies the rule and writes `results/`. |
+| `fit.mjs` | Applies round 1's rule and writes `results/solve.json` and `solve.md`. |
+| `round2.mjs` | Round 2: counts its attempts, and with `--run` applies rules 1 to 3 and writes `results/round2.json` and `round2.md`. |
 | `paper/` | The paper. |
 
 ## Running it
@@ -247,7 +277,13 @@ bridge/run.sh projects/learner-solve-chance/fit.mjs
 bridge/run.sh projects/learner-solve-chance/paper/generate.mjs
 ```
 
-Round 2 adds its own script, which runs rules 1 to 3, when it runs.
+Round 2, at the commit of the app it reads (a check-in runs the first line;
+`--run` applies the rules, as "How round 2 runs" says):
+
+```bash
+CHESS_DIR="$(bridge/checkout.sh at <sha>)" bridge/run.sh projects/learner-solve-chance/round2.mjs
+CHESS_DIR="$(bridge/checkout.sh at <sha>)" bridge/run.sh projects/learner-solve-chance/round2.mjs --run
+```
 
 The attempts are his, so the rows stay in `private/learner-solve-chance/`;
 `results/` holds aggregates only.

@@ -7,6 +7,11 @@
 #   bridge/checkout.sh records   the research records kept in the app's private
 #                                repository (per-game cases, results, judge
 #                                rounds), read at run time and never copied here
+#   bridge/checkout.sh at <sha>  the app at another commit, named in full, with
+#                                its npm dependencies: for a round fixed to read
+#                                the app as it stood at one commit (a later
+#                                profile with that commit's own code), run with
+#                                CHESS_DIR pointed at it
 #
 # CHESS_DIR (or CHESS_RECORDS_DIR), when set, wins: a candidate change is a
 # patched copy of the pinned app, and an eval measures it by pointing CHESS_DIR
@@ -14,10 +19,15 @@
 set -euo pipefail
 
 which="${1:-app}"
+at=""
 case "$which" in
   app) field=commit; override="${CHESS_DIR:-}" ;;
   records) field=records; override="${CHESS_RECORDS_DIR:-}" ;;
-  *) echo "usage: bridge/checkout.sh [app|records]" >&2; exit 2 ;;
+  at)
+    field=commit; override=""; at="${2:-}"
+    if ! [[ "$at" =~ ^[0-9a-f]{40}$ ]]; then echo "usage: bridge/checkout.sh at <full commit sha>" >&2; exit 2; fi
+    ;;
+  *) echo "usage: bridge/checkout.sh [app|records|at <sha>]" >&2; exit 2 ;;
 esac
 if [ -n "$override" ]; then
   printf '%s\n' "$override"
@@ -28,7 +38,7 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 pin="$root/bridge/chess.json"
 read_pin() { python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))[sys.argv[2]])' "$pin" "$1"; }
 repo="$(read_pin repo)"
-commit="$(read_pin "$field")"
+commit="${at:-$(read_pin "$field")}"
 dir="${CHESS_CACHE:-$root/.cache/chess}/$commit"
 
 # The marker lives inside .git, so the checkout's own status stays clean.
@@ -41,7 +51,7 @@ if [ ! -f "$dir/.git/bridge-ready" ]; then
   # One commit and no history: the pin names exactly what is read.
   git -C "$tmp" fetch -q --depth 1 origin "$commit"
   git -C "$tmp" -c advice.detachedHead=false checkout -q FETCH_HEAD
-  if [ "$which" = app ]; then
+  if [ "$which" != records ]; then
     (cd "$tmp" && npm ci --no-audit --no-fund >&2)
   fi
   touch "$tmp/.git/bridge-ready"

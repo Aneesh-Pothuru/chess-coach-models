@@ -38,7 +38,10 @@ that is itself private never appears in the repository.
 - `bridge/checkout.sh` fetches the app commit once into `.cache/chess/<sha>`,
   runs `npm ci` there, and prints the directory; `bridge/checkout.sh records`
   does the same for the records, without `npm ci`. `CHESS_DIR` (or
-  `CHESS_RECORDS_DIR`), when set, wins.
+  `CHESS_RECORDS_DIR`), when set, wins. `bridge/checkout.sh at <full sha>`
+  prints a checkout of the app at another commit, for a study fixed to read
+  the app as it stood there (a later profile with that commit's own code):
+  run it with `CHESS_DIR` pointed at that checkout.
 - `bridge/candidate.sh <name> <app path>=<file> ...` prints a candidate: a copy
   of the pinned app with those files replaced, which an eval measures by
   running with `CHESS_DIR` pointed at it.
