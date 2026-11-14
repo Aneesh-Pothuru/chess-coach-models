@@ -2,7 +2,9 @@
 // Writes paper/generated.tex for the solve-chance paper: round 1's verdicts
 // and why they do not stand (results/solve.json, from fit.mjs), the looks on
 // the profile as the app holds it, the learner's constants as the app states
-// them, the mate-in-one ratings over his attempts, and one puzzle he solved.
+// them, the mate-in-one ratings over his attempts, one puzzle he solved, and
+// round 2's verdicts on the attempts recorded next (results/round2.json, from
+// round2.mjs, which names the commit it read: it is not rerun at the pin).
 //
 //   bridge/run.sh projects/learner-solve-chance/paper/generate.mjs
 //
@@ -120,41 +122,46 @@ g.def('SelfN', String(sc.n)).def('SelfPred', percent(sc.meanPredicted, 1)).def('
 g.def('SelfBrier', fixed(sc.brier, 3)).def('SelfBaseBrier', fixed(sc.baseline.brier, 3)).def('SelfLL', fixed(sc.logLoss, 3)).def('SelfBaseLL', fixed(sc.baseline.logLoss, 3))
 
 // ---- tables ----
-const label = { head: 'headline rating (serving reads it)', view: 'view of the themed sets', run: 'running rate' }
-const chanceOf = { head: H.headline.meanChance, view: H.view.meanChance, run: H.run.meanChance }
-g.block('ScoreTable', [
-  '\\begin{tabular}{lrrr}',
-  '\\toprule',
-  'estimate & mean chance & Brier & log loss \\\\',
-  '\\midrule',
-  ...['head', 'view', 'run'].map((k) => `${label[k]} & ${pp(chanceOf[k])}\\% & ${fixed(S[k].brier, 3)} & ${fixed(S[k].logLoss, 3)} \\\\`),
-  '\\midrule',
-  `share solved & ${pp(H.solved)}\\% & & \\\\`,
-  '\\bottomrule',
-  '\\end{tabular}',
-].join('\n'))
+const scoreTable = (L, headLabel) => {
+  const label = { head: headLabel, view: 'view of the themed sets', run: 'running rate' }
+  const chanceOf = { head: L.headline.meanChance, view: L.view.meanChance, run: L.run.meanChance }
+  return [
+    '\\begin{tabular}{lrrr}',
+    '\\toprule',
+    'estimate & mean chance & Brier & log loss \\\\',
+    '\\midrule',
+    ...['head', 'view', 'run'].map((k) => `${label[k]} & ${pp(chanceOf[k])}\\% & ${fixed(L.scores[k].brier, 3)} & ${fixed(L.scores[k].logLoss, 3)} \\\\`),
+    '\\midrule',
+    `share solved & ${pp(L.solved)}\\% & & \\\\`,
+    '\\bottomrule',
+    '\\end{tabular}',
+  ].join('\n')
+}
+g.block('ScoreTable', scoreTable(H, 'headline rating (serving read it)'))
 const cell = (b) => (b.n ? `${b.n} & ${pp(b.chance)}\\% & ${pp(b.solved)}\\%` : `0 & -- & --`)
-g.block('ReliabilityTable', [
+const reliabilityTable = (L) => [
   '\\begin{tabular}{lrrrrrr}',
   '\\toprule',
   '& \\multicolumn{3}{c}{headline rating} & \\multicolumn{3}{c}{view} \\\\',
   '\\cmidrule(lr){2-4}\\cmidrule(lr){5-7}',
   'solve chance & attempts & mean chance & solved & attempts & mean chance & solved \\\\',
   '\\midrule',
-  ...H.reliability.head.map((b, i) => `${fixed(b.from, 1)} to ${fixed(b.to, 1)} & ${cell(b)} & ${cell(H.reliability.view[i])} \\\\`),
+  ...L.reliability.head.map((b, i) => `${fixed(b.from, 1)} to ${fixed(b.to, 1)} & ${cell(b)} & ${cell(L.reliability.view[i])} \\\\`),
   '\\bottomrule',
   '\\end{tabular}',
-].join('\n'))
-const bucketName = (b) => ({ mateIn1: 'mate in one', mateIn2: 'mate in two', mateIn3: 'mate in three', hangingPiece: 'hanging piece', fork: 'fork', planning: 'planning', defensiveMove: 'defensive move', pawnEndgame: 'pawn endgame', discoveredAttack: 'discovered attack', attackingF2F7: 'f2 and f7', 'op:london': 'London System' })[b] ?? esc(b)
-g.block('BucketTable', [
+].join('\n')
+g.block('ReliabilityTable', reliabilityTable(H))
+const bucketName = (b) => ({ mateIn1: 'mate in one', mateIn2: 'mate in two', mateIn3: 'mate in three', hangingPiece: 'hanging piece', fork: 'fork', planning: 'planning', defensiveMove: 'defensive move', pawnEndgame: 'pawn endgame', queenEndgame: 'queen endgame', discoveredAttack: 'discovered attack', backRankMate: 'back-rank mate', promotion: 'promotion', attackingF2F7: 'f2 and f7', 'op:london': 'London System', 'op:caroKann': 'Caro-Kann' })[b] ?? esc(b)
+const bucketTable = (L) => [
   '\\begin{tabular}{lrrrrr}',
   '\\toprule',
   'bucket & attempts & mean rating & solved & headline\'s chance & view\'s chance \\\\',
   '\\midrule',
-  ...H.buckets.map((b) => `${bucketName(b.bucket)} & ${b.n} & ${Math.round(b.difficulty)} & ${pp(b.solved)}\\% & ${pp(b.head)}\\% & ${pp(b.view)}\\% \\\\`),
+  ...L.buckets.map((b) => `${bucketName(b.bucket)} & ${b.n} & ${Math.round(b.difficulty)} & ${pp(b.solved)}\\% & ${pp(b.head)}\\% & ${pp(b.view)}\\% \\\\`),
   '\\bottomrule',
   '\\end{tabular}',
-].join('\n'))
+].join('\n')
+g.block('BucketTable', bucketTable(H))
 
 // ---- what each estimate would aim a set at today ----
 const withView = r.today.filter((t) => t.view)
@@ -171,17 +178,18 @@ g.def('UpMin', String(Math.min(...ups))).def('UpMax', String(Math.max(...ups))).
 g.def('TotUpMin', String(Math.min(...totUps))).def('TotUpMax', String(Math.max(...totUps)))
 const phases = new Set(r.today.map((t) => t.phase))
 claim(phases.size === 1 && phases.has('core'), 'every bucket is served at the core target today')
-g.block('TodayTable', [
+const todayTable = (today) => [
   '\\begin{tabular}{lrrrrrrr}',
   '\\toprule',
   '& \\multicolumn{2}{c}{headline} & \\multicolumn{2}{c}{themed view} & \\multicolumn{2}{c}{stored totals} & \\\\',
   '\\cmidrule(lr){2-3}\\cmidrule(lr){4-5}\\cmidrule(lr){6-7}',
   'bucket & rating & aims at & rating & aims at & rating & aims at & hardest in the bank \\\\',
   '\\midrule',
-  ...r.today.map((t) => `${bucketName(t.bucket)} & ${t.head.rating} $\\pm$ ${t.head.rd} & ${t.head.target} & ${t.view ? `${t.view.rating} $\\pm$ ${t.view.rd}` : 'none'} & ${t.view ? t.view.target : '--'} & ${t.app.from === 'totals' ? `${t.app.rating} $\\pm$ ${t.app.rd}` : '--'} & ${t.app.from === 'totals' ? t.app.target : '--'} & ${t.bankMax} \\\\`),
+  ...today.map((t) => `${bucketName(t.bucket)} & ${t.head.rating} $\\pm$ ${t.head.rd} & ${t.head.target} & ${t.view ? `${t.view.rating} $\\pm$ ${t.view.rd}` : 'none'} & ${t.view ? t.view.target : '--'} & ${t.app.from === 'totals' ? `${t.app.rating} $\\pm$ ${t.app.rd}` : '--'} & ${t.app.from === 'totals' ? t.app.target : '--'} & ${t.bankMax} \\\\`),
   '\\bottomrule',
   '\\end{tabular}',
-].join('\n'))
+].join('\n')
+g.block('TodayTable', todayTable(r.today))
 
 // ---- mate in one over his attempts ----
 const M = P.filter((x) => x.bucket === 'mateIn1')
@@ -219,6 +227,86 @@ g.input('Example', 'example', [
   `\\textbf{FEN:} \\fen{${fen}}`,
   '\\end{minipage}%',
 ].join('\n'))
+
+// ---- round 2: the attempts the app recorded after round 1's last ----
+const two = json(join(resultsDir(FLOW), 'round2.json'))
+claim(two.round1 === rec.profile && two.cutoff.day === rec.lastAttempt, 'round 2 starts after the last attempt of the profile round 1 read')
+claim(two.seed === r.seed && two.draws === r.draws, 'round 2 draws the days as round 1 did')
+const T = two.rules
+const TL = T.looks
+const TA = T.attempts
+const listOf = (xs) => `${xs.slice(0, -1).join(', ')} and ${xs.at(-1)}`
+g.def('TwoCommit', `\\texttt{${T.app.slice(0, 7)}}`).def('TwoSynced', esc(T.profileSyncedOn)).def('TwoCutoffClock', esc(two.cutoff.clock))
+g.def('TwoAll', String(TA.attempts)).def('TwoAllDays', word(TA.days)).def('TwoFrom', esc(TA.dayRange[0])).def('TwoTo', esc(TA.dayRange[1]))
+g.def('TwoLeftOut', word(TA.leftOut.notFirst)).def('TwoAttempts', String(TA.scored.attempts)).def('TwoDays', word(TA.scored.days)).def('TwoOpened', word(TA.attempts - TA.scored.attempts))
+claim(TA.days >= 10, "round 2's attempts fall on at least ten days")
+claim(TA.leftOut.otherChannel === 0 && TA.notInBank === 0, "every first exposure after round 1's last was served in a bucket's own set, on a puzzle the bank holds")
+claim(TL.attempts === TA.scored.attempts && TL.days === TA.scored.days, 'the rules read the scored attempts')
+g.def('TwoSolved', pp(TL.solved)).def('TwoMisses', String(TL.misses)).def('TwoHead', pp(TL.headline.meanChance))
+g.def('TwoGap', pp(T.rule1.gap.value)).def('TwoGapLo', pp(T.rule1.gap.interval[0])).def('TwoGapHi', pp(T.rule1.gap.interval[1]))
+claim(T.rule1.verdict === 'under-predicts', "by round 2's rule 1 the headline under-predicts")
+claim(TL.misses > 5 * H.misses, 'round 2 holds several times the misses of the profile round 1 read')
+claim(TL.solved < H.solved, 'he solved a smaller share of round 2\'s attempts than of the profile round 1 read')
+const [halfOne, halfTwo] = T.rule2.halves
+claim(T.rule2.passes === false, "by round 2's rule 2 the view does not pass")
+claim(halfOne.value < 0 && halfOne.interval[1] < 0, 'the view passes on the first half')
+claim(halfTwo.value < 0 && halfTwo.interval[1] > 0, "on the second half the view's log loss is lower and the interval reaches above zero")
+T.rule2.halves.forEach((h, i) => {
+  const n = ['One', 'Two'][i]
+  g.def(`TwoH${n}Days`, word(h.days)).def(`TwoH${n}Attempts`, String(h.attempts)).def(`TwoH${n}View`, fixed(h.view, 3)).def(`TwoH${n}Head`, fixed(h.head, 3))
+  g.def(`TwoH${n}Diff`, fixed(h.value, 3)).def(`TwoH${n}Lo`, fixed(h.interval[0], 3)).def(`TwoH${n}Hi`, fixed(h.interval[1], 3))
+  g.def(`TwoH${n}List`, listOf(T.halfDays[i]))
+})
+claim(T.halfDays[1].length === halfTwo.days && Math.min(...T.halfDays[1]) === 1, "one of the second half's days holds a single attempt")
+// Beside the verdicts.
+g.def('TwoView', pp(TL.view.meanChance)).def('TwoViewGap', pp(TL.view.gap.value)).def('TwoViewGapLo', pp(TL.view.gap.interval[0])).def('TwoViewGapHi', pp(TL.view.gap.interval[1]))
+claim(TL.view.gap.interval[0] > 0, 'the view still under-predicts in round 2')
+const gapShare = TL.view.gap.value / T.rule1.gap.value
+claim(gapShare > 0.15 && gapShare < 0.35, "the view's gap is about a quarter of the headline's")
+g.def('TwoDiff', fixed(TL.candidate.value, 3)).def('TwoDiffLo', fixed(TL.candidate.interval[0], 3)).def('TwoDiffHi', fixed(TL.candidate.interval[1], 3))
+claim(TL.candidate.interval[1] < 0, "over all of round 2's days the view's log loss is below the headline's, beyond the noise")
+claim(TL.solved >= TARGET_P.core && TL.solved <= TARGET_P.new, 'he solved a share between the two targets the app aims at')
+const TS = TL.scores
+claim(TS.view.logLoss < TS.head.logLoss && TS.view.logLoss < TS.run.logLoss && TS.view.brier < TS.head.brier && TS.view.brier < TS.run.brier, 'the view scores best of the three estimates in round 2')
+claim(TL.shift.head.interval[0] > TL.shift.view.interval[1] && TL.shift.view.interval[0] > 0, "the headline's chances need a larger shift than the view's, and the view's still need one")
+const plainShift = (x) => `${x.shift} points (${x.interval[0]} to ${x.interval[1]})`
+claim(![TL.shift.head, TL.shift.view].some((x) => x.interval.includes(x.edge[0]) || x.interval.includes(x.edge[1])), "round 2's best shifts sit inside the grid")
+g.def('TwoShiftHead', plainShift(TL.shift.head)).def('TwoShiftView', plainShift(TL.shift.view))
+g.block('TwoScoreTable', scoreTable(TL, 'headline rating'))
+g.block('TwoReliabilityTable', reliabilityTable(TL))
+// The reliability bins that hold at least ten attempts, under either estimate.
+const bins = [...TL.reliability.head, ...TL.reliability.view].filter((b) => b.n >= 10)
+const binSolved = bins.map((b) => b.solved)
+const binChance = bins.map((b) => b.chance)
+claim(Math.max(...binSolved) - Math.min(...binSolved) < 0.2 && Math.max(...binChance) - Math.min(...binChance) > 0.4, 'his share solved moves under twenty points over bins whose chances span more than forty')
+const viewBand = TL.reliability.view.filter((b) => b.from >= 0.7 - 1e-9 && b.to <= 0.9 + 1e-9).reduce((n, b) => n + b.n, 0)
+claim(viewBand > 0.6 * TL.attempts, "most of the view's chances in round 2 sit between 70% and 90%")
+g.def('TwoBinLo', pp(Math.min(...binSolved))).def('TwoBinHi', pp(Math.max(...binSolved))).def('TwoBinChanceLo', pp(Math.min(...binChance))).def('TwoBinChanceHi', pp(Math.max(...binChance)))
+g.block('TwoBucketTable', bucketTable(TL))
+const viewNearer = TL.buckets.filter((b) => Math.abs(b.view - b.solved) < Math.abs(b.head - b.solved))
+const headNearer = TL.buckets.filter((b) => !viewNearer.includes(b))
+claim(viewNearer.length > 2 * headNearer.length && headNearer.length > 1, "the view's chance is the nearer to his share solved in most buckets, and not in all")
+g.def('TwoBuckets', word(TL.buckets.length)).def('TwoViewNearer', word(viewNearer.length)).def('TwoHeadNearerList', listOf(headNearer.map((b) => bucketName(b.bucket))))
+const sc2 = T.selfCheck
+claim(sc2.meanPredicted < sc2.meanObserved && sc2.brier > sc2.baseline.brier && sc2.logLoss < sc2.baseline.logLoss, "on round 2's profile the self-check still under-predicts, beats its constant on log loss and not on Brier")
+g.def('TwoSelfN', String(sc2.n)).def('TwoSelfPred', percent(sc2.meanPredicted, 1)).def('TwoSelfObs', percent(sc2.meanObserved, 1))
+g.def('TwoSelfBrier', fixed(sc2.brier, 3)).def('TwoSelfBaseBrier', fixed(sc2.baseline.brier, 3)).def('TwoSelfLL', fixed(sc2.logLoss, 3)).def('TwoSelfBaseLL', fixed(sc2.baseline.logLoss, 3))
+// Where each estimate would aim a set as round 2's profile stood.
+const twoWithView = T.today.filter((t) => t.view)
+const twoTotals = T.today.filter((t) => !t.view)
+claim(twoWithView.every((t) => t.app.from === 'view' && t.app.target === t.view.target && t.view.target > t.head.target), "on round 2's profile the app aims every bucket that has a view from it, higher than the headline would")
+claim(twoWithView.every((t) => t.view.target <= t.bankMax + 100), 'the bank can serve where the view aims in round 2')
+claim(twoTotals.every((t) => t.app.from === 'totals'), 'a bucket without a view aims from its stored totals')
+claim(new Set(T.today.map((t) => t.phase)).size === 1 && T.today[0].phase === 'core', "every bucket is served at the core target on round 2's profile")
+const drops = twoWithView.map((t) => t.view.target - t.head.target).sort((a, b) => a - b)
+const median = (xs) => (xs.length % 2 ? xs[(xs.length - 1) / 2] : Math.round((xs[xs.length / 2 - 1] + xs[xs.length / 2]) / 2))
+g.def('TwoWithView', String(twoWithView.length)).def('TwoDropMin', String(drops[0])).def('TwoDropMax', String(drops.at(-1))).def('TwoDropMedian', String(median(drops)))
+g.block('TwoTodayTable', todayTable(T.today))
+// Rule 3 waits for its attempts: nothing by depth is read until it runs.
+const third = two.rule3
+claim(third.status === 'not enough data' && third.serving === 'head', 'rule 3 has not run, and will read the headline')
+claim(third.counts.one.attempts < third.counts.needed && third.counts.two.attempts >= third.counts.needed, 'rule 3 waits for one-move attempts only')
+g.def('TwoNeeded', String(third.counts.needed)).def('TwoOneScored', String(third.counts.one.attempts)).def('TwoTwoScored', String(third.counts.two.attempts)).def('TwoRuleThreeCommit', `\\texttt{${third.app.slice(0, 7)}}`)
 
 g.write(join(HERE, 'generated.tex'))
 console.log(`wrote ${join(HERE, 'generated.tex')}`)

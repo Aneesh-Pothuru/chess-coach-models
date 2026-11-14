@@ -93,7 +93,7 @@
 \toprule
 estimate & mean chance & Brier & log loss \\
 \midrule
-headline rating (serving reads it) & 58.0\% & 0.191 & 0.568 \\
+headline rating (serving read it) & 58.0\% & 0.191 & 0.568 \\
 view of the themed sets & 82.4\% & 0.069 & 0.276 \\
 running rate & 93.1\% & 0.064 & 0.298 \\
 \midrule
@@ -174,3 +174,141 @@ f2 and f7 & 1040 $\pm$ 337 & 847 & none & -- & 1349 $\pm$ 85 & 1156 & 1889 \\
 \newcommand{\ExHeadRating}{1369}
 \newcommand{\ExViewRating}{1701}
 \newcommand{\Example}{\input{example}}
+\newcommand{\TwoCommit}{\texttt{d18d5d2}}
+\newcommand{\TwoSynced}{2026-11-13}
+\newcommand{\TwoCutoffClock}{09:27}
+\newcommand{\TwoAll}{188}
+\newcommand{\TwoAllDays}{ten}
+\newcommand{\TwoFrom}{2026-10-15}
+\newcommand{\TwoTo}{2026-11-13}
+\newcommand{\TwoLeftOut}{eight}
+\newcommand{\TwoAttempts}{180}
+\newcommand{\TwoDays}{nine}
+\newcommand{\TwoOpened}{eight}
+\newcommand{\TwoSolved}{77.8}
+\newcommand{\TwoMisses}{40}
+\newcommand{\TwoHead}{56.0}
+\newcommand{\TwoGap}{21.8}
+\newcommand{\TwoGapLo}{14.8}
+\newcommand{\TwoGapHi}{26.9}
+\newcommand{\TwoHOneDays}{five}
+\newcommand{\TwoHOneAttempts}{134}
+\newcommand{\TwoHOneView}{0.609}
+\newcommand{\TwoHOneHead}{0.709}
+\newcommand{\TwoHOneDiff}{$-$0.100}
+\newcommand{\TwoHOneLo}{$-$0.155}
+\newcommand{\TwoHOneHi}{$-$0.019}
+\newcommand{\TwoHOneList}{35, 24, 33, 20 and 22}
+\newcommand{\TwoHTwoDays}{four}
+\newcommand{\TwoHTwoAttempts}{46}
+\newcommand{\TwoHTwoView}{0.495}
+\newcommand{\TwoHTwoHead}{0.568}
+\newcommand{\TwoHTwoDiff}{$-$0.072}
+\newcommand{\TwoHTwoLo}{$-$0.156}
+\newcommand{\TwoHTwoHi}{0.020}
+\newcommand{\TwoHTwoList}{13, 12, 20 and 1}
+\newcommand{\TwoView}{72.7}
+\newcommand{\TwoViewGap}{5.1}
+\newcommand{\TwoViewGapLo}{0.9}
+\newcommand{\TwoViewGapHi}{8.3}
+\newcommand{\TwoDiff}{$-$0.093}
+\newcommand{\TwoDiffLo}{$-$0.142}
+\newcommand{\TwoDiffHi}{$-$0.034}
+\newcommand{\TwoShiftHead}{190 points (130 to 240)}
+\newcommand{\TwoShiftView}{55 points (10 to 90)}
+\newcommand{\TwoScoreTable}{%
+\begin{tabular}{lrrr}
+\toprule
+estimate & mean chance & Brier & log loss \\
+\midrule
+headline rating & 56.0\% & 0.238 & 0.673 \\
+view of the themed sets & 72.7\% & 0.194 & 0.580 \\
+running rate & 81.3\% & 0.203 & 0.695 \\
+\midrule
+share solved & 77.8\% & & \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\TwoReliabilityTable}{%
+\begin{tabular}{lrrrrrr}
+\toprule
+& \multicolumn{3}{c}{headline rating} & \multicolumn{3}{c}{view} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+solve chance & attempts & mean chance & solved & attempts & mean chance & solved \\
+\midrule
+0.0 to 0.5 & 54 & 39.6\% & 74.1\% & 14 & 40.4\% & 71.4\% \\
+0.5 to 0.6 & 54 & 55.2\% & 77.8\% & 14 & 55.1\% & 85.7\% \\
+0.6 to 0.7 & 50 & 64.8\% & 82.0\% & 26 & 66.6\% & 80.8\% \\
+0.7 to 0.8 & 15 & 73.7\% & 73.3\% & 70 & 75.4\% & 77.1\% \\
+0.8 to 0.9 & 4 & 84.4\% & 100.0\% & 51 & 83.9\% & 76.5\% \\
+0.9 to 1.0 & 3 & 92.0\% & 66.7\% & 5 & 91.8\% & 80.0\% \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\TwoBinLo}{71.4}
+\newcommand{\TwoBinHi}{85.7}
+\newcommand{\TwoBinChanceLo}{39.6}
+\newcommand{\TwoBinChanceHi}{83.9}
+\newcommand{\TwoBucketTable}{%
+\begin{tabular}{lrrrrr}
+\toprule
+bucket & attempts & mean rating & solved & headline's chance & view's chance \\
+\midrule
+back-rank mate & 11 & 1196 & 90.9\% & 60.1\% & 81.9\% \\
+defensive move & 8 & 756 & 87.5\% & 76.3\% & 68.1\% \\
+discovered attack & 11 & 1246 & 90.9\% & 62.1\% & 83.3\% \\
+fork & 24 & 1138 & 83.3\% & 53.3\% & 77.5\% \\
+hanging piece & 35 & 1484 & 62.9\% & 60.3\% & 74.1\% \\
+mate in one & 12 & 1652 & 66.7\% & 41.8\% & 68.7\% \\
+Caro-Kann & 35 & 1165 & 77.1\% & 51.2\% & 68.4\% \\
+London System & 11 & 1395 & 72.7\% & 57.0\% & 60.5\% \\
+pawn endgame & 2 & 1219 & 50.0\% & 60.5\% & 75.8\% \\
+planning & 12 & 926 & 100.0\% & 57.5\% & 80.1\% \\
+promotion & 11 & 1203 & 90.9\% & 56.6\% & 78.8\% \\
+queen endgame & 8 & 1261 & 62.5\% & 48.0\% & 50.0\% \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\TwoBuckets}{twelve}
+\newcommand{\TwoViewNearer}{nine}
+\newcommand{\TwoHeadNearerList}{defensive move, hanging piece and pawn endgame}
+\newcommand{\TwoSelfN}{100}
+\newcommand{\TwoSelfPred}{76.4}
+\newcommand{\TwoSelfObs}{81.0}
+\newcommand{\TwoSelfBrier}{0.165}
+\newcommand{\TwoSelfBaseBrier}{0.161}
+\newcommand{\TwoSelfLL}{0.514}
+\newcommand{\TwoSelfBaseLL}{0.543}
+\newcommand{\TwoWithView}{14}
+\newcommand{\TwoDropMin}{7}
+\newcommand{\TwoDropMax}{287}
+\newcommand{\TwoDropMedian}{135}
+\newcommand{\TwoTodayTable}{%
+\begin{tabular}{lrrrrrrr}
+\toprule
+& \multicolumn{2}{c}{headline} & \multicolumn{2}{c}{themed view} & \multicolumn{2}{c}{stored totals} & \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+bucket & rating & aims at & rating & aims at & rating & aims at & hardest in the bank \\
+\midrule
+hanging piece & 1544 $\pm$ 105 & 1351 & 1627 $\pm$ 63 & 1434 & -- & -- & 1899 \\
+Caro-Kann & 1247 $\pm$ 132 & 1054 & 1375 $\pm$ 73 & 1182 & -- & -- & 1486 \\
+fork & 1259 $\pm$ 152 & 1066 & 1401 $\pm$ 77 & 1208 & -- & -- & 1897 \\
+planning & 1047 $\pm$ 184 & 854 & 1222 $\pm$ 78 & 1029 & -- & -- & 1878 \\
+defensive move & 988 $\pm$ 187 & 795 & 1022 $\pm$ 129 & 829 & -- & -- & 1898 \\
+mate in one & 1655 $\pm$ 200 & 1462 & 1821 $\pm$ 72 & 1628 & -- & -- & 1896 \\
+London System & 1528 $\pm$ 210 & 1335 & 1564 $\pm$ 103 & 1371 & -- & -- & 1494 \\
+queen endgame & 1283 $\pm$ 216 & 1090 & 1290 $\pm$ 116 & 1097 & -- & -- & 1888 \\
+discovered attack & 1358 $\pm$ 226 & 1165 & 1547 $\pm$ 116 & 1354 & -- & -- & 1899 \\
+promotion & 1317 $\pm$ 243 & 1124 & 1498 $\pm$ 111 & 1305 & -- & -- & 1899 \\
+back-rank mate & 1319 $\pm$ 244 & 1126 & 1498 $\pm$ 113 & 1305 & -- & -- & 1893 \\
+pawn endgame & 1287 $\pm$ 264 & 1094 & 1317 $\pm$ 180 & 1124 & -- & -- & 1887 \\
+mate in two & 796 $\pm$ 291 & 603 & 1083 $\pm$ 121 & 890 & -- & -- & 1897 \\
+mate in three & 1066 $\pm$ 316 & 873 & 1084 $\pm$ 214 & 891 & -- & -- & 1899 \\
+f2 and f7 & 1040 $\pm$ 338 & 847 & none & -- & 1349 $\pm$ 89 & 1156 & 1889 \\
+\bottomrule
+\end{tabular}
+}
+\newcommand{\TwoNeeded}{30}
+\newcommand{\TwoOneScored}{29}
+\newcommand{\TwoTwoScored}{151}
+\newcommand{\TwoRuleThreeCommit}{\texttt{d18d5d2}}

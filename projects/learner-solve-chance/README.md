@@ -44,7 +44,8 @@ those attempts existed:
 Reported beside, deciding nothing: the view gave a mean chance of 72.7%, 5.1
 points under the 77.8% he solved (interval 0.9 to 8.3), and over all nine days
 its log loss was 0.093 below the headline's (-0.142 to -0.034). Everything is
-in [`results/round2.md`](results/round2.md), written by the script.
+in [`results/round2.md`](results/round2.md), written by the script, and both
+rounds are in the paper, [`paper/paper.pdf`](paper/paper.pdf).
 
 What the app does with verdict 2 is its owner's call. The app has aimed its
 sets from the view since chess PR 78 (below), and going back to the headline
@@ -332,7 +333,7 @@ and rule 3 waits for its thirtieth scored one-move attempt.
 | `replay.mjs` | Rebuilds the record, replays the app's learner over it and over the profile as the app held it at the commit round 1 measured, and writes one row per scored attempt. |
 | `fit.mjs` | Applies round 1's rule and writes `results/solve.json` and `solve.md`. |
 | `round2.mjs` | Round 2: counts its attempts, and with `--run` applies rules 1 to 3 and writes `results/round2.json` and `round2.md`. |
-| `paper/` | The paper. |
+| `paper/` | The paper, on both rounds: `generate.mjs` reads `results/solve.json`, round 1's rows and `results/round2.json`. |
 
 ## Running it
 

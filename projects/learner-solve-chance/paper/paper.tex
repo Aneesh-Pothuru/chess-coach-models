@@ -13,15 +13,20 @@
 \begin{abstract}
 The coaching app sets the difficulty of each puzzle set from a Glicko-2 rating: it aims where its
 learner says the player will solve \TargetCore\% of the time. Replayed over the profile as the app
-holds it (\PAttempts{} puzzle attempts on \PDays{} days, logged as he played), the rating serving
-reads gave him a mean solve chance of \PHead\% on puzzles he solved \PSolved\% of. It sits close
-to the difficulty he was served, so the sets aim far below him. The learner's view of his themed
-sets, which it already keeps, gave \PView\%, still low, with about half the log loss. The test
-committed before the run used a record rebuilt from the app's memory cards, which turned out to
-keep almost only his solves, because a missed puzzle comes back for another review; its verdicts
-do not stand. A second round, fixed before any of its attempts exists, tests the view on the
-attempts the app records next. The app's owner adopted the view before it, on the profile's look;
-round 2 decides whether it stays.
+held it when this study began (\PAttempts{} puzzle attempts on \PDays{} days, logged as he
+played), the rating serving then read gave him a mean solve chance of \PHead\% on puzzles he
+solved \PSolved\% of. It sat close to the difficulty he was served, so the sets aimed far below
+him. The learner's view of his themed sets, which it already kept, gave \PView\%, still low, with
+about half the log loss. The test committed before that run used a record rebuilt from the app's
+memory cards, which turned out to keep almost only his solves, because a missed puzzle comes back
+for another review; its verdicts do not stand. The app's owner adopted the view on the profile's
+look. A second round, fixed before any of its attempts existed, then put both estimates to the
+\TwoAttempts{} first exposures the app recorded next, \TwoMisses{} of them misses. By its rules
+the headline rating under-predicts him (a mean chance of \TwoHead\% against \TwoSolved\% solved),
+and the view, at \TwoView\%, does not pass: its log loss is lower on both halves of the days, but
+on the second the interval of the difference reaches above zero. Whether the app goes back to the
+headline is its owner's call. A third round, the last, puts the same rule to twice the days, and
+a test of the chance by puzzle depth waits for its attempts.
 \end{abstract}
 
 \section{The question}
@@ -39,10 +44,11 @@ sets does not overstate how he plays when nothing is announced: in a bucket's ow
 it \ThemedWin{} as far as one in an unannounced set and a miss \ThemedLoss{} as far, and for an
 obvious theme such as mate in N \ObviousWin{} and \ObviousLoss. The legacy attempt log cannot say
 whether an attempt was a first try, so each of its attempts counts at \UnknownFirst{} of that. Beside it, a
-\emph{view} per channel folds only that channel's first exposures, each at full weight. Serving
-reads the headline. The learner's own notes expect the discount to read a player served at
-\TargetCore\% in themed sets about \NotesPoints{} points under his strength. When the learner gives a solve
-chance, how often does he solve? And is the rating serving reads the right one?
+\emph{view} per channel folds only that channel's first exposures, each at full weight. When this
+study began, serving read the headline. The learner's own notes expect the discount to read a
+player served at \TargetCore\% in themed sets about \NotesPoints{} points under his strength. When
+the learner gives a solve chance, how often does he solve? And is the rating serving read the
+right one?
 
 \section{The record and the rule}
 
@@ -107,9 +113,9 @@ cards reviewed once hold almost none.}
 \label{tab:cards}
 \end{table}
 
-\section{The profile as the app holds it}
+\section{The profile as the app held it}
 
-The profile also holds what the app logged as he played: the legacy attempt log (\LogEntries{}
+The profile round 1 read also holds what the app logged as he played: the legacy attempt log (\LogEntries{}
 entries, \LogOnce{} of them on cards reviewed once and \LogMore{} on the others, all agreeing with
 the cards in time, bucket, rating and result), the puzzle totals from before the log, which the
 learner folds as a seed, and the attempt events. Every attempt in it was logged when it was played,
@@ -165,7 +171,7 @@ points above. Figure~\ref{fig:mate} shows it on mate in one, where he solved \Ma
   grid=major, legend cell align=left, legend columns=2,
   legend style={font=\scriptsize, at={(0.5,-0.22)}, anchor=north, column sep=6pt}]
 \addplot[black, thick] coordinates {\CurveHead};
-\addlegendentry{headline rating (serving reads it)}
+\addlegendentry{headline rating (serving read it)}
 \addplot[blue!70!black, dashed, thick] coordinates {\CurveView};
 \addlegendentry{view of the themed sets}
 \addplot[only marks, mark=*, mark size=1.3pt, gray] coordinates {\ItemsSolved};
@@ -189,32 +195,27 @@ chance.
 lowest chance, as he faced it, after the opponent's move.}\label{fig:example}
 \end{figure}
 
-\section{What it means for the app}
+\section{What round 1 meant for the app}
 
-The sets aimed far below him. Today the view aims a set \UpMin{} to \UpMax{} points higher than the
-headline in the \WithView{} buckets that have a themed view (Table~\ref{tab:today}). The other
-\WithoutView{} have no attempt in their own sets since the log began, and the app aims them from
-their stored totals read alone at full weight, \TotUpMin{} to \TotUpMax{} points higher than the
-headline. The bank can serve every one of those targets. The view still under-predicts him, so sets
-aimed from it should still land above \TargetCore\%, but nearer.
+The sets aimed far below him. On the profile round 1 read, the view aimed a set \UpMin{} to
+\UpMax{} points higher than the headline in the \WithView{} buckets that had a themed view
+(Table~\ref{tab:today}). The other \WithoutView{} had no attempt in their own sets since the log
+began, and the app came to aim such a bucket from its stored totals read alone at full weight,
+there \TotUpMin{} to \TotUpMax{} points higher than the headline. The bank could serve every one of
+those targets. The view still under-predicted him, so sets aimed from it should still land above
+\TargetCore\%, but nearer.
 
-By its rule this round adopts nothing: its test did not stand, and the profile's look, named
-beside it, decides nothing. On that look the app's owner chose to adopt the view at once: since
-chess PR 78 the app aims a bucket's set from its themed view, and the skill map's next difficulty
-reads the same estimate; since PR 79, a bucket with no themed view aims from its stored totals
-instead of the headline. Commit \AppCommit{}, which this paper measures, has both. Round 2 decides
-whether the view stays; it scores no attempt in a bucket without one. It takes the attempts the app
-records after the last one in the profile at commit \ProfileCommit{} (played on \LastDay, Los Angeles
-time), each folded on everything before it as the app holds it, and runs once they fall on at least
-ten days. Rules 1 and 2 apply unchanged: sets now aim harder, and each estimate is still scored on
-the puzzles he was served. A third rule, fixed after round 2's first attempts were recorded and
-before any of their results was read, tests whether the chance holds for one-move puzzles and longer
-ones alike, which a target per depth would need; the project's README states it.
+By its rule round 1 adopted nothing: its test did not stand, and the profile's look, named beside
+it, decides nothing. On that look the app's owner chose to adopt the view at once: since chess PR
+78 the app aims a bucket's set from its themed view, and the skill map's next difficulty reads the
+same estimate; since PR 79, a bucket with no themed view aims from its stored totals instead of the
+headline. The commit round 1's replay runs on, \AppCommit, has both. Round 2 was left to decide
+whether the view stays.
 
 \begin{table}[!htbp]
 \centering\footnotesize\setlength{\tabcolsep}{4pt}
 \TodayTable
-\caption{Each puzzle bucket as the profile round 1 reads stood when it was synced, on \SyncedOn{} (Los Angeles
+\caption{Each puzzle bucket as the profile round 1 read stood when it was synced, on \SyncedOn{} (Los Angeles
 time): each estimate's rating with its deviation, the difficulty a set
 would aim at from it (the core target, clamped to what the bucket can serve), and the hardest
 puzzle the bank holds. The stored totals, read alone, are shown where the app aims from them: in a
@@ -222,15 +223,134 @@ bucket with no themed view.}
 \label{tab:today}
 \end{table}
 
+\section{Round 2}
+
+\paragraph{The attempts.} Round 2 was fixed before any of its attempts existed. It takes every
+attempt in a bucket's own set that the app counts as a first exposure, recorded after the last
+attempt in the profile round 1 read (played at \TwoCutoffClock{} on \LastDay, Los Angeles time),
+each folded on everything before it as the app holds it, and it runs once those attempts fall on
+at least ten days. Rules 1 and 2 apply unchanged: the app by then aimed its sets from the view,
+and each estimate is still scored on the puzzles he was served. Its script was committed before it
+ran, and rules 1 and 2 run once: on the profile at app commit \TwoCommit{} (synced on \TwoSynced)
+with that commit's own learner. It found \TwoAll{} such attempts on \TwoAllDays{} days, from \TwoFrom{} to \TwoTo;
+another \TwoLeftOut{} were on a puzzle he had seen before and are left out. Of the \TwoAll,
+\TwoAttempts{} are scored, on \TwoDays{} days; the other \TwoOpened{} opened a bucket's record in
+its own sets, where no view exists yet.
+
+He solved \TwoSolved\% of the scored attempts and missed \TwoMisses, where the profile round 1
+read holds \PMisses{} misses. That share lies between the \TargetCore\% the app aims at and the
+\TargetNew\% it aims at while a bucket is new. On the profile round 1 read, whose legacy log could
+not tell a first try from a retry, he had solved \PSolved\%.
+
+\paragraph{Rule 1.} The headline's mean chance on the scored attempts was \TwoHead\%, a gap of
+\TwoGap{} points to the share he solved (95\% interval \TwoGapLo{} to \TwoGapHi). By rule 1 the
+headline under-predicts him.
+
+\paragraph{Rule 2.} The scored days alternate between two halves in time order. On the first
+(\TwoHOneDays{} days, \TwoHOneAttempts{} attempts) the view's mean log loss was \TwoHOneView{}
+against the headline's \TwoHOneHead, a difference of \TwoHOneDiff{} (\TwoHOneLo{} to \TwoHOneHi).
+On the second (\TwoHTwoDays{} days, \TwoHTwoAttempts{} attempts) it was \TwoHTwoView{} against
+\TwoHTwoHead, a difference of \TwoHTwoDiff{} (\TwoHTwoLo{} to \TwoHTwoHi). The view scores better
+on both halves, but the rule needs both intervals entirely below zero, and the second half's
+reaches above it. By rule 2 the view does not pass. The second half is the thin one: its days hold
+\TwoHTwoList{} scored attempts, and the first half's hold \TwoHOneList.
+
+\paragraph{Beside the verdicts, deciding nothing.} The view's mean chance was \TwoView\%, a gap of
+\TwoViewGap{} points (\TwoViewGapLo{} to \TwoViewGapHi): it still under-predicts him, by about a
+quarter of the headline's gap. Over all \TwoDays{} days its log loss minus the headline's is
+\TwoDiff{} (\TwoDiffLo{} to \TwoDiffHi), and it scores best of the three estimates on both scores
+(Table~\ref{tab:scores2}). The shift that best fits the headline's chances takes \TwoShiftHead{}
+off every puzzle's rating; the view's takes \TwoShiftView.
+
+His share solved hardly moves with either estimate's chance (Table~\ref{tab:reliability2}): over
+the bins that hold at least ten attempts it runs from \TwoBinLo\% to \TwoBinHi\%, while the bins'
+mean chances run from \TwoBinChanceLo\% to \TwoBinChanceHi\%. What separates the two estimates on
+these attempts is their level, more than which puzzles each calls easy. By bucket
+(Table~\ref{tab:buckets2}) the view's chance is the nearer to his share solved in \TwoViewNearer{}
+of the \TwoBuckets; the headline's is nearer in \TwoHeadNearerList. The learner's self-check on
+this profile predicted \TwoSelfPred\% on its \TwoSelfN{} held-out attempts, of which he solved
+\TwoSelfObs\%; it beats its constant on log loss (\TwoSelfLL{} against \TwoSelfBaseLL) and not on
+the Brier score (\TwoSelfBrier{} against \TwoSelfBaseBrier).
+
+\begin{table}[!htbp]
+\centering\small
+\TwoScoreTable
+\caption{Round 2: each estimate's mean solve chance and scores on the \TwoAttempts{} scored
+attempts. Lower is better for both scores.}
+\label{tab:scores2}
+\end{table}
+
+\begin{table}[!htbp]
+\centering\small
+\TwoReliabilityTable
+\caption{Round 2: the scored attempts binned by each estimate's solve chance.}
+\label{tab:reliability2}
+\end{table}
+
+\begin{table}[!htbp]
+\centering\small
+\TwoBucketTable
+\caption{Round 2: each bucket's scored attempts, the mean Lichess rating of its puzzles, the share
+solved and each estimate's mean chance.}
+\label{tab:buckets2}
+\end{table}
+
+\paragraph{Rule 3.} A third rule was fixed after round 2's first attempts were recorded and before
+any of their results was read. The app aims every puzzle of a set at one target, whatever the
+puzzle's depth, and a target per depth, one for one-move puzzles and a lower one for longer
+ones, would land where it says only if the solve chance is as good at one depth as at the other.
+Rule 3 tests that: the share solved minus the mean chance on one-move puzzles, minus the same on
+puzzles of two moves or more, with its interval over the same draws of the days. It needs
+\TwoNeeded{} scored attempts at each depth, and the profile at \TwoRuleThreeCommit{} holds
+\TwoOneScored{} of one move and \TwoTwoScored{} of two or more. So it has not run, and nothing of
+the attempts' results by depth has been read. It runs once, at a later check, on every attempt
+recorded by then, with the chance from the headline, the estimate rule 2 leaves serving, and it
+reports the same statistic on the view's chance beside. The project's README states it in full.
+
+\section{What it means for the app now}
+
+By rule 2 the view does not stay: a set's solve chance, and so its target, goes back to the
+headline. Rule 1, on the same attempts, finds the headline \TwoGap{} points under his results, and
+over all the days the view scores better beyond the noise. On the profile round 2 read the app
+aims every bucket that has a view from it, and going back would aim those \TwoWithView{} buckets
+\TwoDropMin{} to \TwoDropMax{} points lower, \TwoDropMedian{} at the median
+(Table~\ref{tab:today2}). Round 2 says nothing of the stored totals a bucket without a view aims
+from: it scored no attempt there.
+
+The rule was written to keep an estimate from being adopted on noise, and a half of \TwoHTwoDays{}
+days that falls short is what it refuses; the lab reports the verdict as the rule gives it. What
+the app does with it is its owner's call. He was asked on the day round 2 ran, and until he
+answers the app keeps the view.
+
+A third round was fixed that day, before any of its attempts was read. It puts rules 1 and 2,
+unchanged, to the first exposures recorded after the last attempt round 2 read, once they fall on
+at least twenty days, twice round 2's. Its rule 2 verdict replaces round 2's. A second test of one
+candidate raises the chance that it passes by luck, so both rounds' verdicts are reported side by
+side, and round 3 is the last: no later round puts this candidate to the same rule.
+
+\begin{table}[!htbp]
+\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\TwoTodayTable
+\caption{Each puzzle bucket as the profile round 2 read stood when it was synced, on \TwoSynced{}
+(Los Angeles time), in the columns of Table~\ref{tab:today}. The app aims from the view in every
+bucket that has one.}
+\label{tab:today2}
+\end{table}
+
 \section{Limitations}
 
 \begin{itemize}[nosep]
-\item One player, served puzzles far below him: the profile holds \PMisses{} misses, so its log
-losses rest on a handful of them.
-\item The profile's attempts fall on \PDays{} days, so the bootstrap over days has few to draw from
-and its intervals are rough.
-\item The log cannot say which attempts were retries; the replay counts them as the app does, at
-half weight in the headline and in full in the view.
+\item One player. The profile round 1 read holds \PMisses{} misses, so its log losses rest on a
+handful of them; round 2's attempts hold \TwoMisses.
+\item Round 1's profile attempts fall on \PDays{} days and round 2's on \TwoDays, so the bootstrap
+over days has few to draw from and its intervals are rough. A half of round 2 is \TwoHOneDays{} or
+\TwoHTwoDays{} days.
+\item Round 2's puzzles were chosen by one of the estimates it tests: the sets aimed from the
+view, so most of the view's chances sit between 70\% and 90\%, and both estimates are scored only
+on the difficulties the view chose.
+\item The legacy log cannot say which attempts were retries; the replay counts them as the app does,
+at half weight in the headline and in full in the view. Round 2 scores only attempts the app
+recorded as first exposures.
 \item A puzzle's published Lichess rating stands for its difficulty, as in the app. An item-level
 model would need more than one attempt per puzzle.
 \item Round 1's record was rebuilt from memory that selects on the result. Round 2 reads only the
