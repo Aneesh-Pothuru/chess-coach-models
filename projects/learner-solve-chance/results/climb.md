@@ -29,3 +29,7 @@ An aim moves only when the bucket gets a set. The last first try of a bucket's o
 Kept to a bucket whose record holds no missed first try, the climb changes the path of mateIn2 (12 first tries on record: 959 → 1217 → 1475 → 1733), attackingF2F7 (0 first tries on record: 1156 → 1414 → 1672 → 1930), and of no other bucket.
 
 The climb would aim the next set at least 100 points over the app's aim in planning; kept to perfect sets, in planning.
+
+The app's skill map calls 8 of these buckets stalled (fork, planning, mateIn1, discoveredAttack, promotion, backRankMate, mateIn2, attackingF2F7): by its rule he solves at least 95% of a stalled bucket's attempts, or more than 85% with its next set due at least 100 points over the last. The other 7: hangingPiece (holding), op:caroKann (holding), defensiveMove (holding), op:london (holding), queenEndgame (holding), pawnEndgame (holding), mateIn3 (holding).
+
+The bank holds 6 more buckets, with no attempt on record: pin, skewer, trappedPiece, rookEndgame, op:kingsIndian, advancedPawn. No estimate aims a first set there: the app starts it from his level, at 1199, where the 15 buckets above aim their next sets from 829 to 1628, 1182 at the median.

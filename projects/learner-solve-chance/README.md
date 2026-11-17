@@ -58,6 +58,13 @@ Whether a set after an aced one should start harder than the view makes it
 was simulated on 17 November and is not put to his attempts: the app's aim
 stays as it is ("A faster climb after an aced set", below).
 
+The same day the app changed which buckets the day's sets are drawn from
+(chess PR 247). How a set is aimed and how both estimates are computed did
+not change: round 2 reproduces under the merged learner, value for value.
+Round 3's rules stand, and its report shows its numbers before and after the
+change ("The app changed while round 3's attempts were being recorded",
+below).
+
 **Round 1** settled nothing. Its verdicts do not stand: the record it rebuilt
 from the memory cards keeps almost only his solves, because a miss comes back
 as a redemption card and the cards reviewed more than once, which hold all but
@@ -300,6 +307,86 @@ the headline's chance, as fixed, and the statistic on the view's chance,
 beside it, is the one that describes the sets as the app aims them. This was
 written before any result by depth was read.
 
+## The app changed while round 3's attempts were being recorded
+
+Round 3 reads its attempts with the learner of the commit it runs at, and
+scores each estimate on the puzzles he was served. A change to the app during
+the round can reach it two ways: through how an estimate is computed, or
+through which puzzles he is served. Each change is recorded here when it
+lands, and round 3's report names it.
+
+**How a change is checked.** `same-learner.mjs` reads the profile and the bank
+round 2 read with the learner of another commit, and computes again everything
+round 2's rules 1 and 2 reported: both rules, the looks beside them, the
+learner's own self-check and the aim of each bucket's next set. If every value
+is the one round 2 recorded, that commit gives an attempt the same chance and
+a set the same aim as round 2's did, and a round run there is scored as round
+2 was ([`results/same-learner.md`](results/same-learner.md)). At the commit
+round 2 read, which is its control, all 429 values reproduce; so they do at
+the lab's pin (`4ba253b`), where the climb's simulation ran. Tried once on a
+copy of the app with one channel weight changed (a themed solve counted at
+0.25 in place of 0.2), it failed, as it should.
+
+**Chess PR 247, merged as `ce11a2c` at 10:13 UTC on 17 November (02:13 in Los
+Angeles).** It came from the thread that checked puzzle selection, and it
+changes which buckets the day's sets are drawn from:
+
+- A low rating no longer counts as a weakness by itself. A bucket's skill gap
+  counts only when its rating plus one deviation is under his average, and
+  never for a bucket the skill map calls stalled (`provenGap` in `need.ts`). A
+  stalled bucket is one he solves at least 95% of, or more than 85% of with
+  its next set due at least 100 points over the last (`verdictFor` in
+  `skillMap.ts`); [`results/climb.md`](results/climb.md) names the eight on
+  the profile round 2 read.
+- His analyzed games count. A bucket whose theme went wrong in his last
+  fifteen analyzed games is lifted in the draw (`scoreOf` in `score.ts`).
+  Nothing is written to the profile, and no rating moves.
+- The label a puzzle shows in a set (easier, your level, harder) reads the
+  set's aim, where it read a rolling solve rate.
+
+That thread's own count, on his profile at the merge: the eight stalled
+buckets fall from about two fifths of the draw's weight to one fifth, and the
+six buckets with no attempt on record carry about two fifths.
+
+How an estimate is computed did not change. At `ce11a2c` all 429 values
+reproduce, and none of the five files that fold a record and aim a set differs
+from round 2's commit. So rules 1 and 2 apply to round 3 unchanged, as they
+did when the aim moved to the view before round 2.
+
+What moved is the mix of buckets, part of the way through the round, and two
+things follow that the rules do not show. A pooled number moves with the mix
+even when no estimate does: round 2's 180 scored attempts came from twelve
+buckets with records, while a bucket he has never played starts its first set
+from his level (at 1199 on the profile round 2 read, about where his other
+buckets aim), and the rest of that set is scored on a view of one to eleven
+first tries. And a stalled bucket that gets fewer sets has its aim move more
+slowly, since an aim moves only when the bucket gets a set.
+
+**What round 3 reports beside its rules because of it,** fixed on 17 November
+before any of its attempts was read, and deciding nothing:
+
+- the scored attempts on the days before 17 November, on 17 November, and on
+  the days after (Los Angeles days; on the day of the merge the day's sets may
+  have been fixed by either build): for each, the attempts, the days, the
+  share solved, and each estimate's mean chance and log loss;
+- the same numbers by how a bucket stood when the round began, on the profile
+  round 2 read with that commit's learner: stalled by the skill map's verdict,
+  another verdict, or no attempt on record;
+- per bucket, its first tries in the round, the days they fall on, and the aim
+  of its next set at the round's start (round 2's table; 1199 for a bucket
+  with no record) and at its end.
+
+If the last table shows stalled buckets left behind, there are two levers, and
+neither is this round's to pull: selection's (how often such a bucket is
+drawn) and aiming's (the climb kept to a bucket he has never missed in, below,
+which is simulated and not ported).
+
+**Known when this was fixed.** That thread's reports of its change, computed
+on his profile at the merge, which holds the round's first days: each bucket's
+rank and its share of days in the day's sets, and a bucket's share solved over
+its whole record. No attempt of round 3 was read here, beside a prediction or
+otherwise, and none was counted.
+
 ## How round 2 runs
 
 `round2.mjs` reads the app at the commit `CHESS_DIR` is checked out at: that
@@ -437,9 +524,12 @@ first three of these rounds (at most two more sets in a thousand too hard) and
 gains nothing there: it helps only where a bucket starts far under his level
 with no miss on record. On his profile that is mate in 2, whose next set would
 aim at 959 in place of 890 and climb 258 points a perfect set while its record
-holds no miss, and the one bucket with no record yet. That is too little to
-move the app's aim in the middle of round 3. It is the form to port if aiming
-is reopened.
+holds no miss, and attacks on f2 and f7, whose record is only a total. The six
+buckets he has never played start their first set at 1199, about where the
+other fifteen aim (829 to 1628, 1182 at the median), so nothing says they
+start far under his level, and this form would reach one of them only after a
+first set solved in full. That is too little to move the app's aim in the
+middle of round 3. It is the form to port if aiming is reopened.
 
 One limit: the simulated player solves by the app's own curve, and round 2's
 reliability table has his share solved staying between 71% and 86% while the
@@ -468,12 +558,13 @@ depth.
 | File | What it does |
 |---|---|
 | `lib.mjs` | What the rounds share: the replay of the app's learner over a profile, the rules' arithmetic and the reports' tables. |
-| `lib.test.mjs` | The rules, round 2's report and the climb's arithmetic on made-up attempts (`bridge/run.sh --test projects/learner-solve-chance/lib.test.mjs`). |
+| `lib.test.mjs` | The rules, round 2's report, the climb's arithmetic and the comparison of one run with another, on made-up attempts (`bridge/run.sh --test projects/learner-solve-chance/lib.test.mjs`). |
 | `replay.mjs` | Rebuilds the record, replays the app's learner over it and over the profile as the app held it at the commit round 1 measured, and writes one row per scored attempt. |
 | `fit.mjs` | Applies round 1's rule and writes `results/solve.json` and `solve.md`. |
 | `round2.mjs` | Round 2: counts its attempts, and with `--run` applies rules 1 to 3 and writes `results/round2.json` and `round2.md`. |
 | `climb-sim.mjs` | The faster climb on made-up players, through the app's own learner and serving code, with round 2's gap beside its rounds': writes `results/climb-sim.json` and `climb-sim.md`. |
-| `climb.mjs` | Where each bucket's next sets would aim after perfect sets, and how long each has waited for a set, on the profile round 2 read: writes `results/climb.json` and `climb.md`. |
+| `climb.mjs` | Where each bucket's next sets would aim after perfect sets, how long each has waited for a set, which the skill map calls stalled and where a bucket with no record would start, on the profile round 2 read: writes `results/climb.json` and `climb.md`. |
+| `same-learner.mjs` | Round 2 computed again with the learner of another commit of the app, on the profile round 2 read, and held against what round 2 recorded: writes `results/same-learner.json` and `same-learner.md`, one entry per commit checked. |
 | `paper/` | The paper, on both rounds: `generate.mjs` reads `results/solve.json`, round 1's rows and `results/round2.json`. |
 
 ## Running it
@@ -499,6 +590,13 @@ the buckets' next aims at the commit round 2 read:
 ```bash
 bridge/run.sh projects/learner-solve-chance/climb-sim.mjs
 CHESS_DIR="$(bridge/checkout.sh at <the commit round2.json names>)" bridge/run.sh projects/learner-solve-chance/climb.mjs
+```
+
+Whether the learner at another commit of the app is still the one round 2
+measured, about three minutes a commit:
+
+```bash
+CHESS_DIR="$(bridge/checkout.sh at <sha>)" bridge/run.sh projects/learner-solve-chance/same-learner.mjs
 ```
 
 The attempts are his, so the rows stay in `private/learner-solve-chance/`;

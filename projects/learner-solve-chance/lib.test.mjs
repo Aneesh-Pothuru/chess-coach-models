@@ -3,7 +3,7 @@
 // attempt of his is read.
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { B, CLIMB_MIN, CLIMB_WINDOW, MIN_PER_LEVEL, MIN_RAISED, RAISED_BY, SEED, byDay, climbRating, climbRule, depthOf, halvesOf, lastSetRating, levelOf, looks, round2Markdown, rule1, rule2, rule3 } from './lib.mjs'
+import { B, CLIMB_MIN, CLIMB_WINDOW, MIN_PER_LEVEL, MIN_RAISED, RAISED_BY, SEED, byDay, climbRating, climbRule, depthOf, halvesOf, heldAgainst, lastSetRating, levelOf, looks, round2Markdown, rule1, rule2, rule3 } from './lib.mjs'
 
 /** `n` attempts on a day at one depth, of which the first `solved` are solved, with both estimates' chances. */
 const attempts = (day, n, solved, { depth = 2, head = 0.5, view = 0.5, bucket = 'fork', rating = 1500, difficulty = 1500, inBank = true } = {}) =>
@@ -301,4 +301,19 @@ test('the rule reads only the raised sittings, and only once they hold enough', 
   // Sittings raised by less than the stalled gap are not read.
   const mixed = [...[0, 1, 2, 3, 4].flatMap((i) => sitting(i, 12, 11, { view: 0.75, climb: 0.9, raisedBy: RAISED_BY })), ...[5, 6, 7].flatMap((i) => sitting(i, 12, 0, { view: 0.75, climb: 0.8, raisedBy: RAISED_BY - 1 }))]
   assert.deepEqual([climbRule(mixed).counts.attempts, climbRule(mixed).kept], [60, true])
+})
+
+test('one run held against another: a value that moved, a changed word and a place only one holds each count', () => {
+  const recorded = { a: 1, b: { c: [0.5, 0.25], d: 'view' }, e: null }
+  assert.deepEqual(heldAgainst(recorded, structuredClone(recorded)), { values: 5, differing: [] })
+  const moved = heldAgainst(recorded, { a: 1, b: { c: [0.5, 0.2500001], d: 'head' }, e: null, f: 2 })
+  assert.equal(moved.values, 6)
+  assert.deepEqual(moved.differing, [
+    { path: 'b.c.1', recorded: 0.25, again: 0.2500001 },
+    { path: 'b.d', recorded: 'view', again: 'head' },
+    { path: 'f', recorded: '(absent)', again: 2 },
+  ])
+  assert.deepEqual(heldAgainst({ a: [1, 2] }, { a: [1] }).differing, [{ path: 'a.1', recorded: 2, again: '(absent)' }])
+  assert.deepEqual(heldAgainst({ a: [1] }, { a: { 0: 1 } }).differing, [{ path: 'a', recorded: '(more than one value)', again: '(more than one value)' }])
+  assert.deepEqual(heldAgainst({ a: null }, { a: 0 }).differing, [{ path: 'a', recorded: null, again: 0 }])
 })

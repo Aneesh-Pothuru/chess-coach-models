@@ -244,6 +244,9 @@ CHESS_DIR="$(bridge/checkout.sh at <the commit round2.json names>)" bridge/run.s
 # (about eight minutes), then each bucket's next aims on the profile round 2 read.
 bridge/run.sh projects/learner-solve-chance/climb-sim.mjs
 CHESS_DIR="$(bridge/checkout.sh at <the commit round2.json names>)" bridge/run.sh projects/learner-solve-chance/climb.mjs
+# Whether the learner at another commit is still the one round 2 measured: once
+# per commit results/same-learner.json names (about three minutes each).
+CHESS_DIR="$(bridge/checkout.sh at <sha>)" bridge/run.sh projects/learner-solve-chance/same-learner.mjs
 
 # The weekly and monthly writer: past periods rewritten by two prompts on the
 # owner's subscription, under the eval's cap and outside the routines' hours,

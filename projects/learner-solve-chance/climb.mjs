@@ -6,7 +6,10 @@
 // climb: the higher of the view and the rating the last set gives by itself,
 // and the climb kept to a bucket whose record holds no missed first try.
 // And how long before the profile's sync each bucket's last first try was
-// played: an aim moves only when the bucket gets a set.
+// played: an aim moves only when the bucket gets a set. Last, the buckets of
+// the bank with no attempt on record, and where the app would start their
+// first set, which no estimate aims, and which buckets the app's skill map
+// calls stalled, the verdict the app's selection has read since chess PR 247.
 //
 //   CHESS_DIR="$(bridge/checkout.sh at <the commit round 2 read>)" bridge/run.sh projects/learner-solve-chance/climb.mjs
 //
@@ -24,7 +27,7 @@ const { nodeLearner } = await chess('src/adapters/node/learner/index.ts')
 const { foldAbilities } = await chess('src/services/learner/ability.ts')
 const { observations, byCompetency } = await chess('src/services/learner/evidence.ts')
 const { channelOf } = await chess('src/services/learner/channels.ts')
-const { serveTarget, servingAbility, MIN_ATTEMPTS, SESSION_SIZE, TARGET_P } = await chess('src/services/learner/index.ts')
+const { ladderStartFrom, playerLevel, serveTarget, servingAbility, MIN_ATTEMPTS, SESSION_SIZE, TARGET_P } = await chess('src/services/learner/index.ts')
 const { ptDayKey } = await chess('src/core/time/index.ts')
 
 checkBorrowedConstants()
@@ -91,6 +94,7 @@ const buckets = round2.rules.today.map((t) => {
   return {
     bucket,
     phase,
+    verdict: skill.verdict,
     own: own.length,
     ownSolved: own.filter((o) => o.score >= 1).length,
     lastTryDaysBefore: own.length ? daysBetween(own.at(-1).at, now) : null,
@@ -105,6 +109,12 @@ const buckets = round2.rules.today.map((t) => {
 // A step the bucket's ceiling cuts short says nothing of the learner's step, so those buckets are left out of the summary.
 const steps = buckets.filter((b) => b.app[1] < b.bankMax + 100).map((b) => b.app[1] - b.app[0]).sort((a, b) => a - b)
 const waits = buckets.filter((b) => b.lastTryDaysBefore !== null).map((b) => b.lastTryDaysBefore).sort((a, b) => a - b)
+// A bucket with no attempt on record has no estimate: the app starts its first set from his level (the puzzle screen's ladderStart).
+const ladderStart = ladderStartFrom(playerLevel(profile))
+const unplayed = Object.keys(bank)
+  .filter((b) => !skills.has(b))
+  .map((b) => ({ bucket: b, firstAim: serveTarget(null, 'new', bank[b].map((p) => ({ id: p.id, rating: p.rating })), ladderStart) }))
+const nextAims = buckets.map((b) => b.app[0]).sort((a, b) => a - b)
 const report = {
   app,
   profileSyncedOn: ptDayKey(now),
@@ -119,6 +129,8 @@ const report = {
   sinceLastTry: { buckets: waits.length, least: waits[0], median: medianOf(waits), most: waits.at(-1), over30: waits.filter((d) => d > 30).length },
   raisedNow: { climb: buckets.filter((b) => b.climb[0] - b.app[0] >= 100).map((b) => b.bucket), perfect: buckets.filter((b) => b.perfect[0] - b.app[0] >= 100).map((b) => b.bucket) },
   neverMissed: buckets.filter((b) => b.unmissed.some((aim, i) => aim !== b.app[i])).map((b) => ({ bucket: b.bucket, own: b.own, app: b.app, unmissed: b.unmissed })),
+  unplayed: { ladderStart, buckets: unplayed, nextAims: { buckets: nextAims.length, least: nextAims[0], median: medianOf(nextAims), most: nextAims.at(-1) } },
+  stalled: buckets.filter((b) => b.verdict === 'stalled').map((b) => b.bucket),
 }
 
 const arrow = (aims) => aims.join(' → ')
@@ -140,6 +152,12 @@ const md = [
   `Kept to a bucket whose record holds no missed first try, the climb changes the path of ${report.neverMissed.length ? report.neverMissed.map((b) => `${b.bucket} (${b.own} first tries on record: ${arrow(b.unmissed)})`).join(', ') : 'no bucket'}, and of no other bucket.`,
   '',
   `The climb would aim the next set at least 100 points over the app's aim in ${report.raisedNow.climb.length ? report.raisedNow.climb.join(', ') : 'no bucket'}; kept to perfect sets, in ${report.raisedNow.perfect.length ? report.raisedNow.perfect.join(', ') : 'no bucket'}.`,
+  '',
+  `The app's skill map calls ${report.stalled.length} of these buckets stalled (${report.stalled.join(', ') || 'none'}): by its rule he solves at least 95% of a stalled bucket's attempts, or more than 85% with its next set due at least 100 points over the last. The other ${buckets.length - report.stalled.length}: ${buckets.filter((b) => b.verdict !== 'stalled').map((b) => `${b.bucket} (${b.verdict})`).join(', ') || 'none'}.`,
+  '',
+  unplayed.length
+    ? `The bank holds ${unplayed.length} more buckets, with no attempt on record: ${unplayed.map((u) => u.bucket).join(', ')}. No estimate aims a first set there: the app starts it from his level, at ${[...new Set(unplayed.map((u) => u.firstAim))].join(' or ')}, where the ${report.unplayed.nextAims.buckets} buckets above aim their next sets from ${report.unplayed.nextAims.least} to ${report.unplayed.nextAims.most}, ${report.unplayed.nextAims.median} at the median.`
+    : 'Every bucket of the bank has an attempt on record.',
   '',
 ].join('\n')
 

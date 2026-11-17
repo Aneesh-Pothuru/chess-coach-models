@@ -500,6 +500,37 @@ export function climbRule(rows) {
   return { status: 'ran', counts, solved: mean(raised.map((r) => r.s)), view, climb, viewUnder, climbOver, kept: viewUnder && !climbOver }
 }
 
+// ---------------------------------------------------------------- one learner against another
+/**
+ * What one run computed, held against what another recorded, place by place:
+ * how many places were compared and each one that differs, with its path. A
+ * place only one of them holds counts as one that differs, and so does a
+ * list set against named values.
+ */
+export function heldAgainst(recorded, again) {
+  const differing = []
+  let values = 0
+  const single = (x) => x === null || typeof x !== 'object'
+  const shown = (x) => (single(x) ? x : '(more than one value)')
+  const walk = (a, b, path) => {
+    if (single(a) || single(b) || Array.isArray(a) !== Array.isArray(b)) {
+      values++
+      if (a !== b) differing.push({ path, recorded: shown(a), again: shown(b) })
+      return
+    }
+    for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) {
+      const at = path ? `${path}.${k}` : k
+      if (k in a && k in b) walk(a[k], b[k], at)
+      else {
+        values++
+        differing.push({ path: at, recorded: k in a ? shown(a[k]) : '(absent)', again: k in b ? shown(b[k]) : '(absent)' })
+      }
+    }
+  }
+  walk(recorded, again, '')
+  return { values, differing }
+}
+
 // ---------------------------------------------------------------- the reports' formats
 export const f3 = (x) => (x === null ? 'n/a' : x.toFixed(3))
 export const pct = (x) => (x === null ? 'n/a' : (100 * x).toFixed(1) + '%')
