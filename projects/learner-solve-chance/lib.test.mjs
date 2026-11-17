@@ -3,7 +3,7 @@
 // attempt of his is read.
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { B, MIN_PER_LEVEL, SEED, byDay, depthOf, halvesOf, levelOf, looks, round2Markdown, rule1, rule2, rule3 } from './lib.mjs'
+import { B, CLIMB_MIN, CLIMB_WINDOW, MIN_PER_LEVEL, MIN_RAISED, RAISED_BY, SEED, byDay, climbRating, climbRule, depthOf, halvesOf, lastSetRating, levelOf, looks, round2Markdown, rule1, rule2, rule3 } from './lib.mjs'
 
 /** `n` attempts on a day at one depth, of which the first `solved` are solved, with both estimates' chances. */
 const attempts = (day, n, solved, { depth = 2, head = 0.5, view = 0.5, bucket = 'fork', rating = 1500, difficulty = 1500, inBank = true } = {}) =>
@@ -235,4 +235,67 @@ test('the report says what the rules found, in each of their outcomes', () => {
   const unfitted = text(reportOf(lopsided, 'view'))
   assert.match(unfitted, /The first half holds 0 one-move attempts and 40 longer ones, so a shift for each level cannot be fitted there, and no term is kept\./)
   assert.match(unfitted, /draws that held no attempt at one of the levels were drawn again/)
+})
+
+// ---------------------------------------------------------------- the climb
+/** A set at one difficulty, of which the first `solved` attempts are solved. */
+const setAt = (difficulty, solved, n = CLIMB_WINDOW) => Array.from({ length: n }, (_, i) => ({ difficulty, difficultyRd: 50, score: i < solved ? 1 : 0 }))
+
+test('the last set alone reads a perfect set far above its level, and a half-solved one at it', () => {
+  assert.equal(CLIMB_WINDOW, 12)
+  assert.equal(CLIMB_MIN, 6)
+  // Twelve of twelve with one solve and one miss added is thirteen of fourteen: ln 13 on the app's scale.
+  assert.equal(lastSetRating(setAt(1000, 12)), 1451)
+  assert.equal(lastSetRating(setAt(1000, 11)), 1315)
+  assert.equal(lastSetRating(setAt(1000, 6)), 1000)
+  assert.equal(lastSetRating(setAt(1000, 0)), 549)
+  const ratings = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((k) => lastSetRating(setAt(1000, k)))
+  assert.ok(ratings.every((r, i) => i === 0 || r > ratings[i - 1]))
+  // The same record 300 points up reads 300 points up.
+  assert.equal(lastSetRating(setAt(1300, 9)), lastSetRating(setAt(1000, 9)) + 300)
+})
+
+test('the last set is the last twelve attempts, and needs six', () => {
+  assert.equal(lastSetRating(setAt(1000, 5, 5)), null)
+  assert.equal(lastSetRating(setAt(1000, 6, 6)), lastSetRating([...setAt(1000, 0, 0), ...setAt(1000, 6, 6)]))
+  // Twenty misses long ago do not reach it.
+  assert.equal(lastSetRating([...setAt(600, 0, 20), ...setAt(1000, 12)]), 1451)
+  // A harder second half, all solved, reads above the same number solved at the lower level alone.
+  assert.ok(lastSetRating([...setAt(1000, 6, 6), ...setAt(1200, 6, 6)]) > 1451)
+})
+
+test('kept to perfect sets, one miss leaves the view alone', () => {
+  assert.equal(lastSetRating(setAt(1000, 12), { perfect: true }), 1451)
+  assert.equal(lastSetRating(setAt(1000, 11), { perfect: true }), null)
+  assert.equal(climbRating(1300, null), 1300)
+  assert.equal(climbRating(1300, 1451), 1451)
+  assert.equal(climbRating(1500, 1451), 1500)
+})
+
+/** `n` attempts of one sitting on a day, the first `solved` of them solved. */
+const sitting = (i, n, solved, { view, climb, raisedBy }) => Array.from({ length: n }, (_, j) => ({ sitting: i, day: day(i), s: j < solved ? 1 : 0, view, climb, raisedBy }))
+
+test('the climb is kept only where the view under-predicts the raised sittings and the climb does not over-predict them', () => {
+  const round = (solved, chances, sittings = 6) => Array.from({ length: sittings }, (_, i) => sitting(i, 12, solved, { raisedBy: RAISED_BY, ...chances })).flat()
+  const kept = climbRule(round(11, { view: 0.75, climb: 0.9 }))
+  assert.equal(kept.status, 'ran')
+  assert.deepEqual([kept.counts.attempts, kept.counts.sittings, kept.counts.days], [72, 6, 6])
+  assert.deepEqual([kept.viewUnder, kept.climbOver, kept.kept], [true, false, true])
+  assert.ok(Math.abs(kept.view.value - (11 / 12 - 0.75)) < 1e-12)
+  // He solves what the view says: nothing shows the view too low.
+  assert.deepEqual([climbRule(round(9, { view: 0.75, climb: 0.9 })).viewUnder, climbRule(round(9, { view: 0.75, climb: 0.9 })).kept], [false, false])
+  // The view is too low and the climb far too high.
+  const over = climbRule(round(8, { view: 0.5, climb: 0.95 }))
+  assert.deepEqual([over.viewUnder, over.climbOver, over.kept], [true, true, false])
+})
+
+test('the rule reads only the raised sittings, and only once they hold enough', () => {
+  const few = climbRule([0, 1].flatMap((i) => sitting(i, 12, 12, { view: 0.75, climb: 0.9, raisedBy: RAISED_BY })))
+  assert.equal(few.status, 'not enough data')
+  assert.deepEqual([few.counts.attempts, few.counts.days, few.counts.needed], [24, 2, MIN_RAISED])
+  // Enough attempts on too few days.
+  assert.equal(climbRule([0, 1, 2, 3].flatMap((i) => sitting(i, 12, 12, { view: 0.75, climb: 0.9, raisedBy: RAISED_BY }))).status, 'not enough data')
+  // Sittings raised by less than the stalled gap are not read.
+  const mixed = [...[0, 1, 2, 3, 4].flatMap((i) => sitting(i, 12, 11, { view: 0.75, climb: 0.9, raisedBy: RAISED_BY })), ...[5, 6, 7].flatMap((i) => sitting(i, 12, 0, { view: 0.75, climb: 0.8, raisedBy: RAISED_BY - 1 }))]
+  assert.deepEqual([climbRule(mixed).counts.attempts, climbRule(mixed).kept], [60, true])
 })

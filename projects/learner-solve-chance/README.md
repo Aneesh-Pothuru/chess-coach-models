@@ -54,6 +54,10 @@ low. He was asked on 14 November and answered on 17 November: the app keeps
 the view, and the testing goes on. Round 3, below, puts rule 2 to the attempts
 recorded next, on twice the days, and its verdict replaces round 2's.
 
+Whether a set after an aced one should start harder than the view makes it
+was simulated on 17 November and is not put to his attempts: the app's aim
+stays as it is ("A faster climb after an aced set", below).
+
 **Round 1** settled nothing. Its verdicts do not stand: the record it rebuilt
 from the memory cards keeps almost only his solves, because a miss comes back
 as a redemption card and the cards reviewed more than once, which hold all but
@@ -329,15 +333,118 @@ two or more, with 8 more left out as puzzles he had seen before; 180 of them
 scored, on 9 days, 29 of one move and 151 longer. So rules 1 and 2 run there,
 and rule 3 waits for its thirtieth scored one-move attempt.
 
+## A faster climb after an aced set: simulated, and not put to his attempts
+
+On 17 November 2026 the app thread that was checking puzzle selection reported
+that a bucket he aces climbs slowly: mate in 2 stood at 51 solved of 51, and
+its next set would still aim at 890. How a set is aimed is this study's
+subject, so the question came here: should the set after an aced one start
+harder than the view makes it?
+
+**What the app does now.** `climb.mjs` folds the profile round 2 read with
+that commit's own learner, and then again after each of three sets solved in
+full ([`results/climb.md`](results/climb.md)). After one perfect set the next
+set starts 54 to 194 points harder, 136 at the median of the fifteen buckets.
+The step follows the bucket's record. The view folds every first try the
+bucket's own sets have on record, from the median rating he was served, so
+the ten buckets with twelve first tries or fewer on record move 100 to 194
+points, and the five with 36 or more move 54 to 81. Mate in 2's 51 are 39
+solves the profile keeps only as a total, which the view cannot fold, and 12
+first tries logged at about 710, all solved. Those twelve moved its aim to
+890, and three more perfect sets would move it to 1075, 1180 and 1355. But the
+last of the twelve was played 46 days before the profile's sync: the set at
+890 has not been given yet.
+
+**The candidate.** A set aims from the higher of two ratings: the view's, and
+the rating the bucket's last set gives by itself. The last set is the bucket's
+last 12 first tries in its own sets, once it has 6 (a set's size, and the
+attempts that end a bucket's new phase: both the app's constants). Its own
+rating is the one that maximizes their likelihood under the app's
+`solveChance`, with one solve and one miss added at their median rating, so
+twelve solved of twelve read as thirteen of fourteen: 451 points above the
+set, which would start the next set 258 points harder. Eleven of twelve would
+start it 122 harder and ten 36 harder; after nine or fewer the last set alone
+would start the next one easier than itself, and the view decides unless it
+reads lower still. A second form does this only after a last set solved in
+full. Nothing is fitted, and the view itself is untouched.
+
+**What the simulation says.** `climb-sim.mjs` plays made-up players through
+the app's own learner and serving code; each solves a puzzle with the chance
+the app's `solveChance` gives his rating in the bucket
+([`results/climb-sim.md`](results/climb-sim.md)). His level in a bucket is the
+difficulty he solves 75% of the time there, which is where the app means a set
+to start.
+
+- *Reaching a level.* A bucket whose record begins about 800 points under his
+  level is aimed within 100 points of it after 7.1 sets from the view, 4.1
+  from the climb and 4.5 from the climb after perfect sets; one that begins
+  about 300 points under, after 3.0, 1.8 and 2.2.
+- *The cost once there.* Long after a bucket has arrived, the view keeps him
+  at 74.8% to 74.9% solved, with at most one set in a thousand aimed where his
+  chance is under 60%. The climb reads a lucky set as a higher level: 71.7%
+  solved, and 8.1% to 8.2% of sets under a 60% chance. Kept to perfect sets,
+  73.8% to 73.9% and 3.5%.
+- *A round.* Twelve buckets with two sets on record each, then a round like
+  round 3 (32 sets on 20 days). Where the buckets began at his level, the next
+  aims end 45 points from it on average under the view, 59 under the climb and
+  52 under the climb after perfect sets; where half of them began 400 points
+  under it, 56, 63 and 61; where all did, 69, 69 and 71. Only where every
+  bucket began 800 points under does the climb end nearer: 118 against 204.
+- *Which round his looks like.* Round 2 had him solving 77.8% where the view
+  gave him 72.7%, a gap of 5.1 points (0.9 to 8.3). The simulated rounds aimed
+  from the view give a gap of 0.6 points where the buckets began at his level
+  (-3.1 to 4.6 for the middle 95% of players), 3.1 where half began 400 points
+  under (-0.6 to 7.2), 5.7 where all did (2.9 to 9.1) and 15.1 where all began
+  800 points under (13.2 to 17.4).
+- *What a rule could tell.* A rule on the round's raised sittings (those the
+  climb would start at least 100 points harder: the view must under-predict
+  him there, and the climb must not over-predict him) keeps the climb in none
+  of the rounds where the buckets began at his level, in 9.5% where half began
+  400 points under and in 32.5% where all did. Such a round holds too few
+  sittings the climb would raise.
+
+**The call.** The climb is not put to his attempts, and the app's aim stays as
+it is. By its gap, round 2 looks most like the third of the simulated rounds,
+could be the second, and is not the fourth, the only one where the climb ends
+nearer his level. In the second and third the climb takes the easy lean out of
+the next aims (30 and 49 points under his level become 2 over and 9 under) and
+puts scatter in its place: the aims end as far from his level as before (63
+against 56 points, 69 against 69), and five to seven sets in a hundred start
+where his chance is under 60%, against one or fewer. A rule on round 3 would
+keep the climb in a tenth to a third of such rounds, and its passing would not
+show the aims any nearer his level. So no rule is registered, and round 3
+stays a test of one candidate. One limit: the simulated player solves by the
+app's own curve, and round 2's reliability table has his share solved staying
+between 71% and 86% while the view's chance runs from 40% to 92%. A flatter
+curve than the app's would make a harder set cost him less than simulated, and
+tell the app less.
+
+What stays slow is the calendar. An aim moves only when the bucket gets a set.
+At the profile's sync the last first try of a bucket's own sets was 4.5 days
+old at the median of the fourteen buckets with a record, but 46 days old for
+mate in 2 and 71 for mate in 3, and round 2's 188 attempts are about sixteen
+sets in thirty days over twelve buckets. Planning is the one bucket whose next set
+the climb would start at least 100 points harder today (1186 against 1029,
+after 12 solved of 12 at about 915). Which bucket gets the next set is
+selection's to decide, not aiming's: a bucket he aces at too easy a level is
+not a weak one, and only its next set shows what its aim has already learned.
+
+**Known before.** Both rounds' results, and what the selection thread reported
+from the profile. `climb.mjs` reads the profile round 2 read and refuses any
+other, so nothing of round 3's attempts was read, and nothing by a puzzle's
+depth.
+
 ## Files
 
 | File | What it does |
 |---|---|
 | `lib.mjs` | What the rounds share: the replay of the app's learner over a profile, the rules' arithmetic and the reports' tables. |
-| `lib.test.mjs` | The rules and round 2's report on made-up attempts (`bridge/run.sh --test projects/learner-solve-chance/lib.test.mjs`). |
+| `lib.test.mjs` | The rules, round 2's report and the climb's arithmetic on made-up attempts (`bridge/run.sh --test projects/learner-solve-chance/lib.test.mjs`). |
 | `replay.mjs` | Rebuilds the record, replays the app's learner over it and over the profile as the app held it at the commit round 1 measured, and writes one row per scored attempt. |
 | `fit.mjs` | Applies round 1's rule and writes `results/solve.json` and `solve.md`. |
 | `round2.mjs` | Round 2: counts its attempts, and with `--run` applies rules 1 to 3 and writes `results/round2.json` and `round2.md`. |
+| `climb-sim.mjs` | The faster climb on made-up players, through the app's own learner and serving code, with round 2's gap beside its rounds': writes `results/climb-sim.json` and `climb-sim.md`. |
+| `climb.mjs` | Where each bucket's next sets would aim after perfect sets, and how long each has waited for a set, on the profile round 2 read: writes `results/climb.json` and `climb.md`. |
 | `paper/` | The paper, on both rounds: `generate.mjs` reads `results/solve.json`, round 1's rows and `results/round2.json`. |
 
 ## Running it
@@ -355,6 +462,14 @@ Round 2, at the commit of the app it reads (a check-in runs the first line;
 ```bash
 CHESS_DIR="$(bridge/checkout.sh at <sha>)" bridge/run.sh projects/learner-solve-chance/round2.mjs
 CHESS_DIR="$(bridge/checkout.sh at <sha>)" bridge/run.sh projects/learner-solve-chance/round2.mjs --run
+```
+
+The faster climb: the simulation, about six minutes at the lab's pin, and the
+buckets' next aims at the commit round 2 read:
+
+```bash
+bridge/run.sh projects/learner-solve-chance/climb-sim.mjs
+CHESS_DIR="$(bridge/checkout.sh at <the commit round2.json names>)" bridge/run.sh projects/learner-solve-chance/climb.mjs
 ```
 
 The attempts are his, so the rows stay in `private/learner-solve-chance/`;

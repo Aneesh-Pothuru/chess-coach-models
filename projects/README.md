@@ -240,6 +240,10 @@ bridge/run.sh projects/learner-solve-chance/fit.mjs
 # Its round 2 read the app at its own commit (results/round2.json names it) and
 # is not rerun at the pin: this reproduces it there.
 CHESS_DIR="$(bridge/checkout.sh at <the commit round2.json names>)" bridge/run.sh projects/learner-solve-chance/round2.mjs --run
+# A faster climb after an aced set: made-up players through the app's learner
+# (about six minutes), then each bucket's next aims on the profile round 2 read.
+bridge/run.sh projects/learner-solve-chance/climb-sim.mjs
+CHESS_DIR="$(bridge/checkout.sh at <the commit round2.json names>)" bridge/run.sh projects/learner-solve-chance/climb.mjs
 
 # The weekly and monthly writer: past periods rewritten by two prompts on the
 # owner's subscription, under the eval's cap and outside the routines' hours,

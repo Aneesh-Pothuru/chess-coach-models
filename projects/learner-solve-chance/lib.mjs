@@ -6,14 +6,15 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import { join } from 'node:path'
-import { chess, LAB_DIR, privateDir } from '../../bridge/lib/chess.mjs'
+import { chess, CHESS_DIR, LAB_DIR, privateDir } from '../../bridge/lib/chess.mjs'
 
 const { LEARNER_CONTENT } = await chess('src/data/learnerContent.ts')
 const { catalogue } = await chess('src/services/learner/competencies.ts')
 const { observations, byCompetency } = await chess('src/services/learner/evidence.ts')
 const { foldAbilities } = await chess('src/services/learner/ability.ts')
 const { channelOf } = await chess('src/services/learner/channels.ts')
-const { solveChance, serveTarget, servingAbility, MIN_ATTEMPTS, LADDER_START } = await chess('src/services/learner/index.ts')
+const { solveChance, serveTarget, servingAbility, MIN_ATTEMPTS, LADDER_START, SESSION_SIZE } = await chess('src/services/learner/index.ts')
+const { ITEM_RD } = await chess('src/services/learner/glicko.ts')
 const { ptDayKey } = await chess('src/core/time/index.ts')
 
 // ---------------------------------------------------------------- round 1's profile
@@ -161,7 +162,7 @@ const BINS = [0.5, 0.6, 0.7, 0.8, 0.9]
 const SHIFTS = []
 for (let d = -500; d <= 500; d += 5) SHIFTS.push(d)
 
-function mulberry32(seed) {
+export function mulberry32(seed) {
   let a = seed >>> 0
   return () => {
     a |= 0; a = (a + 0x6d2b79f5) | 0
@@ -423,6 +424,79 @@ export function rule3(scoredDays, serving) {
       statistic: both.length ? drawInterval(inBoth, depthStat(serving)) : null,
     },
   }
+}
+
+// ---------------------------------------------------------------- the climb
+// README.md, "A faster climb after an aced set": a set aimed from the higher
+// of the view's rating and the rating the bucket's last set gives by itself.
+
+/** The last set is the bucket's last attempts of a set's size, once it has left its new phase: both are the app's constants. */
+export const CLIMB_WINDOW = SESSION_SIZE
+export const CLIMB_MIN = MIN_ATTEMPTS
+/** A sitting is raised when the climb's rating is this far above the view's: the gap at which the app's skill map calls a bucket stalled. */
+export const RAISED_BY = 100
+/** A rule on the raised sittings would read once they hold this much. */
+export const MIN_RAISED = { attempts: 30, days: 5 }
+
+/** Stops unless the app at CHESS_DIR still holds the constant the climb borrows from it and cannot import. */
+export function checkBorrowedConstants() {
+  const skillMap = fs.readFileSync(join(CHESS_DIR, 'src/services/learner/skillMap.ts'), 'utf8')
+  if (!new RegExp(`const STALL_GAP = ${RAISED_BY}\\b`).test(skillMap)) throw new Error(`the app's stalled gap is no longer ${RAISED_BY} points`)
+}
+
+/**
+ * The rating a bucket's last set gives by itself: the one that maximizes the
+ * likelihood of its last CLIMB_WINDOW attempts under the app's solve chance,
+ * with one solve and one miss added at their median difficulty. Null under
+ * CLIMB_MIN attempts. An attempt is { difficulty, difficultyRd, score }, as
+ * the app's observations are. With `perfect`, null too unless every one of
+ * those attempts was solved.
+ */
+export function lastSetRating(attempts, { perfect = false } = {}) {
+  if (attempts.length < CLIMB_MIN) return null
+  const last = attempts.slice(-CLIMB_WINDOW)
+  if (perfect && last.some((a) => a.score < 1)) return null
+  const sorted = last.map((a) => a.difficulty).sort((a, b) => a - b)
+  // The app's median: the upper of the two middle values.
+  const middle = sorted[Math.floor(sorted.length / 2)]
+  const terms = [...last.map((a) => ({ d: a.difficulty, rd: a.difficultyRd, s: clamp(a.score, 0, 1) })), { d: middle, rd: ITEM_RD, s: 1 }, { d: middle, rd: ITEM_RD, s: 0 }]
+  const logLikelihood = (rating) =>
+    terms.reduce((sum, t) => {
+      const p = solveChance({ rating, rd: 0, volatility: 0 }, t.d, t.rd)
+      return sum + t.s * Math.log(p) + (1 - t.s) * Math.log(1 - p)
+    }, 0)
+  // The log-likelihood has one peak, so the search closes on it from both sides.
+  let lo = sorted[0] - 2000
+  let hi = sorted[sorted.length - 1] + 2000
+  for (let i = 0; i < 80; i++) {
+    const a = lo + (hi - lo) / 3
+    const b = hi - (hi - lo) / 3
+    if (logLikelihood(a) < logLikelihood(b)) lo = a
+    else hi = b
+  }
+  return Math.round((lo + hi) / 2)
+}
+
+/** The climb's rating: the higher of the view's and the last set's own. */
+export const climbRating = (viewRating, lastSet) => (lastSet === null ? viewRating : Math.max(viewRating, lastSet))
+
+/**
+ * A rule a round could put to the climb, over attempts that each carry the
+ * solve chance the view and the climb gave as their sitting was aimed (`view`,
+ * `climb`) and how far the climb's rating stood above the view's (`raisedBy`):
+ * on the raised sittings, the view must under-predict him and the climb must
+ * not over-predict him, each by its 95% interval over the days.
+ */
+export function climbRule(rows) {
+  const raised = rows.filter((r) => r.raisedBy >= RAISED_BY)
+  const days = byDay(raised)
+  const counts = { attempts: raised.length, sittings: new Set(raised.map((r) => r.sitting)).size, days: days.length, needed: MIN_RAISED }
+  if (raised.length < MIN_RAISED.attempts || days.length < MIN_RAISED.days) return { status: 'not enough data', counts }
+  const view = gapOf(days, 'view')
+  const climb = gapOf(days, 'climb')
+  const viewUnder = view.interval[0] > 0
+  const climbOver = climb.interval[1] < 0
+  return { status: 'ran', counts, solved: mean(raised.map((r) => r.s)), view, climb, viewUnder, climbOver, kept: viewUnder && !climbOver }
 }
 
 // ---------------------------------------------------------------- the reports' formats
