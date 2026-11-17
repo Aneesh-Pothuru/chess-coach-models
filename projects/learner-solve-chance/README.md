@@ -50,8 +50,9 @@ rounds are in the paper, [`paper/paper.pdf`](paper/paper.pdf).
 What the app does with verdict 2 is its owner's call. The app has aimed its
 sets from the view since chess PR 78 (below), and going back to the headline
 would aim them from the estimate that verdict 1 finds about 22 points too
-low. He was asked on 14 November; until he answers, the app keeps the view.
-Round 3, below, puts rule 2 to the attempts recorded next, on twice the days.
+low. He was asked on 14 November and answered on 17 November: the app keeps
+the view, and the testing goes on. Round 3, below, puts rule 2 to the attempts
+recorded next, on twice the days, and its verdict replaces round 2's.
 
 **Round 1** settled nothing. Its verdicts do not stand: the record it rebuilt
 from the memory cards keeps almost only his solves, because a miss comes back
@@ -289,7 +290,11 @@ Rule 3 stays round 2's: it runs once, on every attempt recorded after round
 headline, the estimate round 2's rule 2 leaves serving. Added on 14 November,
 after rule 2's verdict and before any result by depth was read, to what it
 reports beside, deciding nothing: the statistic again on the view's chance,
-since the app may go on aiming from the view on its owner's call.
+since the app may go on aiming from the view on its owner's call. It does:
+on 17 November he kept the view (above). Rule 3's verdict is still read on
+the headline's chance, as fixed, and the statistic on the view's chance,
+beside it, is the one that describes the sets as the app aims them. This was
+written before any result by depth was read.
 
 ## How round 2 runs
 
