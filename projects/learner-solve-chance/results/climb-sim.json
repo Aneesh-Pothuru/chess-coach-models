@@ -107,7 +107,10 @@
   "runs": 1000,
   "sets": 30,
   "near": 100,
+  "early": 12,
   "late": 10,
+  "tooEasy": 0.9,
+  "tooHard": 0.6,
   "cases": [
    {
     "name": "far under his level: one set at 700",
@@ -118,21 +121,35 @@
     "goal": 1507,
     "app": {
      "setsToGoal": 7.124,
+     "earlyEasy": 4.051,
+     "earlyHard": 0.013,
      "lateSolved": 0.7491999999999992,
      "lateUnder60": 0.0006,
      "lateDistance": 30.9786
     },
     "climb": {
      "setsToGoal": 4.074,
+     "earlyEasy": 2.288,
+     "earlyHard": 0.75,
      "lateSolved": 0.7173583333333322,
      "lateUnder60": 0.0812,
      "lateDistance": 49.4936
     },
     "perfect": {
      "setsToGoal": 4.504,
+     "earlyEasy": 2.737,
+     "earlyHard": 0.488,
      "lateSolved": 0.738799999999999,
      "lateUnder60": 0.0352,
      "lateDistance": 37.5552
+    },
+    "unmissed": {
+     "setsToGoal": 5.145,
+     "earlyEasy": 3.056,
+     "earlyHard": 0.056,
+     "lateSolved": 0.749116666666665,
+     "lateUnder60": 0.0008,
+     "lateDistance": 30.8819
     }
    },
    {
@@ -146,21 +163,35 @@
     "goal": 1307,
     "app": {
      "setsToGoal": 4.578,
+     "earlyEasy": 1.596,
+     "earlyHard": 0.018,
      "lateSolved": 0.7487583333333324,
      "lateUnder60": 0.0003,
      "lateDistance": 30.6624
     },
     "climb": {
      "setsToGoal": 2.686,
+     "earlyEasy": 1.205,
+     "earlyHard": 0.806,
      "lateSolved": 0.7174333333333324,
      "lateUnder60": 0.0808,
      "lateDistance": 49.0535
     },
     "perfect": {
      "setsToGoal": 3.375,
+     "earlyEasy": 1.468,
+     "earlyHard": 0.497,
      "lateSolved": 0.7387000000000001,
      "lateUnder60": 0.0345,
      "lateDistance": 37.3817
+    },
+    "unmissed": {
+     "setsToGoal": 4.312,
+     "earlyEasy": 1.595,
+     "earlyHard": 0.023,
+     "lateSolved": 0.7487916666666653,
+     "lateUnder60": 0.0003,
+     "lateDistance": 30.6477
     }
    },
    {
@@ -172,21 +203,35 @@
     "goal": 1207,
     "app": {
      "setsToGoal": 3.011,
+     "earlyEasy": 0.622,
+     "earlyHard": 0.065,
      "lateSolved": 0.7483083333333309,
      "lateUnder60": 0.0005,
      "lateDistance": 30.5449
     },
     "climb": {
      "setsToGoal": 1.844,
+     "earlyEasy": 0.201,
+     "earlyHard": 0.893,
      "lateSolved": 0.7169749999999993,
      "lateUnder60": 0.0818,
      "lateDistance": 49.4229
     },
     "perfect": {
      "setsToGoal": 2.19,
+     "earlyEasy": 0.593,
+     "earlyHard": 0.558,
      "lateSolved": 0.7380583333333325,
      "lateUnder60": 0.0351,
      "lateDistance": 37.4323
+    },
+    "unmissed": {
+     "setsToGoal": 2.413,
+     "earlyEasy": 0.615,
+     "earlyHard": 0.089,
+     "lateSolved": 0.7484833333333306,
+     "lateUnder60": 0.0006,
+     "lateDistance": 30.5041
     }
    },
    {
@@ -198,21 +243,35 @@
     "goal": 907,
     "app": {
      "setsToGoal": 1.419,
+     "earlyEasy": 0.054,
+     "earlyHard": 0.102,
      "lateSolved": 0.7483999999999988,
      "lateUnder60": 0.0009,
      "lateDistance": 30.7999
     },
     "climb": {
      "setsToGoal": 1.274,
+     "earlyEasy": 0.029,
+     "earlyHard": 1.139,
      "lateSolved": 0.7170833333333322,
      "lateUnder60": 0.0818,
      "lateDistance": 49.4349
     },
     "perfect": {
      "setsToGoal": 1.389,
+     "earlyEasy": 0.054,
+     "earlyHard": 0.577,
      "lateSolved": 0.7380416666666662,
      "lateUnder60": 0.0351,
      "lateDistance": 37.3063
+    },
+    "unmissed": {
+     "setsToGoal": 1.419,
+     "earlyEasy": 0.054,
+     "earlyHard": 0.107,
+     "lateSolved": 0.7483916666666656,
+     "lateUnder60": 0.0009,
+     "lateDistance": 30.8185
     }
    }
   ]
@@ -232,6 +291,7 @@
     "app": {
      "solved": 0.7553124999999998,
      "under60": 0.0184375,
+     "over90": 0.00328125,
      "shortfall": 9.993333333333332,
      "distance": 44.69749999999999,
      "viewGap": {
@@ -252,6 +312,7 @@
     "climb": {
      "solved": 0.7277343749999997,
      "under60": 0.08625,
+     "over90": 0.00296875,
      "shortfall": -14.443333333333335,
      "distance": 58.55916666666667,
      "rule": {
@@ -265,6 +326,7 @@
     "perfect": {
      "solved": 0.742877604166667,
      "under60": 0.05921875,
+     "over90": 0.00328125,
      "shortfall": 1.2674999999999998,
      "distance": 51.607500000000044,
      "rule": {
@@ -274,6 +336,20 @@
       "climbOver": 0.03,
       "kept": 0.005
      }
+    },
+    "unmissed": {
+     "solved": 0.7553124999999998,
+     "under60": 0.0184375,
+     "over90": 0.00328125,
+     "shortfall": 9.993333333333332,
+     "distance": 44.69749999999999,
+     "rule": {
+      "raisedAttempts": 22.5,
+      "enough": 0.04,
+      "viewUnder": 0,
+      "climbOver": 0.035,
+      "kept": 0
+     }
     }
    },
    {
@@ -281,6 +357,7 @@
     "app": {
      "solved": 0.7864453125,
      "under60": 0.0096875,
+     "over90": 0.04859375,
      "shortfall": 30.465416666666666,
      "distance": 56.45208333333334,
      "viewGap": {
@@ -301,6 +378,7 @@
     "climb": {
      "solved": 0.7513932291666663,
      "under60": 0.066875,
+     "over90": 0.02125,
      "shortfall": -2.4641666666666664,
      "distance": 63.48499999999999,
      "rule": {
@@ -314,6 +392,7 @@
     "perfect": {
      "solved": 0.7676953125000003,
      "under60": 0.04609375,
+     "over90": 0.039375,
      "shortfall": 15.269583333333328,
      "distance": 60.77291666666666,
      "rule": {
@@ -323,6 +402,20 @@
       "climbOver": 0.07,
       "kept": 0.06
      }
+    },
+    "unmissed": {
+     "solved": 0.7832291666666671,
+     "under60": 0.01078125,
+     "over90": 0.04859375,
+     "shortfall": 29.54125,
+     "distance": 56.73958333333336,
+     "rule": {
+      "raisedAttempts": 38.88,
+      "enough": 0.17,
+      "viewUnder": 0.105,
+      "climbOver": 0.05,
+      "kept": 0.09
+     }
     }
    },
    {
@@ -330,6 +423,7 @@
     "app": {
      "solved": 0.818489583333333,
      "under60": 0.00265625,
+     "over90": 0.10046875,
      "shortfall": 49.41416666666666,
      "distance": 68.77583333333332,
      "viewGap": {
@@ -350,6 +444,7 @@
     "climb": {
      "solved": 0.7745833333333334,
      "under60": 0.0471875,
+     "over90": 0.04296875,
      "shortfall": 8.677500000000004,
      "distance": 68.90999999999998,
      "rule": {
@@ -363,6 +458,7 @@
     "perfect": {
      "solved": 0.7906640624999995,
      "under60": 0.03515625,
+     "over90": 0.07984375,
      "shortfall": 29.081666666666678,
      "distance": 70.64916666666667,
      "rule": {
@@ -372,6 +468,20 @@
       "climbOver": 0.065,
       "kept": 0.335
      }
+    },
+    "unmissed": {
+     "solved": 0.8119140625000004,
+     "under60": 0.005,
+     "over90": 0.10046875,
+     "shortfall": 47.81083333333335,
+     "distance": 68.92666666666668,
+     "rule": {
+      "raisedAttempts": 57.84,
+      "enough": 0.505,
+      "viewUnder": 0.32,
+      "climbOver": 0.05,
+      "kept": 0.31
+     }
     }
    },
    {
@@ -379,6 +489,7 @@
     "app": {
      "solved": 0.9339192708333336,
      "under60": 0,
+     "over90": 0.78109375,
      "shortfall": 202.50541666666672,
      "distance": 204.3929166666667,
      "viewGap": {
@@ -399,6 +510,7 @@
     "climb": {
      "solved": 0.870716145833333,
      "under60": 0.0290625,
+     "over90": 0.49421875,
      "shortfall": 78.68041666666667,
      "distance": 117.68125000000002,
      "rule": {
@@ -412,10 +524,25 @@
     "perfect": {
      "solved": 0.8869661458333343,
      "under60": 0.02453125,
+     "over90": 0.52203125,
      "shortfall": 114.06749999999997,
      "distance": 139.0366666666667,
      "rule": {
       "raisedAttempts": 129.24,
+      "enough": 1,
+      "viewUnder": 1,
+      "climbOver": 0,
+      "kept": 1
+     }
+    },
+    "unmissed": {
+     "solved": 0.8993880208333327,
+     "under60": 0.0140625,
+     "over90": 0.5634375,
+     "shortfall": 142.33999999999997,
+     "distance": 154.60333333333335,
+     "rule": {
+      "raisedAttempts": 127.08,
       "enough": 1,
       "viewUnder": 1,
       "climbOver": 0,

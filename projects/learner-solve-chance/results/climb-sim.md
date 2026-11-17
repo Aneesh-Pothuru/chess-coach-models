@@ -2,11 +2,12 @@
 
 Written by climb-sim.mjs with the learner and serving code of app commit 4ba253b9e654248622c0069c62fbe72f26f316ee. Every player here is made up: he solves a puzzle with the chance the app's own `solveChance` gives his rating in the bucket, and no attempt of the real player is read. His level in a bucket is the difficulty he solves 75.0% of the time there, which is where the app means a set to start. A set is 12 puzzles at the difficulty it aims at, and a bucket's sets are 14 days apart.
 
-Three ways to aim a set:
+Four ways to aim a set:
 
 - **the view**: from the view of the bucket's own sets, as the app aims;
 - **the climb**: from the higher of the view's rating and the rating the last set gives by itself (the bucket's last 12 first tries, once it has 6);
-- **the climb after a perfect set**: the same, only when every one of those first tries was solved.
+- **the climb after a perfect set**: the same, only when every one of those first tries was solved;
+- **the climb while he has never missed**: the same, only while every first try the bucket has on record was solved.
 
 ## What the last set alone reads as
 
@@ -44,41 +45,49 @@ Set to set, from the last one at the difficulty named, the app's steps are 290, 
 
 ## Reaching a level, and the cost once there
 
-One bucket, 1000 random runs of 30 aimed sets after the sets named. "Sets to his level" counts the aimed sets until one starts within 100 points of his level (30 when none does). The other columns are the last 10 sets, long after every way of aiming has arrived: the share of puzzles solved, the share of sets aimed where his chance is under 60%, and the mean distance of a set's aim from his level.
+One bucket, 1000 random runs of 30 aimed sets after the sets named. "Sets to his level" counts the aimed sets until one starts within 100 points of his level (30 when none does). The next two columns count, of the first 12 aimed sets, those aimed where his chance is over 90.0% (too easy) and under 60.0% (too hard). The last three are the last 10 sets, long after every way of aiming has arrived: the share of puzzles solved, the share of sets aimed where his chance is under 60.0%, and the mean distance of a set's aim from his level.
 
-| Player | Aimed from | Sets to his level | Solved, late | Sets under a 60% chance, late | Distance from his level, late |
-|---|---|---:|---:|---:|---:|
-| Rated 1700 (level 1507), far under his level: one set at 700 | the view (the app) | 7.1 | 74.9% | 0.1% | 31 |
-| Rated 1700 (level 1507), far under his level: one set at 700 | the climb | 4.1 | 71.7% | 8.1% | 49 |
-| Rated 1700 (level 1507), far under his level: one set at 700 | the climb after a perfect set | 4.5 | 73.9% | 3.5% | 38 |
-| Rated 1500 (level 1307), far under it, held there: three sets at 800 | the view (the app) | 4.6 | 74.9% | 0.0% | 31 |
-| Rated 1500 (level 1307), far under it, held there: three sets at 800 | the climb | 2.7 | 71.7% | 8.1% | 49 |
-| Rated 1500 (level 1307), far under it, held there: three sets at 800 | the climb after a perfect set | 3.4 | 73.9% | 3.5% | 37 |
-| Rated 1400 (level 1207), under it: one set at 900 | the view (the app) | 3.0 | 74.8% | 0.1% | 31 |
-| Rated 1400 (level 1207), under it: one set at 900 | the climb | 1.8 | 71.7% | 8.2% | 49 |
-| Rated 1400 (level 1207), under it: one set at 900 | the climb after a perfect set | 2.2 | 73.8% | 3.5% | 37 |
-| Rated 1100 (level 907), at his level: one set there | the view (the app) | 1.4 | 74.8% | 0.1% | 31 |
-| Rated 1100 (level 907), at his level: one set there | the climb | 1.3 | 71.7% | 8.2% | 49 |
-| Rated 1100 (level 907), at his level: one set there | the climb after a perfect set | 1.4 | 73.8% | 3.5% | 37 |
+| Player | Aimed from | Sets to his level | Too easy, of the first 12 | Too hard, of the first 12 | Solved, late | Sets too hard, late | Distance from his level, late |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Rated 1700 (level 1507), far under his level: one set at 700 | the view (the app) | 7.1 | 4.05 | 0.01 | 74.9% | 0.1% | 31 |
+| Rated 1700 (level 1507), far under his level: one set at 700 | the climb | 4.1 | 2.29 | 0.75 | 71.7% | 8.1% | 49 |
+| Rated 1700 (level 1507), far under his level: one set at 700 | the climb after a perfect set | 4.5 | 2.74 | 0.49 | 73.9% | 3.5% | 38 |
+| Rated 1700 (level 1507), far under his level: one set at 700 | the climb while he has never missed | 5.1 | 3.06 | 0.06 | 74.9% | 0.1% | 31 |
+| Rated 1500 (level 1307), far under it, held there: three sets at 800 | the view (the app) | 4.6 | 1.60 | 0.02 | 74.9% | 0.0% | 31 |
+| Rated 1500 (level 1307), far under it, held there: three sets at 800 | the climb | 2.7 | 1.21 | 0.81 | 71.7% | 8.1% | 49 |
+| Rated 1500 (level 1307), far under it, held there: three sets at 800 | the climb after a perfect set | 3.4 | 1.47 | 0.50 | 73.9% | 3.5% | 37 |
+| Rated 1500 (level 1307), far under it, held there: three sets at 800 | the climb while he has never missed | 4.3 | 1.59 | 0.02 | 74.9% | 0.0% | 31 |
+| Rated 1400 (level 1207), under it: one set at 900 | the view (the app) | 3.0 | 0.62 | 0.07 | 74.8% | 0.1% | 31 |
+| Rated 1400 (level 1207), under it: one set at 900 | the climb | 1.8 | 0.20 | 0.89 | 71.7% | 8.2% | 49 |
+| Rated 1400 (level 1207), under it: one set at 900 | the climb after a perfect set | 2.2 | 0.59 | 0.56 | 73.8% | 3.5% | 37 |
+| Rated 1400 (level 1207), under it: one set at 900 | the climb while he has never missed | 2.4 | 0.61 | 0.09 | 74.8% | 0.1% | 31 |
+| Rated 1100 (level 907), at his level: one set there | the view (the app) | 1.4 | 0.05 | 0.10 | 74.8% | 0.1% | 31 |
+| Rated 1100 (level 907), at his level: one set there | the climb | 1.3 | 0.03 | 1.14 | 71.7% | 8.2% | 49 |
+| Rated 1100 (level 907), at his level: one set there | the climb after a perfect set | 1.4 | 0.05 | 0.58 | 73.8% | 3.5% | 37 |
+| Rated 1100 (level 907), at his level: one set there | the climb while he has never missed | 1.4 | 0.05 | 0.11 | 74.8% | 0.1% | 31 |
 
 ## A round on twelve buckets
 
 200 made-up players, each with 12 buckets rated from 1150 to 1700. Each bucket has two sets on record: a first one at the difficulty the row names against the bucket's level, and a second aimed as the app aims. Then a round like round 3: 32 sets on 20 days, the bucket of each drawn at random. The last two columns are over the twelve buckets at the round's end: how far under his level the next set would aim, on average, and the mean distance either way.
 
-| The buckets began | The round is aimed from | Solved in the round | Sets under a 60% chance | The next aim, under his level | Its distance from his level |
-|---|---|---:|---:|---:|---:|
-| at his level | the view (the app) | 75.5% | 1.8% | +10 | 45 |
-| at his level | the climb | 72.8% | 8.6% | -14 | 59 |
-| at his level | the climb after a perfect set | 74.3% | 5.9% | +1 | 52 |
-| half of them 400 points under it | the view (the app) | 78.6% | 1.0% | +30 | 56 |
-| half of them 400 points under it | the climb | 75.1% | 6.7% | -2 | 63 |
-| half of them 400 points under it | the climb after a perfect set | 76.8% | 4.6% | +15 | 61 |
-| 400 points under it | the view (the app) | 81.8% | 0.3% | +49 | 69 |
-| 400 points under it | the climb | 77.5% | 4.7% | +9 | 69 |
-| 400 points under it | the climb after a perfect set | 79.1% | 3.5% | +29 | 71 |
-| 800 points under it | the view (the app) | 93.4% | 0.0% | +203 | 204 |
-| 800 points under it | the climb | 87.1% | 2.9% | +79 | 118 |
-| 800 points under it | the climb after a perfect set | 88.7% | 2.5% | +114 | 139 |
+| The buckets began | The round is aimed from | Solved in the round | Sets too easy (over 90.0%) | Sets too hard (under 60.0%) | The next aim, under his level | Its distance from his level |
+|---|---|---:|---:|---:|---:|---:|
+| at his level | the view (the app) | 75.5% | 0.3% | 1.8% | +10 | 45 |
+| at his level | the climb | 72.8% | 0.3% | 8.6% | -14 | 59 |
+| at his level | the climb after a perfect set | 74.3% | 0.3% | 5.9% | +1 | 52 |
+| at his level | the climb while he has never missed | 75.5% | 0.3% | 1.8% | +10 | 45 |
+| half of them 400 points under it | the view (the app) | 78.6% | 4.9% | 1.0% | +30 | 56 |
+| half of them 400 points under it | the climb | 75.1% | 2.1% | 6.7% | -2 | 63 |
+| half of them 400 points under it | the climb after a perfect set | 76.8% | 3.9% | 4.6% | +15 | 61 |
+| half of them 400 points under it | the climb while he has never missed | 78.3% | 4.9% | 1.1% | +30 | 57 |
+| 400 points under it | the view (the app) | 81.8% | 10.0% | 0.3% | +49 | 69 |
+| 400 points under it | the climb | 77.5% | 4.3% | 4.7% | +9 | 69 |
+| 400 points under it | the climb after a perfect set | 79.1% | 8.0% | 3.5% | +29 | 71 |
+| 400 points under it | the climb while he has never missed | 81.2% | 10.0% | 0.5% | +48 | 69 |
+| 800 points under it | the view (the app) | 93.4% | 78.1% | 0.0% | +203 | 204 |
+| 800 points under it | the climb | 87.1% | 49.4% | 2.9% | +79 | 118 |
+| 800 points under it | the climb after a perfect set | 88.7% | 52.2% | 2.5% | +114 | 139 |
+| 800 points under it | the climb while he has never missed | 89.9% | 56.3% | 1.4% | +142 | 155 |
 
 ## Which of these rounds round 2 looks like
 

@@ -26,4 +26,6 @@ The app's step after one perfect set, over the 15 buckets where the bank's ceili
 
 An aim moves only when the bucket gets a set. The last first try of a bucket's own sets was 0 to 71 days before the sync, 4.5 at the median of the 14 buckets that have one, and more than 30 days before it in 2 of them.
 
+Kept to a bucket whose record holds no missed first try, the climb changes the path of mateIn2 (12 first tries on record: 959 → 1217 → 1475 → 1733), attackingF2F7 (0 first tries on record: 1156 → 1414 → 1672 → 1930), and of no other bucket.
+
 The climb would aim the next set at least 100 points over the app's aim in planning; kept to perfect sets, in planning.

@@ -3,7 +3,8 @@
 // learner, and then the same learner again after each of three sets solved in
 // full, so the size of the app's step after a perfect set is read for every
 // bucket as its own record makes it. Beside it, the same path aimed from the
-// climb: the higher of the view and the rating the last set gives by itself.
+// climb: the higher of the view and the rating the last set gives by itself,
+// and the climb kept to a bucket whose record holds no missed first try.
 // And how long before the profile's sync each bucket's last first try was
 // played: an aim moves only when the bucket gets a set.
 //
@@ -76,7 +77,7 @@ const buckets = round2.rules.today.map((t) => {
       const at = now + k * GAP_DAYS * DAY_MS
       const { state, own } = stateOf(p, bucket, at)
       const serving = servingAbility(state, 'themed')
-      const aim = aimFrom(serving, rule === 'app' ? serving.rating : climbRating(serving.rating, lastSetRating(own, { perfect: rule === 'perfect' })), k === 0 ? phase : 'core', pool)
+      const aim = aimFrom(serving, rule === 'app' ? serving.rating : climbRating(serving.rating, lastSetRating(own, { perfect: rule === 'perfect', unmissed: rule === 'unmissed' })), k === 0 ? phase : 'core', pool)
       aims.push(aim)
       p = withPerfectSet(p, bucket, at, aim, `projected-${rule}-${bucket}-${k}`)
     }
@@ -85,12 +86,13 @@ const buckets = round2.rules.today.map((t) => {
   const { state, own } = stateOf(profile, bucket, now)
   const last = own.slice(-CLIMB_WINDOW)
   const sorted = last.map((o) => o.difficulty).sort((a, b) => a - b)
-  const paths = { app: path('app'), climb: path('climb'), perfect: path('perfect') }
+  const paths = { app: path('app'), climb: path('climb'), perfect: path('perfect'), unmissed: path('unmissed') }
   if (paths.app[0] !== today.get(bucket).app.target) throw new Error(`${bucket}: the next aim reads ${paths.app[0]}, and round 2's report has ${today.get(bucket).app.target}`)
   return {
     bucket,
     phase,
     own: own.length,
+    ownSolved: own.filter((o) => o.score >= 1).length,
     lastTryDaysBefore: own.length ? daysBetween(own.at(-1).at, now) : null,
     lastSet: last.length >= CLIMB_MIN ? { attempts: last.length, solved: last.filter((o) => o.score >= 1).length, at: sorted[Math.floor(sorted.length / 2)], own: lastSetRating(own) } : null,
     view: state.channels.themed ? { rating: state.channels.themed.rating, rd: state.channels.themed.rd, n: state.channels.themed.n } : null,
@@ -116,6 +118,7 @@ const report = {
   firstStep: { buckets: steps.length, least: steps[0], median: medianOf(steps), most: steps.at(-1) },
   sinceLastTry: { buckets: waits.length, least: waits[0], median: medianOf(waits), most: waits.at(-1), over30: waits.filter((d) => d > 30).length },
   raisedNow: { climb: buckets.filter((b) => b.climb[0] - b.app[0] >= 100).map((b) => b.bucket), perfect: buckets.filter((b) => b.perfect[0] - b.app[0] >= 100).map((b) => b.bucket) },
+  neverMissed: buckets.filter((b) => b.unmissed.some((aim, i) => aim !== b.app[i])).map((b) => ({ bucket: b.bucket, own: b.own, app: b.app, unmissed: b.unmissed })),
 }
 
 const arrow = (aims) => aims.join(' → ')
@@ -133,6 +136,8 @@ const md = [
   `The app's step after one perfect set, over the ${report.firstStep.buckets} buckets where the bank's ceiling does not cut it short: ${report.firstStep.least} points at the least, ${report.firstStep.median} at the median and ${report.firstStep.most} at the most.`,
   '',
   `An aim moves only when the bucket gets a set. The last first try of a bucket's own sets was ${report.sinceLastTry.least} to ${report.sinceLastTry.most} days before the sync, ${report.sinceLastTry.median} at the median of the ${report.sinceLastTry.buckets} buckets that have one, and more than 30 days before it in ${report.sinceLastTry.over30} of them.`,
+  '',
+  `Kept to a bucket whose record holds no missed first try, the climb changes the path of ${report.neverMissed.length ? report.neverMissed.map((b) => `${b.bucket} (${b.own} first tries on record: ${arrow(b.unmissed)})`).join(', ') : 'no bucket'}, and of no other bucket.`,
   '',
   `The climb would aim the next set at least 100 points over the app's aim in ${report.raisedNow.climb.length ? report.raisedNow.climb.join(', ') : 'no bucket'}; kept to perfect sets, in ${report.raisedNow.perfect.length ? report.raisedNow.perfect.join(', ') : 'no bucket'}.`,
   '',

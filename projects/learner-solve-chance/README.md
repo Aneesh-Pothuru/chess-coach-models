@@ -366,7 +366,8 @@ set, which would start the next set 258 points harder. Eleven of twelve would
 start it 122 harder and ten 36 harder; after nine or fewer the last set alone
 would start the next one easier than itself, and the view decides unless it
 reads lower still. A second form does this only after a last set solved in
-full. Nothing is fitted, and the view itself is untouched.
+full, and a third only while every first try the bucket has on record was
+solved. Nothing is fitted, and the view itself is untouched.
 
 **What the simulation says.** `climb-sim.mjs` plays made-up players through
 the app's own learner and serving code; each solves a puzzle with the chance
@@ -377,19 +378,33 @@ to start.
 
 - *Reaching a level.* A bucket whose record begins about 800 points under his
   level is aimed within 100 points of it after 7.1 sets from the view, 4.1
-  from the climb and 4.5 from the climb after perfect sets; one that begins
-  about 300 points under, after 3.0, 1.8 and 2.2.
+  from the climb, 4.5 from the climb after perfect sets and 5.1 from the climb
+  while he has never missed; one that begins about 300 points under, after
+  3.0, 1.8, 2.2 and 2.4.
+- *Too easy against too hard.* Of the first twelve sets aimed in the bucket
+  that begins about 800 points under, the view starts 4.05 where his chance is
+  over 90% and 0.01 where it is under 60%; the climb 2.29 and 0.75; the climb
+  after perfect sets 2.74 and 0.49; the climb while he has never missed 3.06
+  and 0.06. In a bucket that begins at his level the same counts are 0.05 and
+  0.10 from the view, 0.03 and 1.14 from the climb, 0.05 and 0.58 after
+  perfect sets, and 0.05 and 0.11 while he has never missed. The first two
+  forms pay for the too-easy sets they save with too-hard ones, here and in
+  every bucket that is already at his level; the third saves about one
+  too-easy set where a bucket starts far under with nothing missed, and
+  changes nothing elsewhere.
 - *The cost once there.* Long after a bucket has arrived, the view keeps him
   at 74.8% to 74.9% solved, with at most one set in a thousand aimed where his
   chance is under 60%. The climb reads a lucky set as a higher level: 71.7%
   solved, and 8.1% to 8.2% of sets under a 60% chance. Kept to perfect sets,
-  73.8% to 73.9% and 3.5%.
+  73.8% to 73.9% and 3.5%; kept to a bucket he has never missed in, the view's
+  own figures.
 - *A round.* Twelve buckets with two sets on record each, then a round like
   round 3 (32 sets on 20 days). Where the buckets began at his level, the next
-  aims end 45 points from it on average under the view, 59 under the climb and
-  52 under the climb after perfect sets; where half of them began 400 points
-  under it, 56, 63 and 61; where all did, 69, 69 and 71. Only where every
-  bucket began 800 points under does the climb end nearer: 118 against 204.
+  aims end 45 points from it on average under the view, 59 under the climb, 52
+  under the climb after perfect sets and 45 under the climb while he has never
+  missed; where half of them began 400 points under it, 56, 63, 61 and 57;
+  where all did, 69, 69, 71 and 69. Only where every bucket began 800 points
+  under do the faster forms end nearer: 118, 139 and 155 against 204.
 - *Which round his looks like.* Round 2 had him solving 77.8% where the view
   gave him 72.7%, a gap of 5.1 points (0.9 to 8.3). The simulated rounds aimed
   from the view give a gap of 0.6 points where the buckets began at his level
@@ -405,19 +420,33 @@ to start.
 
 **The call.** The climb is not put to his attempts, and the app's aim stays as
 it is. By its gap, round 2 looks most like the third of the simulated rounds,
-could be the second, and is not the fourth, the only one where the climb ends
-nearer his level. In the second and third the climb takes the easy lean out of
-the next aims (30 and 49 points under his level become 2 over and 9 under) and
-puts scatter in its place: the aims end as far from his level as before (63
-against 56 points, 69 against 69), and five to seven sets in a hundred start
-where his chance is under 60%, against one or fewer. A rule on round 3 would
-keep the climb in a tenth to a third of such rounds, and its passing would not
-show the aims any nearer his level. So no rule is registered, and round 3
-stays a test of one candidate. One limit: the simulated player solves by the
-app's own curve, and round 2's reliability table has his share solved staying
-between 71% and 86% while the view's chance runs from 40% to 92%. A flatter
-curve than the app's would make a harder set cost him less than simulated, and
-tell the app less.
+could be the second, and is not the fourth, the only one where the faster
+forms end nearer his level. In the second and third the climb takes the easy
+lean out of the next aims (30 and 49 points under his level become 2 over and
+9 under) and puts scatter in its place: the aims end as far from his level as
+before (63 against 56 points, 69 against 69), and too-easy sets are traded for
+too-hard ones about one for one (4.9% and 1.0% of the round's sets become 2.1%
+and 6.7% in the second, 10.0% and 0.3% become 4.3% and 4.7% in the third).
+Kept to perfect sets it does no better. A rule on round 3 would keep the climb
+in a tenth to a third of such rounds, and its passing would not show the aims
+any nearer his level. So no rule is registered, and round 3 stays a test of
+one candidate.
+
+The form kept to a bucket he has never missed in costs next to nothing in the
+first three of these rounds (at most two more sets in a thousand too hard) and
+gains nothing there: it helps only where a bucket starts far under his level
+with no miss on record. On his profile that is mate in 2, whose next set would
+aim at 959 in place of 890 and climb 258 points a perfect set while its record
+holds no miss, and the one bucket with no record yet. That is too little to
+move the app's aim in the middle of round 3. It is the form to port if aiming
+is reopened.
+
+One limit: the simulated player solves by the app's own curve, and round 2's
+reliability table has his share solved staying between 71% and 86% while the
+view's chance runs from 40% to 92%. A flatter curve than the app's would make
+a harder set cost him less than simulated, and tell the app less. And only
+these forms were tried: reading a bucket's whole record by its likelihood, in
+place of the view the app folds, was not.
 
 What stays slow is the calendar. An aim moves only when the bucket gets a set.
 At the profile's sync the last first try of a bucket's own sets was 4.5 days
@@ -464,8 +493,8 @@ CHESS_DIR="$(bridge/checkout.sh at <sha>)" bridge/run.sh projects/learner-solve-
 CHESS_DIR="$(bridge/checkout.sh at <sha>)" bridge/run.sh projects/learner-solve-chance/round2.mjs --run
 ```
 
-The faster climb: the simulation, about six minutes at the lab's pin, and the
-buckets' next aims at the commit round 2 read:
+The faster climb: the simulation, about eight minutes at the lab's pin, and
+the buckets' next aims at the commit round 2 read:
 
 ```bash
 bridge/run.sh projects/learner-solve-chance/climb-sim.mjs

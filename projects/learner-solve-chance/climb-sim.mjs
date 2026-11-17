@@ -4,7 +4,9 @@
 //   - from the view of the bucket's own sets, as the app aims;
 //   - from the higher of the view and the rating the last set gives by
 //     itself (the climb);
-//   - the same, only after a set solved in full (the climb after a perfect set).
+//   - the same, only after a set solved in full (the climb after a perfect set);
+//   - the same, only while every first try the bucket has on record was
+//     solved (the climb while he has never missed).
 // No attempt of his is read.
 //
 //   bridge/run.sh projects/learner-solve-chance/climb-sim.mjs
@@ -31,8 +33,8 @@ const app = execFileSync('git', ['-C', CHESS_DIR, 'rev-parse', 'HEAD'], { encodi
 const DAY_MS = 86_400_000
 const T0 = Date.UTC(2026, 0, 1, 18)
 const TARGET = TARGET_P.core
-const ARMS = ['app', 'climb', 'perfect']
-const ARM_NAME = { app: 'the view (the app)', climb: 'the climb', perfect: 'the climb after a perfect set' }
+const ARMS = ['app', 'climb', 'perfect', 'unmissed']
+const ARM_NAME = { app: 'the view (the app)', climb: 'the climb', perfect: 'the climb after a perfect set', unmissed: 'the climb while he has never missed' }
 /** A bucket's level: the difficulty a player rated `rating` there solves at the app's target. */
 const goalOf = (rating) => difficultyFor(newAbility(rating), TARGET)
 
@@ -50,7 +52,7 @@ function read(bucket, now) {
   const state = foldAbilities({ profile, catalogue: cat, observations: byCompetency(all), endgameIds, now }).get(bucket.id)
   if (!state.channels.themed || state.channels.themed.n !== bucket.events.length || state.seed) throw new Error('the made-up record does not fold as a bucket\'s own sets')
   const view = servingAbility(state, 'themed')
-  const rating = { app: view.rating, climb: climbRating(view.rating, lastSetRating(all)), perfect: climbRating(view.rating, lastSetRating(all, { perfect: true })) }
+  const rating = { app: view.rating, climb: climbRating(view.rating, lastSetRating(all)), perfect: climbRating(view.rating, lastSetRating(all, { perfect: true })), unmissed: climbRating(view.rating, lastSetRating(all, { unmissed: true })) }
   const aim = Object.fromEntries(ARMS.map((arm) => [arm, serveTarget({ ...view, rating: rating[arm] }, 'core', [], 0)]))
   return { rating, aim, raisedBy: rating.climb - rating.app }
 }
@@ -100,9 +102,12 @@ const RUNS = 1000
 const SETS = 30
 const NEAR = 100
 const LATE = 10
+const EARLY = 12
+const TOO_EASY = 0.9
+const TOO_HARD = 0.6
 function oneBucketOf({ level, fixed }, arm) {
   const goal = goalOf(level)
-  const sum = { setsToGoal: 0, solved: 0, under60: 0, distance: 0 }
+  const sum = { setsToGoal: 0, solved: 0, under60: 0, distance: 0, earlyEasy: 0, earlyHard: 0 }
   for (let run = 0; run < RUNS; run++) {
     const rng = mulberry32(7919 * (run + 1))
     const bucket = bucketOf('fork')
@@ -111,15 +116,19 @@ function oneBucketOf({ level, fixed }, arm) {
       const set = playSet(bucket, T0 + k * GAP_DAYS * DAY_MS, arm, level, rng, fixed[k] ?? null)
       const aimed = k - fixed.length + 1
       if (aimed >= 1 && reached === null && set.aim >= goal - NEAR) reached = aimed
+      if (aimed >= 1 && aimed <= EARLY) {
+        if (set.chance > TOO_EASY) sum.earlyEasy++
+        if (set.chance < TOO_HARD) sum.earlyHard++
+      }
       if (aimed > SETS - LATE) {
         sum.solved += set.solved / SESSION_SIZE
-        if (set.chance < 0.6) sum.under60++
+        if (set.chance < TOO_HARD) sum.under60++
         sum.distance += Math.abs(set.aim - goal)
       }
     }
     sum.setsToGoal += reached ?? SETS
   }
-  return { setsToGoal: sum.setsToGoal / RUNS, lateSolved: sum.solved / (RUNS * LATE), lateUnder60: sum.under60 / (RUNS * LATE), lateDistance: sum.distance / (RUNS * LATE) }
+  return { setsToGoal: sum.setsToGoal / RUNS, earlyEasy: sum.earlyEasy / RUNS, earlyHard: sum.earlyHard / RUNS, lateSolved: sum.solved / (RUNS * LATE), lateUnder60: sum.under60 / (RUNS * LATE), lateDistance: sum.distance / (RUNS * LATE) }
 }
 const CASES = [
   { name: 'far under his level: one set at 700', level: 1700, fixed: [700] },
@@ -161,6 +170,7 @@ function playRound(world, arm, player) {
   const rows = []
   let solved = 0
   let under60 = 0
+  let over90 = 0
   let slot = 0
   const tries = []
   for (let k = 0; k < ROUND_SETS; k++) {
@@ -170,7 +180,8 @@ function playRound(world, arm, player) {
     slot = k > 0 && Math.floor(((k - 1) * ROUND_DAYS) / ROUND_SETS) === dayIndex ? slot + 1 : 0
     const set = playSet(buckets[i], start + dayIndex * 3 * DAY_MS + slot * 2 * 3_600_000, arm, LEVELS[i], play, null, arm === 'app')
     solved += set.solved
-    if (set.chance < 0.6) under60++
+    if (set.chance < TOO_HARD) under60++
+    if (set.chance > TOO_EASY) over90++
     if (arm === 'app') tries.push(...set.tries)
     const chance = (rating) => solveChance(newAbility(rating), set.aim)
     for (let j = 0; j < SESSION_SIZE; j++) {
@@ -179,7 +190,7 @@ function playRound(world, arm, player) {
   }
   const end = start + ROUND_DAYS * 3 * DAY_MS
   const shortfall = buckets.map((b, i) => goalOf(LEVELS[i]) - read(b, end).aim[arm])
-  return { rule: climbRule(rows), solved: solved / (ROUND_SETS * SESSION_SIZE), under60: under60 / ROUND_SETS, shortfall: mean(shortfall), distance: mean(shortfall.map(Math.abs)), viewGap: arm === 'app' ? mean(tries.map((t) => t.s - t.view)) : null }
+  return { rule: climbRule(rows), solved: solved / (ROUND_SETS * SESSION_SIZE), under60: under60 / ROUND_SETS, over90: over90 / ROUND_SETS, shortfall: mean(shortfall), distance: mean(shortfall.map(Math.abs)), viewGap: arm === 'app' ? mean(tries.map((t) => t.s - t.view)) : null }
 }
 /** The mean over the players, and the range the middle 95% of them fall in. */
 function spread(xs) {
@@ -198,6 +209,7 @@ const rounds = WORLDS.map((world) => ({
         {
           solved: mean(played.map((r) => r.solved)),
           under60: mean(played.map((r) => r.under60)),
+          over90: mean(played.map((r) => r.over90)),
           shortfall: mean(played.map((r) => r.shortfall)),
           distance: mean(played.map((r) => r.distance)),
           ...(arm === 'app' ? { viewGap: spread(played.map((r) => r.viewGap)) } : {}),
@@ -211,7 +223,7 @@ const rounds = WORLDS.map((world) => ({
 // ---------------------------------------------------------------- the report
 const round2 = JSON.parse(fs.readFileSync(join(resultsDir('learner-solve-chance'), 'round2.json'), 'utf8')).rules
 const his = { app: round2.app, solved: round2.looks.solved, viewChance: round2.looks.view.meanChance, gap: round2.looks.view.gap }
-const report = { app, target: TARGET, set: SESSION_SIZE, window: CLIMB_WINDOW, least: CLIMB_MIN, raisedBy: RAISED_BY, minRaised: MIN_RAISED, gapDays: GAP_DAYS, lastSetTable, solvedRuns: SOLVED_RUNS, oneBucket: { runs: RUNS, sets: SETS, near: NEAR, late: LATE, cases: CASES }, round: { players: PLAYERS, sets: ROUND_SETS, days: ROUND_DAYS, buckets: BUCKETS.length, ratings: [LEVELS[0], LEVELS.at(-1)], worlds: rounds }, round2: his }
+const report = { app, target: TARGET, set: SESSION_SIZE, window: CLIMB_WINDOW, least: CLIMB_MIN, raisedBy: RAISED_BY, minRaised: MIN_RAISED, gapDays: GAP_DAYS, lastSetTable, solvedRuns: SOLVED_RUNS, oneBucket: { runs: RUNS, sets: SETS, near: NEAR, early: EARLY, late: LATE, tooEasy: TOO_EASY, tooHard: TOO_HARD, cases: CASES }, round: { players: PLAYERS, sets: ROUND_SETS, days: ROUND_DAYS, buckets: BUCKETS.length, ratings: [LEVELS[0], LEVELS.at(-1)], worlds: rounds }, round2: his }
 
 const one = (x) => x.toFixed(1)
 const signed = (x) => (x >= 0 ? '+' : '') + Math.round(x)
@@ -221,11 +233,12 @@ const md = [
   '',
   `Written by climb-sim.mjs with the learner and serving code of app commit ${app}. Every player here is made up: he solves a puzzle with the chance the app's own \`solveChance\` gives his rating in the bucket, and no attempt of the real player is read. His level in a bucket is the difficulty he solves ${pct(TARGET)} of the time there, which is where the app means a set to start. A set is ${SESSION_SIZE} puzzles at the difficulty it aims at, and a bucket's sets are ${GAP_DAYS} days apart.`,
   '',
-  'Three ways to aim a set:',
+  'Four ways to aim a set:',
   '',
   '- **the view**: from the view of the bucket\'s own sets, as the app aims;',
   `- **the climb**: from the higher of the view's rating and the rating the last set gives by itself (the bucket's last ${CLIMB_WINDOW} first tries, once it has ${CLIMB_MIN});`,
-  '- **the climb after a perfect set**: the same, only when every one of those first tries was solved.',
+  '- **the climb after a perfect set**: the same, only when every one of those first tries was solved;',
+  '- **the climb while he has never missed**: the same, only while every first try the bucket has on record was solved.',
   '',
   '## What the last set alone reads as',
   '',
@@ -252,19 +265,19 @@ const md = [
   ]),
   '## Reaching a level, and the cost once there',
   '',
-  `One bucket, ${RUNS} random runs of ${SETS} aimed sets after the sets named. "Sets to his level" counts the aimed sets until one starts within ${NEAR} points of his level (${SETS} when none does). The other columns are the last ${LATE} sets, long after every way of aiming has arrived: the share of puzzles solved, the share of sets aimed where his chance is under 60%, and the mean distance of a set's aim from his level.`,
+  `One bucket, ${RUNS} random runs of ${SETS} aimed sets after the sets named. "Sets to his level" counts the aimed sets until one starts within ${NEAR} points of his level (${SETS} when none does). The next two columns count, of the first ${EARLY} aimed sets, those aimed where his chance is over ${pct(TOO_EASY)} (too easy) and under ${pct(TOO_HARD)} (too hard). The last three are the last ${LATE} sets, long after every way of aiming has arrived: the share of puzzles solved, the share of sets aimed where his chance is under ${pct(TOO_HARD)}, and the mean distance of a set's aim from his level.`,
   '',
-  '| Player | Aimed from | Sets to his level | Solved, late | Sets under a 60% chance, late | Distance from his level, late |',
-  '|---|---|---:|---:|---:|---:|',
-  ...CASES.flatMap((c) => ARMS.map((arm) => `| Rated ${c.level} (level ${c.goal}), ${c.name} | ${ARM_NAME[arm]} | ${one(c[arm].setsToGoal)} | ${pct(c[arm].lateSolved)} | ${pct(c[arm].lateUnder60)} | ${Math.round(c[arm].lateDistance)} |`)),
+  `| Player | Aimed from | Sets to his level | Too easy, of the first ${EARLY} | Too hard, of the first ${EARLY} | Solved, late | Sets too hard, late | Distance from his level, late |`,
+  '|---|---|---:|---:|---:|---:|---:|---:|',
+  ...CASES.flatMap((c) => ARMS.map((arm) => `| Rated ${c.level} (level ${c.goal}), ${c.name} | ${ARM_NAME[arm]} | ${one(c[arm].setsToGoal)} | ${c[arm].earlyEasy.toFixed(2)} | ${c[arm].earlyHard.toFixed(2)} | ${pct(c[arm].lateSolved)} | ${pct(c[arm].lateUnder60)} | ${Math.round(c[arm].lateDistance)} |`)),
   '',
   '## A round on twelve buckets',
   '',
   `${PLAYERS} made-up players, each with ${BUCKETS.length} buckets rated from ${LEVELS[0]} to ${LEVELS.at(-1)}. Each bucket has two sets on record: a first one at the difficulty the row names against the bucket's level, and a second aimed as the app aims. Then a round like round 3: ${ROUND_SETS} sets on ${ROUND_DAYS} days, the bucket of each drawn at random. The last two columns are over the twelve buckets at the round's end: how far under his level the next set would aim, on average, and the mean distance either way.`,
   '',
-  '| The buckets began | The round is aimed from | Solved in the round | Sets under a 60% chance | The next aim, under his level | Its distance from his level |',
-  '|---|---|---:|---:|---:|---:|',
-  ...rounds.flatMap((r) => ARMS.map((arm) => `| ${r.world} | ${ARM_NAME[arm]} | ${pct(r[arm].solved)} | ${pct(r[arm].under60)} | ${signed(r[arm].shortfall)} | ${Math.round(r[arm].distance)} |`)),
+  `| The buckets began | The round is aimed from | Solved in the round | Sets too easy (over ${pct(TOO_EASY)}) | Sets too hard (under ${pct(TOO_HARD)}) | The next aim, under his level | Its distance from his level |`,
+  '|---|---|---:|---:|---:|---:|---:|',
+  ...rounds.flatMap((r) => ARMS.map((arm) => `| ${r.world} | ${ARM_NAME[arm]} | ${pct(r[arm].solved)} | ${pct(r[arm].over90)} | ${pct(r[arm].under60)} | ${signed(r[arm].shortfall)} | ${Math.round(r[arm].distance)} |`)),
   '',
   '## Which of these rounds round 2 looks like',
   '',

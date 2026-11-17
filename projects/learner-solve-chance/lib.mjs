@@ -450,12 +450,13 @@ export function checkBorrowedConstants() {
  * with one solve and one miss added at their median difficulty. Null under
  * CLIMB_MIN attempts. An attempt is { difficulty, difficultyRd, score }, as
  * the app's observations are. With `perfect`, null too unless every one of
- * those attempts was solved.
+ * those attempts was solved; with `unmissed`, unless every attempt given was.
  */
-export function lastSetRating(attempts, { perfect = false } = {}) {
+export function lastSetRating(attempts, { perfect = false, unmissed = false } = {}) {
   if (attempts.length < CLIMB_MIN) return null
   const last = attempts.slice(-CLIMB_WINDOW)
   if (perfect && last.some((a) => a.score < 1)) return null
+  if (unmissed && attempts.some((a) => a.score < 1)) return null
   const sorted = last.map((a) => a.difficulty).sort((a, b) => a - b)
   // The app's median: the upper of the two middle values.
   const middle = sorted[Math.floor(sorted.length / 2)]

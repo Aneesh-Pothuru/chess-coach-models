@@ -264,9 +264,12 @@ test('the last set is the last twelve attempts, and needs six', () => {
   assert.ok(lastSetRating([...setAt(1000, 6, 6), ...setAt(1200, 6, 6)]) > 1451)
 })
 
-test('kept to perfect sets, one miss leaves the view alone', () => {
+test('kept to perfect sets, or to a record with no miss, one miss leaves the view alone', () => {
   assert.equal(lastSetRating(setAt(1000, 12), { perfect: true }), 1451)
   assert.equal(lastSetRating(setAt(1000, 11), { perfect: true }), null)
+  assert.equal(lastSetRating([...setAt(800, 12), ...setAt(1000, 12)], { unmissed: true }), 1451)
+  assert.equal(lastSetRating([...setAt(800, 11), ...setAt(1000, 12)], { unmissed: true }), null)
+  assert.equal(lastSetRating([...setAt(800, 11), ...setAt(1000, 12)], { perfect: true }), 1451)
   assert.equal(climbRating(1300, null), 1300)
   assert.equal(climbRating(1300, 1451), 1451)
   assert.equal(climbRating(1500, 1451), 1500)
