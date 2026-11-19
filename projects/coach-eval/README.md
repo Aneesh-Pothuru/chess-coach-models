@@ -10,8 +10,13 @@ has already checked, and given only the position.
 code has checked, six open models pass the code truth check on 94 to 99.5% of
 200 held-out game moments and 94 to 99.5% of 200 held-out puzzle moments.
 Given only the position, the same models pass on 1.5 to 15% and 2.5 to 11.5%:
-most of their texts name a move the engine does not give. The rubric coverage
-and the claim audit are still to run. The numbers are in review-writer's
+most of their texts name a move the engine does not give. On 199 held-out game
+moments, the rubric judge finds Gemma 4 and a Llama 3.2 3B fine-tuned on its
+texts meeting the teaching points (target, reply, fix, habit) at least as often
+as today's text and the level far more often (100% against 19%), but adding
+about 0.2 false or unsupported claims a text, where today's text adds none.
+The rubric for the other models and for the bare task is still to run. The
+numbers are in review-writer's
 [results/round3.md](../review-writer/results/round3.md). This file fixed the
 tasks, the rubric and the measures before any model's text was read.
 

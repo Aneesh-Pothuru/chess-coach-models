@@ -5,7 +5,8 @@
 // both orders. Sides are labelled A and B only, and the items are shuffled with a
 // fixed seed. `score` reads the judge's answers back and writes the preference
 // rate over decided comparisons, pooled over both orders, with a 95% bootstrap
-// interval over games, and the controls.
+// interval over games, the rate in each batch with a t interval over batches (one
+// judge call reads a batch, and calls lean differently), and the controls.
 //
 //   node projects/review-writer/judge.mjs build --writer gemma-4-26b-a4b --texts <file.jsonl> --name <name> [--limit N] [--batch 50] [--facts <moments.jsonl,...>]
 //   node projects/review-writer/judge.mjs score --name <name>
@@ -117,6 +118,18 @@ if (mode === 'build') {
     boots.push(rate(rows))
   }
   boots.sort((a, b) => a - b)
+  // Each batch is read by one judge call, and calls differ in how they lean, so the
+  // rate is also taken per batch, with a t interval over batches.
+  const batchOf = new Map()
+  for (const f of readdirSync(out).filter((f) => /^batch-\d+\.json$/.test(f))) {
+    const b = Number(f.match(/\d+/)[0])
+    for (const it of JSON.parse(readFileSync(join(out, f), 'utf8')).items) batchOf.set(it.key, b)
+  }
+  const batchRates = [...new Set(decided.map((i) => batchOf.get(i.key)))].sort((a, b) => a - b).map((b) => rate(decided.filter((i) => batchOf.get(i.key) === b)))
+  const T975 = [null, 12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.16, 2.145, 2.131, 2.12, 2.11, 2.101, 2.093, 2.086]
+  const batchMean = batchRates.reduce((s, r) => s + r, 0) / batchRates.length
+  const batchSd = Math.sqrt(batchRates.reduce((s, r) => s + (r - batchMean) ** 2, 0) / Math.max(batchRates.length - 1, 1))
+  const half = (T975[batchRates.length - 1] ?? 2) * batchSd / Math.sqrt(batchRates.length)
   const same = key.items.filter((i) => i.kind === 'same').map(winner).filter(Boolean)
   const decoys = key.items.filter((i) => i.kind === 'decoy').map(winner).filter((w) => w && w !== 'same')
   const summary = {
@@ -129,6 +142,8 @@ if (mode === 'build') {
     writerPreferred: decided.filter((i) => i.won === 'writer').length,
     preferenceRate: rate(decided),
     interval95: [boots[Math.floor(0.025 * boots.length)], boots[Math.floor(0.975 * boots.length)]],
+    batchRates,
+    batchInterval95: batchRates.length > 1 ? [batchMean - half, batchMean + half] : null,
     sameControl: { items: same.length, calledSame: same.filter((w) => w === 'same').length },
     decoyControl: { decided: decoys.length, decoyWins: decoys.filter((w) => w === 'decoy').length, todayWins: decoys.filter((w) => w === 'today').length },
   }

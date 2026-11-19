@@ -9,16 +9,16 @@ serves, so the app could call it from a Pages Function, rewrite the explanation
 from the same checked facts so that a player at his level understands it
 better, without saying anything the facts do not?
 
-**The answer, so far (round 3, 2026-11-18).** Yes for the clarity and the
-truth check; the claim audit is still to run. Given the checked facts, Gemma 4
-26B-A4B passes the truth check on 99.5% of 200 held-out moments, and a blind
-judge prefers its text to today's in 68% of decided comparisons (95% interval
-62 to 73%; 58% on train). Llama 3.2 3B Instruct, the smallest base Workers AI
-runs LoRA adapters on, is preferred 10% of the time as it ships; fine-tuned on
-1,804 of Gemma 4's train texts that pass the check, it passes on 99.0% of the
-held-out moments and is preferred in 69% (64 to 75%), at a median of 65.5
-words against today's 114. The judge's controls held in every run. Numbers,
-settings and costs are in [results/round3.md](results/round3.md).
+**The answer, so far (round 3, 2026-11-18).** Not yet. Given the checked
+facts, Gemma 4 26B-A4B passes the truth check on 99.5% of 200 held-out moments
+and a blind judge prefers its text to today's in 68% of decided comparisons
+(54 to 80% over judge calls). Llama 3.2 3B Instruct, the smallest base Workers
+AI runs LoRA adapters on, is preferred 10% of the time as it ships; fine-tuned
+on 1,804 of Gemma 4's train texts that pass the check, it passes on 99.0% and
+is preferred in 69% (61 to 77%), at a median of 65.5 words against today's
+114. But the claim audit finds both add about 0.2 false or unsupported claims a
+text over today's text, which has none, so neither is kept under the rule.
+Numbers, settings and costs are in [results/round3.md](results/round3.md).
 The facts: 2,322 moments in 387 games, 1,079 train and 1,243 held-out, 2,085
 of them with a lesson link; today's text passes the truth check at every one.
 
