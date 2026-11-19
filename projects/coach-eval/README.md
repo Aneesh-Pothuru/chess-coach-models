@@ -6,8 +6,14 @@ teaches calculation and attack, and would the player rather read it than the
 app's own text? Each model is measured twice: given the facts the app's code
 has already checked, and given only the position.
 
-**The answer.** Not yet run. This file fixes the tasks, the rubric and the
-measures before any model's text is read.
+**The answer, so far (2026-11-18).** Truth first. Given the facts the app's
+code has checked, six open models pass the code truth check on 94 to 99.5% of
+200 held-out game moments and 94 to 99.5% of 200 held-out puzzle moments.
+Given only the position, the same models pass on 1.5 to 15% and 2.5 to 11.5%:
+most of their texts name a move the engine does not give. The rubric coverage
+and the claim audit are still to run. The numbers are in review-writer's
+[results/round3.md](../review-writer/results/round3.md). This file fixed the
+tasks, the rubric and the measures before any model's text was read.
 
 ## The tasks
 

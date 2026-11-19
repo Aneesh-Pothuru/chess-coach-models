@@ -7,8 +7,10 @@
 // every file has a text for are read. `score` reads the answers back and writes,
 // for each writer and task, the share of texts meeting each criterion and the false
 // and unsupported claims per text, with 95% bootstrap intervals over games (or
-// puzzles), and the control: the decoy must meet the fix and the habit criteria
-// less often than today's text, or the run reports no scores.
+// puzzles), the paired difference in false plus unsupported claims against today's
+// text on the same moments (review-writer's claim audit), and the control: the decoy
+// must meet the fix and the habit criteria less often than today's text, or the run
+// reports no scores.
 //
 //   node projects/coach-eval/rubric.mjs build --name <name> --texts <a.jsonl,b.jsonl,...> [--facts <moments.jsonl,...>] [--limit N] [--batch 8]
 //   node projects/coach-eval/rubric.mjs score --name <name>
@@ -136,12 +138,29 @@ if (mode === 'build') {
     boots.sort((a, b) => a - b)
     return [boots[Math.floor(0.025 * boots.length)], boots[Math.floor(0.975 * boots.length)]]
   }
+  const claims = (r) => (Number(r.a.false_claims) || 0) + (Number(r.a.unsupported_claims) || 0)
+  const todayClaims = new Map(rows.filter((r) => r.writer === 'today').map((r) => [r.id, claims(r)]))
+  const pairedOf = (rs) => {
+    const pairs = rs.filter((r) => todayClaims.has(r.id)).map((r) => ({ group: r.group, d: claims(r) - todayClaims.get(r.id) }))
+    const mean = (ps) => (ps.length ? ps.reduce((s, p) => s + p.d, 0) / ps.length : null)
+    const groups = [...new Set(pairs.map((p) => p.group))]
+    const byGroup = new Map(groups.map((g) => [g, pairs.filter((p) => p.group === g)]))
+    const boots = []
+    for (let k = 0; k < 2000; k++) {
+      const sample = []
+      for (let j = 0; j < groups.length; j++) sample.push(...byGroup.get(groups[Math.floor(rand() * groups.length)]))
+      boots.push(mean(sample))
+    }
+    boots.sort((a, b) => a - b)
+    return { moments: pairs.length, mean: mean(pairs), interval95: [boots[Math.floor(0.025 * boots.length)], boots[Math.floor(0.975 * boots.length)]] }
+  }
   const byWriter = {}
   for (const writer of [...new Set(rows.map((r) => r.writer))].sort()) {
     const rs = rows.filter((r) => r.writer === writer)
     const m = measuresOf(rs)
     m.interval95 = Object.fromEntries([...CRITERIA, 'falseClaimsPerText', 'noFalseClaim'].map((c) => [c, intervalOf(rs, c)]))
     m.medianWords = [...rs.map((r) => r.words)].sort((a, b) => a - b)[Math.floor(rs.length / 2)] ?? null
+    if (writer !== 'today') m.claimsMinusToday = pairedOf(rs)
     byWriter[writer] = m
   }
   const today = byWriter.today
