@@ -43,10 +43,15 @@ export function todayText(m) {
 
 const CLASS_WORDS = { inaccuracy: 'an inaccuracy', mistake: 'a mistake', blunder: 'a blunder', miss: 'a miss' }
 
+/** The writer prompt's version: 1 gave the lesson's idea; 2 gives the player's side and drops the idea, whose example belongs to the lesson's own position. */
+export const PROMPT_VERSION = 2
+
 /** The checked facts a writer is given, and nothing else. */
 export function sheetOf(m) {
   const l = m.lesson
   return {
+    you_play: m.mover === 'w' ? 'White' : 'Black',
+    your_opponent_plays: m.mover === 'w' ? 'Black' : 'White',
     player_rating: m.rating,
     phase: m.phase,
     move_played: m.played.san,
@@ -63,7 +68,7 @@ export function sheetOf(m) {
       ? { kind: m.reading.mistake.kind.replace(/-/g, ' '), material_points_lost: m.reading.mistake.points, square: m.reading.mistake.square }
       : null,
     better_move_purposes: (m.reading?.fix ?? []).map((p) => p.text),
-    lesson: m.link ? { title: m.link.title, idea: m.link.idea, why_it_fits: m.link.why } : null,
+    lesson: m.link ? { title: m.link.title, why_it_fits: m.link.why } : null,
     checked_sentences: [l.headline, ...l.difference, ...(l.takeaway ? [l.takeaway] : [])],
   }
 }
@@ -72,8 +77,9 @@ export const SYSTEM = [
   'You are the coach inside a chess training app, explaining one moment of a game to the player who made the move.',
   'You are given a fact sheet. Every fact in it was checked by a chess engine and the app\'s board-reading code.',
   'Write the explanation the player reads in the game review: three to five short sentences, at most 90 words, in plain words for a club player rated about the player_rating given, speaking to the player as "you".',
-  'Say what the move played allowed or missed, what the better move does instead and why that matters, and, when a lesson is given, name the lesson and the idea it teaches as the thing to practise.',
-  'Use only the fact sheet. Name only moves, squares, pieces and numbers that appear in it, and never claim a check, a mate, a threat or a material gain the sheet does not state.',
+  'Say what the move played allowed or missed, what the better move does instead and why that matters, and, when a lesson is given, name the lesson by its title as the thing to practise.',
+  'The player plays the side in you_play; call the other side "your opponent" or "they", and never say White or Black did something unless it is the side the sheet gives.',
+  'Use only the fact sheet. Name only moves, squares, pieces and numbers that appear in it, and never claim a check, a mate, a threat or a material gain the sheet does not state. Do not describe what the lesson\'s own examples contain.',
   'Do not mention the engine, percentages or evaluations unless the sheet\'s sentences do. Do not use headings, lists or markdown. Write only the explanation.',
 ].join(' ')
 

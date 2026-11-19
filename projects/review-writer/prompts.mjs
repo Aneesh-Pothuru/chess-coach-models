@@ -9,7 +9,7 @@ import { createHash } from 'node:crypto'
 import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { privateDir } from '../../bridge/lib/lab.mjs'
-import { PROJECT, messagesOf, momentId, readFacts } from './lib.mjs'
+import { PROJECT, PROMPT_VERSION, messagesOf, momentId, readFacts } from './lib.mjs'
 
 const order = (m) => createHash('sha256').update(`${PROJECT}:sample:${momentId(m)}`).digest('hex')
 
@@ -24,6 +24,6 @@ const limit = Number(arg('limit', '0'))
 const dir = privateDir(PROJECT)
 const moments = readFacts(dir).filter((m) => m.split === split).sort((a, b) => (order(a) < order(b) ? -1 : 1))
 const chosen = limit ? moments.slice(0, limit) : moments
-const out = join(dir, limit ? `prompts-${split}-${limit}.jsonl` : `prompts-${split}.jsonl`)
-writeFileSync(out, chosen.map((m) => JSON.stringify({ id: momentId(m), split, messages: messagesOf(m) })).join('\n') + '\n')
+const out = join(dir, `prompts-${split}${limit ? `-${limit}` : ''}-v${PROMPT_VERSION}.jsonl`)
+writeFileSync(out, chosen.map((m) => JSON.stringify({ id: momentId(m), split, prompt: PROMPT_VERSION, messages: messagesOf(m) })).join('\n') + '\n')
 console.error(`${chosen.length} of ${moments.length} ${split} moments written to ${out}`)

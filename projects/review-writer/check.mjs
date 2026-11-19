@@ -83,7 +83,7 @@ function vocabularyOf(m) {
     l.better?.san ?? '', ...(l.better?.points ?? []), l.better?.line ?? '',
     m.played.san, m.best.san ?? '',
     ...(m.reading?.fix ?? []).map((p) => p.text), ...(m.reading?.reply ?? []).map((p) => p.text),
-    m.link?.title ?? '', m.link?.idea ?? '', m.link?.why ?? '',
+    m.link?.title ?? '', m.link?.why ?? '',
   ].filter(Boolean)
   const joined = strings.join(' \n ')
   const moves = new Set([...joined.matchAll(MOVE)].map((x) => bare(x[0])))
@@ -138,8 +138,12 @@ let texts
 let name
 if (process.argv.includes('--today')) {
   const split = arg('split', 'train')
-  name = `today-${split}`
-  texts = [...facts.values()].filter((m) => m.split === split).map((m) => ({ id: momentId(m), writer: 'today', text: todayText(m) }))
+  const idsPath = arg('ids')
+  const only = idsPath ? new Set(readJsonl(idsPath).map((r) => r.id)) : null
+  name = idsPath ? `today-${split}-${only.size}` : `today-${split}`
+  texts = [...facts.values()]
+    .filter((m) => m.split === split && (!only || only.has(momentId(m))))
+    .map((m) => ({ id: momentId(m), writer: 'today', text: todayText(m) }))
 } else {
   const path = arg('texts')
   name = arg('name')
@@ -147,18 +151,29 @@ if (process.argv.includes('--today')) {
   texts = readJsonl(path)
 }
 
+const wordsOf = (text) => text.split(/\s+/).filter(Boolean).length
+const median = (xs) => {
+  const s = [...xs].sort((a, b) => a - b)
+  return s.length ? (s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2) : null
+}
+
 const rows = []
 const byWriter = {}
+const words = {}
 for (const t of texts) {
   const m = facts.get(t.id)
   if (!m) throw new Error(`no fact sheet for ${t.id}`)
   const misses = verdictOf(t.text ?? '', vocabularyOf(m))
-  rows.push({ id: t.id, writer: t.writer, split: m.split, pass: misses.length === 0, misses })
+  rows.push({ id: t.id, writer: t.writer, split: m.split, pass: misses.length === 0, misses, words: wordsOf(t.text ?? '') })
   const w = (byWriter[t.writer] ??= { texts: 0, passed: 0 })
   w.texts += 1
   w.passed += misses.length === 0 ? 1 : 0
+  ;(words[t.writer] ??= []).push(wordsOf(t.text ?? ''))
 }
-for (const w of Object.values(byWriter)) w.passRate = w.texts ? Math.round((w.passed / w.texts) * 10000) / 10000 : null
+for (const [writer, w] of Object.entries(byWriter)) {
+  w.passRate = w.texts ? Math.round((w.passed / w.texts) * 10000) / 10000 : null
+  w.medianWords = median(words[writer])
+}
 writeFileSync(join(dir, `check-${name}.jsonl`), rows.map((r) => JSON.stringify(r)).join('\n') + '\n')
 const summary = { name, texts: rows.length, byWriter }
 writeFileSync(join(dir, `check-${name}.json`), JSON.stringify(summary, null, 2) + '\n')

@@ -84,9 +84,13 @@ and fine-tuning the best candidate on train is the next round's question.
 | `lib.mjs` | What the scripts share: the split, today's text as the screen shows it, the fact sheet a writer reads and the writer's prompt. |
 | `prompts.mjs` | The writers' prompts for a split, from public games only, so the file can be read on Colab. `--limit N` takes the first N moments in a seeded order. |
 | `write.py` | Writes each prompt's explanation with one candidate's open weights under vLLM on a GPU (Colab), greedy. |
-| `check.mjs` | The rule's truth check in code, on a writer's texts or, with `--today`, on today's text as the control. |
+| `check.mjs` | The rule's truth check in code, on a writer's texts or, with `--today`, on today's text as the control. A lesson's own idea is not a fact about the position, so it does not count as one. |
+| `judge.mjs` | The blind judge's comparisons (`build`: a writer's text against today's in both orders, with a same-text control and a length-matched decoy) and their score (`score`: the preference over decided comparisons with a 95% bootstrap interval over games, and the controls). |
 
-The judge comes with its own script.
+The writer's prompt is in `lib.mjs` (`PROMPT_VERSION`). Prompt 1 gave the
+linked lesson's idea; writers then applied the lesson's own example to the
+game's position. Prompt 2, developed on train, gives the player's side and
+drops the idea.
 
 ## Running it
 
