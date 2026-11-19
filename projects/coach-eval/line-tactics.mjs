@@ -21,7 +21,8 @@
 // sample line_sample.py draws (the test set); coach, coach-eval's 1,200 Lichess
 // puzzles, 60 for each of 20 themes.
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { Chess } from 'chess.js'
 import { CHESS_DIR, chess, privateDir, resultsDir } from '../../bridge/lib/chess.mjs'
 
@@ -100,6 +101,7 @@ export function lineSignals({ fen, pv, before = null, lastSan = null }) {
       discoveredCheck: checkers.some((s) => s !== uci.slice(2, 4)),
       taken: !!reply?.captured && reply.to === mvs[i].to,
       gave: VALUE[mvs[i].promotion ?? mvs[i].piece] - (mvs[i].captured ? VALUE[mvs[i].captured] : 0),
+      kept: K.materialFor(fens[Math.min(i + 3, n)], solver) - K.materialFor(f, solver),
       net,
     })
   }
@@ -165,8 +167,9 @@ const LOOSER_MATES = new Set(['arabian-mate', 'blind-swine-mate', 'opera-mate'])
  * so a text may say it but not call it the point. The tiers were first fixed on the
  * development set (the app's pool; line-tactics-dev.mjs); the discovered attack, the
  * skewer, the trapped piece and three mate shapes then fell below four in five on the
- * held-out set and moved to `also` (results/line-tactics.md). Each entry names a
- * source and the solver moves it is read at.
+ * held-out set and moved to `also` (results/line-tactics.md). The sacrifice joined
+ * `point` once it counted only material still given up after the solver's next move.
+ * Each entry names a source and the solver moves it is read at.
  */
 export const RULES = {
   point: {
@@ -177,6 +180,7 @@ export const RULES = {
     fork: 'all',
     doubleCheck: 'all',
     attraction: 'all',
+    sacrifice: 'all',
   },
   also: {
     discovered: 'all',
@@ -190,7 +194,6 @@ export const RULES = {
     hanging: 'first',
     passed: 'all',
     quiet: 'later',
-    sacrifice: 'all',
     capturingDefender: 'all',
     f2f7: 'first',
   },
@@ -212,7 +215,7 @@ const SOURCES = {
   hanging: (s) => (s.best === 'hangingPiece' ? ['hanging-piece'] : []),
   passed: (s) => (s.promotion || s.describe.includes('passed-pawn') ? ['passed-pawn'] : []),
   quiet: (s, i, steps) => (s.quiet && i < steps.length - 1 ? ['quiet-move'] : []),
-  sacrifice: (s) => (s.taken && s.gave >= 2 ? ['sacrifice'] : []),
+  sacrifice: (s) => (s.taken && s.gave >= 2 && s.kept <= -2 ? ['sacrifice'] : []),
   capturingDefender: (s) => (s.capturingDefender ? ['removing-the-defender'] : []),
   f2f7: (s) => (s.best === 'attackingF2F7' ? ['f7-raid'] : []),
 }
@@ -305,7 +308,8 @@ const arg = (name, fallback) => {
   const i = process.argv.indexOf(`--${name}`)
   return i >= 0 ? process.argv[i + 1] : fallback
 }
-const mode = process.argv[2]
+const isMain = !!process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+const mode = isMain ? process.argv[2] : null
 const set = arg('set', 'app')
 
 if (mode === 'signals') {
@@ -434,7 +438,7 @@ if (mode === 'signals') {
     for (const [s, x] of Object.entries(out.sources)) console.log(`${s.padEnd(48)} tp ${String(x.tp).padStart(5)} fp ${String(x.fp).padStart(5)}  P ${(x.tp / (x.tp + x.fp)).toFixed(2)}`)
   }
   console.log(JSON.stringify({ set, puzzles: out.puzzles, skipped: out.skipped, mates: out.mates }))
-} else {
+} else if (isMain) {
   throw new Error('usage: line-tactics.mjs signals|score --set app|heldout|coach')
 }
-process.exit(0)
+if (isMain) process.exit(0)

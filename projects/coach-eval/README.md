@@ -26,10 +26,11 @@ was read.
 
 **Naming the tactic of a line (2026-11-19).** A coaching text needs the idea of
 the winning line, not only of its first move. Read with the app's own detectors
-at every solver move, a line's mate, back-rank mate, fork, attraction of the
-king, promotion, double check and four mate shapes agree with Lichess's tags
-96% of the time on 20,000 held-out puzzles, and the line finds every back-rank
-mate the tagger names, where the app's first-move labeller finds none
+at every solver move, a line's mate, back-rank mate, fork, sacrifice,
+attraction of the king, promotion, double check and four mate shapes agree with
+Lichess's tags 96% of the time on 20,000 held-out puzzles, and the line finds
+every back-rank mate the tagger names, where the app's first-move labeller finds
+none
 ([results/line-tactics.md](results/line-tactics.md)).
 
 ## The tasks

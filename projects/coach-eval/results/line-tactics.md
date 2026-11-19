@@ -49,6 +49,7 @@ often does not name as the puzzle's theme.
 | Checkmate | 8,060 | 0.99 / 0.48 | 0.99 / 1.00 | point |
 | Fork | 2,767 | 0.89 / 0.58 | 0.83 / 0.79 | point |
 | Back-rank mate | 891 | none right (10 said) | 1.00 / 1.00 | point |
+| Sacrifice | 1,267 | not said | 0.98 / 0.92 | point |
 | Attraction (of the king) | 641 | not said | 0.96 / 0.75 | point |
 | Promotion | 477 | not said | 0.99 / 1.00 | point |
 | Smothered mate | 110 | not said | 0.96 / 1.00 | point |
@@ -59,15 +60,14 @@ often does not name as the puzzle's theme.
 | Trapped piece | 213 | 0.76 / 0.67 | 0.72 / 0.81 | also |
 | Pin (absolute) | 1,087 | 0.64 / 0.22 | 0.50 / 0.44 | also |
 | Deflection | 797 | 0.63 / 0.45 | 0.58 / 0.69 | also |
-| Sacrifice | 1,267 | not said | 0.29 / 0.93 | also |
 | Advanced pawn | 1,044 | not said | 0.61 / 0.98 | also |
 | Hanging piece | 757 | 0.27 / 0.69 | 0.27 / 0.69 | also |
 | Quiet move | 371 | not said | 0.38 / 0.44 | also |
 | In-between move | 176 | not said | 0.38 / 0.57 | also |
 | Removing the defender | 110 | not said | 0.21 / 0.84 | also |
 
-The point tier's pooled precision is 0.957 over 13,016 labels on the held-out set,
-0.966 over 819 on the coach set and 0.985 over 3,446 on the development set. On
+The point tier's pooled precision is 0.958 over 14,203 labels on the held-out set,
+0.971 over 1,051 on the coach set and 0.985 over 3,726 on the development set. On
 the coach set every point concept is at 0.81 or above (fork 0.81, the rest 0.99
 or 1.00).
 
@@ -84,9 +84,15 @@ so it does not test the revision independently. The scores of the first split ar
 kept as `line-tactics-<set>-v1.json`.
 
 Readings the development set ruled out: the app's fork detector on a mating move
-(a queen that mates while attacking a rook), relative pins (0.07), the attraction
-of a queen or rook (0.03), and material-only definitions of a sacrifice (0.31 to
-0.38).
+(a queen that mates while attacking a rook), relative pins (0.07), and the
+attraction of a queen or rook (0.03). Material-only readings of a sacrifice (the
+solver down two points after a reply, 0.31 to 0.38 there, 0.29 held-out) counted
+trades: a queen that takes a pawn and is recaptured looked like a sacrifice until
+the recapture. Reading on the coaching sheets showed it, and the sacrifice now
+counts a piece taken where it lands only when the solver is still two points down
+after its next move: 0.99 on development, 0.98 held-out and 0.99 on the coach set,
+so it joined the point tier. That change was made after the first held-out scores
+were read, though not from them.
 
 ## What it is for
 
