@@ -23,6 +23,9 @@ WRITERS = {
     "qwen3-30b-a3b": {"model": "Qwen/Qwen3-30B-A3B-FP8", "template": {"enable_thinking": False}},
     "gpt-oss-20b": {"model": "openai/gpt-oss-20b", "template": {"reasoning_effort": "low"}},
     "gemma-4-26b-a4b": {"model": "google/gemma-4-26B-A4B-it", "template": {}},
+    # Not a candidate (Workers AI serves it, but it costs several times the others):
+    # the strongest open writer, read as a ceiling and as a source of fine-tuning texts.
+    "gpt-oss-120b": {"model": "openai/gpt-oss-120b", "template": {"reasoning_effort": "low"}},
 }
 
 # gpt-oss writes its reasoning before a final channel; Qwen3 may wrap thinking in tags.
