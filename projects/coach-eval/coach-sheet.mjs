@@ -19,7 +19,11 @@
 //
 //   bridge/run.sh projects/coach-eval/coach-sheet.mjs --moments <a.jsonl,...> \
 //     (--ids <id,...> | --sample <prompts.jsonl,...>) --out <sheets.jsonl> [--shard k/n]
-import { appendFileSync, existsSync, readFileSync } from 'node:fs'
+//   bridge/run.sh projects/coach-eval/coach-sheet.mjs --moments <a.jsonl,...> --rederive <sheets.jsonl,...> --out <sheets.jsonl>
+//
+// Each sheet keeps the engines' answers it was read from (`search`), and --rederive
+// reads the facts again from them with no engine, after a change to how they are read.
+import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { Chess } from 'chess.js'
 import { CHESS_DIR, chess } from '../../bridge/lib/chess.mjs'
 import { lineConcepts, lineSignals, RULES } from './line-tactics.mjs'
@@ -179,7 +183,7 @@ function conceptSentences(fen, pv, signals, rule, pov, lastTo = null) {
   for (const [concept, from] of lineConcepts(signals, rule)) {
     const step = from.k === null ? null : signals.steps[from.k]
     if (concept === 'hanging-piece' && step) {
-      const landed = step.ply === 1 ? lastTo : pv[step.ply - 2].slice(2, 4)
+      const landed = step.ply === 1 ? lastTo : toMove(fens[step.ply - 2], pv[step.ply - 2]).captured ? pv[step.ply - 2].slice(2, 4) : null
       if (step.capture && step.uci.slice(2, 4) === landed) continue
     }
     const after = step ? fens[step.ply] : fens[fens.length - 1]
@@ -260,7 +264,7 @@ function annotate(fen, pv, pov, lastTo = null) {
       break
     }
     out.push({ move: mv.san, by: mv.color === pov ? 'you' : 'they', does: said(f, uci, pov, !!mv.captured && mv.to === prev) })
-    prev = mv.to
+    prev = mv.captured ? mv.to : null
     f = fenAfter(f, uci)
   }
   return out
@@ -280,7 +284,7 @@ function lineFacts(fen, pv, pov, before = null, lead = null, short = false) {
   const shown = !short && (full.mate || full.net !== 0) ? settled.pv : settled.pv.slice(0, settledLength(fen, settled.pv, 2))
   const material = shown === settled.pv ? full : count(shown)
   const signals = lineSignals({ fen, pv: shown, before, lastSan: leadSan })
-  const lastTo = lead ? lead.slice(2, 4) : null
+  const lastTo = lead && toMove(before, lead).captured ? lead.slice(2, 4) : null
   return {
     line: annotate(fen, shown, pov, lastTo),
     idea: conceptSentences(fen, shown, signals, RULES.point, pov, lastTo),
@@ -290,75 +294,88 @@ function lineFacts(fen, pv, pov, before = null, lead = null, short = false) {
   }
 }
 
-/**
- * What the opponent threatens: the line they would play if it were their move, read
- * like any other line, when it mates or wins at least two points.
- */
-async function threatOf(engine, fen, pov) {
+/** The flipped position, with the opponent to move, or null when the player is in check. */
+function flippedOf(fen) {
   if (new Chess(fen).inCheck()) return null
-  let flipped = null
   try {
-    flipped = K.flipTurn(fen)
+    return K.flipTurn(fen) || null
   } catch {
     return null
   }
-  if (!flipped) return null
-  const r = await engine.evaluate(position(flipped), 'sweep', { cache: 'bypass', priority: 'batch' })
-  if (!r.pv?.length) return null
-  const first = toMove(flipped, r.pv[0])
-  const facts = lineFacts(flipped, r.pv, pov)
+}
+
+/**
+ * Everything a sheet takes from the engines, kept with the sheet so its facts can be
+ * read again without searching: the root's line, the engine's best three, Maia-2's
+ * likeliest moves, each candidate's score and the line that answers it, and the
+ * opponent's line in the flipped position.
+ */
+async function searchOf(engine, m) {
+  const fen = m.fen
+  const band = defaultMaiaElo((m.rating ?? 1350) - DEFAULT_LICHESS_OFFSET, DEFAULT_LICHESS_OFFSET)
+  const start = position(fen)
+  const opts = { cache: 'bypass', priority: 'batch' }
+  const root = await engine.evaluate(start, 'deep', opts)
+  const set = await engine.bestMoves(start, { budget: 'verify', multiPv: 3, ...opts })
+  const top = (set.lines.length ? set.lines : set.provisional ?? []).filter((l) => l.pv?.length).map((l) => ({ score: l.score, pv: l.pv }))
+  const hp = await engine.humanPolicy(start, { bands: [band], opponentBand: band })
+  const likely = hp === 'unavailable' ? [] : Object.entries(hp.bands[0].policy).sort((a, b) => b[1] - a[1]).slice(0, 4)
+  const order = [...new Set([...top.map((l) => l.pv[0]), ...likely.map(([u]) => u), m.played.uci])]
+  const candidates = []
+  for (const uci of order) {
+    const after = await engine.evaluate(child(start, uci), uci === m.played.uci ? 'deep' : 'sweep', opts)
+    const listed = top.find((l) => l.pv[0] === uci)
+    candidates.push({ uci, score: listed?.score ?? after.score, reply: after.pv ?? [] })
+  }
+  const flipped = flippedOf(fen)
+  const threat = flipped ? await engine.evaluate(position(flipped), 'sweep', opts) : null
+  return {
+    band,
+    root: { score: root.score, best: root.best, pv: root.pv ?? [] },
+    top,
+    likely,
+    candidates,
+    threat: threat?.pv?.length ? { fen: flipped, pv: threat.pv } : null,
+    lines: set.lines.length,
+    provisional: set.provisional?.length ?? 0,
+  }
+}
+
+/** The opponent's threat, read from the flipped position's line: a check or capture that mates or wins two points. */
+function threatFacts(t, pov) {
+  if (!t) return null
+  const first = toMove(t.fen, t.pv[0])
+  const facts = lineFacts(t.fen, t.pv, pov)
   if (facts.gain !== 'mate' && (facts.gain < 2 || !(first.captured || /[+#]/.test(first.san)))) return null
   const how = [...facts.idea, ...facts.also].filter((x) => x.at === first.san).map((x) => x.text)
   return { move: first.san, text: how.length ? how.join('; ') : `${first.san}, after which ${facts.result}`, facts }
 }
 
-async function sheetOf(engine, m) {
+/** A moment's coaching sheet, read from its search with the app's board code. */
+function sheetFrom(m, s) {
   const fen = m.fen
   const pov = m.mover
   const them = other(pov)
-  const band = defaultMaiaElo((m.rating ?? 1350) - DEFAULT_LICHESS_OFFSET, DEFAULT_LICHESS_OFFSET)
-  const start = position(fen)
-  const root = await engine.evaluate(start, 'deep', { cache: 'bypass', priority: 'batch' })
-  const set = await engine.bestMoves(start, { budget: 'verify', multiPv: 3, cache: 'bypass', priority: 'batch' })
-  const top = (set.lines.length ? set.lines : set.provisional ?? []).filter((l) => l.pv?.length)
-  const hp = await engine.humanPolicy(start, { bands: [band], opponentBand: band })
-  const likely = hp === 'unavailable' ? [] : Object.entries(hp.bands[0].policy).sort((a, b) => b[1] - a[1]).slice(0, 4)
-  const engineLines = new Map(top.map((l, k) => [l.pv[0], { ...l, rank: k + 1 }]))
-  const order = [...new Set([...top.map((l) => l.pv[0]), ...likely.map(([u]) => u), m.played.uci])]
   const candidates = []
-  for (const uci of order) {
-    const line = engineLines.get(uci)
-    let score = line?.score ?? null
-    let pv = line?.pv ?? null
-    const budget = uci === m.played.uci ? 'deep' : 'sweep'
-    if (!line) {
-      const after = await engine.evaluate(child(start, uci), budget, { cache: 'bypass', priority: 'batch' })
-      score = after.score
-      pv = [uci, ...(after.pv ?? [])]
-    }
-    const graded = classifyPly({ ply: 40, fenAfter: fenAfter(fen, uci), uci, bestUci: root.best, before: root.score, after: score, standardStart: false })
-    const san = sanOf(fen, uci)
+  for (const x of s.candidates) {
+    const rank = s.top.findIndex((l) => l.pv[0] === x.uci)
+    const graded = classifyPly({ ply: 40, fenAfter: fenAfter(fen, x.uci), uci: x.uci, bestUci: s.root.best, before: s.root.score, after: x.score, standardStart: false })
     const c = {
-      move: san,
-      played: uci === m.played.uci,
-      engine_rank: line ? line.rank : null,
-      share_of_players_at_your_level: Math.round((likely.find(([u]) => u === uci)?.[1] ?? 0) * 100) / 100,
+      move: sanOf(fen, x.uci),
+      played: x.uci === m.played.uci,
+      engine_rank: rank >= 0 ? rank + 1 : null,
+      share_of_players_at_your_level: Math.round((s.likely.find(([u]) => u === x.uci)?.[1] ?? 0) * 100) / 100,
       verdict: graded.cls,
-      evaluation: pawns(score, pov),
-      what_it_does: said(fen, uci, pov),
+      evaluation: pawns(x.score, pov),
+      what_it_does: said(fen, x.uci, pov),
     }
-    if (['inaccuracy', 'mistake', 'blunder', 'miss'].includes(graded.cls)) {
-      const f1 = fenAfter(fen, uci)
-      const answer = line ? await engine.evaluate(child(start, uci), budget, { cache: 'bypass', priority: 'batch' }) : null
-      const replyPv = answer?.pv?.length ? answer.pv : pv.slice(1)
-      if (replyPv.length) {
-        const reply = lineFacts(f1, replyPv, pov, fen, uci, graded.cls === 'inaccuracy')
-        c.why_not = { reply: reply.line[0]?.move ?? null, ...reply }
-      }
+    if (['inaccuracy', 'mistake', 'blunder', 'miss'].includes(graded.cls) && x.reply.length) {
+      const reply = lineFacts(fenAfter(fen, x.uci), x.reply, pov, fen, x.uci, graded.cls === 'inaccuracy')
+      c.why_not = { reply: reply.line[0]?.move ?? null, ...reply }
     }
     candidates.push(c)
   }
-  const bestPv = root.pv?.length && (!top[0] || root.pv[0] === top[0].pv[0]) ? root.pv : top[0]?.pv ?? []
+  const bestPv = s.root.pv.length && (!s.top[0] || s.root.pv[0] === s.top[0].pv[0]) ? s.root.pv : s.top[0]?.pv ?? []
   const legal = new Chess(fen).moves({ verbose: true })
   const theirKing = K.kingDanger(fen, them)
   const notice = []
@@ -368,7 +385,7 @@ async function sheetOf(engine, m) {
   const checks = legal.filter((x) => /[+#]/.test(x.san)).map((x) => x.san)
   notice.push(checks.length ? `your checks: ${checks.join(', ')}` : 'you have no checks')
   for (const h of K.hangingPieces(fen, pov)) notice.push(`your ${PIECE[h.piece] ?? h.piece} on ${h.square} is loose (${h.kind})`)
-  const threat = await threatOf(engine, fen, pov)
+  const threat = threatFacts(s.threat, pov)
   if (threat) notice.push(`their threat, if it were their move: ${threat.text}${threat.facts.gain === 'mate' ? ', and their line mates' : ''}`)
   const best = lineFacts(fen, bestPv, pov)
   return {
@@ -380,9 +397,10 @@ async function sheetOf(engine, m) {
     what_to_notice: notice,
     their_threat: threat ? { move: threat.move, line: threat.facts.line.map((p) => p.move), idea: threat.facts.idea, also: threat.facts.also, result: threat.facts.result } : null,
     candidates,
-    better_move: { move: bestPv.length ? sanOf(fen, bestPv[0]) : null, evaluation: pawns(top[0]?.score ?? root.score, pov), ...best },
-    engine: { lines: set.lines.length, provisional: set.provisional?.length ?? 0, maia_band: band },
+    better_move: { move: bestPv.length ? sanOf(fen, bestPv[0]) : null, evaluation: pawns(s.top[0]?.score ?? s.root.score, pov), ...best },
+    engine: { lines: s.lines, provisional: s.provisional, maia_band: s.band },
     source: m.source ?? null,
+    search: s,
   }
 }
 
@@ -400,8 +418,23 @@ const wanted = arg('ids')
   ? (arg('ids') ?? '').split(',').filter(Boolean)
   : (arg('sample') ?? '').split(',').filter(Boolean).flatMap((p) => readJsonl(p).map((x) => x.id))
 const byId = new Map(moments.map((m) => [momentId(m), m]))
-const [k, n] = (arg('shard') ?? '0/1').split('/').map(Number)
 const out = arg('out')
+if (arg('rederive')) {
+  // Reads every sheet's facts again from its stored search, with no engine.
+  const rows = arg('rederive').split(',').filter(Boolean).flatMap(readJsonl)
+  const lines = rows.map((s) => {
+    if (s.skip || !s.search) return JSON.stringify(s)
+    try {
+      return JSON.stringify(sheetFrom(byId.get(s.id), s.search))
+    } catch (e) {
+      return JSON.stringify({ id: s.id, skip: String(e.message ?? e).slice(0, 120) })
+    }
+  })
+  writeFileSync(out, lines.join('\n') + '\n')
+  console.error(`rederived ${rows.length} sheets into ${out}`)
+  process.exit(0)
+}
+const [k, n] = (arg('shard') ?? '0/1').split('/').map(Number)
 const done = new Set(out && existsSync(out) ? readJsonl(out).map((s) => s.id) : [])
 const todo = [...new Set(wanted)].filter((id, i) => i % n === k && byId.has(id) && !done.has(id))
 const engine = createNodeEngine({ root: CHESS_DIR, tablebase: false, evalCache: false })
@@ -411,7 +444,8 @@ try {
   for (const id of todo) {
     let sheet
     try {
-      sheet = await sheetOf(engine, byId.get(id))
+      const m = byId.get(id)
+      sheet = sheetFrom(m, await searchOf(engine, m))
     } catch (e) {
       if (String(e).includes('Maia-2 is unavailable')) throw e
       sheet = { id, skip: String(e.message ?? e).slice(0, 120) }
