@@ -18,7 +18,7 @@ const readJsonl = (path) => readFileSync(path, 'utf8').split('\n').filter(Boolea
 const VERDICT = { best: 'the best move', excellent: 'an excellent move', good: 'a good move', ok: 'a playable move', book: 'a book move', inaccuracy: 'an inaccuracy', mistake: 'a mistake', blunder: 'a blunder', miss: 'a missed chance' }
 const often = (share) => (share >= 0.4 ? 'most players at your level choose it' : share >= 0.15 ? 'many players at your level choose it' : share >= 0.05 ? 'some players at your level choose it' : 'few players at your level choose it')
 const lineOf = (moves) => moves.map((p) => ({ move: p.move, by: p.by, ...(p.does.length ? { what_it_does: p.does } : {}) }))
-const tactics = (xs) => xs.map((x) => x.text)
+const tactics = (xs) => xs.map((x) => (x.text.toLowerCase().includes(x.tactic.toLowerCase()) ? x.text : `${x.tactic}: ${x.text}`))
 
 function failing(c) {
   const w = c.why_not
@@ -64,8 +64,9 @@ export const COACH_SYSTEM = [
   'You are given a coaching sheet. Every fact in it was worked out by a chess engine, a model of how players at this level choose moves, and the app\'s board-reading code.',
   'Write five to eight short sentences, at most 150 words, in plain words for a club player rated about the player_rating given, speaking to the player as "you". Cover these in order, as far as the sheet supports them:',
   '(1) what to notice first: the one or two things in what_to_notice that matter for the better move, such as a loose piece, a boxed-in king or a check you have;',
-  '(2) why the natural move fails: for the move you played, and for another candidate in candidates_that_fail if there is one, give their reply and what it does, walk through the line as far as it shows the point, and say what it wins;',
-  '(3) the better move and its idea: name it, walk through the line move by move as the sheet gives it, say what the key moves do, and name the point of the line when the sheet gives one;',
+  '(2) why the natural move fails: for the move you played, and for another candidate in candidates_that_fail if there is one, give their reply and what it does, the key moves of the line after it, and how it ends;',
+  '(3) the better move and its idea: name it, give the key moves of its line and what they do, name the point of the line when the sheet gives one, and say how it ends;',
+  'The key moves of a line are its checks, its captures and the move that makes its point; leave out the others rather than list every move.',
   '(4) close with one habit for the board, in a sentence of its own: advice to the player, not a claim about the position.',
   'The player plays the side in you_play; call the other side "your opponent" or "they".',
   'Use only the coaching sheet. Name only moves, squares, pieces and numbers that appear in it. Call something a fork, pin, skewer, mate or any other tactic only where the sheet names that tactic for that move, and call it the point or the idea only if it is listed as the point. Keep every fact with the move the sheet gives it to. Never claim a check, a mate, a threat or a material gain the sheet does not state.',

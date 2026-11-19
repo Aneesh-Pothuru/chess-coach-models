@@ -4,7 +4,8 @@
 // sheet holds
 // - what to notice before choosing a move: the opponent's loose pieces, a king boxed in
 //   on its back rank or with no safe square, the checks and captures the player has,
-//   and the player's own loose pieces;
+//   the player's own loose pieces, and the opponent's threat: the line they would play
+//   if it were their move, when it mates or wins at least two points;
 // - the candidates a player at the band would weigh: Maia-2's likeliest moves, the
 //   engine's best three and the move played, each with the engine's verdict and, for a
 //   move that fails, the reply that refutes it, the line, what the line wins and the
@@ -12,7 +13,9 @@
 // - the better move's line move by move, with what each move does, the idea of the line
 //   (line-tactics.mjs's point tier), what else it does (its also tier) and how it ends.
 // A line is cut where its material settles or it mates, so the tactic named is the one
-// that wins, not one ten moves later.
+// that wins, not one ten moves later. The position and the move played are searched at
+// the app's teaching budget (deep), the other candidates and the threat at its sweep
+// budget, and the engine's best three at its verify budget.
 //
 //   bridge/run.sh projects/coach-eval/coach-sheet.mjs --moments <a.jsonl,...> \
 //     (--ids <id,...> | --sample <prompts.jsonl,...>) --out <sheets.jsonl> [--shard k/n]
@@ -88,7 +91,59 @@ const pawns = (score, mover) => {
   const cp = mover === 'w' ? score.cp : -score.cp
   return `${cp >= 0 ? '+' : ''}${(cp / 100).toFixed(1)} for you`
 }
-const said = (fen, uci, pov) => K.moveReasons(fen, uci).map((r) => K.reasonText(r, 'clause', pov))
+const said = (fen, uci, pov, recapture = false) => K.moveReasons(fen, uci, recapture).map((r) => K.reasonText(r, 'clause', pov))
+const listOf = (xs) => (xs.length <= 1 ? (xs[0] ?? '') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`)
+const COUNT = ['', 'a', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight']
+/** Pieces in words, like ones counted together: "a rook and two pawns". */
+const piecesOf = (types) => {
+  const order = ['q', 'r', 'b', 'n', 'p']
+  const words = order.filter((t) => types.includes(t)).map((t) => {
+    const n = types.filter((x) => x === t).length
+    return n === 1 ? (t === 'q' ? 'the queen' : `a ${PIECE[t]}`) : `${COUNT[n] ?? n} ${PIECE[t]}s`
+  })
+  return listOf(words)
+}
+
+/**
+ * The material a sequence of moves changes hands, from the player's side: the pieces
+ * each side takes, with like for like set against each other, in words.
+ */
+function exchangeText(fen, ucis, pov) {
+  const b = new Chess(fen)
+  const yours = []
+  const theirs = []
+  const promotes = { you: 0, they: 0 }
+  for (const u of ucis) {
+    let mv
+    try {
+      mv = b.move({ from: u.slice(0, 2), to: u.slice(2, 4), promotion: u[4] })
+    } catch {
+      break
+    }
+    if (mv.captured) (mv.color === pov ? yours : theirs).push(mv.captured)
+    if (mv.promotion) promotes[mv.color === pov ? 'you' : 'they'] += VALUE[mv.promotion] - 1
+  }
+  for (const t of [...yours]) {
+    const i = theirs.indexOf(t)
+    if (i >= 0) {
+      theirs.splice(i, 1)
+      yours.splice(yours.indexOf(t), 1)
+    }
+  }
+  const net = yours.reduce((s, t) => s + VALUE[t], 0) - theirs.reduce((s, t) => s + VALUE[t], 0) + promotes.you - promotes.they
+  const won = piecesOf(yours)
+  const lost = piecesOf(theirs)
+  const mate = b.isCheckmate()
+  const mated = mate ? (b.turn() === pov ? 'they mate you' : 'you mate') : null
+  const parts = []
+  if (net > 0 && won) parts.push(lost ? `you win ${won} for ${lost}` : `you win ${won}`)
+  else if (net < 0 && lost) parts.push(won ? `you lose ${lost} for ${won}` : `you lose ${lost}`)
+  else if (won || lost) parts.push(won && lost ? `the material stays even: ${won} for ${lost}` : won ? `you win ${won}` : `you lose ${lost}`)
+  if (promotes.you) parts.push('you promote a pawn')
+  if (promotes.they) parts.push('they promote a pawn')
+  let text = parts.length ? listOf(parts) : 'no material changes hands for good'
+  return { text: mated ? `${mated}${won || lost || promotes.you || promotes.they ? `, and before that ${text}` : ''}` : text, net, mate }
+}
 
 /**
  * The part of a line that carries its point: up to its mate, or to the first position
@@ -116,13 +171,17 @@ function settle(fen, pv, cap = 12) {
 }
 
 /** A sentence for each concept a line carries out, naming the move and the pieces. */
-function conceptSentences(fen, pv, signals, rule, pov) {
+function conceptSentences(fen, pv, signals, rule, pov, lastTo = null) {
   const fens = [fen]
   for (const u of pv) fens.push(fenAfter(fens[fens.length - 1], u))
   const lineMover = new Chess(fen).turn()
   const out = []
   for (const [concept, from] of lineConcepts(signals, rule)) {
     const step = from.k === null ? null : signals.steps[from.k]
+    if (concept === 'hanging-piece' && step) {
+      const landed = step.ply === 1 ? lastTo : pv[step.ply - 2].slice(2, 4)
+      if (step.capture && step.uci.slice(2, 4) === landed) continue
+    }
     const after = step ? fens[step.ply] : fens[fens.length - 1]
     const before = step ? fens[step.ply - 1] : null
     const by = step?.san
@@ -161,10 +220,38 @@ function conceptSentences(fen, pv, signals, rule, pov) {
   return out
 }
 
-/** A line move by move, with what each move does. */
-function annotate(fen, pv, pov) {
+/**
+ * A short line's length: at least `min` plies, and on through any recapture that
+ * answers the last move shown, so a short line never stops in the middle of a trade.
+ */
+function settledLength(fen, pv, min) {
+  const b = new Chess(fen)
+  const tos = []
+  const captures = []
+  for (const u of pv.slice(0, min + 6)) {
+    let mv
+    try {
+      mv = b.move({ from: u.slice(0, 2), to: u.slice(2, 4), promotion: u[4] })
+    } catch {
+      break
+    }
+    tos.push(mv.to)
+    captures.push(!!mv.captured)
+  }
+  let n = Math.min(min, tos.length)
+  while (n < tos.length && captures[n] && tos[n] === tos[n - 1]) n++
+  return n
+}
+
+/**
+ * A line move by move, with what each move does; a capture on the square the move
+ * before it landed on is a recapture, and says so. `lastTo` is where the move before
+ * the line landed.
+ */
+function annotate(fen, pv, pov, lastTo = null) {
   const out = []
   let f = fen
+  let prev = lastTo
   for (const uci of pv) {
     let mv
     try {
@@ -172,30 +259,57 @@ function annotate(fen, pv, pov) {
     } catch {
       break
     }
-    out.push({ move: mv.san, by: mv.color === pov ? 'you' : 'they', does: said(f, uci, pov) })
+    out.push({ move: mv.san, by: mv.color === pov ? 'you' : 'they', does: said(f, uci, pov, !!mv.captured && mv.to === prev) })
+    prev = mv.to
     f = fenAfter(f, uci)
   }
   return out
 }
 
-/** What a line wins, from the side that plays it. */
-function outcome(settled, mover, pov) {
-  const who = mover === pov ? 'you' : 'they'
-  if (settled.mate) return `${who} mate`
-  if (settled.net >= 1) return `${who} come out ${settled.net} point${settled.net === 1 ? '' : 's'} of material ahead of where the line starts`
-  return 'no material changes hands for good in the line'
+/**
+ * A line's tactics: its point and what else it does, with the line it was read on and
+ * what it changes hands. `before` and `lead` are the position before the move that
+ * the line answers and that move, whose own capture the material count includes. A
+ * line that neither mates nor changes material keeps only its first two moves.
+ */
+function lineFacts(fen, pv, pov, before = null, lead = null, short = false) {
+  const settled = settle(fen, pv)
+  const leadSan = lead ? sanOf(before, lead) : null
+  const count = (ucis) => exchangeText(before ?? fen, [...(lead ? [lead] : []), ...ucis], pov)
+  const full = count(settled.pv)
+  const shown = !short && (full.mate || full.net !== 0) ? settled.pv : settled.pv.slice(0, settledLength(fen, settled.pv, 2))
+  const material = shown === settled.pv ? full : count(shown)
+  const signals = lineSignals({ fen, pv: shown, before, lastSan: leadSan })
+  const lastTo = lead ? lead.slice(2, 4) : null
+  return {
+    line: annotate(fen, shown, pov, lastTo),
+    idea: conceptSentences(fen, shown, signals, RULES.point, pov, lastTo),
+    also: conceptSentences(fen, shown, signals, SHEET_ALSO, pov, lastTo),
+    result: material.text,
+    gain: settled.mate ? 'mate' : settled.net,
+  }
 }
 
-/** A line's tactics: its point and what else it does, with the line it was read on. */
-function lineFacts(fen, pv, pov, before = null, lastSan = null) {
-  const settled = settle(fen, pv)
-  const signals = lineSignals({ fen, pv: settled.pv, before, lastSan })
-  return {
-    line: annotate(fen, settled.pv, pov),
-    idea: conceptSentences(fen, settled.pv, signals, RULES.point, pov),
-    also: conceptSentences(fen, settled.pv, signals, SHEET_ALSO, pov),
-    result: outcome(settled, new Chess(fen).turn(), pov),
+/**
+ * What the opponent threatens: the line they would play if it were their move, read
+ * like any other line, when it mates or wins at least two points.
+ */
+async function threatOf(engine, fen, pov) {
+  if (new Chess(fen).inCheck()) return null
+  let flipped = null
+  try {
+    flipped = K.flipTurn(fen)
+  } catch {
+    return null
   }
+  if (!flipped) return null
+  const r = await engine.evaluate(position(flipped), 'sweep', { cache: 'bypass', priority: 'batch' })
+  if (!r.pv?.length) return null
+  const first = toMove(flipped, r.pv[0])
+  const facts = lineFacts(flipped, r.pv, pov)
+  if (facts.gain !== 'mate' && (facts.gain < 2 || !(first.captured || /[+#]/.test(first.san)))) return null
+  const how = [...facts.idea, ...facts.also].filter((x) => x.at === first.san).map((x) => x.text)
+  return { move: first.san, text: how.length ? how.join('; ') : `${first.san}, after which ${facts.result}`, facts }
 }
 
 async function sheetOf(engine, m) {
@@ -205,7 +319,7 @@ async function sheetOf(engine, m) {
   const band = defaultMaiaElo((m.rating ?? 1350) - DEFAULT_LICHESS_OFFSET, DEFAULT_LICHESS_OFFSET)
   const start = position(fen)
   const root = await engine.evaluate(start, 'deep', { cache: 'bypass', priority: 'batch' })
-  const set = await engine.bestMoves(start, { budget: 'deep', multiPv: 3, cache: 'bypass', priority: 'batch' })
+  const set = await engine.bestMoves(start, { budget: 'verify', multiPv: 3, cache: 'bypass', priority: 'batch' })
   const top = (set.lines.length ? set.lines : set.provisional ?? []).filter((l) => l.pv?.length)
   const hp = await engine.humanPolicy(start, { bands: [band], opponentBand: band })
   const likely = hp === 'unavailable' ? [] : Object.entries(hp.bands[0].policy).sort((a, b) => b[1] - a[1]).slice(0, 4)
@@ -216,8 +330,9 @@ async function sheetOf(engine, m) {
     const line = engineLines.get(uci)
     let score = line?.score ?? null
     let pv = line?.pv ?? null
+    const budget = uci === m.played.uci ? 'deep' : 'sweep'
     if (!line) {
-      const after = await engine.evaluate(child(start, uci), 'deep', { cache: 'bypass', priority: 'batch' })
+      const after = await engine.evaluate(child(start, uci), budget, { cache: 'bypass', priority: 'batch' })
       score = after.score
       pv = [uci, ...(after.pv ?? [])]
     }
@@ -234,10 +349,10 @@ async function sheetOf(engine, m) {
     }
     if (['inaccuracy', 'mistake', 'blunder', 'miss'].includes(graded.cls)) {
       const f1 = fenAfter(fen, uci)
-      const answer = line ? await engine.evaluate(child(start, uci), 'deep', { cache: 'bypass', priority: 'batch' }) : null
+      const answer = line ? await engine.evaluate(child(start, uci), budget, { cache: 'bypass', priority: 'batch' }) : null
       const replyPv = answer?.pv?.length ? answer.pv : pv.slice(1)
       if (replyPv.length) {
-        const reply = lineFacts(f1, replyPv, pov, fen, san)
+        const reply = lineFacts(f1, replyPv, pov, fen, uci, graded.cls === 'inaccuracy')
         c.why_not = { reply: reply.line[0]?.move ?? null, ...reply }
       }
     }
@@ -252,9 +367,9 @@ async function sheetOf(engine, m) {
   else if (theirKing?.signs?.includes('noSafeSquares')) notice.push(`their king on ${theirKing.king} has no safe square to step to`)
   const checks = legal.filter((x) => /[+#]/.test(x.san)).map((x) => x.san)
   notice.push(checks.length ? `your checks: ${checks.join(', ')}` : 'you have no checks')
-  const captures = legal.filter((x) => x.captured).map((x) => x.san)
-  if (captures.length) notice.push(`your captures: ${captures.join(', ')}`)
   for (const h of K.hangingPieces(fen, pov)) notice.push(`your ${PIECE[h.piece] ?? h.piece} on ${h.square} is loose (${h.kind})`)
+  const threat = await threatOf(engine, fen, pov)
+  if (threat) notice.push(`their threat, if it were their move: ${threat.text}${threat.facts.gain === 'mate' ? ', and their line mates' : ''}`)
   const best = lineFacts(fen, bestPv, pov)
   return {
     id: `${m.game}:${m.index}`,
@@ -263,6 +378,7 @@ async function sheetOf(engine, m) {
     fen,
     move_played: m.played.san,
     what_to_notice: notice,
+    their_threat: threat ? { move: threat.move, line: threat.facts.line.map((p) => p.move), idea: threat.facts.idea, also: threat.facts.also, result: threat.facts.result } : null,
     candidates,
     better_move: { move: bestPv.length ? sanOf(fen, bestPv[0]) : null, evaluation: pawns(top[0]?.score ?? root.score, pov), ...best },
     engine: { lines: set.lines.length, provisional: set.provisional?.length ?? 0, maia_band: band },

@@ -8,12 +8,16 @@
 // interval over games, the rate in each batch with a t interval over batches (one
 // judge call reads a batch, and calls lean differently), and the controls.
 //
-//   node projects/review-writer/judge.mjs build --writer gemma-4-26b-a4b --texts <file.jsonl> --name <name> [--limit N] [--batch 50] [--facts <moments.jsonl,...>]
+//   node projects/review-writer/judge.mjs build --writer gemma-4-26b-a4b --texts <file.jsonl> --name <name> [--limit N] [--batch 50] [--facts <moments.jsonl,...>] [--question clear|teach] [--baseline <texts.jsonl> --baseline-writer <name>]
 //   node projects/review-writer/judge.mjs score --name <name>
 //
 // --facts adds moments in facts.mjs's shape from other files, such as coach-eval's
 // puzzle moments. The bootstrap resamples games, or puzzles: a moment's id less its
-// last ":index".
+// last ":index". --question teach asks which text better teaches the player to find
+// such moves themselves (coach-eval's coaching task) instead of which is clearer.
+// --baseline sets another writer's texts against the writer's in place of today's
+// text; the key still calls that side "today", and moments the baseline has no text
+// for are left out.
 //
 // A judge reads one batch file at a time and writes, beside it, answers-<k>.json:
 // [{"key": "...", "choice": "A" | "B" | "same"}, ...].
@@ -27,6 +31,12 @@ export const JUDGE_INSTRUCTIONS = [
   'You are judging explanations in a chess training app. Each item shows two explanations, A and B, of the same moment in a game, written for the player who made the move, a club player rated about 1350.',
   'For each item, pick the explanation that player would understand better and could use better in their next games: clearer about what went wrong and what to do instead, with nothing that would confuse them.',
   'Judge only clarity and usefulness to that player. Do not reward length, do not try to check the chess yourself, and answer "same" when neither is better.',
+].join(' ')
+
+export const TEACH_INSTRUCTIONS = [
+  'You are judging explanations in a chess training app. Each item shows two explanations, A and B, of the same moment in a game or a puzzle, written for the player who chose the move, a club player rated about 1350.',
+  'For each item, pick the explanation that would better teach that player to find such moves themselves: what in the position should have caught their eye, why the move they chose fails, and the idea that makes the better move work, told concretely enough to recognise next time, with nothing that would confuse them.',
+  'Judge only how well it teaches that player. Do not reward length for its own sake, do not try to check the chess yourself, and answer "same" when neither is better.',
 ].join(' ')
 
 const arg = (name, fallback) => {
@@ -66,7 +76,11 @@ if (mode === 'build') {
   const batch = Number(arg('batch', '50'))
   const extra = (arg('facts') ?? '').split(',').filter(Boolean).flatMap((path) => readJsonl(path))
   const facts = new Map([...readFacts(dir), ...extra].map((m) => [momentId(m), m]))
-  let texts = readJsonl(textsPath).filter((t) => t.writer === writer)
+  const instructions = arg('question', 'clear') === 'teach' ? TEACH_INSTRUCTIONS : JUDGE_INSTRUCTIONS
+  const baselinePath = arg('baseline')
+  const baseline = baselinePath ? new Map(readJsonl(baselinePath).filter((t) => t.writer === arg('baseline-writer')).map((t) => [t.id, t.text])) : null
+  const todayOf = (id) => (baseline ? baseline.get(id) : todayText(facts.get(id)))
+  let texts = readJsonl(textsPath).filter((t) => t.writer === writer && (!baseline || baseline.has(t.id)))
   texts.sort((a, b) => (hash(`${PROJECT}:judge:${a.id}`).toString('hex') < hash(`${PROJECT}:judge:${b.id}`).toString('hex') ? -1 : 1))
   if (limit) texts = texts.slice(0, limit)
   const items = []
@@ -74,7 +88,7 @@ if (mode === 'build') {
     items.push({ key: `${kind}|${id}|${order}`, kind, id, order, A: first, B: second, sides: { A: firstIs, B: secondIs } })
   texts.forEach((t, k) => {
     const m = facts.get(t.id)
-    const today = todayText(m)
+    const today = todayOf(t.id)
     const forward = coin(`${PROJECT}:order:${t.id}`)
     add('pair', t.id, forward ? t.text : today, forward ? today : t.text, forward ? 'writer' : 'today', forward ? 'today' : 'writer', 1)
     add('pair', t.id, forward ? today : t.text, forward ? t.text : today, forward ? 'today' : 'writer', forward ? 'writer' : 'today', 2)
@@ -87,10 +101,10 @@ if (mode === 'build') {
   })
   items.sort((a, b) => (hash(`${PROJECT}:shuffle:${a.key}`).toString('hex') < hash(`${PROJECT}:shuffle:${b.key}`).toString('hex') ? -1 : 1))
   mkdirSync(out, { recursive: true })
-  writeFileSync(join(out, 'key.json'), JSON.stringify({ writer, texts: textsPath, items: items.map(({ key, kind, id, order, sides }) => ({ key, kind, id, order, sides })) }, null, 1))
+  writeFileSync(join(out, 'key.json'), JSON.stringify({ writer, texts: textsPath, baseline: baselinePath ? { texts: baselinePath, writer: arg('baseline-writer') } : 'today', question: arg('question', 'clear'), items: items.map(({ key, kind, id, order, sides }) => ({ key, kind, id, order, sides })) }, null, 1))
   for (let b = 0; b * batch < items.length; b++) {
     const part = items.slice(b * batch, (b + 1) * batch).map(({ key, A, B }) => ({ key, A, B }))
-    writeFileSync(join(out, `batch-${b}.json`), JSON.stringify({ instructions: JUDGE_INSTRUCTIONS, items: part }, null, 1))
+    writeFileSync(join(out, `batch-${b}.json`), JSON.stringify({ instructions, items: part }, null, 1))
   }
   console.log(JSON.stringify({ name, writer, moments: texts.length, items: items.length, batches: Math.ceil(items.length / batch), dir: out }))
 } else {

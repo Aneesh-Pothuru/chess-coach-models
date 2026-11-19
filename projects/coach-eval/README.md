@@ -128,6 +128,58 @@ The judges are Sonnet 5.5, given the texts and the criteria only, never the
 writer's name. Their answers stay under `private/coach-eval/`, and only the
 aggregates are committed.
 
+## The coaching task (from 2026-11-19)
+
+Rewording Game Review's findings cannot coach a moment its facts do not explain
+(review-writer's round 4). The coaching task gives the writer more to coach from
+and asks for a puzzle book's explanation: what in the position should catch the
+player's eye, why the natural move fails, the better move's idea and its key
+moves, and a habit.
+
+- **The coaching sheet** (`coach-sheet.mjs`). For a moment: what to notice (the
+  opponent's loose pieces, a king boxed in on its back rank or with no safe
+  square, the player's checks and loose pieces, and the opponent's threat, the
+  line they would play if it were their move when it mates or wins two points);
+  the candidates (Maia-2's four likeliest moves at the band, the engine's best
+  three and the move played), each with the engine's verdict and, for a failing
+  move, the refuting line, what it changes hands and its tactics; and the better
+  move's line with its idea. The tactics are `line-tactics.mjs`'s readings: the
+  point tier may be called the idea, the also tier only what a move does.
+- **The prompt** (`coach-prompts.mjs`, version 1). The writer reads a trimmed
+  sheet with no evaluations or percentages: the move played and one more
+  candidate most players at the level choose, when it fails too.
+- **The measures.** The truth check (`coach-check.mjs`, review-writer's reading
+  of a text against the trimmed sheet, with sacrifices, deflections, decoys,
+  double checks, smothered and back-rank mates and promotions added to the
+  tactics a text may name only when the sheet does); the coaching rubric and
+  claim audit (`coach-rubric.mjs`, Sonnet 5.5, ten moments a call: notice,
+  refutation, idea, line, habit and level, with false and unsupported claims
+  against the sheet, and a decoy that restates the sheet's lines); and the blind
+  judge asking which text better teaches the player to find such moves
+  (review-writer's `judge.mjs --question teach`), against today's text and
+  against round 4's fine-tuned rewording.
+
+**The coaching rule, written before any candidate's coaching text is read.** A
+coaching writer is kept when, on 200 held-out game moments and 200 held-out
+puzzle moments:
+
+1. at least 97% of its texts pass the truth check (the app would show a text
+   that fails the check only after a rewrite, or fall back to today's text, so
+   the rate sets how often that happens);
+2. the claim audit finds at most 0.02 false claims a text, the 95% interval's
+   upper end at most 0.04, and at most 0.05 unsupported claims a text, with the
+   decoy control holding;
+3. the teaching judge prefers it to today's text in more than half of the
+   decided comparisons, with the interval over games and over calls above one
+   half, on game moments and on puzzle moments; and
+4. its median length is at most 150 words.
+
+If more than one writer is kept, the one that costs least per moment on
+Workers AI is taken. The bars of 2 are provisional, for the project's owner to
+set. Six
+coaching texts from Sonnet 5.5, not a candidate, were read to check the prompt
+before this rule was written.
+
 ## The models
 
 The open models that Cloudflare's Workers AI serves and review-writer
@@ -150,6 +202,11 @@ Claude models where they can be run for both tasks.
 | `line-tactics-dev.mjs` | The development set's comparison of readings that set `line-tactics.mjs`'s tiers. |
 | `line-tactics-peek.mjs` | Prints development-set mates that the back-rank reading and Lichess's tags disagree on. |
 | `line_sample.py` | Draws `line-tactics.mjs`'s held-out set by streaming the Lichess puzzle database. |
+| `coach-sheet.mjs` | The coaching sheet of a moment, with the app's engine, Maia-2 and board code. Sharded and resumable. |
+| `coach-prompts.mjs` | The coaching task's prompt and the trimmed sheet a writer reads. |
+| `coach-check.mjs` | The coaching task's truth check, against the trimmed sheet. |
+| `coach-rubric.mjs` | The coaching rubric judge and claim audit, with a decoy control and paired differences between writers. |
+| `engine-peek.mjs`, `threat-peek.mjs`, `coach-vocab-peek.mjs` | Print the app engine's lines, the threat reading and a sheet's truth-check vocabulary for one position. |
 
 ## Running it
 
