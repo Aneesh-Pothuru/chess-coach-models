@@ -145,9 +145,19 @@ moves, and a habit.
   move, the refuting line, what it changes hands and its tactics; and the better
   move's line with its idea. The tactics are `line-tactics.mjs`'s readings: the
   point tier may be called the idea, the also tier only what a move does.
-- **The prompt** (`coach-prompts.mjs`, version 1). The writer reads a trimmed
-  sheet with no evaluations or percentages: the move played and one more
-  candidate most players at the level choose, when it fails too.
+- **The prompt** (`coach-prompts.mjs`). The writer reads a trimmed sheet with
+  no evaluations or percentages: the move played and one more candidate most
+  players at the level choose, when it fails too. Version 2 marks how forced
+  each reply in a line is by the rules alone (the only legal move, or a check
+  the king has two or three squares out of) and asks the writer to tell a line
+  as cause and effect: which move forces which reply, and what that reply sets
+  up. A puzzle's better line is its answer key, carried on by the engine's line
+  from the key's end to what it wins.
+- **Training puzzles** (`train_puzzles.py`). 3,200 Lichess puzzles, 100 on
+  each of 32 themes, rated 900 to 1900, none in the held-out sets; their sheets
+  are made straight from the puzzles (`coach-sheet.mjs --puzzles`, with Maia-2's
+  likeliest error at the band as the move played), for a teacher's coaching
+  texts and a fine-tune.
 - **The measures.** The truth check (`coach-check.mjs`, review-writer's reading
   of a text against the trimmed sheet, with sacrifices, deflections, decoys,
   double checks, smothered and back-rank mates and promotions added to the
@@ -204,6 +214,8 @@ Claude models where they can be run for both tasks.
 | `line_sample.py` | Draws `line-tactics.mjs`'s held-out set by streaming the Lichess puzzle database. |
 | `coach-sheet.mjs` | The coaching sheet of a moment, with the app's engine, Maia-2 and board code. Sharded and resumable. |
 | `coach-prompts.mjs` | The coaching task's prompt and the trimmed sheet a writer reads. |
+| `train_puzzles.py` | Samples the coaching task's training puzzles from the Lichess database, by theme. |
+| `engine-lines-check.mjs` | Compares the app engine's multi-line and single-line searches on moments. |
 | `coach-check.mjs` | The coaching task's truth check, against the trimmed sheet. |
 | `coach-rubric.mjs` | The coaching rubric judge and claim audit, with a decoy control and paired differences between writers. |
 | `engine-peek.mjs`, `threat-peek.mjs`, `coach-vocab-peek.mjs` | Print the app engine's lines, the threat reading and a sheet's truth-check vocabulary for one position. |

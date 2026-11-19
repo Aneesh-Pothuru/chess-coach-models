@@ -7,7 +7,7 @@
 //   node projects/coach-eval/coach-prompts.mjs --sheets <sheets.jsonl,...> --out <prompts.jsonl>
 import { readFileSync, writeFileSync } from 'node:fs'
 
-export const COACH_PROMPT_VERSION = 1
+export const COACH_PROMPT_VERSION = 2
 
 const arg = (name, fallback) => {
   const i = process.argv.indexOf(`--${name}`)
@@ -17,7 +17,7 @@ const readJsonl = (path) => readFileSync(path, 'utf8').split('\n').filter(Boolea
 
 const VERDICT = { best: 'the best move', excellent: 'an excellent move', good: 'a good move', ok: 'a playable move', book: 'a book move', inaccuracy: 'an inaccuracy', mistake: 'a mistake', blunder: 'a blunder', miss: 'a missed chance' }
 const often = (share) => (share >= 0.4 ? 'most players at your level choose it' : share >= 0.15 ? 'many players at your level choose it' : share >= 0.05 ? 'some players at your level choose it' : 'few players at your level choose it')
-const lineOf = (moves) => moves.map((p) => ({ move: p.move, by: p.by, ...(p.does.length ? { what_it_does: p.does } : {}) }))
+const lineOf = (moves) => moves.map((p) => ({ move: p.move, by: p.by, ...(p.forced && COACH_PROMPT_VERSION >= 2 ? { how_forced: p.forced } : {}), ...(p.does.length ? { what_it_does: p.does } : {}) }))
 const tactics = (xs) => xs.map((x) => (x.text.toLowerCase().includes(x.tactic.toLowerCase()) ? x.text : `${x.tactic}: ${x.text}`))
 
 function failing(c) {
@@ -67,6 +67,9 @@ export const COACH_SYSTEM = [
   '(2) why the natural move fails: for the move you played, and for another candidate in candidates_that_fail if there is one, give their reply and what it does, the key moves of the line after it, and how it ends;',
   '(3) the better move and its idea: name it, give the key moves of its line and what they do, name the point of the line when the sheet gives one, and say how it ends;',
   'The key moves of a line are its checks, its captures and the move that makes its point; leave out the others rather than list every move.',
+  ...(COACH_PROMPT_VERSION >= 2 ? [
+    'Tell a line as a chain of cause and effect, the way a coach thinks it through at the board: which move forces which reply, and what that reply sets up. When the sheet says how forced a reply is, say so in your own words (for example that it is check and the king has to step aside), and then what that lets the next move do (for example that the knight now forks the king and queen). Call a reply forced only when the sheet says so.',
+  ] : []),
   '(4) close with one habit for the board, in a sentence of its own: advice to the player, not a claim about the position.',
   'The player plays the side in you_play; call the other side "your opponent" or "they".',
   'Use only the coaching sheet. Name only moves, squares, pieces and numbers that appear in it. Call something a fork, pin, skewer, mate or any other tactic only where the sheet names that tactic for that move, and call it the point or the idea only if it is listed as the point. Keep every fact with the move the sheet gives it to. Never claim a check, a mate, a threat or a material gain the sheet does not state.',

@@ -19,7 +19,12 @@
 //
 //   bridge/run.sh projects/coach-eval/coach-sheet.mjs --moments <a.jsonl,...> \
 //     (--ids <id,...> | --sample <prompts.jsonl,...>) --out <sheets.jsonl> [--shard k/n]
+//   bridge/run.sh projects/coach-eval/coach-sheet.mjs --puzzles <puzzles.json> --out <sheets.jsonl> [--shard k/n] [--rating 1350]
 //   bridge/run.sh projects/coach-eval/coach-sheet.mjs --moments <a.jsonl,...> --rederive <sheets.jsonl,...> --out <sheets.jsonl>
+//   bridge/run.sh projects/coach-eval/coach-sheet.mjs --moments <a.jsonl,...> --supplement <sheets.jsonl,...> --out <sheets.jsonl>
+//
+// --puzzles makes each puzzle's moment itself (puzzleMoment): Maia-2's likeliest error
+// at the band as the move played, and the answer key as the better line.
 //
 // Each sheet keeps the engines' answers it was read from (`search`), and --rederive
 // reads the facts again from them with no engine, after a change to how they are read.
@@ -152,14 +157,15 @@ function exchangeText(fen, ucis, pov) {
 /**
  * The part of a line that carries its point: up to its mate, or to the first position
  * after the opponent's reply where the solver's material gain is at its highest within
- * the first `cap` plies. A line that wins nothing keeps its first six plies.
+ * the first `cap` plies, and never fewer than `min` plies. A line that wins nothing
+ * keeps its first six plies.
  */
-function settle(fen, pv, cap = 12) {
+function settle(fen, pv, cap = 12, min = 0) {
   const b = new Chess(fen)
   const solver = b.turn()
   const start = K.materialFor(fen, solver)
-  let best = { at: Math.min(6, pv.length), net: 0 }
-  for (let i = 0; i < Math.min(pv.length, cap); i++) {
+  let best = { at: Math.min(Math.max(6, min), pv.length), net: 0 }
+  for (let i = 0; i < Math.min(pv.length, Math.max(cap, min)); i++) {
     try {
       b.move({ from: pv[i].slice(0, 2), to: pv[i].slice(2, 4), promotion: pv[i][4] })
     } catch {
@@ -171,7 +177,7 @@ function settle(fen, pv, cap = 12) {
       if (net > best.net) best = { at: i + 1, net }
     }
   }
-  return { pv: pv.slice(0, best.at), net: best.net, mate: false }
+  return { pv: pv.slice(0, Math.max(best.at, Math.min(min, pv.length))), net: best.net, mate: false }
 }
 
 /** A sentence for each concept a line carries out, naming the move and the pieces. */
@@ -248,9 +254,24 @@ function settledLength(fen, pv, min) {
 }
 
 /**
- * A line move by move, with what each move does; a capture on the square the move
- * before it landed on is a recapture, and says so. `lastTo` is where the move before
- * the line landed.
+ * How forced a move is, from the rules alone: the only legal move, the king's only
+ * squares out of a check, or one of a few answers to a check. A reply the rules leave
+ * free is not called forced, however clearly it is best.
+ */
+function forcedness(fen) {
+  const b = new Chess(fen)
+  const legal = b.moves({ verbose: true })
+  if (legal.length === 1) return b.inCheck() ? 'forced: the only legal answer to the check' : 'forced: the only legal move'
+  if (!b.inCheck() || legal.length > 3) return null
+  if (legal.every((x) => x.piece === 'k')) return `it is check, and the king has only ${legal.length} squares`
+  return `it is check, with only ${legal.length} legal answers`
+}
+
+/**
+ * A line move by move, with what each move does and, for a move made in check or with
+ * no other legal move, how forced it is; a capture on the square where the move before
+ * it captured is a recapture, and says so. `lastTo` is where the move before the line
+ * captured, if it did.
  */
 function annotate(fen, pv, pov, lastTo = null) {
   const out = []
@@ -263,11 +284,29 @@ function annotate(fen, pv, pov, lastTo = null) {
     } catch {
       break
     }
-    out.push({ move: mv.san, by: mv.color === pov ? 'you' : 'they', does: said(f, uci, pov, !!mv.captured && mv.to === prev) })
+    const forced = forcedness(f)
+    out.push({ move: mv.san, by: mv.color === pov ? 'you' : 'they', does: said(f, uci, pov, !!mv.captured && mv.to === prev), ...(forced ? { forced } : {}) })
     prev = mv.captured ? mv.to : null
     f = fenAfter(f, uci)
   }
   return out
+}
+
+/** A line taken as given, such as a puzzle's answer key: its moves, its mate and its material, with no cut. */
+function exactLine(fen, pv) {
+  const b = new Chess(fen)
+  const solver = b.turn()
+  const start = K.materialFor(fen, solver)
+  const kept = []
+  for (const u of pv) {
+    try {
+      b.move({ from: u.slice(0, 2), to: u.slice(2, 4), promotion: u[4] })
+    } catch {
+      break
+    }
+    kept.push(u)
+  }
+  return { pv: kept, net: K.materialFor(b.fen(), solver) - start, mate: b.isCheckmate() }
 }
 
 /**
@@ -276,12 +315,12 @@ function annotate(fen, pv, pov, lastTo = null) {
  * the line answers and that move, whose own capture the material count includes. A
  * line that neither mates nor changes material keeps only its first two moves.
  */
-function lineFacts(fen, pv, pov, before = null, lead = null, short = false) {
-  const settled = settle(fen, pv)
+function lineFacts(fen, pv, pov, before = null, lead = null, short = false, exact = false, min = 0) {
+  const settled = exact ? exactLine(fen, pv) : settle(fen, pv, 12, min)
   const leadSan = lead ? sanOf(before, lead) : null
   const count = (ucis) => exchangeText(before ?? fen, [...(lead ? [lead] : []), ...ucis], pov)
   const full = count(settled.pv)
-  const shown = !short && (full.mate || full.net !== 0) ? settled.pv : settled.pv.slice(0, settledLength(fen, settled.pv, 2))
+  const shown = exact || min > 0 || (!short && (full.mate || full.net !== 0)) ? settled.pv : settled.pv.slice(0, settledLength(fen, settled.pv, 2))
   const material = shown === settled.pv ? full : count(shown)
   const signals = lineSignals({ fen, pv: shown, before, lastSan: leadSan })
   const lastTo = lead && toMove(before, lead).captured ? lead.slice(2, 4) : null
@@ -336,9 +375,27 @@ async function searchOf(engine, m) {
     likely,
     candidates,
     threat: threat?.pv?.length ? { fen: flipped, pv: threat.pv } : null,
+    afterKey: await afterKeyOf(engine, m),
     lines: set.lines.length,
     provisional: set.provisional?.length ?? 0,
   }
+}
+
+/** The engine's line from the end of a puzzle's answer key, so the key can be carried on to what it wins. */
+async function afterKeyOf(engine, m) {
+  const key = Array.isArray(m.best?.solution) ? m.best.solution : null
+  if (!key?.length) return null
+  const b = new Chess(m.fen)
+  for (const u of key) {
+    try {
+      b.move({ from: u.slice(0, 2), to: u.slice(2, 4), promotion: u[4] })
+    } catch {
+      return null
+    }
+  }
+  if (b.isGameOver()) return { pv: [] }
+  const r = await engine.evaluate(position(b.fen()), 'sweep', { cache: 'bypass', priority: 'batch' })
+  return { pv: r.pv ?? [] }
 }
 
 /** The opponent's threat, read from the flipped position's line: a check or capture that mates or wins two points. */
@@ -375,10 +432,21 @@ function sheetFrom(m, s) {
     }
     candidates.push(c)
   }
-  const bestPv = s.root.pv.length && (!s.top[0] || s.root.pv[0] === s.top[0].pv[0]) ? s.root.pv : s.top[0]?.pv ?? []
-  const legal = new Chess(fen).moves({ verbose: true })
+  // A puzzle's answer key is the line to coach from, carried on by the engine's line
+  // when that line plays the whole key first, so a key that stops before its point is
+  // cashed in still shows what it wins; a game moment's line is the engine's.
+  const answerKey = Array.isArray(m.best?.solution) && m.best.solution.length ? m.best.solution : null
+  const carried = answerKey && s.afterKey?.pv?.length ? [...answerKey, ...s.afterKey.pv] : null
+  const keyGoesOn = !!answerKey && (!!carried || (s.root.pv.length > answerKey.length && answerKey.every((u, i) => s.root.pv[i] === u)))
+  const bestPv = answerKey ? (carried ?? (keyGoesOn ? s.root.pv : answerKey)) : s.root.pv.length && (!s.top[0] || s.root.pv[0] === s.top[0].pv[0]) ? s.root.pv : s.top[0]?.pv ?? []
+  const board = new Chess(fen)
+  const legal = board.moves({ verbose: true })
   const theirKing = K.kingDanger(fen, them)
   const notice = []
+  if (board.inCheck()) {
+    const king = board.board().flat().find((c) => c && c.type === 'k' && c.color === pov).square
+    notice.push(`you are in check from ${listOf(board.attackers(king, them).map((sq) => `their ${PIECE[board.get(sq).type]} on ${sq}`))}`)
+  }
   for (const h of K.hangingPieces(fen, them)) notice.push(`their ${PIECE[h.piece] ?? h.piece} on ${h.square} is loose (${h.kind})`)
   if (safeBool(() => K.backRankWeakness(fen, them))) notice.push('their king is boxed in on its back rank by its own pieces')
   else if (theirKing?.signs?.includes('noSafeSquares')) notice.push(`their king on ${theirKing.king} has no safe square to step to`)
@@ -387,7 +455,7 @@ function sheetFrom(m, s) {
   for (const h of K.hangingPieces(fen, pov)) notice.push(`your ${PIECE[h.piece] ?? h.piece} on ${h.square} is loose (${h.kind})`)
   const threat = threatFacts(s.threat, pov)
   if (threat) notice.push(`their threat, if it were their move: ${threat.text}${threat.facts.gain === 'mate' ? ', and their line mates' : ''}`)
-  const best = lineFacts(fen, bestPv, pov)
+  const best = answerKey ? lineFacts(fen, bestPv, pov, null, null, false, !keyGoesOn, answerKey.length) : lineFacts(fen, bestPv, pov)
   return {
     id: `${m.game}:${m.index}`,
     you_play: pov === 'w' ? 'White' : 'Black',
@@ -397,7 +465,7 @@ function sheetFrom(m, s) {
     what_to_notice: notice,
     their_threat: threat ? { move: threat.move, line: threat.facts.line.map((p) => p.move), idea: threat.facts.idea, also: threat.facts.also, result: threat.facts.result } : null,
     candidates,
-    better_move: { move: bestPv.length ? sanOf(fen, bestPv[0]) : null, evaluation: pawns(s.top[0]?.score ?? s.root.score, pov), ...best },
+    better_move: { move: bestPv.length ? sanOf(fen, bestPv[0]) : null, evaluation: pawns(s.top[0]?.score ?? s.root.score, pov), from: answerKey ? 'the puzzle\'s answer key' : 'the engine', ...best },
     engine: { lines: s.lines, provisional: s.provisional, maia_band: s.band },
     source: m.source ?? null,
     search: s,
@@ -412,6 +480,55 @@ function safeBool(f) {
   }
 }
 
+const ERRORS = ['inaccuracy', 'mistake', 'blunder', 'miss']
+
+/**
+ * A puzzle as a moment to coach: the position after its first move, its answer key, and
+ * as the move played the likeliest of Maia-2's four moves at the band, other than the
+ * answer, that the engine grades an inaccuracy or worse; null when none is.
+ */
+async function puzzleMoment(engine, p, rating) {
+  const b = new Chess(p.start)
+  const mover = b.turn()
+  const solution = []
+  for (const san of p.main) {
+    if (san === '--') break
+    let mv
+    try {
+      mv = b.move(san)
+    } catch {
+      break
+    }
+    if (mv.from === mv.to) break
+    solution.push(`${mv.from}${mv.to}${mv.promotion ?? ''}`)
+  }
+  if (!solution.length) return null
+  const band = defaultMaiaElo(rating - DEFAULT_LICHESS_OFFSET, DEFAULT_LICHESS_OFFSET)
+  const start = position(p.start)
+  const opts = { cache: 'bypass', priority: 'batch' }
+  const root = await engine.evaluate(start, 'sweep', opts)
+  const hp = await engine.humanPolicy(start, { bands: [band], opponentBand: band })
+  if (hp === 'unavailable') throw new Error('Maia-2 is unavailable')
+  const likely = Object.entries(hp.bands[0].policy).sort((a, b) => b[1] - a[1]).slice(0, 4)
+  for (const [uci] of likely) {
+    if (uci === solution[0]) continue
+    const after = await engine.evaluate(child(start, uci), 'sweep', opts)
+    const graded = classifyPly({ ply: 40, fenAfter: fenAfter(p.start, uci), uci, bestUci: root.best, before: root.score, after: after.score, standardStart: false })
+    if (!ERRORS.includes(graded.cls)) continue
+    return {
+      game: p.id,
+      index: 0,
+      fen: p.start,
+      mover,
+      rating,
+      played: { uci, san: sanOf(p.start, uci) },
+      best: { uci: solution[0], san: sanOf(p.start, solution[0]), solution },
+      source: { course: p.course, chapter: p.chapter, title: p.title, themes: p.themes ?? null, rating: p.rating ?? null },
+    }
+  }
+  return null
+}
+
 const momentId = (m) => `${m.game}:${m.index}`
 const moments = (arg('moments') ?? '').split(',').filter(Boolean).flatMap(readJsonl)
 const wanted = arg('ids')
@@ -420,12 +537,16 @@ const wanted = arg('ids')
 const byId = new Map(moments.map((m) => [momentId(m), m]))
 const out = arg('out')
 if (arg('rederive')) {
-  // Reads every sheet's facts again from its stored search, with no engine.
+  // Reads every sheet's facts again from its stored search, with no engine. A sheet
+  // made from a puzzle carries its own moment.
   const rows = arg('rederive').split(',').filter(Boolean).flatMap(readJsonl)
   const lines = rows.map((s) => {
     if (s.skip || !s.search) return JSON.stringify(s)
     try {
-      return JSON.stringify(sheetFrom(byId.get(s.id), s.search))
+      const m = s.moment ?? byId.get(s.id)
+      const sheet = sheetFrom(m, s.search)
+      if (s.moment) sheet.moment = s.moment
+      return JSON.stringify(sheet)
     } catch (e) {
       return JSON.stringify({ id: s.id, skip: String(e.message ?? e).slice(0, 120) })
     }
@@ -434,9 +555,32 @@ if (arg('rederive')) {
   console.error(`rederived ${rows.length} sheets into ${out}`)
   process.exit(0)
 }
+if (arg('supplement')) {
+  // Adds the searches a stored sheet lacks (the line after a puzzle's answer key), so
+  // --rederive can read it with the current code.
+  const rows = arg('supplement').split(',').filter(Boolean).flatMap(readJsonl)
+  const engine = createNodeEngine({ root: CHESS_DIR, tablebase: false, evalCache: false })
+  try {
+    const lines = []
+    for (const s of rows) {
+      if (!s.skip && s.search && s.search.afterKey === undefined) s.search.afterKey = await afterKeyOf(engine, s.moment ?? byId.get(s.id))
+      lines.push(JSON.stringify(s))
+    }
+    writeFileSync(out, lines.join('\n') + '\n')
+  } finally {
+    engine.dispose()
+  }
+  console.error(`supplemented ${rows.length} sheets into ${out}`)
+  process.exit(0)
+}
 const [k, n] = (arg('shard') ?? '0/1').split('/').map(Number)
 const done = new Set(out && existsSync(out) ? readJsonl(out).map((s) => s.id) : [])
-const todo = [...new Set(wanted)].filter((id, i) => i % n === k && byId.has(id) && !done.has(id))
+// --puzzles reads puzzles in lichess_puzzles.py's shape and makes their moments here.
+const puzzles = arg('puzzles') ? JSON.parse(readFileSync(arg('puzzles'), 'utf8')) : null
+const puzzleById = new Map((puzzles ?? []).map((p) => [`${p.id}:0`, p]))
+const todo = puzzles
+  ? [...puzzleById.keys()].filter((id, i) => i % n === k && !done.has(id))
+  : [...new Set(wanted)].filter((id, i) => i % n === k && byId.has(id) && !done.has(id))
 const engine = createNodeEngine({ root: CHESS_DIR, tablebase: false, evalCache: false })
 try {
   let made = 0
@@ -444,8 +588,10 @@ try {
   for (const id of todo) {
     let sheet
     try {
-      const m = byId.get(id)
-      sheet = sheetFrom(m, await searchOf(engine, m))
+      const m = puzzles ? await puzzleMoment(engine, puzzleById.get(id), Number(arg('rating', '1350'))) : byId.get(id)
+      if (m && puzzles) m.split = 'train'
+      sheet = m ? sheetFrom(m, await searchOf(engine, m)) : { id, skip: 'no likely error at the band' }
+      if (m && puzzles) sheet.moment = m
     } catch (e) {
       if (String(e).includes('Maia-2 is unavailable')) throw e
       sheet = { id, skip: String(e.message ?? e).slice(0, 120) }
