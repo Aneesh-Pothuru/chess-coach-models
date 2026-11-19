@@ -104,6 +104,18 @@ export function coachVocabularyOf(s, given = coachSheetOf(s)) {
     positions.push(...walk(s.fen, line))
     lines.push(line.slice(1))
   }
+  // A narrated line's replies, each with whether the rules force it and where it goes,
+  // and its mating moves.
+  const replies = new Map()
+  const mates = new Set()
+  for (const story of [given.the_better_line, given.the_line_your_move_allowed]) {
+    if (!story?.line?.length) continue
+    for (const p of story.line) {
+      if (p.move.endsWith('#')) mates.add(bare(p.move))
+      if (p.by === story.line[0].by) continue
+      replies.set(bare(p.move), { forced: (p.how_forced ?? '').startsWith('forced') || !!p.forced, to: bare(p.move).match(/[a-h][1-8]/g)?.pop() })
+    }
+  }
   const starts = new Set(lines.flatMap((l) => l.slice(0, 2)).map(bare))
   const stated = new Set([...joined.matchAll(PIECE_ON)].map((x) => `${x[1].toLowerCase()}@${x[2]}`))
   const ownerOf = (word) => (word.toLowerCase() === 'your' ? 'your' : 'their')
@@ -132,7 +144,33 @@ export function coachVocabularyOf(s, given = coachSheetOf(s)) {
     else if (x && typeof x === 'object') for (const [k, y] of Object.entries(x)) if (k !== 'move') visit(y, typeof x.move === 'string' ? x.move : owner)
   }
   visit(given, null)
-  return { moves, squares, numbers, positions, stated, mate: MATE.test(joined), mover: s.you_play === 'White' ? 'w' : 'b', near: positions, starts, tactics, owned, places }
+  const narration = !!(given.the_better_line || given.the_line_your_move_allowed)
+  return { moves, squares, numbers, positions, stated, mate: MATE.test(joined), mover: s.you_play === 'White' ? 'w' : 'b', near: positions, starts, tactics, owned, places, replies, mates, narration }
+}
+
+// A clause that says a reply had to be played.
+const FORCED_CLAIM = /\b(?:forced|forces|forcing|must|has to|have to|only (?:legal )?(?:move|answer|response|reply)|no (?:other )?choice|because (?:it is|it's|of the) (?:a )?check)\b/i
+
+/**
+ * A narrated reply called forced that the facts do not force: a clause that claims it
+ * and names the reply, the square it goes to, or (opening on "which" or "it") the move
+ * the clause before named.
+ */
+function unforcedClaims(sentence, v) {
+  if (!v.replies?.size) return []
+  const out = []
+  let before = []
+  for (const clause of sentence.split(/,|;|\band\b|\bbut\b/)) {
+    const named = [...clause.matchAll(MOVE)].map((x) => bare(x[0]))
+    const squares = [...clause.matchAll(SQUARE)].map((x) => x[0])
+    const moves = named.length ? named : /^\s*(?:which|that|it)\b/i.test(clause) ? before : []
+    if (FORCED_CLAIM.test(clause)) {
+      const hits = [...v.replies.entries()].filter(([m, r]) => moves.includes(m) || (r.to && squares.includes(r.to)))
+      if (hits.length && hits.every(([, r]) => !r.forced)) out.push(`a reply called forced that the facts do not force: ${hits.map(([m]) => m).join(', ')}`)
+    }
+    if (named.length) before = named
+  }
+  return out
 }
 
 // A sentence that puts a tactic later in the line ("Re8+ sets up a fork") does not say
@@ -141,6 +179,8 @@ const LATER = /\b(?:sets? up|setting up|leads? to|led to|leading to|prepares?|pr
 
 // A sentence that opens on "This move" or "It" goes on about the previous sentence's move.
 const BACK = /^(?:this|that|it|which|the move|the check|the capture|the sacrifice)\b/i
+
+const MATE_SHAPES = new Set(['backRank', 'smothered'])
 
 /**
  * A tactic a sentence gives to the wrong move: the sentence names moves, and none of
@@ -157,6 +197,8 @@ function misplacedTactics(sentence, v, previous = '') {
     const p = v.places.get(name)
     if (!p || !re.test(sentence)) continue
     if (moves.some((m) => p.moves.has(m)) || squares.some((q) => p.squares.has(q))) continue
+    // A mate's shape belongs to its mating move as well as to the move its fact names.
+    if (MATE_SHAPES.has(name) && moves.some((m) => v.mates?.has(m))) continue
     out.push(`a ${name} placed at ${named.join(', ')}: the facts give it to ${[...p.moves].join(', ')}`)
   }
   return out
@@ -165,15 +207,18 @@ function misplacedTactics(sentence, v, previous = '') {
 /**
  * A coaching text's misses. The closing sentence is the habit, advice to the player
  * rather than a claim about the position, so a tactic it names ("before you sacrifice
- * a piece") is not held to the sheet; its moves, squares and numbers still are.
+ * a piece") is not held to the sheet; its moves, squares and numbers still are. A
+ * narration has no habit, so all of it is held to the facts, and a reply it calls
+ * forced must be one the rules force.
  */
 export function coachVerdictOf(text, v) {
   const sentences = text.trim().split(/(?<=[.!?])\s+/)
-  const body = sentences.length > 1 ? sentences.slice(0, -1).join(' ') : text
+  const claims = v.narration || sentences.length === 1 ? sentences : sentences.slice(0, -1)
   const plain = verdictOf(text, v, {})
-  const tactics = verdictOf(body, v, COACH_TACTICS).filter((m) => m.startsWith('a ') && m.endsWith('the facts do not name') && !m.startsWith('a mate'))
-  const placed = (sentences.length > 1 ? sentences.slice(0, -1) : sentences).flatMap((x, i) => misplacedTactics(x, v, sentences[i - 1] ?? ''))
-  return [...plain, ...tactics, ...placed]
+  const tactics = verdictOf(claims.join(' '), v, COACH_TACTICS).filter((m) => m.startsWith('a ') && m.endsWith('the facts do not name') && !m.startsWith('a mate'))
+  const placed = claims.flatMap((x, i) => misplacedTactics(x, v, sentences[i - 1] ?? ''))
+  const unforced = v.narration ? sentences.flatMap((x) => unforcedClaims(x, v)) : []
+  return [...plain, ...tactics, ...placed, ...unforced]
 }
 
 if (process.argv[1]?.endsWith('coach-check.mjs')) {

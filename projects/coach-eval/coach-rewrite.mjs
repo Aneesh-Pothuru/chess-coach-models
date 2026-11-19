@@ -27,7 +27,7 @@ import { lineFacts } from './coach-lines.mjs'
 import { gainOf } from './coach-text.mjs'
 
 export const REWRITE_PROMPT_VERSION = 3
-export const NARRATE_PROMPT_VERSION = 5
+export const NARRATE_PROMPT_VERSION = 6
 
 const arg = (name, fallback) => {
   const i = process.argv.indexOf(`--${name}`)
@@ -206,10 +206,25 @@ export function setUpOf(story, version = NARRATE_PROMPT_VERSION) {
   return { ...story, line: line.slice(0, Math.min(at + 2, line.length)) }
 }
 
+/**
+ * From narration version 6 a reply is `forced` only when the rules force it. Any other
+ * answer to a check is `answers_the_check`, one of its few legal answers and not
+ * forced: under version 5's single `how_forced` note writers called those forced too
+ * ("Nxf6+, which forces exf6"), most of the false claims in its audit.
+ */
+function replyNoteOf(p) {
+  if (!p.how_forced) return p
+  const { how_forced, ...rest } = p
+  if (how_forced.startsWith('forced: ')) return { ...rest, forced: how_forced.slice('forced: '.length) }
+  const n = how_forced.match(/only (\d+)/)?.[1]
+  return { ...rest, answers_the_check: /king has only/.test(how_forced) ? `one of the king's ${n} squares, not forced` : `one of ${n} legal answers, not forced` }
+}
+
 /** The narration's facts: the lines whose chain is worth telling, or null when none is. */
 export function narrateSheetOf(s, m, version = NARRATE_PROMPT_VERSION) {
   const r = rewriteSheetOf(s, m, version >= 2 ? 3 : 2)
-  const pick = (story) => (version >= 3 ? setUpOf(story, version) : chainWorthTelling(story) ? story : null)
+  const noted = (story) => (story && version >= 6 ? { ...story, line: story.line.map(replyNoteOf) } : story)
+  const pick = (story) => noted(version >= 3 ? setUpOf(story, version) : chainWorthTelling(story) ? story : null)
   const better = pick(r.story_of_the_better_line)
   const allowed = pick(r.story_of_the_line_your_move_allowed)
   if (!better && !allowed) return null
@@ -243,6 +258,16 @@ export const NARRATE_SYSTEMS = {
     ...REWRITE_RULES.slice(0, 2),
     'Do not repeat the headline, give advice or a habit, or mention the engine, percentages or evaluations. Do not use headings, lists or markdown. Write only the sentences.',
   ].join(' '),
+  6: [
+    'You are the coach inside a chess training app. The app has already shown the player its explanation of one of their moves; you add the line that sets up its point, told the way a coach thinks it through at the board.',
+    'You are given the line, move by move up to its point: who plays each move, a reply the rules force (forced, only where they do), a reply that is one of a few legal answers to a check (answers_the_check), the tactic a move carries out, and how the line ends. Every fact was checked by a chess engine and the app\'s board-reading code.',
+    'Write one or two short sentences, at most 45 words, in plain words for a club player rated about the player_rating given, speaking to the player as "you".',
+    'Tell the line as cause and effect: the first move and what it does, the reply, and then the move that makes the point and what it does, ending with how the line ends. Where forced is given for a reply, say in your own words that it is forced and why. Where answers_the_check is given, the reply answers the check but is not forced: just name it, and never call it forced, never say they must or have to play it, and never say they play it because of the check. Where neither is given, just name the reply.',
+    'If the_line_your_move_allowed is given instead of the_better_line, tell it the same way from their side: their reply, your answer, and the move that makes their point.',
+    REWRITE_RULES[0],
+    'Use only the facts given. Name only moves, squares, pieces and numbers that appear in them. Name a tactic only at the move it is given for, and say what a capture takes only as the facts give it. Keep every fact with the move it belongs to. Never claim a check, a mate, a threat or a material gain the facts do not state, and give how the line ends in full, with what it costs.',
+    'Do not repeat the headline, give advice or a habit, or mention the engine, percentages or evaluations. Do not use headings, lists or markdown. Write only the sentences.',
+  ].join(' '),
 }
 NARRATE_SYSTEMS[2] = NARRATE_SYSTEMS[1]
 NARRATE_SYSTEMS[4] = NARRATE_SYSTEMS[3]
@@ -272,7 +297,8 @@ export function templateNarration(facts) {
   const side = story.line[0].by
   const parts = story.line.map((p, i) => {
     if (p.by === side) return p.tactic?.length ? bareTactic(p.tactic[0]) : `${i === 0 ? '' : 'then '}${p.move}`.trim()
-    return `after ${p.move}${p.how_forced ? ` (${p.how_forced})` : ''}`
+    const note = p.how_forced ?? (p.forced ? `forced: ${p.forced}` : p.answers_the_check ? `it answers the check, ${p.answers_the_check}` : null)
+    return `after ${p.move}${note ? ` (${note})` : ''}`
   })
   const lead = facts.the_better_line ? '' : `After ${facts.move_played}, `
   const text = `${lead}${parts.join(', ')}, and ${story.how_it_ends}.`
