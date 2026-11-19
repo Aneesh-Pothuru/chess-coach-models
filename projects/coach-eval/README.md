@@ -17,8 +17,20 @@ as today's text and the level far more often (100% against 19%), but adding
 about 0.2 false or unsupported claims a text, where today's text adds none.
 The rubric for the other models and for the bare task is still to run. The
 numbers are in review-writer's
-[results/round3.md](../review-writer/results/round3.md). This file fixed the
-tasks, the rubric and the measures before any model's text was read.
+[results/round3.md](../review-writer/results/round3.md). In round 4 a stricter
+prompt cut those claims to about 0.03 a text, for Gemma 4 and for the Llama
+3.2 3B fine-tuned on it alike ([round4.md](../review-writer/results/round4.md));
+most of what remains falls where the facts give no reason why the reply hurts.
+This file fixed the tasks, the rubric and the measures before any model's text
+was read.
+
+**Naming the tactic of a line (2026-11-19).** A coaching text needs the idea of
+the winning line, not only of its first move. Read with the app's own detectors
+at every solver move, a line's mate, back-rank mate, fork, attraction of the
+king, promotion, double check and four mate shapes agree with Lichess's tags
+96% of the time on 20,000 held-out puzzles, and the line finds every back-rank
+mate the tagger names, where the app's first-move labeller finds none
+([results/line-tactics.md](results/line-tactics.md)).
 
 ## The tasks
 
@@ -132,6 +144,11 @@ Claude models where they can be run for both tasks.
 | `lichess_puzzles.py` | Samples the Lichess puzzle database into `private/coach-eval/lichess-puzzles/`, in the shape the course puzzles take. |
 | `puzzle-facts.mjs` | Turns a puzzle set (`--set lichess` or `--set course`) into review moments with the app's code. Sharded and resumable. |
 | `puzzle-prompts.mjs` | Merges the puzzle moments and writes their grounded and bare prompts for a split. |
+| `rubric.mjs` | The rubric judge and claim audit: builds blind batches of a moment's texts beside today's text and a decoy, and scores the judge's answers with the paired difference in claims against today's text. |
+| `line-tactics.mjs` | The tactic a whole line carries out: the app's detectors at every solver move and how the line ends (`signals`), and their words scored against Lichess's puzzle themes (`score`). Exports `lineSignals`, `lineConcepts` and `RULES` for the coaching sheet. |
+| `line-tactics-dev.mjs` | The development set's comparison of readings that set `line-tactics.mjs`'s tiers. |
+| `line-tactics-peek.mjs` | Prints development-set mates that the back-rank reading and Lichess's tags disagree on. |
+| `line_sample.py` | Draws `line-tactics.mjs`'s held-out set by streaming the Lichess puzzle database. |
 
 ## Running it
 
@@ -142,6 +159,9 @@ for i in 0 1 2 3 4 5; do bridge/run.sh projects/coach-eval/puzzle-facts.mjs --se
 node projects/coach-eval/prompts.mjs --split train --limit 200
 node projects/coach-eval/puzzle-prompts.mjs --split train --limit 200
 bridge/run.sh projects/review-writer/check.mjs --today --split train --facts private/coach-eval/puzzle-moments.jsonl --name today-puzzles-train
+.venv/bin/python projects/coach-eval/line_sample.py
+for s in app heldout; do for i in 0 1 2 3 4 5; do bridge/run.sh projects/coach-eval/line-tactics.mjs signals --set $s --shard $i/6 & done; wait; done
+bridge/run.sh projects/coach-eval/line-tactics.mjs score --set heldout --shards 6
 ```
 
 The writers run on Colab with review-writer's `write.py`, and their texts are

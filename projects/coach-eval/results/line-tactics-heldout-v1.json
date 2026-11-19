@@ -1,0 +1,1890 @@
+{
+ "project": "coach-eval",
+ "analysis": "line-tactics",
+ "set": "heldout",
+ "app": "03eea91da93c8a9b3fe38646d2f1c6bc7968f21e",
+ "puzzles": 20000,
+ "skipped": 0,
+ "mates": {
+  "back-rank-mate": 2609,
+  "swallowtail-mate": 307,
+  "ladder-mate": 185,
+  "opera-mate": 178,
+  "smothered-mate": 114,
+  "bodens-mate": 107,
+  "anderssen-mate": 94,
+  "hook-mate": 67,
+  "lolli-mate": 64,
+  "scholars-mate": 56,
+  "greco-mate": 49,
+  "kiss-of-death": 48,
+  "anastasia-mate": 43,
+  "corner-mate": 42,
+  "epaulette-mate": 41,
+  "kill-box-mate": 34,
+  "damiano-mate": 33,
+  "arabian-mate": 27,
+  "h-file-mate": 25,
+  "suffocation-mate": 24,
+  "blind-swine-mate": 14,
+  "morphy-mate": 13,
+  "blackburne-mate": 2
+ },
+ "unmappedThemes": {
+  "short": 11059,
+  "endgame": 10096,
+  "middlegame": 8871,
+  "crushing": 6639,
+  "advantage": 5098,
+  "long": 4151,
+  "oneMove": 3869,
+  "master": 2640,
+  "kingsideAttack": 1982,
+  "opening": 1033,
+  "veryLong": 747,
+  "exposedKing": 427,
+  "queensideAttack": 313,
+  "pillsburysMate": 276,
+  "masterVsMaster": 226,
+  "bishopEndgame": 194,
+  "clearance": 179,
+  "queenRookEndgame": 162,
+  "knightEndgame": 143,
+  "zugzwang": 125,
+  "xRayAttack": 89,
+  "interference": 53,
+  "triangleMate": 37,
+  "equality": 29,
+  "dovetailMate": 20,
+  "collinearMove": 14,
+  "doubleBishopMate": 12,
+  "balestraMate": 11,
+  "enPassant": 10,
+  "superGM": 9,
+  "vukovicMate": 9,
+  "castling": 2,
+  "underPromotion": 1
+ },
+ "table": {
+  "firstMove": {
+   "checkmate": {
+    "tp": 3855,
+    "fp": 33,
+    "fn": 4205,
+    "precision": 0.9915123456790124,
+    "precisionCi": [
+     0.988,
+     0.994
+    ],
+    "recall": 0.478287841191067,
+    "recallCi": [
+     0.467,
+     0.489
+    ]
+   },
+   "fork": {
+    "tp": 1600,
+    "fp": 198,
+    "fn": 1167,
+    "precision": 0.8898776418242491,
+    "precisionCi": [
+     0.875,
+     0.904
+    ],
+    "recall": 0.5782435851102277,
+    "recallCi": [
+     0.56,
+     0.597
+    ]
+   },
+   "sacrifice": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 1267,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.003
+    ]
+   },
+   "discovered-attack": {
+    "tp": 591,
+    "fp": 226,
+    "fn": 546,
+    "precision": 0.7233782129742962,
+    "precisionCi": [
+     0.692,
+     0.753
+    ],
+    "recall": 0.5197889182058048,
+    "recallCi": [
+     0.491,
+     0.549
+    ]
+   },
+   "pin": {
+    "tp": 241,
+    "fp": 136,
+    "fn": 846,
+    "precision": 0.6392572944297082,
+    "precisionCi": [
+     0.59,
+     0.686
+    ],
+    "recall": 0.22171113155473782,
+    "recallCi": [
+     0.198,
+     0.247
+    ]
+   },
+   "rook-ending": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 1057,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.004
+    ]
+   },
+   "passed-pawn": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 1044,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.004
+    ]
+   },
+   "back-rank-mate": {
+    "tp": 0,
+    "fp": 10,
+    "fn": 891,
+    "precision": 0,
+    "precisionCi": [
+     0,
+     0.278
+    ],
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.004
+    ]
+   },
+   "deflection": {
+    "tp": 360,
+    "fp": 212,
+    "fn": 437,
+    "precision": 0.6293706293706294,
+    "precisionCi": [
+     0.589,
+     0.668
+    ],
+    "recall": 0.451693851944793,
+    "recallCi": [
+     0.417,
+     0.486
+    ]
+   },
+   "hanging-piece": {
+    "tp": 520,
+    "fp": 1398,
+    "fn": 237,
+    "precision": 0.2711157455683003,
+    "precisionCi": [
+     0.252,
+     0.291
+    ],
+    "recall": 0.6869220607661823,
+    "recallCi": [
+     0.653,
+     0.719
+    ]
+   },
+   "attraction": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 641,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.006
+    ]
+   },
+   "defensive-move": {
+    "tp": 66,
+    "fp": 4227,
+    "fn": 572,
+    "precision": 0.015373864430468204,
+    "precisionCi": [
+     0.012,
+     0.02
+    ],
+    "recall": 0.10344827586206896,
+    "recallCi": [
+     0.082,
+     0.13
+    ]
+   },
+   "pawn-ending": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 502,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.008
+    ]
+   },
+   "skewer": {
+    "tp": 284,
+    "fp": 121,
+    "fn": 212,
+    "precision": 0.7012345679012346,
+    "precisionCi": [
+     0.655,
+     0.744
+    ],
+    "recall": 0.5725806451612904,
+    "recallCi": [
+     0.529,
+     0.615
+    ]
+   },
+   "promotion": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 477,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.008
+    ]
+   },
+   "quiet-move": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 371,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.01
+    ]
+   },
+   "opera-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 226,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.017
+    ]
+   },
+   "queen-ending": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 216,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.017
+    ]
+   },
+   "trapped-piece": {
+    "tp": 142,
+    "fp": 45,
+    "fn": 71,
+    "precision": 0.7593582887700535,
+    "precisionCi": [
+     0.693,
+     0.815
+    ],
+    "recall": 0.6666666666666666,
+    "recallCi": [
+     0.601,
+     0.727
+    ]
+   },
+   "zwischenzug": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 176,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.021
+    ]
+   },
+   "f7-raid": {
+    "tp": 12,
+    "fp": 77,
+    "fn": 155,
+    "precision": 0.1348314606741573,
+    "precisionCi": [
+     0.079,
+     0.221
+    ],
+    "recall": 0.0718562874251497,
+    "recallCi": [
+     0.042,
+     0.121
+    ]
+   },
+   "removing-the-defender": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 110,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.034
+    ]
+   },
+   "smothered-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 110,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.034
+    ]
+   },
+   "double-check": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 105,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.035
+    ]
+   },
+   "epaulette-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 104,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.036
+    ]
+   },
+   "hook-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 57,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.063
+    ]
+   },
+   "corner-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 48,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.074
+    ]
+   },
+   "anastasia-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 36,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.096
+    ]
+   },
+   "swallowtail-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 34,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.102
+    ]
+   },
+   "kill-box-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 29,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.117
+    ]
+   },
+   "morphy-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 26,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.129
+    ]
+   },
+   "blind-swine-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 20,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.161
+    ]
+   },
+   "arabian-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 20,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.161
+    ]
+   },
+   "bodens-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 16,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.194
+    ]
+   }
+  },
+  "blunder": {
+   "checkmate": {
+    "tp": 8060,
+    "fp": 33,
+    "fn": 0,
+    "precision": 0.995922402075868,
+    "precisionCi": [
+     0.994,
+     0.997
+    ],
+    "recall": 1,
+    "recallCi": [
+     1,
+     1
+    ]
+   },
+   "fork": {
+    "tp": 1271,
+    "fp": 109,
+    "fn": 1496,
+    "precision": 0.9210144927536232,
+    "precisionCi": [
+     0.906,
+     0.934
+    ],
+    "recall": 0.4593422479219371,
+    "recallCi": [
+     0.441,
+     0.478
+    ]
+   },
+   "sacrifice": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 1267,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.003
+    ]
+   },
+   "discovered-attack": {
+    "tp": 550,
+    "fp": 138,
+    "fn": 587,
+    "precision": 0.7994186046511628,
+    "precisionCi": [
+     0.768,
+     0.828
+    ],
+    "recall": 0.4837291116974494,
+    "recallCi": [
+     0.455,
+     0.513
+    ]
+   },
+   "pin": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 1087,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.004
+    ]
+   },
+   "rook-ending": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 1057,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.004
+    ]
+   },
+   "passed-pawn": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 1044,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.004
+    ]
+   },
+   "back-rank-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 891,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.004
+    ]
+   },
+   "deflection": {
+    "tp": 281,
+    "fp": 246,
+    "fn": 516,
+    "precision": 0.5332068311195446,
+    "precisionCi": [
+     0.491,
+     0.575
+    ],
+    "recall": 0.35257214554579674,
+    "recallCi": [
+     0.32,
+     0.386
+    ]
+   },
+   "hanging-piece": {
+    "tp": 757,
+    "fp": 5559,
+    "fn": 0,
+    "precision": 0.11985433818872704,
+    "precisionCi": [
+     0.112,
+     0.128
+    ],
+    "recall": 1,
+    "recallCi": [
+     0.995,
+     1
+    ]
+   },
+   "attraction": {
+    "tp": 191,
+    "fp": 658,
+    "fn": 450,
+    "precision": 0.2249705535924617,
+    "precisionCi": [
+     0.198,
+     0.254
+    ],
+    "recall": 0.29797191887675506,
+    "recallCi": [
+     0.264,
+     0.334
+    ]
+   },
+   "defensive-move": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 638,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.006
+    ]
+   },
+   "pawn-ending": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 502,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.008
+    ]
+   },
+   "skewer": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 496,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.008
+    ]
+   },
+   "promotion": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 477,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.008
+    ]
+   },
+   "quiet-move": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 371,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.01
+    ]
+   },
+   "opera-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 226,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.017
+    ]
+   },
+   "queen-ending": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 216,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.017
+    ]
+   },
+   "trapped-piece": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 213,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.018
+    ]
+   },
+   "zwischenzug": {
+    "tp": 96,
+    "fp": 145,
+    "fn": 80,
+    "precision": 0.3983402489626556,
+    "precisionCi": [
+     0.339,
+     0.461
+    ],
+    "recall": 0.5454545454545454,
+    "recallCi": [
+     0.472,
+     0.617
+    ]
+   },
+   "f7-raid": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 167,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.022
+    ]
+   },
+   "removing-the-defender": {
+    "tp": 78,
+    "fp": 253,
+    "fn": 32,
+    "precision": 0.23564954682779457,
+    "precisionCi": [
+     0.193,
+     0.284
+    ],
+    "recall": 0.7090909090909091,
+    "recallCi": [
+     0.618,
+     0.786
+    ]
+   },
+   "smothered-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 110,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.034
+    ]
+   },
+   "double-check": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 105,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.035
+    ]
+   },
+   "epaulette-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 104,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.036
+    ]
+   },
+   "hook-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 57,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.063
+    ]
+   },
+   "corner-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 48,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.074
+    ]
+   },
+   "anastasia-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 36,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.096
+    ]
+   },
+   "swallowtail-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 34,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.102
+    ]
+   },
+   "kill-box-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 29,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.117
+    ]
+   },
+   "morphy-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 26,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.129
+    ]
+   },
+   "blind-swine-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 20,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.161
+    ]
+   },
+   "arabian-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 20,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.161
+    ]
+   },
+   "bodens-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 16,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.194
+    ]
+   }
+  },
+  "point": {
+   "checkmate": {
+    "tp": 8060,
+    "fp": 54,
+    "fn": 0,
+    "precision": 0.9933448360857776,
+    "precisionCi": [
+     0.991,
+     0.995
+    ],
+    "recall": 1,
+    "recallCi": [
+     1,
+     1
+    ]
+   },
+   "fork": {
+    "tp": 2199,
+    "fp": 460,
+    "fn": 568,
+    "precision": 0.8270026325686348,
+    "precisionCi": [
+     0.812,
+     0.841
+    ],
+    "recall": 0.7947235272858691,
+    "recallCi": [
+     0.779,
+     0.809
+    ]
+   },
+   "sacrifice": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 1267,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.003
+    ]
+   },
+   "discovered-attack": {
+    "tp": 917,
+    "fp": 453,
+    "fn": 220,
+    "precision": 0.6693430656934306,
+    "precisionCi": [
+     0.644,
+     0.694
+    ],
+    "recall": 0.8065083553210203,
+    "recallCi": [
+     0.783,
+     0.828
+    ]
+   },
+   "pin": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 1087,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.004
+    ]
+   },
+   "rook-ending": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 1057,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.004
+    ]
+   },
+   "passed-pawn": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 1044,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.004
+    ]
+   },
+   "back-rank-mate": {
+    "tp": 891,
+    "fp": 1,
+    "fn": 0,
+    "precision": 0.9988789237668162,
+    "precisionCi": [
+     0.994,
+     1
+    ],
+    "recall": 1,
+    "recallCi": [
+     0.996,
+     1
+    ]
+   },
+   "deflection": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 797,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.005
+    ]
+   },
+   "hanging-piece": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 757,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.005
+    ]
+   },
+   "attraction": {
+    "tp": 481,
+    "fp": 18,
+    "fn": 160,
+    "precision": 0.9639278557114228,
+    "precisionCi": [
+     0.944,
+     0.977
+    ],
+    "recall": 0.750390015600624,
+    "recallCi": [
+     0.715,
+     0.782
+    ]
+   },
+   "defensive-move": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 638,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.006
+    ]
+   },
+   "pawn-ending": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 502,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.008
+    ]
+   },
+   "skewer": {
+    "tp": 442,
+    "fp": 280,
+    "fn": 54,
+    "precision": 0.6121883656509696,
+    "precisionCi": [
+     0.576,
+     0.647
+    ],
+    "recall": 0.8911290322580645,
+    "recallCi": [
+     0.861,
+     0.916
+    ]
+   },
+   "promotion": {
+    "tp": 477,
+    "fp": 5,
+    "fn": 0,
+    "precision": 0.9896265560165975,
+    "precisionCi": [
+     0.976,
+     0.996
+    ],
+    "recall": 1,
+    "recallCi": [
+     0.992,
+     1
+    ]
+   },
+   "quiet-move": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 371,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.01
+    ]
+   },
+   "opera-mate": {
+    "tp": 115,
+    "fp": 63,
+    "fn": 111,
+    "precision": 0.6460674157303371,
+    "precisionCi": [
+     0.573,
+     0.713
+    ],
+    "recall": 0.5088495575221239,
+    "recallCi": [
+     0.444,
+     0.573
+    ]
+   },
+   "queen-ending": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 216,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.017
+    ]
+   },
+   "trapped-piece": {
+    "tp": 173,
+    "fp": 66,
+    "fn": 40,
+    "precision": 0.7238493723849372,
+    "precisionCi": [
+     0.664,
+     0.777
+    ],
+    "recall": 0.812206572769953,
+    "recallCi": [
+     0.754,
+     0.859
+    ]
+   },
+   "zwischenzug": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 176,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.021
+    ]
+   },
+   "f7-raid": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 167,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.022
+    ]
+   },
+   "removing-the-defender": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 110,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.034
+    ]
+   },
+   "smothered-mate": {
+    "tp": 110,
+    "fp": 4,
+    "fn": 0,
+    "precision": 0.9649122807017544,
+    "precisionCi": [
+     0.913,
+     0.986
+    ],
+    "recall": 1,
+    "recallCi": [
+     0.966,
+     1
+    ]
+   },
+   "double-check": {
+    "tp": 105,
+    "fp": 0,
+    "fn": 0,
+    "precision": 1,
+    "precisionCi": [
+     0.965,
+     1
+    ],
+    "recall": 1,
+    "recallCi": [
+     0.965,
+     1
+    ]
+   },
+   "epaulette-mate": {
+    "tp": 35,
+    "fp": 6,
+    "fn": 69,
+    "precision": 0.8536585365853658,
+    "precisionCi": [
+     0.716,
+     0.931
+    ],
+    "recall": 0.33653846153846156,
+    "recallCi": [
+     0.253,
+     0.432
+    ]
+   },
+   "hook-mate": {
+    "tp": 57,
+    "fp": 10,
+    "fn": 0,
+    "precision": 0.8507462686567164,
+    "precisionCi": [
+     0.747,
+     0.917
+    ],
+    "recall": 1,
+    "recallCi": [
+     0.937,
+     1
+    ]
+   },
+   "corner-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 48,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.074
+    ]
+   },
+   "anastasia-mate": {
+    "tp": 36,
+    "fp": 7,
+    "fn": 0,
+    "precision": 0.8372093023255814,
+    "precisionCi": [
+     0.7,
+     0.919
+    ],
+    "recall": 1,
+    "recallCi": [
+     0.904,
+     1
+    ]
+   },
+   "swallowtail-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 34,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.102
+    ]
+   },
+   "kill-box-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 29,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.117
+    ]
+   },
+   "morphy-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 26,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.129
+    ]
+   },
+   "blind-swine-mate": {
+    "tp": 3,
+    "fp": 11,
+    "fn": 17,
+    "precision": 0.21428571428571427,
+    "precisionCi": [
+     0.076,
+     0.476
+    ],
+    "recall": 0.15,
+    "recallCi": [
+     0.052,
+     0.36
+    ]
+   },
+   "arabian-mate": {
+    "tp": 20,
+    "fp": 7,
+    "fn": 0,
+    "precision": 0.7407407407407407,
+    "precisionCi": [
+     0.553,
+     0.868
+    ],
+    "recall": 1,
+    "recallCi": [
+     0.839,
+     1
+    ]
+   },
+   "bodens-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 16,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.194
+    ]
+   }
+  },
+  "all": {
+   "checkmate": {
+    "tp": 8060,
+    "fp": 54,
+    "fn": 0,
+    "precision": 0.9933448360857776,
+    "precisionCi": [
+     0.991,
+     0.995
+    ],
+    "recall": 1,
+    "recallCi": [
+     1,
+     1
+    ]
+   },
+   "fork": {
+    "tp": 2199,
+    "fp": 460,
+    "fn": 568,
+    "precision": 0.8270026325686348,
+    "precisionCi": [
+     0.812,
+     0.841
+    ],
+    "recall": 0.7947235272858691,
+    "recallCi": [
+     0.779,
+     0.809
+    ]
+   },
+   "sacrifice": {
+    "tp": 1179,
+    "fp": 2908,
+    "fn": 88,
+    "precision": 0.2884756545143137,
+    "precisionCi": [
+     0.275,
+     0.303
+    ],
+    "recall": 0.930544593528019,
+    "recallCi": [
+     0.915,
+     0.943
+    ]
+   },
+   "discovered-attack": {
+    "tp": 917,
+    "fp": 453,
+    "fn": 220,
+    "precision": 0.6693430656934306,
+    "precisionCi": [
+     0.644,
+     0.694
+    ],
+    "recall": 0.8065083553210203,
+    "recallCi": [
+     0.783,
+     0.828
+    ]
+   },
+   "pin": {
+    "tp": 475,
+    "fp": 467,
+    "fn": 612,
+    "precision": 0.5042462845010616,
+    "precisionCi": [
+     0.472,
+     0.536
+    ],
+    "recall": 0.43698252069917204,
+    "recallCi": [
+     0.408,
+     0.467
+    ]
+   },
+   "rook-ending": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 1057,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.004
+    ]
+   },
+   "passed-pawn": {
+    "tp": 1027,
+    "fp": 663,
+    "fn": 17,
+    "precision": 0.6076923076923076,
+    "precisionCi": [
+     0.584,
+     0.631
+    ],
+    "recall": 0.9837164750957854,
+    "recallCi": [
+     0.974,
+     0.99
+    ]
+   },
+   "back-rank-mate": {
+    "tp": 891,
+    "fp": 1,
+    "fn": 0,
+    "precision": 0.9988789237668162,
+    "precisionCi": [
+     0.994,
+     1
+    ],
+    "recall": 1,
+    "recallCi": [
+     0.996,
+     1
+    ]
+   },
+   "deflection": {
+    "tp": 553,
+    "fp": 406,
+    "fn": 244,
+    "precision": 0.5766423357664233,
+    "precisionCi": [
+     0.545,
+     0.608
+    ],
+    "recall": 0.6938519447929736,
+    "recallCi": [
+     0.661,
+     0.725
+    ]
+   },
+   "hanging-piece": {
+    "tp": 520,
+    "fp": 1398,
+    "fn": 237,
+    "precision": 0.2711157455683003,
+    "precisionCi": [
+     0.252,
+     0.291
+    ],
+    "recall": 0.6869220607661823,
+    "recallCi": [
+     0.653,
+     0.719
+    ]
+   },
+   "attraction": {
+    "tp": 481,
+    "fp": 18,
+    "fn": 160,
+    "precision": 0.9639278557114228,
+    "precisionCi": [
+     0.944,
+     0.977
+    ],
+    "recall": 0.750390015600624,
+    "recallCi": [
+     0.715,
+     0.782
+    ]
+   },
+   "defensive-move": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 638,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.006
+    ]
+   },
+   "pawn-ending": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 502,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.008
+    ]
+   },
+   "skewer": {
+    "tp": 442,
+    "fp": 280,
+    "fn": 54,
+    "precision": 0.6121883656509696,
+    "precisionCi": [
+     0.576,
+     0.647
+    ],
+    "recall": 0.8911290322580645,
+    "recallCi": [
+     0.861,
+     0.916
+    ]
+   },
+   "promotion": {
+    "tp": 477,
+    "fp": 5,
+    "fn": 0,
+    "precision": 0.9896265560165975,
+    "precisionCi": [
+     0.976,
+     0.996
+    ],
+    "recall": 1,
+    "recallCi": [
+     0.992,
+     1
+    ]
+   },
+   "quiet-move": {
+    "tp": 164,
+    "fp": 270,
+    "fn": 207,
+    "precision": 0.3778801843317972,
+    "precisionCi": [
+     0.334,
+     0.424
+    ],
+    "recall": 0.4420485175202156,
+    "recallCi": [
+     0.392,
+     0.493
+    ]
+   },
+   "opera-mate": {
+    "tp": 115,
+    "fp": 63,
+    "fn": 111,
+    "precision": 0.6460674157303371,
+    "precisionCi": [
+     0.573,
+     0.713
+    ],
+    "recall": 0.5088495575221239,
+    "recallCi": [
+     0.444,
+     0.573
+    ]
+   },
+   "queen-ending": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 216,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.017
+    ]
+   },
+   "trapped-piece": {
+    "tp": 173,
+    "fp": 66,
+    "fn": 40,
+    "precision": 0.7238493723849372,
+    "precisionCi": [
+     0.664,
+     0.777
+    ],
+    "recall": 0.812206572769953,
+    "recallCi": [
+     0.754,
+     0.859
+    ]
+   },
+   "zwischenzug": {
+    "tp": 100,
+    "fp": 162,
+    "fn": 76,
+    "precision": 0.3816793893129771,
+    "precisionCi": [
+     0.325,
+     0.442
+    ],
+    "recall": 0.5681818181818182,
+    "recallCi": [
+     0.494,
+     0.639
+    ]
+   },
+   "f7-raid": {
+    "tp": 12,
+    "fp": 77,
+    "fn": 155,
+    "precision": 0.1348314606741573,
+    "precisionCi": [
+     0.079,
+     0.221
+    ],
+    "recall": 0.0718562874251497,
+    "recallCi": [
+     0.042,
+     0.121
+    ]
+   },
+   "removing-the-defender": {
+    "tp": 92,
+    "fp": 355,
+    "fn": 18,
+    "precision": 0.2058165548098434,
+    "precisionCi": [
+     0.171,
+     0.246
+    ],
+    "recall": 0.8363636363636363,
+    "recallCi": [
+     0.756,
+     0.894
+    ]
+   },
+   "smothered-mate": {
+    "tp": 110,
+    "fp": 4,
+    "fn": 0,
+    "precision": 0.9649122807017544,
+    "precisionCi": [
+     0.913,
+     0.986
+    ],
+    "recall": 1,
+    "recallCi": [
+     0.966,
+     1
+    ]
+   },
+   "double-check": {
+    "tp": 105,
+    "fp": 0,
+    "fn": 0,
+    "precision": 1,
+    "precisionCi": [
+     0.965,
+     1
+    ],
+    "recall": 1,
+    "recallCi": [
+     0.965,
+     1
+    ]
+   },
+   "epaulette-mate": {
+    "tp": 35,
+    "fp": 6,
+    "fn": 69,
+    "precision": 0.8536585365853658,
+    "precisionCi": [
+     0.716,
+     0.931
+    ],
+    "recall": 0.33653846153846156,
+    "recallCi": [
+     0.253,
+     0.432
+    ]
+   },
+   "hook-mate": {
+    "tp": 57,
+    "fp": 10,
+    "fn": 0,
+    "precision": 0.8507462686567164,
+    "precisionCi": [
+     0.747,
+     0.917
+    ],
+    "recall": 1,
+    "recallCi": [
+     0.937,
+     1
+    ]
+   },
+   "corner-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 48,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.074
+    ]
+   },
+   "anastasia-mate": {
+    "tp": 36,
+    "fp": 7,
+    "fn": 0,
+    "precision": 0.8372093023255814,
+    "precisionCi": [
+     0.7,
+     0.919
+    ],
+    "recall": 1,
+    "recallCi": [
+     0.904,
+     1
+    ]
+   },
+   "swallowtail-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 34,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.102
+    ]
+   },
+   "kill-box-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 29,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.117
+    ]
+   },
+   "morphy-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 26,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.129
+    ]
+   },
+   "blind-swine-mate": {
+    "tp": 3,
+    "fp": 11,
+    "fn": 17,
+    "precision": 0.21428571428571427,
+    "precisionCi": [
+     0.076,
+     0.476
+    ],
+    "recall": 0.15,
+    "recallCi": [
+     0.052,
+     0.36
+    ]
+   },
+   "arabian-mate": {
+    "tp": 20,
+    "fp": 7,
+    "fn": 0,
+    "precision": 0.7407407407407407,
+    "precisionCi": [
+     0.553,
+     0.868
+    ],
+    "recall": 1,
+    "recallCi": [
+     0.839,
+     1
+    ]
+   },
+   "bodens-mate": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 16,
+    "precision": null,
+    "precisionCi": null,
+    "recall": 0,
+    "recallCi": [
+     0,
+     0.194
+    ]
+   }
+  }
+ }
+}
