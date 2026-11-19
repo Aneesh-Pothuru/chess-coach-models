@@ -140,8 +140,12 @@ narrations (version 5: a sacrifice is the way to the point, never the point) pas
 the truth check on all 81 development set-ups and wins 76% of puzzle comparisons with
 today's text and 94% with the template's narration, but its audit finds 0.14 false
 claims a text, as its teacher does, most of them a reply called forced when the check
-leaves two or three answers. Development numbers, in
-[results/coaching.md](results/coaching.md).
+leaves two or three answers. Version 6 gives a reply as forced only when the rules
+force it and holds writers and the training filter to that: fine-tuned on 1,411 checked
+narrations, the 3B narrator passes the truth check on all 81 set-ups, has no audited
+false or unsupported claim, and is preferred to today's text in 76% of puzzle and 20 of
+20 game comparisons. Development numbers, in [results/coaching.md](results/coaching.md);
+the coaching rule's verdict needs a fresh sample.
 
 ## The coaching task (from 2026-11-19)
 

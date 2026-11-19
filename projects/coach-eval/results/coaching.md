@@ -147,6 +147,45 @@ Version 6 should give a reply as forced only when the rules force it, give any o
 reply to a check as one of its legal answers under another name, and have the truth
 check and the training filter hold a writer to that.
 
+### Version 6: a forced reply told from an answer to a check
+
+Version 6's facts give a reply as `forced` only when the rules force it, and any other
+answer to a check as `answers_the_check` ("one of 3 legal answers, not forced"); the
+prompt tells the writer never to call such a reply forced, say they must play it, or
+that they play it because of the check. The truth check now flags a reply a narration
+calls forced that the facts do not force, and holds a narration's last sentence to the
+facts as well (a mate's shape counts as placed at its mating move); `narrate_sft.py`
+reads forced claims the same way, and the two agreed on all 29 of the version 5
+narrations either flagged. Under the new check version 5's fine-tune passes 63 of 81
+development narrations and Gemma's 69.
+
+The training set grew to 1,421 set-ups (1,154 of the first 2,946 themed puzzles, with
+the train-split moments). Gemma 4 narrated them in 8-bit (`write.py --quantization
+fp8`, since Colab gave a 40 GB A100), and only 7 of its 1,421 narrations still called
+a reply forced wrongly, against 11 of its 81 version 5 development narrations; 1,411
+passed the filter, and Llama 3.2 3B was fine-tuned on them (450 seconds, train loss
+0.31).
+
+| Version 6 narration added after the headline | Truth, games / puzzles | Median words | Audit: false / unsupported |
+|---|---|---|---|
+| Llama 3.2 3B, fine-tuned | 100% / 100% | 39 / 37 | 0.00 / 0.00 |
+| Gemma 4, the teacher (8-bit) | 90% / 95.8% | 41 / 37 | 0.07 / 0.02 |
+| Code template | 100% / 100% | 48 / 36 | not audited |
+| Llama 3.2 3B, version 5's fine-tune | 90% / 76.1% | 35 / 33 | 0.14 / 0.09 |
+
+| Judge, both with today's text | Games (10) | Puzzles (71) |
+|---|---|---|
+| Fine-tuned narration vs today's text alone | 100% (20 of 20) | 76.4% [68.1, 85.0], calls [46.2, 100] |
+| Fine-tuned narration vs the code template's | 80.0% [50, 100] | 96.5% [91.5, 99.3], calls [84.2, 100] |
+
+The fine-tuned narrator now meets every bar of the coaching rule on the development
+set: truth 100%, no audited false or unsupported claim in 81 narrations (rule of three:
+under 0.04 a text with 95% confidence), preferred to today's text on games and puzzles,
+37 words. It makes fewer audited claims than its teacher (Gemma minus Llama, 0.10 a
+text [0.02, 0.17]), since it learned only from narrations that passed the checks. The
+game result rests on 10 moments in one judge call, and every number here is a
+development number: the rule's verdict needs a fresh sample, of games above all.
+
 ## What the texts exposed in the facts
 
 - The opponent's threat was read in the position before the move played, and version 1
