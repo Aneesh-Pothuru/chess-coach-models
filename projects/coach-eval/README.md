@@ -11,11 +11,24 @@ measures before any model's text is read.
 
 ## The tasks
 
-Both tasks use [review-writer](../review-writer/)'s moments: the player's
-inaccuracies, mistakes, misses and blunders that Game Review gives a lesson,
-in rated 10-minute Lichess games from October 2026 between players rated 1200
-to 1500, with that project's train and held-out split by game. No game of the
-player's own is read.
+Both tasks run on two kinds of moment, with review-writer's train and held-out
+split (by game, or by puzzle). No game of the player's own is read.
+
+- **Game moments.** [review-writer](../review-writer/)'s moments: the player's
+  inaccuracies, mistakes, misses and blunders that Game Review gives a lesson,
+  in rated 10-minute Lichess games from October 2026 between players rated
+  1200 to 1500.
+- **Puzzle moments.** Puzzles on the themes the courses teach: 1,200 from the
+  Lichess puzzle database (CC0; 60 on each of 20 themes of calculation and
+  attack, rated 1100 to 1700, with at least 1,000 plays and a popularity of 80
+  or more), and the courses' own puzzles. In each puzzle's position, Maia-2 at
+  the player's band (chess.com 1100, Lichess 1350) names the four moves such a
+  player most likely plays; the first that the engine grades an inaccuracy or
+  worse becomes the move played, and the solution's first move, with the
+  engine's line after it, the better move. A puzzle whose first move the
+  engine does not hold, or where no likely move is an error, is dropped. Game
+  Review's own code then writes the moment's facts (the lesson, the mistake's
+  reading, the moves' purposes, the linked lesson chapter), as for a game.
 
 - **Grounded.** The model gets the moment's fact sheet (review-writer's
   `sheetOf`): the move played, the better move and their lines, what each does
@@ -52,8 +65,8 @@ opponent's best reply and judging an attack.
 
 ## The measures
 
-Each on the held-out moments, with a 95% bootstrap interval over games, for
-every model run:
+Each on the held-out moments, with a 95% bootstrap interval over games (or
+puzzles), for every model run:
 
 - **Truth.** The share of texts that pass the code check (review-writer's
   `check.mjs`). It finds every move, square and number a text names among the
@@ -83,9 +96,33 @@ aggregates are committed.
 
 The open models that Cloudflare's Workers AI serves and review-writer
 measures (Llama 3.1 8B, Qwen3 30B-A3B, gpt-oss-20b and Gemma 4 26B-A4B, run
-from their open weights on Colab), each review-writer prompt's writer, any
-model fine-tuned on review-writer's train moments, and Claude models where
-they can be run for both tasks.
+from their open weights on Colab), gpt-oss-120b as a ceiling, each
+review-writer prompt's writer, any model fine-tuned on the train moments, and
+Claude models where they can be run for both tasks.
+
+## Files
+
+| File | What it does |
+|---|---|
+| `lib.mjs` | The bare task's prompt. |
+| `prompts.mjs` | The bare task's prompts for review-writer's game moments of a split, in review-writer's sample order. |
+| `lichess_puzzles.py` | Samples the Lichess puzzle database into `private/coach-eval/lichess-puzzles/`, in the shape the course puzzles take. |
+| `puzzle-facts.mjs` | Turns a puzzle set (`--set lichess` or `--set course`) into review moments with the app's code. Sharded and resumable. |
+| `puzzle-prompts.mjs` | Merges the puzzle moments and writes their grounded and bare prompts for a split. |
+
+## Running it
+
+```bash
+.venv/bin/python projects/coach-eval/lichess_puzzles.py --per 60
+export CHESS_DIR="$(bridge/checkout.sh at 03eea91da93c8a9b3fe38646d2f1c6bc7968f21e)"
+for i in 0 1 2 3 4 5; do bridge/run.sh projects/coach-eval/puzzle-facts.mjs --set lichess --shard $i/6 & done; wait
+node projects/coach-eval/prompts.mjs --split train --limit 200
+node projects/coach-eval/puzzle-prompts.mjs --split train --limit 200
+bridge/run.sh projects/review-writer/check.mjs --today --split train --facts private/coach-eval/puzzle-moments.jsonl --name today-puzzles-train
+```
+
+The writers run on Colab with review-writer's `write.py`, and their texts are
+checked with review-writer's `check.mjs` (`--facts` for the puzzle moments).
 
 ## Sources
 
@@ -98,5 +135,8 @@ they can be run for both tasks.
   Board: Tool-Augmented Evaluation of LLM Chess Commentary*, arXiv 2608.04240,
   2026: claim-level checking of chess commentary against engine tools.
 
-No text, position or puzzle from the courses is used or kept here. The rubric
-puts their methods in this lab's own words.
+No text from the courses is used or kept here: the rubric puts their methods in
+this lab's own words. Their puzzles' positions and solutions are read from the
+owner's account into `private/coach-eval/course-puzzles/` on the owner's
+machine, for the puzzle task and for fine-tuning, and are never committed;
+only aggregates over them are.

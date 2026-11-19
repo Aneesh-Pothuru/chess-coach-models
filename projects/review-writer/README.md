@@ -83,8 +83,8 @@ and fine-tuning the best candidate on train is the next round's question.
 | `facts.mjs` | Reviews each kept game with the app's Game Review at the phone profile and writes one fact sheet a moment, with today's text, under `private/review-writer/`. Sharded and resumable. |
 | `lib.mjs` | What the scripts share: the split, today's text as the screen shows it, the fact sheet a writer reads and the writer's prompt. |
 | `prompts.mjs` | The writers' prompts for a split, from public games only, so the file can be read on Colab. `--limit N` takes the first N moments in a seeded order. |
-| `write.py` | Writes each prompt's explanation with one candidate's open weights under vLLM on a GPU (Colab), greedy. |
-| `check.mjs` | The rule's truth check in code, on a writer's texts or, with `--today`, on today's text as the control. A lesson's own idea is not a fact about the position, so it does not count as one. |
+| `write.py` | Writes each prompt's explanation with one candidate's open weights under vLLM on a GPU (Colab), greedy, loading the weights once for all the prompts files it is given. |
+| `check.mjs` | The rule's truth check in code, on a writer's texts or, with `--today`, on today's text as the control. A lesson's own idea is not a fact about the position, so it does not count as one. `--facts` adds other moments in the same shape, such as coach-eval's puzzle moments. |
 | `judge.mjs` | The blind judge's comparisons (`build`: a writer's text against today's in both orders, with a same-text control and a length-matched decoy) and their score (`score`: the preference over decided comparisons with a 95% bootstrap interval over games, and the controls). |
 
 The writer's prompt is in `lib.mjs` (`PROMPT_VERSION`). Prompt 1 gave the
@@ -101,8 +101,8 @@ for i in 0 1 2 3; do bridge/run.sh projects/review-writer/facts.mjs --month 2026
 bridge/run.sh projects/review-writer/check.mjs --today --split train
 node projects/review-writer/prompts.mjs --split train --limit 200
 
-# On a GPU (Colab), one writer a process:
-python projects/review-writer/write.py --prompts prompts-train-200.jsonl --writer qwen3-30b-a3b --out texts-train-qwen3-30b-a3b.jsonl
+# On a GPU (Colab), one writer a process; writes texts-prompts-train-200-v3-qwen3-30b-a3b.jsonl:
+python projects/review-writer/write.py --prompts prompts-train-200-v3.jsonl --writer qwen3-30b-a3b --out-dir .
 
-bridge/run.sh projects/review-writer/check.mjs --texts private/review-writer/texts-train-qwen3-30b-a3b.jsonl --name train-qwen3-30b-a3b
+bridge/run.sh projects/review-writer/check.mjs --texts private/review-writer/texts-prompts-train-200-v3-qwen3-30b-a3b.jsonl --name train-v3-qwen3-30b-a3b
 ```

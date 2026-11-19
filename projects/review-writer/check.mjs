@@ -7,10 +7,12 @@
 // and a mate it names must be one the facts name. Today's text is checked the
 // same way, as a control.
 //
-//   bridge/run.sh projects/review-writer/check.mjs --texts <file.jsonl> --name <name>
-//   bridge/run.sh projects/review-writer/check.mjs --today --split train|heldout
+//   bridge/run.sh projects/review-writer/check.mjs --texts <file.jsonl> --name <name> [--facts <moments.jsonl,...>]
+//   bridge/run.sh projects/review-writer/check.mjs --today --split train|heldout [--ids <prompts.jsonl>] [--facts <moments.jsonl,...>]
 //
 // A texts file holds one line a text: {"id": "<game>:<index>", "writer": "<name>", "text": "..."}.
+// --facts adds moments in facts.mjs's shape from other files, such as coach-eval's
+// puzzle moments; --today with --facts reads only those files' moments.
 import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { Chess } from 'chess.js'
@@ -133,15 +135,17 @@ function verdictOf(text, v) {
 }
 
 const dir = privateDir(PROJECT)
-const facts = new Map(readFacts(dir).map((m) => [momentId(m), m]))
+const extra = (arg('facts') ?? '').split(',').filter(Boolean).flatMap((path) => readJsonl(path))
+const facts = new Map([...readFacts(dir), ...extra].map((m) => [momentId(m), m]))
 let texts
 let name
 if (process.argv.includes('--today')) {
   const split = arg('split', 'train')
   const idsPath = arg('ids')
   const only = idsPath ? new Set(readJsonl(idsPath).map((r) => r.id)) : null
-  name = idsPath ? `today-${split}-${only.size}` : `today-${split}`
-  texts = [...facts.values()]
+  const pool = extra.length ? extra : [...facts.values()]
+  name = arg('name') ?? (idsPath ? `today-${split}-${only.size}` : `today-${split}`)
+  texts = pool
     .filter((m) => m.split === split && (!only || only.has(momentId(m))))
     .map((m) => ({ id: momentId(m), writer: 'today', text: todayText(m) }))
 } else {

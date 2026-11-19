@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """Writes each moment's explanation with one candidate model, on a GPU.
 
-Reads a prompts file (prompts.mjs: one line a moment with its chat messages)
+Reads prompts files (prompts.mjs: one line a moment with its chat messages)
 and writes one line a moment: {"id", "writer", "model", "text", "raw",
 "tokens"}. The candidates are the open weights of models Cloudflare's Workers
 AI serves (README). Decoding is greedy, so the same weights and vLLM version
 write the same texts. Each writer runs in its own process, so the GPU is free
-again when it ends.
+again when it ends, and loads its weights once for all the files it is given:
+each file's texts go to texts-<file name>-<writer>.jsonl in --out-dir.
 
-    python projects/review-writer/write.py --prompts prompts-train.jsonl --writer qwen3-30b-a3b --out texts-train-qwen3-30b-a3b.jsonl
+    python projects/review-writer/write.py --prompts prompts-train-v3.jsonl bare-train-200-v1.jsonl --writer qwen3-30b-a3b --out-dir texts
 """
 from __future__ import annotations
 
@@ -17,6 +18,7 @@ import json
 import re
 import sys
 import time
+from pathlib import Path
 
 WRITERS = {
     "llama-3.1-8b": {"model": "RedHatAI/Meta-Llama-3.1-8B-Instruct-FP8", "template": {}},
@@ -49,17 +51,20 @@ def merged(messages: list[dict]) -> list[dict]:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--prompts", required=True)
+    ap.add_argument("--prompts", required=True, nargs="+")
     ap.add_argument("--writer", required=True, choices=sorted(WRITERS))
-    ap.add_argument("--out", required=True)
+    ap.add_argument("--out-dir", default=".")
     ap.add_argument("--max-tokens", type=int, default=800)
     args = ap.parse_args()
 
     from vllm import LLM, SamplingParams
 
     writer = WRITERS[args.writer]
-    with open(args.prompts, encoding="utf-8") as f:
-        rows = [json.loads(line) for line in f if line.strip()]
+    files = []
+    for path in args.prompts:
+        with open(path, encoding="utf-8") as f:
+            files.append((Path(path).stem, [json.loads(line) for line in f if line.strip()]))
+    rows = [row for _, file_rows in files for row in file_rows]
     llm = LLM(model=writer["model"], max_model_len=8192, gpu_memory_utilization=0.9, seed=0)
     params = SamplingParams(temperature=0.0, max_tokens=args.max_tokens)
     started = time.time()
@@ -71,13 +76,18 @@ def main() -> int:
         if "system" not in str(e).lower():
             raise
         outputs = llm.chat([merged(c) for c in conversations], params, use_tqdm=True, **kwargs)
-    with open(args.out, "w", encoding="utf-8") as f:
-        for row, out in zip(rows, outputs, strict=True):
-            raw = out.outputs[0].text
-            f.write(json.dumps({"id": row["id"], "writer": args.writer, "model": writer["model"],
-                                "text": final_text(raw), "raw": raw, "tokens": len(out.outputs[0].token_ids)}) + "\n")
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    at = 0
+    for task, file_rows in files:
+        with open(out_dir / f"texts-{task}-{args.writer}.jsonl", "w", encoding="utf-8") as f:
+            for row, out in zip(file_rows, outputs[at:at + len(file_rows)], strict=True):
+                raw = out.outputs[0].text
+                f.write(json.dumps({"id": row["id"], "writer": args.writer, "model": writer["model"],
+                                    "text": final_text(raw), "raw": raw, "tokens": len(out.outputs[0].token_ids)}) + "\n")
+        at += len(file_rows)
     print(json.dumps({"writer": args.writer, "model": writer["model"], "moments": len(rows),
-                      "seconds": round(time.time() - started)}), file=sys.stderr)
+                      "files": len(files), "seconds": round(time.time() - started)}), file=sys.stderr)
     return 0
 
 
