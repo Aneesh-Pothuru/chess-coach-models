@@ -60,8 +60,10 @@ function ucisOf(fen, sans) {
   const board = new Chess(fen)
   const out = []
   for (const san of sans) {
+    if (san === '--') break
     try {
       const m = board.move(san)
+      if (m.from === m.to) break
       out.push(`${m.from}${m.to}${m.promotion ?? ''}`)
     } catch {
       break
@@ -139,7 +141,10 @@ try {
     if (k % shards !== shard || done.has(p.id)) continue
     if (limit && read >= limit) break
     read++
-    const r = await momentOf(p)
+    const r = await momentOf(p).catch((e) => {
+      if (String(e).includes('Maia-2 is unavailable')) throw e
+      return { skip: `error: ${String(e.message ?? e).slice(0, 80)}` }
+    })
     if (r.moment) {
       appendFileSync(outPath, JSON.stringify(r.moment) + '\n')
       written++

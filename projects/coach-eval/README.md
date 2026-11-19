@@ -30,6 +30,18 @@ split (by game, or by puzzle). No game of the player's own is read.
   Review's own code then writes the moment's facts (the lesson, the mistake's
   reading, the moves' purposes, the linked lesson chapter), as for a game.
 
+**What the puzzles gave (2026-11-18).** All 1,200 Lichess puzzles became
+moments (599 train, 601 held-out). Of the 317 course puzzles read, 272 did (133
+train, 139 held-out): in 38 none of the four likeliest moves at his band is an
+error, in 6 the engine does not hold the solution's first move, and 1 opens
+with a null move. Today's text passes the truth check on all 1,472. One thing
+the moments show about the app itself: the lesson Game Review links is a
+defense lesson ("Choose a defense that changes the threat" or "Choose the right
+kind of defense") in 435 of the 1,200 Lichess moments, including 46 of the 60
+hanging-piece puzzles, because the better move's purposes match those chapters
+first. The writers name the lesson the sheet gives, so the link's misses carry
+into their texts.
+
 - **Grounded.** The model gets the moment's fact sheet (review-writer's
   `sheetOf`): the move played, the better move and their lines, what each does
   by the board code, the mistake's reading, the linked lesson and the player's

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 import time
 from pathlib import Path
@@ -48,6 +49,7 @@ def main() -> int:
         model = AutoModelForCausalLM.from_pretrained(args.base, dtype=torch.bfloat16)
     except TypeError:
         model = AutoModelForCausalLM.from_pretrained(args.base, torch_dtype=torch.bfloat16)
+    steps = math.ceil(len(rows) / (args.batch * args.accum)) * args.epochs
     config = SFTConfig(
         output_dir=f"{args.out}-run",
         num_train_epochs=args.epochs,
@@ -56,10 +58,10 @@ def main() -> int:
         gradient_accumulation_steps=args.accum,
         gradient_checkpointing=True,
         lr_scheduler_type="cosine",
-        warmup_ratio=0.05,
+        warmup_steps=max(1, int(0.05 * steps)),
         logging_steps=10,
         save_strategy="no",
-        bf16=True,
+        bf16=torch.cuda.is_available(),
         max_length=4096,
         completion_only_loss=True,
         report_to=[],
@@ -79,7 +81,8 @@ def main() -> int:
     losses = [h["loss"] for h in trainer.state.log_history if "loss" in h]
     print(json.dumps({
         "base": args.base, "examples": len(rows), "epochs": args.epochs, "lr": args.lr, "rank": args.rank,
-        "steps": result.global_step, "first_loss": losses[0] if losses else None, "last_loss": losses[-1] if losses else None,
+        "steps": result.global_step, "train_loss": round(result.training_loss, 4),
+        "first_loss": losses[0] if losses else None, "last_loss": losses[-1] if losses else None,
         "adapter_mb": round(weights.stat().st_size / 2**20, 1), "seconds": round(time.time() - started),
     }), file=sys.stderr)
     return 0
