@@ -128,6 +128,16 @@ The judges are Sonnet 5.5, given the texts and the criteria only, never the
 writer's name. Their answers stay under `private/coach-eval/`, and only the
 aggregates are committed.
 
+**Telling a line out loud (2026-11-19).** Given the facts the board code reads off a
+line (how forced each reply is, the tactic each move carries out, how it ends), Gemma 4
+tells the chain of a set-up truthfully in most texts, but writing or rewriting the
+whole explanation loses to today's Game Review text in a blind judge about three times
+in four. Adding one or two sentences that tell only the set-up line after today's
+headline wins on puzzle set-ups: 63% with Gemma's wording and 87% with a template in
+code, and head to head the judge prefers Gemma's wording 91% of the time. On game
+moments it does not help yet. Development numbers, in
+[results/coaching.md](results/coaching.md).
+
 ## The coaching task (from 2026-11-19)
 
 Rewording Game Review's findings cannot coach a moment its facts do not explain
@@ -213,10 +223,14 @@ Claude models where they can be run for both tasks.
 | `line-tactics-peek.mjs` | Prints development-set mates that the back-rank reading and Lichess's tags disagree on. |
 | `line_sample.py` | Draws `line-tactics.mjs`'s held-out set by streaming the Lichess puzzle database. |
 | `coach-sheet.mjs` | The coaching sheet of a moment, with the app's engine, Maia-2 and board code. Sharded and resumable. |
+| `coach-lines.mjs` | Reads a line with the board code for a sheet or a prompt: how forced each move is, the tactics at each ply, what changes hands and how the line ends. |
+| `coach-text.mjs` | A narrator in code that tells a coaching sheet in fixed sentences, as a baseline. |
+| `coach-rewrite.mjs` | The rewrite task's prompts (today's explanation with the story of its lines) and the narration task's (the set-up line alone, `--task narrate`), with the narration's code template (`--task narrate-code`). |
+| `train-lessons.mjs` | Game Review's lesson for each themed training puzzle, read from its sheet's stored search. |
 | `coach-prompts.mjs` | The coaching task's prompt and the trimmed sheet a writer reads. |
 | `train_puzzles.py` | Samples the coaching task's training puzzles from the Lichess database, by theme. |
 | `engine-lines-check.mjs` | Compares the app engine's multi-line and single-line searches on moments. |
-| `coach-check.mjs` | The coaching task's truth check, against the trimmed sheet. |
+| `coach-check.mjs` | The coaching task's truth check, against the facts each writer was given (`--prompts`), including a tactic named for a move that does not carry it. |
 | `coach-rubric.mjs` | The coaching rubric judge and claim audit, with a decoy control and paired differences between writers. |
 | `engine-peek.mjs`, `threat-peek.mjs`, `coach-vocab-peek.mjs` | Print the app engine's lines, the threat reading and a sheet's truth-check vocabulary for one position. |
 

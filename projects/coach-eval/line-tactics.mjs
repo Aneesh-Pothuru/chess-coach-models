@@ -100,6 +100,7 @@ export function lineSignals({ fen, pv, before = null, lastSan = null }) {
       checkers: checkers.length,
       discoveredCheck: checkers.some((s) => s !== uci.slice(2, 4)),
       taken: !!reply?.captured && reply.to === mvs[i].to,
+      answered: i + 3 <= n,
       gave: VALUE[mvs[i].promotion ?? mvs[i].piece] - (mvs[i].captured ? VALUE[mvs[i].captured] : 0),
       kept: K.materialFor(fens[Math.min(i + 3, n)], solver) - K.materialFor(f, solver),
       net,
@@ -215,7 +216,8 @@ const SOURCES = {
   hanging: (s) => (s.best === 'hangingPiece' ? ['hanging-piece'] : []),
   passed: (s) => (s.promotion || s.describe.includes('passed-pawn') ? ['passed-pawn'] : []),
   quiet: (s, i, steps) => (s.quiet && i < steps.length - 1 ? ['quiet-move'] : []),
-  sacrifice: (s) => (s.taken && s.gave >= 2 && s.kept <= -2 ? ['sacrifice'] : []),
+  // A piece taken by the line's last move may only be the first half of a trade.
+  sacrifice: (s) => (s.taken && s.answered !== false && s.gave >= 2 && s.kept <= -2 ? ['sacrifice'] : []),
   capturingDefender: (s) => (s.capturingDefender ? ['removing-the-defender'] : []),
   f2f7: (s) => (s.best === 'attackingF2F7' ? ['f7-raid'] : []),
 }

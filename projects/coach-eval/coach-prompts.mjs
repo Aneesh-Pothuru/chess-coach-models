@@ -7,7 +7,7 @@
 //   node projects/coach-eval/coach-prompts.mjs --sheets <sheets.jsonl,...> --out <prompts.jsonl>
 import { readFileSync, writeFileSync } from 'node:fs'
 
-export const COACH_PROMPT_VERSION = 2
+export const COACH_PROMPT_VERSION = 3
 
 const arg = (name, fallback) => {
   const i = process.argv.indexOf(`--${name}`)
@@ -68,7 +68,9 @@ export const COACH_SYSTEM = [
   '(3) the better move and its idea: name it, give the key moves of its line and what they do, name the point of the line when the sheet gives one, and say how it ends;',
   'The key moves of a line are its checks, its captures and the move that makes its point; leave out the others rather than list every move.',
   ...(COACH_PROMPT_VERSION >= 2 ? [
-    'Tell a line as a chain of cause and effect, the way a coach thinks it through at the board: which move forces which reply, and what that reply sets up. When the sheet says how forced a reply is, say so in your own words (for example that it is check and the king has to step aside), and then what that lets the next move do (for example that the knight now forks the king and queen). Call a reply forced only when the sheet says so.',
+    COACH_PROMPT_VERSION >= 3
+      ? 'Tell a line as a chain of cause and effect, the way a coach thinks it through at the board: which move forces which reply, and what that reply lets the next move do. When the sheet says how forced a reply is, say so in your own words, then say what the next move does, in the sheet\'s words for that move. Call a reply forced only when the sheet says so, and name a tactic only at the move the sheet names it for.'
+      : 'Tell a line as a chain of cause and effect, the way a coach thinks it through at the board: which move forces which reply, and what that reply sets up. When the sheet says how forced a reply is, say so in your own words (for example that it is check and the king has to step aside), and then what that lets the next move do (for example that the knight now forks the king and queen). Call a reply forced only when the sheet says so.',
   ] : []),
   '(4) close with one habit for the board, in a sentence of its own: advice to the player, not a claim about the position.',
   'The player plays the side in you_play; call the other side "your opponent" or "they".',
