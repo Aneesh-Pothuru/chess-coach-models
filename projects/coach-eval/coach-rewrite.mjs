@@ -24,9 +24,10 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { Chess } from 'chess.js'
 import { lineFacts } from './coach-lines.mjs'
+import { gainOf } from './coach-text.mjs'
 
 export const REWRITE_PROMPT_VERSION = 3
-export const NARRATE_PROMPT_VERSION = 4
+export const NARRATE_PROMPT_VERSION = 5
 
 const arg = (name, fallback) => {
   const i = process.argv.indexOf(`--${name}`)
@@ -182,14 +183,21 @@ export function chainWorthTelling(story) {
  * SETUP_PLIES plies, and the story stops one ply after it, keeping how the line ends.
  * In games most lines' later tactics are side events of a long engine line, and a
  * blind judge preferred the app's text without them (results/coaching.md).
+ *
+ * Version 5 makes a sacrifice or an attraction the means, never the point: the story
+ * runs to the fork, promotion or mate it clears the way for, and a line whose payoff
+ * lies beyond reach is not told. It also tells a line only when it ends with a gain for
+ * the side that plays it, so a best defence that still loses material is left out.
  */
 const SETUP_PLIES = 6
+const MEANS = /^(sacrifice|attraction):/
 
 export function setUpOf(story, version = NARRATE_PROMPT_VERSION) {
   const line = story?.line ?? []
   if (line.length < 2) return null
   const side = line[0].by
-  const points = new Set(story.the_point ?? [])
+  if (version >= 5 && gainOf(story.how_it_ends ?? '') !== (side === 'you' ? 1 : -1)) return null
+  const points = new Set((story.the_point ?? []).filter((t) => version < 5 || !MEANS.test(t)))
   const isPoint = (p, i) => i > 0 && i < SETUP_PLIES && p.by === side && ((p.tactic ?? []).some((t) => points.has(t)) || /#$/.test(p.move))
   // Version 4 runs to the last point within reach, so a sacrifice that clears the way
   // is told with the fork or mate it sets up rather than stopping at the sacrifice.
@@ -238,6 +246,7 @@ export const NARRATE_SYSTEMS = {
 }
 NARRATE_SYSTEMS[2] = NARRATE_SYSTEMS[1]
 NARRATE_SYSTEMS[4] = NARRATE_SYSTEMS[3]
+NARRATE_SYSTEMS[5] = NARRATE_SYSTEMS[3]
 export const NARRATE_SYSTEM = NARRATE_SYSTEMS[1]
 
 export function narrateMessagesOf(sheet, moment, version = NARRATE_PROMPT_VERSION) {

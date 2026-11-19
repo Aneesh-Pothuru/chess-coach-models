@@ -78,7 +78,7 @@ function chain(line, idea, also, skipFirst = false) {
   return steps
 }
 
-const gainOf = (result) => (/^you mate|^you win|you promote/.test(result) ? 1 : /^they mate|^you lose|they promote/.test(result) ? -1 : 0)
+export const gainOf = (result) => (/^you mate|^you win|you promote/.test(result) ? 1 : /^they mate|^you lose|they promote/.test(result) ? -1 : 0)
 
 /** The coaching text of a sheet, or null when the sheet holds nothing to coach. */
 export function coachTextOf(s) {

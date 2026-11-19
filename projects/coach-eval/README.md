@@ -135,7 +135,12 @@ whole explanation loses to today's Game Review text in a blind judge about three
 in four. Adding one or two sentences that tell only the set-up line after today's
 headline wins on puzzle set-ups: 63% with Gemma's wording and 87% with a template in
 code, and head to head the judge prefers Gemma's wording 91% of the time. On game
-moments it does not help yet. Development numbers, in
+moments it does not help yet. Llama 3.2 3B fine-tuned on 894 of Gemma's checked
+narrations (version 5: a sacrifice is the way to the point, never the point) passes
+the truth check on all 81 development set-ups and wins 76% of puzzle comparisons with
+today's text and 94% with the template's narration, but its audit finds 0.14 false
+claims a text, as its teacher does, most of them a reply called forced when the check
+leaves two or three answers. Development numbers, in
 [results/coaching.md](results/coaching.md).
 
 ## The coaching task (from 2026-11-19)
@@ -227,6 +232,7 @@ Claude models where they can be run for both tasks.
 | `coach-text.mjs` | A narrator in code that tells a coaching sheet in fixed sentences, as a baseline. |
 | `coach-rewrite.mjs` | The rewrite task's prompts (today's explanation with the story of its lines) and the narration task's (the set-up line alone, `--task narrate`), with the narration's code template (`--task narrate-code`). |
 | `train-lessons.mjs` | Game Review's lesson for each themed training puzzle, read from its sheet's stored search. |
+| `narrate_sft.py` | A narration fine-tuning set from a teacher's narrations, keeping only those whose prompt is the current version's and dropping any that names a move, a forced reply or a tactic the facts do not give. |
 | `coach-prompts.mjs` | The coaching task's prompt and the trimmed sheet a writer reads. |
 | `train_puzzles.py` | Samples the coaching task's training puzzles from the Lichess database, by theme. |
 | `engine-lines-check.mjs` | Compares the app engine's multi-line and single-line searches on moments. |

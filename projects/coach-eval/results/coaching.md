@@ -101,6 +101,52 @@ Two narrations of the same puzzle (version 3):
   only legal answer to the check), then Nf2#, and you mate, and before that you lose
   the queen."
 
+### Version 5 and a fine-tuned 3B narrator
+
+Gemma's version 4 narrations of the training set-ups showed two ways a told line
+misleads. A line could stop at a sacrifice, before the fork or mate it pays for ("Qe4,
+a queen sacrifice that they take with Bxe4, leaving you down a queen and a pawn for a
+bishop"), and a best defence that still loses material read as a set-up when it
+carried a tactic. Version 5 makes a sacrifice or an attraction the means, never the
+point, and tells a line only when it ends with a gain for the side that plays it
+(`setUpOf`). That leaves 71 puzzle and 10 game set-ups on the development set (from 79
+and 17) and 895 training set-ups (37 games, 230 puzzles and 628 of the first 1,879
+themed puzzles); 859 training prompts are as version 4 wrote them.
+
+Llama 3.2 3B was fine-tuned (`review-writer/finetune.py`: LoRA rank 16, 2 epochs, 257
+seconds on an A100) on 894 of Gemma's narrations of those prompts: version 4's for the
+unchanged ones and new ones for the 36 that changed, less one that called a reply
+forced where the facts give no `how_forced` (`narrate_sft.py`).
+
+| Narration added after the headline (version 5) | Truth, games / puzzles | Median words | Audit: false / unsupported |
+|---|---|---|---|
+| Llama 3.2 3B, fine-tuned | 100% / 100% | 35 / 33 | 0.14 / 0.09 |
+| Gemma 4, the teacher | 100% / 98.6% | 38 / 32 | 0.09 / 0.10 |
+| Code template | 100% / 100% | 46 / 36 | not audited |
+| Llama 3.2 3B, before fine-tuning | 80% / 78.9% | 55 / 52 | not audited |
+
+| Judge, both with today's text | Games (10) | Puzzles (71) |
+|---|---|---|
+| Fine-tuned narration vs today's text alone | 50.0% [20, 80] | 76.1% [66.2, 84.5], calls [57.8, 90.2] |
+| Fine-tuned narration vs the code template's | 40.0% [10, 70] | 94.4% [89.4, 98.6], calls [84.3, 100] |
+
+On puzzle set-ups the fine-tuned 3B narrator teaches: the judge prefers today's text
+with its narration to today's text alone three times in four, and to the template's
+narration nineteen times in twenty. It matches its teacher in the audit (Gemma minus
+Llama, -0.04 claims a text [-0.12, 0.04]). On game moments it does not help yet. Both
+miss the coaching rule's accuracy bars, and the audit's false claims share one cause:
+the facts put every note on a reply under `how_forced`, but 34 of the 105 notes on the
+development lines say a check leaves two or three answers, and both writers then call
+the reply forced ("Nxf6+, which forces exf6", "they must move to f8"). Seven of the
+fine-tuned model's eleven false claims call such a reply forced, four of them in
+moments where Gemma made the same claim, and an eighth says a reply came "because it
+is a check". The other three misname what a capture takes, leave out what a gain costs
+("win two rooks and a pawn", without "for the queen"), or give a deflected piece the
+square it guards ("deflect their queen from f7" for the queen on g6 that guards f7).
+Version 6 should give a reply as forced only when the rules force it, give any other
+reply to a check as one of its legal answers under another name, and have the truth
+check and the training filter hold a writer to that.
+
 ## What the texts exposed in the facts
 
 - The opponent's threat was read in the position before the move played, and version 1
@@ -125,4 +171,6 @@ Two narrations of the same puzzle (version 3):
 Review's lesson from its sheet's stored search, with no engine. On the development
 puzzles its lessons agree with fresh ones on the better move 198 times in 198, the
 reply 184 times and the grade 196 times. Of the first 1,879 themed puzzles, 678 hold a
-set-up to narrate; the train-split game and puzzle moments add 65 and 252.
+set-up to narrate under version 4 and 628 under version 5; the train-split game and
+puzzle moments add 65 and 252 (37 and 230). The sheets of 2,743 themed puzzles are now
+done, so about 290 more set-ups can join the next training set.
