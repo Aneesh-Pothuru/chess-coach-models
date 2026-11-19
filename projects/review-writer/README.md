@@ -43,7 +43,13 @@ lesson link. Today's text passes the truth check at every one of them.
   26B-A4B. This round runs their open weights on Colab, since Cloudflare may
   serve them quantized: the writer that is kept is read again as Cloudflare
   serves it before anything is ported. Each writes from the fact sheet alone,
-  with one prompt per candidate, fixed on train.
+  with one prompt per candidate, fixed on train. From the third round,
+  gpt-oss-120b writes too, as a ceiling and a teacher (Workers AI serves it at
+  several times the others' cost), and Llama 3.2 3B Instruct, the smallest base
+  Workers AI runs LoRA adapters on, is read as it ships and after fine-tuning on
+  the teachers' train texts that pass the truth check (`sft.mjs`,
+  `finetune.py`). A fine-tune is a candidate under the same rule, and
+  coach-eval's puzzle moments add train examples and a second held-out set.
 
 ## The rule
 
@@ -83,7 +89,9 @@ and fine-tuning the best candidate on train is the next round's question.
 | `facts.mjs` | Reviews each kept game with the app's Game Review at the phone profile and writes one fact sheet a moment, with today's text, under `private/review-writer/`. Sharded and resumable. |
 | `lib.mjs` | What the scripts share: the split, today's text as the screen shows it, the fact sheet a writer reads and the writer's prompt. |
 | `prompts.mjs` | The writers' prompts for a split, from public games only, so the file can be read on Colab. `--limit N` takes the first N moments in a seeded order. |
-| `write.py` | Writes each prompt's explanation with one candidate's open weights under vLLM on a GPU (Colab), greedy, loading the weights once for all the prompts files it is given. |
+| `write.py` | Writes each prompt's explanation with one candidate's open weights under vLLM on a GPU (Colab), greedy, loading the weights once for all the prompts files it is given. `--lora` applies a fine-tune's adapter. |
+| `sft.mjs` | The fine-tuning set: each train moment's prompt with the first teacher text, in the order given, that passed the truth check. |
+| `finetune.py` | LoRA-tunes a writer on that set on a GPU (TRL, loss on the answer only), keeping to Workers AI's LoRA limits so the app could serve the adapter. The default base is Llama 3.2 3B Instruct, which Workers AI runs LoRA adapters on. |
 | `check.mjs` | The rule's truth check in code, on a writer's texts or, with `--today`, on today's text as the control. A lesson's own idea is not a fact about the position, so it does not count as one. `--facts` adds other moments in the same shape, such as coach-eval's puzzle moments. |
 | `judge.mjs` | The blind judge's comparisons (`build`: a writer's text against today's in both orders, with a same-text control and a length-matched decoy) and their score (`score`: the preference over decided comparisons with a 95% bootstrap interval over games, and the controls). |
 

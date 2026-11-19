@@ -7,8 +7,12 @@
 // rate over decided comparisons, pooled over both orders, with a 95% bootstrap
 // interval over games, and the controls.
 //
-//   node projects/review-writer/judge.mjs build --writer gemma-4-26b-a4b --texts <file.jsonl> --name <name> [--limit N] [--batch 50]
+//   node projects/review-writer/judge.mjs build --writer gemma-4-26b-a4b --texts <file.jsonl> --name <name> [--limit N] [--batch 50] [--facts <moments.jsonl,...>]
 //   node projects/review-writer/judge.mjs score --name <name>
+//
+// --facts adds moments in facts.mjs's shape from other files, such as coach-eval's
+// puzzle moments. The bootstrap resamples games, or puzzles: a moment's id less its
+// last ":index".
 //
 // A judge reads one batch file at a time and writes, beside it, answers-<k>.json:
 // [{"key": "...", "choice": "A" | "B" | "same"}, ...].
@@ -59,7 +63,8 @@ if (mode === 'build') {
   if (!writer || !textsPath) throw new Error('build needs --writer and --texts')
   const limit = Number(arg('limit', '0'))
   const batch = Number(arg('batch', '50'))
-  const facts = new Map(readFacts(dir).map((m) => [momentId(m), m]))
+  const extra = (arg('facts') ?? '').split(',').filter(Boolean).flatMap((path) => readJsonl(path))
+  const facts = new Map([...readFacts(dir), ...extra].map((m) => [momentId(m), m]))
   let texts = readJsonl(textsPath).filter((t) => t.writer === writer)
   texts.sort((a, b) => (hash(`${PROJECT}:judge:${a.id}`).toString('hex') < hash(`${PROJECT}:judge:${b.id}`).toString('hex') ? -1 : 1))
   if (limit) texts = texts.slice(0, limit)
@@ -98,7 +103,7 @@ if (mode === 'build') {
     if (c !== 'A' && c !== 'B') return c === 'same' ? 'same' : null
     return item.sides[c]
   }
-  const pairs = key.items.filter((i) => i.kind === 'pair').map((i) => ({ ...i, game: i.id.split(':')[0], won: winner(i) })).filter((i) => i.won)
+  const pairs = key.items.filter((i) => i.kind === 'pair').map((i) => ({ ...i, game: i.id.slice(0, i.id.lastIndexOf(':')), won: winner(i) })).filter((i) => i.won)
   const decided = pairs.filter((i) => i.won !== 'same')
   const rate = (rows) => (rows.length ? rows.filter((i) => i.won === 'writer').length / rows.length : null)
   const games = [...new Set(decided.map((i) => i.game))]

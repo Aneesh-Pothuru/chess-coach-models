@@ -25,6 +25,9 @@ WRITERS = {
     "qwen3-30b-a3b": {"model": "Qwen/Qwen3-30B-A3B-FP8", "template": {"enable_thinking": False}},
     "gpt-oss-20b": {"model": "openai/gpt-oss-20b", "template": {"reasoning_effort": "low"}},
     "gemma-4-26b-a4b": {"model": "google/gemma-4-26B-A4B-it", "template": {}},
+    # Workers AI runs LoRA adapters on it, so it is the base a fine-tune would use;
+    # read here as it ships. Unsloth's copy is Meta's weights without the gate.
+    "llama-3.2-3b": {"model": "unsloth/Llama-3.2-3B-Instruct", "template": {}},
     # Not a candidate (Workers AI serves it, but it costs several times the others):
     # the strongest open writer, read as a ceiling and as a source of fine-tuning texts.
     "gpt-oss-120b": {"model": "openai/gpt-oss-120b", "template": {"reasoning_effort": "low"}},
@@ -55,20 +58,27 @@ def main() -> int:
     ap.add_argument("--writer", required=True, choices=sorted(WRITERS))
     ap.add_argument("--out-dir", default=".")
     ap.add_argument("--max-tokens", type=int, default=800)
+    ap.add_argument("--lora", help="a LoRA adapter's folder (finetune.py) to apply to the writer's weights")
     args = ap.parse_args()
 
     from vllm import LLM, SamplingParams
 
     writer = WRITERS[args.writer]
+    name = f"{args.writer}+{Path(args.lora).name}" if args.lora else args.writer
     files = []
     for path in args.prompts:
         with open(path, encoding="utf-8") as f:
             files.append((Path(path).stem, [json.loads(line) for line in f if line.strip()]))
     rows = [row for _, file_rows in files for row in file_rows]
-    llm = LLM(model=writer["model"], max_model_len=8192, gpu_memory_utilization=0.9, seed=0)
+    lora_kwargs = {"enable_lora": True, "max_lora_rank": 32} if args.lora else {}
+    llm = LLM(model=writer["model"], max_model_len=8192, gpu_memory_utilization=0.9, seed=0, **lora_kwargs)
     params = SamplingParams(temperature=0.0, max_tokens=args.max_tokens)
     started = time.time()
     kwargs = {"chat_template_kwargs": writer["template"]} if writer["template"] else {}
+    if args.lora:
+        from vllm.lora.request import LoRARequest
+
+        kwargs["lora_request"] = LoRARequest(Path(args.lora).name, 1, str(Path(args.lora).resolve()))
     conversations = [r["messages"] for r in rows]
     try:
         outputs = llm.chat(conversations, params, use_tqdm=True, **kwargs)
@@ -80,13 +90,13 @@ def main() -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     at = 0
     for task, file_rows in files:
-        with open(out_dir / f"texts-{task}-{args.writer}.jsonl", "w", encoding="utf-8") as f:
+        with open(out_dir / f"texts-{task}-{name}.jsonl", "w", encoding="utf-8") as f:
             for row, out in zip(file_rows, outputs[at:at + len(file_rows)], strict=True):
                 raw = out.outputs[0].text
-                f.write(json.dumps({"id": row["id"], "writer": args.writer, "model": writer["model"],
+                f.write(json.dumps({"id": row["id"], "writer": name, "model": writer["model"],
                                     "text": final_text(raw), "raw": raw, "tokens": len(out.outputs[0].token_ids)}) + "\n")
         at += len(file_rows)
-    print(json.dumps({"writer": args.writer, "model": writer["model"], "moments": len(rows),
+    print(json.dumps({"writer": name, "model": writer["model"], "moments": len(rows),
                       "files": len(files), "seconds": round(time.time() - started)}), file=sys.stderr)
     return 0
 
