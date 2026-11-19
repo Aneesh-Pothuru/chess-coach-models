@@ -59,6 +59,7 @@ def main() -> int:
     ap.add_argument("--out-dir", default=".")
     ap.add_argument("--max-tokens", type=int, default=800)
     ap.add_argument("--lora", help="a LoRA adapter's folder (finetune.py) to apply to the writer's weights")
+    ap.add_argument("--quantization", help="vLLM's quantization of the writer's weights, such as fp8, when the GPU cannot hold them in full precision")
     args = ap.parse_args()
 
     from vllm import LLM, SamplingParams
@@ -71,7 +72,7 @@ def main() -> int:
             files.append((Path(path).stem, [json.loads(line) for line in f if line.strip()]))
     rows = [row for _, file_rows in files for row in file_rows]
     lora_kwargs = {"enable_lora": True, "max_lora_rank": 32} if args.lora else {}
-    llm = LLM(model=writer["model"], max_model_len=8192, gpu_memory_utilization=0.9, seed=0, **lora_kwargs)
+    llm = LLM(model=writer["model"], max_model_len=8192, gpu_memory_utilization=0.9, seed=0, quantization=args.quantization, **lora_kwargs)
     params = SamplingParams(temperature=0.0, max_tokens=args.max_tokens)
     started = time.time()
     kwargs = {"chat_template_kwargs": writer["template"]} if writer["template"] else {}
