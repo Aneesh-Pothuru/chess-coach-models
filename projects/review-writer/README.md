@@ -110,7 +110,10 @@ game's position. Prompt 2, developed on train, gives the player's side and
 drops the idea. Prompt 3 asks for coach-eval's rubric in order. Prompt 4, after
 round 3's claim audit, names a target only when the sheet does, keeps each fact
 with the move it belongs to, and gives the mistake as the first piece they take
-rather than a bare square and a number.
+rather than a bare square and a number. On the same 200 held-out moments it took
+Gemma 4 from 0.18 false or unsupported claims a text beyond today's to 0.015 (no
+false claims), but its texts often dropped the habit (64% against 88%). Prompt 5
+makes the habit a closing sentence of its own again.
 
 From round 4 the truth check also reads owners ("your bishop on d3" must be the
 player's bishop on d3 somewhere along the lines), line starts ("starting with
