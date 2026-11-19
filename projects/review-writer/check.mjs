@@ -30,6 +30,12 @@ const NUMBER = /(?<![A-Za-z0-9.])\d+(?:\.\d+)?(?![A-Za-z0-9])/g
 const PIECE_ON = /\b(king|queen|rook|bishop|knight|pawn)s?\s+(?:on|at)\s+([a-h][1-8])\b/gi
 const MATE = /\b(?:mate|mates|mated|mating|checkmate|checkmates|checkmated)\b/i
 const LETTER = { king: 'k', queen: 'q', rook: 'r', bishop: 'b', knight: 'n', pawn: 'p' }
+// A piece the text gives an owner: "your bishop on d3", "their loose rook on a8".
+const OWNED = /\b(your opponent's|the opponent's|opponent's|your|their)\s+(?:(?:loose|undefended|unprotected|trapped|pinned|attacked|passed|isolated|weak|only|last|advanced|exposed|central)\s+)*(king|queen|rook|bishop|knight|pawn)\s+(?:on|at)\s+([a-h][1-8])\b/gi
+// A line the text says starts with a move: "starting with Qxf7+".
+const STARTS = /\b(?:starting|starts|begins|beginning|begin|start)\s+with\s+((?:O-O-O|O-O|[KQRBN][a-h]?[1-8]?x?[a-h][1-8]|[a-h]x[a-h][1-8](?:=[QRBN])?|[a-h][1-8](?:=[QRBN])?)[+#]?)/gi
+// Tactics a text may name only when the facts name them.
+const TACTICS = { trapped: /\btrap(?:s|ped|ping)?\b/i, pinned: /\bpin(?:s|ned|ning)?\b/i, forked: /\bfork(?:s|ed|ing)?\b/i, skewered: /\bskewer(?:s|ed|ing)?\b/i, discovered: /\bdiscover(?:ed|s|y)?\b/i }
 const NUMBER_WORDS = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 }
 
 const bare = (san) => san.replace(/[+#!?]+$/, '')
@@ -111,7 +117,16 @@ function vocabularyOf(m) {
     ...(afterPlayed ? walk(afterPlayed.fen(), mistake?.line ?? [], true) : []),
   ]
   const stated = new Set([...joined.matchAll(PIECE_ON)].map((x) => `${x[1].toLowerCase()}@${x[2]}`))
-  return { moves, squares, numbers, positions, stated, mate: MATE.test(joined) }
+  // A line may be said to start with its first move, or with the reply to it when
+  // the text has just named that first move ("Nh6+ forces mate, starting with Kh8").
+  const near = positions
+  const lines = [sansOf(l.allowed?.line), sansOf(l.better?.line), lineSans(m.fen, m.best.pv ?? [])]
+  for (const x of joined.matchAll(/\(([^)]*)\)/g)) lines.push([...x[1].matchAll(MOVE)].map((y) => y[0]))
+  const starts = new Set([m.played.san, m.best.san, l.allowed?.san, l.better?.san, ...lines.flatMap((ln) => ln.slice(0, 2))].filter(Boolean).map(bare))
+  const tactics = new Set(Object.entries(TACTICS).filter(([, re]) => re.test(joined)).map(([name]) => name))
+  const ownerOf = (word) => (word.toLowerCase() === 'your' ? 'your' : 'their')
+  const owned = new Set([...joined.matchAll(OWNED)].map((x) => `${ownerOf(x[1])}|${x[2].toLowerCase()}@${x[3]}`))
+  return { moves, squares, numbers, positions, stated, mate: MATE.test(joined), mover: m.mover, near, starts, tactics, owned }
 }
 
 function verdictOf(text, v) {
@@ -131,6 +146,19 @@ function verdictOf(text, v) {
     if (new RegExp(`\\b${word}\\s+(?:pawns?|pieces?|moves?|points?)\\b`, 'i').test(text) && !v.numbers.has(n)) misses.push(`"${word}" is not in the facts`)
   }
   if (MATE.test(text) && !v.mate) misses.push('a mate the facts do not name')
+  if (v.near) {
+    for (const x of text.matchAll(OWNED)) {
+      const mine = x[1].toLowerCase() === 'your'
+      if (v.owned.has(`${mine ? 'your' : 'their'}|${x[2].toLowerCase()}@${x[3]}`)) continue
+      const color = mine ? v.mover : v.mover === 'w' ? 'b' : 'w'
+      const type = LETTER[x[2].toLowerCase()]
+      if (!v.near.some((board) => { const p = board.get(x[3]); return p && p.type === type && p.color === color })) {
+        misses.push(`${mine ? 'your' : 'their'} ${x[2].toLowerCase()} is not on ${x[3]}`)
+      }
+    }
+    for (const x of text.matchAll(STARTS)) if (!v.starts.has(bare(x[1]))) misses.push(`no line the facts give starts with ${x[1]}`)
+    for (const [name, re] of Object.entries(TACTICS)) if (re.test(text) && !v.tactics.has(name)) misses.push(`a ${name} piece the facts do not name`)
+  }
   return misses
 }
 

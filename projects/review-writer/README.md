@@ -107,7 +107,17 @@ and fine-tuning the best candidate on train is the next round's question.
 The writer's prompt is in `lib.mjs` (`PROMPT_VERSION`). Prompt 1 gave the
 linked lesson's idea; writers then applied the lesson's own example to the
 game's position. Prompt 2, developed on train, gives the player's side and
-drops the idea.
+drops the idea. Prompt 3 asks for coach-eval's rubric in order. Prompt 4, after
+round 3's claim audit, names a target only when the sheet does, keeps each fact
+with the move it belongs to, and gives the mistake as the first piece they take
+rather than a bare square and a number.
+
+From round 4 the truth check also reads owners ("your bishop on d3" must be the
+player's bishop on d3 somewhere along the lines), line starts ("starting with
+X" must be a line's first move or the reply to it) and named tactics (a fork,
+pin, skewer, trapped piece or discovered attack only where the facts name
+one). Today's text still passes on all 3,794 moments. On round 3's audited
+held-out texts it fails 5 of the 19 the audit found false, against 2 before.
 
 ## Running it
 

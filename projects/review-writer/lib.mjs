@@ -46,9 +46,21 @@ const CLASS_WORDS = { inaccuracy: 'an inaccuracy', mistake: 'a mistake', blunder
 /**
  * The writer prompt's version: 1 gave the lesson's idea; 2 gives the player's side and
  * drops the idea, whose example belongs to the lesson's own position; 3 asks for
- * coach-eval's rubric in order (their reply and its cost, the target, the fix, a habit).
+ * coach-eval's rubric in order (their reply and its cost, the target, the fix, a habit);
+ * 4 names a target only when the sheet does, keeps each fact with the move it belongs
+ * to, and gives the mistake as the first piece they take rather than a bare square.
  */
-export const PROMPT_VERSION = 3
+export const PROMPT_VERSION = 4
+
+const PIECE_NAMES = { p: 'pawn', n: 'knight', b: 'bishop', r: 'rook', q: 'queen', k: 'king' }
+
+function mistakeSheet(mistake) {
+  if (!mistake) return null
+  const kind = mistake.kind.replace(/-/g, ' ')
+  if (PROMPT_VERSION < 4) return { kind, material_points_lost: mistake.points, square: mistake.square }
+  if (mistake.kind === 'allows-mate') return { kind, your_king_on: mistake.square }
+  return { kind, first_piece_they_take: `your ${PIECE_NAMES[mistake.piece] ?? 'piece'} on ${mistake.square}`, net_material_you_lose_in_points: mistake.points }
+}
 
 /** The checked facts a writer is given, and nothing else. */
 export function sheetOf(m) {
@@ -68,9 +80,7 @@ export function sheetOf(m) {
     reply_points: l.allowed?.points ?? [],
     reply_line: l.allowed?.line ?? null,
     what_your_move_does: l.yourMove,
-    mistake: m.reading?.mistake
-      ? { kind: m.reading.mistake.kind.replace(/-/g, ' '), material_points_lost: m.reading.mistake.points, square: m.reading.mistake.square }
-      : null,
+    mistake: mistakeSheet(m.reading?.mistake),
     better_move_purposes: (m.reading?.fix ?? []).map((p) => p.text),
     lesson: m.link ? { title: m.link.title, why_it_fits: m.link.why } : null,
     checked_sentences: [l.headline, ...l.difference, ...(l.takeaway ? [l.takeaway] : [])],
@@ -83,11 +93,17 @@ export const SYSTEM = [
   'Write the explanation the player reads in the game review: three to five short sentences, at most 90 words, in plain words for a club player rated about the player_rating given, speaking to the player as "you".',
   'Cover these in order, as far as the sheet supports them:',
   '(1) what the move played allowed: your opponent\'s reply and what it does, and what it costs;',
-  '(2) the target the play turns on, such as a loose piece, a piece that can be forked or pinned, or a weak square near a king, as the sheet names it;',
+  PROMPT_VERSION < 4
+    ? '(2) the target the play turns on, such as a loose piece, a piece that can be forked or pinned, or a weak square near a king, as the sheet names it;'
+    : '(2) the target, only when the sheet names one: a piece it calls undefended, loose, trapped or pinned, or the first piece they take; if it names none, leave this part out rather than guess;',
   '(3) the better move, and how it deals with that reply or what it does first;',
   '(4) one habit for next time that fits this moment, such as looking for checks, captures and threats first, counting a piece\'s attackers and defenders, or asking what your opponent\'s best reply is; when a lesson is given, name it by its title as the place to practise.',
   'The player plays the side in you_play; call the other side "your opponent" or "they", and never say White or Black did something unless it is the side the sheet gives.',
   'Use only the fact sheet. Name only moves, squares, pieces and numbers that appear in it, and never claim a check, a mate, a threat or a material gain the sheet does not state. Do not describe what the lesson\'s own examples contain.',
+  ...(PROMPT_VERSION < 4 ? [] : [
+    'Keep every fact with the move the sheet gives it to: reply_points belong to your opponent\'s reply, better_move_points to the better move, what_your_move_does to the move played.',
+    'Call a piece yours or theirs only as the sheet does. A line starts with the move it is listed after; never say it starts with a later move. A capture the sheet writes as "if you take it with ..." happens only after that capture.',
+  ]),
   'Do not mention the engine, percentages or evaluations. Do not use headings, lists or markdown. Write only the explanation.',
 ].join(' ')
 
