@@ -9,7 +9,9 @@ serves, so the app could call it from a Pages Function, rewrite the explanation
 from the same checked facts so that a player at his level understands it
 better, without saying anything the facts do not?
 
-**The answer.** Not yet run. The facts are being exported.
+**The answer.** Not yet run. The facts are exported: 2,322 of the player's
+moments in 387 games, 1,079 train and 1,243 held-out, 2,085 of them with a
+lesson link. Today's text passes the truth check at every one of them.
 
 ## What is measured
 
@@ -79,8 +81,12 @@ and fine-tuning the best candidate on train is the next round's question.
 |---|---|
 | `stream.py` | Keeps the month's rated 600+0 Lichess games between players rated 1200 to 1500 that carry evals and clocks, the first `--games` in file order, under `private/review-writer/`. |
 | `facts.mjs` | Reviews each kept game with the app's Game Review at the phone profile and writes one fact sheet a moment, with today's text, under `private/review-writer/`. Sharded and resumable. |
+| `lib.mjs` | What the scripts share: the split, today's text as the screen shows it, the fact sheet a writer reads and the writer's prompt. |
+| `prompts.mjs` | The writers' prompts for a split, from public games only, so the file can be read on Colab. `--limit N` takes the first N moments in a seeded order. |
+| `write.py` | Writes each prompt's explanation with one candidate's open weights under vLLM on a GPU (Colab), greedy. |
+| `check.mjs` | The rule's truth check in code, on a writer's texts or, with `--today`, on today's text as the control. |
 
-The writer, the truth check and the judge come with their own scripts.
+The judge comes with its own script.
 
 ## Running it
 
@@ -88,4 +94,11 @@ The writer, the truth check and the judge come with their own scripts.
 .venv/bin/python projects/review-writer/stream.py --month 2026-10 --games 400
 export CHESS_DIR="$(bridge/checkout.sh at 03eea91da93c8a9b3fe38646d2f1c6bc7968f21e)"
 for i in 0 1 2 3; do bridge/run.sh projects/review-writer/facts.mjs --month 2026-10 --shard $i/4 & done; wait
+bridge/run.sh projects/review-writer/check.mjs --today --split train
+node projects/review-writer/prompts.mjs --split train --limit 200
+
+# On a GPU (Colab), one writer a process:
+python projects/review-writer/write.py --prompts prompts-train-200.jsonl --writer qwen3-30b-a3b --out texts-train-qwen3-30b-a3b.jsonl
+
+bridge/run.sh projects/review-writer/check.mjs --texts private/review-writer/texts-train-qwen3-30b-a3b.jsonl --name train-qwen3-30b-a3b
 ```

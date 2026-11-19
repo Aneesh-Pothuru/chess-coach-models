@@ -10,13 +10,13 @@
 // private/review-writer/. Resumes where it stopped.
 //
 //   bridge/run.sh projects/review-writer/facts.mjs --month 2026-10 [--limit N] [--shard i/n]
-import { createHash } from 'node:crypto'
 import { appendFileSync, createReadStream, existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { createInterface } from 'node:readline'
 import { createGunzip } from 'node:zlib'
 import { CHESS_DIR, chess, privateDir } from '../../bridge/lib/chess.mjs'
 import { parseMovetext, rowOf, unreadable } from '../think-time-rapid/games.mjs'
+import { PROFILE, PROJECT, splitOf } from './lib.mjs'
 
 const { createNodeReview } = await chess('src/adapters/node/review/index.ts')
 const { rowToGame } = await chess('src/services/archive/index.ts')
@@ -26,13 +26,6 @@ const { readChapters } = await chess('src/adapters/content/study.ts')
 const { buildStudyFromDisk } = await chess('src/adapters/node/study/index.ts')
 const { ERROR_CLASS } = await chess('src/features/gamereview/format.ts')
 const { lessonLinkAt } = await chess('src/features/gamereview/lessonLink.ts')
-
-export const PROJECT = 'review-writer'
-export const PROFILE = 'phone'
-
-export function splitOf(id) {
-  return createHash('sha256').update(`${PROJECT}:${id}`).digest()[0] < 128 ? 'train' : 'heldout'
-}
 
 const arg = (name, fallback) => {
   const i = process.argv.indexOf(`--${name}`)
