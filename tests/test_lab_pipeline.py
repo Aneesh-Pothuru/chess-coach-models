@@ -433,6 +433,10 @@ def test_a_model_that_hides_something_is_read_beside_the_model_that_shows_it(lab
     # A run only the other model has is still there to read by its name, beside the same floor.
     assert out.values["shown.there.transformer-small.score"] == tex.score(seen["transformer-small"]["test"]["rmse"]["value"])
     assert out.values["shown.there.gbm-hand.lift.percent"] == out.values["shown.gbm-hand.there.lift.percent"]
+    # Its lead over its own model's reference is its record's, and that reference has none over itself.
+    recorded = seen["transformer-small"]["gain"]
+    assert out.values["shown.there.transformer-small.gain"] == tex.trio(recorded["gain"], recorded["low"], recorded["high"])[0]
+    assert "shown.there.gbm-hand.gain" not in out.values
     assert out.values["shown.gbm-hand.here.lift.percent"] == out.values["reference.lift.percent"]
     lead = hidden["gbm-hand"]["test"]["rmse"]["value"] - seen["transformer-small"]["test"]["rmse"]["value"]
     assert out.values["shown.there.transformer-small.than-reference"] == ("ahead of" if lead > 0 else "behind")
@@ -444,6 +448,23 @@ def test_a_model_that_hides_something_is_read_beside_the_model_that_shows_it(lab
     assert "Hidden" in table and "Shown" in table and table.count("\\\\") == 2 + 2
     # No closer look has measured a pair yet, so the table has no column for an interval.
     assert "interval" not in table and "{lrrrr}" in table
+    # The lab's own paper gives the ends of a scale over every model, and over the models that hide nothing.
+    _, across = overview.generate(smoke=True)
+    assert across.values["lab.hidden.names"] == "puzzle difficulty unsolved"
+    assert across.values["lab.hidden.count"] == across.values["lab.whole.count"] == "one"
+    assert across.values["lab.network.gain.whole.most.model"] == across.values["lab.network.gain.whole.least.model"] == "puzzle difficulty"
+    # A model is on a scale only where its reference is a step up from the floor, which a small sample may not give.
+    on_step = {
+        said: 100.0 * gain / lift
+        for said, gain, lift in (
+            ("puzzle difficulty", seen["transformer-small"]["gain"]["gain"], step["there"]),
+            ("puzzle difficulty unsolved", hidden["conv-hand"]["gain"]["gain"], step["here"]),
+        )
+        if lift > 0
+    }
+    assert across.values["lab.network.gain.most.model"] == max(on_step, key=on_step.get)
+    assert across.values["lab.network.gain.least.model"] == min(on_step, key=on_step.get)
+    assert across.values["lab.network.gain.whole.most"] == tex.fixed(on_step["puzzle difficulty"], 0)
     assert not any(name.startswith("shown-") for name in out.files)
 
     # A run is the same run in both models only when both were trained from one config.

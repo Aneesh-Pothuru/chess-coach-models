@@ -322,13 +322,22 @@ def values(lab: Lab, out: tex.Generated) -> None:
             if src.networks and on_step(src, src.networks[0].get("gain")) is not None
         },
     }
+    # A model that is read against one that is shown more (``shown`` in its plan) hides part of what its
+    # data has from every learner. Its trees' step is small for that reason, and a gain counted in that
+    # step is large for the same one. So each scale's ends are also given over the models that hide
+    # nothing, under ``whole``, and prose can say which statement holds for which.
+    hidden = [name for name, src in lab.models.items() if src.plan.get("shown")]
+    out.set("lab.hidden.count", tex.word(len(hidden)))
+    out.set("lab.hidden.names", _listed([said(name) for name in hidden]))
+    out.set("lab.whole.count", tex.word(count - len(hidden)))
     for part, amounts in scales.items():
         amounts = {name: amount for name, amount in amounts.items() if amount is not None}
-        if not amounts:
-            continue
-        for end, name in (("most", max(amounts, key=amounts.get)), ("least", min(amounts, key=amounts.get))):
-            out.set(f"lab.{part}.{end}", tex.fixed(amounts[name], 0))
-            out.set(f"lab.{part}.{end}.model", said(name))
+        for scope, kept in (("", amounts), (".whole", {name: amount for name, amount in amounts.items() if name not in hidden})):
+            if not kept:
+                continue
+            for end, name in (("most", max(kept, key=kept.get)), ("least", min(kept, key=kept.get))):
+                out.set(f"lab.{part}{scope}.{end}", tex.fixed(kept[name], 0))
+                out.set(f"lab.{part}{scope}.{end}.model", said(name))
 
     for (key, learner), found in kinds(lab).items():
         prefix = tex.key("lab", "change", key, learner)

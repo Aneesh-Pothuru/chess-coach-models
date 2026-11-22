@@ -126,8 +126,9 @@ def slices(src: Sources) -> dict[str, dict[str, Any]]:
 def values(src: Sources, out: tex.Generated) -> None:
     """Every value the comparison gives: under ``shown.<run>`` for a run both models have, ``shown.best`` for
     the best run of each, ``shown.reference`` for the reference of each, ``shown.there.<run>`` for any run of
-    the other model, whether this one has it or not, and ``shown.slice.<key>`` for where the thing shown is
-    worth most and least."""
+    the other model, whether this one has it or not (its score, its recorded gain over its own reference, and
+    where it stands beside this model's best run and reference), and ``shown.slice.<key>`` for where the thing
+    shown is worth most and least."""
     theirs = other(src)
     if not theirs:
         return
@@ -141,6 +142,12 @@ def values(src: Sources, out: tex.Generated) -> None:
         step = under(src, run)
         if step is not None:
             out.set(f"{prefix}.lift.percent", tex.sig(step, 2))
+        # Its lead over its own model's reference, as its record measured it on the same resampled games.
+        if run.get("gain"):
+            value, low, high = tex.trio(run["gain"]["gain"], run["gain"]["low"], run["gain"]["high"])
+            out.set(f"{prefix}.gain", value)
+            out.set(f"{prefix}.gain.low", low)
+            out.set(f"{prefix}.gain.high", high)
         # Beside this model's best run and its reference: a difference of two scores, with no interval.
         for part, ours in (("best", src.best), ("reference", src.reference)):
             if ours is not None:
