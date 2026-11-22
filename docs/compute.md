@@ -5,15 +5,19 @@ what it costs, and how long it takes.
 
 | Place | What it is | What runs there |
 |---|---|---|
-| Any machine, or a cloud session | A few CPU cores | Writing code, the tests, `--smoke` runs |
-| The owner's desktop | A 16-thread CPU, no GPU worth using | Dataset builds, the constant and tree runs, CPU-sized networks, and everything that reads the player's own data |
+| Any machine, or a cloud session | A few CPU cores | Writing code, the tests, `--smoke` runs, and bridge scripts where the app's repository can be read |
+| The owner's desktop | A 16-thread CPU, no GPU worth using | Dataset builds, the constant and tree runs, CPU-sized networks, and a model's checks on the player's own games |
 | Google Colab, opened from the desktop's browser | A rented GPU, paid in compute units | Transformer runs, runs marked `needs: cuda`, the coach narrator's teacher and fine-tune |
 
 ## The rules behind the table
 
-- **The player's data stays on the desktop.** Bridge scripts, checks on the player's own games and
-  anything under `private/` run there and nowhere else. Open data (the Lichess database) can go
-  anywhere.
+- **The player's data never goes to Colab or to GitHub Actions**, and only aggregates of it are
+  committed here ([`CLAUDE.md`](../CLAUDE.md), "The data rule"). A model's check on the player's
+  own games runs on the desktop, with its files under `private/` there. Open data (the Lichess
+  database) can go anywhere.
+- **A bridge script runs where the app's repository can be read:** on the desktop, or in a Claude
+  session that has access to it. The study still under [`projects/`](../projects/) runs in its
+  own session, with its per-attempt rows under `private/` there, until it reports.
 - **GitHub Actions runs the privacy check and the light tests, nothing more.** No training, no
   data, none of the player's games.
 - **A budget is agreed before a run that spends much.** GPU time is paid in Colab units, and a
