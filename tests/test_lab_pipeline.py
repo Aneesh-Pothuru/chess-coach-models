@@ -1,5 +1,6 @@
 """The lab end to end on a few hundred public puzzles: build, train every kind of learner, score, rank."""
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -36,6 +37,9 @@ CONFIGS = {
         "train": {"epochs": 1, "batch": 32, "lr": 0.01},
     },
 }
+
+
+SAVED = {"gbm": ["model.txt"], "net": ["model.pt"]}
 
 
 @pytest.fixture()
@@ -87,6 +91,13 @@ def test_every_learner_runs_and_the_leaderboard_ranks_them(lab):
         assert primary["low"] <= primary["value"] <= primary["high"]
         assert record["test_rows"] == sum(band["rows"] for band in record["test_by_band"].values())
         assert "node" not in record["machine"]
+        saved = runs.predictions_path("puzzle-difficulty", name, smoke=True).parent
+        assert record["weights"] == [
+            {"file": path.name, "bytes": path.stat().st_size, "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+            for path in sorted(saved.iterdir())
+            if path.name != "predictions.parquet"
+        ]
+        assert [entry["file"] for entry in record["weights"]] == SAVED.get(CONFIGS[name]["learner"]["kind"], [])
     board = leaderboard.build("puzzle-difficulty", smoke=True)
     scores = [entry["test"][task.primary]["value"] for entry in board["runs"]]
     assert scores == sorted(scores)

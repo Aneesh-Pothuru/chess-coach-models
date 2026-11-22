@@ -54,20 +54,23 @@ keeps a first pass to the runs a CPU finishes quickly.
 ## On Colab
 
 [`colab/lab.ipynb`](../colab/lab.ipynb) clones this repository, installs it, and runs the same
-commands on the notebook's GPU. Its first cell names the models and the runs. Its last cell zips
-`models/*/results/` and prints the zip's hash.
+commands on the notebook's GPU. Its first cell names the models and the runs. Its last cell packs
+two zips and prints their hashes: `lab-results.zip`, the run records and leaderboards under
+`models/*/results/`, and `lab-runs.zip`, every run's trained weights and test predictions.
 
 1. Open the notebook in Colab and choose a GPU runtime.
 2. Run every cell.
-3. Save `lab-results.zip` from the Files panel, before the runtime is released.
-4. Unzip it at the root of a clone, then `lab eval <model>` for each model, `lab report`, commit
-   and push.
+3. Save both zips from the Files panel, before the runtime is released.
+4. Unzip both at the root of a clone: the records replace `models/*/results/`, and the weights
+   land under `artifacts/runs/`, which git ignores. Then `lab eval <model>` for each model,
+   `lab report`, commit and push.
 
 Nothing is pushed from Colab, and the notebook holds no credentials.
 
 **A runtime's disk goes with the runtime.** The coach narrator's first adapter was lost that way:
 it was trained, scored, and never copied off before the runtime was deleted. So a notebook's last
-cell always packs what the run made, and the zip is saved before anything else is done.
+cell always packs what the run made, weights included, and the zips are saved before anything else
+is done.
 
 The coach narrator has its own script for the same reason,
 [`models/coach-narrator/colab/retrain.sh`](../models/coach-narrator/colab/retrain.sh): its teacher

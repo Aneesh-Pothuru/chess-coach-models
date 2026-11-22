@@ -117,10 +117,12 @@ line can fix. For the rating formula the same two numbers are the shift and the 
 two rating scales.
 
 `lab train <model> <run>` writes `models/<model>/results/<run>.json`: the config, what the learner
-did (trees grown, epochs, the features the trees leaned on), the processor it ran on, the commit,
+did (trees grown, epochs, the features the trees leaned on), the processor it ran on, the commit
+of the code (marked when the harness, a recipe or a run config had changes that were not committed),
 the fingerprint of the data it read, and the scores on valid and test with their intervals, by
-rating band, and for a chance its calibration table. Its predictions on the test rows go under
-`artifacts/runs/`, which git ignores.
+rating band, and for a chance its calibration table. Its predictions on the test rows and its
+weights go under `artifacts/runs/`, which git ignores, and the record names the weights by their
+hash, so a card can say which file a score belongs to.
 
 A record is complete in itself. When a run finishes it is compared, row by row, with the
 reference run trained on the same machine, and the gain is written into the record. A leaderboard

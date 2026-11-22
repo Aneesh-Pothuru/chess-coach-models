@@ -15,6 +15,7 @@ machine, from runs made on several.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import platform
@@ -73,6 +74,18 @@ def results_dir(model: str, *, smoke: bool = False) -> Path:
 
 def predictions_path(model: str, run: str, *, smoke: bool = False) -> Path:
     return ARTIFACTS / ("smoke-runs" if smoke else "runs") / model / run / "predictions.parquet"
+
+
+def saved_weights(directory: Path, predictions: Path) -> list[dict[str, Any]]:
+    """What a learner saved beside its predictions, by name, size and hash.
+
+    Weights are not committed, so the record says which file it is the record of.
+    """
+    return [
+        {"file": path.name, "bytes": path.stat().st_size, "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+        for path in sorted(directory.iterdir())
+        if path.is_file() and path != predictions
+    ]
 
 
 def platt(p: np.ndarray, y: np.ndarray) -> tuple[float, float]:
@@ -251,6 +264,7 @@ def run(
     )
     frame.write_parquet(predictions)
     fitted.save(predictions.parent)
+    record["weights"] = saved_weights(predictions.parent, predictions)
     record["gain"] = gain_over_reference(
         model, name, frame, dataset.manifest["fingerprint"], smoke=smoke, resamples=100 if smoke else 1000
     )
