@@ -1,0 +1,43 @@
+{
+  "name": "Llama-3.2-3B-coach-narrator-n6",
+  "base": "unsloth/Llama-3.2-3B-Instruct",
+  "rank": 16,
+  "weights": {
+    "file": "adapter_model.safetensors",
+    "bytes": 36730224,
+    "sha256": "079e7924b50a54e8263f6122f10a62b348c749ee10b78846eb1e245576d558fa"
+  },
+  "training": {
+    "narrations": 1390,
+    "dropped": {
+      "calls a reply forced where the facts force none": 11,
+      "names pin the facts never give": 3,
+      "calls a reply forced that the facts do not force": 2
+    }
+  },
+  "truth": {
+    "set_ups": 75,
+    "narrations": 75,
+    "passed": 75,
+    "pass_rate": 1.0,
+    "bar": 0.97,
+    "by_source": {
+      "games": {
+        "set_ups": 10,
+        "passed": 10
+      },
+      "puzzles": {
+        "set_ups": 65,
+        "passed": 65
+      }
+    },
+    "median_words": 36,
+    "misses": {}
+  },
+  "archive": {
+    "file": "Llama-3.2-3B-coach-narrator-n6.zip",
+    "bytes": 36742008,
+    "sha256": "51b593a3e188c7042020eb6dac78d5bdb47eb2db471e9468a2583f5804b09349"
+  },
+  "meets_rule": true
+}
