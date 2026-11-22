@@ -586,6 +586,68 @@ def test_a_network_starts_from_the_body_another_run_trained(lab, temp_lab):
         runs.run(model, "gbm-pretrained", smoke=True, log=lambda _: None)
 
 
+# Other shapes of the network, each a run that changes only the body of the transformer it names.
+SHAPES = {
+    "transformer-hand": {
+        "learner": {"kind": "net", "body": "transformer", "features": "hand", "dim": 16, "depth": 2, "heads": 2},
+        "train": {"epochs": 1, "batch": 32, "lr": 0.01},
+    },
+    "transformer-hand-attacks": {"base": "transformer-hand", "learner": {"attacks": True}},
+    "conv-hand-weighed": {"base": "transformer-hand", "learner": {"body": "conv", "dim": 8, "squeeze": 4}, "train": {"lr": 0.02}},
+    "hybrid-hand": {"base": "transformer-hand", "learner": {"body": "hybrid", "convs": 2}},
+    "transformer-hand-no-geometry": {"base": "transformer-hand", "study": "geometry", "learner": {"geometry": False}},
+}
+
+
+def test_a_run_that_changes_only_the_body_trains_and_is_set_against_the_run_it_names(lab, temp_lab):
+    import torch
+
+    model, base = "puzzle-difficulty", "transformer-hand"
+    others = [name for name in SHAPES if name != base]
+    temp_lab.model(model, {"gbm-hand": CONFIGS["gbm-hand"], "constant": CONFIGS["constant"], **SHAPES})
+    records = {name: runs.run(model, name, smoke=True, log=lambda _: None) for name in ("gbm-hand", "constant", *SHAPES)}
+    sizes = {name: records[name]["learner"]["parameters"] for name in SHAPES}
+    states = {
+        name: torch.load(paths.run_files(model, name, smoke=True) / "model.pt", weights_only=False)["state"]
+        for name in SHAPES
+        if "study" not in SHAPES[name]
+    }
+    # What attention is told of the attacks is four more numbers a head a layer, and nothing else changes shape.
+    plain, told = states[base], states["transformer-hand-attacks"]
+    assert set(told) - set(plain) == {"body.blocks.0.told_bias", "body.blocks.1.told_bias"}
+    assert told["body.blocks.0.told_bias"].shape == (2, 4) and all(told[name].shape == plain[name].shape for name in plain)
+    assert sizes["transformer-hand-attacks"] - sizes[base] == 2 * 2 * 4
+    # Without its offsets a transformer has a head's 15 by 15 numbers fewer in every layer.
+    assert sizes[base] - sizes["transformer-hand-no-geometry"] == 2 * 2 * 15 * 15
+    assert records["transformer-hand-no-geometry"]["weights"] == []
+    tower, hybrid = states["conv-hand-weighed"], states["hybrid-hand"]
+    assert "body.blocks.1.gate.0.weight" in tower and not any("qkv" in name for name in tower)
+    assert {"body.convs.1.first.weight", "body.blocks.1.qkv.weight", "body.place"} <= set(hybrid)
+    assert not any(name.startswith("body.piece") for name in hybrid)
+    # A run takes from its base whatever it does not change: the hand features, the schedule, the depth.
+    assert all(records[name]["config"]["learner"]["features"] == "hand" for name in SHAPES)
+    assert records["conv-hand-weighed"]["config"]["train"] == {"epochs": 1, "batch": 32, "lr": 0.02}
+    assert records["hybrid-hand"]["config"]["learner"]["depth"] == 2
+
+    board = leaderboard.build(model, smoke=True)
+    assert {entry["run"] for entry in board["runs"]} == {"gbm-hand", "constant", *SHAPES} - {"transformer-hand-no-geometry"}
+    assert [entry["run"] for entry in board["studies"]["geometry"]] == ["transformer-hand-no-geometry"]
+    words = {entry["run"]: entry["learner"] for entry in [*board["runs"], *board["studies"]["geometry"]]}
+    assert words[base] == "transformer, 2 layers of width 16, with hand features"
+    assert words["transformer-hand-attacks"] == "transformer, 2 layers of width 16, attention told what each piece attacks, with hand features"
+    assert words["conv-hand-weighed"] == "conv, 2 layers of width 8, each block weighing its channels by the whole board, with hand features"
+    assert words["hybrid-hand"] == "hybrid, 2 conv blocks then 2 transformer layers of width 16, with hand features"
+    assert words["transformer-hand-no-geometry"] == "transformer, 2 layers of width 16, without the offsets between squares, with hand features"
+    text = (paths.results(model, smoke=True) / "leaderboard.md").read_text()
+    assert "| `learner.geometry` False |" in text
+
+    look = analysis.analyse(model, smoke=True)
+    pairs = {(pair["run"], pair["over"]): pair for pair in look["pairs"]}
+    assert set(pairs) >= {(name, base) for name in others}
+    assert all(pairs[name, base]["gain"] is not None for name in others)
+    assert pairs["transformer-hand-no-geometry", base]["study"] == "geometry"
+
+
 SET_CONFIGS = {
     "gbm-hand": {"learner": {"kind": "gbm", "features": "hand", "rounds": 20, "min_child_samples": 5}},
     "gbm-context": {"learner": {"kind": "gbm", "features": "context", "rounds": 20, "min_child_samples": 5}},

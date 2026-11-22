@@ -118,6 +118,25 @@ def test_every_run_of_every_model_has_a_colour_of_its_own_family():
             assert charts.family(config.stem) in charts.RUN_MARKS
 
 
+def test_a_run_of_another_body_or_size_is_drawn_as_the_run_its_config_changes():
+    import yaml
+
+    assert charts.family("hybrid-medium-hand") == "transformer-medium-hand" and charts.variant("hybrid-medium-hand") == "hybrid"
+    assert charts.run_colour("conv-medium") == charts.run_colour("transformer-medium")
+    assert charts.family("conv-small") == "conv-small" and charts.variant("conv-small") == ""
+    seen = set()
+    for model in MODELS:
+        for config in paths.configs(model).glob("*.yaml"):
+            if config.stem in charts.CHANGED:
+                assert yaml.safe_load(config.read_text())["base"] == charts.CHANGED[config.stem][0], f"{model}/{config.stem}"
+                seen.add(config.stem)
+    assert seen == set(charts.CHANGED)
+    # In one figure a run and the runs that change it share a colour and a mark, so each change has a line of its own.
+    words = ["long", "pretrained", "attacks", *{change for _, change in charts.CHANGED.values()}]
+    dashes = [charts.VARIANT_DASHES[word] for word in words]
+    assert len(set(dashes)) == len(dashes) and charts.OTHER_DASH not in dashes
+
+
 def test_a_grid_of_differences_is_two_colours_that_meet_in_grey():
     cells = [[(-0.2, "$-$0.20"), (0.0, "+0.00"), (0.1, "+0.10"), (None, "")]]
     drawn = charts.grid(["row"], ["a", "b", "c", "d"], cells, row_title="Rows", column_title="Columns", low=-0.2, high=0.2, centre=0.0)

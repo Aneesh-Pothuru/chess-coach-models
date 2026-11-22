@@ -49,6 +49,16 @@ Written before the first full run.
 | `transformer-medium-hand-long` | `transformer-medium-hand` with twice the epochs |
 | `transformer-medium-pretrained` | `transformer-medium` started from the body of [position evaluation](../position-evaluation/) |
 | `transformer-medium-hand-pretrained` | `transformer-medium-hand` started from the same body |
+| `conv-medium-hand` | `transformer-medium-hand` with its body changed to a convolutional tower of about its size, each block weighing its channels by the whole board |
+| `hybrid-medium-hand` | `transformer-medium-hand` with its body changed to two blocks of the tower under five transformer layers |
+| `transformer-medium-attacks` | `transformer-medium` with its attention told what each piece attacks and what it stands behind |
+| `transformer-medium-hand-attacks` | `transformer-medium-hand` told the same |
+
+The last four change only the body of the run they name
+([`docs/design.md`](../../docs/design.md), "Bodies and a head"), and
+[`docs/ideas.md`](../../docs/ideas.md) says what was expected of them before
+they ran. Each is kept only if it beats the run it changes on valid and on
+test beyond the noise.
 
 ### Studies
 
@@ -62,6 +72,7 @@ look's `pairs`), which says something only when its interval leaves zero out.
 |---|---|---|
 | `games` | `gbm-hand-half`, `gbm-hand-quarter`, `transformer-medium-hand-half`, `transformer-medium-hand-quarter` | Half and a quarter of the training games, chosen by a hash of the game. The network goes through them often enough to take as many steps as the run it changes, so only the number of games differs. |
 | `features` | `gbm-hand-no-<group>` for each of material, mobility, hanging, pawns, kings | One group of hand features left out |
+| `geometry` | `transformer-medium-hand-no-geometry` | The learned bias for each offset between two squares left out of the transformer's attention: what telling it the board's geometry is worth |
 
 ## Results
 

@@ -90,6 +90,16 @@ Written before the first full run.
 | `transformer-small` | A small square-token transformer under the move head, for a GPU |
 | `transformer-medium` | A larger one, for a GPU |
 | `transformer-medium-hand` | The same, reading the position's hand features beside the board |
+| `conv-medium` | `transformer-medium` with its body changed to a convolutional tower of about its size, each block weighing its channels by the whole board |
+| `hybrid-medium` | `transformer-medium` with its body changed to two blocks of the tower under five transformer layers |
+| `transformer-medium-attacks` | `transformer-medium` with its attention told what each piece attacks and what it stands behind |
+| `transformer-large` | `transformer-medium` three times larger: twelve layers of width 384 |
+
+The last four change only the body of the run they name
+([`docs/design.md`](../../docs/design.md), "Bodies and a head"), and
+[`docs/ideas.md`](../../docs/ideas.md) says what was expected of them before
+they ran. Each is kept only if it beats the run it changes on valid and on
+test beyond the noise.
 
 ### Studies
 
@@ -102,6 +112,7 @@ changes.
 |---|---|---|
 | `games` | `transformer-medium-half`, `transformer-medium-quarter` | Half and a quarter of the training games, chosen by a hash of the game, gone through as many times more so the steps are the same |
 | `ratings` | `maia2-one-rating` | Maia-2 told that both players of every row are rated 1500: what its reading of the two ratings is worth |
+| `geometry` | `transformer-medium-no-geometry` | The learned bias for each offset between two squares left out of the transformer's attention: what telling it the board's geometry is worth |
 
 ## Results
 

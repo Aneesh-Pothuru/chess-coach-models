@@ -1,0 +1,9 @@
+# The architecture test, first of two passes: puzzle difficulty and blunder hazard. Runs that change
+# only the body of each model's medium transformer with hand features (a convolutional tower of its
+# size, a hybrid of convolutions and attention, attention told what each piece attacks), the
+# board-only transformer told the same, and one study (the transformer without its offsets). Puzzle
+# difficulty also gets a transformer three times larger. Each model's gbm-hand is trained again
+# first, since every run is compared with the one trained on its own machine. About three hours on
+# an A100. The plan `bodies-rest` is the same test on the other three models.
+puzzle-difficulty: gbm-hand,conv-medium-hand,hybrid-medium-hand,transformer-medium-hand-attacks,transformer-medium-attacks,transformer-large-hand,study:geometry
+blunder-hazard: gbm-hand,conv-medium-hand,hybrid-medium-hand,transformer-medium-hand-attacks,transformer-medium-attacks,study:geometry

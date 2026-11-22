@@ -115,25 +115,43 @@ one vector for the board and one for each square. The head, two layers, turns th
 into the task's output: one number, or one logit for each of a task's tags. For a task that asks
 about every square it reads each square's own vector instead, and gives that square its logit. For
 a task that asks which move is played, a head of its own gives every pair of squares a logit
-("An answer that is a move", below). Two bodies ship so a leaderboard can say what the
-architecture is worth on each task.
+("An answer that is a move", below). Three bodies ship so a leaderboard can say what the
+architecture is worth on each task, and every body works under every head.
 
 **The square transformer.** Each square is a token and every square attends to every other from
 the first layer, so a bishop on a1 and a king on h8 meet at once. Attention is told about the
 board's geometry by a learned bias for each offset between two squares, one per head: files, ranks,
 diagonals and knight hops are all offsets, so a head can learn to look along them. The context
 numbers enter as one more token. This is the design the strongest published human-move models have
-moved to.
+moved to. Two settings change what its attention is told:
+
+- `attacks: true` tells it what each piece attacks on this board. An offset says that two squares
+  share a diagonal, and not that a pawn stands between them. So for each pair of squares attention
+  is told four things, each with a learned weight per head: whether the piece on the square that
+  asks attacks the square it looks at, whether it is attacked from there, and the same two for a
+  piece that stands behind one man (a pin, a skewer, a battery). They are worked out inside the
+  network from the tokens, with two tables and no search (`encode/relations.py`, which a test
+  holds to a chess library on every piece, square and position). The weights start at nothing, so
+  such a network starts as the one that is told nothing.
+- `geometry: false` leaves the offsets out, to measure what they are worth.
 
 **The convolutional tower.** Residual blocks of 3x3 convolutions over the 8x8 board, the kind of
 network the first AlphaZero-style engines used. It is cheap, it trains on a CPU, and it sees
 further only as it gets deeper. It is here as the honest alternative: where it matches the
-transformer, the cheaper model wins.
+transformer, the cheaper model wins. With `squeeze` every block also weighs its channels by a mean
+over the whole board (squeeze-and-excitation), which is how the towers of Leela and the first Maia
+see the far side of the board early.
 
-Sizes are settings of a run (`dim`, `depth`, `heads`), not code.
+**The hybrid.** A few blocks of the tower (`convs`), then layers of the transformer over the
+squares they leave: what stands next to what first, then what looks at what. Maia-2 puts its two
+parts in this order, with its attention over groups of channels where this one's is over squares.
 
-Where a row is a sequence of positions, either body reads each of them and a third body reads them
-in order ("A row that is a sequence", below).
+Sizes are settings of a run (`dim`, `depth`, `heads`), not code, and a run that changes only the
+body of another names that run as its `base`, so the two are set against each other on the same
+test games.
+
+Where a row is a sequence of positions, any of the three reads each of them and one more body
+reads them in order ("A row that is a sequence", below).
 
 ## Learners and the run record
 

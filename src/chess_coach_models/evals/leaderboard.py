@@ -97,7 +97,17 @@ def learner_words(record: dict[str, Any]) -> str:
         return f"LightGBM, {reads}{without}"
     reads = ", with hand features" if learner.get("features") == "hand" else ""
     start = f", started from `{learner['init']['model']}/{learner['init']['run']}`" if learner.get("init") else ""
-    return f"{learner['body']}, {learner['depth']} layers of width {learner['dim']}{reads}{without}{start}"
+    body = learner["body"]
+    shape = f"{body}, {learner['depth']} layers of width {learner['dim']}"
+    if body == "hybrid":
+        shape = f"hybrid, {learner['convs']} conv blocks then {learner['depth']} transformer layers of width {learner['dim']}"
+    elif body == "transformer":
+        # What a run changes in the transformer's attention: what it is told of this board, what it is not told of any.
+        shape += ", attention told what each piece attacks" if learner.get("attacks") else ""
+        shape += "" if learner.get("geometry", True) else ", without the offsets between squares"
+    elif learner.get("squeeze"):
+        shape += ", each block weighing its channels by the whole board"
+    return f"{shape}{reads}{without}{start}"
 
 
 # What a config holds that is no setting of the run: which run it changes, why, and where it can train.

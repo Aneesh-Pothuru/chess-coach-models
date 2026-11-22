@@ -9,10 +9,10 @@ with their intervals on one axis; a quantity over an ordered scale is a line; a
 count per bin is a column; shares of one thing ranked are bars in one colour; a
 table of two scales is a grid in one colour, light to dark, with its numbers
 printed. A run keeps its colour wherever it appears (``RUN_COLOURS``), and a
-run that changes one thing in another (more epochs, another start) is drawn
-as that run with a broken line, so a figure never needs a ninth colour. Text
-is never coloured, and every figure has a table beside it in the paper or in
-the generated leaderboard, so nothing is read from colour alone.
+run that changes one thing in another (more epochs, another start, another
+body) is drawn as that run with a broken line, so a figure never needs a ninth
+colour. Text is never coloured, and every figure has a table beside it in the
+paper or in the generated leaderboard, so nothing is read from colour alone.
 """
 
 from __future__ import annotations
@@ -57,6 +57,20 @@ RUN_MARKS = {
 VARIANT_DASHES = {
     "long": "on 5pt off 2pt",
     "pretrained": "on 1pt off 2pt",
+    "attacks": "on 5pt off 2pt on 1pt off 2pt on 1pt off 2pt",
+    "tower": "on 9pt off 3pt",
+    "hybrid": "on 9pt off 2pt on 1pt off 2pt",
+    "large": "on 2.5pt off 2.5pt",
+}
+# A run that changes the body of another, or its size, is named for what it is and not for the run it
+# changes. It is drawn as that run all the same: the run it changes, and the word for its change.
+CHANGED = {
+    "conv-medium-hand": ("transformer-medium-hand", "tower"),
+    "hybrid-medium-hand": ("transformer-medium-hand", "hybrid"),
+    "transformer-large-hand": ("transformer-medium-hand", "large"),
+    "conv-medium": ("transformer-medium", "tower"),
+    "hybrid-medium": ("transformer-medium", "hybrid"),
+    "transformer-large": ("transformer-medium", "large"),
 }
 OTHER_DASH = "on 5pt off 2pt on 1pt off 2pt"
 ACCENT = "labBlue"
@@ -71,14 +85,18 @@ def family(run: str) -> str:
 
     ``transformer-medium-hand-long`` is ``transformer-medium-hand`` trained longer, and ``gbm-hand-no-line``
     is ``gbm-hand`` without a group of features. The longest known name a run's name starts with is its family.
+    A run of another body or size has the run it changes as its family (``CHANGED``).
     """
+    if run in CHANGED:
+        return CHANGED[run][0]
     known = [name for name in RUN_COLOURS if run == name or run.startswith(name + "-")]
     return max(known, key=len) if known else run
 
 
 def variant(run: str) -> str:
-    """What a run's name adds to its family's: ``long``, ``pretrained``, ``no-line``, or nothing."""
-    return run[len(family(run)) + 1 :]
+    """What a run changes in its family: what its name adds (``long``, ``pretrained``, ``no-line``), the word
+    for another body or size (``tower``, ``hybrid``, ``large``), or nothing."""
+    return CHANGED[run][1] if run in CHANGED else run[len(family(run)) + 1 :]
 
 
 def run_colour(run: str) -> str:

@@ -97,10 +97,12 @@ src/chess_coach_models/  the harness
                          player's moves in order, puzzles joined to their games, engine
                          evaluations), samples and splits by hash, the dataset format
   encode/                a board as 64 tokens from the mover's side, marks, hand features of a
-                         position, of each square and of a player's moves through a game
-  nets/                  bodies (a square-token transformer, a convolutional tower, and one over
-                         either that reads a game's positions in order) and the heads: one
-                         number, a chance a tag, a chance a square
+                         position, of each square and of a player's moves through a game, a
+                         position's legal moves, and what each piece attacks as tables
+  nets/                  bodies (a square-token transformer, a convolutional tower, a hybrid of
+                         the two, and one over any of them that reads a game's positions in
+                         order) and the heads: one number, a chance a tag, a chance a square,
+                         a chance a legal move
   train/                 the learners, one file each, and the run that writes a record
   evals/                 metrics, intervals over resampled games, paired gains, leaderboards,
                          and the closer look

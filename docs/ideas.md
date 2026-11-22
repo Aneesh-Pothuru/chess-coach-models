@@ -48,6 +48,23 @@ none: its networks stopped early on the first schedule. Two studies then ran on 
   material group is most of what the hand features give the network, and the attackers near the
   kings, which cost the trees, cost the network nothing.
 
+**Other shapes of network.** On blunder hazard and tactic found every network that reads the board
+alone is below the trees, small or medium, tower or transformer, and only the transformer that is
+also handed the hand features is ahead. The two bodies had only been set side by side at their
+small size, where the tower is level with the transformer or a little ahead. So each of the four
+models whose best run is a network, and human-move, gets runs that change the body of its medium
+transformer and nothing else (the plans `bodies-first` and `bodies-rest`): a tower of the same
+size that weighs its channels by the whole board, a hybrid of two blocks of the tower under five
+layers of the transformer, and the transformer with its attention told what each piece attacks and
+what it stands behind ([`design.md`](design.md), "Bodies and a head"). One study leaves the
+offsets out of the transformer's attention, to say what they are worth, and puzzle difficulty and
+human-move get a transformer three times larger. Each is kept by the rule every run is kept by:
+better than the run it changes on valid, and on test beyond the noise. What is expected, written
+before any of them ran: the most from attention told the attacks on blunder hazard and tactic
+found, where the hand features that count attackers and loose pieces are what the board-only
+networks lack; little from any shape on think time, which leans on the clock; and more from size
+on puzzle difficulty than on the models that read 30,000 games.
+
 What is left:
 
 - **Larger builds of the datasets.** The games study says each doubling still pays, and pays a

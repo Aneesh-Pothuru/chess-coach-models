@@ -14,13 +14,21 @@ def batch(rows: int = 5, marks: int = 3, context: int = 6):
     )
 
 
-@pytest.mark.parametrize(
-    "learner",
-    [
-        {"body": "transformer", "dim": 32, "depth": 2, "heads": 4, "dropout": 0.0},
-        {"body": "conv", "dim": 16, "depth": 2, "dropout": 0.0},
-    ],
-)
+TRANSFORMER = {"body": "transformer", "dim": 32, "depth": 2, "heads": 4, "dropout": 0.0}
+CONV = {"body": "conv", "dim": 16, "depth": 2, "dropout": 0.0}
+# Every shape a run can ask for: the two bodies as they first shipped, then the transformer told what each
+# piece attacks, the transformer without its offsets, the tower that weighs its channels, and the hybrid.
+BODIES = [
+    TRANSFORMER,
+    CONV,
+    {**TRANSFORMER, "attacks": True},
+    {**TRANSFORMER, "geometry": False},
+    {**CONV, "squeeze": 4},
+    {"body": "hybrid", "dim": 32, "depth": 1, "heads": 4, "dropout": 0.0, "convs": 1},
+]
+
+
+@pytest.mark.parametrize("learner", BODIES)
 def test_each_body_gives_one_number_a_board_and_learns(learner):
     model = build_net(learner, marks=3, context=6)
     tokens, marks, context = batch()
@@ -58,10 +66,82 @@ def test_the_transformer_reads_marks_context_and_geometry():
     assert offsets[0, 9] == offsets[18, 27]
 
 
-BODIES = [
-    {"body": "transformer", "dim": 32, "depth": 2, "heads": 4, "dropout": 0.0},
-    {"body": "conv", "dim": 16, "depth": 2, "dropout": 0.0},
-]
+def test_attention_is_told_what_each_piece_attacks_as_the_plain_tables_say():
+    import numpy as np
+
+    from chess_coach_models.encode.relations import RELATIONS, attacks
+
+    learner = {**TRANSFORMER, "attacks": True}
+    torch.manual_seed(7)
+    model = build_net(learner, marks=3, context=6).eval()
+    tokens, marks, context = batch()
+    told = model.body.told(tokens)
+    hits, behind = attacks(tokens.numpy())
+    assert told.shape == (5, len(RELATIONS), 64, 64) and set(told.unique().tolist()) == {0.0, 1.0}
+    for place, wanted in enumerate((hits, hits.transpose(0, 2, 1), behind, behind.transpose(0, 2, 1))):
+        assert np.array_equal(told[:, place].numpy() > 0, wanted)
+    # What it is told is weighed by weights that start at nothing: until they move, the network is the one
+    # told nothing, weight for weight and answer for answer.
+    torch.manual_seed(7)
+    plain = build_net(TRANSFORMER, marks=3, context=6).eval()
+    assert plain.body.told(tokens) is None
+    assert [name for name in model.state_dict() if name not in plain.state_dict()] == [
+        f"body.blocks.{layer}.told_bias" for layer in range(2)
+    ]
+    assert all(torch.equal(value, model.state_dict()[name]) for name, value in plain.state_dict().items())
+    assert model.body.blocks[0].told_bias.shape == (4, len(RELATIONS))
+    with torch.no_grad():
+        base = model(tokens, marks, context)
+        assert torch.allclose(base, plain(tokens, marks, context), atol=1e-6)
+        for block in model.body.blocks:
+            block.told_bias.normal_()
+        assert not torch.allclose(base, model(tokens, marks, context), atol=1e-4)
+    # The weights learn: the loss sends a gradient to every one of them from the first step.
+    model.train()
+    model(tokens, marks, context).sum().backward()
+    assert all(block.told_bias.grad.abs().sum() > 0 for block in model.body.blocks)
+
+
+def test_a_transformer_can_leave_its_offsets_out():
+    without = build_net({**TRANSFORMER, "geometry": False}, marks=3, context=6)
+    assert not any("offset_bias" in name for name in without.state_dict())
+    assert all(block.offset_bias is None for block in without.body.blocks)
+    assert parameter_count(build_net(TRANSFORMER, marks=3, context=6)) - parameter_count(without) == 2 * 4 * 15 * 15
+
+
+def test_a_tower_that_weighs_its_channels_sees_the_whole_board_from_its_first_block():
+    tokens, marks, context = batch()
+    far = tokens.clone()
+    far[:, 63] = (far[:, 63] + 1) % 13
+    said = {}
+    for name, learner in (("plain", {**CONV, "depth": 1}), ("squeeze", {**CONV, "depth": 1, "squeeze": 4})):
+        torch.manual_seed(2)
+        model = build_net(learner, marks=3, context=6, squares=True).eval()
+        with torch.no_grad():
+            said[name] = (model.body.squares(tokens, marks, context)[:, 0], model.body.squares(far, marks, context)[:, 0])
+        gates = [name for name in model.state_dict() if ".gate." in name]
+        assert len(gates) == (4 if name == "squeeze" else 0)
+    # One block of 3x3 convolutions reaches three squares from a1, so h8 is out of its sight. The squeeze
+    # reads a mean over the board, so the corner changes what a1 holds.
+    assert torch.allclose(*said["plain"], atol=1e-6) and not torch.allclose(*said["squeeze"], atol=1e-6)
+
+
+def test_a_hybrid_is_blocks_of_the_tower_then_layers_of_the_transformer():
+    learner = {"body": "hybrid", "dim": 32, "depth": 2, "heads": 4, "dropout": 0.0, "convs": 3}
+    model = build_net(learner, marks=3, context=6).eval()
+    assert len(model.body.convs) == 3 and len(model.body.blocks) == 2
+    names = list(model.state_dict())
+    assert "body.convs.2.second.weight" in names and "body.blocks.1.offset_bias" in names and "body.place" in names
+    tokens, marks, context = batch()
+    with torch.no_grad():
+        for block in model.body.blocks:
+            block.offset_bias.normal_()
+        base = model(tokens, marks, context)
+        assert not torch.allclose(base, model(tokens, 1 - marks, context))
+        assert not torch.allclose(base, model(tokens, marks, context + 1))
+        assert not torch.allclose(base, model(tokens.roll(1, dims=1), marks, context))
+    with pytest.raises(KeyError, match="convs"):
+        build_net({"body": "hybrid", "dim": 32, "depth": 2, "heads": 4}, marks=3, context=6)
 
 
 @pytest.mark.parametrize("learner", BODIES)

@@ -1,0 +1,8 @@
+# The body changed, and nothing else: two residual blocks of convolutions, then five transformer
+# layers over the squares they leave, about the size and the work of the medium transformer's eight
+# layers. Maia-2 puts convolutions and attention in this order.
+base: transformer-medium
+learner:
+  body: hybrid
+  convs: 2
+  depth: 5
