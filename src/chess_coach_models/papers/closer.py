@@ -766,6 +766,20 @@ def _shown(column: str, value: Any) -> str:
     return f"{tex.esc(glossary.label(column))} {text}" + (f"\\,{unit}" if unit else "")
 
 
+# The move a row is about, by the column an example holds it under, and what the example calls it. Of a
+# row that is one position it is the move that was played there. Of a row that is a game the board is the
+# position before the player's costliest move, and that move is the one shown.
+SUBJECT_MOVES = {"move": "Played", "worst_move": "The player's costliest move"}
+# The moves among them that a network is told the squares of, as it is told the opponent's last move: a
+# game's network reads each of the player's moves with its position.
+READ_MOVES = ("worst_move",)
+
+
+def _subject(moves: dict[str, str]) -> tuple[str, str] | None:
+    """The move a row is about where an example holds one, as what the example calls it and the move."""
+    return next(((words, moves[name]) for name, words in SUBJECT_MOVES.items() if moves.get(name)), None)
+
+
 def _arrows(moves: dict[str, str]) -> list[tuple[str, str]]:
     """The moves an example's board shows: what led to the position in grey, the move the row is about in
     blue, and in orange the move played where it was another."""
@@ -773,7 +787,8 @@ def _arrows(moves: dict[str, str]) -> list[tuple[str, str]]:
     context = moves.get("setup") or moves.get("last_move")
     if context:
         arrows.append((context, boards.CONTEXT))
-    subject = moves["line"].split()[0] if moves.get("line") else moves.get("move")
+    named = _subject(moves)
+    subject = moves["line"].split()[0] if moves.get("line") else named and named[1]
     played = moves.get("played")
     if played and played != subject:
         arrows.append((played, boards.OTHER))
@@ -798,9 +813,9 @@ def example_block(src: Sources, name: str, number: int, example: dict[str, Any])
         told.append(f"The opponent's move: {_squares(context)}.")
     if moves.get("line"):
         told.append(f"The line: {boards.moves(fen, moves['line'].split())}.")
-    played = moves.get("played") or moves.get("move")
-    if played:
-        told.append(f"Played: {boards.moves(fen, [played])}.")
+    named = ("Played", moves["played"]) if moves.get("played") else _subject(moves)
+    if named:
+        told.append(f"{named[0]}: {boards.moves(fen, [named[1]])}.")
     lines.append(" ".join(told))
     truth = tex.esc(spec.get("truth", "What happened"))
     if binary:
@@ -853,6 +868,7 @@ def encoding_figure(src: Sources) -> str | None:
         fields.append((squares(context), boards.CONTEXT))
     for index, uci in enumerate(moves.get("line", "").split()):
         fields.append((squares(uci), boards.SUBJECT if index % 2 == 0 else boards.OTHER))
+    fields += [(squares(moves[name]), boards.SUBJECT) for name in READ_MOVES if moves.get(name)]
     played = boards.board(fen, arrows=_arrows(moves), from_mover=False, size="11pt")
     read = boards.board(boards.mirrored(fen), fields=fields, from_mover=False, size="11pt")
     return (

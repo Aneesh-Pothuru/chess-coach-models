@@ -16,7 +16,7 @@ from chess_coach_models.encode.hand import GROUPS, group_of
 from chess_coach_models.encode.moves import MOVE_HAND, MOVE_PLAIN
 from chess_coach_models.encode.squares import SQUARE_HAND, SQUARE_PLAIN
 from chess_coach_models.evals import analysis
-from chess_coach_models.papers import build, changes, charts, glossary, overview, sources, tex
+from chess_coach_models.papers import boards, build, changes, charts, closer, glossary, overview, sources, tex
 
 
 MODELS = sorted(path.parent.name for path in paths.models().glob("*/task.yaml"))
@@ -467,6 +467,22 @@ def test_a_model_s_paper_draws_a_run_of_another_shape_in_a_panel_of_its_own():
     plain.run("transformer-medium-hand")["learner"]["history"] = base["learner"]["history"]
     plain.run("gbm-hand")["valid"] = {primary: 280.0}
     assert changes.shapes_figure(plain) is None and changes.variants_figure(plain) == trained
+
+
+def test_an_example_s_board_shows_the_move_its_row_is_about():
+    grey, blue, orange = boards.CONTEXT, boards.SUBJECT, boards.OTHER
+    # A position of a game: the opponent's last move, and the move that was played there.
+    position = {"last_move": "b2b4", "move": "f5f4"}
+    assert closer._arrows(position) == [("b2b4", grey), ("f5f4", blue)] and closer._subject(position) == ("Played", "f5f4")
+    # A tactic: its setup, the first move of its line, and what was played where that was another move.
+    tactic = {"setup": "b2b4", "line": "f5f4 g1f2", "played": "d3b4"}
+    assert closer._arrows(tactic) == [("b2b4", grey), ("d3b4", orange), ("f5f4", blue)] and closer._subject(tactic) is None
+    assert closer._arrows({**tactic, "played": "f5f4"}) == [("b2b4", grey), ("f5f4", blue)]
+    # A game: the board is the position before the player's costliest move, and that move is the one shown.
+    game = {"last_move": "b2b4", "worst_move": "f5f4"}
+    assert closer._arrows(game) == [("b2b4", grey), ("f5f4", blue)]
+    assert closer._subject(game) == ("The player's costliest move", "f5f4")
+    assert set(closer.READ_MOVES) <= set(closer.SUBJECT_MOVES)
 
 
 def test_panels_fill_rows_when_they_are_given_columns():
