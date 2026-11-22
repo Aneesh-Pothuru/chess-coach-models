@@ -110,10 +110,13 @@ Sizes are settings of a run (`dim`, `depth`, `heads`), not code.
 
 ## Learners and the run record
 
-A run is one config file and names one of four learners, each a file under `train/learners/` with
+A run is one config file and names one of five learners, each a file under `train/learners/` with
 one function, `fit`:
 
 - `constant`: one number for every row. The floor: a model that does not beat it learned nothing.
+- `column`: a column of the dataset, times a constant, read as the prediction. Nothing is fitted.
+  It is the comparison for a task where a number already claims to answer the question, as an
+  engine's win probability does for who wins.
 - `rating-formula`: the rating formula's expected score of a player against something rated,
   from two columns the run names. Nothing is fitted. It is the comparison for a task where a
   rating already claims to answer the question, as a puzzle's rating does for a tactic.
@@ -189,6 +192,10 @@ them, and writes `results/analysis.json`: small tables, committed, that any mach
   and how often the run is the closer of the two.
 - **Examples.** Positions chosen by rule, never by eye: ordinary rows picked by a hash of their
   key, the rows the best run is surest of, and its largest misses each way.
+- **Pairs.** Two runs the plan names, the first set against the second on the same resampled test
+  games: a run beside the run it changed (twice the epochs, the hand features added), or beside
+  the number it has to beat. A leaderboard gives every run's gain over the reference; a pair is how
+  one thing changed in a run is judged.
 
 A run's predictions are read only when its record names the build of the data on the machine,
 they are of that build's test rows in order, and they score what the record says. Every number is

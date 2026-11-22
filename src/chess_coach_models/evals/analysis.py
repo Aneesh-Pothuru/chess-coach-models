@@ -21,6 +21,7 @@ What it looks at is ``models/<model>/analysis.yaml``:
     grids:                                        the label by two columns at once
       - {key: ratings, rows: {column: mover_elo, edges: [...]}, columns: {column: rating, edges: [...]}}
     examples: {count: 3, id: puzzle_id, moves: [setup, line], show: [rating, themes]}
+    pairs: [[transformer-long, transformer]]      runs set against the run each changed, first over second
 
 The task's own bands are always its first slice. Every number is rounded to
 six significant digits, so two machines write the same file.
@@ -43,7 +44,7 @@ import yaml
 from .. import bands, paths, tasks
 from ..data import recipe
 from ..data.store import Dataset, code_commit, read_dataset
-from .bootstrap import paired
+from .bootstrap import RESAMPLES, SMOKE_RESAMPLES, paired
 from .leaderboard import ranked, records
 from .metrics import METRICS
 
@@ -420,6 +421,29 @@ def against_reference(look: Look) -> dict[str, dict[str, float]]:
     return table
 
 
+def pair_table(look: Look, asked: list[list[str]], *, resamples: int = RESAMPLES) -> list[dict[str, Any]]:
+    """Runs set against the run each changed: the first's paired gain over the second on the same resampled test
+    games, measured as a leaderboard measures a gain over the reference. A pair with a run that was not read
+    has no gain."""
+    table = []
+    for run, changed in asked:
+        entry: dict[str, Any] = {"run": run, "over": changed, "gain": None}
+        if run in look.predictions and changed in look.predictions:
+            entry.update(
+                paired(
+                    look.task.kind,
+                    look.task.primary,
+                    look.truth,
+                    look.predictions[run],
+                    look.predictions[changed],
+                    look.games,
+                    resamples=resamples,
+                )
+            )
+        table.append(entry)
+    return table
+
+
 def read_predictions(
     model: str, task: tasks.Task, runs: list[dict[str, Any]], dataset: Dataset, y: np.ndarray, test: np.ndarray, *, smoke: bool
 ) -> tuple[dict[str, np.ndarray], dict[str, str]]:
@@ -497,6 +521,7 @@ def analyse(model: str, *, smoke: bool = False) -> dict[str, Any]:
         "slices": [band_slice(look, asked.get("band", {}))] + [slice_table(look, one) for one in asked.get("slices", [])],
         "grids": [grid_table(look, one) for one in asked.get("grids", [])],
         "examples": examples(look, asked.get("examples", {})),
+        "pairs": pair_table(look, asked.get("pairs", []), resamples=SMOKE_RESAMPLES if smoke else RESAMPLES),
     }
     if task.kind == "binary":
         result["ranking"] = {run: ranking(look.truth, p) for run, p in predictions.items()}

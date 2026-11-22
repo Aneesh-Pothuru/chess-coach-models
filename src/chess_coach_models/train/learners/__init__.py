@@ -1,9 +1,9 @@
-"""The learners a run can name: a constant, the rating formula, gradient-boosted trees, a network.
+"""The learners a run can name: a constant, a column of the dataset, the rating formula, gradient-boosted trees, a network.
 
 Each takes the prepared arrays of a task and returns its predictions on the
 valid and test rows in the label's own unit (a rating, a log of seconds, a
 chance), with what it took to get them. A learner's module is imported when a
-run names it, so the floor and the formula need neither LightGBM nor Torch.
+run names it, so the floor, a column and the formula need neither LightGBM nor Torch.
 """
 
 from __future__ import annotations
@@ -15,7 +15,13 @@ from .base import Fitted, Prepared, features, prepare
 
 
 # A run's ``learner.kind`` and the module here whose ``fit`` trains it.
-LEARNERS = {"constant": "constant", "rating-formula": "rating_formula", "gbm": "gbm", "net": "net"}
+LEARNERS = {
+    "constant": "constant",
+    "column": "column",
+    "rating-formula": "rating_formula",
+    "gbm": "gbm",
+    "net": "net",
+}
 
 
 def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None = None) -> Fitted:

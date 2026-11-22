@@ -14,16 +14,17 @@ model"). The order below is the order they are worth building in.
 | [blunder-hazard](../models/blunder-hazard/) | A position, ratings, clocks, the evaluation | The chance the mover blunders | The positions where players at a level go wrong |
 | [think-time](../models/think-time/) | A position, ratings, clocks | The seconds spent on the move | Where a player moved too fast or too slow |
 | [tactic-found](../models/tactic-found/) | A position after the opponent's mistake, the tactic's line, ratings, clocks | The chance the player finds the tactic in the game | Which missed tactics were within reach at the player's level |
+| [practical-chances](../models/practical-chances/) | A position, ratings, clocks, the evaluation | The mover's expected score in the game | Which "equal" positions are hard to hold at the player's level, and which "lost" ones are still worth playing on |
 
 ## Next
 
-### More from the four models
+### More from the models on the harness
 
 What the first full runs ([the leaderboards](../README.md#leaderboards)) leave to try. Each is a
-run or a recipe, not a new model:
+run or a recipe, not a new model. Nine of the sixteen network runs had their best valid epoch at
+the last one, so each model has two runs with twice the epochs (`transformer-medium-long`,
+`transformer-medium-hand-long`); what is left:
 
-- **A longer schedule.** Nine of the sixteen network runs had their best valid epoch at the last
-  one, among them every transformer that reads no hand features.
 - **More games.** `game-positions` keeps 30,000 games of a month's, and without the hand features
   no network matched the trees on `blunder-hazard`.
 - **One group of hand features left out at a time**, to say which of them a network still needs
@@ -33,19 +34,6 @@ run or a recipe, not a new model:
   notice.
 - **Tactic found, with the whole line as the label**: the player found the tactic only if the game
   followed it to the end, which a game answers while the opponent follows the puzzle's replies.
-
-### Practical chances
-
-Between two people at these ratings, with these clocks, who wins from here?
-
-- **Reads.** A position, both ratings, both clocks, the engine's evaluation.
-- **Predicts.** The mover's expected score in the game.
-- **Data.** The `game-positions` dataset already carries the label (`mover_score`).
-- **Scored by.** Mean squared error of the expected score, against the engine's evaluation passed
-  through the win-probability curve with the rating gap added.
-- **Needs.** A task and a card. No new code.
-- **What the app gets.** Which "equal" positions are hard to hold at the player's level, and which
-  "lost" ones are still worth playing on.
 
 ### Pre-training on engine evaluations
 

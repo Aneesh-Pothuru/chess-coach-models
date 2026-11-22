@@ -68,7 +68,7 @@ def test_a_task_is_ranked_by_a_metric_of_its_kind(temp_lab):
 def test_every_analysis_plan_asks_for_things_the_analysis_knows():
     for name in tasks.names():
         plan = analysis.plan(name)
-        assert set(plan) <= {"band", "describe", "label", "within", "slices", "grids", "examples"}, name
+        assert set(plan) <= {"band", "describe", "label", "within", "slices", "grids", "examples", "pairs"}, name
         cuts = plan.get("slices", []) + [side for grid in plan.get("grids", []) for side in (grid["rows"], grid["columns"])]
         for cut in cuts:
             assert sum(kind in cut for kind in ("values", "edges", "tags")) == 1, (name, cut)
@@ -77,6 +77,9 @@ def test_every_analysis_plan_asks_for_things_the_analysis_knows():
         assert len(keys) == len(set(keys)), name
         grids = [grid["key"] for grid in plan.get("grids", [])]
         assert len(grids) == len(set(grids)), name
+        runs = {path.stem for path in paths.configs(name).glob("*.yaml")}
+        for pair in plan.get("pairs", []):
+            assert len(pair) == 2 and pair[0] != pair[1] and set(pair) <= runs, (name, pair)
 
 
 def test_a_model_without_a_plan_is_asked_nothing_more(temp_lab):

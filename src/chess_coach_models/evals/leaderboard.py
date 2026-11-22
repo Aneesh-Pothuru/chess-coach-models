@@ -54,6 +54,9 @@ def learner_words(record: dict[str, Any]) -> str:
     learner = record["config"]["learner"]
     if learner["kind"] == "constant":
         return "one number for every row"
+    if learner["kind"] == "column":
+        scale = float(learner.get("scale", 1.0))
+        return f"the column `{learner['column']}`" + ("" if scale == 1.0 else f", times {scale:g}")
     if learner["kind"] == "rating-formula":
         return f"the rating formula on `{learner['player']}` against `{learner['against']}`"
     if learner["kind"] == "gbm":

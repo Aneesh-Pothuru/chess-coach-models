@@ -39,6 +39,8 @@ Written before the first full run.
 | `transformer-small` | A square-token transformer, CPU-sized |
 | `transformer-medium` | A larger square-token transformer, for a GPU |
 | `transformer-medium-hand` | The same, reading the hand features beside the board |
+| `transformer-medium-long` | `transformer-medium` with twice the epochs |
+| `transformer-medium-hand-long` | `transformer-medium-hand` with twice the epochs |
 
 ## Results
 

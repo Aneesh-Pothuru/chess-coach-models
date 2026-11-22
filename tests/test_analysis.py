@@ -190,6 +190,18 @@ def test_a_run_beside_the_reference_is_how_alike_and_how_often_closer():
     assert 0 < beside["net"]["correlation"] < 1 and beside["net"]["closer_share"] > 0.5
 
 
+def test_a_pair_sets_one_run_against_the_run_it_changed():
+    look = a_look("regression")
+    first, second, third = analysis.pair_table(
+        look, [["net", "gbm-hand"], ["gbm-hand", "net"], ["net", "absent"]], resamples=50
+    )
+    assert (first["run"], first["over"]) == ("net", "gbm-hand")
+    assert first["low"] <= first["gain"] <= first["high"]
+    assert first["gain"] > 0 and first["beyond_noise"]
+    assert second["gain"] == pytest.approx(-first["gain"]) and second["beyond_noise"]
+    assert third == {"run": "net", "over": "absent", "gain": None}
+
+
 def test_numbers_are_written_at_six_digits_and_a_missing_one_as_null():
     assert analysis.rounded({"a": [np.float64(1 / 3), float("nan"), np.int64(3)], "b": "text", "c": None}) == {
         "a": [0.333333, None, 3],

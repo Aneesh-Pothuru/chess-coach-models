@@ -22,9 +22,10 @@ results its runs wrote.
 | [blunder-hazard](models/blunder-hazard/) | A position, both ratings, both clocks, the evaluation | The chance the mover blunders |
 | [think-time](models/think-time/) | A position, both ratings, both clocks | The seconds a player spends on the move |
 | [tactic-found](models/tactic-found/) | A position after the opponent's mistake, the tactic's line, both ratings, both clocks | The chance the player finds the tactic in the game |
+| [practical-chances](models/practical-chances/) | A position, both ratings, both clocks, the evaluation | The mover's expected score in the game |
 | [coach-narrator](models/coach-narrator/) | Checked facts about a line of play | Two plain sentences that tell the line |
 
-The first four share one harness. The coach narrator is a fine-tuned language model (Llama 3.2
+The first five share one harness. The coach narrator is a fine-tuned language model (Llama 3.2
 3B) with its own scripts; a retrain on open data is published as
 [a release](https://github.com/Aneesh-Pothuru/chess-coach-models/releases/tag/Llama-3.2-3B-coach-narrator-n6)
 (see its card).
