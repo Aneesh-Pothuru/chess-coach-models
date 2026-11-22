@@ -26,10 +26,11 @@ results its runs wrote.
 | [think-time](models/think-time/) | A position, both ratings, both clocks | The seconds a player spends on the move |
 | [tactic-found](models/tactic-found/) | A position after the opponent's mistake, the tactic's line, both ratings, both clocks | The chance the player finds the tactic in the game |
 | [practical-chances](models/practical-chances/) | A position, both ratings, both clocks, the evaluation | The mover's expected score in the game |
+| [game-rating](models/game-rating/) | A player's moves through one game, in order: each position, the clocks, the seconds the move took and what it lost | The player's Lichess rating |
 | [position-evaluation](models/position-evaluation/) | A position | An engine's evaluation of it: the body the others can start from |
 | [coach-narrator](models/coach-narrator/) | Checked facts about a line of play | Two plain sentences that tell the line |
 
-The first nine share one harness. The coach narrator is a fine-tuned language model (Llama 3.2
+The first ten share one harness. The coach narrator is a fine-tuned language model (Llama 3.2
 3B) with its own scripts; a retrain on open data is published as
 [a release](https://github.com/Aneesh-Pothuru/chess-coach-models/releases/tag/Llama-3.2-3B-coach-narrator-n6)
 (see its card).
@@ -91,12 +92,14 @@ datasets/<name>.yaml     a recipe: an open source, filters, a fixed sample, a sp
 src/chess_coach_models/  the harness
   paths.py               where everything above is kept
   tasks.py               a model's task, read from its folder
-  data/                  Lichess sources (puzzles, a month of games, puzzles joined to their games,
-                         engine evaluations), samples and splits by hash, the dataset format
+  data/                  Lichess sources (puzzles, a month of games as positions and as each
+                         player's moves in order, puzzles joined to their games, engine
+                         evaluations), samples and splits by hash, the dataset format
   encode/                a board as 64 tokens from the mover's side, marks, hand features of a
-                         position and of each square
-  nets/                  bodies (a square-token transformer, a convolutional tower) and the heads:
-                         one number, a chance a tag, a chance a square
+                         position, of each square and of a player's moves through a game
+  nets/                  bodies (a square-token transformer, a convolutional tower, and one over
+                         either that reads a game's positions in order) and the heads: one
+                         number, a chance a tag, a chance a square
   train/                 the learners, one file each, and the run that writes a record
   evals/                 metrics, intervals over resampled games, paired gains, leaderboards,
                          and the closer look

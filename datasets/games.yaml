@@ -1,0 +1,22 @@
+# A player's moves through a rated Lichess rapid game with engine evaluations and clocks
+# (data/sides.py): a row a player, both players of a game.
+name: games-2026-10
+builder: game_sides
+month: "2026-10"
+speeds: [rapid]
+# The Maia protocol's opening cut, as game-positions has it: nothing before each side's sixth move.
+min_ply: 11
+# A player gives a row with at least this many moves that carry an evaluation and clocks, and the
+# row keeps at most this many, the first of them.
+least_moves: 10
+most_moves: 48
+# The stream is read from the start of the month until this many games have given rows.
+games: 50000
+# The same salt as game-positions, so a game is in the same split in both: a network that starts
+# from a body trained on those positions has never seen this dataset's valid or test games.
+split:
+  salt: game-positions-v1
+  valid: 0.05
+  test: 0.10
+smoke:
+  games: 600

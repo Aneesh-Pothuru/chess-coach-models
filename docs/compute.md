@@ -69,8 +69,10 @@ are all it commits.
 commands on the notebook's GPU. Its first cell names the models and the runs, or a plan kept in
 [`colab/plans/`](../colab/plans/): `all` is every model's own runs, `studies` the study runs of
 the models that have results, `pretrain` the body trained on engine evaluations and the runs that
-start from it, `sets` the two models whose answer is a set. Its last cell packs two zips and prints their hashes: `lab-results.zip`, the run records and leaderboards under
-`models/*/results/`, and `lab-runs.zip`, every run's trained weights and test predictions.
+start from it, `sets` the two models whose answer is a set, `games` the first pass of game
+rating. Its last cell packs two zips and prints their hashes: `lab-results.zip`, the run records
+and leaderboards under `models/*/results/`, and `lab-runs.zip`, every run's trained weights and
+test predictions.
 
 1. Open the notebook in Colab and choose a GPU runtime.
 2. Run every cell.

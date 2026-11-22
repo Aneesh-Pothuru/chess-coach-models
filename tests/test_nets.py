@@ -118,6 +118,88 @@ def test_a_head_with_one_number_keeps_the_weights_a_saved_run_has(learner):
     assert wider.load_state_dict({name: model.state_dict()[name] for name in body}, strict=False).unexpected_keys == []
 
 
+OVER = {"over": {"depth": 1, "heads": 2}}
+
+
+def game_batch(marks: int = 3, numbers: int = 5, context: int = 2):
+    """Four rows of up to six positions: the first is full, and the others are filled out."""
+    generator = torch.Generator().manual_seed(0)
+    lengths = torch.tensor([6, 4, 2, 5])
+    held = torch.arange(6)[None, :] < lengths[:, None]
+    return (
+        torch.randint(0, 13, (4, 6, 64), generator=generator),
+        torch.randint(0, 2, (4, 6, 64, marks), generator=generator).float(),
+        torch.randn(4, 6, numbers, generator=generator),
+        held,
+        torch.randn(4, context, generator=generator),
+    )
+
+
+@pytest.mark.parametrize("learner", BODIES)
+def test_a_body_over_a_game_gives_one_number_a_row_and_learns(learner):
+    model = build_net({**learner, **OVER}, marks=3, context=2, steps=5, most=6)
+    inputs = game_batch()
+    assert model(*inputs).shape == (4,)
+    assert model.body.out_dim == 2 * model.body.board.out_dim and model.body.place.shape[0] == 6
+    wanted = torch.tensor([0.0, 1.0, 2.0, 3.0])
+    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-2)
+    first = None
+    for _ in range(80):
+        loss = torch.nn.functional.mse_loss(model(*inputs), wanted)
+        first = first if first is not None else loss.item()
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+    assert loss.item() < first / 4
+
+
+@pytest.mark.parametrize("learner", BODIES)
+def test_what_fills_a_short_row_out_changes_nothing_it_says(learner):
+    torch.manual_seed(3)
+    model = build_net({**learner, **OVER}, marks=3, context=2, steps=5, most=8).eval()
+    tokens, marks, numbers, held, context = game_batch()
+    with torch.no_grad():
+        base = model(tokens, marks, numbers, held, context)
+        # Other boards, marks and numbers where a row has no position.
+        other = (tokens.clone(), marks.clone(), numbers.clone())
+        other[0][~held] = 12 - other[0][~held]
+        other[1][~held] = 1 - other[1][~held]
+        other[2][~held] += 5.0
+        assert torch.allclose(base, model(*other, held, context), atol=1e-5)
+        # A longer batch: two more places that hold nothing.
+        longer = [torch.cat([part, part[:, :2]], dim=1) for part in (tokens, marks, numbers)]
+        assert torch.allclose(base, model(*longer, torch.cat([held, held[:, :2] & False], dim=1), context), atol=1e-5)
+        # A row alone says what it said among the others.
+        alone = model(tokens[1:2, :4], marks[1:2, :4], numbers[1:2, :4], held[1:2, :4], context[1:2])
+        assert torch.allclose(base[1:2], alone, atol=1e-5)
+
+
+def test_a_body_over_a_game_reads_the_order_of_its_positions_and_every_number():
+    torch.manual_seed(3)
+    model = build_net({**BODIES[0], **OVER}, marks=3, context=2, steps=5, most=6).eval()
+    tokens, marks, numbers, held, context = game_batch()
+    with torch.no_grad():
+        model.body.place.normal_()
+        base = model(tokens, marks, numbers, held, context)
+        # The first row's positions the other way round: that row changes, and no other.
+        turned = [part.clone() for part in (tokens, marks, numbers)]
+        for part in turned:
+            part[0] = part[0].flip(0)
+        said = model(*turned, held, context)
+        assert not torch.allclose(base[0], said[0], atol=1e-4) and torch.allclose(base[1:], said[1:], atol=1e-5)
+        assert not torch.allclose(base, model(tokens, marks, numbers + 1, held, context), atol=1e-4)
+        assert not torch.allclose(base, model(tokens, marks, numbers, held, context + 1), atol=1e-4)
+        assert not torch.allclose(base, model(tokens, 1 - marks, numbers, held, context), atol=1e-4)
+
+
+def test_a_body_over_a_game_has_two_layers_unless_a_run_says_and_no_head_a_square():
+    model = build_net(BODIES[0], marks=3, context=2, steps=5, most=6)
+    assert model.body.over.num_layers == 2
+    assert build_net({**BODIES[0], **OVER}, marks=3, context=2, steps=5, most=6).body.over.num_layers == 1
+    with pytest.raises(ValueError, match="no head a square"):
+        build_net(BODIES[0], marks=3, context=2, steps=5, most=6, squares=True)
+
+
 def test_an_unknown_body_is_refused():
     with pytest.raises(ValueError):
         build_net({"body": "graph", "dim": 8, "depth": 1}, marks=1, context=1)

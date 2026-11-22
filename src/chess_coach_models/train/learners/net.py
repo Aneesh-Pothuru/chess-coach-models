@@ -69,7 +69,9 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
 
     With ``start`` the network begins from the body of the network saved there (``start_from``), and its
     record says what it took. For a task whose answer is a set the head gives a logit a candidate (a square,
-    a tag), each trained as a yes or no of its own.
+    a tag), each trained as a yes or no of its own. Where a row is a sequence of positions the body reads
+    every one of them with its own numbers and then the positions in order (``GameBody``): a batch is filled
+    out to its longest row, and the row's own numbers are what a row of one position has as context.
     """
     import torch
     import torch.nn.functional as F
@@ -93,8 +95,11 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
     y_mean = float(prepared.y[prepared.train].mean()) if regression else 0.0
     y_spread = float(prepared.y[prepared.train].std()) if regression else 1.0
 
-    tokens = torch.from_numpy(prepared.dataset.tokens).to(device)
-    marks = torch.from_numpy(prepared.dataset.marks.astype(np.int16)).to(device)
+    sequence = prepared.dataset.steps
+    if sequence is not None and start is not None:
+        raise ValueError(f"{task.name}: a network that reads a row's positions in order does not start from another run yet")
+    tokens = torch.from_numpy(prepared.dataset.tokens if sequence is None else sequence.tokens).to(device)
+    marks = torch.from_numpy((prepared.dataset.marks if sequence is None else sequence.marks).astype(np.int16)).to(device)
     context = torch.from_numpy((numbers - mean) / spread).to(device)
     if sets:
         # One byte a candidate until a batch asks for it: a set over every row is large as fractions.
@@ -103,9 +108,35 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
         target = torch.from_numpy(((prepared.y - y_mean) / y_spread).astype(np.float32)).to(device)
     shifts = torch.tensor(prepared.mark_channels, device=device)
 
-    def batch_of(rows: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def batch_of(rows: torch.Tensor) -> tuple[torch.Tensor, ...]:
         planes = ((marks[rows].long()[..., None] >> shifts) & 1).float()
         return tokens[rows].long(), planes, context[rows]
+
+    step_mean = step_spread = None
+    longest = 0
+    if sequence is not None:
+        frame = prepared.dataset.rows
+        first, count = frame["first_step"].to_numpy().astype(np.int64), frame["steps"].to_numpy().astype(np.int64)
+        longest = int(count.max())
+        # Each position's numbers, scaled by what the training rows' positions hold.
+        of_step = sequence.numbers[:, prepared.step_columns].astype(np.float32)
+        in_train = np.zeros(len(count), dtype=bool)
+        in_train[prepared.train] = True
+        step_mean = of_step[np.repeat(in_train, count)].mean(axis=0)
+        step_spread = of_step[np.repeat(in_train, count)].std(axis=0)
+        step_spread[step_spread == 0] = 1.0
+        step_numbers = torch.from_numpy((of_step - step_mean) / step_spread).to(device)
+        first_step, step_count = torch.from_numpy(first).to(device), torch.from_numpy(count).to(device)
+
+        def batch_of(rows: torch.Tensor) -> tuple[torch.Tensor, ...]:  # noqa: F811
+            counts = step_count[rows]
+            reach = torch.arange(int(counts.max()), device=device)
+            held = reach[None, :] < counts[:, None]
+            # A row shorter than the batch's longest is filled out with its own first position, which the body
+            # never reads.
+            index = first_step[rows][:, None] + torch.where(held, reach[None, :], 0)
+            planes = ((marks[index].long()[..., None] >> shifts) & 1).float()
+            return tokens[index].long(), planes, step_numbers[index], held, context[rows]
 
     model = build_net(
         learner,
@@ -113,6 +144,8 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
         context=context.shape[1],
         outputs=len(task.candidates) if task.kind == "tags" else 1,
         squares=task.kind == "squares",
+        steps=None if sequence is None else len(prepared.step_names),
+        most=longest,
     )
     started = None
     if start is not None:
@@ -147,13 +180,16 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
     else:
         loss_of = F.mse_loss
 
+    # Rows scored at a time: a row that is a sequence is as many boards as it has positions.
+    at_once = 2048 if sequence is None else max(1, 2048 // longest)
+
     def predict(rows: np.ndarray) -> np.ndarray:
         model.eval()
         parts = []
         index = torch.from_numpy(rows).to(device)
         with torch.no_grad(), torch.autocast(device_type="cuda" if on_gpu else "cpu", enabled=on_gpu):
-            for start in range(0, len(index), 2048):
-                parts.append(model(*batch_of(index[start : start + 2048])).float())
+            for start in range(0, len(index), at_once):
+                parts.append(model(*batch_of(index[start : start + at_once])).float())
         output = torch.cat(parts)
         output = output * y_spread + y_mean if regression else torch.sigmoid(output)
         return output.cpu().numpy().astype(np.float64)
@@ -216,6 +252,11 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
                 "label_mean": y_mean,
                 "label_spread": y_spread,
                 **({"candidates": list(task.candidates)} if sets else {}),
+                **(
+                    {}
+                    if sequence is None
+                    else {"steps": prepared.step_names, "step_mean": step_mean, "step_spread": step_spread, "most_steps": longest}
+                ),
             },
             directory / "model.pt",
         )

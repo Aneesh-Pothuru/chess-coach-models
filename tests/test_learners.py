@@ -111,6 +111,37 @@ def test_a_task_keeps_marks_and_hand_groups_from_its_learners():
         learners.prepare(absent, a_puzzle_dataset())
 
 
+def a_game_dataset() -> store.Dataset:
+    """A dataset whose rows are sequences of one, two or three positions, each with three numbers."""
+    dataset = a_dataset()
+    counts = np.tile([2, 3, 1], ROWS // 3)
+    rows = dataset.rows.with_columns(pl.Series("steps", counts), pl.Series("first_step", np.cumsum(counts) - counts))
+    positions = int(counts.sum())
+    steps = store.Steps(
+        tokens=np.zeros((positions, 64), dtype=np.uint8),
+        marks=np.zeros((positions, 64), dtype=np.uint16),
+        numbers=np.zeros((positions, 3), dtype=np.float32),
+    )
+    manifest = {**dataset.manifest, "steps": ["ply", "log_clock", "loss"]}
+    store.check_steps(rows, steps, manifest)
+    return store.Dataset(name="tiny", rows=rows, tokens=dataset.tokens, marks=dataset.marks, manifest=manifest, steps=steps)
+
+
+def test_a_task_names_the_numbers_of_each_position_a_network_reads():
+    whole = learners.prepare(a_task("mover_score"), a_game_dataset())
+    assert (whole.step_names, whole.step_columns) == (["ply", "log_clock", "loss"], [0, 1, 2])
+    some = tasks.Task(**{**a_task("mover_score").__dict__, "steps": ("loss", "ply")})
+    prepared = learners.prepare(some, a_game_dataset())
+    assert (prepared.step_names, prepared.step_columns) == (["loss", "ply"], [2, 0])
+    with pytest.raises(ValueError, match="asks for weather"):
+        learners.prepare(tasks.Task(**{**some.__dict__, "steps": ("loss", "weather")}), a_game_dataset())
+    # A dataset of single positions has no such numbers, and says so to a task that asks for one.
+    single = learners.prepare(a_task("mover_score"), a_dataset())
+    assert (single.step_names, single.step_columns) == ([], [])
+    with pytest.raises(ValueError, match="its rows are not sequences"):
+        learners.prepare(some, a_dataset())
+
+
 def test_a_run_leaves_groups_of_hand_features_out_and_never_the_context():
     in_context = tasks.Task(**{**a_task("mover_score").__dict__, "context": ("mover_elo", "solver_moves")})
     prepared = learners.prepare(in_context, a_puzzle_dataset())

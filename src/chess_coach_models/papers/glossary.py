@@ -36,6 +36,14 @@ COLUMNS: dict[str, tuple[str, str]] = {
     "clock": ("the mover's clock", "The seconds left on the mover's clock."),
     "opponent_clock": ("the opponent's clock", "The seconds left on the opponent's clock."),
     "base": ("base time", "The time control's starting time, in seconds."),
+    "player_elo": ("the player's rating", "The Lichess rating of the player whose moves the row holds."),
+    "elo_gap": ("the player's rating less the opponent's", "The player's Lichess rating less the opponent's."),
+    "side": ("the player's colour", "Whether the player had White or Black."),
+    "player_score": ("the player's result", "How the game ended for the player: a win 1, a draw 0.5, a loss 0."),
+    "steps": ("moves read", "How many of the player's moves the row holds, in order: those that carry an evaluation and clocks."),
+    "worst_ply": ("ply of the costliest move", "How many half-moves into the game the player's costliest move was played."),
+    "capture": ("move takes", "Whether the move played took something."),
+    "check": ("move gives check", "Whether the move played gave check."),
     # Context numbers: what every learner reads beside the board.
     "mover_elo": ("the mover's rating", "The Lichess rating of the player to move."),
     "opponent_elo": ("the opponent's rating", "The Lichess rating of the opponent."),
@@ -92,6 +100,24 @@ COLUMNS: dict[str, tuple[str, str]] = {
     "reply_captures": ("captures among the replies", "How many of the opponent's replies in the line take something."),
     "setup_capture": ("opponent's move took something", "Whether the opponent's move that set the position up took something."),
     "final_material_gain": ("material the line wins", "The material balance after the line, less the balance before it."),
+    # Counts over one player's moves in one game.
+    "loss_mean": ("winning chances lost a move", "What the player's moves lost on average, in points of winning chances."),
+    "loss_median": ("median loss of a move", "The median of what the player's moves lost, in points of winning chances."),
+    "loss_worst": ("loss of the costliest move", "What the player's costliest move lost, in points of winning chances."),
+    "loss_over_5": ("moves that lost over 5 points", "The share of the player's moves that lost more than 5 points of winning chances."),
+    "loss_over_10": ("moves that lost over 10 points", "The share of the player's moves that lost more than 10 points of winning chances."),
+    "loss_over_20": ("moves that lost over 20 points", "The share of the player's moves that lost more than 20 points of winning chances."),
+    "win_before_mean": ("winning chances on average", "The player's winning chances before each of the moves, averaged, in percent."),
+    "spent_mean": ("seconds a move", "The seconds the player's moves took on average."),
+    "spent_median": ("median seconds a move", "The median of the seconds the player's moves took."),
+    "spent_longest": ("longest think", "The most seconds one of the player's moves took."),
+    "spent_under_2": ("moves played at once", "The share of the player's moves that took under 2 seconds."),
+    "spent_over_30": ("long thinks", "The share of the player's moves that took over 30 seconds."),
+    "clock_lowest": ("lowest clock", "The fewest seconds the player had on the clock before one of the moves."),
+    "clock_used": ("share of the clock used", "The share of the starting time gone when the player made the last of the moves, which an increment can make negative."),
+    "legal_moves_mean": ("legal moves on average", "How many legal moves the player had, averaged over the moves."),
+    "capture_share": ("share of moves that took", "The share of the player's moves that took something."),
+    "check_share": ("share of moves that gave check", "The share of the player's moves that gave check."),
     # What the trees of a model that predicts squares read of each square (encode/squares.py).
     "square_file": ("the square's file", "The square's file, counted from the mover's left."),
     "square_rank": ("the square's rank", "The square's rank, counted from the mover's side."),
@@ -136,6 +162,8 @@ MARKS: dict[str, str] = {
     "solver3_from": "The square the solver's third move leaves.",
     "solver3_to": "The square the solver's third move reaches.",
     "later": "Every square a later move of the line leaves or reaches.",
+    "move_from": "The square the move played leaves.",
+    "move_to": "The square the move played reaches.",
 }
 
 # The groups the hand features come in, as a run that leaves one out names them, and as a paper says them.
@@ -148,6 +176,9 @@ GROUPS: dict[str, str] = {
     "setup": "the opponent's move",
     "first-move": "the first move",
     "line": "the line",
+    "accuracy": "what the moves lost",
+    "tempo": "the use of the clock",
+    "choices": "what there was to choose from",
 }
 
 # How a column's values are printed beside a board: a unit after the number.
@@ -157,6 +188,8 @@ UNITS: dict[str, str] = {
     "spent": "s",
     "base": "s",
     "increment": "s",
+    "spent_mean": "s",
+    "spent_longest": "s",
     "win_before": "\\%",
     "win_after": "\\%",
     "win_prior": "\\%",

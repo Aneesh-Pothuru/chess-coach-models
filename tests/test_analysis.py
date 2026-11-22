@@ -73,6 +73,10 @@ def test_groups_are_named_by_their_values_their_edges_or_their_tags():
     assert sum(int(mask.sum()) for _, mask in cut) == ROWS
     clock = rows["clock"].to_numpy()
     assert bool(((clock >= 60) & (clock < 300) == cut[1][1]).all())
+    # An edge below zero: no dash beside a minus sign.
+    around = analysis.groups(rows.with_columns(gap=rows["clock"] - 300), {"column": "gap", "edges": [-100, -50, 0, 50]})
+    assert [name for name, _ in around] == ["<-100", "-100 to -50", "-50 to 0", "0-50", "50+"]
+    assert sum(int(mask.sum()) for _, mask in around) == ROWS
     tagged = analysis.groups(rows, {"column": "themes", "tags": 1})
     assert len(tagged) == 1 and tagged[0][0] in ("fork", "pin")
     both = dict(analysis.groups(rows, {"column": "themes", "tags": 5}))

@@ -22,6 +22,8 @@ class Prepared:
     ``hand_names`` and ``mark_names`` are what the task lets a learner read of the dataset's hand features and
     marks on squares, and ``mark_channels`` where each of those marks sits among the dataset's own. ``y`` is
     one number a row, or for a task whose answer is a set one column a candidate, 1 where it is right.
+    Where a row is a sequence of positions, ``step_names`` are the numbers of each position a network may
+    read and ``step_columns`` where each sits among the dataset's own.
     """
 
     task: Task
@@ -35,6 +37,8 @@ class Prepared:
     train: np.ndarray
     valid: np.ndarray
     test: np.ndarray
+    step_names: list[str] = field(default_factory=list)
+    step_columns: list[int] = field(default_factory=list)
 
 
 @dataclass
@@ -93,6 +97,14 @@ def prepare(task: Task, dataset: Dataset, *, train_share: float = 1.0) -> Prepar
             f"{dataset.name} marks {', '.join(manifest['marks'])} on its squares, "
             f"and {task.name} asks for {', '.join(strangers)}"
         )
+    known = list(manifest.get("steps", []))
+    step_names = known if task.steps is None else list(task.steps)
+    strangers = [name for name in step_names if name not in known]
+    if strangers:
+        raise ValueError(
+            f"{dataset.name} gives each position of a row {', '.join(known) or 'no numbers: its rows are not sequences'}, "
+            f"and {task.name} asks for {', '.join(strangers)}"
+        )
     train = dataset.split("train")
     if train_share != 1.0:
         if not 0.0 < train_share < 1.0:
@@ -110,6 +122,8 @@ def prepare(task: Task, dataset: Dataset, *, train_share: float = 1.0) -> Prepar
         train=train,
         valid=dataset.split("valid"),
         test=dataset.split("test"),
+        step_names=step_names,
+        step_columns=[known.index(name) for name in step_names],
     )
 
 

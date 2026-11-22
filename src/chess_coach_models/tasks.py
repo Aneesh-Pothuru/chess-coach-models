@@ -15,10 +15,12 @@ its results, so a model is one folder and adding one touches no code:
     scale: log1p                  how its label reads: as it is (linear), or as log(1 + x)
     marks: [en_passant, setup_to] the only marks on squares its learners may read
     hand: [material, mobility]    the only groups of hand features its learners may read
+    steps: [ply, log_clock]       for a dataset whose rows are sequences, the only numbers of each
+                                  position its networks may read
 
-A task that names no ``marks`` or no ``hand`` lets its learners read all the
-dataset has. One that names them asks its question with something hidden: a
-puzzle's difficulty with its solution never shown, say.
+A task that names no ``marks``, no ``hand`` or no ``steps`` lets its learners
+read all the dataset has. One that names them asks its question with
+something hidden: a puzzle's difficulty with its solution never shown, say.
 
 A task whose answer is a set says where the set is:
 
@@ -46,7 +48,7 @@ from .evals.metrics import LOWER_IS_BETTER, METRICS
 
 
 REQUIRED = ("dataset", "kind", "label", "unit", "primary", "reference", "context")
-OPTIONAL = ("band", "scale", "marks", "hand", "tags")
+OPTIONAL = ("band", "scale", "marks", "hand", "tags", "steps")
 SCALES = ("linear", "log1p")
 SQUARES = tuple(f"{file}{rank}" for rank in "12345678" for file in "abcdefgh")
 
@@ -65,7 +67,9 @@ class Task:
     and the groups of hand features (``encode/hand.py``) a learner may read,
     or ``None`` for all the dataset has. ``label`` is a column, or for a task
     that predicts squares the marks whose squares are right; ``tags`` are the
-    words a task that predicts tags gives a chance each.
+    words a task that predicts tags gives a chance each. ``steps`` are the
+    numbers of each position a network may read where a row is a sequence of
+    positions, or ``None`` for all of them.
     """
 
     name: str
@@ -81,6 +85,7 @@ class Task:
     marks: tuple[str, ...] | None = None
     hand: tuple[str, ...] | None = None
     tags: tuple[str, ...] | None = None
+    steps: tuple[str, ...] | None = None
 
     @property
     def lower_is_better(self) -> bool:
@@ -166,4 +171,5 @@ def get(name: str) -> Task:
         marks=None if loaded.get("marks") is None else tuple(loaded["marks"]),
         hand=None if loaded.get("hand") is None else tuple(loaded["hand"]),
         tags=None if tags is None else tuple(tags),
+        steps=None if loaded.get("steps") is None else tuple(loaded["steps"]),
     )

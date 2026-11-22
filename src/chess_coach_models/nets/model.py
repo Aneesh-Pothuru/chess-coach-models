@@ -15,6 +15,9 @@ task:
 - ``conv``: a residual tower of 3x3 convolutions over the 8x8 board, the kind
   of network the first AlphaZero-style engines used, which sees further only
   as it gets deeper.
+
+Where a row is a sequence of positions (a player's moves through a game),
+either body reads each position and ``GameBody`` reads the positions in order.
 """
 
 from __future__ import annotations
@@ -134,6 +137,51 @@ class SquareConv(nn.Module):
         return self.drop(self.tower(tokens, marks, context).flatten(2).transpose(1, 2))
 
 
+class GameBody(nn.Module):
+    """A body for a row that is a sequence of positions.
+
+    The board body reads every position with that position's own numbers, where a row of one position has
+    its context numbers. A few transformer layers then read the positions in order, with the row's own
+    numbers as one more token and a learned vector for each place in the sequence. A batch is as long as
+    its longest row, and ``held`` says which of a shorter row's places are positions: the board body reads
+    those alone, so what fills a row out costs nothing and reaches no batch statistic, and nothing attends
+    to it.
+    """
+
+    def __init__(self, board: nn.Module, *, context: int, depth: int, heads: int, dropout: float, most: int):
+        super().__init__()
+        self.board = board
+        dim = board.out_dim
+        self.context = nn.Sequential(nn.Linear(context, dim), nn.GELU(), nn.Linear(dim, dim))
+        self.place = nn.Parameter(torch.zeros(most, dim))
+        layer = nn.TransformerEncoderLayer(
+            dim, heads, 2 * dim, dropout, activation="gelu", batch_first=True, norm_first=True
+        )
+        self.over = nn.TransformerEncoder(layer, depth, enable_nested_tensor=False)
+        self.norm = nn.LayerNorm(dim)
+        self.out_dim = 2 * dim
+        nn.init.normal_(self.place, std=0.02)
+
+    def forward(
+        self,
+        tokens: torch.Tensor,
+        marks: torch.Tensor,
+        numbers: torch.Tensor,
+        held: torch.Tensor,
+        context: torch.Tensor,
+    ) -> torch.Tensor:
+        rows, length = held.shape
+        boards = self.board(tokens[held], marks[held], numbers[held])
+        x = boards.new_zeros(rows, length, boards.shape[-1])
+        x[held] = boards
+        x = x + self.place[:length].to(x.dtype)
+        x = torch.cat([self.context(context)[:, None, :].to(x.dtype), x], dim=1)
+        hidden = torch.cat([held.new_zeros(rows, 1), ~held], dim=1)
+        x = self.norm(self.over(x, src_key_padding_mask=hidden))
+        real = held[..., None].to(x.dtype)
+        return torch.cat([x[:, 0], (x[:, 1:] * real).sum(dim=1) / real.sum(dim=1).clamp(min=1.0)], dim=-1)
+
+
 class BoardNet(nn.Module):
     """A body under a two-layer head.
 
@@ -152,28 +200,54 @@ class BoardNet(nn.Module):
         )
         self.single = outputs == 1
 
-    def forward(self, tokens: torch.Tensor, marks: torch.Tensor, context: torch.Tensor) -> torch.Tensor:
+    def forward(self, *inputs: torch.Tensor) -> torch.Tensor:
+        """What the body reads: a board's tokens, marks and context numbers, or for a row that is a sequence
+        what ``GameBody`` reads."""
         read = self.body.squares if self.per_square else self.body
-        output = self.head(read(tokens, marks, context))
+        output = self.head(read(*inputs))
         return output.squeeze(-1) if self.single else output
 
 
+# What the layers that read a game's positions in order are, unless a run's ``over`` block says otherwise.
+OVER = {"depth": 2, "heads": 4}
+
+
 def build_net(
-    config: dict[str, Any], *, marks: int, context: int, outputs: int = 1, squares: bool = False
+    config: dict[str, Any],
+    *,
+    marks: int,
+    context: int,
+    outputs: int = 1,
+    squares: bool = False,
+    steps: int | None = None,
+    most: int = 0,
 ) -> BoardNet:
-    """The network a run's ``learner`` block describes, under the head its task asks for."""
+    """The network a run's ``learner`` block describes, under the head its task asks for.
+
+    With ``steps`` a row is a sequence of up to ``most`` positions, each with that many numbers of its own:
+    the body named reads each position with them, under a ``GameBody`` that reads the row's ``context``.
+    """
     shared = {
         "marks": marks,
-        "context": context,
+        "context": context if steps is None else steps,
         "dim": int(config["dim"]),
         "depth": int(config["depth"]),
         "dropout": float(config.get("dropout", 0.0)),
     }
     if config["body"] == "transformer":
-        return BoardNet(SquareTransformer(heads=int(config["heads"]), **shared), outputs=outputs, squares=squares)
-    if config["body"] == "conv":
-        return BoardNet(SquareConv(**shared), outputs=outputs, squares=squares)
-    raise ValueError(f"no body named {config['body']!r}: the lab has transformer and conv")
+        body = SquareTransformer(heads=int(config["heads"]), **shared)
+    elif config["body"] == "conv":
+        body = SquareConv(**shared)
+    else:
+        raise ValueError(f"no body named {config['body']!r}: the lab has transformer and conv")
+    if steps is not None:
+        if squares:
+            raise ValueError("a row that is a sequence of positions has no head a square")
+        over = {**OVER, **config.get("over", {})}
+        body = GameBody(
+            body, context=context, depth=int(over["depth"]), heads=int(over["heads"]), dropout=shared["dropout"], most=most
+        )
+    return BoardNet(body, outputs=outputs, squares=squares)
 
 
 def parameter_count(model: nn.Module) -> int:

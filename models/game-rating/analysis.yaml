@@ -1,0 +1,29 @@
+# How game-rating's paper looks at its results (src/chess_coach_models/evals/analysis.py).
+band: {title: The player's rating}
+describe: [player_elo, elo_gap, steps, plies, base, increment, loss_mean, spent_mean]
+label: {low: 400, high: 2800, bins: 24}
+# A reading within 100, 200 and 300 rating points of the player's rating.
+within: {"100": 100, "200": 200, "300": 300}
+slices:
+  # Lichess pairs players of like rating. A run that reads the level of the game and not the player
+  # is wrong by half the gap between the two: too low for the stronger player, too high for the
+  # weaker. Each group's bias says how much of that a run does.
+  - {key: gap, column: elo_gap, title: The player's rating less the opponent's, edges: [-200, -100, -50, 0, 50, 100, 200]}
+  - {key: moves, column: steps, title: Moves of the player that were read, edges: [15, 20, 30, 40, 48]}
+  - {key: result, column: player_score, title: How the game ended for the player, values: [0, 0.5, 1], labels: [lost, drew, won]}
+  - {key: side, column: side, title: The player's colour, values: [white, black]}
+  - {key: start, column: base, title: Seconds on the clock at the start, edges: [600, 900]}
+  - {key: increment, column: increment, title: Seconds added a move, values: [0, 5, 10], rest: other}
+  - {key: loss, column: loss_mean, title: Points of winning chances the player's moves lost on average, edges: [2, 4, 6, 8, 12]}
+  - {key: pace, column: spent_mean, title: Seconds the player's moves took on average, edges: [5, 10, 15, 20, 30]}
+  - {key: worst, column: loss_worst, title: Points of winning chances the player's costliest move lost, edges: [10, 20, 40, 60]}
+grids:
+  - key: loss-pace
+    rows: {column: loss_mean, title: Points lost a move, edges: [2, 4, 6, 8]}
+    columns: {column: spent_mean, title: Seconds a move, edges: [5, 10, 15, 20]}
+examples:
+  count: 3
+  truth: The player's rating
+  # The board is the position before the player's costliest move, with the opponent's last move.
+  moves: [last_move, worst_move]
+  show: [opponent_elo, steps, base, increment, player_score, loss_mean, loss_worst, spent_mean]

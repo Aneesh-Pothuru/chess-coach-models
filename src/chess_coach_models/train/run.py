@@ -230,10 +230,15 @@ def run(
             # Only a task that keeps something from its learners says what they may read.
             **({} if task.marks is None and task.hand is None else {"marks": prepared.mark_names, "hand": prepared.hand_names}),
             **({"candidates": list(task.candidates)} if sets else {}),
+            # Where a row is a sequence of positions, the numbers of each position a network read.
+            **({} if dataset.steps is None else {"steps": prepared.step_names}),
         },
         "dataset": {
-            key: dataset.manifest[key]
-            for key in ("dataset", "source", "licence", "rows", "splits", "fingerprint", "built", "code")
+            **{
+                key: dataset.manifest[key]
+                for key in ("dataset", "source", "licence", "rows", "splits", "fingerprint", "built", "code")
+            },
+            **({} if dataset.steps is None else {"positions": dataset.manifest["positions"]}),
         },
         "config": config,
         "learner": fitted.details,

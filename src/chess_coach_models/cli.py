@@ -37,9 +37,10 @@ def build_data(dataset: str, *, smoke: bool, source: str | None, workers: int | 
         return
     build = data.builder(plan["builder"])
     started = time.time()
-    rows, tokens, marks, manifest = build(plan, source=source, workers=workers, log=log)
+    # A dataset whose rows are sequences gives its steps as a fifth part.
+    rows, tokens, marks, manifest, *steps = build(plan, source=source, workers=workers, log=log)
     manifest["build_seconds"] = round(time.time() - started, 1)
-    directory = write_dataset(plan["name"], rows, tokens, marks, manifest)
+    directory = write_dataset(plan["name"], rows, tokens, marks, manifest, *steps)
     log(f"{plan['name']}: {len(rows):,} rows written to {directory}")
 
 

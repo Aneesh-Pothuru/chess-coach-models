@@ -19,6 +19,7 @@ model"). The order below is the order they are worth building in.
 | [tactic-found](../models/tactic-found/) | A position after the opponent's mistake, the tactic's line, ratings, clocks | The chance the player finds the tactic in the game | Which missed tactics were within reach at the player's level |
 | [position-evaluation](../models/position-evaluation/) | A position | An engine's evaluation, as the mover's chance of winning | Nothing by itself: a body the other models start from |
 | [practical-chances](../models/practical-chances/) | A position, ratings, clocks, the evaluation | The mover's expected score in the game | Which "equal" positions are hard to hold at the player's level, and which "lost" ones are still worth playing on |
+| [game-rating](../models/game-rating/) | A player's moves through one game, with the clocks and what each move lost | The player's rating | What one game looked like beside the player's usual level |
 
 ## Next
 
@@ -56,6 +57,13 @@ What is left:
   with the run on today's games.
 - **Tactic found, with the whole line as the label**: the player found the tactic only if the game
   followed it to the end, which a game answers while the opponent follows the puzzle's replies.
+- **Game rating, asked for the opponent's rating**: the same learners on the same rows with the
+  other player's rating as the label. Lichess pairs players of like rating, so this says how much
+  of a reading is the level of the game and how much is the player.
+- **Game rating by phase**: a rating for the opening, the middlegame and the ending of one game,
+  which needs a label for a part of a sequence ([`design.md`](design.md), "Growing it").
+- **Game rating from more games, and from a body that already reads a board**: its dataset keeps
+  50,000 games of a month's, and a network over a sequence does not start from another run yet.
 
 ### More from the body that learned an engine's evaluation
 
@@ -77,7 +85,6 @@ here.
 
 | Idea | Reads | Predicts | Needs in the harness |
 |---|---|---|---|
-| Game rating | A whole game with clocks | The rating the play looks like, by phase | A body over a sequence of positions |
 | Human moves, trained here | A position and a rating | A chance for every legal move | A move head. Maia-2 is what the app runs, and Maia-3 is the model to benchmark against first |
 | Lines that work at a level | Opening lines at a rating band | How each line scores for people there, whatever the engine thinks | Nothing trained: a counted opening tree with intervals |
 | A player over time | One player's games in order | Whether a weakness is closing | Games grouped by player, from the Lichess API |

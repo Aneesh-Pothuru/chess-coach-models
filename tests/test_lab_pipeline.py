@@ -749,6 +749,181 @@ def test_a_model_that_predicts_tags_runs_scores_and_ranks(lab, temp_lab):
         analysis.analyse(model, smoke=True)
 
 
+GAME_CONFIGS = {
+    "gbm-hand": {"learner": {"kind": "gbm", "features": "hand", "rounds": 20, "min_child_samples": 5}},
+    "constant": {"learner": {"kind": "constant"}},
+    "gbm-context": {"learner": {"kind": "gbm", "features": "context", "rounds": 20, "min_child_samples": 5}},
+    "conv-small": {
+        "learner": {"kind": "net", "body": "conv", "dim": 8, "depth": 1, "over": {"depth": 1, "heads": 2}},
+        "train": {"epochs": 2, "batch": 16, "lr": 0.01},
+    },
+    "transformer-hand": {
+        "learner": {"kind": "net", "body": "transformer", "features": "hand", "dim": 16, "depth": 1, "heads": 2},
+        "train": {"epochs": 1, "batch": 16, "lr": 0.01},
+    },
+}
+GAMES_RECIPE = {
+    "name": "games-test",
+    "builder": "game_sides",
+    "month": "2026-10",
+    "speeds": ["rapid"],
+    "min_ply": 3,
+    "least_moves": 4,
+    "most_moves": 9,
+    "games": 70,
+    "split": {"salt": "test", "valid": 0.2, "test": 0.2},
+}
+
+
+def played_games(count: int) -> str:
+    """Rated rapid games of random legal moves, each move with an evaluation and a clock, as a month's file holds them."""
+    import random
+
+    import chess
+
+    rng = random.Random(0)
+    games = []
+    for number in range(count):
+        board = chess.Board()
+        clocks = [600, 600]
+        moves = []
+        for ply in range(rng.randint(14, 30)):
+            if board.is_game_over():
+                break
+            move = rng.choice(sorted(board.legal_moves, key=lambda found: found.uci()))
+            san = board.san(move)
+            board.push(move)
+            clocks[ply % 2] -= rng.randint(1, 20)
+            minutes, seconds = divmod(clocks[ply % 2], 60)
+            turn = f"{ply // 2 + 1}. " if ply % 2 == 0 else ""
+            moves.append(f"{turn}{san} {{ [%eval {rng.uniform(-3, 3):.2f}] [%clk 0:{minutes:02d}:{seconds:02d}] }}")
+        result = rng.choice(["1-0", "0-1", "1/2-1/2"])
+        headers = {
+            "Event": "Rated Rapid game",
+            "Site": f"https://lichess.org/played{number:04d}",
+            "Result": result,
+            "WhiteElo": str(rng.randint(800, 2300)),
+            "BlackElo": str(rng.randint(800, 2300)),
+            "TimeControl": rng.choice(["600+0", "600+5", "900+10"]),
+            "Termination": "Normal",
+        }
+        games.append("".join(f'[{key} "{value}"]\n' for key, value in headers.items()) + f"\n{' '.join(moves)} {result}\n\n")
+    return "".join(games)
+
+
+@pytest.fixture()
+def players_lab(temp_lab, tmp_path):
+    stream = tmp_path / "games.pgn.zst"
+    stream.write_bytes(zstandard.ZstdCompressor().compress(played_games(80).encode()))
+    temp_lab.recipe("games", GAMES_RECIPE)
+    temp_lab.model("game-rating", GAME_CONFIGS)
+    cli.build_data("games", smoke=True, source=str(stream), workers=2, rebuild=False)
+    return temp_lab
+
+
+def test_a_model_whose_rows_are_sequences_runs_scores_and_ranks(players_lab):
+    import torch
+
+    from chess_coach_models.encode.hand import GAME_FEATURES
+
+    model, task = "game-rating", tasks.get("game-rating")
+    dataset = store.read_dataset("games-test-smoke")
+    rows, steps = dataset.rows, dataset.steps
+    assert dataset.manifest["games_kept"] == 70 and len(rows) == 140
+    assert int(rows["steps"].min()) >= 4 and int(rows["steps"].max()) == 9
+    assert len(steps.tokens) == int(rows["steps"].sum()) == dataset.manifest["positions"]
+    # Both players of a game are rows, and they share a split.
+    assert rows.group_by("game_id").agg(pl.col("split").n_unique().alias("splits"), pl.len())["splits"].to_list() == [1] * 70
+
+    records = {name: runs.run(model, name, smoke=True, log=lambda _: None) for name in GAME_CONFIGS}
+    for name, record in records.items():
+        primary = record["test"][task.primary]
+        assert primary["low"] <= primary["value"] <= primary["high"]
+        assert record["task"]["steps"] == list(task.steps) and record["task"]["label"] == "player_elo"
+        assert record["dataset"]["positions"] == len(steps.tokens)
+        assert record["test_rows"] == int((rows["split"] == "test").sum()) == 2 * record["test_groups"]
+        predictions = pl.read_parquet(paths.predictions(model, name, smoke=True))
+        assert len(predictions) == record["test_rows"]
+    assert records["constant"]["gain"] is not None and records["gbm-hand"]["gain"] is None
+    assert records["gbm-hand"]["learner"]["features"] == len(task.context) + len(GAME_FEATURES)
+
+    # A saved network says what it read of each position, and how it scaled it.
+    saved = torch.load(paths.run_files(model, "conv-small", smoke=True) / "model.pt", weights_only=False)
+    assert saved["steps"] == list(task.steps) and saved["most_steps"] == 9
+    assert saved["step_mean"].shape == saved["step_spread"].shape == (len(task.steps),)
+    assert saved["context"] == list(task.context) and saved["marks"] == dataset.manifest["marks"]
+    assert any(name.startswith("body.board.") for name in saved["state"]) and "body.place" in saved["state"]
+    with_hand = torch.load(paths.run_files(model, "transformer-hand", smoke=True) / "model.pt", weights_only=False)
+    assert with_hand["context"] == [*task.context, *GAME_FEATURES]
+
+    board = leaderboard.build(model, smoke=True)
+    scores = [entry["test"][task.primary]["value"] for entry in board["runs"]]
+    assert scores == sorted(scores) and {entry["run"] for entry in board["runs"]} == set(GAME_CONFIGS)
+
+    look = analysis.analyse(model, smoke=True)
+    assert set(look["runs"]) == set(GAME_CONFIGS) and look["skipped"] == {}
+    assert [slice_["key"] for slice_ in look["slices"]][:2] == ["band", "gap"]
+    gap = look["slices"][1]
+    assert sum(group["rows"] for group in gap["groups"]) == look["test_rows"]
+    example = look["examples"]["typical"][0]
+    assert set(example["moves"]) == {"last_move", "worst_move"} and "id" not in example
+    assert set(example["show"]) == {"opponent_elo", "steps", "base", "increment", "player_score", "loss_mean", "loss_worst", "spent_mean"}
+
+
+def test_a_network_over_a_game_scores_a_row_the_same_whatever_it_is_scored_with(players_lab):
+    """The rows of a batch are filled out to its longest, and a row's score must not depend on its batch."""
+    import numpy as np
+    import torch
+
+    from chess_coach_models.train import learners
+
+    model = "game-rating"
+    runs.run(model, "gbm-hand", smoke=True, log=lambda _: None)
+    record = runs.run(model, "transformer-hand", smoke=True, log=lambda _: None)
+    dataset = store.read_dataset("games-test-smoke")
+    prepared = learners.prepare(tasks.get(model), dataset)
+    said = pl.read_parquet(paths.predictions(model, "transformer-hand", smoke=True))
+    saved = torch.load(paths.run_files(model, "transformer-hand", smoke=True) / "model.pt", weights_only=False)
+
+    from chess_coach_models.nets.model import build_net
+
+    numbers, names = learners.features(prepared, "hand")
+    assert names == saved["context"]
+    net = build_net(saved["learner"], marks=len(saved["marks"]), context=len(names), steps=len(saved["steps"]), most=saved["most_steps"])
+    net.load_state_dict(saved["state"])
+    net.eval()
+    shifts = torch.tensor(prepared.mark_channels)
+    test = prepared.test
+    alone = []
+    with torch.no_grad():
+        for row in test:
+            first, count = int(dataset.rows["first_step"][int(row)]), int(dataset.rows["steps"][int(row)])
+            index = torch.arange(first, first + count)
+            planes = ((torch.from_numpy(dataset.steps.marks.astype(np.int16))[index].long()[..., None] >> shifts) & 1).float()
+            of_step = (dataset.steps.numbers[first : first + count][:, prepared.step_columns] - saved["step_mean"]) / saved["step_spread"]
+            context = torch.from_numpy(((numbers[row] - saved["context_mean"]) / saved["context_spread"]).astype(np.float32))
+            output = net(
+                torch.from_numpy(dataset.steps.tokens)[index].long()[None],
+                planes[None],
+                torch.from_numpy(of_step.astype(np.float32))[None],
+                torch.ones(1, count, dtype=torch.bool),
+                context[None],
+            )
+            alone.append(float(output) * saved["label_spread"] + saved["label_mean"])
+    assert record["test_rows"] == len(alone)
+    assert np.allclose(said["p"].to_numpy(), np.array(alone), rtol=1e-4, atol=1e-2)
+
+
+def test_a_network_over_a_game_does_not_start_from_another_run_yet(players_lab):
+    model = "game-rating"
+    init = {"model": model, "run": "conv-small"}
+    players_lab.model(model, {**GAME_CONFIGS, "conv-small-started": {"base": "conv-small", "learner": {"init": init}}})
+    runs.run(model, "gbm-hand", smoke=True, log=lambda _: None)
+    runs.run(model, "conv-small", smoke=True, log=lambda _: None)
+    with pytest.raises(ValueError, match="does not start from another run yet"):
+        runs.run(model, "conv-small-started", smoke=True, log=lambda _: None)
+
+
 def test_platt_scaling_recovers_a_known_distortion():
     import numpy as np
 

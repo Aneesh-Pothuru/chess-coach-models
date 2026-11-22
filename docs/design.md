@@ -36,8 +36,9 @@ kept, so a test can stand a whole lab up in a temporary folder.
 The input is a position as a FEN, with what the task knows about it: the moves that led to it or
 follow from it, both ratings, both clocks, the time control. The output is one number, a quantity
 or a chance, or a chance for each of a fixed list of candidates: the squares of the board, or the
-tags a task names ("An answer that is a set", below). What changes from idea to idea is the label
-and what the model may read.
+tags a task names ("An answer that is a set", below). A row can also be a sequence of positions, a
+player's moves through a game, under one label ("A row that is a sequence", below). What changes
+from idea to idea is the label and what the model may read.
 
 A task names the context numbers its learners read, and can keep part of a dataset from them:
 `marks` lists the only marks on squares they may read, and `hand` the only groups of hand
@@ -57,6 +58,9 @@ and a split. `lab data <name>` writes it under `data/processed/<name>/` as four 
 - `tokens.npy` and `marks.npy`: each board as the networks read it;
 - `manifest.json`: the source, its licence, the recipe, how many rows were read and kept, the
   commit of the code that built it, and the names of the marks and hand features.
+
+A dataset whose rows are sequences keeps three more files, its steps ("A row that is a sequence",
+below).
 
 Three choices hold for every dataset.
 
@@ -100,7 +104,8 @@ material, mobility, checks and captures on offer, hanging pieces, passed pawns, 
 king, and for a puzzle the shape of its solution (how many moves, how many quiet ones, whether it
 starts with a sacrifice, how far the first piece travels). These are the features a network has to
 do better than. They come in named groups (`GROUPS`: material, mobility, hanging, pawns, kings,
-setup, first-move, line), so a task can hide a group and a run can leave one out.
+setup, first-move, line, and for a player's moves through a game accuracy, tempo, choices), so a
+task can hide a group and a run can leave one out.
 
 ## Bodies and a head
 
@@ -123,6 +128,9 @@ further only as it gets deeper. It is here as the honest alternative: where it m
 transformer, the cheaper model wins.
 
 Sizes are settings of a run (`dim`, `depth`, `heads`), not code.
+
+Where a row is a sequence of positions, either body reads each of them and a third body reads them
+in order ("A row that is a sequence", below).
 
 ## Learners and the run record
 
@@ -280,6 +288,44 @@ What a set does not have yet: the closer look and a model's own paper read one n
 `lab analyse` refuses a model of these kinds, and it has a leaderboard and no paper. The lab's
 paper sets its runs on the one scale with every other model's, which needs only the records.
 
+## A row that is a sequence
+
+A row can be a sequence of positions and not one: a player's moves through a game.
+[`game-rating`](../models/game-rating/) is the first such model. A row is one player in one game
+and its label is one number, that player's rating, so everything after the learner is what it
+was: the scores, the leaderboard, the closer look, the paper.
+
+**The dataset keeps the positions beside the rows.** A dataset of sequences is the four files of
+any dataset and three more, its steps: `step_tokens.npy`, `step_marks.npy` and `step_numbers.npy`
+hold every row's positions one after another, each as a board, its marks and the numbers that go
+with it (the clocks, the seconds the move took, the winning chances before it and what it lost).
+A row says where its own begin and how many they are (`first_step`, `steps`), the manifest names
+a step's numbers in order (`steps`), and a build is refused when the three do not fit
+(`check_steps` in `data/store.py`). The steps' boards and marks are in the fingerprint. A row
+keeps a board of its own as well, the position of the player's costliest move, which is what a
+paper shows of it. A task can name the only numbers of a step its networks may read (`steps` in
+its `task.yaml`), as it can the marks.
+
+**The trees read counts.** They cannot read a sequence, so `encode/hand.py` counts over the
+player's moves what a person would (`game_features`): how much the moves lost on average, at
+worst and how often more than a bar, how the clock was used, and how many moves there were to
+choose from. The counts come in three groups (accuracy, tempo, choices), so a run can leave one
+out.
+
+**A network reads every position, then the positions in order** (`GameBody` in `nets/model.py`).
+The body the other models use reads each position, with that position's own numbers where a row
+of one position has its context numbers. Its vector for the board is then one token of a short
+transformer over the row, with a learned vector for each place in the sequence, and the row's own
+context numbers (the time control, the game's length) are one more token. The head reads that
+token beside the mean of the positions' tokens. A batch is as long as its longest row and a
+shorter row is filled out: the board body reads the real positions alone and nothing attends to
+the rest, so a row's score does not depend on the rows it is scored with, which a test holds it
+to. A row is tens of boards, so a batch is tens of rows where another model's is hundreds.
+
+What a sequence does not have yet: a network over one does not start from another run's body
+(`learner.init` is refused for it), and a row has one label for the whole game, none for a part
+of it.
+
 ## The closer look
 
 A leaderboard says which run is best. It does not say where a model is right and wrong, and a
@@ -433,13 +479,14 @@ so a smoke score can never be mistaken for a result.
 
 ## Growing it
 
-The harness has three heads: one number, a logit a tag, and a logit a square. These are the next
-kinds of input and output, each a new body or head in `nets/` with a test and a paragraph here:
+The harness has three heads (one number, a logit a tag, a logit a square) and a body over a
+sequence of positions. These are the next kinds of input and output, each a new body or head in
+`nets/` with a test and a paragraph here:
 
 | Kind | What it opens |
 |---|---|
 | A move as output: a score for each legal move | Human-move prediction, the chance a given move is found |
-| A whole game as a sequence of positions | A rating from one game, tilt, time trouble |
+| A label for each position of a sequence, or for a part of it | A rating by phase, tilt, time trouble |
 | A published body under a new head | Maia's board understanding, fine-tuned for a coaching question |
 
 The order they are built in follows [`ideas.md`](ideas.md).

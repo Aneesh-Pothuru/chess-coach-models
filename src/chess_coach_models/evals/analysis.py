@@ -81,7 +81,8 @@ def groups(rows: pl.DataFrame, spec: dict[str, Any]) -> list[Group]:
     """The named groups of rows a slice asks for, each as a mask over every row.
 
     ``values`` gives one group a value (named by ``labels`` when a value says little, as 0 and 1 do), and
-    ``rest`` names everything else; ``edges`` cuts a number into ``<a``, ``a-b`` and so on up to ``z+``;
+    ``rest`` names everything else; ``edges`` cuts a number into ``<a``, ``a-b`` and so on up to ``z+``
+    (``a to b`` where ``a`` is below zero);
     ``tags`` takes the most common words of a column of space-separated tags, and a row can then be in
     several groups.
     """
@@ -101,7 +102,9 @@ def groups(rows: pl.DataFrame, spec: dict[str, Any]) -> list[Group]:
         edges = [float(edge) for edge in spec["edges"]]
         found = [(f"<{_edge(edges[0])}", data < edges[0])]
         for low, high in zip(edges, edges[1:]):
-            found.append((f"{_edge(low)}-{_edge(high)}", (data >= low) & (data < high)))
+            # A dash between two numbers would read as a minus sign beside one that is below zero.
+            between = " to " if low < 0 else "-"
+            found.append((f"{_edge(low)}{between}{_edge(high)}", (data >= low) & (data < high)))
         found.append((f"{_edge(edges[-1])}+", data >= edges[-1]))
         return found
     if "tags" in spec:
