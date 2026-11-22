@@ -8,7 +8,12 @@ exists has none of them, and holds the sections that use them inside
 
 Where a slice compares two runs, they are the challenger (the best run that
 is not the reference) and the reference, the pair the analysis measured the
-gain of, group by group.
+gain of, group by group. Every other run can be set beside the reference by
+its name: what it said in each group of a slice and in each cell of a grid is
+a value, and a figure and a table of it beside the reference is a block
+(``slice-<key>-said-<run>``, ``slice-<key>-bias-<run>``, ``slice-<key>-<run>``,
+``grid-<key>-off-<run>``, ``reliability-<run>``). A paper whose point is a run
+that fits nothing, such as an engine's number read as it stands, reads those.
 """
 
 from __future__ import annotations
@@ -26,6 +31,8 @@ from .sources import METRIC_NAMES, METRIC_WORDS, Sources, run_head, run_tex
 SMALLEST_CELL = 30
 # Where a logarithm of seconds gets its axis marks, in seconds.
 SECONDS = (0, 1, 2, 5, 10, 20, 50, 100, 200)
+# A unit longer than this is a sentence, and an axis is named by the label's short name in its place.
+LONGEST_AXIS_UNIT = 30
 
 
 def _plain_number(value: float | None) -> str:
@@ -42,6 +49,28 @@ def _pair(src: Sources) -> list[dict[str, Any]]:
     return [run for run in (src.challenger, src.reference) if run is not None]
 
 
+def _beside(src: Sources, name: str) -> list[dict[str, Any]]:
+    """A run by its name and the reference, the two a block named for that run sets side by side."""
+    named, reference = src.run(name), src.reference
+    pair = [named] if named is not None else []
+    if reference is not None and reference is not named:
+        pair.append(reference)
+    return pair
+
+
+def _others(src: Sources) -> list[dict[str, Any]]:
+    """The runs a closer look does not already set side by side: every run but the challenger and the reference."""
+    pair = _pair(src)
+    return [run for run in src.runs if all(run is not one for one in pair)]
+
+
+def _gap_text(value: float) -> str:
+    """A distance between what was said and what happened, in the label's plain units."""
+    if value < 1:
+        return tex.sig(value, 2)
+    return _plain_number(round(value, 1 if value < 100 else 0))
+
+
 def _said(src: Sources, value: float | None) -> str:
     """What a run said on average, in the label's printed form but without a unit."""
     if not tex.known(value):
@@ -51,6 +80,28 @@ def _said(src: Sources, value: float | None) -> str:
     if src.task.scale == "log1p":
         return tex.fixed(src.plain(value), 1)
     return tex.score(value)
+
+
+def _difference(src: Sources, said: float | None, happened: float | None) -> float | None:
+    """What a run said on average less what happened: percentage points for a chance, plain units for a quantity."""
+    if not (tex.known(said) and tex.known(happened)):
+        return None
+    if src.task.kind == "binary":
+        return 100.0 * (said - happened)
+    return src.plain(said) - src.plain(happened)
+
+
+def _off_text(src: Sources, difference: float | None, *, sign: bool = True) -> str:
+    if difference is None:
+        return "n/a"
+    if src.task.kind == "binary" or src.task.scale == "log1p":
+        return tex.fixed(difference, 1, sign=sign)
+    return tex.fixed(difference, 0, sign=sign) if abs(difference) >= 10 else tex.sig(difference, 2, sign=sign)
+
+
+def _off(src: Sources, said: float | None, happened: float | None) -> str:
+    """How far what a run said on average lies from what happened, signed."""
+    return _off_text(src, _difference(src, said, happened))
 
 
 def _seconds_axis(axis: str, low: float, high: float) -> list[str]:
@@ -88,6 +139,8 @@ def values(src: Sources, out: tex.Generated) -> None:
             out.set(f"label.q{quantile}", src.label_text(value))
         out.set("label.below", tex.count(label["histogram"]["below"]))
         out.set("label.above", tex.count(label["histogram"]["above"]))
+        for split, entry in label["by_split"].items():
+            out.set(f"label.mean.{split}", src.label_text(entry["mean"]))
     manifest = {
         key: value
         for key, value in look["dataset"].items()
@@ -125,10 +178,37 @@ def values(src: Sources, out: tex.Generated) -> None:
                     out.set(f"{prefix}.recall", tex.percent(row["recall"]))
                     out.set(f"{prefix}.lift", tex.fixed(row["lift"], 1))
                     out.set(f"{prefix}.rows", tex.count(row["rows"]))
+        table = look.get("reliability", {}).get(name)
+        if table and not binary:
+            gaps = [abs(src.plain(row["predicted"]) - src.plain(row["observed"])) for row in table]
+            widths = sorted(src.plain(row["observed_high"]) - src.plain(row["observed_low"]) for row in table)
+            out.set(f"{part}.reliability.groups", tex.word(len(table)))
+            out.set(f"{part}.reliability.widest-gap", _gap_text(max(gaps)))
+            out.set(f"{part}.reliability.spread", _gap_text(widths[len(widths) // 2]))
+            for end, row in (("lowest", table[0]), ("highest", table[-1])):
+                out.set(f"{part}.reliability.{end}.said", src.example_text(row["predicted"]))
+                out.set(f"{part}.reliability.{end}.happened", src.example_text(row["observed"]))
         beside = look.get("against_reference", {}).get(name)
         if beside:
             out.set(f"{part}.beside.correlation", tex.fixed(beside["correlation"], 2) if tex.known(beside["correlation"]) else "n/a")
             out.set(f"{part}.beside.closer", tex.percent(beside["closer_share"], 0))
+
+    _overall_values(src, out)
+    for run in src.runs:
+        name = run["run"]
+        table = look.get("reliability", {}).get(name)
+        if table and not binary:
+            prefix = tex.key("run", name, "reliability")
+            widest = max(table, key=lambda row: abs(src.plain(row["predicted"]) - src.plain(row["observed"])))
+            out.set(f"{prefix}.widest-gap", _gap_text(abs(src.plain(widest["predicted"]) - src.plain(widest["observed"]))))
+            for end, row in (("lowest", table[0]), ("highest", table[-1]), ("widest-gap", widest)):
+                out.set(f"{prefix}.{end}.said", src.example_text(row["predicted"]))
+                out.set(f"{prefix}.{end}.happened", src.example_text(row["observed"]))
+        beside = look.get("against_reference", {}).get(name)
+        if beside:
+            prefix = tex.key("run", name, "beside")
+            out.set(f"{prefix}.correlation", tex.fixed(beside["correlation"], 2) if tex.known(beside["correlation"]) else "n/a")
+            out.set(f"{prefix}.closer", tex.percent(beside["closer_share"], 0))
 
     pair = _pair(src)
     for one in look["slices"]:
@@ -143,28 +223,181 @@ def values(src: Sources, out: tex.Generated) -> None:
         out.set(f"{prefix}.behind", tex.word(len(behind)))
         out.set(f"{prefix}.ahead.of", tex.of(len(ahead), len(gains), "groups"))
         out.set(f"{prefix}.behind.of", tex.of(len(behind), len(gains), "groups"))
+        out.set(f"{prefix}.ahead.groups", _named(ahead))
+        out.set(f"{prefix}.behind.groups", _named(behind))
         for group in one["groups"]:
             inner = tex.key(prefix, group["group"])
             out.set(f"{inner}.rows", tex.count(group["rows"]))
             out.set(f"{inner}.share", tex.percent(group["rows"] / look["test_rows"], 0))
-            out.set(f"{inner}.happened", src.label_text(group["label_mean"]))
+            out.set(f"{inner}.happened", src.example_text(group["label_mean"]))
             for part, run in zip(("challenger", "reference"), pair):
                 stats = group["runs"].get(run["run"])
                 if stats:
                     out.set(f"{inner}.{part}", tex.score(stats[task.primary]))
-                    out.set(f"{inner}.{part}.said", src.label_text(stats["mean"]))
+                    out.set(f"{inner}.{part}.said", src.example_text(stats["mean"]))
+                    out.set(f"{inner}.{part}.off", _off(src, stats["mean"], group["label_mean"]))
             if group["gain"]:
                 value, low, high = tex.trio(group["gain"]["gain"], group["gain"]["low"], group["gain"]["high"])
                 out.set(f"{inner}.gain", value)
                 out.set(f"{inner}.gain.low", low)
                 out.set(f"{inner}.gain.high", high)
+            for run in src.runs:
+                stats = group["runs"].get(run["run"])
+                if not stats:
+                    continue
+                named = tex.key(inner, run["run"])
+                out.set(named, tex.score(stats.get(task.primary)))
+                out.set(f"{named}.said", src.example_text(stats["mean"]))
+                out.set(f"{named}.off", _off(src, stats["mean"], group["label_mean"]))
+                lead = _lead(src, group, run["run"])
+                if lead is not None:
+                    out.set(f"{named}.behind", tex.sig(lead, 3, sign=True))
+        for run in src.runs:
+            _named_run_values(src, one, run["run"], prefix, out)
+        # How far each of the two runs strays, at its furthest, from what happened in a group.
+        for part, run in zip(("challenger", "reference"), pair):
+            strays = [
+                (abs(difference), group["group"])
+                for group in one["groups"]
+                if run["run"] in group["runs"]
+                and (difference := _difference(src, group["runs"][run["run"]]["mean"], group["label_mean"])) is not None
+            ]
+            if strays:
+                furthest, group_name = max(strays)
+                out.set(f"{prefix}.{part}.widest-off", _off_text(src, furthest, sign=False))
+                out.set(f"{prefix}.{part}.widest-off.group", tex.esc(group_name))
+        # The groups at each end of a slice: where the challenger gains most and least on the reference, and
+        # where the label is highest and lowest, so prose can name them without knowing which they are.
+        ends = [("gain", gains, lambda group: group["gain"]["gain"])]
+        ends.append(("happened", [group for group in one["groups"] if tex.known(group["label_mean"])], lambda group: group["label_mean"]))
+        for name, among, amount in ends:
+            if not among:
+                continue
+            for end, group in (("most", max(among, key=amount)), ("least", min(among, key=amount))):
+                out.set(f"{prefix}.{name}.{end}.group", tex.esc(group["group"]))
+                shown = tex.trio(group["gain"]["gain"], group["gain"]["low"], group["gain"]["high"])[0] if name == "gain" else src.example_text(group["label_mean"])
+                out.set(f"{prefix}.{name}.{end}", shown)
+    compared = [group["gain"] for one in look["slices"] for group in one["groups"] if group["gain"]]
+    beyond = [gain for gain in compared if gain["beyond_noise"]]
+    out.set("slices.count", tex.word(len(look["slices"])))
+    out.set("slices.compared", tex.word(len(compared)))
+    out.set("slices.ahead", tex.word(sum(gain["gain"] > 0 for gain in beyond)))
+    out.set("slices.behind", tex.word(sum(gain["gain"] < 0 for gain in beyond)))
+    for one in look.get("grids", []):
+        _grid_values(src, one, out)
     out.set("grid.smallest-cell", tex.word(SMALLEST_CELL))
     out.set("examples.count", tex.word(int(src.plan.get("examples", {}).get("count", 3))))
 
 
-def slice_table(src: Sources, one: dict[str, Any]) -> str:
-    """One slice as a table: each group's rows, what happened, what the two runs said and scored, and the gain."""
-    pair = _pair(src)
+def _lead(src: Sources, group: dict[str, Any], name: str) -> float | None:
+    """How much better the reference scores than a run on a group's rows: the two scores' difference, with no
+    interval, since only the challenger's gain was resampled group by group."""
+    reference = group["runs"].get(src.task.reference, {}).get(src.primary)
+    score = group["runs"].get(name, {}).get(src.primary)
+    if name == src.task.reference or not (tex.known(reference) and tex.known(score)):
+        return None
+    return src.better_by(reference, score)
+
+
+def _named_run_values(src: Sources, one: dict[str, Any], name: str, prefix: str, out: tex.Generated) -> None:
+    """One run over a slice: the group where what it said lies furthest from what happened, and the groups
+    where the reference leads it by most and by least."""
+    strays = [
+        (abs(difference), group["group"])
+        for group in one["groups"]
+        if name in group["runs"]
+        and (difference := _difference(src, group["runs"][name]["mean"], group["label_mean"])) is not None
+    ]
+    inner = tex.key(prefix, name)
+    if strays:
+        furthest, group_name = max(strays)
+        out.set(f"{inner}.widest-off", _off_text(src, furthest, sign=False))
+        out.set(f"{inner}.widest-off.group", tex.esc(group_name))
+    leads = [(lead, group["group"]) for group in one["groups"] if (lead := _lead(src, group, name)) is not None]
+    if leads:
+        for end, (lead, group_name) in (("most", max(leads)), ("least", min(leads))):
+            out.set(f"{inner}.behind.{end}", tex.sig(lead, 3, sign=True))
+            out.set(f"{inner}.behind.{end}.group", tex.esc(group_name))
+
+
+def _overall_values(src: Sources, out: tex.Generated) -> None:
+    """What happened and what each run said, averaged over every test row: read from a slice that leaves no
+    row out, which the rating bands are."""
+    look = src.look
+    rows = look["test_rows"]
+    filled = [[group for group in one["groups"] if group["rows"]] for one in look["slices"]]
+    whole = next(
+        (
+            groups
+            for groups in filled
+            if sum(group["rows"] for group in groups) == rows and all(tex.known(group["label_mean"]) for group in groups)
+        ),
+        None,
+    )
+    if not whole:
+        return
+    happened = sum(group["rows"] * group["label_mean"] for group in whole) / rows
+    out.set("overall.happened", src.example_text(happened))
+    for run in src.runs:
+        name = run["run"]
+        if not all(name in group["runs"] and tex.known(group["runs"][name]["mean"]) for group in whole):
+            continue
+        said = sum(group["rows"] * group["runs"][name]["mean"] for group in whole) / rows
+        out.set(tex.key("overall", name, "said"), src.example_text(said))
+        out.set(tex.key("overall", name, "off"), _off(src, said, happened))
+
+
+def _named(groups: list[dict[str, Any]]) -> str:
+    """The groups of a slice by name, as a sentence lists them, or ``none``."""
+    names = [tex.esc(group["group"]) for group in groups]
+    if not names:
+        return "none"
+    return names[0] if len(names) == 1 else f"{', '.join(names[:-1])} and {names[-1]}"
+
+
+def _grid_values(src: Sources, one: dict[str, Any], out: tex.Generated) -> None:
+    """A grid's cells by name, and the cells where the label is highest and lowest: what happened on the test rows
+    and what the challenger said there. A cell too small to draw has no value."""
+    prefix = tex.key("grid", one["key"])
+    challenger = src.challenger["run"] if src.challenger is not None else None
+    drawn = []
+    strays: dict[str, list[tuple[float, str, str]]] = {}
+    for row, line in zip(one["rows"]["groups"], one["cells"]):
+        for column, cell in zip(one["columns"]["groups"], line):
+            if cell["rows"] < SMALLEST_CELL or not tex.known(cell["label_mean"]):
+                continue
+            inner = tex.key(prefix, row, column)
+            out.set(f"{inner}.rows", tex.count(cell["rows"]))
+            out.set(f"{inner}.happened", src.example_text(cell["label_mean"]))
+            if tex.known(cell["runs"].get(challenger)):
+                out.set(f"{inner}.said", src.example_text(cell["runs"][challenger]))
+            for name, said in cell["runs"].items():
+                if tex.known(said):
+                    out.set(tex.key(inner, name, "said"), src.example_text(said))
+                    out.set(tex.key(inner, name, "off"), _off(src, said, cell["label_mean"]))
+                    strays.setdefault(name, []).append((abs(_difference(src, said, cell["label_mean"])), row, column))
+            drawn.append((cell["label_mean"], row, column))
+    if not drawn:
+        return
+    for name, among in strays.items():
+        furthest, row, column = max(among)
+        named = tex.key(prefix, name, "widest-off")
+        out.set(named, _off_text(src, furthest, sign=False))
+        out.set(f"{named}.row", tex.esc(row))
+        out.set(f"{named}.column", tex.esc(column))
+    for end, (amount, row, column) in (("most", max(drawn)), ("least", min(drawn))):
+        out.set(f"{prefix}.happened.{end}", src.example_text(amount))
+        out.set(f"{prefix}.happened.{end}.row", tex.esc(row))
+        out.set(f"{prefix}.happened.{end}.column", tex.esc(column))
+
+
+def slice_table(src: Sources, one: dict[str, Any], named: str | None = None) -> str:
+    """One slice as a table: each group's rows, what happened, what the two runs said and scored, and the gain.
+
+    The two runs are the challenger and the reference, whose gain was resampled group by group. With
+    ``named`` they are that run and the reference, and the last column is the reference's lead on the
+    group's rows: the two scores' difference, which has no interval."""
+    pair = _pair(src) if named is None else _beside(src, named)
     binary = src.task.kind == "binary"
     metric = METRIC_NAMES[src.primary]
     rows = []
@@ -173,7 +406,10 @@ def slice_table(src: Sources, one: dict[str, Any]) -> str:
         for run in pair:
             stats = group["runs"].get(run["run"], {})
             cells += [_said(src, stats.get("mean")), tex.score(stats.get(src.primary))]
-        if group["gain"]:
+        if named is not None:
+            lead = _lead(src, group, named)
+            cells += [tex.score(lead, sign=True) if lead is not None else ""]
+        elif group["gain"]:
             value, low, high = tex.trio(group["gain"]["gain"], group["gain"]["low"], group["gain"]["high"])
             cells += [tex.bold(value, group["gain"]["beyond_noise"]), f"{low} to {high}"]
         else:
@@ -185,9 +421,10 @@ def slice_table(src: Sources, one: dict[str, Any]) -> str:
     for run in pair:
         head += ["said", metric]
         top += [run_head(run["run"], 2, "2.2cm")]
-    head += ["Gain", "95\\% interval"]
-    top += ["", ""]
-    spec = "lrr" + "rr" * len(pair) + "rr"
+    last = ["Reference's lead"] if named is not None else ["Gain", "95\\% interval"]
+    head += last
+    top += [""] * len(last)
+    spec = "lrr" + "rr" * len(pair) + "r" * len(last)
     return tex.grouped(tex.tabular(spec, head, rows), top, [(4 + 2 * index, 5 + 2 * index) for index in range(len(pair))])
 
 
@@ -211,8 +448,9 @@ def slice_gain_figure(src: Sources, one: dict[str, Any]) -> str | None:
     )
 
 
-def slice_said_figure(src: Sources, one: dict[str, Any]) -> str:
-    """What happened in each group of a slice beside what the two runs said there on average."""
+def slice_said_figure(src: Sources, one: dict[str, Any], named: str | None = None) -> str:
+    """What happened in each group of a slice beside what the two runs said there on average: the challenger
+    and the reference, or with ``named`` that run and the reference."""
     binary = src.task.kind == "binary"
     scale = 100.0 if binary else 1.0
 
@@ -230,7 +468,7 @@ def slice_said_figure(src: Sources, one: dict[str, Any]) -> str:
             mark="o",
         )
     ]
-    for run in _pair(src):
+    for run in _pair(src) if named is None else _beside(src, named):
         series.append(
             charts.run_series(
                 run["run"],
@@ -242,13 +480,58 @@ def slice_said_figure(src: Sources, one: dict[str, Any]) -> str:
     elif src.task.scale == "log1p":
         ylabel = "Seconds"
     else:
-        ylabel = tex.esc(tex_free(src.task.unit))
+        ylabel = _axis(src)
     return charts.lines(series, xlabel=tex.esc(one["title"]), ylabel=ylabel, tick_labels=names, width="0.66\\textwidth")
+
+
+def slice_bias_figure(src: Sources, one: dict[str, Any], named: str | None = None) -> str | None:
+    """How far what the two runs said in each group of a slice lies from what happened there: zero is a run
+    that is right on average in the group, and a line that slopes is a run pulling the groups together.
+    The two are the challenger and the reference, or with ``named`` that run and the reference."""
+    binary = src.task.kind == "binary"
+    scale = 100.0 if binary else 1.0
+
+    def shown(value: float | None) -> float | None:
+        if not tex.known(value):
+            return None
+        return scale * (src.plain(value) if not binary else value)
+
+    def off(group: dict[str, Any], run: dict[str, Any]) -> float | None:
+        said, happened = shown(group["runs"].get(run["run"], {}).get("mean")), shown(group["label_mean"])
+        return None if said is None or happened is None else said - happened
+
+    pair = _pair(src) if named is None else _beside(src, named)
+    if not pair:
+        return None
+    series = [
+        charts.run_series(run["run"], [(index, off(group, run)) for index, group in enumerate(one["groups"])]) for run in pair
+    ]
+    if binary:
+        unit = "\\\\(percentage points)"
+    elif src.task.scale == "log1p":
+        unit = "\\\\(seconds)"
+    else:
+        unit = f"\\\\({tex.esc(src.task.unit)})" if len(src.task.unit) <= LONGEST_AXIS_UNIT else ""
+    return charts.lines(
+        series,
+        xlabel=tex.esc(one["title"]),
+        ylabel=f"Said less what happened{unit}",
+        tick_labels=[group["group"] for group in one["groups"]],
+        level=(0.0, "right on average", charts.QUIET),
+        width="0.66\\textwidth",
+        extra=["ylabel style={align=center}"],
+    )
 
 
 def tex_free(text: str) -> str:
     """A unit as an axis label: its first letter raised."""
     return text[:1].upper() + text[1:]
+
+
+def _axis(src: Sources) -> str:
+    """The label's scale as an axis names it: its unit, or the label's short name where the unit is a sentence."""
+    unit = src.task.unit
+    return tex.esc(tex_free(unit if len(unit) <= LONGEST_AXIS_UNIT else glossary.label(src.task.label)))
 
 
 def grid_figures(src: Sources, one: dict[str, Any]) -> dict[str, str]:
@@ -292,6 +575,42 @@ def grid_figures(src: Sources, one: dict[str, Any]) -> dict[str, str]:
             high=high,
         )
     return made
+
+
+def grid_off_figure(src: Sources, one: dict[str, Any], named: str) -> str | None:
+    """A grid of how far a run's average lies from what happened in each cell, above the same grid for the
+    reference, on one scale of two colours that meet at no difference."""
+    binary = src.task.kind == "binary"
+
+    def off(cell: dict[str, Any], name: str) -> float | None:
+        if cell["rows"] < SMALLEST_CELL:
+            return None
+        return _difference(src, cell["runs"].get(name), cell["label_mean"])
+
+    def text(value: float | None) -> str:
+        if value is None:
+            return ""
+        return tex.fixed(value, 1, sign=True) if binary or src.task.scale == "log1p" else tex.fixed(value, 2 if abs(value) < 10 else 0, sign=True)
+
+    tables = [(run["run"], [[off(cell, run["run"]) for cell in line] for line in one["cells"]]) for run in _beside(src, named)]
+    known = [abs(value) for _, table in tables for line in table for value in line if value is not None]
+    if not known or max(known) == 0:
+        return None
+    bound = max(known)
+    parts = []
+    for name, table in tables:
+        drawn = charts.grid(
+            one["rows"]["groups"],
+            one["columns"]["groups"],
+            [[(value, text(value)) for value in line] for line in table],
+            row_title=tex.esc(one["rows"]["title"]),
+            column_title=tex.esc(one["columns"]["title"]),
+            low=-bound,
+            high=bound,
+            centre=0.0,
+        )
+        parts.append(f"{{\\sffamily\\footnotesize {run_tex(name)}}}\\par\\smallskip\n{drawn}")
+    return "\n\n\\medskip\n".join(parts)
 
 
 def ranking_table(src: Sources, end: str) -> str | None:
@@ -388,35 +707,42 @@ def label_figure(src: Sources) -> str | None:
     return charts.columns(
         edges,
         histogram["counts"],
-        xlabel="Seconds spent on the move" if log else tex.esc(tex_free(src.task.unit)),
+        xlabel="Seconds spent on the move" if log else _axis(src),
         ylabel="Rows",
         extra=_seconds_axis("x", edges[0], edges[-1]) if log else (),
     )
 
 
-def reliability_figure(src: Sources) -> str | None:
+def reliability_figure(src: Sources, named: str | None = None) -> str | None:
     """What a quantity's run said against what happened, in equal groups by what it said, with the middle
-    four fifths of what happened as a wash. A chance has its figure from the records."""
+    four fifths of what happened as a wash. A chance has its figure from the records.
+
+    The runs are the challenger and the reference, or with ``named`` that run and the reference. The wash is
+    left out where it would say nothing: a label of a few values, whose middle four fifths are the whole scale."""
     if src.task.kind == "binary":
         return None
     tables = src.look["reliability"]
-    pair = [run for run in _pair(src) if run["run"] in tables]
+    pair = [run for run in (_pair(src) if named is None else _beside(src, named)) if run["run"] in tables]
     if not pair:
         return None
+    label = src.look["label"]
     series = []
     for index, run in enumerate(pair):
         table = tables[run["run"]]
-        wash = {"low": [row["observed_low"] for row in table], "high": [row["observed_high"] for row in table]} if index == 0 else {}
+        widths = sorted(row["observed_high"] - row["observed_low"] for row in table)
+        telling = widths[len(widths) // 2] < 0.8 * (label["max"] - label["min"])
+        wash = {"low": [row["observed_low"] for row in table], "high": [row["observed_high"] for row in table]} if index == 0 and telling else {}
         series.append(charts.run_series(run["run"], [(row["predicted"], row["observed"]) for row in table], **wash))
     extra: list[str] = []
     if src.task.scale == "log1p":
         every = [value for run in pair for row in tables[run["run"]] for value in (row["predicted"], row["observed_low"], row["observed_high"])]
         extra = _seconds_axis("x", min(every), max(every)) + _seconds_axis("y", min(every), max(every))
     unit = "seconds" if src.task.scale == "log1p" else tex.esc(src.task.unit)
+    unit = f" ({unit})" if len(unit) <= LONGEST_AXIS_UNIT else ""
     return charts.lines(
         series,
-        xlabel=f"What the run said ({unit})",
-        ylabel=f"What happened ({unit})",
+        xlabel=f"What the run said{unit}",
+        ylabel=f"What happened{unit}",
         diagonal=True,
         width="0.55\\textwidth",
         height="6.6cm",
@@ -539,15 +865,17 @@ def encoding_figure(src: Sources) -> str | None:
     )
 
 
-def appendix(src: Sources) -> str:
-    """Every slice as a table of its own, one after another, for the appendix."""
+def appendix(src: Sources, named: str | None = None) -> str:
+    """Every slice as a table of its own, one after another, for the appendix: the challenger beside the
+    reference, or with ``named`` that run beside it, each table then labelled ``tab:slice-<key>-<run>``."""
     parts = []
     for one in src.look["slices"]:
+        label = f"tab:slice-{one['key']}" + (f"-{named}" if named else "")
         parts.append(
             "\\begin{table}[htbp]\\centering\\footnotesize\n"
-            + slice_table(src, one)
+            + slice_table(src, one, named)
             + f"\n\\caption{{The test rows by: {tex.esc(one['title'][:1].lower() + one['title'][1:])}.}}\n"
-            + f"\\label{{tab:slice-{one['key']}}}\n\\end{{table}}"
+            + f"\\label{{{label}}}\n\\end{{table}}"
         )
     return "\n\n".join(parts)
 
@@ -566,12 +894,23 @@ def blocks(src: Sources, out: tex.Generated) -> None:
         "encoding": encoding_figure(src),
         "slices": appendix(src),
     }
+    others = [run["run"] for run in _others(src)]
     for one in look["slices"]:
         made[f"slice-{one['key']}"] = slice_table(src, one)
         made[f"slice-{one['key']}-gain"] = slice_gain_figure(src, one)
         made[f"slice-{one['key']}-said"] = slice_said_figure(src, one)
+        made[f"slice-{one['key']}-bias"] = slice_bias_figure(src, one)
+        for name in others:
+            made[f"slice-{one['key']}-{name}"] = slice_table(src, one, name)
+            made[f"slice-{one['key']}-said-{name}"] = slice_said_figure(src, one, name)
+            made[f"slice-{one['key']}-bias-{name}"] = slice_bias_figure(src, one, name)
     for one in look["grids"]:
         made.update(grid_figures(src, one))
+        for run in src.runs:
+            made[f"grid-{one['key']}-off-{run['run']}"] = grid_off_figure(src, one, run["run"])
+    for name in others:
+        made[f"reliability-{name}"] = reliability_figure(src, name)
+        made[f"slices-{name}"] = appendix(src, name)
     for name in look["examples"]:
         made[f"examples-{name}"] = examples_block(src, name)
     for name, latex in made.items():

@@ -18,7 +18,7 @@ from .. import data, paths, tasks
 from ..encode.hand import group_of
 from ..evals import analysis, leaderboard
 from ..evals.metrics import METRICS
-from . import tex
+from . import charts, tex
 
 
 # A metric as a table's head names it, and as a sentence or an axis does.
@@ -78,6 +78,15 @@ class Sources:
         return [run for run in self.runs if run["config"]["learner"]["kind"] == "net"]
 
     @property
+    def ladder(self) -> list[dict[str, Any]]:
+        """The networks every model is given, without the runs that change one thing in one of them."""
+        return [run for run in self.networks if not charts.variant(run["run"])]
+
+    def variants(self, run: dict[str, Any]) -> list[dict[str, Any]]:
+        """The networks on the leaderboard that change one thing in a run: more epochs, another start."""
+        return [other for other in self.networks if other is not run and charts.family(other["run"]) == run["run"]]
+
+    @property
     def board_only(self) -> dict[str, Any] | None:
         """The best network that reads the board and the context numbers and no hand feature."""
         return next((run for run in self.networks if run["config"]["learner"].get("features") != "hand"), None)
@@ -88,12 +97,15 @@ class Sources:
         return next((run for run in self.runs if run["run"] != self.task.reference), None)
 
     def twin(self, run: dict[str, Any]) -> dict[str, Any] | None:
-        """The run with the same learner that does not read the hand features, for a run that does."""
+        """The run with the same learner that does not read the hand features, for a network that does: the one
+        trained on the same schedule when there is one."""
         learner = run["config"]["learner"]
         if learner.get("features") != "hand" or learner["kind"] != "net":
             return None
         plain = {key: value for key, value in learner.items() if key != "features"}
-        return next((other for other in self.runs if other["config"]["learner"] == plain), None)
+        alike = [other for other in self.runs if other["config"]["learner"] == plain]
+        same = [other for other in alike if other["config"].get("train") == run["config"].get("train")]
+        return next(iter(same or alike), None)
 
     def better_by(self, value: float, than: float) -> float:
         """How much better ``value`` is than ``than`` on the primary metric: positive when it is better."""
@@ -114,14 +126,23 @@ class Sources:
         return tex.score(value)
 
     def example_text(self, value: float | None) -> str:
-        """A label or a prediction beside a board: as ``label_text``, but a large quantity without its decimal."""
-        if tex.known(value) and self.task.kind != "binary" and self.task.scale == "linear" and abs(value) >= 100:
-            return tex.fixed(value, 0)
+        """A label or a prediction beside a board or in a sentence: as ``label_text``, but a large quantity
+        without its decimal, and a small one to three decimals."""
+        if tex.known(value) and self.task.kind != "binary" and self.task.scale == "linear":
+            if abs(value) >= 100:
+                return tex.fixed(value, 0)
+            if abs(value) < 10:
+                return tex.fixed(value, 3)
         return self.label_text(value)
 
 
 def run_tex(name: str) -> str:
     return f"\\run{{{tex.esc(name)}}}"
+
+
+def run_cell(name: str) -> str:
+    """A run's name in a table cell that may break it: set as code, with a break allowed after each hyphen."""
+    return f"{{\\ttfamily {tex.esc(name).replace('-', '-\\allowbreak ')}}}"
 
 
 def run_head(name: str, span: int, width: str) -> str:

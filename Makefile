@@ -6,7 +6,10 @@ PYTHON_BOOTSTRAP ?= $(shell command -v python3.12 2>/dev/null || command -v pyth
 # Every model on the harness: a folder under models/ with a task.yaml.
 MODELS := $(patsubst models/%/task.yaml,%,$(wildcard models/*/task.yaml))
 
-.PHONY: setup test smoke models report chess parity papers
+# The models whose paper has its prose.
+PAPERS := $(patsubst models/%/paper/paper.tex,%,$(wildcard models/*/paper/paper.tex))
+
+.PHONY: setup test smoke models report chess parity papers study-paper
 
 setup:
 	test -d .venv || $(PYTHON_BOOTSTRAP) -m venv .venv
@@ -38,7 +41,11 @@ chess:
 parity:
 	$(PYTHON) bridge/winprob-parity/parity.py
 
-# The one study of the app's code still here: its numbers, then its PDF.
+# Every model's paper, drawn from its committed results and compiled (needs LaTeX).
 papers:
+	for model in $(PAPERS); do $(LAB) paper $$model || exit 1; done
+
+# The one study of the app's code still here: its numbers, then its PDF.
+study-paper:
 	bridge/run.sh projects/learner-solve-chance/paper/generate.mjs
 	cd projects/learner-solve-chance/paper && latexmk -pdf -interaction=nonstopmode -halt-on-error paper.tex

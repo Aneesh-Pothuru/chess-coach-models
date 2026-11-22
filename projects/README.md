@@ -30,4 +30,4 @@ pins as `records` (`bridge/checkout.sh records`), and the app's learner at a com
 command line. Anything written per attempt goes under `private/learner-solve-chance/`, which git
 ignores. Its own [`README.md`](learner-solve-chance/README.md) gives the commands.
 
-`make papers` writes its paper's numbers and compiles the PDF.
+`make study-paper` writes its paper's numbers and compiles the PDF.

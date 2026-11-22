@@ -25,6 +25,7 @@ comparable. So they are written once for all of them, and a model is what is lef
 | Its learners, and the runs that change one thing in one of them | `configs/<run>.yaml` |
 | What its runs wrote | `results/` |
 | How its results are cut for a closer look | `analysis.yaml` |
+| Its paper: the prose, what the prose reads, the PDF | `paper/` |
 
 A model has no code of its own. Adding one touches the harness only when no dataset has its rows
 yet (a builder in `data/` and a recipe in `datasets/`) or when it needs a new kind of input or
@@ -240,6 +241,48 @@ them, and writes `results/analysis.json`: small tables, committed, that any mach
 A run's predictions are read only when its record names the build of the data on the machine,
 they are of that build's test rows in order, and they score what the record says. Every number is
 rounded to six significant digits, so two machines write the same file.
+
+## The paper
+
+A card says briefly what a model is for and what its results mean. A paper says it at length: the
+data, what a model reads, every run, the closer look cut by cut, example positions, what the app
+can use today and what the model does not say yet. `lab paper <model>` (`papers/`) draws one from
+the model's committed files, on any machine, and compiles `models/<model>/paper/paper.pdf`.
+
+- **The prose types no number.** `paper/paper.tex` is typed and says what the numbers mean. Every
+  number is a value it reads with `\V{key}`, and every table, figure and board is a block it
+  places with `\block{name}`. Both are written into `paper/generated/` from the run records and
+  the closer look, and only what the prose reads is written. `lab paper <model> --list` prints
+  every value and block there is.
+- **A build is strict.** A value or a block the prose reads and the files cannot give stops the
+  build before LaTeX runs, so a paper cannot print a hole, or a claim about a run that is gone.
+- **Switches.** What depends on files a model may not have yet stands inside a switch: `\iflook`
+  for the closer look, `\ifpairs`, `\ifvariants`, `\ifgames` and `\iffeatures` for pairs, runs
+  that change a network, and the two studies, `\ifchanges` for any of those four, and `\ifchance`
+  for a model that predicts a chance. A switch that is off takes its side of the prose out, so one
+  text serves before and after a batch of runs lands.
+- **Shared sections.** What is the same for every model is typed once under `papers/`: how a board
+  is read, the learners, how a result is scored, what a closer look is, how one change at a time
+  is read, the preamble and the references.
+- **Every run by name.** The closer look resamples one pair of runs group by group: the best run
+  that is not the reference, against the reference. A paper can set any other run beside the
+  reference by its name. What that run said in each group and cell is a value, and its figures
+  and tables are blocks (`slice-<key>-said-<run>`, `slice-<key>-<run>`, `grid-<key>-off-<run>`,
+  `reliability-<run>`). The practical-chances paper reads the engine's number that way. The
+  reference's lead over such a run inside a group is a difference of two scores with no interval,
+  and a paper says so where it shows one.
+- **One look for every figure** (`papers/charts.py`). A run keeps its colour and its mark in every
+  figure of every paper, a run that changes another is drawn as that run with a broken line, and
+  every figure has its numbers in a table.
+
+`lab paper <model> --smoke` draws the same prose from the small check's records, under
+`artifacts/smoke-papers/`. It proves the paper compiles and is never a result. A machine without
+LaTeX writes the generated files and leaves the PDF.
+
+The build catches a value that is gone. It cannot catch a sentence that is no longer true, so a
+paper's prose is read again whenever its model's runs change. A claim that could turn with a new
+run is written on generated words (which groups are ahead, which verdict a pair got), so that it
+turns with the run.
 
 ## Smoke runs
 

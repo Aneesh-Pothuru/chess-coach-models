@@ -44,6 +44,16 @@
 % \ifchance is true when the model gives a chance, false when it gives a
 % quantity: the shared sections say what differs between the two.
 \newif\ifchance
+% What a model may not have yet: runs set against the run each changed
+% (\ifpairs), a run of the ladder trained longer or started elsewhere
+% (\ifvariants), and the two studies (\ifgames, \iffeatures). \ifchanges is
+% true when any of the four is. A paper holds what it says about each inside
+% its switch, and it appears once the runs do.
+\newif\ifpairs
+\newif\ifvariants
+\newif\ifgames
+\newif\iffeatures
+\newif\ifchanges
 \makeatletter
 \newcommand{\setvalue}[2]{\expandafter\gdef\csname labvalue@#1\endcsname{#2}}
 \DeclareRobustCommand{\V}[1]{\@ifundefined{labvalue@#1}%
@@ -106,6 +116,16 @@
 \newcommand{\run}[1]{\texttt{#1}}
 \newcolumntype{L}{>{\raggedright\arraybackslash}X}
 \newcolumntype{R}{>{\raggedleft\arraybackslash}X}
+
+% A set of example positions under its caption: \examples{block}{caption}{label}.
+% It is no float. The boards follow the text they belong to and may run over a
+% page, each board kept whole with its words, so a set of boards never waits
+% alone on a page of its own.
+\newcommand{\examples}[3]{%
+  \par\addvspace{\bigskipamount}%
+  \noindent\begin{minipage}{\textwidth}\captionsetup{type=figure}\caption{#2}\label{#3}\end{minipage}%
+  \par\nobreak\smallskip
+  \block{#1}\par\addvspace{\medskipamount}}
 
 % A page may be mostly floats before LaTeX gives them a page of their own, so
 % a figure stays near the words about it.

@@ -9,6 +9,8 @@ words.
 
 from __future__ import annotations
 
+from ..encode.hand import GROUPS as GROUP_FEATURES
+
 
 # name: (label, what it is)
 COLUMNS: dict[str, tuple[str, str]] = {
@@ -23,6 +25,14 @@ COLUMNS: dict[str, tuple[str, str]] = {
     "spent": ("seconds spent", "The seconds the move took: the mover's clock before it, less the clock after it, plus the increment."),
     "log_spent": ("log seconds spent", "The seconds the move took, as log(1 + seconds)."),
     "win_after": ("winning chances after the move", "The mover's win probability from the engine's evaluation after the move, in percent."),
+    "loss": ("winning chances the move lost", "The mover's win probability before the move less the one after it, in points of a percent."),
+    "mover_score": ("the mover's result", "How the game ended for the player to move: a win 1, a draw 0.5, a loss 0."),
+    "plies": ("plies in the game", "How many half-moves the whole game lasted."),
+    "win": ("winning chances by the engine", "The mover's win probability from the engine's deepest evaluation of the position, in percent."),
+    "cp": ("evaluation in centipawns", "The engine's evaluation in hundredths of a pawn, from White's side, where it gives one."),
+    "mate": ("mate in", "The moves to mate the engine found, positive when White mates, where it found one."),
+    "depth": ("depth of the evaluation", "How many half-moves deep the engine searched for the evaluation."),
+    "men": ("men on the board", "Every piece and pawn on the board, both kings included."),
     "clock": ("the mover's clock", "The seconds left on the mover's clock."),
     "opponent_clock": ("the opponent's clock", "The seconds left on the opponent's clock."),
     "base": ("base time", "The time control's starting time, in seconds."),
@@ -105,6 +115,18 @@ MARKS: dict[str, str] = {
     "later": "Every square a later move of the line leaves or reaches.",
 }
 
+# The groups the hand features come in, as a run that leaves one out names them, and as a paper says them.
+GROUPS: dict[str, str] = {
+    "material": "material",
+    "mobility": "the moves on offer",
+    "hanging": "pieces that can be taken",
+    "pawns": "passed pawns",
+    "kings": "attacks near the kings",
+    "setup": "the opponent's move",
+    "first-move": "the first move",
+    "line": "the line",
+}
+
 # How a column's values are printed beside a board: a unit after the number.
 UNITS: dict[str, str] = {
     "clock": "s",
@@ -132,3 +154,8 @@ def title(name: str) -> str:
 def says(name: str) -> str:
     """What a column is, as a sentence."""
     return COLUMNS[name][1]
+
+
+def group(name: str) -> str:
+    """A group of hand features in a paper's words."""
+    return GROUPS[name]

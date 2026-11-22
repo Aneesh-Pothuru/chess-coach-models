@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import shutil
 from pathlib import Path
 
 import pytest
@@ -16,6 +17,8 @@ from chess_coach_models import cli, paths, tasks  # noqa: E402
 from chess_coach_models.data import store  # noqa: E402
 from chess_coach_models.encode.hand import GROUPS  # noqa: E402
 from chess_coach_models.evals import analysis, calibration, leaderboard  # noqa: E402
+from chess_coach_models.papers import build as papers  # noqa: E402
+from chess_coach_models.papers import tex  # noqa: E402
 from chess_coach_models.train import run as runs  # noqa: E402
 
 
@@ -189,6 +192,68 @@ def test_the_closer_look_leaves_out_a_run_whose_predictions_are_gone(lab):
     paths.predictions("puzzle-difficulty", "gbm-hand", smoke=True).unlink()
     with pytest.raises(FileNotFoundError, match="no run of puzzle-difficulty"):
         analysis.analyse("puzzle-difficulty", smoke=True)
+
+
+def test_a_paper_reads_every_run_by_name_from_the_closer_look(lab):
+    model, names = "puzzle-difficulty", ("gbm-hand", "constant", "transformer-small")
+    for name in names:
+        runs.run(model, name, smoke=True, log=lambda _: None)
+    look = analysis.analyse(model, smoke=True)
+    src, out = papers.generate(model, smoke=True)
+    assert src.task.reference == "gbm-hand" and set(look["runs"]) == set(names)
+    pair = [look["challenger"], look["reference"]]
+    (other,) = [name for name in names if name not in pair]
+    # What every run said in every group it was scored in, and how far the reference leads it there.
+    for one in look["slices"]:
+        for group in one["groups"]:
+            inner = tex.key("slice", one["key"], group["group"])
+            for name in names:
+                assert (f"{inner}.{name}.said" in out.values) == (name in group["runs"])
+            assert f"{inner}.gbm-hand.behind" not in out.values
+    band = [group for group in look["slices"][0]["groups"] if group["rows"]]
+    assert sum(group["rows"] for group in band) == look["test_rows"]
+    happened = sum(group["rows"] * group["label_mean"] for group in band) / look["test_rows"]
+    assert out.values["overall.happened"] == src.example_text(happened)
+    assert all(f"overall.{name}.said" in out.values for name in names)
+    assert f"slice.band.{other}.widest-off" in out.values and f"slice.band.{other}.behind.most.group" in out.values
+    assert f"run.{other}.reliability.widest-gap" in out.values and f"run.{other}.beside.closer" in out.values
+    # A run the closer look does not already set beside the reference has figures and tables of its own.
+    for block in (f"slice-band-{other}", f"slice-band-said-{other}", f"slice-band-bias-{other}", f"slices-{other}", f"reliability-{other}"):
+        assert block in out.files
+    assert f"tab:slice-band-{other}" in out.files[f"slices-{other}"] and "Reference's lead" in out.files[f"slice-band-{other}"]
+    for name in pair:
+        assert f"slice-band-said-{name}" not in out.files and f"reliability-{name}" not in out.files
+    assert {"slice-band", "slice-band-said", "slices", "reliability"} <= set(out.files)
+    assert "tab:slice-band}" in out.files["slices"] and "95\\% interval" in out.files["slice-band"]
+
+
+def test_a_paper_stops_on_what_its_files_cannot_give(lab):
+    model = "puzzle-difficulty"
+    for name in ("gbm-hand", "constant"):
+        runs.run(model, name, smoke=True, log=lambda _: None)
+    analysis.analyse(model, smoke=True)
+    # A paper is drawn from a model's committed results: here the small check's records stand in for them.
+    shutil.copytree(paths.results(model, smoke=True), paths.results(model))
+    folder = paths.paper(model)
+    folder.mkdir(parents=True)
+    prose = folder / "paper.tex"
+    with pytest.raises(FileNotFoundError, match="is not written yet"):
+        papers.write(model)
+    prose.write_text(
+        "\\V{best.score} \\block{leaderboard} % \\V{in.a.comment}\n\\ifgames \\V{no.such.value} \\block{study-games} \\fi\n",
+        encoding="utf-8",
+    )
+    assert papers.write(model) == folder
+    written = folder / "generated"
+    assert sorted(path.name for path in written.iterdir()) == ["leaderboard.tex", "values.tex"]
+    values = (written / "values.tex").read_text(encoding="utf-8")
+    assert "\\setvalue{best.score}" in values and "\\looktrue" in values and "\\gamesfalse" in values
+    assert values.count("\\setvalue") == 1
+    prose.write_text("\\V{best.score} \\V{no.such.value} \\block{no-such-block}\n", encoding="utf-8")
+    with pytest.raises(KeyError, match="the block no-such-block, the value no.such.value"):
+        papers.write(model)
+    # The same prose is let through as a smoke build, which proves only that the paper compiles.
+    assert papers.write(model, smoke=True) == paths.paper(model, smoke=True)
 
 
 def test_study_runs_train_on_what_their_config_changes_and_are_listed_apart(lab, temp_lab):

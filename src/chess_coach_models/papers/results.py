@@ -72,6 +72,8 @@ def run_values(src: Sources, out: tex.Generated, prefix: str, run: dict[str, Any
         out.set(f"{prefix}.gain.percent", tex.sig(100.0 * abs(gain["gain"]) / abs(gain["reference_value"]), 2))
     out.set(f"{prefix}.seconds", tex.duration(run["seconds"]))
     out.set(f"{prefix}.device", tex.esc(trained_on(run)))
+    if run.get("train_rows"):
+        out.set(f"{prefix}.train-rows", tex.count(run["train_rows"]))
     if details.get("parameters"):
         out.set(f"{prefix}.parameters", tex.count(details["parameters"]))
         out.set(f"{prefix}.parameters.millions", tex.fixed(details["parameters"] / 1e6, 1))
@@ -173,7 +175,7 @@ def values(src: Sources, out: tex.Generated) -> None:
         year, month = str(src.recipe["month"]).split("-")
         out.set("data.month", f"{MONTHS[int(month) - 1]} {year}")
 
-    for run in src.runs:
+    for run in [*src.runs, *src.studies]:
         run_values(src, out, tex.key("run", run["run"]), run)
     parts = {
         "best": src.best,
@@ -188,17 +190,19 @@ def values(src: Sources, out: tex.Generated) -> None:
 
     networks = src.networks
     out.set("runs.count", tex.word(len(src.runs)))
-    out.set("networks.count", tex.word(len(networks)))
-    ahead = [run for run in networks if run.get("gain") and run["gain"]["beyond_noise"] and run["gain"]["gain"] > 0]
-    behind = [run for run in networks if run.get("gain") and run["gain"]["beyond_noise"] and run["gain"]["gain"] < 0]
-    out.set("networks.ahead", tex.word(len(ahead)))
-    out.set("networks.behind", tex.word(len(behind)))
-    out.set("networks.level", tex.word(len(networks) - len(ahead) - len(behind)))
-    out.set("networks.ahead.of", tex.of(len(ahead), len(networks), "networks"))
-    out.set("networks.behind.of", tex.of(len(behind), len(networks), "networks"))
-    last = [run for run in networks if run["learner"]["best_epoch"] == run["config"]["train"]["epochs"]]
-    out.set("networks.at-last-epoch", tex.word(len(last)))
-    out.set("networks.at-last-epoch.of", tex.of(len(last), len(networks), "networks"))
+    # Every network on the leaderboard, and the ladder's alone: the ones that change nothing in another run.
+    for part, group in (("networks", networks), ("ladder", src.ladder)):
+        out.set(f"{part}.count", tex.word(len(group)))
+        ahead = [run for run in group if run.get("gain") and run["gain"]["beyond_noise"] and run["gain"]["gain"] > 0]
+        behind = [run for run in group if run.get("gain") and run["gain"]["beyond_noise"] and run["gain"]["gain"] < 0]
+        out.set(f"{part}.ahead", tex.word(len(ahead)))
+        out.set(f"{part}.behind", tex.word(len(behind)))
+        out.set(f"{part}.level", tex.word(len(group) - len(ahead) - len(behind)))
+        out.set(f"{part}.ahead.of", tex.of(len(ahead), len(group), "networks"))
+        out.set(f"{part}.behind.of", tex.of(len(behind), len(group), "networks"))
+        last = [run for run in group if run["learner"]["best_epoch"] == run["config"]["train"]["epochs"]]
+        out.set(f"{part}.at-last-epoch", tex.word(len(last)))
+        out.set(f"{part}.at-last-epoch.of", tex.of(len(last), len(group), "networks"))
     # A setting every network shares is one value; where they differ, the settings table says so.
     for name, shown in (("warmup", "networks.warmup.percent"), ("patience", "networks.patience")):
         asked = {run["config"]["train"].get(name) for run in networks}
@@ -228,6 +232,11 @@ def values(src: Sources, out: tex.Generated) -> None:
         gain = src.best.get("gain")
         if gain and lift:
             out.set("best.gain.of-lift", tex.percent(gain["gain"] / lift, 0))
+        # How much of the reference's step from the floor each run makes: over 100 for a run ahead of it.
+        if lift:
+            for run in src.runs:
+                step = src.better_by(run["test"][primary]["value"], floor["test"][primary]["value"])
+                out.set(tex.key("run", run["run"], "lift.share"), tex.percent(step / lift, 0))
 
     names = band_names(src)
     out.set("bands.count", tex.word(len(names)))
@@ -327,30 +336,43 @@ def runs_table(src: Sources) -> str:
     return tex.tabular("l>{\\raggedright\\arraybackslash}p{5.1cm}l>{\\raggedright\\arraybackslash}p{3.9cm}r", head, rows)
 
 
+# A network's settings as the settings table heads them, and how each is read from a run's config.
+SETTINGS = (
+    ("Body", "l", lambda run: tex.esc(run["config"]["learner"]["body"])),
+    ("Width", "r", lambda run: str(run["config"]["learner"]["dim"])),
+    ("Layers", "r", lambda run: str(run["config"]["learner"]["depth"])),
+    ("Heads", "r", lambda run: str(run["config"]["learner"].get("heads", ""))),
+    ("Dropout", "r", lambda run: tex.plain(float(run["config"]["learner"].get("dropout", 0.0)))),
+    ("Epochs", "r", lambda run: str(run["config"]["train"]["epochs"])),
+    ("Batch", "r", lambda run: tex.count(run["config"]["train"]["batch"])),
+    ("Rate", "r", lambda run: tex.plain(float(run["config"]["train"]["lr"]))),
+    ("Decay", "r", lambda run: tex.plain(float(run["config"]["train"].get("weight_decay", 0.05)))),
+    ("Patience", "r", lambda run: str(run["config"]["train"].get("patience", ""))),
+)
+
+
 def settings_table(src: Sources) -> str | None:
-    """The networks' sizes and schedules, from their configs."""
-    rows = []
-    for run in src.networks:
-        learner, schedule = run["config"]["learner"], run["config"]["train"]
-        rows.append(
-            [
-                run_tex(run["run"]),
-                tex.esc(learner["body"]),
-                str(learner["dim"]),
-                str(learner["depth"]),
-                str(learner.get("heads", "")),
-                tex.count(run["learner"]["parameters"]) if run["learner"].get("parameters") else "",
-                tex.plain(float(learner.get("dropout", 0.0))),
-                str(schedule["epochs"]),
-                tex.count(schedule["batch"]),
-                tex.plain(float(schedule["lr"])),
-                tex.plain(float(schedule.get("weight_decay", 0.05))),
-            ]
-        )
-    if not rows:
+    """The ladder networks' sizes and schedules, from their configs. A setting is a column where the networks
+    differ in it, and a line under the table where they all share it, so the table is as wide as what it has
+    to say. A run that changes one thing in one of them is not a row: the table of pairs says what it changes."""
+    networks = src.ladder
+    if not networks:
         return None
-    head = ["Run", "Body", "Width", "Layers", "Heads", "Parameters", "Dropout", "Epochs", "Batch", "Rate", "Decay"]
-    return tex.tabular("llrrrrrrrrr", head, rows)
+    columns, shared = [], []
+    for name, align, read in SETTINGS:
+        cells = [read(run) for run in networks]
+        if len(set(cells)) > 1:
+            columns.append((name, align, cells))
+        elif cells[0]:
+            shared.append(f"{name.lower()} {cells[0]}")
+    sizes = [tex.count(run["learner"]["parameters"]) if run["learner"].get("parameters") else "" for run in networks]
+    columns.append(("Parameters", "r", sizes))
+    rows = [[run_tex(run["run"]), *(cells[index] for _, _, cells in columns)] for index, run in enumerate(networks)]
+    spec = "l" + "".join(align for _, align, _ in columns)
+    table = "{\\setlength{\\tabcolsep}{4.5pt}%\n" + tex.tabular(spec, ["Run", *(name for name, _, _ in columns)], rows) + "}"
+    if shared:
+        table += f"\n\n\\smallskip\n{{\\footnotesize Every one of them: {', '.join(shared)}.}}"
+    return table
 
 
 def data_table(src: Sources) -> str:
@@ -392,9 +414,10 @@ def band_title(src: Sources) -> str:
 
 
 def bands_figure(src: Sources) -> str | None:
-    """Each network's lead over the reference band by band: the differences of the scores in the bands table."""
+    """Each ladder network's lead over the reference band by band: the differences of the scores in the bands
+    table. The best run is drawn too when it is a network that changed one of them."""
     reference = src.reference
-    networks = [run for run in src.networks if run is not reference]
+    networks = [run for run in src.networks if run is not reference and (run in src.ladder or run is src.best)]
     if reference is None or not networks:
         return None
     names = band_names(src)
@@ -452,32 +475,55 @@ def gains_figure(src: Sources) -> str | None:
     )
 
 
+def _valid_curve(src: Sources, run: dict[str, Any]) -> charts.Series:
+    key = f"valid_{src.primary}"
+    return charts.run_series(run["run"], [(epoch["epoch"], epoch[key]) for epoch in run["learner"]["history"]])
+
+
+def _reference_level(src: Sources) -> tuple[float, str, str] | None:
+    reference = src.reference
+    if reference is None:
+        return None
+    return (reference["valid"][src.primary], run_tex(reference["run"]), charts.run_colour(reference["run"]))
+
+
 def curves_figure(src: Sources) -> str | None:
-    """Each network's score on the valid rows epoch by epoch, the reference's valid score as the level to reach."""
-    networks = [run for run in src.networks if run["learner"].get("history")]
+    """Each ladder network's score on the valid rows epoch by epoch, the reference's valid score as the level to reach."""
+    networks = [run for run in src.ladder if run["learner"].get("history")]
     if not networks:
         return None
-    key = f"valid_{src.primary}"
-    series = [
-        charts.run_series(run["run"], [(epoch["epoch"], epoch[key]) for epoch in run["learner"]["history"]])
-        for run in networks
-    ]
+    series = [_valid_curve(src, run) for run in networks]
     longest = max(len(one.points) for one in series)
-    reference = src.reference
-    level = None
-    if reference is not None:
-        level = (reference["valid"][src.primary], run_tex(reference["run"]), charts.run_colour(reference["run"]))
     return charts.lines(
         series,
         xlabel="Epoch",
         ylabel=f"{METRIC_NAMES[src.primary]} on the valid rows",
-        level=level,
+        level=_reference_level(src),
         legend_columns=2,
         width="0.66\\textwidth",
         extra=[
             "xtick distance=1" if longest <= 12 else "xtick distance=2",
             f"xmin=0.5, xmax={longest + 0.5}",
         ],
+    )
+
+
+def variants_figure(src: Sources) -> str | None:
+    """Each ladder network that another run changed one thing in, beside those runs, on the valid rows epoch by
+    epoch: one panel a ladder network, all on one scale."""
+    groups = []
+    for run in src.ladder:
+        family = [one for one in [run, *src.variants(run)] if one["learner"].get("history")]
+        if len(family) > 1:
+            groups.append([_valid_curve(src, one) for one in family])
+    if not groups:
+        return None
+    return charts.panels(
+        groups,
+        xlabel="Epoch",
+        ylabel=f"{METRIC_NAMES[src.primary]} on the valid rows",
+        level=_reference_level(src),
+        width=f"{min(0.52, 0.98 / len(groups)):.2f}\\textwidth",
     )
 
 
@@ -566,6 +612,7 @@ def blocks(src: Sources, out: tex.Generated) -> None:
         "scores": scores_figure(src),
         "gains": gains_figure(src),
         "curves": curves_figure(src),
+        "variants": variants_figure(src),
         "leans": leans_figure(src, src.reference),
         "calibration-table": calibration_table(src),
         "calibration": calibration_figure(src),

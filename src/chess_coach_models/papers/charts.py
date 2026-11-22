@@ -8,9 +8,11 @@ A chart is picked by what its reader has to do. Scores of several runs are dots
 with their intervals on one axis; a quantity over an ordered scale is a line; a
 count per bin is a column; shares of one thing ranked are bars in one colour; a
 table of two scales is a grid in one colour, light to dark, with its numbers
-printed. A run keeps its colour wherever it appears (``RUN_COLOURS``), text is
-never coloured, and every figure has a table beside it in the paper or in the
-generated leaderboard, so nothing is read from colour alone.
+printed. A run keeps its colour wherever it appears (``RUN_COLOURS``), and a
+run that changes one thing in another (more epochs, another start) is drawn
+as that run with a broken line, so a figure never needs a ninth colour. Text
+is never coloured, and every figure has a table beside it in the paper or in
+the generated leaderboard, so nothing is read from colour alone.
 """
 
 from __future__ import annotations
@@ -21,7 +23,8 @@ from dataclasses import dataclass, field
 from .tex import esc, known
 
 
-# Colour follows the run. The floor is context, so it is grey.
+# Colour follows the run. The floor is context, so it is grey, and so is what an engine or a rating says
+# with nothing fitted: the lines a learner has to beat.
 RUN_COLOURS = {
     "transformer-medium-hand": "labBlue",
     "gbm-hand": "labOrange",
@@ -30,6 +33,8 @@ RUN_COLOURS = {
     "conv-small": "labMagenta",
     "gbm-context": "labGreen",
     "puzzle-rating": "labViolet",
+    "elo-gap": "labViolet",
+    "engine-curve": "labSecondary",
     "constant": "labGray",
 }
 # Four network lines sit close on a page, so each run also keeps a mark.
@@ -41,19 +46,51 @@ RUN_MARKS = {
     "conv-small": "pentagon*",
     "gbm-context": "square*",
     "puzzle-rating": "triangle*",
+    "elo-gap": "triangle*",
+    "engine-curve": "diamond*",
     "constant": "*",
 }
+# A run that changes one thing in another is drawn as that run, in its colour and with its mark, and its
+# line is broken the way its change is: what was added to the name says which.
+VARIANT_DASHES = {
+    "long": "on 5pt off 2pt",
+    "pretrained": "on 1pt off 2pt",
+}
+OTHER_DASH = "on 5pt off 2pt on 1pt off 2pt"
 ACCENT = "labBlue"
 QUIET = "labGray"
 INK = "labInk"
+# A grid of differences: the colour below its centre and the colour above it, which meet in a neutral grey.
+DIVERGING = ("labBlue", "labOrange")
+
+
+def family(run: str) -> str:
+    """The run a run's name starts from: itself, or the run it changed one thing in.
+
+    ``transformer-medium-hand-long`` is ``transformer-medium-hand`` trained longer, and ``gbm-hand-no-line``
+    is ``gbm-hand`` without a group of features. The longest known name a run's name starts with is its family.
+    """
+    known = [name for name in RUN_COLOURS if run == name or run.startswith(name + "-")]
+    return max(known, key=len) if known else run
+
+
+def variant(run: str) -> str:
+    """What a run's name adds to its family's: ``long``, ``pretrained``, ``no-line``, or nothing."""
+    return run[len(family(run)) + 1 :]
 
 
 def run_colour(run: str) -> str:
-    return RUN_COLOURS.get(run, QUIET)
+    return RUN_COLOURS.get(family(run), QUIET)
 
 
 def run_mark(run: str) -> str:
-    return RUN_MARKS.get(run, "*")
+    return RUN_MARKS.get(family(run), "*")
+
+
+def run_dash(run: str) -> str | None:
+    """How a run's line is broken: not at all for a run of the ladder, and by its change for a run that changes one."""
+    added = variant(run)
+    return VARIANT_DASHES.get(added, OTHER_DASH) if added else None
 
 
 @dataclass
@@ -66,11 +103,12 @@ class Series:
     low: Sequence[float] = field(default_factory=tuple)
     high: Sequence[float] = field(default_factory=tuple)
     code: bool = False
+    dash: str | None = None
 
 
 def run_series(run: str, points: Sequence[tuple[float, float]], **more) -> Series:
-    """A run's series in the run's own colour and mark, its name set as code."""
-    return Series(run, points, colour=run_colour(run), mark=run_mark(run), code=True, **more)
+    """A run's series in the run's own colour and mark, its line broken when it changes another run, its name set as code."""
+    return Series(run, points, colour=run_colour(run), mark=run_mark(run), code=True, dash=run_dash(run), **more)
 
 
 def _number(value: float) -> str:
@@ -212,6 +250,8 @@ def lines(
         style = [f"color={one.colour}"]
         if not one.line:
             style.append("only marks")
+        elif one.dash:
+            style.append(f"dash pattern={one.dash}")
         if one.mark:
             style.append(f"mark={one.mark}, mark size=1.9pt, mark options={{solid, draw=white, line width=0.5pt, fill={one.colour}}}")
         else:
@@ -231,6 +271,71 @@ def lines(
         *extra,
     ]
     return _picture(options, body)
+
+
+def panels(
+    groups: Sequence[Sequence[Series]],
+    *,
+    xlabel: str,
+    ylabel: str,
+    level: tuple[float, str, str] | None = None,
+    width: str = "0.5\\textwidth",
+    height: str = "5.4cm",
+) -> str:
+    """Line charts side by side on one upright scale, one a group of series, each with its own legend.
+
+    For runs that are read in families: a run and the runs that changed one thing in it share a panel, and
+    the panels share their scale, so a family is compared inside its panel and families across them.
+    ``level`` is as in ``lines`` and is drawn in every panel, named in the last.
+    """
+    every = [y for group in groups for one in group for _, y in one.points if known(y)]
+    if level is not None:
+        every.append(level[0])
+    span = (max(every) - min(every)) or 1.0
+    low, high = min(every) - 0.06 * span, max(every) + 0.06 * span
+    body = []
+    for index, group in enumerate(groups):
+        xs = [x for one in group for x, y in one.points if known(y)]
+        left, right = min(xs) - 0.5, max(xs) + 0.5
+        body.append(
+            f"\\nextgroupplot[xmin={_number(left)}, xmax={_number(right)}, "
+            f"xtick distance={max(1, round((right - left) / 6))}, legend columns=1]"
+        )
+        if level is not None:
+            value, label, colour = level
+            named = f" node[anchor=west, font=\\sffamily\\scriptsize, text=labSecondary, inner sep=2pt] {{{label}}}"
+            body.append(
+                f"\\draw[{colour}, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:{_number(left)},{_number(value)}) -- "
+                f"(axis cs:{_number(right)},{_number(value)}){named if index == len(groups) - 1 else ''};"
+            )
+        for one in group:
+            style = [f"color={one.colour}"]
+            if one.dash:
+                style.append(f"dash pattern={one.dash}")
+            if one.mark:
+                style.append(f"mark={one.mark}, mark size=1.5pt, mark options={{solid, draw=white, line width=0.4pt, fill={one.colour}}}")
+            else:
+                style.append("mark=none")
+            coordinates = " ".join(f"({_number(x)},{_number(y)})" for x, y in one.points if known(y))
+            body.append(f"\\addplot[{', '.join(style)}] coordinates {{{coordinates}}};")
+            body.append(f"\\addlegendentry{{{_name(one.name, one.code)}}}")
+    options = [
+        "lab",
+        f"group style={{group size={len(groups)} by 1, horizontal sep=0.5cm, ylabels at=edge left, yticklabels at=edge left}}",
+        f"width={width}",
+        f"height={height}",
+        "ymajorgrids",
+        f"ymin={_number(low)}, ymax={_number(high)}",
+        f"xlabel={{{xlabel}}}",
+        f"ylabel={{{ylabel}}}",
+    ]
+    return (
+        "\\begin{tikzpicture}\n\\begin{groupplot}[\n  "
+        + _options(options)
+        + ",\n]\n"
+        + "\n".join(body)
+        + "\n\\end{groupplot}\n\\end{tikzpicture}"
+    )
 
 
 def columns(
@@ -347,13 +452,17 @@ def grid(
     low: float,
     high: float,
     cell_height: float = 0.6,
+    centre: float | None = None,
 ) -> str:
     """A table of two ordered scales as a grid in one colour, light to dark, each cell's number printed in it.
 
     ``cells[row][column]`` is ``(value, text)``; a cell with no value is left empty. The titles are LaTeX.
+    With ``centre`` the grid is of differences: two colours that meet in a neutral grey at ``centre``, blue
+    below it and orange above, as deep as the value is far from it, with dark ink throughout.
     """
     cell_width = max(1.3, 0.17 * max(map(len, column_labels)) + 0.25)
     span = (high - low) or 1.0
+    reach = max(high - centre, centre - low) if centre is not None else 0.0
     body = ["\\begin{tikzpicture}[font=\\sffamily\\footnotesize]"]
     for r, row in enumerate(cells):
         y = -r * cell_height
@@ -362,6 +471,9 @@ def grid(
             x = c * cell_width
             if value is None or not known(value):
                 fill, ink = "white", "labSecondary"
+            elif centre is not None:
+                share = min(1.0, abs(value - centre) / reach) if reach else 0.0
+                fill, ink = f"{DIVERGING[value > centre]}!{round(70 * share)}!labGrid", "labInk"
             else:
                 share = max(0.0, min(1.0, (value - low) / span))
                 fill = f"labBlue!{round(8 + 82 * share)}!white"

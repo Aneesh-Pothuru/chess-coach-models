@@ -3,8 +3,9 @@
 A paper types no number. ``lab paper <model>`` writes ``generated/values.tex``,
 whose ``\\setvalue{key}{value}`` lines the prose reads back with ``\\V{key}``
 (a key nobody set stops the build), and one file for each table, figure and
-board, which the prose places with ``\\block{<name>}``. Only what the prose
-reads is written, so the generated folder is as small as the paper.
+board, which the prose places with ``\\block{<name>}``, or for a set of example
+boards with ``\\examples{<name>}{caption}{label}``. Only what the prose reads
+is written, so the generated folder is as small as the paper.
 """
 
 from __future__ import annotations
@@ -225,5 +226,5 @@ def used_keys(latex: str) -> set[str]:
 
 
 def used_blocks(latex: str) -> set[str]:
-    """The generated blocks a paper's prose places."""
-    return set(re.findall(r"\\block\{([a-z0-9-]+)\}", latex))
+    """The generated blocks a paper's prose places: with ``\\block``, or as a set of example boards with ``\\examples``."""
+    return set(re.findall(r"\\(?:block|examples)\{([a-z0-9-]+)\}", latex))

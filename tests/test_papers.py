@@ -1,0 +1,150 @@
+"""The paper tooling's own rules: how a number prints, what a switch takes out, and which words a name has.
+
+These need no dataset and no trained run. What a paper draws from a model's
+records and closer look is checked in ``test_lab_pipeline.py``, on runs it
+trains.
+"""
+
+from __future__ import annotations
+
+from importlib import import_module
+
+import pytest
+
+from chess_coach_models import data, paths, tasks
+from chess_coach_models.encode.hand import GROUPS, group_of
+from chess_coach_models.evals import analysis
+from chess_coach_models.papers import build, charts, glossary, tex
+
+
+MODELS = sorted(path.parent.name for path in paths.models().glob("*/task.yaml"))
+
+
+def test_a_number_prints_at_a_paper_s_precision():
+    assert tex.count(1127915) == "1{,}127{,}915"
+    assert tex.fixed(-0.25, 1) == "$-$0.2" and tex.fixed(0.25, 2, sign=True) == "+0.25"
+    # A value that rounds to nothing carries no minus sign.
+    assert tex.fixed(-0.0004, 2) == "0.00" and tex.fixed(-0.0004, 2, sign=True) == "+0.00"
+    assert tex.score(0.42374) == "0.4237" and tex.score(1.5) == "1.500" and tex.score(1234.56) == "1234.6"
+    assert tex.sig(24.678) == "24.68" and tex.sig(0.0044432) == "0.004443" and tex.sig(0) == "0"
+    assert tex.sig(0.0581, 3, sign=True) == "+0.0581"
+    assert tex.percent(0.1234) == "12.3" and tex.percent(0.5, 0) == "50"
+    assert tex.plain(0.0006) == "0.0006" and tex.plain(1024) == "1{,}024"
+    assert tex.duration(45) == "45 s" and tex.duration(600) == "10 min" and tex.duration(9000) == "2.5 h"
+    for helper in (tex.count, tex.fixed, tex.score, tex.sig, tex.percent):
+        assert helper(None) == "n/a" and helper(float("nan")) == "n/a"
+
+
+def test_a_value_and_its_interval_share_one_precision():
+    assert tex.trio(0.0113649, 0.00892226, 0.0136922) == ("+0.01136", "+0.00892", "+0.01369")
+    assert tex.trio(-0.00048, -0.00129, 0.00037) == ("$-$0.000480", "$-$0.001290", "+0.000370")
+    assert tex.trio(12.3, None, 14.0) == ("n/a", "n/a", "n/a")
+
+
+def test_a_count_reads_as_prose_says_it():
+    assert tex.word(0) == "zero" and tex.word(12) == "twelve" and tex.word(13) == "13"
+    assert tex.of(4, 4, "networks") == "all four networks" and tex.of(2, 2, "networks") == "both networks"
+    assert tex.of(0, 4, "networks") == "none of the four networks" and tex.of(0, 2, "runs") == "neither of the two runs"
+    assert tex.of(1, 4, "networks") == "one of the four networks"
+    assert tex.of(1, 1, "network") == "the one network" and tex.of(0, 1, "network") == "not the one network"
+
+
+def test_text_from_a_file_is_escaped_and_a_key_is_made_plain():
+    assert tex.esc("<1100 & 50%_x") == r"\textless{}1100 \& 50\%\_x"
+    assert tex.key("slice", "clock", "<30", "engine-curve", "said") == "slice.clock.-30.engine-curve.said"
+    assert tex.key("grid", "rating-win", "2000+", "80+") == "grid.rating-win.2000+.80+"
+    assert tex.code("the column `win_before`, times 0.01") == r"the column \texttt{win\_before}, times 0.01"
+
+
+def test_a_value_is_set_once_and_a_block_once():
+    out = tex.Generated("a test")
+    out.set("best.score", "0.4235")
+    out.set("best.score", "0.4235")
+    with pytest.raises(ValueError, match="set twice"):
+        out.set("best.score", "0.4237")
+    with pytest.raises(ValueError, match="not a value key"):
+        out.set("best score", "0.4235")
+    out.block("leaderboard", "a table")
+    with pytest.raises(ValueError, match="written twice"):
+        out.block("leaderboard", "another")
+    with pytest.raises(ValueError, match="not a plain file name"):
+        out.block("Leader_board", "a table")
+
+
+def test_only_what_the_prose_reads_is_written(tmp_path):
+    prose = r"The best run scores \V{best.score} (\block{leaderboard}), and \examples{examples-typical}{Three}{fig:typical}."
+    assert tex.used_keys(prose) == {"best.score"}
+    assert tex.used_blocks(prose) == {"leaderboard", "examples-typical"}
+    out = tex.Generated("a test")
+    for name in ("best.score", "floor.score"):
+        out.set(name, "0.5")
+    for name in ("leaderboard", "examples-typical", "curves"):
+        out.block(name, f"the block {name}")
+    (tmp_path / "stale.tex").write_text("left by an earlier run")
+    out.write(tmp_path, keys=tex.used_keys(prose), blocks=tex.used_blocks(prose), flags=["\\looktrue"])
+    assert sorted(path.name for path in tmp_path.iterdir()) == ["examples-typical.tex", "leaderboard.tex", "values.tex"]
+    values = (tmp_path / "values.tex").read_text()
+    assert "\\looktrue" in values and "\\setvalue{best.score}{0.5}" in values and "floor.score" not in values
+
+
+def test_a_switch_that_is_off_takes_its_side_of_the_prose_out():
+    prose = r"a \iflook b \ifpairs c \else d \fi e \else f \fi g"
+    assert build.firm(prose, {"look": True, "pairs": True}).split() == ["a", "b", "c", "e", "g"]
+    assert build.firm(prose, {"look": True, "pairs": False}).split() == ["a", "b", "d", "e", "g"]
+    assert build.firm(prose, {"look": False, "pairs": True}).split() == ["a", "f", "g"]
+    # A conditional that is no switch of the lab's keeps both its sides, inside a switch or out of one.
+    other = r"a \ifdim x \else y \fi \ifgames z \fi"
+    assert build.firm(other, {"games": False}).split() == ["a", "x", "y"]
+    assert build.firm(other, {"games": True}).split() == ["a", "x", "y", "z"]
+    assert r"\V{gone}" not in build.firm(r"\ifvariants\else \V{gone} \fi", {"variants": True})
+
+
+def test_a_run_that_changes_another_is_drawn_as_that_run():
+    assert charts.family("transformer-medium-hand-long") == "transformer-medium-hand"
+    assert charts.family("transformer-medium-long") == "transformer-medium"
+    assert charts.variant("transformer-medium-hand-pretrained") == "pretrained"
+    assert charts.family("gbm-hand-no-first-move") == "gbm-hand" and charts.variant("gbm-hand-no-first-move") == "no-first-move"
+    assert charts.family("something-new") == "something-new" and charts.variant("something-new") == ""
+    assert charts.run_colour("transformer-medium-hand-long") == charts.run_colour("transformer-medium-hand")
+    assert charts.run_dash("transformer-medium-hand") is None
+    dashes = {charts.run_dash(f"transformer-medium-{added}") for added in ("long", "pretrained", "half")}
+    assert len(dashes) == 3 and None not in dashes
+
+
+def test_every_run_of_every_model_has_a_colour_of_its_own_family():
+    for model in MODELS:
+        for config in paths.configs(model).glob("*.yaml"):
+            assert charts.family(config.stem) in charts.RUN_COLOURS, f"{model}/{config.stem} would be drawn in grey"
+            assert charts.family(config.stem) in charts.RUN_MARKS
+
+
+def test_a_grid_of_differences_is_two_colours_that_meet_in_grey():
+    cells = [[(-0.2, "$-$0.20"), (0.0, "+0.00"), (0.1, "+0.10"), (None, "")]]
+    drawn = charts.grid(["row"], ["a", "b", "c", "d"], cells, row_title="Rows", column_title="Columns", low=-0.2, high=0.2, centre=0.0)
+    fills = [line.split("fill=")[1].split(",")[0] for line in drawn.splitlines() if "fill=" in line]
+    assert fills == ["labBlue!70!labGrid", "labBlue!0!labGrid", "labOrange!35!labGrid", "white"]
+    # Without a centre the grid is one colour from light to dark.
+    plain = charts.grid(["row"], ["a", "b"], [[(0.0, "0"), (1.0, "1")]], row_title="Rows", column_title="Columns", low=0.0, high=1.0)
+    assert "labOrange" not in plain and "labBlue!8!white" in plain and "labBlue!90!white" in plain
+
+
+@pytest.mark.parametrize("model", MODELS)
+def test_the_glossary_has_words_for_every_name_a_paper_can_show(model):
+    task = tasks.get(model)
+    recipe = data.recipe(task.dataset)
+    builder = import_module(f"chess_coach_models.data.{data.BUILDERS[recipe['builder']]}")
+    plan = analysis.plan(model)
+    marks = [name for name in builder.MARKS if task.marks is None or name in task.marks]
+    hand = [name for name in builder.HAND if task.hand is None or group_of(name) in task.hand]
+    shown = [task.label, *task.context, *hand, *plan.get("describe", []), *plan.get("examples", {}).get("show", [])]
+    assert [name for name in shown if name not in glossary.COLUMNS] == []
+    assert [name for name in marks if name not in glossary.MARKS] == []
+    for name in shown:
+        label, sentence = glossary.COLUMNS[name]
+        assert label and sentence.endswith(".")
+        assert glossary.title(name)[0] == label[0].upper()
+
+
+def test_the_glossary_has_words_for_every_group_of_hand_features():
+    assert set(GROUPS) <= set(glossary.GROUPS)
+    assert glossary.GROUP_FEATURES is GROUPS

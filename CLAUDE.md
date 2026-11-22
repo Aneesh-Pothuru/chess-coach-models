@@ -16,13 +16,16 @@ engine, a human-move model, board code or data.
 - `models/<model>/`: one model each, and everything about it. `README.md` is
   its card (the question, the data, the rule, what the results say),
   `task.yaml` what it is asked, `configs/<run>.yaml` its runs, `results/` what
-  the runs wrote, and `analysis.yaml` how its results are cut for a closer
-  look. A model has no code of its own. [`README.md`](README.md) lists the
-  models.
+  the runs wrote, `analysis.yaml` how its results are cut for a closer look,
+  and `paper/` its paper: the typed prose (`paper.tex`), what the prose reads
+  (`generated/`) and the PDF. A model has no code of its own.
+  [`README.md`](README.md) lists the models.
 - `src/chess_coach_models/`: the harness every model shares (`data/`,
   `encode/`, `nets/`, `train/`, `evals/`, `tasks.py`, `paths.py`, the `lab`
   command in `cli.py`). [`docs/design.md`](docs/design.md) explains it.
 - `datasets/<name>.yaml`: recipes for datasets built from open sources.
+- `papers/`: what every model's paper shares: the preamble, the sections that
+  are the same for all of them, and the references.
 - `docs/`: the design, the idea list ([`docs/ideas.md`](docs/ideas.md)), where
   runs go ([`docs/compute.md`](docs/compute.md)) and what the lab was before
   ([`docs/history.md`](docs/history.md)).
@@ -47,6 +50,9 @@ engine, a human-move model, board code or data.
 6. Write `analysis.yaml`, run `lab analyse <model>` where the dataset and the
    predictions are, commit `results/analysis.json`, and say on the card what
    the results mean.
+7. Write its paper: `models/<model>/paper/paper.tex`, from another model's as
+   the pattern, then `lab paper <model>`, and commit the prose, `generated/`
+   and `paper.pdf`.
 
 A new kind of input or output (a whole game as a sequence, a label per square,
 a move) is a new body or head in `nets/`, with a test, and a line in
@@ -60,6 +66,14 @@ a move) is a new body or head in `nets/`, with a test, and a line in
   the test predictions; `lab report` writes the README's table from the
   leaderboards. A card's prose may say what the numbers mean, with the numbers
   left in the generated files it links.
+- A paper types no number either. `lab paper <model>` writes every value,
+  table, figure and board from the committed results, and the prose reads
+  them back with `\V{key}` and `\block{name}` (`lab paper <model> --list`
+  shows what there is; `docs/design.md`, "The paper"). A build stops on a
+  value the files cannot give. It cannot catch a sentence that stopped being
+  true, so when a model's runs change, rebuild its paper and read its prose
+  again against the new tables. A claim about something no generated file
+  holds (why a number is what it is) is marked as a reading.
 - Before a run, the card names the metric, the split and what counts as
   better. Change one thing a run, and keep it only when it beats the run it
   changed on valid and on test beyond the noise (the paired gain's interval
@@ -157,6 +171,8 @@ win probability behind the blunder label to the app's.
 | `make smoke` | Every model on the harness end to end on a small sample |
 | `make models` | The full datasets, every run this machine can train, the leaderboards, the README table |
 | `lab data|train|eval|all|analyse|report` | One step of the harness (`lab --help`) |
+| `lab paper <model>` | The model's paper from its committed results: `paper/generated/`, then `paper/paper.pdf` (`--list` prints every value and block, `--no-pdf` leaves LaTeX out) |
+| `make papers` | Every model's paper that has its prose |
 | `make chess` | Fetches the pinned app and the research records (`bridge/checkout.sh`) |
 | `make parity` | The win% parity check against the app (`bridge/winprob-parity/results/`) |
 | `python scripts/check_private.py` | The data rule's check |
