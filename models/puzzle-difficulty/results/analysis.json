@@ -1,0 +1,6006 @@
+{
+ "model": "puzzle-difficulty",
+ "written_by": "lab analyse puzzle-difficulty",
+ "written": "2026-11-22T05:20:58Z",
+ "code": "a6cd84ca8ceeb00f58160dfa21430d1095bc6d3d",
+ "dataset": {
+  "dataset": "puzzles-v1",
+  "builder": "puzzles",
+  "source": "https://database.lichess.org/lichess_db_puzzle.csv.zst",
+  "licence": "CC0 1.0, database.lichess.org",
+  "recipe": {
+   "filters": {
+    "max_rating_deviation": 100,
+    "min_plays": 100
+   },
+   "sample": 0.25,
+   "split": {
+    "salt": "puzzles-v1",
+    "valid": 0.05,
+    "test": 0.1
+   }
+  },
+  "source_rows_read": 6193530,
+  "marks": [
+   "en_passant",
+   "setup_from",
+   "setup_to",
+   "solver1_from",
+   "solver1_to",
+   "reply1_from",
+   "reply1_to",
+   "solver2_from",
+   "solver2_to",
+   "reply2_from",
+   "reply2_to",
+   "solver3_from",
+   "solver3_to",
+   "later"
+  ],
+  "hand": [
+   "material_count",
+   "material_imbalance",
+   "phase_piece_count",
+   "in_check",
+   "legal_moves",
+   "legal_captures",
+   "legal_checks",
+   "hanging_own",
+   "hanging_opponent",
+   "passed_pawns_own",
+   "passed_pawns_opponent",
+   "attackers_near_own_king",
+   "attackers_near_opponent_king",
+   "solver_moves",
+   "first_piece",
+   "first_capture",
+   "first_captured_value",
+   "first_check",
+   "first_promotion",
+   "first_distance",
+   "first_backward",
+   "first_to_attacked",
+   "first_sacrifice",
+   "line_checks",
+   "line_captures",
+   "line_quiet",
+   "line_promotions",
+   "line_pieces_moved",
+   "line_sacrifices",
+   "line_max_distance",
+   "ends_in_mate",
+   "reply_captures",
+   "setup_capture",
+   "final_material_gain"
+  ],
+  "group": "game_id",
+  "build_seconds": 188.8,
+  "rows": 1127915,
+  "splits": {
+   "test": 112450,
+   "train": 958941,
+   "valid": 56524
+  },
+  "fingerprint": "d14731fa4425fc6efdadb45c94ee53e07f5afe9151992b690b81edc71064cd5d",
+  "built": "2026-11-22T00:20:03Z",
+  "code": "5e4946ac1bff231bb0df94429fdc044c3ea9e6ec"
+ },
+ "task": {
+  "label": "rating",
+  "kind": "regression",
+  "primary": "rmse",
+  "band": "band"
+ },
+ "runs": [
+  "transformer-medium-hand",
+  "transformer-medium",
+  "conv-small",
+  "transformer-small",
+  "gbm-hand",
+  "gbm-context",
+  "constant"
+ ],
+ "skipped": {},
+ "best": "transformer-medium-hand",
+ "reference": "gbm-hand",
+ "challenger": "transformer-medium-hand",
+ "test_rows": 112450,
+ "label": {
+  "kind": "regression",
+  "rows": 1127915,
+  "mean": 1462.4,
+  "sd": 503.326,
+  "min": 399.0,
+  "max": 3115.0,
+  "quantiles": {
+   "1": 499.0,
+   "5": 693.0,
+   "25": 1082.0,
+   "50": 1421.0,
+   "75": 1821.0,
+   "95": 2338.0,
+   "99": 2657.86
+  },
+  "by_split": {
+   "train": {
+    "rows": 958941,
+    "mean": 1462.39
+   },
+   "valid": {
+    "rows": 56524,
+    "mean": 1464.49
+   },
+   "test": {
+    "rows": 112450,
+    "mean": 1461.44
+   }
+  },
+  "histogram": {
+   "edges": [
+    400.0,
+    500.0,
+    600.0,
+    700.0,
+    800.0,
+    900.0,
+    1000.0,
+    1100.0,
+    1200.0,
+    1300.0,
+    1400.0,
+    1500.0,
+    1600.0,
+    1700.0,
+    1800.0,
+    1900.0,
+    2000.0,
+    2100.0,
+    2200.0,
+    2300.0,
+    2400.0,
+    2500.0,
+    2600.0,
+    2700.0,
+    2800.0,
+    2900.0,
+    3000.0
+   ],
+   "counts": [
+    10790,
+    19977,
+    26944,
+    32033,
+    51499,
+    86693,
+    67399,
+    103299,
+    69226,
+    78509,
+    76525,
+    75182,
+    73409,
+    60127,
+    52935,
+    56699,
+    48426,
+    38123,
+    32005,
+    25332,
+    16712,
+    10029,
+    7911,
+    6118,
+    1137,
+    298
+   ],
+   "below": 543,
+   "above": 35
+  }
+ },
+ "describe": {
+  "rating": {
+   "mean": 1462.4,
+   "min": 399.0,
+   "max": 3115.0,
+   "quantiles": {
+    "1": 499.0,
+    "5": 693.0,
+    "25": 1082.0,
+    "50": 1421.0,
+    "75": 1821.0,
+    "95": 2338.0,
+    "99": 2657.86
+   }
+  },
+  "rating_deviation": {
+   "mean": 79.6942,
+   "min": 63.0,
+   "max": 100.0,
+   "quantiles": {
+    "1": 74.0,
+    "5": 74.0,
+    "25": 76.0,
+    "50": 77.0,
+    "75": 81.0,
+    "95": 94.0,
+    "99": 99.0
+   }
+  },
+  "plays": {
+   "mean": 2347.19,
+   "min": 100.0,
+   "max": 237864.0,
+   "quantiles": {
+    "1": 104.0,
+    "5": 123.0,
+    "25": 265.0,
+    "50": 675.0,
+    "75": 2001.0,
+    "95": 11151.0,
+    "99": 24807.0
+   }
+  },
+  "solver_moves": {
+   "mean": 2.32305,
+   "min": 1.0,
+   "max": 13.0,
+   "quantiles": {
+    "1": 1.0,
+    "5": 1.0,
+    "25": 2.0,
+    "50": 2.0,
+    "75": 3.0,
+    "95": 4.0,
+    "99": 5.0
+   }
+  },
+  "legal_moves": {
+   "mean": 30.7323,
+   "min": 2.0,
+   "max": 70.0,
+   "quantiles": {
+    "1": 3.0,
+    "5": 6.0,
+    "25": 24.0,
+    "50": 33.0,
+    "75": 40.0,
+    "95": 47.0,
+    "99": 52.0
+   }
+  },
+  "phase_piece_count": {
+   "mean": 6.76343,
+   "min": 0.0,
+   "max": 14.0,
+   "quantiles": {
+    "1": 0.0,
+    "5": 1.0,
+    "25": 4.0,
+    "50": 7.0,
+    "75": 9.0,
+    "95": 12.0,
+    "99": 14.0
+   }
+  }
+ },
+ "reliability": {
+  "transformer-medium-hand": [
+   {
+    "n": 5623,
+    "predicted": 617.998,
+    "observed": 650.117,
+    "observed_low": 456.0,
+    "observed_high": 873.0
+   },
+   {
+    "n": 5623,
+    "predicted": 813.757,
+    "observed": 841.681,
+    "observed_low": 623.0,
+    "observed_high": 1066.0
+   },
+   {
+    "n": 5623,
+    "predicted": 925.859,
+    "observed": 954.242,
+    "observed_low": 740.0,
+    "observed_high": 1186.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1009.06,
+    "observed": 1031.78,
+    "observed_low": 814.0,
+    "observed_high": 1295.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1080.65,
+    "observed": 1107.84,
+    "observed_low": 888.0,
+    "observed_high": 1383.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1147.21,
+    "observed": 1167.82,
+    "observed_low": 925.2,
+    "observed_high": 1469.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1212.94,
+    "observed": 1229.4,
+    "observed_low": 965.0,
+    "observed_high": 1552.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1279.99,
+    "observed": 1299.23,
+    "observed_low": 994.0,
+    "observed_high": 1654.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1346.88,
+    "observed": 1367.48,
+    "observed_low": 1056.2,
+    "observed_high": 1735.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1415.17,
+    "observed": 1439.96,
+    "observed_low": 1119.0,
+    "observed_high": 1822.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1482.16,
+    "observed": 1495.82,
+    "observed_low": 1155.1,
+    "observed_high": 1892.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1547.63,
+    "observed": 1551.63,
+    "observed_low": 1190.0,
+    "observed_high": 1954.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1614.11,
+    "observed": 1613.83,
+    "observed_low": 1241.0,
+    "observed_high": 2022.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1683.08,
+    "observed": 1675.36,
+    "observed_low": 1303.0,
+    "observed_high": 2082.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1754.91,
+    "observed": 1744.78,
+    "observed_low": 1350.0,
+    "observed_high": 2177.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1830.35,
+    "observed": 1822.44,
+    "observed_low": 1429.0,
+    "observed_high": 2240.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1913.01,
+    "observed": 1896.7,
+    "observed_low": 1491.0,
+    "observed_high": 2304.0
+   },
+   {
+    "n": 5622,
+    "predicted": 2003.84,
+    "observed": 1983.95,
+    "observed_low": 1583.0,
+    "observed_high": 2375.0
+   },
+   {
+    "n": 5622,
+    "predicted": 2119.67,
+    "observed": 2079.53,
+    "observed_low": 1669.0,
+    "observed_high": 2472.0
+   },
+   {
+    "n": 5622,
+    "predicted": 2316.31,
+    "observed": 2275.79,
+    "observed_low": 1884.0,
+    "observed_high": 2685.9
+   }
+  ],
+  "transformer-medium": [
+   {
+    "n": 5623,
+    "predicted": 615.967,
+    "observed": 664.909,
+    "observed_low": 457.0,
+    "observed_high": 919.8
+   },
+   {
+    "n": 5623,
+    "predicted": 804.5,
+    "observed": 852.26,
+    "observed_low": 620.0,
+    "observed_high": 1105.0
+   },
+   {
+    "n": 5623,
+    "predicted": 917.007,
+    "observed": 962.152,
+    "observed_low": 731.0,
+    "observed_high": 1209.0
+   },
+   {
+    "n": 5623,
+    "predicted": 999.944,
+    "observed": 1039.69,
+    "observed_low": 812.0,
+    "observed_high": 1306.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1070.81,
+    "observed": 1110.44,
+    "observed_low": 873.0,
+    "observed_high": 1408.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1135.76,
+    "observed": 1174.9,
+    "observed_low": 918.0,
+    "observed_high": 1503.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1200.71,
+    "observed": 1242.12,
+    "observed_low": 956.0,
+    "observed_high": 1593.6
+   },
+   {
+    "n": 5623,
+    "predicted": 1264.97,
+    "observed": 1299.1,
+    "observed_low": 986.0,
+    "observed_high": 1665.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1330.42,
+    "observed": 1365.99,
+    "observed_low": 1039.2,
+    "observed_high": 1737.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1397.02,
+    "observed": 1433.58,
+    "observed_low": 1096.0,
+    "observed_high": 1825.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1463.97,
+    "observed": 1497.6,
+    "observed_low": 1145.0,
+    "observed_high": 1911.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1529.55,
+    "observed": 1554.33,
+    "observed_low": 1177.0,
+    "observed_high": 1969.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1594.23,
+    "observed": 1625.02,
+    "observed_low": 1229.0,
+    "observed_high": 2059.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1661.94,
+    "observed": 1680.62,
+    "observed_low": 1283.1,
+    "observed_high": 2107.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1731.96,
+    "observed": 1740.4,
+    "observed_low": 1325.1,
+    "observed_high": 2180.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1807.98,
+    "observed": 1808.95,
+    "observed_low": 1398.0,
+    "observed_high": 2239.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1890.66,
+    "observed": 1883.46,
+    "observed_low": 1459.0,
+    "observed_high": 2316.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1984.79,
+    "observed": 1963.17,
+    "observed_low": 1547.0,
+    "observed_high": 2367.0
+   },
+   {
+    "n": 5622,
+    "predicted": 2102.5,
+    "observed": 2072.53,
+    "observed_low": 1657.0,
+    "observed_high": 2477.0
+   },
+   {
+    "n": 5622,
+    "predicted": 2301.96,
+    "observed": 2258.14,
+    "observed_low": 1857.0,
+    "observed_high": 2677.0
+   }
+  ],
+  "conv-small": [
+   {
+    "n": 5623,
+    "predicted": 663.312,
+    "observed": 665.077,
+    "observed_low": 457.0,
+    "observed_high": 909.0
+   },
+   {
+    "n": 5623,
+    "predicted": 846.087,
+    "observed": 847.892,
+    "observed_low": 615.0,
+    "observed_high": 1100.0
+   },
+   {
+    "n": 5623,
+    "predicted": 950.818,
+    "observed": 959.973,
+    "observed_low": 731.0,
+    "observed_high": 1201.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1029.58,
+    "observed": 1043.21,
+    "observed_low": 815.0,
+    "observed_high": 1320.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1098.43,
+    "observed": 1120.03,
+    "observed_low": 875.0,
+    "observed_high": 1436.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1163.92,
+    "observed": 1179.86,
+    "observed_low": 916.0,
+    "observed_high": 1496.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1228.97,
+    "observed": 1246.46,
+    "observed_low": 956.0,
+    "observed_high": 1599.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1294.05,
+    "observed": 1318.66,
+    "observed_low": 986.0,
+    "observed_high": 1699.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1358.25,
+    "observed": 1380.58,
+    "observed_low": 1050.0,
+    "observed_high": 1765.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1422.11,
+    "observed": 1443.51,
+    "observed_low": 1094.0,
+    "observed_high": 1851.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1486.49,
+    "observed": 1500.74,
+    "observed_low": 1141.1,
+    "observed_high": 1930.8
+   },
+   {
+    "n": 5622,
+    "predicted": 1549.32,
+    "observed": 1554.0,
+    "observed_low": 1165.0,
+    "observed_high": 1990.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1615.15,
+    "observed": 1625.98,
+    "observed_low": 1224.1,
+    "observed_high": 2074.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1680.96,
+    "observed": 1678.45,
+    "observed_low": 1259.1,
+    "observed_high": 2118.8
+   },
+   {
+    "n": 5622,
+    "predicted": 1751.29,
+    "observed": 1745.03,
+    "observed_low": 1327.1,
+    "observed_high": 2188.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1824.18,
+    "observed": 1800.92,
+    "observed_low": 1364.0,
+    "observed_high": 2246.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1901.8,
+    "observed": 1872.85,
+    "observed_low": 1436.1,
+    "observed_high": 2300.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1988.4,
+    "observed": 1956.66,
+    "observed_low": 1527.0,
+    "observed_high": 2382.0
+   },
+   {
+    "n": 5622,
+    "predicted": 2094.35,
+    "observed": 2053.5,
+    "observed_low": 1629.0,
+    "observed_high": 2458.0
+   },
+   {
+    "n": 5622,
+    "predicted": 2282.07,
+    "observed": 2235.96,
+    "observed_low": 1810.0,
+    "observed_high": 2675.9
+   }
+  ],
+  "transformer-small": [
+   {
+    "n": 5623,
+    "predicted": 624.836,
+    "observed": 676.807,
+    "observed_low": 457.0,
+    "observed_high": 941.0
+   },
+   {
+    "n": 5623,
+    "predicted": 818.314,
+    "observed": 859.838,
+    "observed_low": 606.0,
+    "observed_high": 1137.0
+   },
+   {
+    "n": 5623,
+    "predicted": 931.056,
+    "observed": 968.412,
+    "observed_low": 721.0,
+    "observed_high": 1235.4
+   },
+   {
+    "n": 5623,
+    "predicted": 1012.94,
+    "observed": 1048.36,
+    "observed_low": 806.2,
+    "observed_high": 1335.6
+   },
+   {
+    "n": 5623,
+    "predicted": 1083.75,
+    "observed": 1112.87,
+    "observed_low": 860.2,
+    "observed_high": 1435.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1151.16,
+    "observed": 1179.12,
+    "observed_low": 912.0,
+    "observed_high": 1516.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1215.69,
+    "observed": 1242.75,
+    "observed_low": 949.0,
+    "observed_high": 1598.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1281.23,
+    "observed": 1300.89,
+    "observed_low": 981.0,
+    "observed_high": 1662.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1347.79,
+    "observed": 1374.76,
+    "observed_low": 1026.0,
+    "observed_high": 1782.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1415.34,
+    "observed": 1438.65,
+    "observed_low": 1084.0,
+    "observed_high": 1853.8
+   },
+   {
+    "n": 5622,
+    "predicted": 1480.73,
+    "observed": 1496.93,
+    "observed_low": 1129.0,
+    "observed_high": 1926.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1546.04,
+    "observed": 1561.39,
+    "observed_low": 1176.0,
+    "observed_high": 1996.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1611.5,
+    "observed": 1618.02,
+    "observed_low": 1202.1,
+    "observed_high": 2061.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1679.25,
+    "observed": 1675.81,
+    "observed_low": 1260.0,
+    "observed_high": 2124.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1747.47,
+    "observed": 1733.5,
+    "observed_low": 1311.0,
+    "observed_high": 2175.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1821.09,
+    "observed": 1809.84,
+    "observed_low": 1372.0,
+    "observed_high": 2253.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1900.62,
+    "observed": 1869.72,
+    "observed_low": 1431.0,
+    "observed_high": 2311.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1991.49,
+    "observed": 1958.63,
+    "observed_low": 1536.1,
+    "observed_high": 2367.0
+   },
+   {
+    "n": 5622,
+    "predicted": 2101.39,
+    "observed": 2057.22,
+    "observed_low": 1624.1,
+    "observed_high": 2473.0
+   },
+   {
+    "n": 5622,
+    "predicted": 2294.1,
+    "observed": 2245.83,
+    "observed_low": 1828.0,
+    "observed_high": 2673.0
+   }
+  ],
+  "gbm-hand": [
+   {
+    "n": 5623,
+    "predicted": 677.594,
+    "observed": 670.232,
+    "observed_low": 458.0,
+    "observed_high": 923.0
+   },
+   {
+    "n": 5623,
+    "predicted": 866.668,
+    "observed": 864.541,
+    "observed_low": 611.0,
+    "observed_high": 1133.8
+   },
+   {
+    "n": 5623,
+    "predicted": 970.501,
+    "observed": 963.419,
+    "observed_low": 714.2,
+    "observed_high": 1248.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1050.67,
+    "observed": 1050.93,
+    "observed_low": 805.2,
+    "observed_high": 1358.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1120.7,
+    "observed": 1119.94,
+    "observed_low": 861.0,
+    "observed_high": 1438.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1186.55,
+    "observed": 1179.42,
+    "observed_low": 908.0,
+    "observed_high": 1520.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1252.34,
+    "observed": 1239.24,
+    "observed_low": 949.0,
+    "observed_high": 1595.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1317.88,
+    "observed": 1315.27,
+    "observed_low": 980.0,
+    "observed_high": 1702.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1380.59,
+    "observed": 1381.31,
+    "observed_low": 1035.0,
+    "observed_high": 1781.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1441.54,
+    "observed": 1439.12,
+    "observed_low": 1079.0,
+    "observed_high": 1861.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1501.03,
+    "observed": 1500.44,
+    "observed_low": 1116.0,
+    "observed_high": 1943.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1558.9,
+    "observed": 1557.56,
+    "observed_low": 1160.1,
+    "observed_high": 2007.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1616.57,
+    "observed": 1619.85,
+    "observed_low": 1208.1,
+    "observed_high": 2070.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1673.87,
+    "observed": 1678.09,
+    "observed_low": 1265.0,
+    "observed_high": 2125.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1733.32,
+    "observed": 1739.34,
+    "observed_low": 1307.1,
+    "observed_high": 2194.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1796.93,
+    "observed": 1804.02,
+    "observed_low": 1361.0,
+    "observed_high": 2262.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1865.28,
+    "observed": 1879.83,
+    "observed_low": 1429.0,
+    "observed_high": 2326.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1944.46,
+    "observed": 1950.61,
+    "observed_low": 1499.0,
+    "observed_high": 2378.0
+   },
+   {
+    "n": 5622,
+    "predicted": 2045.24,
+    "observed": 2048.01,
+    "observed_low": 1594.0,
+    "observed_high": 2469.0
+   },
+   {
+    "n": 5622,
+    "predicted": 2235.7,
+    "observed": 2228.16,
+    "observed_low": 1798.1,
+    "observed_high": 2673.0
+   }
+  ],
+  "gbm-context": [
+   {
+    "n": 5623,
+    "predicted": 954.312,
+    "observed": 955.868,
+    "observed_low": 577.2,
+    "observed_high": 1388.0
+   },
+   {
+    "n": 5623,
+    "predicted": 965.575,
+    "observed": 964.143,
+    "observed_low": 566.0,
+    "observed_high": 1428.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1118.06,
+    "observed": 1117.32,
+    "observed_low": 629.2,
+    "observed_high": 1639.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1392.67,
+    "observed": 1402.1,
+    "observed_low": 863.2,
+    "observed_high": 2033.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1392.67,
+    "observed": 1386.55,
+    "observed_low": 857.0,
+    "observed_high": 2014.6
+   },
+   {
+    "n": 5623,
+    "predicted": 1392.67,
+    "observed": 1395.77,
+    "observed_low": 869.2,
+    "observed_high": 2030.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1392.67,
+    "observed": 1391.01,
+    "observed_low": 859.0,
+    "observed_high": 2033.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1392.67,
+    "observed": 1393.24,
+    "observed_low": 863.2,
+    "observed_high": 2020.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1392.67,
+    "observed": 1382.45,
+    "observed_low": 869.0,
+    "observed_high": 1991.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1392.67,
+    "observed": 1382.69,
+    "observed_low": 856.2,
+    "observed_high": 2018.8
+   },
+   {
+    "n": 5622,
+    "predicted": 1392.67,
+    "observed": 1396.9,
+    "observed_low": 866.1,
+    "observed_high": 2024.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1392.67,
+    "observed": 1386.39,
+    "observed_low": 856.1,
+    "observed_high": 2042.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1446.72,
+    "observed": 1449.13,
+    "observed_low": 949.0,
+    "observed_high": 2041.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1686.32,
+    "observed": 1688.08,
+    "observed_low": 1120.1,
+    "observed_high": 2278.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1687.88,
+    "observed": 1671.03,
+    "observed_low": 1099.0,
+    "observed_high": 2261.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1687.88,
+    "observed": 1691.75,
+    "observed_low": 1111.1,
+    "observed_high": 2306.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1687.88,
+    "observed": 1690.32,
+    "observed_low": 1102.1,
+    "observed_high": 2294.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1687.88,
+    "observed": 1679.26,
+    "observed_low": 1108.1,
+    "observed_high": 2287.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1818.31,
+    "observed": 1819.79,
+    "observed_low": 1227.0,
+    "observed_high": 2386.8
+   },
+   {
+    "n": 5622,
+    "predicted": 1984.18,
+    "observed": 1985.27,
+    "observed_low": 1345.0,
+    "observed_high": 2558.9
+   }
+  ],
+  "constant": [
+   {
+    "n": 5623,
+    "predicted": 1462.39,
+    "observed": 1466.33,
+    "observed_low": 843.0,
+    "observed_high": 2178.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1462.39,
+    "observed": 1473.27,
+    "observed_low": 854.2,
+    "observed_high": 2173.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1462.39,
+    "observed": 1470.99,
+    "observed_low": 841.2,
+    "observed_high": 2178.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1462.39,
+    "observed": 1455.04,
+    "observed_low": 838.0,
+    "observed_high": 2164.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1462.39,
+    "observed": 1441.46,
+    "observed_low": 839.2,
+    "observed_high": 2126.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1462.39,
+    "observed": 1468.51,
+    "observed_low": 862.0,
+    "observed_high": 2167.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1462.39,
+    "observed": 1445.31,
+    "observed_low": 842.0,
+    "observed_high": 2146.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1462.39,
+    "observed": 1463.68,
+    "observed_low": 847.2,
+    "observed_high": 2161.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1462.39,
+    "observed": 1470.37,
+    "observed_low": 851.2,
+    "observed_high": 2184.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1462.39,
+    "observed": 1465.13,
+    "observed_low": 847.2,
+    "observed_high": 2175.8
+   },
+   {
+    "n": 5622,
+    "predicted": 1462.39,
+    "observed": 1455.38,
+    "observed_low": 832.0,
+    "observed_high": 2150.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1462.39,
+    "observed": 1470.81,
+    "observed_low": 851.0,
+    "observed_high": 2185.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1462.39,
+    "observed": 1456.83,
+    "observed_low": 833.0,
+    "observed_high": 2169.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1462.39,
+    "observed": 1455.59,
+    "observed_low": 838.1,
+    "observed_high": 2158.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1462.39,
+    "observed": 1470.31,
+    "observed_low": 852.1,
+    "observed_high": 2181.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1462.39,
+    "observed": 1466.29,
+    "observed_low": 851.0,
+    "observed_high": 2165.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1462.39,
+    "observed": 1462.56,
+    "observed_low": 848.0,
+    "observed_high": 2166.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1462.39,
+    "observed": 1457.68,
+    "observed_low": 846.0,
+    "observed_high": 2159.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1462.39,
+    "observed": 1456.75,
+    "observed_low": 838.0,
+    "observed_high": 2165.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1462.39,
+    "observed": 1456.44,
+    "observed_low": 844.1,
+    "observed_high": 2179.0
+   }
+  ]
+ },
+ "against_reference": {
+  "transformer-medium-hand": {
+   "correlation": 0.942424,
+   "closer_share": 0.571258,
+   "tied_share": 0.0
+  },
+  "transformer-medium": {
+   "correlation": 0.895602,
+   "closer_share": 0.536256,
+   "tied_share": 0.0
+  },
+  "conv-small": {
+   "correlation": 0.878132,
+   "closer_share": 0.521129,
+   "tied_share": 0.0
+  },
+  "transformer-small": {
+   "correlation": 0.897498,
+   "closer_share": 0.513535,
+   "tied_share": 0.0
+  },
+  "gbm-context": {
+   "correlation": 0.650423,
+   "closer_share": 0.322775,
+   "tied_share": 0.0
+  },
+  "constant": {
+   "correlation": null,
+   "closer_share": 0.280703,
+   "tied_share": 0.0
+  }
+ },
+ "slices": [
+  {
+   "key": "band",
+   "column": "band",
+   "title": "The puzzle's rating",
+   "groups": [
+    {
+     "group": "<1000",
+     "rows_all": 228479,
+     "label_mean_all": 806.521,
+     "rows": 22751,
+     "label_mean": 805.855,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 906.638,
+       "bias": 100.784,
+       "rmse": 196.452
+      },
+      "transformer-medium": {
+       "mean": 909.532,
+       "bias": 103.678,
+       "rmse": 209.822
+      },
+      "conv-small": {
+       "mean": 945.531,
+       "bias": 139.676,
+       "rmse": 227.092
+      },
+      "transformer-small": {
+       "mean": 929.987,
+       "bias": 124.132,
+       "rmse": 228.222
+      },
+      "gbm-hand": {
+       "mean": 970.601,
+       "bias": 164.746,
+       "rmse": 245.256
+      },
+      "gbm-context": {
+       "mean": 1250.94,
+       "bias": 445.084,
+       "rmse": 515.743
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 656.534,
+       "rmse": 674.971
+      }
+     },
+     "gain": {
+      "gain": 48.805,
+      "low": 46.8608,
+      "high": 50.5672,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "1000-1399",
+     "rows_all": 318433,
+     "label_mean_all": 1200.9,
+     "rows": 31846,
+     "label_mean": 1200.62,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1291.63,
+       "bias": 91.0091,
+       "rmse": 247.258
+      },
+      "transformer-medium": {
+       "mean": 1278.7,
+       "bias": 78.0831,
+       "rmse": 250.616
+      },
+      "conv-small": {
+       "mean": 1311.96,
+       "bias": 111.345,
+       "rmse": 264.485
+      },
+      "transformer-small": {
+       "mean": 1299.0,
+       "bias": 98.3806,
+       "rmse": 268.654
+      },
+      "gbm-hand": {
+       "mean": 1329.72,
+       "bias": 129.099,
+       "rmse": 270.223
+      },
+      "gbm-context": {
+       "mean": 1417.45,
+       "bias": 216.828,
+       "rmse": 321.899
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 261.77,
+       "rmse": 284.359
+      }
+     },
+     "gain": {
+      "gain": 22.9656,
+      "low": 21.2161,
+      "high": 24.4789,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "1400-1799",
+     "rows_all": 285243,
+     "label_mean_all": 1589.99,
+     "rows": 28501,
+     "label_mean": 1589.98,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1595.58,
+       "bias": 5.60785,
+       "rmse": 254.771
+      },
+      "transformer-medium": {
+       "mean": 1575.43,
+       "bias": -14.5438,
+       "rmse": 263.555
+      },
+      "conv-small": {
+       "mean": 1597.45,
+       "bias": 7.47484,
+       "rmse": 262.559
+      },
+      "transformer-small": {
+       "mean": 1586.17,
+       "bias": -3.8074,
+       "rmse": 271.037
+      },
+      "gbm-hand": {
+       "mean": 1589.43,
+       "bias": -0.54344,
+       "rmse": 250.626
+      },
+      "gbm-context": {
+       "mean": 1512.66,
+       "bias": -77.3181,
+       "rmse": 243.672
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -127.587,
+       "rmse": 170.535
+      }
+     },
+     "gain": {
+      "gain": -4.14509,
+      "low": -5.67771,
+      "high": -2.38701,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "1800-2199",
+     "rows_all": 196183,
+     "label_mean_all": 1985.3,
+     "rows": 19518,
+     "label_mean": 1987.16,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1851.53,
+       "bias": -135.631,
+       "rmse": 297.579
+      },
+      "transformer-medium": {
+       "mean": 1826.83,
+       "bias": -160.331,
+       "rmse": 317.374
+      },
+      "conv-small": {
+       "mean": 1828.77,
+       "bias": -158.388,
+       "rmse": 312.606
+      },
+      "transformer-small": {
+       "mean": 1828.48,
+       "bias": -158.679,
+       "rmse": 315.424
+      },
+      "gbm-hand": {
+       "mean": 1801.01,
+       "bias": -186.142,
+       "rmse": 311.396
+      },
+      "gbm-context": {
+       "mean": 1596.44,
+       "bias": -390.718,
+       "rmse": 450.535
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -524.768,
+       "rmse": 537.219
+      }
+     },
+     "gain": {
+      "gain": 13.817,
+      "low": 11.4765,
+      "high": 15.9602,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "2200+",
+     "rows_all": 99577,
+     "label_mean_all": 2407.85,
+     "rows": 9834,
+     "label_mean": 2406.8,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 2066.21,
+       "bias": -340.588,
+       "rmse": 428.873
+      },
+      "transformer-medium": {
+       "mean": 2032.75,
+       "bias": -374.055,
+       "rmse": 464.626
+      },
+      "conv-small": {
+       "mean": 2015.87,
+       "bias": -390.928,
+       "rmse": 476.983
+      },
+      "transformer-small": {
+       "mean": 2027.74,
+       "bias": -379.058,
+       "rmse": 466.449
+      },
+      "gbm-hand": {
+       "mean": 1982.61,
+       "bias": -424.186,
+       "rmse": 494.434
+      },
+      "gbm-context": {
+       "mean": 1691.65,
+       "bias": -715.15,
+       "rmse": 759.057
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -944.411,
+       "rmse": 958.522
+      }
+     },
+     "gain": {
+      "gain": 65.5607,
+      "low": 62.652,
+      "high": 68.5794,
+      "beyond_noise": true
+     }
+    }
+   ]
+  },
+  {
+   "key": "moves",
+   "column": "solver_moves",
+   "title": "Moves the solver has to find",
+   "groups": [
+    {
+     "group": "1",
+     "rows_all": 149816,
+     "label_mean_all": 961.835,
+     "rows": 14854,
+     "label_mean": 961.241,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 935.678,
+       "bias": -25.563,
+       "rmse": 213.81
+      },
+      "transformer-medium": {
+       "mean": 931.865,
+       "bias": -29.3758,
+       "rmse": 225.375
+      },
+      "conv-small": {
+       "mean": 972.95,
+       "bias": 11.7091,
+       "rmse": 217.303
+      },
+      "transformer-small": {
+       "mean": 937.738,
+       "bias": -23.5027,
+       "rmse": 235.484
+      },
+      "gbm-hand": {
+       "mean": 960.55,
+       "bias": -0.690787,
+       "rmse": 226.333
+      },
+      "gbm-context": {
+       "mean": 961.97,
+       "bias": 0.72945,
+       "rmse": 312.606
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 501.148,
+       "rmse": 590.747
+      }
+     },
+     "gain": {
+      "gain": 12.5231,
+      "low": 11.0581,
+      "high": 13.9234,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "2",
+     "rows_all": 581031,
+     "label_mean_all": 1395.99,
+     "rows": 57896,
+     "label_mean": 1394.75,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1386.09,
+       "bias": -8.65739,
+       "rmse": 261.568
+      },
+      "transformer-medium": {
+       "mean": 1371.2,
+       "bias": -23.5491,
+       "rmse": 277.452
+      },
+      "conv-small": {
+       "mean": 1391.65,
+       "bias": -3.09637,
+       "rmse": 284.066
+      },
+      "transformer-small": {
+       "mean": 1381.79,
+       "bias": -12.9572,
+       "rmse": 287.148
+      },
+      "gbm-hand": {
+       "mean": 1394.7,
+       "bias": -0.0428958,
+       "rmse": 284.962
+      },
+      "gbm-context": {
+       "mean": 1396.19,
+       "bias": 1.44246,
+       "rmse": 442.377
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 67.642,
+       "rmse": 447.772
+      }
+     },
+     "gain": {
+      "gain": 23.3938,
+      "low": 21.9122,
+      "high": 24.6298,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "3",
+     "rows_all": 311636,
+     "label_mean_all": 1690.18,
+     "rows": 31251,
+     "label_mean": 1687.82,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1692.25,
+       "bias": 4.43313,
+       "rmse": 295.111
+      },
+      "transformer-medium": {
+       "mean": 1672.94,
+       "bias": -14.8768,
+       "rmse": 307.093
+      },
+      "conv-small": {
+       "mean": 1688.74,
+       "bias": 0.922247,
+       "rmse": 318.293
+      },
+      "transformer-small": {
+       "mean": 1690.92,
+       "bias": 3.10353,
+       "rmse": 315.239
+      },
+      "gbm-hand": {
+       "mean": 1690.19,
+       "bias": 2.37034,
+       "rmse": 325.286
+      },
+      "gbm-context": {
+       "mean": 1690.44,
+       "bias": 2.62111,
+       "rmse": 446.07
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -225.431,
+       "rmse": 500.022
+      }
+     },
+     "gain": {
+      "gain": 30.1751,
+      "low": 28.39,
+      "high": 31.9424,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "4",
+     "rows_all": 63461,
+     "label_mean_all": 1914.67,
+     "rows": 6303,
+     "label_mean": 1913.64,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1929.03,
+       "bias": 15.3933,
+       "rmse": 316.118
+      },
+      "transformer-medium": {
+       "mean": 1903.18,
+       "bias": -10.4568,
+       "rmse": 327.626
+      },
+      "conv-small": {
+       "mean": 1918.22,
+       "bias": 4.58954,
+       "rmse": 339.238
+      },
+      "transformer-small": {
+       "mean": 1921.27,
+       "bias": 7.63759,
+       "rmse": 336.684
+      },
+      "gbm-hand": {
+       "mean": 1914.69,
+       "bias": 1.05651,
+       "rmse": 344.343
+      },
+      "gbm-context": {
+       "mean": 1913.81,
+       "bias": 0.173027,
+       "rmse": 441.594
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -451.247,
+       "rmse": 631.482
+      }
+     },
+     "gain": {
+      "gain": 28.2253,
+      "low": 24.0739,
+      "high": 32.9565,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "5+",
+     "rows_all": 21971,
+     "label_mean_all": 2094.69,
+     "rows": 2146,
+     "label_mean": 2098.03,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 2097.95,
+       "bias": -0.0805023,
+       "rmse": 320.487
+      },
+      "transformer-medium": {
+       "mean": 2076.44,
+       "bias": -21.5922,
+       "rmse": 331.212
+      },
+      "conv-small": {
+       "mean": 2074.04,
+       "bias": -23.9974,
+       "rmse": 338.449
+      },
+      "transformer-small": {
+       "mean": 2087.81,
+       "bias": -10.2293,
+       "rmse": 335.24
+      },
+      "gbm-hand": {
+       "mean": 2084.7,
+       "bias": -13.3378,
+       "rmse": 351.077
+      },
+      "gbm-context": {
+       "mean": 2094.03,
+       "bias": -4.00035,
+       "rmse": 454.059
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -635.646,
+       "rmse": 783.772
+      }
+     },
+     "gain": {
+      "gain": 30.5894,
+      "low": 22.0708,
+      "high": 37.2894,
+      "beyond_noise": true
+     }
+    }
+   ]
+  },
+  {
+   "key": "themes",
+   "column": "themes",
+   "title": "Theme",
+   "groups": [
+    {
+     "group": "short",
+     "rows_all": 576451,
+     "label_mean_all": 1395.61,
+     "rows": 57439,
+     "label_mean": 1394.49,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1385.67,
+       "bias": -8.8274,
+       "rmse": 261.486
+      },
+      "transformer-medium": {
+       "mean": 1370.81,
+       "bias": -23.6848,
+       "rmse": 277.358
+      },
+      "conv-small": {
+       "mean": 1391.22,
+       "bias": -3.27371,
+       "rmse": 283.905
+      },
+      "transformer-small": {
+       "mean": 1381.4,
+       "bias": -13.0901,
+       "rmse": 287.024
+      },
+      "gbm-hand": {
+       "mean": 1394.29,
+       "bias": -0.201803,
+       "rmse": 284.95
+      },
+      "gbm-context": {
+       "mean": 1396.19,
+       "bias": 1.69841,
+       "rmse": 442.549
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 67.8957,
+       "rmse": 447.981
+      }
+     },
+     "gain": {
+      "gain": 23.4637,
+      "low": 22.0305,
+      "high": 24.9405,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "endgame",
+     "rows_all": 555027,
+     "label_mean_all": 1444.1,
+     "rows": 55361,
+     "label_mean": 1443.42,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1437.29,
+       "bias": -6.12591,
+       "rmse": 281.163
+      },
+      "transformer-medium": {
+       "mean": 1421.58,
+       "bias": -21.8323,
+       "rmse": 296.446
+      },
+      "conv-small": {
+       "mean": 1439.74,
+       "bias": -3.67386,
+       "rmse": 303.541
+      },
+      "transformer-small": {
+       "mean": 1433.52,
+       "bias": -9.89133,
+       "rmse": 305.384
+      },
+      "gbm-hand": {
+       "mean": 1443.67,
+       "bias": 0.250607,
+       "rmse": 306.017
+      },
+      "gbm-context": {
+       "mean": 1489.88,
+       "bias": 46.4638,
+       "rmse": 454.155
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 18.9725,
+       "rmse": 514.515
+      }
+     },
+     "gain": {
+      "gain": 24.8541,
+      "low": 23.3425,
+      "high": 26.3651,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "middlegame",
+     "rows_all": 515322,
+     "label_mean_all": 1491.11,
+     "rows": 51328,
+     "label_mean": 1489.54,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1485.52,
+       "bias": -4.01908,
+       "rmse": 261.783
+      },
+      "transformer-medium": {
+       "mean": 1470.3,
+       "bias": -19.2465,
+       "rmse": 274.253
+      },
+      "conv-small": {
+       "mean": 1492.9,
+       "bias": 3.35932,
+       "rmse": 281.383
+      },
+      "transformer-small": {
+       "mean": 1483.43,
+       "bias": -6.11368,
+       "rmse": 283.359
+      },
+      "gbm-hand": {
+       "mean": 1489.91,
+       "bias": 0.369909,
+       "rmse": 286.923
+      },
+      "gbm-context": {
+       "mean": 1444.59,
+       "bias": -44.9523,
+       "rmse": 407.215
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -27.1539,
+       "rmse": 493.663
+      }
+     },
+     "gain": {
+      "gain": 25.1402,
+      "low": 23.8863,
+      "high": 26.3637,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "crushing",
+     "rows_all": 435100,
+     "label_mean_all": 1610.41,
+     "rows": 43433,
+     "label_mean": 1610.92,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1607.77,
+       "bias": -3.14495,
+       "rmse": 297.345
+      },
+      "transformer-medium": {
+       "mean": 1586.88,
+       "bias": -24.034,
+       "rmse": 313.263
+      },
+      "conv-small": {
+       "mean": 1600.75,
+       "bias": -10.173,
+       "rmse": 320.811
+      },
+      "transformer-small": {
+       "mean": 1599.94,
+       "bias": -10.9738,
+       "rmse": 321.023
+      },
+      "gbm-hand": {
+       "mean": 1607.84,
+       "bias": -3.07924,
+       "rmse": 323.527
+      },
+      "gbm-context": {
+       "mean": 1564.54,
+       "bias": -46.379,
+       "rmse": 458.568
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -148.53,
+       "rmse": 511.46
+      }
+     },
+     "gain": {
+      "gain": 26.1814,
+      "low": 24.6236,
+      "high": 28.0538,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "mate",
+     "rows_all": 345465,
+     "label_mean_all": 1118.88,
+     "rows": 34439,
+     "label_mean": 1118.21,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1099.56,
+       "bias": -18.6549,
+       "rmse": 220.684
+      },
+      "transformer-medium": {
+       "mean": 1095.45,
+       "bias": -22.7614,
+       "rmse": 229.928
+      },
+      "conv-small": {
+       "mean": 1129.95,
+       "bias": 11.7342,
+       "rmse": 229.905
+      },
+      "transformer-small": {
+       "mean": 1106.12,
+       "bias": -12.0954,
+       "rmse": 241.296
+      },
+      "gbm-hand": {
+       "mean": 1117.39,
+       "bias": -0.819797,
+       "rmse": 240.752
+      },
+      "gbm-context": {
+       "mean": 1256.28,
+       "bias": 138.062,
+       "rmse": 395.317
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 344.174,
+       "rmse": 520.763
+      }
+     },
+     "gain": {
+      "gain": 20.0682,
+      "low": 18.7881,
+      "high": 21.2909,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "advantage",
+     "rows_all": 337379,
+     "label_mean_all": 1620.4,
+     "rows": 33591,
+     "label_mean": 1617.74,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1621.54,
+       "bias": 3.80042,
+       "rmse": 279.053
+      },
+      "transformer-medium": {
+       "mean": 1601.61,
+       "bias": -16.1339,
+       "rmse": 293.848
+      },
+      "conv-small": {
+       "mean": 1618.62,
+       "bias": 0.878632,
+       "rmse": 305.07
+      },
+      "transformer-small": {
+       "mean": 1615.12,
+       "bias": -2.62205,
+       "rmse": 302.94
+      },
+      "gbm-hand": {
+       "mean": 1623.5,
+       "bias": 5.75738,
+       "rmse": 305.821
+      },
+      "gbm-context": {
+       "mean": 1541.5,
+       "bias": -76.2472,
+       "rmse": 421.94
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -155.356,
+       "rmse": 472.909
+      }
+     },
+     "gain": {
+      "gain": 26.7682,
+      "low": 25.158,
+      "high": 28.3864,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "long",
+     "rows_all": 308225,
+     "label_mean_all": 1690.05,
+     "rows": 30918,
+     "label_mean": 1688.08,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1692.21,
+       "bias": 4.13223,
+       "rmse": 295.039
+      },
+      "transformer-medium": {
+       "mean": 1672.71,
+       "bias": -15.3623,
+       "rmse": 307.092
+      },
+      "conv-small": {
+       "mean": 1688.53,
+       "bias": 0.454672,
+       "rmse": 318.232
+      },
+      "transformer-small": {
+       "mean": 1690.72,
+       "bias": 2.64696,
+       "rmse": 315.19
+      },
+      "gbm-hand": {
+       "mean": 1690.2,
+       "bias": 2.12871,
+       "rmse": 324.977
+      },
+      "gbm-context": {
+       "mean": 1690.44,
+       "bias": 2.36919,
+       "rmse": 446.037
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -225.687,
+       "rmse": 500.108
+      }
+     },
+     "gain": {
+      "gain": 29.9382,
+      "low": 28.0519,
+      "high": 31.7279,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "master",
+     "rows_all": 157601,
+     "label_mean_all": 1492.2,
+     "rows": 15509,
+     "label_mean": 1492.72,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1478.75,
+       "bias": -13.9655,
+       "rmse": 279.221
+      },
+      "transformer-medium": {
+       "mean": 1459.89,
+       "bias": -32.8315,
+       "rmse": 297.548
+      },
+      "conv-small": {
+       "mean": 1478.22,
+       "bias": -14.5018,
+       "rmse": 305.69
+      },
+      "transformer-small": {
+       "mean": 1469.78,
+       "bias": -22.9413,
+       "rmse": 305.091
+      },
+      "gbm-hand": {
+       "mean": 1474.6,
+       "bias": -18.117,
+       "rmse": 302.048
+      },
+      "gbm-context": {
+       "mean": 1408.02,
+       "bias": -84.6995,
+       "rmse": 445.835
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -30.3312,
+       "rmse": 499.633
+      }
+     },
+     "gain": {
+      "gain": 22.8267,
+      "low": 20.4626,
+      "high": 25.3295,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "fork",
+     "rows_all": 151240,
+     "label_mean_all": 1394.18,
+     "rows": 15186,
+     "label_mean": 1397.46,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1390.27,
+       "bias": -7.19365,
+       "rmse": 246.418
+      },
+      "transformer-medium": {
+       "mean": 1377.67,
+       "bias": -19.7925,
+       "rmse": 258.028
+      },
+      "conv-small": {
+       "mean": 1409.17,
+       "bias": 11.7104,
+       "rmse": 268.625
+      },
+      "transformer-small": {
+       "mean": 1397.6,
+       "bias": 0.137537,
+       "rmse": 266.179
+      },
+      "gbm-hand": {
+       "mean": 1409.13,
+       "bias": 11.6672,
+       "rmse": 268.739
+      },
+      "gbm-context": {
+       "mean": 1551.06,
+       "bias": 153.596,
+       "rmse": 403.166
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 64.926,
+       "rmse": 452.335
+      }
+     },
+     "gain": {
+      "gain": 22.3217,
+      "low": 20.1055,
+      "high": 24.6697,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "oneMove",
+     "rows_all": 149402,
+     "label_mean_all": 961.402,
+     "rows": 14812,
+     "label_mean": 960.852,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 935.494,
+       "bias": -25.3579,
+       "rmse": 213.769
+      },
+      "transformer-medium": {
+       "mean": 931.622,
+       "bias": -29.2299,
+       "rmse": 225.394
+      },
+      "conv-small": {
+       "mean": 972.705,
+       "bias": 11.8531,
+       "rmse": 217.428
+      },
+      "transformer-small": {
+       "mean": 937.546,
+       "bias": -23.3059,
+       "rmse": 235.48
+      },
+      "gbm-hand": {
+       "mean": 960.403,
+       "bias": -0.449048,
+       "rmse": 226.303
+      },
+      "gbm-context": {
+       "mean": 961.968,
+       "bias": 1.11608,
+       "rmse": 312.622
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 501.536,
+       "rmse": 591.088
+      }
+     },
+     "gain": {
+      "gain": 12.5337,
+      "low": 10.9692,
+      "high": 14.2975,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "mateIn1",
+     "rows_all": 149121,
+     "label_mean_all": 960.689,
+     "rows": 14788,
+     "label_mean": 959.951,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 934.673,
+       "bias": -25.2783,
+       "rmse": 213.487
+      },
+      "transformer-medium": {
+       "mean": 931.257,
+       "bias": -28.6939,
+       "rmse": 224.428
+      },
+      "conv-small": {
+       "mean": 972.229,
+       "bias": 12.2774,
+       "rmse": 216.842
+      },
+      "transformer-small": {
+       "mean": 937.264,
+       "bias": -22.6872,
+       "rmse": 234.514
+      },
+      "gbm-hand": {
+       "mean": 959.658,
+       "bias": -0.293207,
+       "rmse": 225.976
+      },
+      "gbm-context": {
+       "mean": 961.971,
+       "bias": 2.01952,
+       "rmse": 311.429
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 502.437,
+       "rmse": 591.218
+      }
+     },
+     "gain": {
+      "gain": 12.4882,
+      "low": 10.7803,
+      "high": 13.8627,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "mateIn2",
+     "rows_all": 147180,
+     "label_mean_all": 1168.48,
+     "rows": 14791,
+     "label_mean": 1169.0,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1153.16,
+       "bias": -15.8392,
+       "rmse": 220.734
+      },
+      "transformer-medium": {
+       "mean": 1146.57,
+       "bias": -22.4298,
+       "rmse": 227.564
+      },
+      "conv-small": {
+       "mean": 1177.06,
+       "bias": 8.05834,
+       "rmse": 232.066
+      },
+      "transformer-small": {
+       "mean": 1156.3,
+       "bias": -12.6965,
+       "rmse": 239.824
+      },
+      "gbm-hand": {
+       "mean": 1168.64,
+       "bias": -0.356032,
+       "rmse": 244.382
+      },
+      "gbm-context": {
+       "mean": 1394.67,
+       "bias": 225.672,
+       "rmse": 433.379
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 293.39,
+       "rmse": 472.483
+      }
+     },
+     "gain": {
+      "gain": 23.6477,
+      "low": 21.5654,
+      "high": 25.544,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "kingsideAttack",
+     "rows_all": 97963,
+     "label_mean_all": 1303.88,
+     "rows": 9742,
+     "label_mean": 1302.54,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1290.17,
+       "bias": -12.3633,
+       "rmse": 243.025
+      },
+      "transformer-medium": {
+       "mean": 1273.58,
+       "bias": -28.9564,
+       "rmse": 255.092
+      },
+      "conv-small": {
+       "mean": 1305.49,
+       "bias": 2.95575,
+       "rmse": 252.719
+      },
+      "transformer-small": {
+       "mean": 1282.14,
+       "bias": -20.3961,
+       "rmse": 268.149
+      },
+      "gbm-hand": {
+       "mean": 1310.01,
+       "bias": 7.46897,
+       "rmse": 269.125
+      },
+      "gbm-context": {
+       "mean": 1388.09,
+       "bias": 85.5501,
+       "rmse": 389.795
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 159.851,
+       "rmse": 529.592
+      }
+     },
+     "gain": {
+      "gain": 26.1,
+      "low": 22.9594,
+      "high": 29.2487,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "sacrifice",
+     "rows_all": 90468,
+     "label_mean_all": 1643.61,
+     "rows": 8857,
+     "label_mean": 1648.66,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1642.08,
+       "bias": -6.58023,
+       "rmse": 245.373
+      },
+      "transformer-medium": {
+       "mean": 1623.77,
+       "bias": -24.8891,
+       "rmse": 252.503
+      },
+      "conv-small": {
+       "mean": 1628.78,
+       "bias": -19.8806,
+       "rmse": 267.777
+      },
+      "transformer-small": {
+       "mean": 1633.1,
+       "bias": -15.5575,
+       "rmse": 264.317
+      },
+      "gbm-hand": {
+       "mean": 1635.16,
+       "bias": -13.4999,
+       "rmse": 275.03
+      },
+      "gbm-context": {
+       "mean": 1640.94,
+       "bias": -7.7175,
+       "rmse": 422.806
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -186.272,
+       "rmse": 500.804
+      }
+     },
+     "gain": {
+      "gain": 29.6572,
+      "low": 26.13,
+      "high": 32.5529,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "veryLong",
+     "rows_all": 84486,
+     "label_mean_all": 1960.96,
+     "rows": 8358,
+     "label_mean": 1959.83,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1971.34,
+       "bias": 11.511,
+       "rmse": 317.25
+      },
+      "transformer-medium": {
+       "mean": 1946.76,
+       "bias": -13.0697,
+       "rmse": 328.177
+      },
+      "conv-small": {
+       "mean": 1957.68,
+       "bias": -2.15059,
+       "rmse": 338.732
+      },
+      "transformer-small": {
+       "mean": 1963.24,
+       "bias": 3.40851,
+       "rmse": 335.802
+      },
+      "gbm-hand": {
+       "mean": 1957.55,
+       "bias": -2.27231,
+       "rmse": 345.76
+      },
+      "gbm-context": {
+       "mean": 1959.53,
+       "bias": -0.299392,
+       "rmse": 444.491
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -497.438,
+       "rmse": 672.791
+      }
+     },
+     "gain": {
+      "gain": 28.51,
+      "low": 24.5931,
+      "high": 32.2421,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "pin",
+     "rows_all": 71593,
+     "label_mean_all": 1625.63,
+     "rows": 7235,
+     "label_mean": 1628.52,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1634.34,
+       "bias": 5.82354,
+       "rmse": 275.941
+      },
+      "transformer-medium": {
+       "mean": 1595.69,
+       "bias": -32.8317,
+       "rmse": 280.349
+      },
+      "conv-small": {
+       "mean": 1626.17,
+       "bias": -2.34981,
+       "rmse": 282.055
+      },
+      "transformer-small": {
+       "mean": 1603.87,
+       "bias": -24.6471,
+       "rmse": 291.562
+      },
+      "gbm-hand": {
+       "mean": 1632.18,
+       "bias": 3.66013,
+       "rmse": 307.882
+      },
+      "gbm-context": {
+       "mean": 1528.62,
+       "bias": -99.8925,
+       "rmse": 393.702
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -166.129,
+       "rmse": 468.627
+      }
+     },
+     "gain": {
+      "gain": 31.9403,
+      "low": 28.9837,
+      "high": 34.9273,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "advancedPawn",
+     "rows_all": 71550,
+     "label_mean_all": 1617.99,
+     "rows": 7237,
+     "label_mean": 1612.16,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1617.44,
+       "bias": 5.28419,
+       "rmse": 313.277
+      },
+      "transformer-medium": {
+       "mean": 1594.29,
+       "bias": -17.8713,
+       "rmse": 327.948
+      },
+      "conv-small": {
+       "mean": 1600.9,
+       "bias": -11.2549,
+       "rmse": 336.296
+      },
+      "transformer-small": {
+       "mean": 1604.39,
+       "bias": -7.76464,
+       "rmse": 338.672
+      },
+      "gbm-hand": {
+       "mean": 1645.63,
+       "bias": 33.4753,
+       "rmse": 342.56
+      },
+      "gbm-context": {
+       "mean": 1635.71,
+       "bias": 23.5512,
+       "rmse": 477.848
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -149.769,
+       "rmse": 520.708
+      }
+     },
+     "gain": {
+      "gain": 29.2828,
+      "low": 25.1598,
+      "high": 34.2394,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "defensiveMove",
+     "rows_all": 62234,
+     "label_mean_all": 1905.72,
+     "rows": 6116,
+     "label_mean": 1894.1,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1878.89,
+       "bias": -15.2153,
+       "rmse": 351.69
+      },
+      "transformer-medium": {
+       "mean": 1875.03,
+       "bias": -19.0745,
+       "rmse": 366.158
+      },
+      "conv-small": {
+       "mean": 1876.01,
+       "bias": -18.0961,
+       "rmse": 376.105
+      },
+      "transformer-small": {
+       "mean": 1890.42,
+       "bias": -3.68081,
+       "rmse": 372.424
+      },
+      "gbm-hand": {
+       "mean": 1851.71,
+       "bias": -42.3966,
+       "rmse": 382.478
+      },
+      "gbm-context": {
+       "mean": 1606.01,
+       "bias": -288.094,
+       "rmse": 537.717
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -431.714,
+       "rmse": 630.345
+      }
+     },
+     "gain": {
+      "gain": 30.7882,
+      "low": 25.9503,
+      "high": 35.6215,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "discoveredAttack",
+     "rows_all": 62094,
+     "label_mean_all": 1502.42,
+     "rows": 6150,
+     "label_mean": 1503.07,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1515.21,
+       "bias": 12.1332,
+       "rmse": 263.259
+      },
+      "transformer-medium": {
+       "mean": 1512.43,
+       "bias": 9.35716,
+       "rmse": 276.203
+      },
+      "conv-small": {
+       "mean": 1532.3,
+       "bias": 29.2233,
+       "rmse": 286.087
+      },
+      "transformer-small": {
+       "mean": 1525.42,
+       "bias": 22.3482,
+       "rmse": 288.307
+      },
+      "gbm-hand": {
+       "mean": 1497.34,
+       "bias": -5.73037,
+       "rmse": 284.24
+      },
+      "gbm-context": {
+       "mean": 1526.78,
+       "bias": 23.7018,
+       "rmse": 389.896
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -40.685,
+       "rmse": 444.882
+      }
+     },
+     "gain": {
+      "gain": 20.9807,
+      "low": 18.0287,
+      "high": 24.3686,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "rookEndgame",
+     "rows_all": 57695,
+     "label_mean_all": 1466.11,
+     "rows": 5741,
+     "label_mean": 1475.46,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1469.92,
+       "bias": -5.53831,
+       "rmse": 293.541
+      },
+      "transformer-medium": {
+       "mean": 1454.88,
+       "bias": -20.5795,
+       "rmse": 310.186
+      },
+      "conv-small": {
+       "mean": 1455.42,
+       "bias": -20.0394,
+       "rmse": 318.424
+      },
+      "transformer-small": {
+       "mean": 1460.35,
+       "bias": -15.1116,
+       "rmse": 319.42
+      },
+      "gbm-hand": {
+       "mean": 1473.93,
+       "bias": -1.52642,
+       "rmse": 311.886
+      },
+      "gbm-context": {
+       "mean": 1518.04,
+       "bias": 42.5827,
+       "rmse": 477.842
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -13.0729,
+       "rmse": 533.013
+      }
+     },
+     "gain": {
+      "gain": 18.3449,
+      "low": 13.794,
+      "high": 23.7826,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "opening",
+     "rows_all": 57566,
+     "label_mean_all": 1381.78,
+     "rows": 5761,
+     "label_mean": 1384.2,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1366.82,
+       "bias": -17.3795,
+       "rmse": 235.002
+      },
+      "transformer-medium": {
+       "mean": 1352.9,
+       "bias": -31.3074,
+       "rmse": 244.608
+      },
+      "conv-small": {
+       "mean": 1389.74,
+       "bias": 5.53245,
+       "rmse": 244.971
+      },
+      "transformer-small": {
+       "mean": 1364.29,
+       "bias": -19.9111,
+       "rmse": 254.974
+      },
+      "gbm-hand": {
+       "mean": 1385.33,
+       "bias": 1.12946,
+       "rmse": 253.735
+      },
+      "gbm-context": {
+       "mean": 1367.5,
+       "bias": -16.6994,
+       "rmse": 358.765
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 78.1847,
+       "rmse": 470.043
+      }
+     },
+     "gain": {
+      "gain": 18.7326,
+      "low": 14.871,
+      "high": 21.6945,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "deflection",
+     "rows_all": 52877,
+     "label_mean_all": 1561.1,
+     "rows": 5294,
+     "label_mean": 1555.67,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1561.58,
+       "bias": 5.90354,
+       "rmse": 271.766
+      },
+      "transformer-medium": {
+       "mean": 1547.35,
+       "bias": -8.3239,
+       "rmse": 281.663
+      },
+      "conv-small": {
+       "mean": 1561.47,
+       "bias": 5.79746,
+       "rmse": 290.469
+      },
+      "transformer-small": {
+       "mean": 1567.95,
+       "bias": 12.2779,
+       "rmse": 290.312
+      },
+      "gbm-hand": {
+       "mean": 1554.54,
+       "bias": -1.13816,
+       "rmse": 294.831
+      },
+      "gbm-context": {
+       "mean": 1588.63,
+       "bias": 32.9585,
+       "rmse": 372.923
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -93.2857,
+       "rmse": 441.609
+      }
+     },
+     "gain": {
+      "gain": 23.0642,
+      "low": 19.2065,
+      "high": 26.5555,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "attraction",
+     "rows_all": 45873,
+     "label_mean_all": 1682.36,
+     "rows": 4573,
+     "label_mean": 1685.34,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1682.27,
+       "bias": -3.07051,
+       "rmse": 252.647
+      },
+      "transformer-medium": {
+       "mean": 1673.03,
+       "bias": -12.3133,
+       "rmse": 258.69
+      },
+      "conv-small": {
+       "mean": 1683.23,
+       "bias": -2.10956,
+       "rmse": 273.997
+      },
+      "transformer-small": {
+       "mean": 1692.42,
+       "bias": 7.08259,
+       "rmse": 269.446
+      },
+      "gbm-hand": {
+       "mean": 1670.08,
+       "bias": -15.2569,
+       "rmse": 277.715
+      },
+      "gbm-context": {
+       "mean": 1682.04,
+       "bias": -3.30137,
+       "rmse": 360.198
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -222.953,
+       "rmse": 450.563
+      }
+     },
+     "gain": {
+      "gain": 25.0675,
+      "low": 20.4634,
+      "high": 29.2618,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "pawnEndgame",
+     "rows_all": 41680,
+     "label_mean_all": 1740.01,
+     "rows": 4171,
+     "label_mean": 1734.46,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1750.32,
+       "bias": 15.8647,
+       "rmse": 333.937
+      },
+      "transformer-medium": {
+       "mean": 1729.66,
+       "bias": -4.79581,
+       "rmse": 337.607
+      },
+      "conv-small": {
+       "mean": 1740.83,
+       "bias": 6.36971,
+       "rmse": 340.415
+      },
+      "transformer-small": {
+       "mean": 1746.57,
+       "bias": 12.1167,
+       "rmse": 357.509
+      },
+      "gbm-hand": {
+       "mean": 1746.11,
+       "bias": 11.6476,
+       "rmse": 371.765
+      },
+      "gbm-context": {
+       "mean": 1675.48,
+       "bias": -58.9815,
+       "rmse": 549.079
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -272.07,
+       "rmse": 603.703
+      }
+     },
+     "gain": {
+      "gain": 37.828,
+      "low": 30.2666,
+      "high": 45.0712,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "mateIn3",
+     "rows_all": 41261,
+     "label_mean_all": 1390.61,
+     "rows": 4097,
+     "label_mean": 1386.02,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1378.44,
+       "bias": -7.58877,
+       "rmse": 235.454
+      },
+      "transformer-medium": {
+       "mean": 1375.85,
+       "bias": -10.1765,
+       "rmse": 247.973
+      },
+      "conv-small": {
+       "mean": 1405.09,
+       "bias": 19.0654,
+       "rmse": 253.135
+      },
+      "transformer-small": {
+       "mean": 1400.99,
+       "bias": 14.964,
+       "rmse": 258.606
+      },
+      "gbm-hand": {
+       "mean": 1382.93,
+       "bias": -3.09697,
+       "rmse": 265.104
+      },
+      "gbm-context": {
+       "mean": 1690.18,
+       "bias": 304.154,
+       "rmse": 502.041
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 76.3641,
+       "rmse": 407.137
+      }
+     },
+     "gain": {
+      "gain": 29.6497,
+      "low": 24.6585,
+      "high": 33.8313,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "quietMove",
+     "rows_all": 40674,
+     "label_mean_all": 1960.02,
+     "rows": 3992,
+     "label_mean": 1952.06,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1944.74,
+       "bias": -7.32501,
+       "rmse": 307.424
+      },
+      "transformer-medium": {
+       "mean": 1915.98,
+       "bias": -36.078,
+       "rmse": 326.083
+      },
+      "conv-small": {
+       "mean": 1902.42,
+       "bias": -49.64,
+       "rmse": 337.477
+      },
+      "transformer-small": {
+       "mean": 1927.74,
+       "bias": -24.3206,
+       "rmse": 332.82
+      },
+      "gbm-hand": {
+       "mean": 1903.01,
+       "bias": -49.0514,
+       "rmse": 346.896
+      },
+      "gbm-context": {
+       "mean": 1725.16,
+       "bias": -226.9,
+       "rmse": 559.879
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -489.672,
+       "rmse": 684.72
+      }
+     },
+     "gain": {
+      "gain": 39.4719,
+      "low": 33.2134,
+      "high": 45.5858,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "hangingPiece",
+     "rows_all": 40487,
+     "label_mean_all": 1389.0,
+     "rows": 4040,
+     "label_mean": 1392.74,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1380.06,
+       "bias": -12.6849,
+       "rmse": 285.296
+      },
+      "transformer-medium": {
+       "mean": 1382.97,
+       "bias": -9.77664,
+       "rmse": 307.704
+      },
+      "conv-small": {
+       "mean": 1399.33,
+       "bias": 6.58473,
+       "rmse": 316.122
+      },
+      "transformer-small": {
+       "mean": 1402.51,
+       "bias": 9.77217,
+       "rmse": 315.137
+      },
+      "gbm-hand": {
+       "mean": 1383.17,
+       "bias": -9.57703,
+       "rmse": 311.302
+      },
+      "gbm-context": {
+       "mean": 1413.37,
+       "bias": 20.6246,
+       "rmse": 417.902
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 69.6464,
+       "rmse": 525.642
+      }
+     },
+     "gain": {
+      "gain": 26.0062,
+      "low": 21.4169,
+      "high": 30.3161,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "exposedKing",
+     "rows_all": 35081,
+     "label_mean_all": 1759.54,
+     "rows": 3645,
+     "label_mean": 1760.92,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1757.45,
+       "bias": -3.46154,
+       "rmse": 299.738
+      },
+      "transformer-medium": {
+       "mean": 1750.59,
+       "bias": -10.3277,
+       "rmse": 310.125
+      },
+      "conv-small": {
+       "mean": 1755.55,
+       "bias": -5.36482,
+       "rmse": 325.507
+      },
+      "transformer-small": {
+       "mean": 1770.03,
+       "bias": 9.11366,
+       "rmse": 315.794
+      },
+      "gbm-hand": {
+       "mean": 1743.86,
+       "bias": -17.0586,
+       "rmse": 322.233
+      },
+      "gbm-context": {
+       "mean": 1753.72,
+       "bias": -7.19164,
+       "rmse": 408.401
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -298.527,
+       "rmse": 528.687
+      }
+     },
+     "gain": {
+      "gain": 22.4947,
+      "low": 18.2548,
+      "high": 27.1011,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "backRankMate",
+     "rows_all": 29473,
+     "label_mean_all": 898.236,
+     "rows": 2952,
+     "label_mean": 895.642,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 879.903,
+       "bias": -15.7386,
+       "rmse": 166.965
+      },
+      "transformer-medium": {
+       "mean": 860.845,
+       "bias": -34.7973,
+       "rmse": 178.929
+      },
+      "conv-small": {
+       "mean": 900.03,
+       "bias": 4.38823,
+       "rmse": 172.537
+      },
+      "transformer-small": {
+       "mean": 865.674,
+       "bias": -29.9684,
+       "rmse": 187.441
+      },
+      "gbm-hand": {
+       "mean": 919.365,
+       "bias": 23.7234,
+       "rmse": 191.391
+      },
+      "gbm-context": {
+       "mean": 1437.83,
+       "bias": 542.19,
+       "rmse": 622.781
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 566.747,
+       "rmse": 662.476
+      }
+     },
+     "gain": {
+      "gain": 24.4258,
+      "low": 19.7053,
+      "high": 28.5701,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "promotion",
+     "rows_all": 27850,
+     "label_mean_all": 1519.94,
+     "rows": 2901,
+     "label_mean": 1512.14,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1517.74,
+       "bias": 5.59739,
+       "rmse": 307.057
+      },
+      "transformer-medium": {
+       "mean": 1496.42,
+       "bias": -15.7171,
+       "rmse": 320.7
+      },
+      "conv-small": {
+       "mean": 1509.08,
+       "bias": -3.06211,
+       "rmse": 328.579
+      },
+      "transformer-small": {
+       "mean": 1510.62,
+       "bias": -1.52282,
+       "rmse": 330.772
+      },
+      "gbm-hand": {
+       "mean": 1520.52,
+       "bias": 8.38519,
+       "rmse": 323.168
+      },
+      "gbm-context": {
+       "mean": 1675.83,
+       "bias": 163.691,
+       "rmse": 504.997
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -49.7501,
+       "rmse": 510.323
+      }
+     },
+     "gain": {
+      "gain": 16.111,
+      "low": 9.78501,
+      "high": 23.0468,
+      "beyond_noise": true
+     }
+    }
+   ]
+  },
+  {
+   "key": "first-piece",
+   "column": "first_piece",
+   "title": "The piece that makes the first move",
+   "groups": [
+    {
+     "group": "pawn",
+     "rows_all": 129692,
+     "label_mean_all": 1673.72,
+     "rows": 13094,
+     "label_mean": 1674.33,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1675.5,
+       "bias": 1.16997,
+       "rmse": 302.211
+      },
+      "transformer-medium": {
+       "mean": 1659.8,
+       "bias": -14.5283,
+       "rmse": 320.794
+      },
+      "conv-small": {
+       "mean": 1665.78,
+       "bias": -8.55532,
+       "rmse": 323.492
+      },
+      "transformer-small": {
+       "mean": 1672.49,
+       "bias": -1.83694,
+       "rmse": 329.76
+      },
+      "gbm-hand": {
+       "mean": 1675.44,
+       "bias": 1.11093,
+       "rmse": 330.15
+      },
+      "gbm-context": {
+       "mean": 1556.02,
+       "bias": -118.315,
+       "rmse": 471.608
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -211.942,
+       "rmse": 529.621
+      }
+     },
+     "gain": {
+      "gain": 27.9388,
+      "low": 24.7363,
+      "high": 31.3176,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "knight",
+     "rows_all": 164168,
+     "label_mean_all": 1442.54,
+     "rows": 16147,
+     "label_mean": 1440.67,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1433.27,
+       "bias": -7.39505,
+       "rmse": 258.673
+      },
+      "transformer-medium": {
+       "mean": 1414.16,
+       "bias": -26.5062,
+       "rmse": 273.906
+      },
+      "conv-small": {
+       "mean": 1444.91,
+       "bias": 4.24678,
+       "rmse": 278.195
+      },
+      "transformer-small": {
+       "mean": 1429.45,
+       "bias": -11.2119,
+       "rmse": 283.117
+      },
+      "gbm-hand": {
+       "mean": 1441.14,
+       "bias": 0.470461,
+       "rmse": 280.24
+      },
+      "gbm-context": {
+       "mean": 1455.15,
+       "bias": 14.4882,
+       "rmse": 422.463
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 21.722,
+       "rmse": 477.273
+      }
+     },
+     "gain": {
+      "gain": 21.5669,
+      "low": 19.085,
+      "high": 23.6297,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "bishop",
+     "rows_all": 129161,
+     "label_mean_all": 1528.88,
+     "rows": 12862,
+     "label_mean": 1529.21,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1524.0,
+       "bias": -5.2156,
+       "rmse": 268.536
+      },
+      "transformer-medium": {
+       "mean": 1511.57,
+       "bias": -17.6418,
+       "rmse": 280.608
+      },
+      "conv-small": {
+       "mean": 1528.56,
+       "bias": -0.656795,
+       "rmse": 291.876
+      },
+      "transformer-small": {
+       "mean": 1520.45,
+       "bias": -8.76554,
+       "rmse": 289.16
+      },
+      "gbm-hand": {
+       "mean": 1528.13,
+       "bias": -1.08223,
+       "rmse": 293.516
+      },
+      "gbm-context": {
+       "mean": 1487.58,
+       "bias": -41.639,
+       "rmse": 402.728
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -66.8257,
+       "rmse": 459.509
+      }
+     },
+     "gain": {
+      "gain": 24.9796,
+      "low": 22.1757,
+      "high": 27.551,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "rook",
+     "rows_all": 294257,
+     "label_mean_all": 1425.76,
+     "rows": 29442,
+     "label_mean": 1424.62,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1419.27,
+       "bias": -5.35148,
+       "rmse": 265.537
+      },
+      "transformer-medium": {
+       "mean": 1402.13,
+       "bias": -22.4832,
+       "rmse": 280.529
+      },
+      "conv-small": {
+       "mean": 1422.42,
+       "bias": -2.19867,
+       "rmse": 289.369
+      },
+      "transformer-small": {
+       "mean": 1416.12,
+       "bias": -8.50222,
+       "rmse": 288.785
+      },
+      "gbm-hand": {
+       "mean": 1425.65,
+       "bias": 1.03141,
+       "rmse": 291.946
+      },
+      "gbm-context": {
+       "mean": 1480.48,
+       "bias": 55.8581,
+       "rmse": 441.499
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 37.7706,
+       "rmse": 508.521
+      }
+     },
+     "gain": {
+      "gain": 26.4096,
+      "low": 24.6999,
+      "high": 28.0146,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "queen",
+     "rows_all": 358505,
+     "label_mean_all": 1359.17,
+     "rows": 35764,
+     "label_mean": 1357.32,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1347.31,
+       "bias": -10.0155,
+       "rmse": 252.766
+      },
+      "transformer-medium": {
+       "mean": 1332.67,
+       "bias": -24.6474,
+       "rmse": 264.039
+      },
+      "conv-small": {
+       "mean": 1360.38,
+       "bias": 3.06233,
+       "rmse": 269.677
+      },
+      "transformer-small": {
+       "mean": 1343.38,
+       "bias": -13.9411,
+       "rmse": 273.695
+      },
+      "gbm-hand": {
+       "mean": 1357.3,
+       "bias": -0.0253698,
+       "rmse": 275.748
+      },
+      "gbm-context": {
+       "mean": 1388.0,
+       "bias": 30.6786,
+       "rmse": 397.356
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 105.067,
+       "rmse": 502.068
+      }
+     },
+     "gain": {
+      "gain": 22.9825,
+      "low": 21.5579,
+      "high": 24.4393,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "king",
+     "rows_all": 52132,
+     "label_mean_all": 1751.19,
+     "rows": 5141,
+     "label_mean": 1750.02,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1758.07,
+       "bias": 8.04758,
+       "rmse": 354.855
+      },
+      "transformer-medium": {
+       "mean": 1752.29,
+       "bias": 2.27053,
+       "rmse": 365.943
+      },
+      "conv-small": {
+       "mean": 1751.58,
+       "bias": 1.56017,
+       "rmse": 376.454
+      },
+      "transformer-small": {
+       "mean": 1767.65,
+       "bias": 17.631,
+       "rmse": 377.012
+      },
+      "gbm-hand": {
+       "mean": 1750.35,
+       "bias": 0.32765,
+       "rmse": 381.597
+      },
+      "gbm-context": {
+       "mean": 1609.55,
+       "bias": -140.471,
+       "rmse": 522.882
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -287.634,
+       "rmse": 582.054
+      }
+     },
+     "gain": {
+      "gain": 26.7425,
+      "low": 21.6082,
+      "high": 32.1896,
+      "beyond_noise": true
+     }
+    }
+   ]
+  },
+  {
+   "key": "capture",
+   "column": "first_capture",
+   "title": "The first move takes something",
+   "groups": [
+    {
+     "group": "no",
+     "rows_all": 675694,
+     "label_mean_all": 1458.25,
+     "rows": 67465,
+     "label_mean": 1458.61,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1451.49,
+       "bias": -7.12246,
+       "rmse": 268.188
+      },
+      "transformer-medium": {
+       "mean": 1434.63,
+       "bias": -23.975,
+       "rmse": 282.209
+      },
+      "conv-small": {
+       "mean": 1454.71,
+       "bias": -3.89664,
+       "rmse": 288.884
+      },
+      "transformer-small": {
+       "mean": 1447.96,
+       "bias": -10.6468,
+       "rmse": 291.82
+      },
+      "gbm-hand": {
+       "mean": 1457.49,
+       "bias": -1.1201,
+       "rmse": 291.729
+      },
+      "gbm-context": {
+       "mean": 1458.11,
+       "bias": -0.50292,
+       "rmse": 442.281
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 3.77854,
+       "rmse": 509.15
+      }
+     },
+     "gain": {
+      "gain": 23.5408,
+      "low": 22.6143,
+      "high": 24.8148,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "yes",
+     "rows_all": 452221,
+     "label_mean_all": 1468.59,
+     "rows": 44985,
+     "label_mean": 1465.68,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1462.01,
+       "bias": -3.66864,
+       "rmse": 273.285
+      },
+      "transformer-medium": {
+       "mean": 1448.79,
+       "bias": -16.8819,
+       "rmse": 286.691
+      },
+      "conv-small": {
+       "mean": 1471.54,
+       "bias": 5.86413,
+       "rmse": 293.694
+      },
+      "transformer-small": {
+       "mean": 1459.95,
+       "bias": -5.73118,
+       "rmse": 294.948
+      },
+      "gbm-hand": {
+       "mean": 1468.23,
+       "bias": 2.55496,
+       "rmse": 299.649
+      },
+      "gbm-context": {
+       "mean": 1470.18,
+       "bias": 4.50585,
+       "rmse": 407.622
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -3.28816,
+       "rmse": 493.323
+      }
+     },
+     "gain": {
+      "gain": 26.3632,
+      "low": 24.8881,
+      "high": 27.6185,
+      "beyond_noise": true
+     }
+    }
+   ]
+  },
+  {
+   "key": "check",
+   "column": "first_check",
+   "title": "The first move gives check",
+   "groups": [
+    {
+     "group": "no",
+     "rows_all": 430534,
+     "label_mean_all": 1725.51,
+     "rows": 42741,
+     "label_mean": 1724.39,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1727.9,
+       "bias": 3.50811,
+       "rmse": 298.9
+      },
+      "transformer-medium": {
+       "mean": 1708.26,
+       "bias": -16.136,
+       "rmse": 313.606
+      },
+      "conv-small": {
+       "mean": 1714.31,
+       "bias": -10.082,
+       "rmse": 322.381
+      },
+      "transformer-small": {
+       "mean": 1716.2,
+       "bias": -8.19828,
+       "rmse": 323.539
+      },
+      "gbm-hand": {
+       "mean": 1725.81,
+       "bias": 1.41634,
+       "rmse": 326.596
+      },
+      "gbm-context": {
+       "mean": 1561.82,
+       "bias": -162.578,
+       "rmse": 460.806
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -262.005,
+       "rmse": 516.671
+      }
+     },
+     "gain": {
+      "gain": 27.6958,
+      "low": 26.1919,
+      "high": 29.4404,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "yes",
+     "rows_all": 697381,
+     "label_mean_all": 1299.96,
+     "rows": 69709,
+     "label_mean": 1300.21,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1288.8,
+       "bias": -11.4116,
+       "rmse": 251.053
+      },
+      "transformer-medium": {
+       "mean": 1276.0,
+       "bias": -24.204,
+       "rmse": 264.231
+      },
+      "conv-small": {
+       "mean": 1306.4,
+       "bias": 6.19467,
+       "rmse": 269.645
+      },
+      "transformer-small": {
+       "mean": 1291.23,
+       "bias": -8.97592,
+       "rmse": 272.72
+      },
+      "gbm-hand": {
+       "mean": 1299.91,
+       "bias": -0.303672,
+       "rmse": 273.696
+      },
+      "gbm-context": {
+       "mean": 1402.31,
+       "bias": 102.103,
+       "rmse": 407.855
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 162.179,
+       "rmse": 494.231
+      }
+     },
+     "gain": {
+      "gain": 22.6435,
+      "low": 21.6371,
+      "high": 23.7935,
+      "beyond_noise": true
+     }
+    }
+   ]
+  },
+  {
+   "key": "sacrifice",
+   "column": "first_sacrifice",
+   "title": "The first move gives up material",
+   "groups": [
+    {
+     "group": "no",
+     "rows_all": 972823,
+     "label_mean_all": 1443.3,
+     "rows": 97168,
+     "label_mean": 1442.8,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1436.09,
+       "bias": -6.70155,
+       "rmse": 273.017
+      },
+      "transformer-medium": {
+       "mean": 1423.19,
+       "bias": -19.6051,
+       "rmse": 286.442
+      },
+      "conv-small": {
+       "mean": 1445.32,
+       "bias": 2.52104,
+       "rmse": 293.046
+      },
+      "transformer-small": {
+       "mean": 1436.23,
+       "bias": -6.56882,
+       "rmse": 295.456
+      },
+      "gbm-hand": {
+       "mean": 1442.71,
+       "bias": -0.0835143,
+       "rmse": 297.176
+      },
+      "gbm-context": {
+       "mean": 1449.48,
+       "bias": 6.68551,
+       "rmse": 432.497
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 19.5926,
+       "rmse": 509.793
+      }
+     },
+     "gain": {
+      "gain": 24.1591,
+      "low": 23.2054,
+      "high": 25.0907,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "yes",
+     "rows_all": 155092,
+     "label_mean_all": 1582.17,
+     "rows": 15282,
+     "label_mean": 1579.96,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1580.33,
+       "bias": 0.368138,
+       "rmse": 251.861
+      },
+      "transformer-medium": {
+       "mean": 1549.08,
+       "bias": -30.8808,
+       "rmse": 268.034
+      },
+      "conv-small": {
+       "mean": 1563.99,
+       "bias": -15.97,
+       "rmse": 276.229
+      },
+      "transformer-small": {
+       "mean": 1557.86,
+       "bias": -22.1061,
+       "rmse": 277.464
+      },
+      "gbm-hand": {
+       "mean": 1583.07,
+       "bias": 3.10707,
+       "rmse": 280.173
+      },
+      "gbm-context": {
+       "mean": 1548.5,
+       "bias": -31.4652,
+       "rmse": 404.13
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -117.574,
+       "rmse": 456.469
+      }
+     },
+     "gain": {
+      "gain": 28.3125,
+      "low": 26.1025,
+      "high": 30.6428,
+      "beyond_noise": true
+     }
+    }
+   ]
+  },
+  {
+   "key": "backward",
+   "column": "first_backward",
+   "title": "The first move goes backward",
+   "groups": [
+    {
+     "group": "no",
+     "rows_all": 1030095,
+     "label_mean_all": 1453.54,
+     "rows": 102725,
+     "label_mean": 1452.43,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1446.44,
+       "bias": -5.98572,
+       "rmse": 268.79
+      },
+      "transformer-medium": {
+       "mean": 1431.08,
+       "bias": -21.3485,
+       "rmse": 282.335
+      },
+      "conv-small": {
+       "mean": 1452.63,
+       "bias": 0.2046,
+       "rmse": 288.289
+      },
+      "transformer-small": {
+       "mean": 1443.63,
+       "bias": -8.79967,
+       "rmse": 291.357
+      },
+      "gbm-hand": {
+       "mean": 1452.99,
+       "bias": 0.564357,
+       "rmse": 294.072
+      },
+      "gbm-context": {
+       "mean": 1461.13,
+       "bias": 8.69544,
+       "rmse": 427.183
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 9.95828,
+       "rmse": 504.066
+      }
+     },
+     "gain": {
+      "gain": 25.2821,
+      "low": 24.3287,
+      "high": 26.1773,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "yes",
+     "rows_all": 97820,
+     "label_mean_all": 1555.7,
+     "rows": 9725,
+     "label_mean": 1556.57,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1553.42,
+       "bias": -3.1535,
+       "rmse": 285.098
+      },
+      "transformer-medium": {
+       "mean": 1537.67,
+       "bias": -18.9085,
+       "rmse": 301.145
+      },
+      "conv-small": {
+       "mean": 1554.51,
+       "bias": -2.06754,
+       "rmse": 316.298
+      },
+      "transformer-small": {
+       "mean": 1549.16,
+       "bias": -7.41989,
+       "rmse": 310.652
+      },
+      "gbm-hand": {
+       "mean": 1554.66,
+       "bias": -1.91324,
+       "rmse": 303.767
+      },
+      "gbm-context": {
+       "mean": 1482.08,
+       "bias": -74.496,
+       "rmse": 444.994
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -94.1864,
+       "rmse": 490.154
+      }
+     },
+     "gain": {
+      "gain": 18.6687,
+      "low": 15.7217,
+      "high": 22.2079,
+      "beyond_noise": true
+     }
+    }
+   ]
+  },
+  {
+   "key": "quiet",
+   "column": "line_quiet",
+   "title": "Solver's moves that neither take nor check",
+   "groups": [
+    {
+     "group": "0",
+     "rows_all": 767282,
+     "label_mean_all": 1302.05,
+     "rows": 76556,
+     "label_mean": 1301.37,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1289.44,
+       "bias": -11.9261,
+       "rmse": 247.769
+      },
+      "transformer-medium": {
+       "mean": 1280.89,
+       "bias": -20.4792,
+       "rmse": 260.979
+      },
+      "conv-small": {
+       "mean": 1312.49,
+       "bias": 11.1204,
+       "rmse": 266.007
+      },
+      "transformer-small": {
+       "mean": 1293.45,
+       "bias": -7.91895,
+       "rmse": 270.426
+      },
+      "gbm-hand": {
+       "mean": 1301.5,
+       "bias": 0.125411,
+       "rmse": 269.936
+      },
+      "gbm-context": {
+       "mean": 1396.54,
+       "bias": 95.1685,
+       "rmse": 396.56
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 161.019,
+       "rmse": 470.814
+      }
+     },
+     "gain": {
+      "gain": 22.1665,
+      "low": 21.1984,
+      "high": 23.3254,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "1",
+     "rows_all": 237359,
+     "label_mean_all": 1759.82,
+     "rows": 23549,
+     "label_mean": 1758.82,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1765.6,
+       "bias": 6.78102,
+       "rmse": 303.243
+      },
+      "transformer-medium": {
+       "mean": 1734.25,
+       "bias": -24.5751,
+       "rmse": 320.54
+      },
+      "conv-small": {
+       "mean": 1732.26,
+       "bias": -26.5616,
+       "rmse": 332.09
+      },
+      "transformer-small": {
+       "mean": 1749.01,
+       "bias": -9.81528,
+       "rmse": 328.706
+      },
+      "gbm-hand": {
+       "mean": 1759.34,
+       "bias": 0.513496,
+       "rmse": 330.246
+      },
+      "gbm-context": {
+       "mean": 1544.26,
+       "bias": -214.564,
+       "rmse": 467.208
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -296.435,
+       "rmse": 512.491
+      }
+     },
+     "gain": {
+      "gain": 27.0027,
+      "low": 24.6399,
+      "high": 29.4101,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "2",
+     "rows_all": 87845,
+     "label_mean_all": 1870.82,
+     "rows": 8817,
+     "label_mean": 1872.09,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1878.86,
+       "bias": 6.76985,
+       "rmse": 328.056
+      },
+      "transformer-medium": {
+       "mean": 1855.94,
+       "bias": -16.1466,
+       "rmse": 340.507
+      },
+      "conv-small": {
+       "mean": 1854.49,
+       "bias": -17.599,
+       "rmse": 347.212
+      },
+      "transformer-small": {
+       "mean": 1862.18,
+       "bias": -9.91464,
+       "rmse": 348.423
+      },
+      "gbm-hand": {
+       "mean": 1872.4,
+       "bias": 0.311167,
+       "rmse": 363.487
+      },
+      "gbm-context": {
+       "mean": 1650.3,
+       "bias": -221.788,
+       "rmse": 530.153
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -409.702,
+       "rmse": 631.546
+      }
+     },
+     "gain": {
+      "gain": 35.431,
+      "low": 31.404,
+      "high": 39.9128,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "3+",
+     "rows_all": 35429,
+     "label_mean_all": 1929.82,
+     "rows": 3528,
+     "label_mean": 1923.52,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1937.15,
+       "bias": 13.6299,
+       "rmse": 335.874
+      },
+      "transformer-medium": {
+       "mean": 1898.57,
+       "bias": -24.948,
+       "rmse": 342.722
+      },
+      "conv-small": {
+       "mean": 1903.75,
+       "bias": -19.7725,
+       "rmse": 350.496
+      },
+      "transformer-small": {
+       "mean": 1908.98,
+       "bias": -14.5421,
+       "rmse": 355.306
+      },
+      "gbm-hand": {
+       "mean": 1927.75,
+       "bias": 4.232,
+       "rmse": 364.73
+      },
+      "gbm-context": {
+       "mean": 1892.71,
+       "bias": -30.8085,
+       "rmse": 536.068
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -461.129,
+       "rmse": 707.402
+      }
+     },
+     "gain": {
+      "gain": 28.8566,
+      "low": 22.9722,
+      "high": 35.4482,
+      "beyond_noise": true
+     }
+    }
+   ]
+  },
+  {
+   "key": "mate",
+   "column": "ends_in_mate",
+   "title": "The line ends in mate",
+   "groups": [
+    {
+     "group": "no",
+     "rows_all": 781372,
+     "label_mean_all": 1614.54,
+     "rows": 77904,
+     "label_mean": 1613.46,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1613.49,
+       "bias": 0.0303543,
+       "rmse": 289.513
+      },
+      "transformer-medium": {
+       "mean": 1593.07,
+       "bias": -20.3872,
+       "rmse": 304.935
+      },
+      "conv-small": {
+       "mean": 1608.3,
+       "bias": -5.15427,
+       "rmse": 314.084
+      },
+      "transformer-small": {
+       "mean": 1606.34,
+       "bias": -7.11964,
+       "rmse": 313.313
+      },
+      "gbm-hand": {
+       "mean": 1614.39,
+       "bias": 0.930296,
+       "rmse": 316.001
+      },
+      "gbm-context": {
+       "mean": 1554.56,
+       "bias": -58.9012,
+       "rmse": 442.848
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -151.068,
+       "rmse": 494.911
+      }
+     },
+     "gain": {
+      "gain": 26.4882,
+      "low": 25.3918,
+      "high": 27.7298,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "yes",
+     "rows_all": 346543,
+     "label_mean_all": 1119.37,
+     "rows": 34546,
+     "label_mean": 1118.62,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1099.86,
+       "bias": -18.7551,
+       "rmse": 220.679
+      },
+      "transformer-medium": {
+       "mean": 1095.79,
+       "bias": -22.8292,
+       "rmse": 229.94
+      },
+      "conv-small": {
+       "mean": 1130.27,
+       "bias": 11.6497,
+       "rmse": 229.866
+      },
+      "transformer-small": {
+       "mean": 1106.42,
+       "bias": -12.1999,
+       "rmse": 241.286
+      },
+      "gbm-hand": {
+       "mean": 1117.66,
+       "bias": -0.95833,
+       "rmse": 240.707
+      },
+      "gbm-context": {
+       "mean": 1256.33,
+       "bias": 137.712,
+       "rmse": 395.124
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 343.769,
+       "rmse": 520.398
+      }
+     },
+     "gain": {
+      "gain": 20.0274,
+      "low": 18.6686,
+      "high": 21.2015,
+      "beyond_noise": true
+     }
+    }
+   ]
+  },
+  {
+   "key": "pieces",
+   "column": "phase_piece_count",
+   "title": "Knights, bishops, rooks and queens on the board",
+   "groups": [
+    {
+     "group": "<3",
+     "rows_all": 158227,
+     "label_mean_all": 1588.14,
+     "rows": 15773,
+     "label_mean": 1590.9,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1593.38,
+       "bias": 2.48005,
+       "rmse": 318.75
+      },
+      "transformer-medium": {
+       "mean": 1576.08,
+       "bias": -14.8215,
+       "rmse": 332.71
+      },
+      "conv-small": {
+       "mean": 1576.83,
+       "bias": -14.0686,
+       "rmse": 337.744
+      },
+      "transformer-small": {
+       "mean": 1584.85,
+       "bias": -6.04832,
+       "rmse": 342.156
+      },
+      "gbm-hand": {
+       "mean": 1592.33,
+       "bias": 1.42709,
+       "rmse": 348.755
+      },
+      "gbm-context": {
+       "mean": 1578.3,
+       "bias": -12.601,
+       "rmse": 509.1
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -128.51,
+       "rmse": 564.518
+      }
+     },
+     "gain": {
+      "gain": 30.0044,
+      "low": 27.1829,
+      "high": 32.8228,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "3-6",
+     "rows_all": 244438,
+     "label_mean_all": 1344.7,
+     "rows": 24519,
+     "label_mean": 1343.76,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1331.98,
+       "bias": -11.78,
+       "rmse": 263.532
+      },
+      "transformer-medium": {
+       "mean": 1317.29,
+       "bias": -26.4733,
+       "rmse": 280.399
+      },
+      "conv-small": {
+       "mean": 1343.69,
+       "bias": -0.0648643,
+       "rmse": 288.753
+      },
+      "transformer-small": {
+       "mean": 1329.7,
+       "bias": -14.0603,
+       "rmse": 288.537
+      },
+      "gbm-hand": {
+       "mean": 1342.51,
+       "bias": -1.24777,
+       "rmse": 286.227
+      },
+      "gbm-context": {
+       "mean": 1441.38,
+       "bias": 97.618,
+       "rmse": 435.762
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 118.63,
+       "rmse": 500.153
+      }
+     },
+     "gain": {
+      "gain": 22.6951,
+      "low": 20.8381,
+      "high": 24.469,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "6-9",
+     "rows_all": 378491,
+     "label_mean_all": 1476.71,
+     "rows": 37334,
+     "label_mean": 1475.43,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1470.97,
+       "bias": -4.46164,
+       "rmse": 266.684
+      },
+      "transformer-medium": {
+       "mean": 1456.19,
+       "bias": -19.2417,
+       "rmse": 279.887
+      },
+      "conv-small": {
+       "mean": 1476.43,
+       "bias": 1.00162,
+       "rmse": 288.703
+      },
+      "transformer-small": {
+       "mean": 1469.67,
+       "bias": -5.76192,
+       "rmse": 289.501
+      },
+      "gbm-hand": {
+       "mean": 1476.23,
+       "bias": 0.798264,
+       "rmse": 291.385
+      },
+      "gbm-context": {
+       "mean": 1472.36,
+       "bias": -3.06869,
+       "rmse": 417.322
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -13.0396,
+       "rmse": 488.358
+      }
+     },
+     "gain": {
+      "gain": 24.7017,
+      "low": 23.1162,
+      "high": 26.0404,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "9-12",
+     "rows_all": 225861,
+     "label_mean_all": 1474.66,
+     "rows": 22790,
+     "label_mean": 1470.25,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1464.88,
+       "bias": -5.37338,
+       "rmse": 259.982
+      },
+      "transformer-medium": {
+       "mean": 1448.71,
+       "bias": -21.538,
+       "rmse": 272.381
+      },
+      "conv-small": {
+       "mean": 1472.84,
+       "bias": 2.58718,
+       "rmse": 277.08
+      },
+      "transformer-small": {
+       "mean": 1461.67,
+       "bias": -8.58516,
+       "rmse": 281.457
+      },
+      "gbm-hand": {
+       "mean": 1472.03,
+       "bias": 1.77366,
+       "rmse": 284.161
+      },
+      "gbm-context": {
+       "mean": 1423.37,
+       "bias": -46.8792,
+       "rmse": 402.924
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -7.86369,
+       "rmse": 498.316
+      }
+     },
+     "gain": {
+      "gain": 24.1791,
+      "low": 22.6073,
+      "high": 25.7401,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "12+",
+     "rows_all": 120898,
+     "label_mean_all": 1468.12,
+     "rows": 12034,
+     "label_mean": 1471.42,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1462.54,
+       "bias": -8.87512,
+       "rmse": 243.092
+      },
+      "transformer-medium": {
+       "mean": 1447.75,
+       "bias": -23.6667,
+       "rmse": 254.789
+      },
+      "conv-small": {
+       "mean": 1482.06,
+       "bias": 10.6406,
+       "rmse": 258.711
+      },
+      "transformer-small": {
+       "mean": 1461.02,
+       "bias": -10.403,
+       "rmse": 263.647
+      },
+      "gbm-hand": {
+       "mean": 1469.53,
+       "bias": -1.89231,
+       "rmse": 264.755
+      },
+      "gbm-context": {
+       "mean": 1401.36,
+       "bias": -70.0539,
+       "rmse": 378.678
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -9.02958,
+       "rmse": 474.89
+      }
+     },
+     "gain": {
+      "gain": 21.663,
+      "low": 19.4066,
+      "high": 24.2899,
+      "beyond_noise": true
+     }
+    }
+   ]
+  },
+  {
+   "key": "plays",
+   "column": "plays",
+   "title": "Attempts the puzzle has had",
+   "groups": [
+    {
+     "group": "<200",
+     "rows_all": 195184,
+     "label_mean_all": 1390.22,
+     "rows": 19367,
+     "label_mean": 1389.41,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1360.07,
+       "bias": -29.3417,
+       "rmse": 265.93
+      },
+      "transformer-medium": {
+       "mean": 1347.89,
+       "bias": -41.5156,
+       "rmse": 283.603
+      },
+      "conv-small": {
+       "mean": 1368.59,
+       "bias": -20.8135,
+       "rmse": 289.288
+      },
+      "transformer-small": {
+       "mean": 1361.52,
+       "bias": -27.887,
+       "rmse": 291.337
+      },
+      "gbm-hand": {
+       "mean": 1374.96,
+       "bias": -14.4454,
+       "rmse": 295.219
+      },
+      "gbm-context": {
+       "mean": 1420.0,
+       "bias": 30.589,
+       "rmse": 475.887
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 72.9806,
+       "rmse": 585.671
+      }
+     },
+     "gain": {
+      "gain": 29.2893,
+      "low": 27.3051,
+      "high": 31.5267,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "200-500",
+     "rows_all": 281499,
+     "label_mean_all": 1340.25,
+     "rows": 27949,
+     "label_mean": 1336.24,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1337.19,
+       "bias": 0.946149,
+       "rmse": 265.275
+      },
+      "transformer-medium": {
+       "mean": 1324.6,
+       "bias": -11.6395,
+       "rmse": 282.667
+      },
+      "conv-small": {
+       "mean": 1348.02,
+       "bias": 11.7817,
+       "rmse": 290.126
+      },
+      "transformer-small": {
+       "mean": 1338.48,
+       "bias": 2.23504,
+       "rmse": 291.605
+      },
+      "gbm-hand": {
+       "mean": 1355.1,
+       "bias": 18.8569,
+       "rmse": 294.995
+      },
+      "gbm-context": {
+       "mean": 1407.95,
+       "bias": 71.7081,
+       "rmse": 464.613
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 126.146,
+       "rmse": 566.571
+      }
+     },
+     "gain": {
+      "gain": 29.7196,
+      "low": 28.3516,
+      "high": 31.6919,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "500-1000",
+     "rows_all": 195921,
+     "label_mean_all": 1451.61,
+     "rows": 19769,
+     "label_mean": 1449.27,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1447.58,
+       "bias": -1.69217,
+       "rmse": 275.18
+      },
+      "transformer-medium": {
+       "mean": 1432.18,
+       "bias": -17.0941,
+       "rmse": 288.08
+      },
+      "conv-small": {
+       "mean": 1452.94,
+       "bias": 3.66664,
+       "rmse": 296.171
+      },
+      "transformer-small": {
+       "mean": 1444.94,
+       "bias": -4.33297,
+       "rmse": 297.314
+      },
+      "gbm-hand": {
+       "mean": 1455.26,
+       "bias": 5.98826,
+       "rmse": 304.433
+      },
+      "gbm-context": {
+       "mean": 1459.01,
+       "bias": 9.73567,
+       "rmse": 444.812
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 13.1154,
+       "rmse": 515.142
+      }
+     },
+     "gain": {
+      "gain": 29.2526,
+      "low": 26.7158,
+      "high": 31.4233,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "1000-5000",
+     "rows_all": 326752,
+     "label_mean_all": 1571.61,
+     "rows": 32437,
+     "label_mean": 1572.78,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1565.81,
+       "bias": -6.96828,
+       "rmse": 278.582
+      },
+      "transformer-medium": {
+       "mean": 1547.49,
+       "bias": -25.2919,
+       "rmse": 289.796
+      },
+      "conv-small": {
+       "mean": 1566.03,
+       "bias": -6.74513,
+       "rmse": 295.628
+      },
+      "transformer-small": {
+       "mean": 1557.73,
+       "bias": -15.0466,
+       "rmse": 299.604
+      },
+      "gbm-hand": {
+       "mean": 1560.67,
+       "bias": -12.107,
+       "rmse": 298.101
+      },
+      "gbm-context": {
+       "mean": 1509.14,
+       "bias": -63.6363,
+       "rmse": 396.17
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -110.389,
+       "rmse": 440.335
+      }
+     },
+     "gain": {
+      "gain": 19.5191,
+      "low": 17.8843,
+      "high": 21.569,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "5000+",
+     "rows_all": 128559,
+     "label_mean_all": 1578.31,
+     "rows": 12928,
+     "label_mean": 1579.24,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1591.29,
+       "bias": 12.0473,
+       "rmse": 258.122
+      },
+      "transformer-medium": {
+       "mean": 1572.34,
+       "bias": -6.90241,
+       "rmse": 266.019
+      },
+      "conv-small": {
+       "mean": 1596.34,
+       "bias": 17.0966,
+       "rmse": 273.662
+      },
+      "transformer-small": {
+       "mean": 1585.06,
+       "bias": 5.82008,
+       "rmse": 275.207
+      },
+      "gbm-hand": {
+       "mean": 1584.38,
+       "bias": 5.13875,
+       "rmse": 270.519
+      },
+      "gbm-context": {
+       "mean": 1536.22,
+       "bias": -43.0164,
+       "rmse": 310.929
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -116.852,
+       "rmse": 315.495
+      }
+     },
+     "gain": {
+      "gain": 12.3969,
+      "low": 10.2016,
+      "high": 14.9057,
+      "beyond_noise": true
+     }
+    }
+   ]
+  },
+  {
+   "key": "deviation",
+   "column": "rating_deviation",
+   "title": "The rating's deviation",
+   "groups": [
+    {
+     "group": "<75",
+     "rows_all": 63081,
+     "label_mean_all": 1664.88,
+     "rows": 6359,
+     "label_mean": 1669.03,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1681.77,
+       "bias": 12.7455,
+       "rmse": 243.465
+      },
+      "transformer-medium": {
+       "mean": 1658.06,
+       "bias": -10.9632,
+       "rmse": 254.472
+      },
+      "conv-small": {
+       "mean": 1670.6,
+       "bias": 1.5681,
+       "rmse": 256.805
+      },
+      "transformer-small": {
+       "mean": 1664.74,
+       "bias": -4.28824,
+       "rmse": 260.678
+      },
+      "gbm-hand": {
+       "mean": 1662.07,
+       "bias": -6.96157,
+       "rmse": 244.635
+      },
+      "gbm-context": {
+       "mean": 1541.87,
+       "bias": -127.154,
+       "rmse": 301.678
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -206.639,
+       "rmse": 321.369
+      }
+     },
+     "gain": {
+      "gain": 1.17015,
+      "low": -1.70136,
+      "high": 4.35243,
+      "beyond_noise": false
+     }
+    },
+    {
+     "group": "75-80",
+     "rows_all": 698194,
+     "label_mean_all": 1501.84,
+     "rows": 69429,
+     "label_mean": 1499.98,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1508.6,
+       "bias": 8.61336,
+       "rmse": 261.77
+      },
+      "transformer-medium": {
+       "mean": 1491.55,
+       "bias": -8.43045,
+       "rmse": 273.626
+      },
+      "conv-small": {
+       "mean": 1512.99,
+       "bias": 13.0107,
+       "rmse": 279.268
+      },
+      "transformer-small": {
+       "mean": 1504.66,
+       "bias": 4.67783,
+       "rmse": 282.155
+      },
+      "gbm-hand": {
+       "mean": 1511.94,
+       "bias": 11.9534,
+       "rmse": 277.402
+      },
+      "gbm-context": {
+       "mean": 1485.97,
+       "bias": -14.0159,
+       "rmse": 360.536
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -37.5936,
+       "rmse": 400.421
+      }
+     },
+     "gain": {
+      "gain": 15.6327,
+      "low": 14.4358,
+      "high": 16.8111,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "80-90",
+     "rows_all": 256388,
+     "label_mean_all": 1404.5,
+     "rows": 25600,
+     "label_mean": 1406.95,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1367.67,
+       "bias": -39.2865,
+       "rmse": 294.076
+      },
+      "transformer-medium": {
+       "mean": 1354.96,
+       "bias": -51.9939,
+       "rmse": 310.349
+      },
+      "conv-small": {
+       "mean": 1376.5,
+       "bias": -30.452,
+       "rmse": 318.693
+      },
+      "transformer-small": {
+       "mean": 1366.63,
+       "bias": -40.3263,
+       "rmse": 320.711
+      },
+      "gbm-hand": {
+       "mean": 1379.45,
+       "bias": -27.5024,
+       "rmse": 332.203
+      },
+      "gbm-context": {
+       "mean": 1417.83,
+       "bias": 10.8794,
+       "rmse": 512.269
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 55.4364,
+       "rmse": 612.29
+      }
+     },
+     "gain": {
+      "gain": 38.1273,
+      "low": 36.385,
+      "high": 40.1,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "90+",
+     "rows_all": 110252,
+     "label_mean_all": 1231.41,
+     "rows": 11062,
+     "label_mean": 1226.27,
+     "runs": {
+      "transformer-medium-hand": {
+       "mean": 1197.44,
+       "bias": -28.8267,
+       "rmse": 279.436
+      },
+      "transformer-medium": {
+       "mean": 1190.94,
+       "bias": -35.3309,
+       "rmse": 299.875
+      },
+      "conv-small": {
+       "mean": 1214.27,
+       "bias": -12.0059,
+       "rmse": 311.913
+      },
+      "transformer-small": {
+       "mean": 1204.46,
+       "bias": -21.8098,
+       "rmse": 310.451
+      },
+      "gbm-hand": {
+       "mean": 1222.46,
+       "bias": -3.81597,
+       "rmse": 333.776
+      },
+      "gbm-context": {
+       "mean": 1377.41,
+       "bias": 151.142,
+       "rmse": 627.089
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 236.117,
+       "rmse": 798.371
+      }
+     },
+     "gain": {
+      "gain": 54.3397,
+      "low": 51.0555,
+      "high": 57.8261,
+      "beyond_noise": true
+     }
+    }
+   ]
+  }
+ ],
+ "grids": [
+  {
+   "key": "moves-pieces",
+   "rows": {
+    "column": "solver_moves",
+    "title": "Moves the solver has to find",
+    "groups": [
+     "1",
+     "2",
+     "3",
+     "4",
+     "5+"
+    ]
+   },
+   "columns": {
+    "column": "phase_piece_count",
+    "title": "Knights, bishops, rooks and queens on the board",
+    "groups": [
+     "<3",
+     "3-6",
+     "6-9",
+     "9-12",
+     "12+"
+    ]
+   },
+   "cells": [
+    [
+     {
+      "rows_all": 6373,
+      "label_mean_all": 1003.13,
+      "rows": 614,
+      "label_mean": 1004.76,
+      "runs": {
+       "transformer-medium-hand": 981.794,
+       "transformer-medium": 985.968,
+       "conv-small": 1003.1,
+       "transformer-small": 990.807,
+       "gbm-hand": 1000.61,
+       "gbm-context": 965.575,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 34413,
+      "label_mean_all": 975.802,
+      "rows": 3433,
+      "label_mean": 976.255,
+      "runs": {
+       "transformer-medium-hand": 948.308,
+       "transformer-medium": 950.755,
+       "conv-small": 987.847,
+       "transformer-small": 957.988,
+       "gbm-hand": 974.237,
+       "gbm-context": 965.548,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 43524,
+      "label_mean_all": 978.895,
+      "rows": 4308,
+      "label_mean": 971.861,
+      "runs": {
+       "transformer-medium-hand": 949.428,
+       "transformer-medium": 946.95,
+       "conv-small": 986.837,
+       "transformer-small": 953.039,
+       "gbm-hand": 975.219,
+       "gbm-context": 965.182,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 42013,
+      "label_mean_all": 943.029,
+      "rows": 4187,
+      "label_mean": 948.288,
+      "runs": {
+       "transformer-medium-hand": 920.963,
+       "transformer-medium": 911.104,
+       "conv-small": 955.81,
+       "transformer-small": 916.34,
+       "gbm-hand": 945.532,
+       "gbm-context": 960.078,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 23493,
+      "label_mean_all": 932.203,
+      "rows": 2312,
+      "label_mean": 931.056,
+      "runs": {
+       "transformer-medium-hand": 905.702,
+       "transformer-medium": 898.937,
+       "conv-small": 947.986,
+       "transformer-small": 903.815,
+       "gbm-hand": 929.452,
+       "gbm-context": 953.142,
+       "constant": 1462.39
+      }
+     }
+    ],
+    [
+     {
+      "rows_all": 70379,
+      "label_mean_all": 1427.47,
+      "rows": 7043,
+      "label_mean": 1436.55,
+      "runs": {
+       "transformer-medium-hand": 1429.73,
+       "transformer-medium": 1414.17,
+       "conv-small": 1417.93,
+       "transformer-small": 1420.42,
+       "gbm-hand": 1433.85,
+       "gbm-context": 1392.67,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 132665,
+      "label_mean_all": 1265.79,
+      "rows": 13324,
+      "label_mean": 1262.4,
+      "runs": {
+       "transformer-medium-hand": 1248.44,
+       "transformer-medium": 1234.93,
+       "conv-small": 1259.95,
+       "transformer-small": 1243.71,
+       "gbm-hand": 1262.72,
+       "gbm-context": 1392.84,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 196050,
+      "label_mean_all": 1400.59,
+      "rows": 19173,
+      "label_mean": 1397.61,
+      "runs": {
+       "transformer-medium-hand": 1390.45,
+       "transformer-medium": 1376.44,
+       "conv-small": 1396.3,
+       "transformer-small": 1387.47,
+       "gbm-hand": 1398.47,
+       "gbm-context": 1394.12,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 115376,
+      "label_mean_all": 1461.4,
+      "rows": 11716,
+      "label_mean": 1455.87,
+      "runs": {
+       "transformer-medium-hand": 1450.62,
+       "transformer-medium": 1434.05,
+       "conv-small": 1454.32,
+       "transformer-small": 1446.29,
+       "gbm-hand": 1457.65,
+       "gbm-context": 1401.15,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 66561,
+      "label_mean_all": 1495.28,
+      "rows": 6640,
+      "label_mean": 1499.85,
+      "runs": {
+       "transformer-medium-hand": 1489.57,
+       "transformer-medium": 1473.01,
+       "conv-small": 1504.05,
+       "transformer-small": 1487.66,
+       "gbm-hand": 1496.1,
+       "gbm-context": 1403.85,
+       "constant": 1462.39
+      }
+     }
+    ],
+    [
+     {
+      "rows_all": 54189,
+      "label_mean_all": 1710.85,
+      "rows": 5414,
+      "label_mean": 1707.58,
+      "runs": {
+       "transformer-medium-hand": 1718.71,
+       "transformer-medium": 1701.52,
+       "conv-small": 1696.08,
+       "transformer-small": 1712.18,
+       "gbm-hand": 1713.96,
+       "gbm-context": 1687.88,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 63322,
+      "label_mean_all": 1579.97,
+      "rows": 6346,
+      "label_mean": 1578.82,
+      "runs": {
+       "transformer-medium-hand": 1577.79,
+       "transformer-medium": 1554.75,
+       "conv-small": 1580.64,
+       "transformer-small": 1576.9,
+       "gbm-hand": 1577.19,
+       "gbm-context": 1687.96,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 111771,
+      "label_mean_all": 1681.64,
+      "rows": 11208,
+      "label_mean": 1682.04,
+      "runs": {
+       "transformer-medium-hand": 1686.28,
+       "transformer-medium": 1667.53,
+       "conv-small": 1682.02,
+       "transformer-small": 1686.36,
+       "gbm-hand": 1684.45,
+       "gbm-context": 1689.16,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 55989,
+      "label_mean_all": 1769.59,
+      "rows": 5633,
+      "label_mean": 1759.63,
+      "runs": {
+       "transformer-medium-hand": 1765.41,
+       "transformer-medium": 1746.36,
+       "conv-small": 1766.72,
+       "transformer-small": 1765.95,
+       "gbm-hand": 1763.97,
+       "gbm-context": 1695.99,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 26365,
+      "label_mean_all": 1779.94,
+      "rows": 2650,
+      "label_mean": 1780.24,
+      "runs": {
+       "transformer-medium-hand": 1782.04,
+       "transformer-medium": 1764.43,
+       "conv-small": 1795.32,
+       "transformer-small": 1780.37,
+       "gbm-hand": 1779.66,
+       "gbm-context": 1695.21,
+       "constant": 1462.39
+      }
+     }
+    ],
+    [
+     {
+      "rows_all": 17342,
+      "label_mean_all": 1842.63,
+      "rows": 1715,
+      "label_mean": 1842.25,
+      "runs": {
+       "transformer-medium-hand": 1856.96,
+       "transformer-medium": 1831.17,
+       "conv-small": 1832.77,
+       "transformer-small": 1842.56,
+       "gbm-hand": 1845.29,
+       "gbm-context": 1910.75,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 10970,
+      "label_mean_all": 1873.51,
+      "rows": 1116,
+      "label_mean": 1882.33,
+      "runs": {
+       "transformer-medium-hand": 1891.89,
+       "transformer-medium": 1863.04,
+       "conv-small": 1887.38,
+       "transformer-small": 1882.71,
+       "gbm-hand": 1877.39,
+       "gbm-context": 1910.76,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 21440,
+      "label_mean_all": 1928.34,
+      "rows": 2092,
+      "label_mean": 1926.72,
+      "runs": {
+       "transformer-medium-hand": 1941.21,
+       "transformer-medium": 1913.7,
+       "conv-small": 1933.76,
+       "transformer-small": 1937.26,
+       "gbm-hand": 1923.38,
+       "gbm-context": 1912.38,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 9916,
+      "label_mean_all": 2019.99,
+      "rows": 1011,
+      "label_mean": 2010.35,
+      "runs": {
+       "transformer-medium-hand": 2028.99,
+       "transformer-medium": 2005.73,
+       "conv-small": 2016.67,
+       "transformer-small": 2021.14,
+       "gbm-hand": 2016.57,
+       "gbm-context": 1919.1,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 3793,
+      "label_mean_all": 2010.47,
+      "rows": 369,
+      "label_mean": 2000.96,
+      "runs": {
+       "transformer-medium-hand": 2033.37,
+       "transformer-medium": 2018.6,
+       "conv-small": 2050.87,
+       "transformer-small": 2039.48,
+       "gbm-hand": 2021.68,
+       "gbm-context": 1930.87,
+       "constant": 1462.39
+      }
+     }
+    ],
+    [
+     {
+      "rows_all": 9944,
+      "label_mean_all": 1987.69,
+      "rows": 987,
+      "label_mean": 1980.15,
+      "runs": {
+       "transformer-medium-hand": 1996.07,
+       "transformer-medium": 1967.17,
+       "conv-small": 1968.81,
+       "transformer-small": 1981.48,
+       "gbm-hand": 1984.53,
+       "gbm-context": 2105.27,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 3068,
+      "label_mean_all": 2147.77,
+      "rows": 300,
+      "label_mean": 2186.73,
+      "runs": {
+       "transformer-medium-hand": 2150.14,
+       "transformer-medium": 2115.92,
+       "conv-small": 2100.4,
+       "transformer-small": 2115.95,
+       "gbm-hand": 2146.46,
+       "gbm-context": 2079.73,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 5706,
+      "label_mean_all": 2177.82,
+      "rows": 553,
+      "label_mean": 2201.44,
+      "runs": {
+       "transformer-medium-hand": 2182.67,
+       "transformer-medium": 2173.89,
+       "conv-small": 2171.74,
+       "transformer-small": 2183.18,
+       "gbm-hand": 2163.3,
+       "gbm-context": 2077.4,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 2567,
+      "label_mean_all": 2232.05,
+      "rows": 243,
+      "label_mean": 2202.12,
+      "runs": {
+       "transformer-medium-hand": 2210.93,
+       "transformer-medium": 2201.74,
+       "conv-small": 2199.51,
+       "transformer-small": 2218.0,
+       "gbm-hand": 2204.02,
+       "gbm-context": 2095.36,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 686,
+      "label_mean_all": 2202.72,
+      "rows": 63,
+      "label_mean": 2213.44,
+      "runs": {
+       "transformer-medium-hand": 2266.21,
+       "transformer-medium": 2261.81,
+       "conv-small": 2255.49,
+       "transformer-small": 2280.25,
+       "gbm-hand": 2209.75,
+       "gbm-context": 2127.02,
+       "constant": 1462.39
+      }
+     }
+    ]
+   ]
+  }
+ ],
+ "examples": {
+  "typical": [
+   {
+    "id": "lpK6U",
+    "fen": "5rk1/5ppp/p3p3/1p1pPP2/2r5/q1PQ1R2/P5PP/5R1K w - - 1 26",
+    "moves": {
+     "setup": "e7a3",
+     "line": "f5e6 f7e6 f3f8 a3f8 f1f8"
+    },
+    "label": 1292.0,
+    "predicted": {
+     "transformer-medium-hand": 1465.7,
+     "transformer-medium": 1386.43,
+     "conv-small": 1508.02,
+     "transformer-small": 1156.59,
+     "gbm-hand": 1444.44,
+     "gbm-context": 1687.88,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 76,
+     "plays": 1626,
+     "themes": "advantage discoveredAttack endgame kingsideAttack long"
+    }
+   },
+   {
+    "id": "3qm2z",
+    "fen": "4nk2/5pp1/1R1p3p/4pP2/4r3/2P3PP/3B3K/4N3 b - - 0 41",
+    "moves": {
+     "setup": "b7b6",
+     "line": "e4e2 e1g2 e2d2"
+    },
+    "label": 863.0,
+    "predicted": {
+     "transformer-medium-hand": 785.395,
+     "transformer-medium": 858.158,
+     "conv-small": 867.499,
+     "transformer-small": 958.945,
+     "gbm-hand": 876.308,
+     "gbm-context": 1392.67,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 90,
+     "plays": 240,
+     "themes": "advantage endgame fork short"
+    }
+   },
+   {
+    "id": "Fk5ur",
+    "fen": "5k2/p4Pp1/3p3r/1pp2Q2/3pb1P1/6K1/PPP2R2/4q3 w - - 0 36",
+    "moves": {
+     "setup": "c6e4",
+     "line": "f5c8 f8e7 f7f8q"
+    },
+    "label": 958.0,
+    "predicted": {
+     "transformer-medium-hand": 1297.44,
+     "transformer-medium": 1330.01,
+     "conv-small": 1343.29,
+     "transformer-small": 1536.32,
+     "gbm-hand": 1141.03,
+     "gbm-context": 1392.67,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 89,
+     "plays": 2290,
+     "themes": "advancedPawn endgame mate mateIn2 promotion short"
+    }
+   }
+  ],
+  "highest": [
+   {
+    "id": "6YVTW",
+    "fen": "7r/1p1k2p1/p1np4/2P1pP2/6Pb/P1PPB1N1/3Q1KBq/R4R2 b - - 0 22",
+    "moves": {
+     "setup": "f3g4",
+     "line": "h4g3 f2f3 e5e4 d3e4 c6e5 f3e2 h2g2 f1f2 g3f2 d2d6 d7c8 d6e6 e5d7 e3f2 g2g4 e2d2 g4g2 a1d1 g2f2"
+    },
+    "label": 2788.0,
+    "predicted": {
+     "transformer-medium-hand": 2727.88,
+     "transformer-medium": 2667.9,
+     "conv-small": 2614.8,
+     "transformer-small": 2763.28,
+     "gbm-hand": 2483.31,
+     "gbm-context": 2522.98,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 100,
+     "plays": 488,
+     "themes": "advantage deflection exposedKing interference middlegame pin veryLong"
+    }
+   },
+   {
+    "id": "S6lCn",
+    "fen": "8/6p1/p4p2/5K2/P3PB2/7p/6k1/8 b - - 7 70",
+    "moves": {
+     "setup": "h2f4",
+     "line": "g7g5 f4d6 g2f3 f5f6 g5g4 e4e5 h3h2"
+    },
+    "label": 2551.0,
+    "predicted": {
+     "transformer-medium-hand": 2705.26,
+     "transformer-medium": 2422.57,
+     "conv-small": 2338.01,
+     "transformer-small": 2453.05,
+     "gbm-hand": 2314.6,
+     "gbm-context": 1910.75,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 82,
+     "plays": 1373,
+     "themes": "advancedPawn bishopEndgame crushing endgame quietMove veryLong"
+    }
+   },
+   {
+    "id": "B0mj1",
+    "fen": "2r2r1k/1b1n2b1/p1qpQ2p/1p3pN1/3PnB2/2PB1R2/PP4PP/4R1K1 w - - 0 21",
+    "moves": {
+     "setup": "h7h6",
+     "line": "d3e4 f5e4 e6g6 h6g5 f3h3 h8g8 g6h7 g8f7 f4g5 c6d5 h3f3 f7e6 h7g7"
+    },
+    "label": 2651.0,
+    "predicted": {
+     "transformer-medium-hand": 2702.31,
+     "transformer-medium": 2659.05,
+     "conv-small": 2714.11,
+     "transformer-small": 2719.03,
+     "gbm-hand": 2570.97,
+     "gbm-context": 2213.98,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 86,
+     "plays": 102,
+     "themes": "advantage deflection exposedKing kingsideAttack middlegame pin sacrifice veryLong"
+    }
+   }
+  ],
+  "lowest": [
+   {
+    "id": "vzSSt",
+    "fen": "3r2k1/2p2pp1/8/4p3/1P6/P4PpP/6P1/3R3K b - - 0 37",
+    "moves": {
+     "setup": "a1d1",
+     "line": "d8d1"
+    },
+    "label": 426.0,
+    "predicted": {
+     "transformer-medium-hand": 412.237,
+     "transformer-medium": 410.271,
+     "conv-small": 445.669,
+     "transformer-small": 362.089,
+     "gbm-hand": 449.097,
+     "gbm-context": 965.575,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 95,
+     "plays": 119,
+     "themes": "endgame mate mateIn1 oneMove rookEndgame"
+    }
+   },
+   {
+    "id": "mNl0p",
+    "fen": "r6k/6pp/2p5/3p4/8/8/5PPP/R5K1 w - - 0 31",
+    "moves": {
+     "setup": "e8a8",
+     "line": "a1a8"
+    },
+    "label": 557.0,
+    "predicted": {
+     "transformer-medium-hand": 415.187,
+     "transformer-medium": 452.552,
+     "conv-small": 509.091,
+     "transformer-small": 398.471,
+     "gbm-hand": 469.522,
+     "gbm-context": 965.575,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 96,
+     "plays": 506,
+     "themes": "backRankMate endgame mate mateIn1 oneMove rookEndgame"
+    }
+   },
+   {
+    "id": "3ZiM6",
+    "fen": "2r3k1/5ppp/p7/5P2/8/8/1P4PP/2Q4K b - - 0 34",
+    "moves": {
+     "setup": "d2c1",
+     "line": "c8c1"
+    },
+    "label": 399.0,
+    "predicted": {
+     "transformer-medium-hand": 416.17,
+     "transformer-medium": 428.953,
+     "conv-small": 446.652,
+     "transformer-small": 373.889,
+     "gbm-hand": 442.213,
+     "gbm-context": 965.575,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 97,
+     "plays": 110,
+     "themes": "backRankMate endgame mate mateIn1 oneMove"
+    }
+   }
+  ],
+  "over": [
+   {
+    "id": "YCje9",
+    "fen": "8/8/8/5P2/8/1kpQ4/1p6/qR3K2 b - - 0 67",
+    "moves": {
+     "setup": "f4f5",
+     "line": "a1b1 d3b1 c3c2 b1b2 b3b2"
+    },
+    "label": 518.0,
+    "predicted": {
+     "transformer-medium-hand": 1868.49,
+     "transformer-medium": 2068.59,
+     "conv-small": 1573.81,
+     "transformer-small": 1874.39,
+     "gbm-hand": 1401.98,
+     "gbm-context": 1687.88,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 95,
+     "plays": 143,
+     "themes": "advancedPawn crushing endgame long sacrifice"
+    }
+   },
+   {
+    "id": "2bssV",
+    "fen": "8/3B2n1/8/p1k2bP1/P4P2/4K3/8/8 w - - 5 42",
+    "moves": {
+     "setup": "e6g7",
+     "line": "d7f5 g7f5 e3e4 f5d6 e4e5"
+    },
+    "label": 823.0,
+    "predicted": {
+     "transformer-medium-hand": 2152.66,
+     "transformer-medium": 1830.88,
+     "conv-small": 1508.79,
+     "transformer-small": 1655.36,
+     "gbm-hand": 1693.67,
+     "gbm-context": 1687.88,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 77,
+     "plays": 244,
+     "themes": "crushing endgame long"
+    }
+   },
+   {
+    "id": "wcXau",
+    "fen": "8/8/8/1p3k2/1p1P4/1P4K1/P7/8 b - - 2 57",
+    "moves": {
+     "setup": "h3g3",
+     "line": "f5e4 d4d5 e4d5 g3f4 d5d4 f4f5 d4c3 f5e4 c3b2"
+    },
+    "label": 1026.0,
+    "predicted": {
+     "transformer-medium-hand": 2278.03,
+     "transformer-medium": 1994.84,
+     "conv-small": 1583.15,
+     "transformer-small": 1941.0,
+     "gbm-hand": 1788.53,
+     "gbm-context": 2056.07,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 98,
+     "plays": 130,
+     "themes": "crushing endgame pawnEndgame veryLong"
+    }
+   }
+  ],
+  "under": [
+   {
+    "id": "pv1Iw",
+    "fen": "4r2k/6qp/5p2/pp4pQ/8/6P1/PBb2P1P/6K1 w - - 0 28",
+    "moves": {
+     "setup": "a8e8",
+     "line": "h5e8 g7f8 e8f8"
+    },
+    "label": 2277.0,
+    "predicted": {
+     "transformer-medium-hand": 631.51,
+     "transformer-medium": 646.26,
+     "conv-small": 839.967,
+     "transformer-small": 673.792,
+     "gbm-hand": 803.516,
+     "gbm-context": 1392.67,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 81,
+     "plays": 1166,
+     "themes": "endgame mate mateIn2 pin short"
+    }
+   },
+   {
+    "id": "CGJGr",
+    "fen": "8/3k4/p6p/1p2K1p1/1P4P1/P7/8/8 w - - 2 44",
+    "moves": {
+     "setup": "c6d7",
+     "line": "e5f5 d7c6 f5g6"
+    },
+    "label": 2454.0,
+    "predicted": {
+     "transformer-medium-hand": 946.162,
+     "transformer-medium": 1291.67,
+     "conv-small": 1696.29,
+     "transformer-small": 1036.38,
+     "gbm-hand": 1345.39,
+     "gbm-context": 1392.67,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 81,
+     "plays": 442,
+     "themes": "crushing endgame pawnEndgame short"
+    }
+   },
+   {
+    "id": "vcniw",
+    "fen": "8/5kp1/3p1p1p/1p1P4/4P3/3K1P2/1Pr4P/8 w - - 0 33",
+    "moves": {
+     "setup": "c8c2",
+     "line": "d3c2 f6f5 e4f5"
+    },
+    "label": 2466.0,
+    "predicted": {
+     "transformer-medium-hand": 1047.69,
+     "transformer-medium": 1088.98,
+     "conv-small": 1088.0,
+     "transformer-small": 964.845,
+     "gbm-hand": 1155.45,
+     "gbm-context": 1392.67,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 87,
+     "plays": 189,
+     "themes": "crushing endgame short"
+    }
+   }
+  ]
+ },
+ "closeness": {
+  "transformer-medium-hand": {
+   "median_error": 157.306,
+   "p90_error": 449.057,
+   "within": {
+    "100": {
+     "distance": 100.0,
+     "share": 0.341058
+    },
+    "200": {
+     "distance": 200.0,
+     "share": 0.59679
+    },
+    "300": {
+     "distance": 300.0,
+     "share": 0.762979
+    }
+   }
+  },
+  "transformer-medium": {
+   "median_error": 164.13,
+   "p90_error": 471.265,
+   "within": {
+    "100": {
+     "distance": 100.0,
+     "share": 0.328626
+    },
+    "200": {
+     "distance": 200.0,
+     "share": 0.57928
+    },
+    "300": {
+     "distance": 300.0,
+     "share": 0.745122
+    }
+   }
+  },
+  "conv-small": {
+   "median_error": 172.709,
+   "p90_error": 481.887,
+   "within": {
+    "100": {
+     "distance": 100.0,
+     "share": 0.309169
+    },
+    "200": {
+     "distance": 200.0,
+     "share": 0.560854
+    },
+    "300": {
+     "distance": 300.0,
+     "share": 0.732041
+    }
+   }
+  },
+  "transformer-small": {
+   "median_error": 175.341,
+   "p90_error": 484.798,
+   "within": {
+    "100": {
+     "distance": 100.0,
+     "share": 0.306038
+    },
+    "200": {
+     "distance": 200.0,
+     "share": 0.554095
+    },
+    "300": {
+     "distance": 300.0,
+     "share": 0.724624
+    }
+   }
+  },
+  "gbm-hand": {
+   "median_error": 183.797,
+   "p90_error": 488.867,
+   "within": {
+    "100": {
+     "distance": 100.0,
+     "share": 0.288911
+    },
+    "200": {
+     "distance": 200.0,
+     "share": 0.535465
+    },
+    "300": {
+     "distance": 300.0,
+     "share": 0.713473
+    }
+   }
+  },
+  "gbm-context": {
+   "median_error": 303.674,
+   "p90_error": 700.935,
+   "within": {
+    "100": {
+     "distance": 100.0,
+     "share": 0.171641
+    },
+    "200": {
+     "distance": 200.0,
+     "share": 0.329996
+    },
+    "300": {
+     "distance": 300.0,
+     "share": 0.494433
+    }
+   }
+  },
+  "constant": {
+   "median_error": 370.388,
+   "p90_error": 822.388,
+   "within": {
+    "100": {
+     "distance": 100.0,
+     "share": 0.135847
+    },
+    "200": {
+     "distance": 200.0,
+     "share": 0.270636
+    },
+    "300": {
+     "distance": 300.0,
+     "share": 0.401414
+    }
+   }
+  }
+ }
+}
