@@ -12,6 +12,7 @@ import numpy as np
 from ...data.splits import unit_hash
 from ...data.store import Dataset
 from ...encode.hand import GROUPS, group_of
+from ...encode.moves import moves_of, played
 from ...tasks import Task
 
 
@@ -23,7 +24,9 @@ class Prepared:
     marks on squares, and ``mark_channels`` where each of those marks sits among the dataset's own. ``y`` is
     one number a row, or for a task whose answer is a set one column a candidate, 1 where it is right.
     Where a row is a sequence of positions, ``step_names`` are the numbers of each position a network may
-    read and ``step_columns`` where each sits among the dataset's own.
+    read and ``step_columns`` where each sits among the dataset's own. For a task that predicts the move
+    played, ``moves`` are every row's candidates (``encode/moves.py``: its legal moves as pairs of squares,
+    one column a candidate, -1 where a row has fewer) and ``y`` is which of them was played.
     """
 
     task: Task
@@ -39,12 +42,14 @@ class Prepared:
     test: np.ndarray
     step_names: list[str] = field(default_factory=list)
     step_columns: list[int] = field(default_factory=list)
+    moves: np.ndarray | None = None
 
 
 @dataclass
 class Fitted:
     """What a learner said of the valid and the test rows, in the label's own unit: one number a row, or for
-    a task whose answer is a set one chance a candidate."""
+    a task whose answer is a set one chance a candidate. For a task that predicts the move played, one
+    chance for each of a row's candidates that add up to one, and no number (NaN) where it has none."""
 
     valid: np.ndarray
     test: np.ndarray
@@ -52,13 +57,16 @@ class Fitted:
     save: Callable[[Path], None] = lambda directory: None
 
 
-def labels(task: Task, dataset: Dataset) -> np.ndarray:
+def labels(task: Task, dataset: Dataset, moves: np.ndarray | None = None) -> np.ndarray:
     """What a task asks of every row of a dataset.
 
     A quantity or a chance is its column. The squares that are right are the squares that carry any of the
     marks the task names as its label. The tags that are right are those among the words of its column.
+    The move played is which of the row's candidates (``moves``) its column names.
     """
     rows, manifest = dataset.rows, dataset.manifest
+    if task.kind == "moves":
+        return played(moves, rows["fen"].to_list(), rows[task.label].to_list(), rows["key"].to_list())
     if task.kind == "squares":
         strangers = [name for name in task.label if name not in manifest["marks"]]
         if strangers:
@@ -105,6 +113,11 @@ def prepare(task: Task, dataset: Dataset, *, train_share: float = 1.0) -> Prepar
             f"{dataset.name} gives each position of a row {', '.join(known) or 'no numbers: its rows are not sequences'}, "
             f"and {task.name} asks for {', '.join(strangers)}"
         )
+    moves = None
+    if task.kind == "moves":
+        if dataset.steps is not None or "fen" not in rows.columns:
+            raise ValueError(f"{task.name} predicts the move played, and {dataset.name} does not hold one position a row")
+        moves = moves_of(dataset)
     train = dataset.split("train")
     if train_share != 1.0:
         if not 0.0 < train_share < 1.0:
@@ -113,7 +126,7 @@ def prepare(task: Task, dataset: Dataset, *, train_share: float = 1.0) -> Prepar
     return Prepared(
         task=task,
         dataset=dataset,
-        y=labels(task, dataset),
+        y=labels(task, dataset, moves),
         context=rows.select(list(task.context)).to_numpy().astype(np.float32),
         hand=rows.select(hand_names).to_numpy().astype(np.float32),
         hand_names=hand_names,
@@ -124,6 +137,7 @@ def prepare(task: Task, dataset: Dataset, *, train_share: float = 1.0) -> Prepar
         test=dataset.split("test"),
         step_names=step_names,
         step_columns=[known.index(name) for name in step_names],
+        moves=moves,
     )
 
 

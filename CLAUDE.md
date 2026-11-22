@@ -55,12 +55,14 @@ engine, a human-move model, board code or data.
    the pattern, then `lab paper <model>`, and commit the prose, `generated/`
    and `paper.pdf`.
 
-A new kind of input or output (a move, a label for each position of a game)
-is a new body or head in `nets/`, with a test, and a line in `docs/design.md`.
+A new kind of input or output (a label for each position of a game, a
+published body under a new head) is a new body or head in `nets/`, with a
+test, and a line in `docs/design.md`.
 
 A model whose answer is a set (a chance for each square, a chance for each
-tag) stops at step 5 for now: the closer look and a model's paper read one
-number a row (`docs/design.md`, "An answer that is a set"). Its card says so.
+tag) or a move (a chance for each legal move) stops at step 5 for now: the
+closer look and a model's paper read one number a row (`docs/design.md`, "An
+answer that is a set" and "An answer that is a move"). Its card says so.
 
 ## Running a model
 

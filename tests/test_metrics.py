@@ -115,3 +115,82 @@ def test_a_set_s_noise_draws_the_rows_scores_again():
     assert loss["gain"] > 0 and loss["low"] > 0
     same = paired("squares", "top1", y, good, good, groups, resamples=20)
     assert same["gain"] == 0 and not same["beyond_noise"]
+
+
+def test_a_row_whose_answer_is_a_move_is_scored_by_the_move_played():
+    nan = np.nan
+    p = np.array([[0.5, 0.3, 0.2, nan], [0.25, 0.25, 0.25, 0.25], [0.1, 0.6, 0.3, nan], [1.0, nan, nan, nan], [0.4, 0.4, 0.1, 0.1]])
+    y = np.array([0, 2, 2, 0, 3])
+    scores = metrics.row_scores("moves", y, p)
+    assert list(metrics.METRICS["moves"]) == ["top1", "top3", "log_loss"] and scores.shape == (5, 3)
+    # First right: the move played has the highest chance, or its share of a tie for it.
+    assert scores[:, 0].tolist() == [1.0, 0.25, 0.0, 1.0, 0.0]
+    # In the first three: with two given more and two tied for the place left, half.
+    assert scores[:, 1].tolist() == [1.0, 0.75, 1.0, 1.0, 0.5]
+    assert scores[:, 2] == pytest.approx([np.log(2), np.log(4), -np.log(0.3), 0.0, -np.log(0.1)])
+    assert not np.signbit(scores[3, 2])
+    found = metrics.score("moves", y, p)
+    assert found == pytest.approx({"top1": 0.45, "top3": 0.85, "log_loss": float(scores[:, 2].mean())})
+    assert metrics.mean_of_rows(scores) == pytest.approx(list(found.values()))
+    # A move played that was given no chance at all is a large loss and not an endless one.
+    assert metrics.row_scores("moves", np.array([1]), np.array([[1.0, 0.0]]))[0] == pytest.approx([0.0, 1.0, -np.log(1e-12)])
+    # The same chance for every legal move scores one over their number, and the log of it.
+    even = np.where(np.arange(8)[None, :] < np.array([[2], [5], [8]]), 1.0 / np.array([[2], [5], [8]]), nan)
+    assert metrics.row_scores("moves", np.array([1, 4, 0]), even)[:, [0, 2]] == pytest.approx(
+        np.array([[1 / 2, np.log(2)], [1 / 5, np.log(5)], [1 / 8, np.log(8)]])
+    )
+    assert "moves" in metrics.BY_ROW and set(metrics.SETS) < set(metrics.BY_ROW) and "moves" not in metrics.SETS
+
+
+def moves_said(rng, rows: int, most: int, sharpness: float):
+    """Rows of one to ``most`` candidates with chances drawn at a sharpness, and a move played by those chances."""
+    counts = rng.integers(1, most + 1, size=rows)
+    held = np.arange(most)[None, :] < counts[:, None]
+    logits = np.where(held, rng.normal(size=(rows, most)) * sharpness, -np.inf)
+    chances = np.exp(logits - logits.max(axis=1, keepdims=True))
+    chances /= chances.sum(axis=1, keepdims=True)
+    played = np.array([rng.choice(most, p=row) for row in chances])
+    return np.where(held, chances, np.nan), played
+
+
+def test_a_move_s_noise_draws_the_rows_scores_again():
+    rng = np.random.default_rng(2)
+    good, y = moves_said(rng, 1500, 9, 2.0)
+    poor = np.where(np.isnan(good), np.nan, 1.0 / (~np.isnan(good)).sum(axis=1, keepdims=True))
+    groups = rng.integers(0, 400, size=1500)
+    found = intervals("moves", y, good, groups, resamples=100)
+    assert list(found) == ["top1", "top3", "log_loss"]
+    assert found["top1"]["low"] < found["top1"]["value"] < found["top1"]["high"]
+    scores = metrics.row_scores("moves", y, good)
+    assert intervals_of_rows(list(metrics.METRICS["moves"]), scores, groups, resamples=100) == found
+    gain = paired("moves", "top1", y, good, poor, groups, resamples=100)
+    assert gain["gain"] > 0 and gain["beyond_noise"]
+    assert gain == paired_of_rows(scores[:, 0], metrics.row_scores("moves", y, poor)[:, 0], groups, lower_is_better=False, resamples=100)
+    assert paired("moves", "log_loss", y, good, poor, groups, resamples=50)["low"] > 0
+    assert not paired("moves", "top3", y, good, good, groups, resamples=20)["beyond_noise"]
+
+
+def test_one_temperature_fits_a_run_s_confidence_and_moves_no_move_past_another():
+    from chess_coach_models.evals.calibration import temper, temperature
+
+    rng = np.random.default_rng(0)
+    true, y = moves_said(rng, 4000, 12, 2.0)
+    loss = metrics.METRICS["moves"]["log_loss"]
+    for told in (0.4, 1.0, 2.5):
+        said = temper(true, told)
+        assert np.array_equal(np.isnan(said), np.isnan(true)) and np.nansum(said, axis=1) == pytest.approx(1.0)
+        # Flattened or sharpened, the moves keep their order, so the first two scores are what they were.
+        assert metrics.row_scores("moves", y, said)[:, :2] == pytest.approx(metrics.row_scores("moves", y, true)[:, :2])
+        found = temperature(said, y)
+        assert found == pytest.approx(1.0 / told, rel=0.05)
+        back = temper(said, found)
+        assert loss(y, back) <= loss(y, said) + 1e-12 and loss(y, back) == pytest.approx(loss(y, true), abs=2e-3)
+    assert temper(true, 1.0) == pytest.approx(true, nan_ok=True)
+    # Chances that are far too sure come back, and the answer stays between a twentieth and twenty.
+    sure = temper(true, 0.02)
+    assert 0.05 <= temperature(sure, y) <= 20.0
+    assert loss(y, temper(sure, temperature(sure, y))) < loss(y, sure)
+    # A move given no chance at all does not break it.
+    with_nothing = np.array([[1.0, 0.0, np.nan], [0.5, 0.5, 0.0]])
+    assert np.isfinite(temperature(with_nothing, np.array([1, 2])))
+    assert np.nansum(temper(with_nothing, 2.0), axis=1) == pytest.approx(1.0)

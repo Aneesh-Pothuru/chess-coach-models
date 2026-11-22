@@ -1,0 +1,6 @@
+# The first pass of human-move: its trees on a quarter of the training games, Maia-2's published
+# model read on the same valid and test rows, the networks, and the two studies (fewer games for
+# the medium transformer, and Maia-2 told one rating for everyone). gbm-hand comes first, since
+# every other run is compared with it. The game-positions dataset is built once, and each row's
+# legal moves are worked out beside it. About an hour on an A100.
+human-move: gbm-hand,constant,gbm-context,maia2,conv-small,transformer-small,transformer-medium,transformer-medium-hand,study:games,study:ratings

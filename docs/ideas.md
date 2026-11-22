@@ -20,6 +20,7 @@ model"). The order below is the order they are worth building in.
 | [position-evaluation](../models/position-evaluation/) | A position | An engine's evaluation, as the mover's chance of winning | Nothing by itself: a body the other models start from |
 | [practical-chances](../models/practical-chances/) | A position, ratings, clocks, the evaluation | The mover's expected score in the game | Which "equal" positions are hard to hold at the player's level, and which "lost" ones are still worth playing on |
 | [game-rating](../models/game-rating/) | A player's moves through one game, with the clocks and what each move lost | The player's rating | What one game looked like beside the player's usual level |
+| [human-move](../models/human-move/) | A position, ratings, clocks | For each legal move, the chance that it is the one the player makes | A check on the human-move model the app runs (Maia-2 is a run of the same leaderboard), and a human-move model that reads the clock |
 
 ## Next
 
@@ -75,6 +76,16 @@ model only where it beats the same run started from nothing there. What is left 
 those say whether it pays: more of the file, more epochs, a larger body, and a lower learning rate
 for the run that starts from it.
 
+### More published models on the human-move rows
+
+[`human-move`](../models/human-move/) scores Maia-2's published rapid model on the lab's own test
+rows beside the runs trained here. Its authors have since published
+[Maia-3](https://github.com/CSSLab/maia3) and recommend it for new work. It is the next run of
+that leaderboard: on the same rows it says whether the app should move to it. Two more things the
+model waits for: a closer look that reads a move, so two named runs can be set against each other
+by their paired difference and the test rows cut by the clock, and a larger build of the dataset,
+if the `games` study says more games pay.
+
 ### A published body under the lab's head
 
 The strongest entries in the FedCSIS 2025 puzzle-difficulty challenge started from a human-move
@@ -85,12 +96,11 @@ here.
 
 | Idea | Reads | Predicts | Needs in the harness |
 |---|---|---|---|
-| Human moves, trained here | A position and a rating | A chance for every legal move | A move head. Maia-2 is what the app runs, and Maia-3 is the model to benchmark against first |
 | Lines that work at a level | Opening lines at a rating band | How each line scores for people there, whatever the engine thinks | Nothing trained: a counted opening tree with intervals |
 | A player over time | One player's games in order | Whether a weakness is closing | Games grouped by player, from the Lichess API |
 
-The lab's first experiments tried two of these and the theme model in another form (a Maia-2
-benchmark, an opening tree, a theme tagger on Maia-2's activations):
+The lab's first experiments tried the first of these, and two of the models above in another form
+(an opening tree, a Maia-2 benchmark, a theme tagger on Maia-2's activations):
 [`history.md`](history.md) says what they found.
 
 ## Checks on the player's own scale

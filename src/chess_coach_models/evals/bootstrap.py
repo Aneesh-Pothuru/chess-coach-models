@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from .metrics import LOWER_IS_BETTER, METRICS, SETS, mean_of_rows, row_scores
+from .metrics import BY_ROW, LOWER_IS_BETTER, METRICS, mean_of_rows, row_scores
 
 
 # How many times the games are drawn again for a full run's intervals, and for a smoke run's.
@@ -45,7 +45,7 @@ def intervals(
     seed: int = 0,
 ) -> dict[str, dict[str, float]]:
     """Each metric with its 95% interval over resampled groups."""
-    if kind in SETS:
+    if kind in BY_ROW:
         return intervals_of_rows(list(METRICS[kind]), row_scores(kind, y, p), groups, resamples=resamples, seed=seed)
     y = np.asarray(y, dtype=np.float64)
     p = np.asarray(p, dtype=np.float64)
@@ -132,7 +132,7 @@ def paired(
 
     ``beyond_noise`` is true when the 95% interval of the gain leaves zero out.
     """
-    if kind in SETS:
+    if kind in BY_ROW:
         column = list(METRICS[kind]).index(metric)
         return paired_of_rows(
             row_scores(kind, y, p)[:, column],

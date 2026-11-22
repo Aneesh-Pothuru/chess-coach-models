@@ -71,7 +71,9 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
     record says what it took. For a task whose answer is a set the head gives a logit a candidate (a square,
     a tag), each trained as a yes or no of its own. Where a row is a sequence of positions the body reads
     every one of them with its own numbers and then the positions in order (``GameBody``): a batch is filled
-    out to its longest row, and the row's own numbers are what a row of one position has as context.
+    out to its longest row, and the row's own numbers are what a row of one position has as context. For a
+    task that predicts the move played the head gives a logit to every pair of squares (``MoveNet``), and
+    the loss is the cross-entropy of the move played among the moves the position allows.
     """
     import torch
     import torch.nn.functional as F
@@ -92,6 +94,7 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
     spread[spread == 0] = 1.0
     regression = task.kind == "regression"
     sets = task.kind in SETS
+    moves = task.kind == "moves"
     y_mean = float(prepared.y[prepared.train].mean()) if regression else 0.0
     y_spread = float(prepared.y[prepared.train].std()) if regression else 1.0
 
@@ -104,6 +107,10 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
     if sets:
         # One byte a candidate until a batch asks for it: a set over every row is large as fractions.
         target = torch.from_numpy(prepared.y).to(device)
+    elif moves:
+        # Every row's candidates as pairs of squares, and the pair that was played.
+        candidates = torch.from_numpy(prepared.moves).to(device)
+        target = torch.from_numpy(prepared.moves[np.arange(len(prepared.y)), prepared.y].astype(np.int64)).to(device)
     else:
         target = torch.from_numpy(((prepared.y - y_mean) / y_spread).astype(np.float32)).to(device)
     shifts = torch.tensor(prepared.mark_channels, device=device)
@@ -146,6 +153,7 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
         squares=task.kind == "squares",
         steps=None if sequence is None else len(prepared.step_names),
         most=longest,
+        moves=moves,
     )
     started = None
     if start is not None:
@@ -180,6 +188,21 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
     else:
         loss_of = F.mse_loss
 
+    def allowed(output: torch.Tensor, rows: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        """A logit for every pair of squares, with minus infinity where the pair is no move the row's position
+        allows, and where each of the row's candidates is among the pairs (one place past them for none)."""
+        places = candidates[rows].long()
+        places = torch.where(places < 0, output.shape[1], places)
+        legal = torch.zeros(len(rows), output.shape[1] + 1, dtype=torch.bool, device=output.device)
+        legal.scatter_(1, places, True)
+        return output.masked_fill(~legal[:, :-1], float("-inf")), places
+
+    def loss_on(rows: torch.Tensor) -> torch.Tensor:
+        output = model(*batch_of(rows)).float()
+        if moves:
+            return F.cross_entropy(allowed(output, rows)[0], target[rows])
+        return loss_of(output, target[rows].float())
+
     # Rows scored at a time: a row that is a sequence is as many boards as it has positions.
     at_once = 2048 if sequence is None else max(1, 2048 // longest)
 
@@ -189,9 +212,17 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
         index = torch.from_numpy(rows).to(device)
         with torch.no_grad(), torch.autocast(device_type="cuda" if on_gpu else "cpu", enabled=on_gpu):
             for start in range(0, len(index), at_once):
-                parts.append(model(*batch_of(index[start : start + at_once])).float())
+                chunk = index[start : start + at_once]
+                output = model(*batch_of(chunk)).float()
+                if moves:
+                    # A chance for each of a row's candidates, and no number where it has none.
+                    logits, places = allowed(output, chunk)
+                    chances = torch.cat([torch.softmax(logits, dim=1), output.new_full((len(chunk), 1), float("nan"))], dim=1)
+                    output = chances.gather(1, places)
+                parts.append(output)
         output = torch.cat(parts)
-        output = output * y_spread + y_mean if regression else torch.sigmoid(output)
+        if not moves:
+            output = output * y_spread + y_mean if regression else torch.sigmoid(output)
         return output.cpu().numpy().astype(np.float64)
 
     metric = METRICS[task.kind][task.primary]
@@ -209,7 +240,7 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
         for start in range(0, len(order), batch):
             rows = order[start : start + batch]
             with torch.autocast(device_type="cuda" if on_gpu else "cpu", enabled=on_gpu):
-                loss = loss_of(model(*batch_of(rows)).float(), target[rows].float())
+                loss = loss_on(rows)
             optimizer.zero_grad(set_to_none=True)
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)

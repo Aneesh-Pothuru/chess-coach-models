@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Any
 
 from .. import bands, paths, tasks
-from .metrics import LOWER_IS_BETTER, METRICS, SETS
+from .metrics import BY_ROW, LOWER_IS_BETTER, METRICS, SETS
 
 
 START = "<!-- LEADERBOARDS_START -->"
@@ -42,6 +42,7 @@ NAMES = {
     "calibration_error": "Calibration error",
     "ap": "Average precision",
     "top1": "First right",
+    "top3": "In the first three",
 }
 # What a set's candidates are called, by the kind of task.
 CANDIDATES = {"squares": "square", "tags": "tag"}
@@ -63,7 +64,20 @@ def learner_words(record: dict[str, Any]) -> str:
     if learner["kind"] == "constant":
         if record["task"]["kind"] in SETS:
             return f"each {CANDIDATES[record['task']['kind']]}'s share of the training rows, for every row"
+        if record["task"]["kind"] == "moves":
+            return "the same chance for every legal move"
         return "one number for every row"
+    if learner["kind"] == "maia2":
+        told = [learner["player"], learner["against"]]
+        # A run reads each rating from a column of the dataset, or is told one number for every row.
+        rated = (
+            ""
+            if all(isinstance(one, str) for one in told)
+            else f", told both players are rated {told[0]}"
+            if told[0] == told[1]
+            else f", told the ratings `{told[0]}` and `{told[1]}`"
+        )
+        return f"Maia-2 as published, its {learner.get('type', 'rapid')} model{rated}: nothing is fitted here"
     if learner["kind"] == "column":
         scale = float(learner.get("scale", 1.0))
         return f"the column `{learner['column']}`" + ("" if scale == 1.0 else f", times {scale:g}")
@@ -77,6 +91,9 @@ def learner_words(record: dict[str, Any]) -> str:
             return f"LightGBM on a row a square: the piece on it, {reads}{counted}{without}"
         if record["task"]["kind"] == "tags":
             return f"a LightGBM booster a tag, {reads}{without}"
+        if record["task"]["kind"] == "moves":
+            counted = " and what a person would count of the move" if learner["features"] == "hand" else ""
+            return f"LightGBM on a row a legal move: what moves and where, {reads}{counted}{without}"
         return f"LightGBM, {reads}{without}"
     reads = ", with hand features" if learner.get("features") == "hand" else ""
     start = f", started from `{learner['init']['model']}/{learner['init']['run']}`" if learner.get("init") else ""
@@ -255,6 +272,17 @@ def markdown(board: dict[str, Any]) -> str:
             if task["kind"] in SETS
             else []
         ),
+        *(
+            [
+                "- **A row's answer is a move:** which of the position's legal moves was played, and a run gives "
+                "each a chance that add up to one. First right is how often the move given the highest chance is "
+                "the one played, in the first three how often it is among the three highest, and log loss is the "
+                "mean of minus the log of the chance given to the move played. A promotion to any piece is one "
+                "move."
+            ]
+            if task["kind"] == "moves"
+            else []
+        ),
         f"- **Gain:** how much better than `{board['reference']}` on the same resampled test games, measured "
         "when the run was trained; **bold** when the interval leaves zero out.",
         "",
@@ -296,6 +324,9 @@ def markdown(board: dict[str, Any]) -> str:
                 f"Every {CANDIDATES[task['kind']]} of every test row, in ten equal groups by its predicted chance: "
                 "what the model said against how often it was right."
                 if task["kind"] in SETS
+                else "Every legal move of every test row, in ten equal groups by its predicted chance: what the model "
+                "said against how often the move was the one played."
+                if task["kind"] == "moves"
                 else "Test rows in ten equal groups by predicted chance: what the model said against what happened."
             ),
             "",
@@ -328,8 +359,14 @@ def markdown(board: dict[str, Any]) -> str:
             "## Studies",
             "",
             "A run here changes one thing in a run above, to say what that thing is worth. It is no candidate, so "
-            "it is not ranked with the runs above. Its paired difference from the run it changes, on the same "
-            "resampled test games, is in the closer look (`analysis.json`, under `pairs`).",
+            "it is not ranked with the runs above. "
+            + (
+                "The closer look does not read this kind of model yet, so a run here is set beside the run it "
+                "changes by their two intervals, with no paired difference."
+                if task["kind"] in BY_ROW
+                else "Its paired difference from the run it changes, on the same resampled test games, is in the "
+                "closer look (`analysis.json`, under `pairs`)."
+            ),
         ]
         for study, runs in board["studies"].items():
             lines += [

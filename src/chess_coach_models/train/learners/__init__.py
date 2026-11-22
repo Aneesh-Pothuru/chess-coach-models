@@ -1,9 +1,11 @@
-"""The learners a run can name: a constant, a column of the dataset, the rating formula, gradient-boosted trees, a network.
+"""The learners a run can name: a constant, a column of the dataset, the rating formula, gradient-boosted trees, a
+network, and Maia-2 as published.
 
 Each takes the prepared arrays of a task and returns its predictions on the
 valid and test rows in the label's own unit (a rating, a log of seconds, a
 chance), with what it took to get them. A learner's module is imported when a
-run names it, so the floor, a column and the formula need neither LightGBM nor Torch.
+run names it, so the floor, a column and the formula need neither LightGBM nor Torch,
+and only a run of Maia-2 needs its package.
 """
 
 from __future__ import annotations
@@ -22,6 +24,7 @@ LEARNERS = {
     "rating-formula": "rating_formula",
     "gbm": "gbm",
     "net": "net",
+    "maia2": "maia",
 }
 
 

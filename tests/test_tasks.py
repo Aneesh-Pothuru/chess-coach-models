@@ -110,6 +110,26 @@ def test_a_task_whose_answer_is_a_set_says_where_the_set_is(temp_lab):
     assert tasks.get("squares").kind in METRICS and tasks.Task(**{**tasks.get("tags").__dict__, "kind": "regression", "tags": None}).candidates == ()
 
 
+def test_a_task_that_predicts_the_move_played_names_its_column(temp_lab):
+    moves = {**TASK, "dataset": "game-positions", "kind": "moves", "primary": "top1", "label": "move", "context": ["mover_elo"]}
+    write_task(temp_lab.root, "moves", moves)
+    task = tasks.get("moves")
+    assert task.kind == "moves" and task.label == "move" and task.candidates == () and task.tags is None
+    assert not task.lower_is_better and task.better(0.5, 0.4)
+    assert list(METRICS["moves"]) == ["top1", "top3", "log_loss"]
+    for name, change, message in (
+        ("listed", {"label": ["move"]}, "label is one column"),
+        ("ranked", {"primary": "ap"}, "ranked by one of top1, top3, log_loss"),
+        ("tagged", {"tags": ["fork", "pin"]}, "names its tags when"),
+        ("scaled", {"scale": "log1p"}, "only a quantity has a scale"),
+    ):
+        write_task(temp_lab.root, name, {**moves, **change})
+        with pytest.raises(ValueError, match=message):
+            tasks.get(name)
+    write_task(temp_lab.root, "by-loss", {**moves, "primary": "log_loss"})
+    assert tasks.get("by-loss").lower_is_better
+
+
 def test_a_run_that_changes_another_names_a_run_the_model_has():
     for name in tasks.names():
         configs = {path.stem: yaml.safe_load(path.read_text(encoding="utf-8")) for path in paths.configs(name).glob("*.yaml")}

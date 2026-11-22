@@ -4,6 +4,9 @@ Every network is a body and a head. A body turns the 64 square tokens, their
 marks and the context numbers into one vector for the board and one for each
 square; the head turns the board's vector into the task's output, or for a
 task that asks about every square each square's vector into that square's.
+For a task that asks which move is played, a head of its own gives a logit to
+every pair of squares, the one a move leaves and the one it reaches
+(``MoveNet``).
 Two bodies ship, so a leaderboard can say what the architecture is worth on a
 task:
 
@@ -208,6 +211,29 @@ class BoardNet(nn.Module):
         return output.squeeze(-1) if self.single else output
 
 
+class MoveNet(nn.Module):
+    """A body under a head that gives every move a logit.
+
+    A move is the square it leaves and the square it reaches. Each square's vector is read twice, once as
+    a square to leave and once as a square to reach, and a move's logit is how well the first of its
+    squares, read the first way, matches the second read the second way. The output is one logit for each
+    of the 64 by 64 pairs, a pair at the first square's number times 64 plus the second's
+    (``encode/moves.py``). Which pairs are moves the position allows is the task's to say: the loss and
+    the chances are taken over those alone.
+    """
+
+    def __init__(self, body: nn.Module):
+        super().__init__()
+        self.body = body
+        self.leave = nn.Linear(body.square_dim, body.square_dim)
+        self.reach = nn.Linear(body.square_dim, body.square_dim)
+        self.scale = body.square_dim**-0.5
+
+    def forward(self, tokens: torch.Tensor, marks: torch.Tensor, context: torch.Tensor) -> torch.Tensor:
+        squares = self.body.squares(tokens, marks, context)
+        return (self.leave(squares) @ self.reach(squares).transpose(1, 2)).flatten(1) * self.scale
+
+
 # What the layers that read a game's positions in order are, unless a run's ``over`` block says otherwise.
 OVER = {"depth": 2, "heads": 4}
 
@@ -221,11 +247,13 @@ def build_net(
     squares: bool = False,
     steps: int | None = None,
     most: int = 0,
-) -> BoardNet:
+    moves: bool = False,
+) -> BoardNet | MoveNet:
     """The network a run's ``learner`` block describes, under the head its task asks for.
 
     With ``steps`` a row is a sequence of up to ``most`` positions, each with that many numbers of its own:
     the body named reads each position with them, under a ``GameBody`` that reads the row's ``context``.
+    With ``moves`` the head gives every pair of squares a logit (``MoveNet``).
     """
     shared = {
         "marks": marks,
@@ -241,12 +269,14 @@ def build_net(
     else:
         raise ValueError(f"no body named {config['body']!r}: the lab has transformer and conv")
     if steps is not None:
-        if squares:
-            raise ValueError("a row that is a sequence of positions has no head a square")
+        if squares or moves:
+            raise ValueError(f"a row that is a sequence of positions has no head a {'move' if moves else 'square'}")
         over = {**OVER, **config.get("over", {})}
         body = GameBody(
             body, context=context, depth=int(over["depth"]), heads=int(over["heads"]), dropout=shared["dropout"], most=most
         )
+    if moves:
+        return MoveNet(body)
     return BoardNet(body, outputs=outputs, squares=squares)
 
 

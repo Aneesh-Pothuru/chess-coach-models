@@ -13,7 +13,20 @@ from .base import Fitted, Prepared
 def fit(prepared: Prepared, config: dict[str, Any], *, log, device=None) -> Fitted:
     """One number for every row: the training rows' mean label, or their median when the task is scored by
     absolute error. For a task whose answer is a set, the same chances for every row: each candidate's share
-    of the training rows. What a model must beat to have learned anything."""
+    of the training rows. For a task that predicts the move played, the same chance for every move a
+    position allows. What a model must beat to have learned anything."""
+    if prepared.task.kind == "moves":
+
+        def evenly(rows: np.ndarray) -> np.ndarray:
+            held = prepared.moves[rows] >= 0
+            return np.where(held, 1.0 / held.sum(axis=1, keepdims=True), np.nan)
+
+        choices = (prepared.moves[prepared.train] >= 0).sum(axis=1)
+        return Fitted(
+            valid=evenly(prepared.valid),
+            test=evenly(prepared.test),
+            details={"legal_moves": {"mean": round(float(choices.mean()), 3), "most": int(choices.max())}},
+        )
     labels = prepared.y[prepared.train]
     if prepared.task.kind in SETS:
         shares = labels.mean(axis=0)

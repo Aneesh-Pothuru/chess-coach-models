@@ -102,6 +102,68 @@ def test_a_head_for_squares_gives_every_square_its_own_logit_and_learns(learner)
     assert ((said > 0) == (wanted > 0)).float().mean() > 0.95
 
 
+def allowed_pairs(rows: int = 5, each: int = 20):
+    """For each row, the pairs of squares its position allows and which of them was played."""
+    generator = torch.Generator().manual_seed(1)
+    pairs = torch.stack([torch.randperm(4096, generator=generator)[:each] for _ in range(rows)])
+    return pairs, torch.randint(0, each, (rows,), generator=generator)
+
+
+def over_allowed(logits, pairs):
+    """A row's logits at the pairs its position allows."""
+    return logits.gather(1, pairs)
+
+
+@pytest.mark.parametrize("learner", BODIES)
+def test_a_head_for_moves_gives_every_pair_of_squares_a_logit_and_learns(learner):
+    model = build_net(learner, marks=3, context=6, moves=True)
+    tokens, marks, context = batch()
+    assert model(tokens, marks, context).shape == (5, 64 * 64)
+    pairs, played = allowed_pairs()
+    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-2)
+    first = None
+    for _ in range(120):
+        loss = torch.nn.functional.cross_entropy(over_allowed(model(tokens, marks, context), pairs), played)
+        first = first if first is not None else loss.item()
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+    assert loss.item() < first / 4
+    said = over_allowed(model.eval()(tokens, marks, context), pairs).argmax(dim=1)
+    assert torch.equal(said, played)
+
+
+@pytest.mark.parametrize("learner", BODIES)
+def test_a_move_s_logit_reads_which_square_it_leaves_and_which_it_reaches(learner):
+    torch.manual_seed(5)
+    model = build_net(learner, marks=3, context=6, moves=True).eval()
+    tokens, marks, context = batch()
+    with torch.no_grad():
+        logits = model(tokens, marks, context).view(5, 64, 64)
+        squares = model.body.squares(tokens, marks, context)
+        by_hand = (model.leave(squares[0, 12]) * model.reach(squares[0, 28])).sum() * model.scale
+    assert torch.allclose(logits[0, 12, 28], by_hand, atol=1e-5)
+    assert not torch.allclose(logits, logits.transpose(1, 2), atol=1e-4)
+
+
+@pytest.mark.parametrize("learner", BODIES)
+def test_a_head_for_moves_keeps_the_body_a_saved_run_has(learner):
+    torch.manual_seed(7)
+    model = build_net(learner, marks=3, context=6)
+    torch.manual_seed(7)
+    mover = build_net(learner, marks=3, context=6, moves=True)
+    names = list(mover.state_dict())
+    assert [name for name in names if not name.startswith("body.")] == [
+        "leave.weight", "leave.bias", "reach.weight", "reach.bias"
+    ]
+    width = mover.body.square_dim
+    assert mover.leave.weight.shape == (width, width) and mover.reach.weight.shape == (width, width)
+    body = [name for name in model.state_dict() if name.startswith("body.")]
+    assert body == [name for name in names if name.startswith("body.")]
+    assert all(torch.equal(model.state_dict()[name], mover.state_dict()[name]) for name in body)
+    assert mover.load_state_dict({name: model.state_dict()[name] for name in body}, strict=False).unexpected_keys == []
+
+
 @pytest.mark.parametrize("learner", BODIES)
 def test_a_head_with_one_number_keeps_the_weights_a_saved_run_has(learner):
     torch.manual_seed(7)
@@ -198,6 +260,8 @@ def test_a_body_over_a_game_has_two_layers_unless_a_run_says_and_no_head_a_squar
     assert build_net({**BODIES[0], **OVER}, marks=3, context=2, steps=5, most=6).body.over.num_layers == 1
     with pytest.raises(ValueError, match="no head a square"):
         build_net(BODIES[0], marks=3, context=2, steps=5, most=6, squares=True)
+    with pytest.raises(ValueError, match="no head a move"):
+        build_net(BODIES[0], marks=3, context=2, steps=5, most=6, moves=True)
 
 
 def test_an_unknown_body_is_refused():

@@ -36,7 +36,8 @@ kept, so a test can stand a whole lab up in a temporary folder.
 The input is a position as a FEN, with what the task knows about it: the moves that led to it or
 follow from it, both ratings, both clocks, the time control. The output is one number, a quantity
 or a chance, or a chance for each of a fixed list of candidates: the squares of the board, or the
-tags a task names ("An answer that is a set", below). A row can also be a sequence of positions, a
+tags a task names ("An answer that is a set", below), or a chance for each move the position
+allows ("An answer that is a move", below). A row can also be a sequence of positions, a
 player's moves through a game, under one label ("A row that is a sequence", below). What changes
 from idea to idea is the label and what the model may read.
 
@@ -112,8 +113,10 @@ task can hide a group and a run can leave one out.
 A network is a body and a head (`nets/model.py`). The body turns tokens, marks and context into
 one vector for the board and one for each square. The head, two layers, turns the board's vector
 into the task's output: one number, or one logit for each of a task's tags. For a task that asks
-about every square it reads each square's own vector instead, and gives that square its logit. Two
-bodies ship so a leaderboard can say what the architecture is worth on each task.
+about every square it reads each square's own vector instead, and gives that square its logit. For
+a task that asks which move is played, a head of its own gives every pair of squares a logit
+("An answer that is a move", below). Two bodies ship so a leaderboard can say what the
+architecture is worth on each task.
 
 **The square transformer.** Each square is a token and every square attends to every other from
 the first layer, so a bishop on a1 and a king on h8 meet at once. Attention is told about the
@@ -287,6 +290,56 @@ a mean over rows is led by the common tags.
 What a set does not have yet: the closer look and a model's own paper read one number a row, so
 `lab analyse` refuses a model of these kinds, and it has a leaderboard and no paper. The lab's
 paper sets its runs on the one scale with every other model's, which needs only the records.
+
+## An answer that is a move
+
+A third kind of task, `moves`, asks which move was played. Its candidates are no fixed list: a
+row's are the moves its own position allows, so one row has twenty and the next has forty.
+[`human-move`](../models/human-move/) is the first such model, and it reads the rows
+`blunder-hazard` and `think-time` read.
+
+**A move is a pair of squares on the mover's board** (`encode/moves.py`): the square it leaves
+times 64 plus the square it reaches, with Black's board turned over as the networks see it. A
+promotion is one move whatever piece the pawn becomes, so a row's candidates are its position's
+legal moves as pairs, each once, in rising order. They are worked out from the rows' FENs and kept
+beside the dataset under its fingerprint, so a dataset that other models' records name is not
+built again. A row's label is the place of the played move among its candidates, and a row whose
+move its position does not allow is refused. A prediction is a chance for each candidate, adding
+up to one a row, with no number where a row has no candidate.
+
+- **The floor** gives every legal move the same chance.
+- **The trees** read a row a legal move (`move_rows` in `train/learners/gbm.py`): the position's
+  numbers, where the move leaves and lands, the piece that moves, what it takes, the marks on
+  both of its squares, and with the hand features what a person would count of the move
+  (`move_features`): who attacks each of its two squares and with what, whether the piece there
+  can be taken or is pinned, and whether the move gives check, castles, promotes or takes in
+  passing. One booster says the chance that a row's move is the one played, and a position's
+  chances are scaled to add up to one. A position is about thirty rows to them, so such a run
+  trains on a share of the training games, and the learner refuses a run that would read more
+  than eight million rows.
+- **A network** is a body under a head of its own (`MoveNet`): each square's vector is read
+  twice, once as a square to leave and once as a square to reach, and a move's logit is how well
+  the two match. The loss and the chances are taken over the pairs the position allows.
+- **A published model can be a run** (`train/learners/maia.py`). Maia-2 is read by its own
+  package on each row's position and the two ratings, its chances are taken over the moves the
+  position allows, and they are laid on the row's candidates, a promotion's four choices added.
+  Nothing is trained, and the run is scored on the same rows by the same scores as the others. A
+  test holds this reading to the package's own reading of one position at a time
+  (`tests/test_maia.py`), and a run marked `needs: maia2` waits where the package is not
+  installed.
+- **Calibration** is one temperature for every row's chances, fitted on the valid rows. It moves
+  no move past another, so it changes the log loss and the calibration and no ranking, and a
+  record keeps the log loss from before it.
+
+**The scores** are again means over the rows of what a row scores by itself. First right is
+whether the move given the highest chance is the one played, the move-matching accuracy the
+human-move papers report. In the first three is whether it is among the three given the highest.
+The log loss is minus the log of the chance given to the move played. Moves given the same chance
+share the credit.
+
+What a move does not have yet: the closer look and a model's own paper, as for a set. So two
+named runs, a network trained here and Maia-2, are set side by side by their own intervals, and
+their paired difference waits for the closer look.
 
 ## A row that is a sequence
 
@@ -479,13 +532,12 @@ so a smoke score can never be mistaken for a result.
 
 ## Growing it
 
-The harness has three heads (one number, a logit a tag, a logit a square) and a body over a
-sequence of positions. These are the next kinds of input and output, each a new body or head in
-`nets/` with a test and a paragraph here:
+The harness has four heads (one number, a logit a tag, a logit a square, a logit a move) and a
+body over a sequence of positions. These are the next kinds of input and output, each a new body
+or head in `nets/` with a test and a paragraph here:
 
 | Kind | What it opens |
 |---|---|
-| A move as output: a score for each legal move | Human-move prediction, the chance a given move is found |
 | A label for each position of a sequence, or for a part of it | A rating by phase, tilt, time trouble |
 | A published body under a new head | Maia's board understanding, fine-tuned for a coaching question |
 

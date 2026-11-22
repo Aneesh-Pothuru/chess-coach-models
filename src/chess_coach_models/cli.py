@@ -46,11 +46,16 @@ def build_data(dataset: str, *, smoke: bool, source: str | None, workers: int | 
 
 def waits_for(model: str, name: str, *, smoke: bool) -> str | None:
     """What a run waits for on this machine, or nothing when it can be trained now: one that starts from
-    another run's weights waits for that run, and one marked ``needs: cuda`` for a GPU."""
+    another run's weights waits for that run, one marked ``needs: cuda`` for a GPU, and one marked
+    ``needs: maia2`` for that package."""
     config = run_config(model, name, smoke=smoke)
     init = config.get("learner", {}).get("init")
     if init and not (paths.run_files(init["model"], init["run"], smoke=smoke) / "model.pt").exists():
         return f"starts from {init['model']}/{init['run']}, which has not been trained on this machine"
+    if config.get("needs") == "maia2":
+        from importlib.util import find_spec
+
+        return None if find_spec("maia2") else "needs the maia2 package, which is not installed here"
     if config.get("needs") != "cuda":
         return None
     import torch

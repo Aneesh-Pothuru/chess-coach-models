@@ -4,8 +4,9 @@ A model's task is ``models/<model>/task.yaml``, beside its card, its runs and
 its results, so a model is one folder and adding one touches no code:
 
     dataset: puzzles              the recipe in datasets/ whose rows it reads
-    kind: regression              a quantity (regression), a chance (binary), or a chance for each of a
-                                  fixed list of candidates: the squares of the board (squares), tags (tags)
+    kind: regression              a quantity (regression), a chance (binary), a chance for each of a
+                                  fixed list of candidates: the squares of the board (squares), tags
+                                  (tags), or a chance for each legal move of the position (moves)
     label: rating                 the column it predicts
     unit: Lichess puzzle rating points
     primary: rmse                 the metric its runs are ranked by
@@ -31,6 +32,15 @@ A task whose answer is a set says where the set is:
     kind: tags
     label: themes                       a column of words separated by spaces
     tags: [fork, pin]                   the words it predicts, each a candidate
+
+A task that predicts the move played names the column that holds it:
+
+    kind: moves
+    label: move                         the move played, as UCI
+
+Its dataset's rows are positions (``fen``), a row's candidates are the moves
+its position allows (``encode/moves.py``), and its runs are ranked by how
+often the move played is the one given the highest chance (``top1``).
 
 How a model's paper looks at its results is beside it, in ``analysis.yaml``
 (``evals/analysis.py``): changing that changes no run.
@@ -66,7 +76,8 @@ class Task:
     say either in plain units. ``marks`` and ``hand`` are the marks on squares
     and the groups of hand features (``encode/hand.py``) a learner may read,
     or ``None`` for all the dataset has. ``label`` is a column, or for a task
-    that predicts squares the marks whose squares are right; ``tags`` are the
+    that predicts squares the marks whose squares are right, and for one that
+    predicts moves the column of the move played; ``tags`` are the
     words a task that predicts tags gives a chance each. ``steps`` are the
     numbers of each position a network may read where a row is a sequence of
     positions, or ``None`` for all of them.
@@ -94,7 +105,8 @@ class Task:
     @property
     def candidates(self) -> tuple[str, ...]:
         """What a task whose answer is a set gives a chance each: the squares of the mover's board from its
-        near left corner, or its tags. A task with one number a row has none."""
+        near left corner, or its tags. A task with one number a row has none, and nor has one that predicts
+        moves: there a row's candidates are its own position's legal moves."""
         return SQUARES if self.kind == "squares" else self.tags or ()
 
     def better(self, a: float, b: float) -> bool:

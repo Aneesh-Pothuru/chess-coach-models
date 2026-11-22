@@ -26,11 +26,12 @@ results its runs wrote.
 | [think-time](models/think-time/) | A position, both ratings, both clocks | The seconds a player spends on the move |
 | [tactic-found](models/tactic-found/) | A position after the opponent's mistake, the tactic's line, both ratings, both clocks | The chance the player finds the tactic in the game |
 | [practical-chances](models/practical-chances/) | A position, both ratings, both clocks, the evaluation | The mover's expected score in the game |
+| [human-move](models/human-move/) | A position, both ratings, both clocks | For each legal move, the chance that it is the one the player makes, beside Maia-2 on the same positions |
 | [game-rating](models/game-rating/) | A player's moves through one game, in order: each position, the clocks, the seconds the move took and what it lost | The player's Lichess rating |
 | [position-evaluation](models/position-evaluation/) | A position | An engine's evaluation of it: the body the others can start from |
 | [coach-narrator](models/coach-narrator/) | Checked facts about a line of play | Two plain sentences that tell the line |
 
-The first ten share one harness. The coach narrator is a fine-tuned language model (Llama 3.2
+The first eleven share one harness. The coach narrator is a fine-tuned language model (Llama 3.2
 3B) with its own scripts; a retrain on open data is published as
 [a release](https://github.com/Aneesh-Pothuru/chess-coach-models/releases/tag/Llama-3.2-3B-coach-narrator-n6)
 (see its card).
@@ -131,8 +132,9 @@ code runs, never a result.
 - **A gain is paired.** Two runs are compared on the same resampled test games, and a gain counts
   only when its 95% interval leaves zero out.
 - **A baseline stands beside every network.** Gradient-boosted trees on a few dozen hand features
-  are trained for every model, and so is the floor: one number for every row, or for a model
-  whose answer is a set, the same chances for every row.
+  are trained for every model, and so is the floor: one number for every row, for a model whose
+  answer is a set the same chances for every row, and for one whose answer is a move the same
+  chance for every legal move.
 
 ## Running it
 

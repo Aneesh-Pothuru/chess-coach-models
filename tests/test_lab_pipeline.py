@@ -775,8 +775,9 @@ GAMES_RECIPE = {
 }
 
 
-def played_games(count: int) -> str:
-    """Rated rapid games of random legal moves, each move with an evaluation and a clock, as a month's file holds them."""
+def played_games(count: int, *, takes: bool = False) -> str:
+    """Rated rapid games of random legal moves, each move with an evaluation and a clock, as a month's file holds
+    them. With ``takes`` a player takes whenever something can be taken, so which move is played can be learned."""
     import random
 
     import chess
@@ -790,7 +791,8 @@ def played_games(count: int) -> str:
         for ply in range(rng.randint(14, 30)):
             if board.is_game_over():
                 break
-            move = rng.choice(sorted(board.legal_moves, key=lambda found: found.uci()))
+            legal = sorted(board.legal_moves, key=lambda found: found.uci())
+            move = rng.choice([found for found in legal if board.is_capture(found)] or legal if takes else legal)
             san = board.san(move)
             board.push(move)
             clocks[ply % 2] -= rng.randint(1, 20)
@@ -922,6 +924,348 @@ def test_a_network_over_a_game_does_not_start_from_another_run_yet(players_lab):
     runs.run(model, "conv-small", smoke=True, log=lambda _: None)
     with pytest.raises(ValueError, match="does not start from another run yet"):
         runs.run(model, "conv-small-started", smoke=True, log=lambda _: None)
+
+
+MOVE_CONFIGS = {
+    "gbm-hand": {"learner": {"kind": "gbm", "features": "hand", "rounds": 20, "min_child_samples": 5}},
+    "constant": {"learner": {"kind": "constant"}},
+    "gbm-context": {"learner": {"kind": "gbm", "features": "context", "rounds": 20, "min_child_samples": 5}},
+    "transformer-small": CONFIGS["transformer-small"],
+    "conv-small": {
+        "learner": {"kind": "net", "body": "conv", "dim": 8, "depth": 1},
+        "train": {"epochs": 2, "batch": 32, "lr": 0.01},
+    },
+}
+POSITIONS_RECIPE = {
+    "name": "game-positions-test",
+    "builder": "game_positions",
+    "month": "2026-10",
+    "speeds": ["rapid"],
+    "min_ply": 3,
+    "per_game": 10,
+    "games": 70,
+    "split": {"salt": "test", "valid": 0.2, "test": 0.2},
+}
+POSITIONS = "game-positions-test-smoke"
+MOVE_METRICS = ["top1", "top3", "log_loss"]
+
+
+@pytest.fixture()
+def positions_lab(temp_lab, tmp_path):
+    stream = tmp_path / "games.pgn.zst"
+    stream.write_bytes(zstandard.ZstdCompressor().compress(played_games(80, takes=True).encode()))
+    temp_lab.recipe("game-positions", POSITIONS_RECIPE)
+    temp_lab.model("human-move", MOVE_CONFIGS)
+    cli.build_data("game-positions", smoke=True, source=str(stream), workers=2, rebuild=False)
+    return temp_lab
+
+
+def read_move_predictions(model: str, name: str):
+    import numpy as np
+
+    frame = pl.read_parquet(paths.predictions(model, name, smoke=True))
+    assert frame.columns == ["key", "group", "band", "y", "p", *MOVE_METRICS]
+    return frame, frame["y"].to_numpy(), np.stack(frame["p"].to_list()).astype(np.float64)
+
+
+def moves_on_the_mover_s_board(fen: str) -> list[tuple[int, str]]:
+    """Each legal move of a position as its pair of squares on the mover's own board and its UCI there, worked
+    out with the board turned over for Black and none of the lab's own code."""
+    import chess
+
+    board = chess.Board(fen)
+    seen = board if board.turn else board.mirror()
+    return [(move.from_square * 64 + move.to_square, move.uci()) for move in seen.legal_moves]
+
+
+def test_a_model_that_predicts_the_move_played_runs_scores_and_ranks(positions_lab):
+    import chess
+    import numpy as np
+    import torch
+
+    from chess_coach_models.data import positions
+    from chess_coach_models.encode.moves import MOVE_HAND, MOVE_PLAIN
+
+    model, task = "human-move", tasks.get("human-move")
+    dataset = store.read_dataset(POSITIONS)
+    rows, test = dataset.rows, dataset.split("test")
+    assert task.kind == "moves" and task.label == "move" and task.candidates == () and task.primary == "top1"
+    fens = rows["fen"].gather(test).to_list()
+    pairs = [sorted({pair for pair, _ in moves_on_the_mover_s_board(fen)}) for fen in fens]
+    counts = np.array([len(found) for found in pairs])
+    records = {name: runs.run(model, name, smoke=True, log=lambda _: None) for name in MOVE_CONFIGS}
+    for name, record in records.items():
+        assert record["task"]["kind"] == "moves" and record["task"]["label"] == "move"
+        assert "candidates" not in record["task"] and list(record["test"]) == list(record["valid"]) == MOVE_METRICS
+        for metric in MOVE_METRICS:
+            entry = record["test"][metric]
+            assert entry["low"] <= entry["value"] <= entry["high"]
+        frame, y, p = read_move_predictions(model, name)
+        held = ~np.isnan(p)
+        # A chance for each move the row's position allows, from the row's start, and no number after them.
+        assert held.sum(axis=1).tolist() == counts.tolist()
+        assert all(held[row, :count].all() for row, count in enumerate(counts.tolist()))
+        assert np.allclose(np.nansum(p, axis=1), 1.0, atol=1e-5) and (p[held] > 0).all() and (y < counts).all()
+        for metric in MOVE_METRICS:
+            assert frame[metric].mean() == pytest.approx(record["test"][metric]["value"], rel=1e-9)
+        assert sum(band["rows"] for band in record["test_by_band"].values()) == record["test_rows"] == len(test)
+        assert sum(row["n"] for row in record["test_calibration"]) == int(counts.sum())
+        assert record["test_candidates"] == {"mean": pytest.approx(counts.mean()), "most": int(counts.max())}
+        calibration = record["calibration"]
+        assert calibration["fitted_on"] == "valid" and 0.05 <= calibration["temperature"] <= 20
+        assert set(calibration["log_loss_before"]) == {"valid", "test"} and "test_by_candidate" not in record
+    # One temperature moves no move past another: the same chance for every move stays what it was.
+    assert records["constant"]["calibration"]["log_loss_before"]["test"] == pytest.approx(
+        records["constant"]["test"]["log_loss"]["value"]
+    )
+    assert records["constant"]["test"]["top1"]["value"] == pytest.approx(float((1 / counts).mean()))
+    assert records["constant"]["learner"]["legal_moves"]["most"] >= int(counts.max())
+    # What was right is the move the row's game played: its place among the position's moves, in rising
+    # order of the two squares on the mover's own board.
+    frame, y, _ = read_move_predictions(model, "gbm-hand")
+    assert frame["key"].to_list() == rows["key"].gather(test).to_list()
+    for fen, uci, place, found in zip(fens, rows["move"].gather(test).to_list(), y.tolist(), pairs):
+        board = chess.Board(fen)
+        move = chess.Move.from_uci(uci)
+        flip = 0 if board.turn else 56
+        assert found[place] == (move.from_square ^ flip) * 64 + (move.to_square ^ flip)
+    # The trees read a row a legal move: the position's numbers, the move's own, the marks on both of its
+    # squares, and with the hand features what a person would count of the move.
+    marks = dataset.manifest["marks"]
+    plain = len(task.context) + len(MOVE_PLAIN) + 2 * len(marks)
+    position = [name for name in positions.HAND if name not in task.context]
+    assert records["gbm-context"]["learner"]["features"] == plain
+    assert records["gbm-hand"]["learner"]["features"] == plain + len(position) + len(MOVE_HAND)
+    allowed = {*task.context, *position, *MOVE_PLAIN, *MOVE_HAND, *(f"{side}_{name}" for side in ("from", "to") for name in marks)}
+    for name in ("gbm-context", "gbm-hand"):
+        assert {entry["feature"] for entry in records[name]["learner"]["leans_on"]} <= allowed
+    # A network gives every pair of squares a logit from the two squares' vectors.
+    for name in ("transformer-small", "conv-small"):
+        saved = torch.load(paths.run_files(model, name, smoke=True) / "model.pt", weights_only=False)
+        assert saved["marks"] == marks and saved["context"] == list(task.context)
+        dim = MOVE_CONFIGS[name]["learner"]["dim"]
+        assert saved["state"]["leave.weight"].shape == saved["state"]["reach.weight"].shape == (dim, dim)
+        assert not any(name.startswith("head.") for name in saved["state"])
+    # The players of these games take whenever they can, and a move that takes is a number the trees read.
+    scores = {name: record["test"]["top1"]["value"] for name, record in records.items()}
+    assert scores["gbm-hand"] > 2 * scores["constant"] and scores["gbm-context"] > 2 * scores["constant"]
+    board = leaderboard.build(model, smoke=True)
+    assert [entry["test"]["top1"]["value"] for entry in board["runs"]] == sorted(scores.values(), reverse=True)
+    gains = {entry["run"]: entry["gain"] for entry in board["runs"]}
+    assert gains["gbm-hand"] is None and gains["constant"]["gain"] == pytest.approx(scores["constant"] - scores["gbm-hand"])
+    assert all(gain["low"] <= gain["gain"] <= gain["high"] for gain in gains.values() if gain)
+    assert "candidates" not in board and board["calibration"]["run"] == board["runs"][0]["run"]
+    text = (paths.results(model, smoke=True) / "leaderboard.md").read_text()
+    assert "| Run | Learner | First right | In the first three | Log loss |" in text
+    assert "**A row's answer is a move:**" in text and "LightGBM on a row a legal move" in text
+    assert "the same chance for every legal move" in text and "Every legal move of every test row" in text
+    assert "not compared" not in text and "by itself" not in text
+    with pytest.raises(ValueError, match="the closer look reads one number a row"):
+        analysis.analyse(model, smoke=True)
+
+
+def test_trees_that_read_a_row_a_legal_move_ask_for_a_share_of_the_games(positions_lab, monkeypatch):
+    from chess_coach_models.encode.moves import moves_of
+    from chess_coach_models.train.learners import gbm
+
+    model = "human-move"
+    positions_lab.model(model, {**MOVE_CONFIGS, "gbm-hand-half": {**MOVE_CONFIGS["gbm-hand"], "data": {"train_share": 0.5}}})
+    dataset = store.read_dataset(POSITIONS)
+    train = dataset.split("train")
+    every = int((moves_of(dataset)[train] >= 0).sum())
+    monkeypatch.setattr(gbm, "MOST_MOVE_ROWS", int(0.9 * every))
+    with pytest.raises(ValueError, match="Give the run a share of the training games"):
+        runs.run(model, "gbm-hand", smoke=True, log=lambda _: None)
+    record = runs.run(model, "gbm-hand-half", smoke=True, log=lambda _: None)
+    assert record["train_rows"] < len(train) and record["test_rows"] == dataset.manifest["splits"]["test"]
+
+
+def a_stand_in_for_maia(monkeypatch):
+    """A package that stands where ``maia2`` would: its list of moves, its board turned to the mover's side, its
+    rating bands, and a network whose logits are a known function of the move, the two bands and the men on
+    the board. ``from_pretrained`` writes the files the published model's download leaves."""
+    import sys
+    import types
+    from importlib import metadata
+    from importlib.machinery import ModuleSpec
+
+    import chess
+    import torch
+
+    files = "abcdefgh"
+    known = [f"{chess.square_name(a)}{chess.square_name(b)}" for a in range(64) for b in range(64) if a != b]
+    # A promotion's four choices are four moves of the list, as they are in Maia-2's own.
+    known += [
+        f"{files[a]}7{files[b]}8{piece}" for a in range(8) for b in range(8) if abs(a - b) <= 1 for piece in "qrbn"
+    ]
+    places = {uci: place for place, uci in enumerate(known)}
+
+    def band(rating: int) -> int:
+        return (min(max(int(rating), 1000), 2099) - 1000) // 100
+
+    def logit(uci: str, men: int, own: int, other: int) -> float:
+        import math
+
+        place = places[uci]
+        return math.sin(place * (1 + band(own))) + math.cos(0.37 * place + band(other)) + math.sin(0.11 * place * men)
+
+    class Net(torch.nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.weight = torch.nn.Parameter(torch.zeros(1))
+
+        def forward(self, boards, own, other):
+            place = torch.arange(len(known), dtype=torch.float64)[None, :]
+            own, other, men = own[:, None].double(), other[:, None].double(), boards.double()
+            logits = torch.sin(place * (1 + own)) + torch.cos(0.37 * place + other) + torch.sin(0.11 * place * men)
+            return logits.float(), None, None
+
+    def prepare():
+        return places, "bands", {place: uci for uci, place in places.items()}
+
+    def preprocessing(fen, own, other, ratings, moves):
+        assert ratings == "bands" and moves is places
+        board = chess.Board(fen)
+        seen = board if board.turn else board.mirror()
+        legal = torch.zeros(len(known))
+        legal[[places[move.uci()] for move in seen.legal_moves]] = 1
+        return torch.tensor([float(len(seen.piece_map()))]), band(own), band(other), legal
+
+    def from_pretrained(type, device, save_root):
+        folder = Path(save_root)
+        folder.mkdir(parents=True, exist_ok=True)
+        (folder / "config.yaml").write_text("start_year: 2018\nstart_month: 5\nend_year: 2023\nend_month: 11\n")
+        (folder / f"{type}_model.pt").write_bytes(b"stand-in weights")
+        return Net()
+
+    package = types.ModuleType("maia2")
+    package.__spec__ = ModuleSpec("maia2", None)
+    package.model = types.ModuleType("maia2.model")
+    package.model.from_pretrained = from_pretrained
+    package.inference = types.ModuleType("maia2.inference")
+    package.inference.prepare, package.inference.preprocessing = prepare, preprocessing
+    for name, module in (("maia2", package), ("maia2.model", package.model), ("maia2.inference", package.inference)):
+        monkeypatch.setitem(sys.modules, name, module)
+    real = metadata.version
+    monkeypatch.setattr(metadata, "version", lambda name: "0.0+stand-in" if name == "maia2" else real(name))
+    return logit
+
+
+def chances_by_hand(logit, fen: str, own: int, other: int, most: int):
+    """What the stand-in's network gives each candidate of a position: its chances over the moves the position
+    allows, a promotion's four choices added, in rising order of the two squares on the mover's own board."""
+    import chess
+    import numpy as np
+
+    found = moves_on_the_mover_s_board(fen)
+    men = len(chess.Board(fen).piece_map())
+    logits = np.array([logit(uci, men, own, other) for _, uci in found])
+    chances = np.exp(logits - logits.max())
+    chances /= chances.sum()
+    by_pair: dict[int, float] = {}
+    for (pair, _), chance in zip(found, chances.tolist()):
+        by_pair[pair] = by_pair.get(pair, 0.0) + chance
+    out = np.full(most, np.nan)
+    out[: len(by_pair)] = [by_pair[pair] for pair in sorted(by_pair)]
+    return out
+
+
+MAIA_CONFIGS = {
+    **MOVE_CONFIGS,
+    "maia2": {
+        "needs": "maia2",
+        "learner": {"kind": "maia2", "type": "rapid", "player": "mover_elo", "against": "opponent_elo"},
+    },
+    "maia2-one-rating": {"base": "maia2", "study": "ratings", "learner": {"player": 1500, "against": 1500}},
+}
+
+
+def test_the_published_model_is_a_run_scored_on_the_same_rows_with_nothing_fitted_but_a_temperature(
+    positions_lab, monkeypatch
+):
+    import numpy as np
+
+    logit = a_stand_in_for_maia(monkeypatch)
+    model = "human-move"
+    positions_lab.model(model, MAIA_CONFIGS)
+    assert cli.waits_for(model, "maia2", smoke=True) is None
+    dataset = store.read_dataset(POSITIONS)
+    rows, test = dataset.rows, dataset.split("test")
+    told = {
+        "maia2": (rows["mover_elo"].gather(test).to_list(), rows["opponent_elo"].gather(test).to_list()),
+        "maia2-one-rating": ([1500] * len(test), [1500] * len(test)),
+    }
+    fens = rows["fen"].gather(test).to_list()
+    reference = runs.run(model, "gbm-hand", smoke=True, log=lambda _: None)
+    raw = {}
+    for name, (own, other) in told.items():
+        record = runs.run(model, name, smoke=True, log=lambda _: None)
+        frame, y, p = read_move_predictions(model, name)
+        by_hand = np.stack([chances_by_hand(logit, *row, p.shape[1]) for row in zip(fens, own, other)])
+        raw[name] = by_hand
+        # The record keeps the log loss of the published model's own chances, before the one temperature.
+        before = record["calibration"]["log_loss_before"]["test"]
+        assert before == pytest.approx(float(np.mean(-np.log(by_hand[np.arange(len(y)), y]))), rel=1e-6)
+        heat = record["calibration"]["temperature"]
+        assert np.allclose(p, calibration.temper(by_hand, heat), atol=1e-5, equal_nan=True)
+        # The temperature moves no move past another.
+        assert record["test"]["top1"]["value"] == pytest.approx(float(runs.row_scores("moves", y, by_hand)[:, 0].mean()))
+        assert record["learner"]["published"] == {
+            "package": "maia2 0.0+stand-in",
+            "model": "rapid",
+            "weights_sha256": hashlib.sha256(b"stand-in weights").hexdigest(),
+            "games_from": "2018-05",
+            "games_to": "2023-11",
+        }
+        assert record["learner"]["parameters"] == 1 and record["learner"]["device"] == "cpu"
+        assert record["gain"]["reference"] == "gbm-hand" and record["test_rows"] == reference["test_rows"]
+    assert json.loads((paths.results(model, smoke=True) / "maia2.json").read_text())["learner"]["reads"] == ["mover_elo", "opponent_elo"]
+    assert json.loads((paths.results(model, smoke=True) / "maia2-one-rating.json").read_text())["learner"]["reads"] == [1500, 1500]
+    # The two ratings are read: told that everyone is rated 1500, the model says something else.
+    assert not np.allclose(raw["maia2"], raw["maia2-one-rating"], atol=1e-3, equal_nan=True)
+    board = leaderboard.build(model, smoke=True)
+    assert {entry["run"] for entry in board["runs"]} == {"gbm-hand", "maia2"}
+    assert [entry["run"] for entry in board["studies"]["ratings"]] == ["maia2-one-rating"]
+    assert board["studies"]["ratings"][0]["base"] == "maia2"
+    text = (paths.results(model, smoke=True) / "leaderboard.md").read_text()
+    assert "Maia-2 as published, its rapid model: nothing is fitted here" in text
+    assert "told both players are rated 1500" not in text.split("## Studies")[0]
+    assert "by their two intervals, with no paired difference" in text and "under `pairs`" not in text
+
+
+def test_a_run_of_the_published_model_waits_for_its_package(positions_lab, monkeypatch):
+    import importlib.util
+
+    positions_lab.model("human-move", MAIA_CONFIGS)
+    with monkeypatch.context() as patch:
+        patch.setattr(importlib.util, "find_spec", lambda name: None)
+        assert cli.waits_for("human-move", "maia2", smoke=True) == "needs the maia2 package, which is not installed here"
+        assert cli.waits_for("human-move", "gbm-hand", smoke=True) is None
+
+
+def test_the_published_model_s_four_promotions_are_one_candidate_and_black_is_read_from_its_own_side(temp_lab, monkeypatch):
+    import numpy as np
+
+    from chess_coach_models.encode.moves import legal_pairs
+    from chess_coach_models.train.learners import maia
+
+    logit = a_stand_in_for_maia(monkeypatch)
+    # A pawn a step from promoting, and the same position with the colours changed and Black to move.
+    fens = ["8/P6k/8/8/8/8/8/K7 w - - 0 1", "8/6k1/8/8/8/8/8/K7 w - - 0 1", "k7/8/8/8/8/8/p6K/8 b - - 0 1"]
+    candidates = legal_pairs(fens)
+    net = maia.published("rapid", "cpu")
+    said = maia.read(net, fens, [1200, 1900, 1200], [1750, 1100, 1750], candidates)
+    by_hand = np.stack([chances_by_hand(logit, *row, candidates.shape[1]) for row in zip(fens, [1200, 1900, 1200], [1750, 1100, 1750])])
+    assert np.allclose(said, by_hand, atol=1e-9, equal_nan=True)
+    assert np.allclose(said[0], said[2], atol=1e-12, equal_nan=True)
+    # The pawn's step to the last rank is one candidate, the pair a7 to a8, holding all four choices' chances.
+    promotion = candidates[0].tolist().index(48 * 64 + 56)
+    four = np.array([logit(f"a7a8{piece}", 3, 1200, 1750) for piece in "qrbn"])
+    others = np.array([logit(uci, 3, 1200, 1750) for _, uci in moves_on_the_mover_s_board(fens[0])])
+    assert said[0, promotion] == pytest.approx(float(np.exp(four).sum() / np.exp(others).sum()))
+    # A row whose candidates are another position's is refused.
+    with pytest.raises(ValueError, match="are not the position's candidates"):
+        maia.read(net, fens[:1], [1200], [1750], candidates[1:2])
 
 
 def test_platt_scaling_recovers_a_known_distortion():

@@ -4,7 +4,10 @@ For a task with one number a row the trees read one row a position. For a task
 whose answer is a set they still give one chance at a time: a booster a tag,
 each on the position's numbers, or one booster that reads a row a square, the
 position's numbers beside what stands on the square and, with the hand
-features, what a person would count there (``encode/squares.py``).
+features, what a person would count there (``encode/squares.py``). For a task
+that predicts the move played, one booster reads a row a legal move
+(``encode/moves.py``) and says the chance that it is the one played, and a
+position's chances are scaled to add up to one.
 """
 
 from __future__ import annotations
@@ -14,6 +17,7 @@ from typing import Any
 
 import numpy as np
 
+from ...encode import moves as move_code
 from ...encode.squares import SQUARE_HAND, SQUARE_PLAIN, plain_of, squares_of
 from .base import Fitted, Prepared, features
 
@@ -26,6 +30,9 @@ FIXED = {"subsample": 0.8, "subsample_freq": 1, "colsample_bytree": 0.8, "lambda
 MOST_SQUARE_ROWS = 16_000_000
 # Positions scored at a time by a booster that reads a row a square.
 SQUARES_AT_ONCE = 20_000
+# The same two for a booster that reads a row a legal move: a position is about thirty of those.
+MOST_MOVE_ROWS = 8_000_000
+MOVES_AT_ONCE = 20_000
 
 
 def _params(objective: str, metric: str, learner: dict[str, Any], seed: int) -> dict[str, Any]:
@@ -77,6 +84,8 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device=None) -> Fitt
         return _fit_tags(prepared, config, log=log)
     if task.kind == "squares":
         return _fit_squares(prepared, config, log=log)
+    if task.kind == "moves":
+        return _fit_moves(prepared, config, log=log)
     x, names = features(prepared, learner["features"], learner.get("without", ()))
     if task.kind == "binary":
         objective, metric = "binary", "binary_logloss"
@@ -195,6 +204,99 @@ def _fit_squares(prepared: Prepared, config: dict[str, Any], *, log) -> Fitted:
 
     return Fitted(
         valid=booster.predict(x_valid, num_iteration=booster.best_iteration).reshape(-1, 64),
+        test=predict(prepared.test),
+        details={
+            "features": len(names),
+            "trees": int(booster.best_iteration),
+            "fit_seconds": round(time.time() - started, 1),
+            "leans_on": _leans_on(names, booster.feature_importance(importance_type="gain")),
+        },
+        save=lambda directory: booster.save_model(str(directory / "model.txt")) and None,
+    )
+
+
+def move_rows(prepared: Prepared, index: np.ndarray, which: str, without=()) -> tuple[np.ndarray, list[str], np.ndarray]:
+    """One row a legal move for the positions ``index`` names, a position's moves after each other in the
+    order of its candidates: the position's own numbers (``features``), then where the move leaves and
+    lands, what moves and what it lands on, and the marks the task lets a learner read on both squares.
+    With ``hand``, what a person would count on the two squares and of the move. The third part says
+    which of the positions each row belongs to."""
+    numbers, names = features(prepared, which, without)
+    dataset = prepared.dataset
+    pairs = prepared.moves[index]
+    held = pairs >= 0
+    position = np.broadcast_to(np.arange(len(index))[:, None], pairs.shape)[held]
+    flat = pairs[held].astype(np.int64)
+    boards = index[position]
+    shifts = np.array(prepared.mark_channels, dtype=np.uint16)
+    parts = [
+        numbers[boards],
+        move_code.plain_of(dataset.tokens[boards], flat),
+        ((dataset.marks[boards, flat // 64][:, None] >> shifts) & 1).astype(np.float32),
+        ((dataset.marks[boards, flat % 64][:, None] >> shifts) & 1).astype(np.float32),
+    ]
+    names = (
+        names
+        + list(move_code.MOVE_PLAIN)
+        + [f"from_{name}" for name in prepared.mark_names]
+        + [f"to_{name}" for name in prepared.mark_names]
+    )
+    if which == "hand":
+        counted = move_code.move_features_of(dataset.rows["fen"].gather(index).to_list())
+        if len(counted) != len(flat):
+            raise ValueError(f"{dataset.name}: the moves counted by hand are not the candidates of its rows")
+        parts.append(counted)
+        names += list(move_code.MOVE_HAND)
+    return np.concatenate(parts, axis=1), names, position
+
+
+def _fit_moves(prepared: Prepared, config: dict[str, Any], *, log) -> Fitted:
+    """One booster that reads a row a legal move and says the chance that it is the move played. A position's
+    chances are then scaled to add up to one."""
+    import lightgbm as lgb
+
+    learner = config["learner"]
+    which, without = learner["features"], learner.get("without", ())
+    rows = int((prepared.moves[prepared.train] >= 0).sum())
+    if rows > MOST_MOVE_ROWS:
+        raise ValueError(
+            f"{prepared.task.name}: trees that read a row a legal move would train on {rows:,} rows. "
+            f"Give the run a share of the training games (`data: {{train_share: ...}}`) that keeps them under "
+            f"{MOST_MOVE_ROWS:,}"
+        )
+
+    def wanted(index: np.ndarray) -> np.ndarray:
+        """1 on the row of the move played in each position, in the rows' own order."""
+        held = prepared.moves[index] >= 0
+        right = np.zeros(held.shape, dtype=np.float32)
+        right[np.arange(len(index)), prepared.y[index]] = 1.0
+        return right[held]
+
+    started = time.time()
+    x_train, names, _ = move_rows(prepared, prepared.train, which, without)
+    x_valid, _, _ = move_rows(prepared, prepared.valid, which, without)
+    log(f"gbm: {len(x_train):,} train and {len(x_valid):,} valid rows, one a legal move, of {len(names)} numbers")
+    train = lgb.Dataset(x_train, wanted(prepared.train), feature_name=names)
+    valid = lgb.Dataset(x_valid, wanted(prepared.valid), reference=train)
+    booster = _boost(_params("binary", "binary_logloss", learner, int(config.get("seed", 0))), train, valid, learner)
+
+    def chances(index: np.ndarray, x: np.ndarray) -> np.ndarray:
+        """What the booster says of each move of the positions, scaled to add up to one a position."""
+        held = prepared.moves[index] >= 0
+        said = np.full(held.shape, np.nan)
+        # A booster's chance is never nothing, so a position's always add up to something.
+        said[held] = np.clip(booster.predict(x, num_iteration=booster.best_iteration), 1e-12, None)
+        return said / np.nansum(said, axis=1, keepdims=True)
+
+    def predict(index: np.ndarray) -> np.ndarray:
+        parts = []
+        for start in range(0, len(index), MOVES_AT_ONCE):
+            chunk = index[start : start + MOVES_AT_ONCE]
+            parts.append(chances(chunk, move_rows(prepared, chunk, which, without)[0]))
+        return np.concatenate(parts) if parts else np.zeros((0, prepared.moves.shape[1]))
+
+    return Fitted(
+        valid=chances(prepared.valid, x_valid),
         test=predict(prepared.test),
         details={
             "features": len(names),

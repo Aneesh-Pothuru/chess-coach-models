@@ -31,6 +31,7 @@ METRIC_WORDS = {
     "spearman": "rank correlation",
     "ap": "average precision",
     "top1": "first right",
+    "top3": "in the first three",
 }
 
 

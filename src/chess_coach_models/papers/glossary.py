@@ -21,6 +21,7 @@ COLUMNS: dict[str, tuple[str, str]] = {
     "themes": ("themes", "The themes Lichess tags the puzzle with."),
     "speed": ("speed of the game", "The game's speed class on Lichess: blitz, rapid or classical."),
     "found": ("found", "Whether the move played was the first move of the tactic."),
+    "move": ("the move played", "The move the player made in the position, among the moves the position allows."),
     "blunder": ("blunder", "Whether the move played lost more than the blunder bar of win probability."),
     "spent": ("seconds spent", "The seconds the move took: the mover's clock before it, less the clock after it, plus the increment."),
     "log_spent": ("log seconds spent", "The seconds the move took, as log(1 + seconds)."),

@@ -34,6 +34,7 @@ RUN_COLOURS = {
     "gbm-context": "labGreen",
     "puzzle-rating": "labViolet",
     "elo-gap": "labViolet",
+    "maia2": "labViolet",
     "engine-curve": "labSecondary",
     "constant": "labGray",
 }
@@ -47,6 +48,7 @@ RUN_MARKS = {
     "gbm-context": "square*",
     "puzzle-rating": "triangle*",
     "elo-gap": "triangle*",
+    "maia2": "triangle*",
     "engine-curve": "diamond*",
     "constant": "*",
 }

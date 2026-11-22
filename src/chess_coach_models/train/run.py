@@ -41,8 +41,19 @@ from .. import paths, tasks
 from ..data import recipe
 from ..data.store import code_commit, read_dataset
 from ..evals.bootstrap import RESAMPLES, SMOKE_RESAMPLES, intervals, intervals_of_rows, paired, paired_of_rows
-from ..evals.calibration import apply_platt, platt
-from ..evals.metrics import LOWER_IS_BETTER, METRICS, SETS, calibration_table, mean_of_rows, pr_auc, roc_auc, row_scores, score
+from ..evals.calibration import apply_platt, platt, temper, temperature
+from ..evals.metrics import (
+    BY_ROW,
+    LOWER_IS_BETTER,
+    METRICS,
+    SETS,
+    calibration_table,
+    mean_of_rows,
+    pr_auc,
+    roc_auc,
+    row_scores,
+    score,
+)
 from . import learners
 from .record import machine, saved_weights, software
 
@@ -122,13 +133,13 @@ def gain_over_reference(
     same_rows = len(reference) == len(frame) and bool((reference["key"] == frame["key"]).all())
     if record["dataset"].get("fingerprint") != fingerprint or not same_rows:
         return None
-    sets = task.kind in SETS
-    # A set's scores are means of what each row scored, and a run's predictions keep that row by row.
-    y, p_reference = frame["y"].to_numpy(), reference[task.primary if sets else "p"].to_numpy()
-    value = float(mean_of_rows(p_reference) if sets else METRICS[task.kind][task.primary](y, p_reference))
+    by_row = task.kind in BY_ROW
+    # Where a score is the mean of what each row scored, a run's predictions keep that row by row.
+    y, p_reference = frame["y"].to_numpy(), reference[task.primary if by_row else "p"].to_numpy()
+    value = float(mean_of_rows(p_reference) if by_row else METRICS[task.kind][task.primary](y, p_reference))
     if abs(value - record["test"][task.primary]["value"]) > 1e-9 * max(1.0, abs(value)):
         return None
-    if sets:
+    if by_row:
         gain = paired_of_rows(
             frame[task.primary].to_numpy(),
             p_reference,
@@ -192,12 +203,28 @@ def run(
     valid_p, test_p = fitted.valid, fitted.test
     y_valid, y_test = prepared.y[prepared.valid], prepared.y[prepared.test]
     sets = task.kind in SETS
+    moves = task.kind == "moves"
+    by_row = task.kind in BY_ROW
     calibration = None
     if task.kind == "binary" or sets:
         # For a set, one line through every candidate's chance: it moves no candidate past another in a row.
         slope, intercept = platt(valid_p.reshape(-1), y_valid.reshape(-1))
         valid_p, test_p = apply_platt(valid_p, slope, intercept), apply_platt(test_p, slope, intercept)
         calibration = {"platt_slope": slope, "platt_intercept": intercept, "fitted_on": "valid"}
+    elif moves:
+        # One temperature for every row's chances: it moves no move past another, so only the log loss and
+        # the calibration can change. What the log loss was before it stays in the record.
+        for split, said, rows in (("valid", valid_p, prepared.valid), ("test", test_p, prepared.test)):
+            held = prepared.moves[rows] >= 0
+            if said.shape != held.shape or not np.array_equal(~np.isnan(said), held):
+                raise ValueError(f"{model}/{name}: its {split} chances are not one for each legal move of each row")
+            if not np.allclose(np.nansum(said, axis=1), 1.0, atol=1e-4):
+                raise ValueError(f"{model}/{name}: a {split} row's chances do not add up to one")
+        log_loss = METRICS[task.kind]["log_loss"]
+        before = {"valid": log_loss(y_valid, valid_p), "test": log_loss(y_test, test_p)}
+        heat = temperature(valid_p, y_valid)
+        valid_p, test_p = temper(valid_p, heat), temper(test_p, heat)
+        calibration = {"temperature": heat, "fitted_on": "valid", "log_loss_before": before}
 
     rows = dataset.rows
     groups = rows[dataset.manifest["group"]].to_numpy()
@@ -205,7 +232,7 @@ def run(
     bands_test = rows[task.band].to_numpy()[prepared.test]
     metrics = list(METRICS[task.kind])
     resamples = SMOKE_RESAMPLES if smoke else RESAMPLES
-    if sets:
+    if by_row:
         scored = row_scores(task.kind, y_test, test_p)
         valid_scores = dict(zip(metrics, mean_of_rows(row_scores(task.kind, y_valid, valid_p)).tolist()))
         test_scores = intervals_of_rows(metrics, scored, groups_test, resamples=resamples)
@@ -215,7 +242,7 @@ def run(
     by_band = {}
     for band in sorted(set(bands_test.tolist())):
         mask = bands_test == band
-        in_band = dict(zip(metrics, mean_of_rows(scored[mask]).tolist())) if sets else score(task.kind, y_test[mask], test_p[mask])
+        in_band = dict(zip(metrics, mean_of_rows(scored[mask]).tolist())) if by_row else score(task.kind, y_test[mask], test_p[mask])
         by_band[band] = {"rows": int(mask.sum()), **in_band}
     record = {
         "model": model,
@@ -259,6 +286,13 @@ def run(
     if task.kind == "binary" or sets:
         # For a set, every candidate of every row as one yes or no.
         record["test_calibration"] = calibration_table(y_test.reshape(-1).astype(np.float64), test_p.reshape(-1))
+    if moves:
+        # Every legal move of every row as one yes or no: was it the move played.
+        held = ~np.isnan(test_p)
+        right = np.zeros(test_p.shape)
+        right[np.arange(len(y_test)), y_test] = 1.0
+        record["test_calibration"] = calibration_table(right[held], test_p[held])
+        record["test_candidates"] = {"mean": float(held.sum(axis=1).mean()), "most": int(held.sum(axis=1).max())}
     if task.kind == "tags":
         record["test_by_candidate"] = by_candidate(task.candidates, y_test, test_p)
 
@@ -269,10 +303,11 @@ def run(
             "key": rows["key"].to_numpy()[prepared.test],
             "group": groups_test,
             "band": bands_test,
-            # A set's row keeps what was right and every candidate's chance, then what the row scored.
+            # A set's row keeps what was right and every candidate's chance, then what the row scored. So
+            # does a row whose answer is a move: which candidate was played, and each one's chance.
             "y": y_test,
-            "p": test_p.astype(np.float32) if sets else test_p,
-            **({metric: scored[:, column] for column, metric in enumerate(metrics)} if sets else {}),
+            "p": test_p.astype(np.float32) if by_row else test_p,
+            **({metric: scored[:, column] for column, metric in enumerate(metrics)} if by_row else {}),
         }
     )
     frame.write_parquet(predictions)

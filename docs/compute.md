@@ -59,9 +59,9 @@ lab analyse tactic-found         # writes models/tactic-found/results/analysis.j
 ```
 
 It reads a run's predictions only when they are the ones its record scored on this machine's build
-of the data, and names the runs it left out and why. A model whose answer is a set has no closer
-look yet ([`design.md`](design.md), "An answer that is a set"): its records and its leaderboard
-are all it commits.
+of the data, and names the runs it left out and why. A model whose answer is a set or a move has
+no closer look yet ([`design.md`](design.md), "An answer that is a set" and "An answer that is a
+move"): its records and its leaderboard are all it commits.
 
 ## On Colab
 
@@ -70,9 +70,9 @@ commands on the notebook's GPU. Its first cell names the models and the runs, or
 [`colab/plans/`](../colab/plans/): `all` is every model's own runs, `studies` the study runs of
 the models that have results, `pretrain` the body trained on engine evaluations and the runs that
 start from it, `sets` the two models whose answer is a set, `games` the first pass of game
-rating. Its last cell packs two zips and prints their hashes: `lab-results.zip`, the run records
-and leaderboards under `models/*/results/`, and `lab-runs.zip`, every run's trained weights and
-test predictions.
+rating, `moves` the first pass of human moves beside Maia-2. Its last cell packs two zips and
+prints their hashes: `lab-results.zip`, the run records and leaderboards under
+`models/*/results/`, and `lab-runs.zip`, every run's trained weights and test predictions.
 
 1. Open the notebook in Colab and choose a GPU runtime.
 2. Run every cell.
@@ -82,6 +82,20 @@ test predictions.
    `lab report`, commit and push.
 
 Nothing is pushed from Colab, and the notebook holds no credentials.
+
+**A published model is a run, and its package is no part of the lab.** `human-move` scores Maia-2
+as its authors published it, through their `maia2` package (MIT). The package pins exact versions
+of Torch, NumPy and pandas, so it is installed beside the lab's own, without them:
+
+```bash
+pip install --no-deps maia2==0.10.0 && pip install einops pyzstd gdown
+```
+
+The notebook does this after the clone. The package fetches its weights once into
+`artifacts/maia2/`, and a run's record names the package's version and the weights' hash. A run
+marked `needs: maia2` waits on a machine without the package, as one marked `needs: cuda` waits
+for a GPU, and every other run of the model goes ahead. Where the package and the weights are,
+`tests/test_maia.py` holds the lab's reading of the model to the package's own.
 
 **A runtime's disk goes with the runtime.** The coach narrator's first adapter was lost that way:
 it was trained, scored, and never copied off before the runtime was deleted. So a notebook's last

@@ -231,3 +231,120 @@ def test_the_floor_of_a_set_gives_every_row_each_candidates_share_of_the_trainin
     assert np.allclose(fitted.test, shares) and np.allclose(fitted.valid, shares)
     assert 0.4 < shares[0] < 0.6 and 0.03 < shares[1] < 0.2 and shares[2] == 0.0
     assert fitted.details == {"shares": {"fork": round(float(shares[0]), 6), "pin": round(float(shares[1]), 6), "skewer": 0.0}}
+
+
+def a_position_dataset(games: int = 40, plies: int = 12) -> store.Dataset:
+    """Positions from games of random legal moves, each with the move played there, as ``game-positions`` holds them."""
+    import random
+
+    import chess
+
+    from chess_coach_models.encode.board import encode_positions, white_to_move
+    from chess_coach_models.data.positions import MARKS, last_move_marks
+
+    rng = random.Random(0)
+    found = []
+    for game in range(games):
+        board = chess.Board()
+        last = ""
+        for ply in range(plies):
+            move = rng.choice(sorted(board.legal_moves, key=lambda one: one.uci()))
+            if ply >= 2:
+                found.append((f"game{game:03d}", ply, board.fen(), last, move.uci()))
+            last = move.uci()
+            board.push(move)
+    tokens, marks, _ = encode_positions(
+        [row[2] for row in found], (last_move_marks(row[3], white_to_move(row[2])) for row in found)
+    )
+    count = len(found)
+    rows = pl.DataFrame(
+        {
+            "key": [f"{row[0]}#{row[1]}" for row in found],
+            "game_id": [row[0] for row in found],
+            "fen": [row[2] for row in found],
+            "last_move": [row[3] for row in found],
+            "move": [row[4] for row in found],
+            "mover_elo": [800 + 37 * (number % 40) for number in range(count)],
+            "opponent_elo": [900 + 31 * (number % 40) for number in range(count)],
+            "legal_moves": [float(chess.Board(row[2]).legal_moves.count()) for row in found],
+            "band": ["all"] * count,
+            "split": [("test", "valid", "train", "train", "train")[int(row[0][4:]) % 5] for row in found],
+        }
+    )
+    manifest = {"group": "game_id", "hand": ["legal_moves"], "marks": list(MARKS)}
+    return store.Dataset(name="tiny-positions", rows=rows, tokens=tokens, marks=marks, manifest=manifest)
+
+
+def a_move_task(**changes) -> tasks.Task:
+    return tasks.Task(**{**a_task("move").__dict__, "kind": "moves", "primary": "top1", **changes})
+
+
+def test_the_move_played_is_one_of_the_row_s_own_candidates():
+    import chess
+
+    from chess_coach_models.encode.moves import pair_of, pairs_of
+
+    dataset = a_position_dataset()
+    prepared = learners.prepare(a_move_task(), dataset)
+    fens, played = dataset.rows["fen"].to_list(), dataset.rows["move"].to_list()
+    assert prepared.moves.shape[0] == len(fens) == 400 and prepared.moves.dtype == np.int16
+    assert prepared.y.shape == (400,) and prepared.y.dtype.kind == "i"
+    for row in (0, 57, 399):
+        board = chess.Board(fens[row])
+        held = prepared.moves[row][prepared.moves[row] >= 0].tolist()
+        assert held == pairs_of(board) and len(held) == board.legal_moves.count()
+        assert prepared.moves[row, prepared.y[row]] == pair_of(played[row], board.turn == chess.WHITE)
+    assert learners.prepare(a_task("mover_elo"), dataset).moves is None
+    wrong = store.Dataset(
+        name="tiny-positions",
+        rows=dataset.rows.with_columns(pl.Series("move", ["a1a8"] + played[1:])),
+        tokens=dataset.tokens,
+        marks=dataset.marks,
+        manifest=dataset.manifest,
+    )
+    with pytest.raises(ValueError, match="1 rows name a move their position does not allow, the first game000#2: a1a8"):
+        learners.prepare(a_move_task(), wrong)
+    with pytest.raises(ValueError, match="does not hold one position a row"):
+        learners.prepare(a_move_task(label="mover_elo"), a_dataset())
+
+
+def test_the_floor_of_a_move_gives_every_legal_move_the_same_chance():
+    dataset = a_position_dataset()
+    prepared = learners.prepare(a_move_task(), dataset)
+    fitted = learners.fit(prepared, {"learner": {"kind": "constant"}}, log=lambda _: None)
+    held = prepared.moves[prepared.test] >= 0
+    assert fitted.test.shape == held.shape and np.array_equal(~np.isnan(fitted.test), held)
+    assert np.nansum(fitted.test, axis=1) == pytest.approx(1.0)
+    assert np.nanmax(fitted.test, axis=1) == pytest.approx(1.0 / held.sum(axis=1))
+    assert np.nanmin(fitted.test, axis=1) == pytest.approx(1.0 / held.sum(axis=1))
+    choices = (prepared.moves[prepared.train] >= 0).sum(axis=1)
+    assert fitted.details == {"legal_moves": {"mean": round(float(choices.mean()), 3), "most": int(choices.max())}}
+
+
+def test_trees_that_predict_the_move_read_a_row_a_legal_move():
+    from chess_coach_models.encode.moves import MOVE_HAND, MOVE_PLAIN, move_features, plain_of
+    from chess_coach_models.train.learners import gbm
+
+    import chess
+
+    dataset = a_position_dataset()
+    prepared = learners.prepare(a_move_task(marks=("en_passant", "last_to")), dataset)
+    index = prepared.test[:7]
+    held = prepared.moves[index] >= 0
+    plain, names, position = gbm.move_rows(prepared, index, "context")
+    assert names == ["mover_elo", *MOVE_PLAIN, "from_en_passant", "from_last_to", "to_en_passant", "to_last_to"]
+    assert plain.shape == (int(held.sum()), len(names)) and plain.dtype == np.float32
+    # A position's moves follow each other in the order of its candidates, and each row says whose it is.
+    assert position.tolist() == np.repeat(np.arange(7), held.sum(axis=1)).tolist()
+    first = index[0]
+    own = prepared.moves[first][held[0]].astype(np.int64)
+    assert np.array_equal(plain[: len(own), 1:9], plain_of(np.repeat(dataset.tokens[first][None], len(own), axis=0), own))
+    assert (plain[: len(own), 0] == dataset.rows["mover_elo"][int(first)]).all()
+    # The square the opponent's last move reached is marked on the moves that land there, and on no other.
+    last_to = (dataset.marks[first] >> 2) & 1
+    assert np.array_equal(plain[: len(own), names.index("to_last_to")], last_to[own % 64])
+    assert np.array_equal(plain[: len(own), names.index("from_last_to")], last_to[own // 64])
+    counted, names, _ = gbm.move_rows(prepared, index, "hand")
+    assert names[-len(MOVE_HAND) :] == list(MOVE_HAND) and "legal_moves" in names
+    assert counted.shape == (int(held.sum()), len(plain[0]) + 1 + len(MOVE_HAND))
+    assert np.array_equal(counted[: len(own), -len(MOVE_HAND) :], move_features(chess.Board(dataset.rows["fen"][int(first)])))

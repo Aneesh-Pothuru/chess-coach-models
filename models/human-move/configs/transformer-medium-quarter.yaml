@@ -1,0 +1,9 @@
+# transformer-medium on a quarter of the training games. It goes through them four times as often, so
+# it takes as many steps as the run it changes and only the number of games differs.
+base: transformer-medium
+study: games
+data:
+  train_share: 0.25
+train:
+  epochs: 48
+  patience: 12
