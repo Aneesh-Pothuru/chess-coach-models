@@ -1,0 +1,211 @@
+{
+  "model": "practical-chances",
+  "run": "conv-small",
+  "task": {
+    "label": "mover_score",
+    "kind": "regression",
+    "unit": "expected score of the mover in the game (a win 1, a draw 0.5, a loss 0)",
+    "primary": "rmse",
+    "lower_is_better": true,
+    "context": [
+      "mover_elo",
+      "opponent_elo",
+      "log_clock",
+      "log_opponent_clock",
+      "log_base",
+      "increment",
+      "ply",
+      "win_before",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "game-positions-2026-10",
+    "source": "https://database.lichess.org/standard/lichess_db_standard_rated_2026-10.pgn.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 698013,
+    "splits": {
+      "test": 68579,
+      "train": 594940,
+      "valid": 34494
+    },
+    "fingerprint": "340c68ed5c918cd6dfea4f5cb24218c52d8d0a88cb29e50498218aefdb9dfbd0",
+    "built": "2026-11-22T05:45:24Z",
+    "code": "3a74aa4b28f6805e3da49ea7c054bc4b5cf4d712"
+  },
+  "config": {
+    "learner": {
+      "kind": "net",
+      "body": "conv",
+      "dim": 96,
+      "depth": 6,
+      "dropout": 0.1
+    },
+    "train": {
+      "epochs": 8,
+      "batch": 512,
+      "lr": 0.002,
+      "weight_decay": 0.05,
+      "warmup": 0.05,
+      "patience": 3
+    }
+  },
+  "learner": {
+    "parameters": 1031425,
+    "device": "NVIDIA A100-SXM4-80GB",
+    "best_epoch": 5,
+    "fit_seconds": 100.9,
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.75444,
+        "valid_rmse": 0.42579,
+        "rows_a_second": 44401
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.7367,
+        "valid_rmse": 0.42609,
+        "rows_a_second": 47644
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.73355,
+        "valid_rmse": 0.42438,
+        "rows_a_second": 48337
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.73018,
+        "valid_rmse": 0.42417,
+        "rows_a_second": 47896
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.72623,
+        "valid_rmse": 0.42374,
+        "rows_a_second": 48084
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.72136,
+        "valid_rmse": 0.42375,
+        "rows_a_second": 48224
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.71639,
+        "valid_rmse": 0.42402,
+        "rows_a_second": 47831
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.71243,
+        "valid_rmse": 0.42431,
+        "rows_a_second": 47550
+      }
+    ]
+  },
+  "calibration": null,
+  "machine": {
+    "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "threads": 12,
+    "system": "Linux"
+  },
+  "software": {
+    "python": "3.13.16",
+    "numpy": "2.4.6",
+    "polars": "2.1.0",
+    "lightgbm": "4.6.0",
+    "torch": "2.14.1+cu130"
+  },
+  "code": "3a74aa4b28f6805e3da49ea7c054bc4b5cf4d712",
+  "trained": "2026-11-22T05:48:07Z",
+  "seconds": 104.6,
+  "valid": {
+    "rmse": 0.4237364798735958,
+    "mae": 0.3635682380254036,
+    "r2": 0.24689844541840278,
+    "spearman": 0.49167159404544775
+  },
+  "test": {
+    "rmse": {
+      "value": 0.4235247911394309,
+      "low": 0.41833696039810564,
+      "high": 0.42913763138906136
+    },
+    "mae": {
+      "value": 0.36387121004077133,
+      "low": 0.35875051047191364,
+      "high": 0.36961467368982925
+    },
+    "r2": {
+      "value": 0.25777792614909845,
+      "low": 0.23805868824638673,
+      "high": 0.27481123179950473
+    },
+    "spearman": {
+      "value": 0.5024549580846045,
+      "low": 0.48227529584028617,
+      "high": 0.5203757094074257
+    }
+  },
+  "test_rows": 68579,
+  "test_groups": 2944,
+  "test_by_band": {
+    "1100-1400": {
+      "rows": 16674,
+      "rmse": 0.4267693917140982,
+      "mae": 0.3694353370400117,
+      "r2": 0.25639264232096437,
+      "spearman": 0.5005338566329288
+    },
+    "1400-1700": {
+      "rows": 19614,
+      "rmse": 0.4272064577256089,
+      "mae": 0.3669865410256437,
+      "r2": 0.2476146828177882,
+      "spearman": 0.4915239986985871
+    },
+    "1700-2000": {
+      "rows": 14453,
+      "rmse": 0.4308333862314045,
+      "mae": 0.3713508214738916,
+      "r2": 0.23207558415788232,
+      "spearman": 0.47486114464232915
+    },
+    "2000+": {
+      "rows": 7126,
+      "rmse": 0.38746082357157896,
+      "mae": 0.32136239692330393,
+      "r2": 0.350479387224955,
+      "spearman": 0.5928890216951105
+    },
+    "<1100": {
+      "rows": 10712,
+      "rmse": 0.4247062868658645,
+      "mae": 0.36769259005473387,
+      "r2": 0.2540548018894955,
+      "spearman": 0.5029798134220389
+    }
+  },
+  "weights": [
+    {
+      "file": "model.pt",
+      "bytes": 4156423,
+      "sha256": "769ce2bd0d501f2925ba57a990bd65dbbe1f17b388dc8605a48fc384745c7bae"
+    }
+  ],
+  "gain": {
+    "gain": 0.00016159060012843618,
+    "low": -0.0011505429536638385,
+    "high": 0.001411072066019548,
+    "beyond_noise": false,
+    "reference": "gbm-hand",
+    "reference_trained": "2026-11-22T05:46:02Z",
+    "reference_value": 0.42368638173955936
+  }
+}
