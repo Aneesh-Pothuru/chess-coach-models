@@ -1,0 +1,245 @@
+{
+  "model": "tactic-found",
+  "run": "gbm-hand",
+  "task": {
+    "label": "found",
+    "kind": "binary",
+    "unit": "chance the move played is the first move of the tactic",
+    "primary": "log_loss",
+    "lower_is_better": true,
+    "context": [
+      "mover_elo",
+      "opponent_elo",
+      "log_clock",
+      "log_opponent_clock",
+      "log_base",
+      "increment",
+      "ply",
+      "win_prior",
+      "win_before",
+      "solver_moves",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "tactics-v1",
+    "source": "https://huggingface.co/datasets/Lichess/chess-puzzles-with-games/tree/3510a01f320eaaab7b7775ebc73afcfe0b33b4c2",
+    "licence": "CC0 1.0, huggingface.co/datasets/Lichess/chess-puzzles-with-games",
+    "rows": 810140,
+    "splits": {
+      "test": 81135,
+      "train": 688480,
+      "valid": 40525
+    },
+    "fingerprint": "15bd888b36b8fa30bcf93923ba28de9274fed4facb8662ebe5daac040a66193a",
+    "built": "2026-11-22T03:16:08Z",
+    "code": "b91c606cca3253f49be7b7948bcd4d31a8682b78"
+  },
+  "config": {
+    "learner": {
+      "kind": "gbm",
+      "features": "hand"
+    }
+  },
+  "learner": {
+    "features": 47,
+    "trees": 787,
+    "fit_seconds": 28.1,
+    "leans_on": [
+      {
+        "feature": "win_before",
+        "share_of_gain": 0.0871
+      },
+      {
+        "feature": "first_sacrifice",
+        "share_of_gain": 0.0867
+      },
+      {
+        "feature": "win_prior",
+        "share_of_gain": 0.0613
+      },
+      {
+        "feature": "mover_elo",
+        "share_of_gain": 0.0517
+      },
+      {
+        "feature": "log_clock",
+        "share_of_gain": 0.0474
+      },
+      {
+        "feature": "final_material_gain",
+        "share_of_gain": 0.0432
+      },
+      {
+        "feature": "solver_moves",
+        "share_of_gain": 0.0383
+      },
+      {
+        "feature": "first_capture",
+        "share_of_gain": 0.0371
+      },
+      {
+        "feature": "opponent_elo",
+        "share_of_gain": 0.0358
+      },
+      {
+        "feature": "legal_moves",
+        "share_of_gain": 0.0351
+      }
+    ]
+  },
+  "calibration": {
+    "platt_slope": 1.0187322390474431,
+    "platt_intercept": -0.020653634913306802,
+    "fitted_on": "valid"
+  },
+  "machine": {
+    "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "threads": 12,
+    "system": "Linux"
+  },
+  "code": "b91c606cca3253f49be7b7948bcd4d31a8682b78",
+  "trained": "2026-11-22T03:16:39Z",
+  "seconds": 30.8,
+  "valid": {
+    "pr_auc": 0.8562016826859616,
+    "roc_auc": 0.7331375640293853,
+    "brier": 0.18291003961288482,
+    "log_loss": 0.5414838537868835,
+    "calibration_error": 0.005102201281330281
+  },
+  "test": {
+    "pr_auc": {
+      "value": 0.8560278240055853,
+      "low": 0.8528864787200392,
+      "high": 0.8589111590334099
+    },
+    "roc_auc": {
+      "value": 0.7337398675468112,
+      "low": 0.7299251042494613,
+      "high": 0.7372830538386624
+    },
+    "brier": {
+      "value": 0.18278590555739985,
+      "low": 0.18144558061131916,
+      "high": 0.18414224096796303
+    },
+    "log_loss": {
+      "value": 0.5413665986667734,
+      "low": 0.5380970712549458,
+      "high": 0.5446779451988197
+    },
+    "calibration_error": {
+      "value": 0.004336915917553922,
+      "low": 0.003366919547330196,
+      "high": 0.00780243683430876
+    }
+  },
+  "test_rows": 81135,
+  "test_groups": 81135,
+  "test_by_band": {
+    "1700-1899": {
+      "rows": 28346,
+      "pr_auc": 0.8484646640696285,
+      "roc_auc": 0.7308088305334058,
+      "brier": 0.18575308413866473,
+      "log_loss": 0.5490836410656307,
+      "calibration_error": 0.007054235892716666
+    },
+    "1900-2099": {
+      "rows": 18674,
+      "pr_auc": 0.8671932005901446,
+      "roc_auc": 0.7360535708559925,
+      "brier": 0.1780584293784527,
+      "log_loss": 0.5290969394653088,
+      "calibration_error": 0.009886039772414108
+    },
+    "2100-2299": {
+      "rows": 8845,
+      "pr_auc": 0.8741907512270779,
+      "roc_auc": 0.7363752023534529,
+      "brier": 0.17454003505913432,
+      "log_loss": 0.5205712949603251,
+      "calibration_error": 0.008432227528415482
+    },
+    "2300+": {
+      "rows": 9862,
+      "pr_auc": 0.8614894925270399,
+      "roc_auc": 0.7233099140325195,
+      "brier": 0.18175340461156686,
+      "log_loss": 0.5376882283551749,
+      "calibration_error": 0.010418760353958017
+    },
+    "<1700": {
+      "rows": 15408,
+      "pr_auc": 0.8385203664627837,
+      "roc_auc": 0.7380810920455302,
+      "brier": 0.18845117651963297,
+      "log_loss": 0.5563319985490854,
+      "calibration_error": 0.00997893007370611
+    }
+  },
+  "test_calibration": [
+    {
+      "n": 8114,
+      "predicted": 0.3379503493346182,
+      "observed": 0.33904362829677104
+    },
+    {
+      "n": 8114,
+      "predicted": 0.49494516613727746,
+      "observed": 0.4966724180428888
+    },
+    {
+      "n": 8114,
+      "predicted": 0.5743009172646744,
+      "observed": 0.5780133103278284
+    },
+    {
+      "n": 8114,
+      "predicted": 0.6350010768037705,
+      "observed": 0.629159477446389
+    },
+    {
+      "n": 8114,
+      "predicted": 0.6862954211450581,
+      "observed": 0.6783337441459206
+    },
+    {
+      "n": 8113,
+      "predicted": 0.7333063135752753,
+      "observed": 0.7377049180327869
+    },
+    {
+      "n": 8113,
+      "predicted": 0.7780008913348659,
+      "observed": 0.7814618513496857
+    },
+    {
+      "n": 8113,
+      "predicted": 0.8234368580786835,
+      "observed": 0.8146185134968569
+    },
+    {
+      "n": 8113,
+      "predicted": 0.8751346898752446,
+      "observed": 0.8779736225810427
+    },
+    {
+      "n": 8113,
+      "predicted": 0.9479196836386112,
+      "observed": 0.9514359669665968
+    }
+  ],
+  "weights": [
+    {
+      "file": "model.txt",
+      "bytes": 10899323,
+      "sha256": "f3c511e74f66f861b744f256d97955837ec09c9b425de4765a267f1efdaf881b"
+    }
+  ],
+  "gain": null
+}
