@@ -16,7 +16,7 @@ Written by `lab eval puzzle-difficulty` from the run records in this folder.
 | `transformer-medium` | transformer, 8 layers of width 256 | 284.0 (282.4 to 285.4) | 214.5 | 0.6810 | 0.8320 | **+10.91 (+9.73 to +12.14)** | 6,555,201 | NVIDIA A100-SXM4-80GB | 13 min |
 | `conv-small` | conv, 6 layers of width 96 | 290.8 (289.3 to 292.3) | 221.8 | 0.6656 | 0.8213 | **+4.105 (+2.851 to +5.371)** | 1,040,257 | NVIDIA A100-SXM4-80GB | 3 min |
 | `transformer-small` | transformer, 4 layers of width 128 | 293.1 (291.5 to 294.4) | 224.2 | 0.6603 | 0.8178 | **+1.847 (+0.7441 to +3.053)** | 862,497 | NVIDIA A100-SXM4-80GB | 5 min |
-| `gbm-hand` | LightGBM, context and hand features | 294.9 (293.5 to 296.2) | 229.0 | 0.6561 | 0.8133 | reference |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 89 s |
+| `gbm-hand` | LightGBM, context and hand features | 294.9 (293.5 to 296.2) | 229.0 | 0.6561 | 0.8133 | reference |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 2 min |
 | `gbm-context` | LightGBM, context numbers only | 428.8 (427.2 to 430.5) | 348.4 | 0.2731 | 0.5022 | **-133.8 (-135.4 to -132.2)** |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 4 s |
 | `constant` | one number for every row | 502.9 (501.1 to 504.7) | 415.7 | -0.0000 | n/a | **-208 (-210.1 to -206.1)** |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 0 s |
 
@@ -34,3 +34,29 @@ Written by `lab eval puzzle-difficulty` from the run records in this folder.
 | `gbm-context` | 515.7 | 321.9 | 243.7 | 450.5 | 759.1 |
 | `constant` | 675.0 | 284.4 | 170.5 | 537.2 | 958.5 |
 | rows | 22,751 | 31,846 | 28,501 | 19,518 | 9,834 |
+
+## Studies
+
+A run here changes one thing in a run above, to say what that thing is worth. It is no candidate, so it is not ranked with the runs above. Its paired difference from the run it changes, on the same resampled test games, is in the closer look (`analysis.json`, under `pairs`).
+
+### `features`
+
+| Run | The run it changes | What it changes | Trained on | RMSE | That run's RMSE | Gain over `gbm-hand` | Time |
+|---|---|---|---|---|---|---|---|
+| `gbm-hand-no-setup` | `gbm-hand` | `learner.without` setup | 958,941 rows | 294.5 (293.2 to 295.8) | 294.9 | **+0.3899 (+0.1321 to +0.6536)** | 2 min |
+| `gbm-hand-no-pawns` | `gbm-hand` | `learner.without` pawns | 958,941 rows | 295.3 (293.9 to 296.6) | 294.9 | **-0.3739 (-0.6781 to -0.05792)** | 2 min |
+| `gbm-hand-no-hanging` | `gbm-hand` | `learner.without` hanging | 958,941 rows | 296.1 (294.8 to 297.4) | 294.9 | **-1.188 (-1.498 to -0.8885)** | 2 min |
+| `gbm-hand-no-kings` | `gbm-hand` | `learner.without` kings | 958,941 rows | 297.2 (295.7 to 298.5) | 294.9 | **-2.236 (-2.615 to -1.898)** | 2 min |
+| `gbm-hand-no-material` | `gbm-hand` | `learner.without` material | 958,941 rows | 297.9 (296.4 to 299.2) | 294.9 | **-2.932 (-3.343 to -2.488)** | 2 min |
+| `gbm-hand-no-first-move` | `gbm-hand` | `learner.without` first-move | 958,941 rows | 307.0 (305.6 to 308.3) | 294.9 | **-12.08 (-12.62 to -11.57)** | 76 s |
+| `gbm-hand-no-mobility` | `gbm-hand` | `learner.without` mobility | 958,941 rows | 310.3 (308.8 to 311.6) | 294.9 | **-15.33 (-15.93 to -14.63)** | 2 min |
+| `gbm-hand-no-line` | `gbm-hand` | `learner.without` line | 958,941 rows | 338.5 (337.0 to 340.1) | 294.9 | **-43.58 (-44.61 to -42.57)** | 76 s |
+
+### `games`
+
+| Run | The run it changes | What it changes | Trained on | RMSE | That run's RMSE | Gain over `gbm-hand` | Time |
+|---|---|---|---|---|---|---|---|
+| `transformer-medium-hand-half` | `transformer-medium-hand` | `data.train_share` 0.5; `train.epochs` 24 (the base has 12); `train.patience` 6 (the base has 3) | 479,337 rows | 279.4 (277.9 to 280.8) | 270.2 | **+15.57 (+14.58 to +16.57)** | 13 min |
+| `transformer-medium-hand-quarter` | `transformer-medium-hand` | `data.train_share` 0.25; `train.epochs` 48 (the base has 12); `train.patience` 12 (the base has 3) | 239,621 rows | 291.5 (290.0 to 292.9) | 270.2 | **+3.393 (+2.517 to +4.234)** | 9 min |
+| `gbm-hand-half` | `gbm-hand` | `data.train_share` 0.5 | 479,337 rows | 298.6 (297.1 to 299.8) | 294.9 | **-3.629 (-3.963 to -3.324)** | 40 s |
+| `gbm-hand-quarter` | `gbm-hand` | `data.train_share` 0.25 | 239,621 rows | 302.2 (300.7 to 303.4) | 294.9 | **-7.228 (-7.651 to -6.849)** | 22 s |

@@ -1,0 +1,365 @@
+{
+  "model": "think-time",
+  "run": "transformer-medium-hand-quarter",
+  "task": {
+    "label": "log_spent",
+    "kind": "regression",
+    "unit": "log(1 + seconds spent on the move)",
+    "primary": "mae",
+    "lower_is_better": true,
+    "context": [
+      "mover_elo",
+      "opponent_elo",
+      "log_clock",
+      "log_opponent_clock",
+      "log_base",
+      "increment",
+      "ply",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "game-positions-2026-10",
+    "source": "https://database.lichess.org/standard/lichess_db_standard_rated_2026-10.pgn.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 698013,
+    "splits": {
+      "test": 68579,
+      "train": 594940,
+      "valid": 34494
+    },
+    "fingerprint": "340c68ed5c918cd6dfea4f5cb24218c52d8d0a88cb29e50498218aefdb9dfbd0",
+    "built": "2026-11-22T08:54:40Z",
+    "code": "0ba155afac19364bfc996e771f2be7757fd57a6d"
+  },
+  "config": {
+    "needs": "cuda",
+    "learner": {
+      "kind": "net",
+      "body": "transformer",
+      "features": "hand",
+      "dim": 256,
+      "depth": 8,
+      "heads": 8,
+      "dropout": 0.1
+    },
+    "train": {
+      "epochs": 48,
+      "batch": 1024,
+      "lr": 0.0006,
+      "weight_decay": 0.05,
+      "warmup": 0.05,
+      "patience": 12
+    },
+    "base": "transformer-medium-hand",
+    "study": "games",
+    "data": {
+      "train_share": 0.25
+    }
+  },
+  "learner": {
+    "features": 24,
+    "parameters": 6557249,
+    "device": "NVIDIA A100-SXM4-80GB",
+    "best_epoch": 21,
+    "fit_seconds": 357.1,
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.68202,
+        "valid_mae": 0.68579,
+        "rows_a_second": 14818
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.64665,
+        "valid_mae": 0.66261,
+        "rows_a_second": 14855
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.63959,
+        "valid_mae": 0.65611,
+        "rows_a_second": 14852
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.63177,
+        "valid_mae": 0.65324,
+        "rows_a_second": 14851
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.62876,
+        "valid_mae": 0.64798,
+        "rows_a_second": 14852
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.62468,
+        "valid_mae": 0.65292,
+        "rows_a_second": 14861
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.62439,
+        "valid_mae": 0.65454,
+        "rows_a_second": 14862
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.61992,
+        "valid_mae": 0.64542,
+        "rows_a_second": 14860
+      },
+      {
+        "epoch": 9,
+        "train_loss": 0.61873,
+        "valid_mae": 0.6547,
+        "rows_a_second": 14859
+      },
+      {
+        "epoch": 10,
+        "train_loss": 0.61688,
+        "valid_mae": 0.64647,
+        "rows_a_second": 14865
+      },
+      {
+        "epoch": 11,
+        "train_loss": 0.61599,
+        "valid_mae": 0.6459,
+        "rows_a_second": 14867
+      },
+      {
+        "epoch": 12,
+        "train_loss": 0.61541,
+        "valid_mae": 0.64591,
+        "rows_a_second": 14848
+      },
+      {
+        "epoch": 13,
+        "train_loss": 0.61395,
+        "valid_mae": 0.64646,
+        "rows_a_second": 14832
+      },
+      {
+        "epoch": 14,
+        "train_loss": 0.61286,
+        "valid_mae": 0.6438,
+        "rows_a_second": 14828
+      },
+      {
+        "epoch": 15,
+        "train_loss": 0.61046,
+        "valid_mae": 0.64557,
+        "rows_a_second": 14850
+      },
+      {
+        "epoch": 16,
+        "train_loss": 0.60991,
+        "valid_mae": 0.64492,
+        "rows_a_second": 14842
+      },
+      {
+        "epoch": 17,
+        "train_loss": 0.60814,
+        "valid_mae": 0.64598,
+        "rows_a_second": 14842
+      },
+      {
+        "epoch": 18,
+        "train_loss": 0.60674,
+        "valid_mae": 0.64358,
+        "rows_a_second": 14842
+      },
+      {
+        "epoch": 19,
+        "train_loss": 0.60492,
+        "valid_mae": 0.64989,
+        "rows_a_second": 14849
+      },
+      {
+        "epoch": 20,
+        "train_loss": 0.60438,
+        "valid_mae": 0.64753,
+        "rows_a_second": 14844
+      },
+      {
+        "epoch": 21,
+        "train_loss": 0.6035,
+        "valid_mae": 0.64354,
+        "rows_a_second": 14844
+      },
+      {
+        "epoch": 22,
+        "train_loss": 0.60034,
+        "valid_mae": 0.64709,
+        "rows_a_second": 14837
+      },
+      {
+        "epoch": 23,
+        "train_loss": 0.59832,
+        "valid_mae": 0.64533,
+        "rows_a_second": 14846
+      },
+      {
+        "epoch": 24,
+        "train_loss": 0.59764,
+        "valid_mae": 0.6448,
+        "rows_a_second": 14856
+      },
+      {
+        "epoch": 25,
+        "train_loss": 0.5961,
+        "valid_mae": 0.64921,
+        "rows_a_second": 14847
+      },
+      {
+        "epoch": 26,
+        "train_loss": 0.59385,
+        "valid_mae": 0.6437,
+        "rows_a_second": 14845
+      },
+      {
+        "epoch": 27,
+        "train_loss": 0.59091,
+        "valid_mae": 0.64458,
+        "rows_a_second": 14847
+      },
+      {
+        "epoch": 28,
+        "train_loss": 0.58939,
+        "valid_mae": 0.65114,
+        "rows_a_second": 14838
+      },
+      {
+        "epoch": 29,
+        "train_loss": 0.58671,
+        "valid_mae": 0.64777,
+        "rows_a_second": 14862
+      },
+      {
+        "epoch": 30,
+        "train_loss": 0.58385,
+        "valid_mae": 0.64927,
+        "rows_a_second": 14846
+      },
+      {
+        "epoch": 31,
+        "train_loss": 0.5807,
+        "valid_mae": 0.64766,
+        "rows_a_second": 14854
+      },
+      {
+        "epoch": 32,
+        "train_loss": 0.57841,
+        "valid_mae": 0.64757,
+        "rows_a_second": 14853
+      },
+      {
+        "epoch": 33,
+        "train_loss": 0.5756,
+        "valid_mae": 0.65032,
+        "rows_a_second": 14882
+      }
+    ]
+  },
+  "calibration": null,
+  "machine": {
+    "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "threads": 12,
+    "system": "Linux"
+  },
+  "software": {
+    "python": "3.13.16",
+    "numpy": "2.4.6",
+    "polars": "2.1.0",
+    "lightgbm": "4.6.0",
+    "torch": "2.14.1+cu130"
+  },
+  "code": "0ba155afac19364bfc996e771f2be7757fd57a6d",
+  "trained": "2026-11-22T11:16:24Z",
+  "seconds": 357.5,
+  "train_rows": 151209,
+  "train_groups": 6490,
+  "valid": {
+    "rmse": 0.8130828216499514,
+    "mae": 0.6435422787638757,
+    "r2": 0.28323372679525016,
+    "spearman": 0.5292304215781913
+  },
+  "test": {
+    "rmse": {
+      "value": 0.8009618163223395,
+      "low": 0.7947393401496257,
+      "high": 0.8066705719833793
+    },
+    "mae": {
+      "value": 0.6325145493264641,
+      "low": 0.6275125467428287,
+      "high": 0.6371512174068283
+    },
+    "r2": {
+      "value": 0.2908227688496169,
+      "low": 0.2816103246209102,
+      "high": 0.3004492279329399
+    },
+    "spearman": {
+      "value": 0.5326097468624699,
+      "low": 0.5246625466251189,
+      "high": 0.5408519889757557
+    }
+  },
+  "test_rows": 68579,
+  "test_groups": 2944,
+  "test_by_band": {
+    "1100-1400": {
+      "rows": 16674,
+      "rmse": 0.7788312918231699,
+      "mae": 0.6169209688289727,
+      "r2": 0.2724891477613245,
+      "spearman": 0.5155403753639128
+    },
+    "1400-1700": {
+      "rows": 19614,
+      "rmse": 0.7921377994838441,
+      "mae": 0.6262165933335163,
+      "r2": 0.30844221941354766,
+      "spearman": 0.5500837987242059
+    },
+    "1700-2000": {
+      "rows": 14453,
+      "rmse": 0.8262888322573346,
+      "mae": 0.6502404911542805,
+      "r2": 0.3046808176730471,
+      "spearman": 0.5462228033399023
+    },
+    "2000+": {
+      "rows": 7126,
+      "rmse": 0.874895886169047,
+      "mae": 0.6915544885008585,
+      "r2": 0.2870445504964928,
+      "spearman": 0.5330108068653583
+    },
+    "<1100": {
+      "rows": 10712,
+      "rmse": 0.7639821763373966,
+      "mae": 0.6051269304193209,
+      "r2": 0.2573622031551218,
+      "spearman": 0.4989164665726722
+    }
+  },
+  "weights": [],
+  "gain": {
+    "gain": -0.0019325041396303089,
+    "low": -0.00388047918106848,
+    "high": -0.0001611592557584868,
+    "beyond_noise": true,
+    "reference": "gbm-hand",
+    "reference_trained": "2026-11-22T11:01:39Z",
+    "reference_value": 0.6305820451868338
+  }
+}

@@ -12,7 +12,7 @@ Written by `lab eval blunder-hazard` from the run records in this folder.
 |---|---|---|---|---|---|---|---|---|---|---|
 | `transformer-medium-hand` | transformer, 8 layers of width 256, with hand features | 0.2666 (0.2526 to 0.2822) | 0.8279 | 0.0565 | 0.2000 | 0.0032 | **+0.01331 (+0.007014 to +0.01978)** | 6,557,505 | NVIDIA A100-SXM4-80GB | 8 min |
 | `transformer-medium-hand-long` | transformer, 8 layers of width 256, with hand features | 0.2628 (0.2491 to 0.2780) | 0.8266 | 0.0565 | 0.2002 | 0.0023 | **+0.009522 (+0.002803 to +0.01715)** | 6,557,505 | NVIDIA A100-SXM4-80GB | 11 min |
-| `gbm-hand` | LightGBM, context and hand features | 0.2533 (0.2396 to 0.2681) | 0.8232 | 0.0569 | 0.2013 | 0.0042 | reference |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 11 s |
+| `gbm-hand` | LightGBM, context and hand features | 0.2533 (0.2396 to 0.2681) | 0.8232 | 0.0569 | 0.2013 | 0.0042 | reference |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 10 s |
 | `transformer-medium` | transformer, 8 layers of width 256 | 0.2370 (0.2244 to 0.2506) | 0.8177 | 0.0575 | 0.2037 | 0.0026 | **-0.01631 (-0.02519 to -0.007419)** | 6,554,177 | NVIDIA A100-SXM4-80GB | 8 min |
 | `conv-small` | conv, 6 layers of width 96 | 0.2369 (0.2252 to 0.2504) | 0.8187 | 0.0574 | 0.2033 | 0.0021 | **-0.01642 (-0.02564 to -0.007133)** | 1,031,425 | NVIDIA A100-SXM4-80GB | 2 min |
 | `transformer-small` | transformer, 4 layers of width 128 | 0.2364 (0.2244 to 0.2500) | 0.8190 | 0.0575 | 0.2033 | 0.0021 | **-0.01692 (-0.02552 to -0.00821)** | 861,985 | NVIDIA A100-SXM4-80GB | 3 min |
@@ -51,3 +51,31 @@ Test rows in ten equal groups by predicted chance: what the model said against w
 | 10.1% | 10.2% | 6,858 |
 | 15.0% | 14.4% | 6,858 |
 | 26.2% | 26.9% | 6,857 |
+
+## Studies
+
+A run here changes one thing in a run above, to say what that thing is worth. It is no candidate, so it is not ranked with the runs above. Its paired difference from the run it changes, on the same resampled test games, is in the closer look (`analysis.json`, under `pairs`).
+
+### `features`
+
+| Run | The run it changes | What it changes | Trained on | PR-AUC | That run's PR-AUC | Gain over `gbm-hand` | Time |
+|---|---|---|---|---|---|---|---|
+| `transformer-medium-hand-no-pawns` | `transformer-medium-hand` | `learner.without` pawns | 594,940 rows | 0.2677 (0.2539 to 0.2827) | 0.2666 | **+0.01439 (+0.008621 to +0.02064)** | 8 min |
+| `transformer-medium-hand-no-kings` | `transformer-medium-hand` | `learner.without` kings | 594,940 rows | 0.2667 (0.2539 to 0.2813) | 0.2666 | **+0.01336 (+0.006723 to +0.02072)** | 8 min |
+| `transformer-medium-hand-no-mobility` | `transformer-medium-hand` | `learner.without` mobility | 594,940 rows | 0.2571 (0.2448 to 0.2716) | 0.2666 | +0.003828 (-0.002668 to +0.01101) | 8 min |
+| `transformer-medium-hand-no-hanging` | `transformer-medium-hand` | `learner.without` hanging | 594,940 rows | 0.2564 (0.2437 to 0.2708) | 0.2666 | +0.003115 (-0.0031 to +0.009792) | 8 min |
+| `gbm-hand-no-pawns` | `gbm-hand` | `learner.without` pawns | 594,940 rows | 0.2528 (0.2391 to 0.2667) | 0.2533 | -0.0004876 (-0.003935 to +0.003267) | 8 s |
+| `gbm-hand-no-mobility` | `gbm-hand` | `learner.without` mobility | 594,940 rows | 0.2483 (0.2350 to 0.2627) | 0.2533 | **-0.005001 (-0.009009 to -0.0002863)** | 7 s |
+| `gbm-hand-no-hanging` | `gbm-hand` | `learner.without` hanging | 594,940 rows | 0.2445 (0.2319 to 0.2585) | 0.2533 | **-0.008802 (-0.01324 to -0.004581)** | 7 s |
+| `gbm-hand-no-kings` | `gbm-hand` | `learner.without` kings | 594,940 rows | 0.2432 (0.2311 to 0.2566) | 0.2533 | **-0.01014 (-0.01545 to -0.004526)** | 8 s |
+| `transformer-medium-hand-no-material` | `transformer-medium-hand` | `learner.without` material | 594,940 rows | 0.2394 (0.2274 to 0.2530) | 0.2666 | **-0.01392 (-0.02142 to -0.006281)** | 8 min |
+| `gbm-hand-no-material` | `gbm-hand` | `learner.without` material | 594,940 rows | 0.2188 (0.2076 to 0.2312) | 0.2533 | **-0.03451 (-0.04111 to -0.02763)** | 7 s |
+
+### `games`
+
+| Run | The run it changes | What it changes | Trained on | PR-AUC | That run's PR-AUC | Gain over `gbm-hand` | Time |
+|---|---|---|---|---|---|---|---|
+| `transformer-medium-hand-half` | `transformer-medium-hand` | `data.train_share` 0.5; `train.epochs` 24 (the base has 12); `train.patience` 6 (the base has 3) | 299,955 rows | 0.2581 (0.2441 to 0.2731) | 0.2666 | +0.004831 (-0.002169 to +0.01212) | 8 min |
+| `gbm-hand-half` | `gbm-hand` | `data.train_share` 0.5 | 299,955 rows | 0.2490 (0.2356 to 0.2635) | 0.2533 | -0.004299 (-0.008725 to +0.0002875) | 5 s |
+| `transformer-medium-hand-quarter` | `transformer-medium-hand` | `data.train_share` 0.25; `train.epochs` 48 (the base has 12); `train.patience` 12 (the base has 3) | 151,209 rows | 0.2413 (0.2290 to 0.2545) | 0.2666 | **-0.012 (-0.01902 to -0.004628)** | 5 min |
+| `gbm-hand-quarter` | `gbm-hand` | `data.train_share` 0.25 | 151,209 rows | 0.2413 (0.2285 to 0.2552) | 0.2533 | **-0.01203 (-0.01754 to -0.006776)** | 2 s |

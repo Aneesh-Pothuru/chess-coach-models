@@ -53,3 +53,29 @@ Test rows in ten equal groups by predicted chance: what the model said against w
 | 82.4% | 82.5% | 8,113 |
 | 87.7% | 88.0% | 8,113 |
 | 95.2% | 95.7% | 8,113 |
+
+## Studies
+
+A run here changes one thing in a run above, to say what that thing is worth. It is no candidate, so it is not ranked with the runs above. Its paired difference from the run it changes, on the same resampled test games, is in the closer look (`analysis.json`, under `pairs`).
+
+### `features`
+
+| Run | The run it changes | What it changes | Trained on | Log loss | That run's Log loss | Gain over `gbm-hand` | Time |
+|---|---|---|---|---|---|---|---|
+| `gbm-hand-no-pawns` | `gbm-hand` | `learner.without` pawns | 688,480 rows | 0.5415 (0.5383 to 0.5448) | 0.5414 | -0.0001288 (-0.0006863 to +0.0004111) | 25 s |
+| `gbm-hand-no-kings` | `gbm-hand` | `learner.without` kings | 688,480 rows | 0.5416 (0.5385 to 0.5450) | 0.5414 | -0.0002682 (-0.0008292 to +0.0004065) | 25 s |
+| `gbm-hand-no-material` | `gbm-hand` | `learner.without` material | 688,480 rows | 0.5437 (0.5405 to 0.5470) | 0.5414 | **-0.00231 (-0.003004 to -0.00162)** | 25 s |
+| `gbm-hand-no-setup` | `gbm-hand` | `learner.without` setup | 688,480 rows | 0.5440 (0.5409 to 0.5473) | 0.5414 | **-0.002627 (-0.003304 to -0.001918)** | 25 s |
+| `gbm-hand-no-hanging` | `gbm-hand` | `learner.without` hanging | 688,480 rows | 0.5443 (0.5410 to 0.5476) | 0.5414 | **-0.002901 (-0.003627 to -0.002214)** | 23 s |
+| `gbm-hand-no-mobility` | `gbm-hand` | `learner.without` mobility | 688,480 rows | 0.5452 (0.5421 to 0.5486) | 0.5414 | **-0.003835 (-0.004692 to -0.003019)** | 24 s |
+| `gbm-hand-no-line` | `gbm-hand` | `learner.without` line | 688,480 rows | 0.5465 (0.5435 to 0.5501) | 0.5414 | **-0.005165 (-0.005955 to -0.004403)** | 17 s |
+| `gbm-hand-no-first-move` | `gbm-hand` | `learner.without` first-move | 688,480 rows | 0.5547 (0.5516 to 0.5578) | 0.5414 | **-0.0133 (-0.01438 to -0.01216)** | 20 s |
+
+### `games`
+
+| Run | The run it changes | What it changes | Trained on | Log loss | That run's Log loss | Gain over `gbm-hand` | Time |
+|---|---|---|---|---|---|---|---|
+| `transformer-medium-hand-half` | `transformer-medium-hand` | `data.train_share` 0.5; `train.epochs` 24 (the base has 12); `train.patience` 6 (the base has 3) | 344,236 rows | 0.5440 (0.5409 to 0.5473) | 0.5369 | **-0.002645 (-0.00385 to -0.001324)** | 7 min |
+| `gbm-hand-half` | `gbm-hand` | `data.train_share` 0.5 | 344,236 rows | 0.5444 (0.5412 to 0.5477) | 0.5414 | **-0.003016 (-0.003711 to -0.002343)** | 14 s |
+| `gbm-hand-quarter` | `gbm-hand` | `data.train_share` 0.25 | 171,616 rows | 0.5485 (0.5451 to 0.5518) | 0.5414 | **-0.007085 (-0.007907 to -0.006232)** | 6 s |
+| `transformer-medium-hand-quarter` | `transformer-medium-hand` | `data.train_share` 0.25; `train.epochs` 48 (the base has 12); `train.patience` 12 (the base has 3) | 171,616 rows | 0.5518 (0.5486 to 0.5552) | 0.5369 | **-0.01045 (-0.01159 to -0.009122)** | 4 min |

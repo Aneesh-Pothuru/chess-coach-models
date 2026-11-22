@@ -1,0 +1,185 @@
+{
+  "model": "puzzle-difficulty",
+  "run": "gbm-hand-no-material",
+  "task": {
+    "label": "rating",
+    "kind": "regression",
+    "unit": "Lichess puzzle rating points",
+    "primary": "rmse",
+    "lower_is_better": true,
+    "context": [
+      "solver_moves",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "puzzles-v1",
+    "source": "https://database.lichess.org/lichess_db_puzzle.csv.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 1127915,
+    "splits": {
+      "test": 112450,
+      "train": 958941,
+      "valid": 56524
+    },
+    "fingerprint": "d14731fa4425fc6efdadb45c94ee53e07f5afe9151992b690b81edc71064cd5d",
+    "built": "2026-11-22T08:58:05Z",
+    "code": "0ba155afac19364bfc996e771f2be7757fd57a6d"
+  },
+  "config": {
+    "learner": {
+      "kind": "gbm",
+      "features": "hand",
+      "without": [
+        "material"
+      ]
+    },
+    "base": "gbm-hand",
+    "study": "features"
+  },
+  "learner": {
+    "features": 35,
+    "trees": 3995,
+    "fit_seconds": 126.1,
+    "leans_on": [
+      {
+        "feature": "line_quiet",
+        "share_of_gain": 0.244
+      },
+      {
+        "feature": "solver_moves",
+        "share_of_gain": 0.1124
+      },
+      {
+        "feature": "line_pieces_moved",
+        "share_of_gain": 0.0934
+      },
+      {
+        "feature": "ends_in_mate",
+        "share_of_gain": 0.0866
+      },
+      {
+        "feature": "legal_checks",
+        "share_of_gain": 0.0751
+      },
+      {
+        "feature": "final_material_gain",
+        "share_of_gain": 0.0647
+      },
+      {
+        "feature": "legal_captures",
+        "share_of_gain": 0.0387
+      },
+      {
+        "feature": "legal_moves",
+        "share_of_gain": 0.0341
+      },
+      {
+        "feature": "first_piece",
+        "share_of_gain": 0.0253
+      },
+      {
+        "feature": "attackers_near_opponent_king",
+        "share_of_gain": 0.0253
+      }
+    ]
+  },
+  "calibration": null,
+  "machine": {
+    "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "threads": 12,
+    "system": "Linux"
+  },
+  "software": {
+    "python": "3.13.16",
+    "numpy": "2.4.6",
+    "polars": "2.1.0",
+    "lightgbm": "4.6.0",
+    "torch": "2.14.1+cu130"
+  },
+  "code": "0ba155afac19364bfc996e771f2be7757fd57a6d",
+  "trained": "2026-11-22T11:58:50Z",
+  "seconds": 126.8,
+  "train_rows": 958941,
+  "train_groups": 958941,
+  "valid": {
+    "rmse": 298.42818422425887,
+    "mae": 231.35229875121917,
+    "r2": 0.6468995805132307,
+    "spearman": 0.807515934259458
+  },
+  "test": {
+    "rmse": {
+      "value": 297.8548198260541,
+      "low": 296.4075925256514,
+      "high": 299.1866213834182
+    },
+    "mae": {
+      "value": 231.05360135270038,
+      "low": 229.9398426286334,
+      "high": 232.1443090642373
+    },
+    "r2": {
+      "value": 0.6491792869265977,
+      "low": 0.6458554309546756,
+      "high": 0.6527130813712054
+    },
+    "spearman": {
+      "value": 0.8092586987527215,
+      "low": 0.8069658877009507,
+      "high": 0.8116285938489992
+    }
+  },
+  "test_rows": 112450,
+  "test_groups": 112450,
+  "test_by_band": {
+    "1000-1399": {
+      "rows": 31846,
+      "rmse": 273.00161405955777,
+      "mae": 212.00689805093864,
+      "r2": -5.041360885471638,
+      "spearman": 0.36130646159264374
+    },
+    "1400-1799": {
+      "rows": 28501,
+      "rmse": 252.141349883524,
+      "mae": 199.2987203522652,
+      "r2": -3.9654400258775286,
+      "spearman": 0.27406393974789356
+    },
+    "1800-2199": {
+      "rows": 19518,
+      "rmse": 313.8870441159516,
+      "mae": 249.4460997414262,
+      "r2": -6.451156906565271,
+      "spearman": 0.21902450495753095
+    },
+    "2200+": {
+      "rows": 9834,
+      "rmse": 501.52614604773447,
+      "mae": 438.4792523256765,
+      "r2": -8.367007702141764,
+      "spearman": 0.2602260404707435
+    },
+    "<1000": {
+      "rows": 22751,
+      "rmse": 247.5586572465797,
+      "mae": 192.05744916255094,
+      "r2": -1.4964166583634282,
+      "spearman": 0.6385252708538305
+    }
+  },
+  "weights": [],
+  "gain": {
+    "gain": -2.932082417433435,
+    "low": -3.3432378962832487,
+    "high": -2.4882664991028323,
+    "beyond_noise": true,
+    "reference": "gbm-hand",
+    "reference_trained": "2026-11-22T11:20:55Z",
+    "reference_value": 294.92273740862066
+  }
+}

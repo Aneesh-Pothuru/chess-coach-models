@@ -1,8 +1,8 @@
 {
  "model": "practical-chances",
  "written_by": "lab analyse practical-chances",
- "written": "2026-11-22T06:07:36Z",
- "code": "dda9c59773cd8eedf4a1d31982ab445d413a703e",
+ "written": "2026-11-22T12:42:17Z",
+ "code": "36a0ad94d25b6b17bb33c15f065bfe68fa3faf15",
  "dataset": {
   "dataset": "game-positions-2026-10",
   "builder": "game_positions",
@@ -207,6 +207,20 @@
     "75": 79.4947,
     "95": 97.5447,
     "99": 97.5447
+   }
+  },
+  "loss": {
+   "mean": 4.70985,
+   "min": -22.5829,
+   "max": 95.0895,
+   "quantiles": {
+    "1": -2.24483,
+    "5": -0.861181,
+    "25": 0.0,
+    "50": 0.790273,
+    "75": 4.34117,
+    "95": 25.25,
+    "99": 52.064
    }
   },
   "plies": {
@@ -5904,7 +5918,99 @@
    "low": -0.00128811,
    "high": 0.000368009,
    "beyond_noise": false
+  },
+  {
+   "run": "gbm-hand-half",
+   "over": "gbm-hand",
+   "gain": -0.000475202,
+   "study": "games",
+   "low": -0.00135013,
+   "high": 0.000337708,
+   "beyond_noise": false
+  },
+  {
+   "run": "gbm-hand-no-hanging",
+   "over": "gbm-hand",
+   "gain": -0.000212889,
+   "study": "features",
+   "low": -0.00055674,
+   "high": 0.000150939,
+   "beyond_noise": false
+  },
+  {
+   "run": "gbm-hand-no-kings",
+   "over": "gbm-hand",
+   "gain": -0.000121177,
+   "study": "features",
+   "low": -0.000515855,
+   "high": 0.000269481,
+   "beyond_noise": false
+  },
+  {
+   "run": "gbm-hand-no-material",
+   "over": "gbm-hand",
+   "gain": -0.00170569,
+   "study": "features",
+   "low": -0.00236495,
+   "high": -0.00109288,
+   "beyond_noise": true
+  },
+  {
+   "run": "gbm-hand-no-mobility",
+   "over": "gbm-hand",
+   "gain": -0.000549972,
+   "study": "features",
+   "low": -0.00107815,
+   "high": -4.26601e-05,
+   "beyond_noise": true
+  },
+  {
+   "run": "gbm-hand-no-pawns",
+   "over": "gbm-hand",
+   "gain": -0.000140183,
+   "study": "features",
+   "low": -0.000522915,
+   "high": 0.000223326,
+   "beyond_noise": false
+  },
+  {
+   "run": "gbm-hand-quarter",
+   "over": "gbm-hand",
+   "gain": -0.000681454,
+   "study": "games",
+   "low": -0.00173749,
+   "high": 0.000416607,
+   "beyond_noise": false
+  },
+  {
+   "run": "transformer-medium-hand-half",
+   "over": "transformer-medium-hand",
+   "gain": -0.00102327,
+   "study": "games",
+   "low": -0.00166939,
+   "high": -0.000363761,
+   "beyond_noise": true
+  },
+  {
+   "run": "transformer-medium-hand-quarter",
+   "over": "transformer-medium-hand",
+   "gain": -0.00269685,
+   "study": "games",
+   "low": -0.00353295,
+   "high": -0.00189534,
+   "beyond_noise": true
   }
+ ],
+ "studies": [
+  "gbm-hand-half",
+  "gbm-hand-no-hanging",
+  "gbm-hand-no-kings",
+  "gbm-hand-no-material",
+  "gbm-hand-no-mobility",
+  "gbm-hand-no-pawns",
+  "gbm-hand-quarter",
+  "transformer-medium-hand-half",
+  "transformer-medium-hand-quarter"
  ],
  "closeness": {
   "conv-small": {

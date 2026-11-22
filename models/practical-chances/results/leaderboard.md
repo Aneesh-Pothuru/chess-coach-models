@@ -12,7 +12,7 @@ Written by `lab eval practical-chances` from the run records in this folder.
 |---|---|---|---|---|---|---|---|---|---|
 | `conv-small` | conv, 6 layers of width 96 | 0.4235 (0.4183 to 0.4291) | 0.3639 | 0.2578 | 0.5025 | +0.0001616 (-0.001151 to +0.001411) | 1,031,425 | NVIDIA A100-SXM4-80GB | 2 min |
 | `transformer-small` | transformer, 4 layers of width 128 | 0.4235 (0.4181 to 0.4294) | 0.3586 | 0.2578 | 0.5024 | +0.0001574 (-0.001199 to +0.001565) | 861,985 | NVIDIA A100-SXM4-80GB | 3 min |
-| `gbm-hand` | LightGBM, context and hand features | 0.4237 (0.4184 to 0.4294) | 0.3618 | 0.2572 | 0.5016 | reference |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 8 s |
+| `gbm-hand` | LightGBM, context and hand features | 0.4237 (0.4184 to 0.4294) | 0.3618 | 0.2572 | 0.5016 | reference |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 10 s |
 | `transformer-medium` | transformer, 8 layers of width 256 | 0.4244 (0.4193 to 0.4300) | 0.3670 | 0.2546 | 0.4995 | -0.0007413 (-0.002056 to +0.0005804) | 6,554,177 | NVIDIA A100-SXM4-80GB | 5 min |
 | `transformer-medium-hand` | transformer, 8 layers of width 256, with hand features | 0.4249 (0.4200 to 0.4303) | 0.3703 | 0.2529 | 0.4986 | -0.00122 (-0.002381 to +7.052e-06) | 6,557,505 | NVIDIA A100-SXM4-80GB | 5 min |
 | `gbm-context` | LightGBM, context numbers only | 0.4260 (0.4206 to 0.4319) | 0.3650 | 0.2492 | 0.4936 | **-0.002288 (-0.003088 to -0.001502)** |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 4 s |
@@ -34,3 +34,26 @@ Written by `lab eval practical-chances` from the run records in this folder.
 | `constant` | 0.4917 | 0.4949 | 0.4925 | 0.4917 | 0.4809 |
 | `elo-gap` | 0.4965 | 0.5040 | 0.5002 | 0.4984 | 0.4655 |
 | rows | 10,712 | 16,674 | 19,614 | 14,453 | 7,126 |
+
+## Studies
+
+A run here changes one thing in a run above, to say what that thing is worth. It is no candidate, so it is not ranked with the runs above. Its paired difference from the run it changes, on the same resampled test games, is in the closer look (`analysis.json`, under `pairs`).
+
+### `features`
+
+| Run | The run it changes | What it changes | Trained on | RMSE | That run's RMSE | Gain over `gbm-hand` | Time |
+|---|---|---|---|---|---|---|---|
+| `gbm-hand-no-kings` | `gbm-hand` | `learner.without` kings | 594,940 rows | 0.4238 (0.4185 to 0.4295) | 0.4237 | -0.0001212 (-0.0005159 to +0.0002695) | 6 s |
+| `gbm-hand-no-pawns` | `gbm-hand` | `learner.without` pawns | 594,940 rows | 0.4238 (0.4184 to 0.4295) | 0.4237 | -0.0001402 (-0.0005229 to +0.0002233) | 7 s |
+| `gbm-hand-no-hanging` | `gbm-hand` | `learner.without` hanging | 594,940 rows | 0.4239 (0.4186 to 0.4297) | 0.4237 | -0.0002129 (-0.0005567 to +0.0001509) | 7 s |
+| `gbm-hand-no-mobility` | `gbm-hand` | `learner.without` mobility | 594,940 rows | 0.4242 (0.4188 to 0.4302) | 0.4237 | **-0.00055 (-0.001078 to -4.266e-05)** | 9 s |
+| `gbm-hand-no-material` | `gbm-hand` | `learner.without` material | 594,940 rows | 0.4254 (0.4200 to 0.4313) | 0.4237 | **-0.001706 (-0.002365 to -0.001093)** | 6 s |
+
+### `games`
+
+| Run | The run it changes | What it changes | Trained on | RMSE | That run's RMSE | Gain over `gbm-hand` | Time |
+|---|---|---|---|---|---|---|---|
+| `gbm-hand-half` | `gbm-hand` | `data.train_share` 0.5 | 299,955 rows | 0.4242 (0.4189 to 0.4297) | 0.4237 | -0.0004752 (-0.00135 to +0.0003377) | 5 s |
+| `gbm-hand-quarter` | `gbm-hand` | `data.train_share` 0.25 | 151,209 rows | 0.4244 (0.4191 to 0.4299) | 0.4237 | -0.0006815 (-0.001737 to +0.0004166) | 2 s |
+| `transformer-medium-hand-half` | `transformer-medium-hand` | `data.train_share` 0.5; `train.epochs` 24 (the base has 12); `train.patience` 6 (the base has 3) | 299,955 rows | 0.4259 (0.4211 to 0.4310) | 0.4249 | **-0.002243 (-0.00356 to -0.0008078)** | 5 min |
+| `transformer-medium-hand-quarter` | `transformer-medium-hand` | `data.train_share` 0.25; `train.epochs` 48 (the base has 12); `train.patience` 12 (the base has 3) | 151,209 rows | 0.4276 (0.4228 to 0.4327) | 0.4249 | **-0.003917 (-0.00525 to -0.002496)** | 3 min |

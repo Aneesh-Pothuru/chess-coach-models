@@ -1,0 +1,254 @@
+{
+  "model": "puzzle-difficulty-unsolved",
+  "run": "transformer-medium-hand",
+  "task": {
+    "label": "rating",
+    "kind": "regression",
+    "unit": "Lichess puzzle rating points",
+    "primary": "rmse",
+    "lower_is_better": true,
+    "context": [
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ],
+    "marks": [
+      "en_passant",
+      "setup_from",
+      "setup_to"
+    ],
+    "hand": [
+      "material_count",
+      "material_imbalance",
+      "phase_piece_count",
+      "in_check",
+      "legal_moves",
+      "legal_captures",
+      "legal_checks",
+      "hanging_own",
+      "hanging_opponent",
+      "passed_pawns_own",
+      "passed_pawns_opponent",
+      "attackers_near_own_king",
+      "attackers_near_opponent_king",
+      "setup_capture"
+    ]
+  },
+  "dataset": {
+    "dataset": "puzzles-v1",
+    "source": "https://database.lichess.org/lichess_db_puzzle.csv.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 1127915,
+    "splits": {
+      "test": 112450,
+      "train": 958941,
+      "valid": 56524
+    },
+    "fingerprint": "d14731fa4425fc6efdadb45c94ee53e07f5afe9151992b690b81edc71064cd5d",
+    "built": "2026-11-22T08:58:05Z",
+    "code": "0ba155afac19364bfc996e771f2be7757fd57a6d"
+  },
+  "config": {
+    "needs": "cuda",
+    "learner": {
+      "kind": "net",
+      "body": "transformer",
+      "features": "hand",
+      "dim": 256,
+      "depth": 8,
+      "heads": 8,
+      "dropout": 0.1
+    },
+    "train": {
+      "epochs": 12,
+      "batch": 1024,
+      "lr": 0.0006,
+      "weight_decay": 0.05,
+      "warmup": 0.05,
+      "patience": 3
+    }
+  },
+  "learner": {
+    "features": 18,
+    "parameters": 6555713,
+    "device": "NVIDIA A100-SXM4-80GB",
+    "best_epoch": 12,
+    "fit_seconds": 780.7,
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.87018,
+        "valid_rmse": 454.20831,
+        "rows_a_second": 15011
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.80615,
+        "valid_rmse": 447.69317,
+        "rows_a_second": 15007
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.78173,
+        "valid_rmse": 439.5556,
+        "rows_a_second": 15008
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.76243,
+        "valid_rmse": 437.23941,
+        "rows_a_second": 15028
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.74806,
+        "valid_rmse": 432.42108,
+        "rows_a_second": 15034
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.73329,
+        "valid_rmse": 427.56019,
+        "rows_a_second": 15030
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.71897,
+        "valid_rmse": 423.60207,
+        "rows_a_second": 15018
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.70415,
+        "valid_rmse": 422.0908,
+        "rows_a_second": 15032
+      },
+      {
+        "epoch": 9,
+        "train_loss": 0.68987,
+        "valid_rmse": 418.95355,
+        "rows_a_second": 15032
+      },
+      {
+        "epoch": 10,
+        "train_loss": 0.67725,
+        "valid_rmse": 417.1982,
+        "rows_a_second": 15021
+      },
+      {
+        "epoch": 11,
+        "train_loss": 0.66787,
+        "valid_rmse": 416.72012,
+        "rows_a_second": 14988
+      },
+      {
+        "epoch": 12,
+        "train_loss": 0.6627,
+        "valid_rmse": 416.53536,
+        "rows_a_second": 15012
+      }
+    ]
+  },
+  "calibration": null,
+  "machine": {
+    "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "threads": 12,
+    "system": "Linux"
+  },
+  "software": {
+    "python": "3.13.16",
+    "numpy": "2.4.6",
+    "polars": "2.1.0",
+    "lightgbm": "4.6.0",
+    "torch": "2.14.1+cu130"
+  },
+  "code": "0ba155afac19364bfc996e771f2be7757fd57a6d",
+  "trained": "2026-11-22T09:39:03Z",
+  "seconds": 781.4,
+  "train_rows": 958941,
+  "train_groups": 958941,
+  "valid": {
+    "rmse": 416.535364980714,
+    "mae": 328.77204102547284,
+    "r2": 0.31210473396934946,
+    "spearman": 0.544768540026054
+  },
+  "test": {
+    "rmse": {
+      "value": 416.11713032902367,
+      "low": 414.32009158696815,
+      "high": 417.79780140752547
+    },
+    "mae": {
+      "value": 328.26895311273324,
+      "low": 326.785931044847,
+      "high": 329.66323263586446
+    },
+    "r2": {
+      "value": 0.3152892407352461,
+      "low": 0.31022752697138334,
+      "high": 0.3203437950878946
+    },
+    "spearman": {
+      "value": 0.5480014773956677,
+      "low": 0.5434707120861278,
+      "high": 0.5526243744963496
+    }
+  },
+  "test_rows": 112450,
+  "test_groups": 112450,
+  "test_by_band": {
+    "1000-1399": {
+      "rows": 31846,
+      "rmse": 333.09012528129847,
+      "mae": 275.6990028941466,
+      "r2": -7.993481916826232,
+      "spearman": 0.2019951806546864
+    },
+    "1400-1799": {
+      "rows": 28501,
+      "rmse": 238.39542818302124,
+      "mae": 185.80801792170874,
+      "r2": -3.4387985810723523,
+      "spearman": 0.12223529747371127
+    },
+    "1800-2199": {
+      "rows": 19518,
+      "rmse": 439.8308400830717,
+      "mae": 376.85470107921213,
+      "r2": -13.630133336887319,
+      "spearman": 0.09103441103004951
+    },
+    "2200+": {
+      "rows": 9834,
+      "rmse": 782.9874936535588,
+      "mae": 735.8150724636386,
+      "r2": -21.83091777351949,
+      "spearman": 0.10720751657316162
+    },
+    "<1000": {
+      "rows": 22751,
+      "rmse": 445.3985417925102,
+      "mae": 362.4791672586593,
+      "r2": -7.0808755190415535,
+      "spearman": 0.44158206234447733
+    }
+  },
+  "weights": [
+    {
+      "file": "model.pt",
+      "bytes": 26252639,
+      "sha256": "e0085bfbdf555cc64887be6f1c847a59011fc8ad60b62ade24c06e593e961a0e"
+    }
+  ],
+  "gain": {
+    "gain": 40.705436009111224,
+    "low": 39.51310326748607,
+    "high": 41.90154677548261,
+    "beyond_noise": true,
+    "reference": "gbm-hand",
+    "reference_trained": "2026-11-22T09:07:54Z",
+    "reference_value": 456.8225663381349
+  }
+}
