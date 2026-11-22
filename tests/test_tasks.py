@@ -89,7 +89,7 @@ def test_a_run_that_changes_another_names_a_run_the_model_has():
 def test_every_analysis_plan_asks_for_things_the_analysis_knows():
     for name in tasks.names():
         plan = analysis.plan(name)
-        assert set(plan) <= {"band", "describe", "label", "within", "slices", "grids", "examples", "pairs"}, name
+        assert set(plan) <= {"band", "describe", "label", "within", "slices", "grids", "examples", "pairs", "shown"}, name
         cuts = plan.get("slices", []) + [side for grid in plan.get("grids", []) for side in (grid["rows"], grid["columns"])]
         for cut in cuts:
             assert sum(kind in cut for kind in ("values", "edges", "tags")) == 1, (name, cut)
@@ -101,6 +101,24 @@ def test_every_analysis_plan_asks_for_things_the_analysis_knows():
         runs = {path.stem for path in paths.configs(name).glob("*.yaml")}
         for pair in plan.get("pairs", []):
             assert len(pair) == 2 and pair[0] != pair[1] and set(pair) <= runs, (name, pair)
+
+
+def test_a_model_read_against_one_that_is_shown_more_asks_the_same_of_the_same_rows():
+    read = [name for name in tasks.names() if analysis.plan(name).get("shown")]
+    assert "puzzle-difficulty-unsolved" in read
+    for name in read:
+        other = analysis.plan(name)["shown"]
+        here, there = tasks.get(name), tasks.get(other)
+        assert other != name
+        assert all(getattr(here, part) == getattr(there, part) for part in ("dataset", "kind", "label", "primary")), name
+        # What is hidden is hidden by the task, which names the marks or the hand features its learners may read.
+        assert here.marks is not None or here.hand is not None, name
+        # A run of the same name is the same run in both, so the two differ only in what the task shows.
+        ours = {path.name: yaml.safe_load(path.read_text(encoding="utf-8")) for path in paths.configs(name).glob("*.yaml")}
+        theirs = {path.name: yaml.safe_load(path.read_text(encoding="utf-8")) for path in paths.configs(other).glob("*.yaml")}
+        both = set(ours) & set(theirs)
+        assert {"constant.yaml", "gbm-hand.yaml"} <= both, name
+        assert all(ours[run] == theirs[run] for run in both), (name, [run for run in both if ours[run] != theirs[run]])
 
 
 def test_a_model_without_a_plan_is_asked_nothing_more(temp_lab):

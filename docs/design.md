@@ -271,8 +271,11 @@ the model's committed files, on any machine, and compiles `models/<model>/paper/
 - **Switches.** What depends on files a model may not have yet stands inside a switch: `\iflook`
   for the closer look, `\ifpairs`, `\ifvariants`, `\ifgames` and `\iffeatures` for pairs, runs
   that change a network, and the two studies, `\ifchanges` for any of those four, and `\ifchance`
-  for a model that predicts a chance. A switch that is off takes its side of the prose out, so one
-  text serves before and after a batch of runs lands.
+  for a model that predicts a chance. `\ifshown` is on where the model is read against one that
+  is shown more and that one has runs (the table of the two leaderboards side by side,
+  `papers/shown.py`), and `\ifshownpaired` where a closer look has measured the pairs. A switch
+  that is off takes its side of the prose out, so one text serves before and after a batch of runs
+  lands.
 - **Shared sections.** What is the same for every model is typed once under `papers/`: how a board
   is read, the learners, how a result is scored, what a closer look is, how one change at a time
   is read (`changes.tex`), how the two studies are read (`studies.tex`), the preamble and the

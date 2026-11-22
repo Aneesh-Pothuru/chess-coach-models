@@ -407,6 +407,54 @@ def test_a_task_that_hides_the_solution_gives_no_learner_a_way_to_read_it(lab, t
     assert board["task"]["marks"] == list(task.marks)
 
 
+def test_a_model_that_hides_something_is_read_beside_the_model_that_shows_it(lab, temp_lab):
+    model, shown = "puzzle-difficulty-unsolved", "puzzle-difficulty"
+    names = ("gbm-hand", "constant", "conv-hand")
+    temp_lab.model(model, {name: CONFIGS[name] for name in names})
+    assert analysis.plan(model)["shown"] == shown
+    hidden = {name: runs.run(model, name, smoke=True, log=lambda _: None) for name in names}
+    # Before the other model has a run on this machine there is nothing to read this one against.
+    src, out = papers.generate(model, smoke=True)
+    assert "shown" not in out.files and not any(key.startswith("shown.") for key in out.values)
+    assert papers.switches(src, out)["shown"] is False
+
+    seen = {name: runs.run(shown, name, smoke=True, log=lambda _: None) for name in ("gbm-hand", "constant", "transformer-small")}
+    # The two leaderboards alone give the table. Runs of the same name are the rows: conv-hand has no run
+    # there, and transformer-small none here.
+    src, out = papers.generate(model, smoke=True)
+    flags = papers.switches(src, out)
+    assert flags["shown"] is True and flags["shownpaired"] is False
+    assert out.values["shown.model"] == "puzzle difficulty" and out.values["shown.runs"] == "two"
+    assert "shown.gbm-hand.gain" not in out.values and "shown.conv-hand.worth" not in out.values
+    step = {name: one["constant"]["test"]["rmse"]["value"] - one["gbm-hand"]["test"]["rmse"]["value"] for name, one in (("here", hidden), ("there", seen))}
+    worth = hidden["gbm-hand"]["test"]["rmse"]["value"] - seen["gbm-hand"]["test"]["rmse"]["value"]
+    assert float(out.values["shown.gbm-hand.worth"].replace("$-$", "-")) == pytest.approx(worth, rel=0.01)
+    assert out.values["shown.reference.worth"] == out.values["shown.gbm-hand.worth"]
+    # A run only the other model has is still there to read by its name, beside the same floor.
+    assert out.values["shown.there.transformer-small.score"] == tex.score(seen["transformer-small"]["test"]["rmse"]["value"])
+    assert out.values["shown.there.gbm-hand.lift.percent"] == out.values["shown.gbm-hand.there.lift.percent"]
+    assert out.values["shown.gbm-hand.here.lift.percent"] == out.values["reference.lift.percent"]
+    lead = hidden["gbm-hand"]["test"]["rmse"]["value"] - seen["transformer-small"]["test"]["rmse"]["value"]
+    assert out.values["shown.there.transformer-small.than-reference"] == ("ahead of" if lead > 0 else "behind")
+    assert out.values["shown.there.transformer-small.over-reference"] == tex.sig(abs(lead), 3)
+    # The floor says the training mean whatever it is shown, so being shown the line is worth nothing to it.
+    assert out.values["shown.constant.worth"] == "0"
+    assert float(out.values["shown.reference.kept.percent"].replace("$-$", "-")) == pytest.approx(100 * step["here"] / step["there"], abs=0.5)
+    table = out.files["shown"]
+    assert "Hidden" in table and "Shown" in table and table.count("\\\\") == 2 + 2
+    # No closer look has measured a pair yet, so the table has no column for an interval.
+    assert "interval" not in table and "{lrrrr}" in table
+    assert not any(name.startswith("shown-") for name in out.files)
+
+    # A run is the same run in both models only when both were trained from one config.
+    record = paths.results(model, smoke=True) / "gbm-hand.json"
+    changed = json.loads(record.read_text(encoding="utf-8"))
+    changed["config"]["learner"]["leaves"] = 7
+    record.write_text(json.dumps(changed), encoding="utf-8")
+    src, out = papers.generate(model, smoke=True)
+    assert out.values["shown.runs"] == "one" and "shown.gbm-hand.worth" not in out.values
+
+
 def test_a_network_starts_from_the_body_another_run_trained(lab, temp_lab):
     import torch
 

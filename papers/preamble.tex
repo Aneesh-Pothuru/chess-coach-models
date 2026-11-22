@@ -54,6 +54,12 @@
 \newif\ifgames
 \newif\iffeatures
 \newif\ifchanges
+% A model that asks another model's question with something hidden is read
+% against that model: \ifshown is true when the other model has runs to set
+% beside this one's, and \ifshownpaired when the closer look has measured
+% each pair on the same test rows.
+\newif\ifshown
+\newif\ifshownpaired
 % The lab's own paper asks its own: whether a model has a task and no run
 % yet (\ifwaiting), and whether a kind of change has a pair measured in some
 % model: the hand features (\ifchangehand), more epochs (\ifchangeepochs), a
