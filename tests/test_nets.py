@@ -14,6 +14,19 @@ def batch(rows: int = 5, marks: int = 3, context: int = 6):
     )
 
 
+def fit(model, loss, steps: int, rate: float = 1e-2) -> tuple[float, float]:
+    """What ``loss`` says of a net before the first of ``steps`` steps on one batch, and before the last."""
+    optimizer = torch.optim.AdamW(model.parameters(), lr=rate)
+    said = []
+    for _ in range(steps):
+        now = loss()
+        said.append(now.item())
+        optimizer.zero_grad()
+        now.backward()
+        optimizer.step()
+    return said[0], said[-1]
+
+
 TRANSFORMER = {"body": "transformer", "dim": 32, "depth": 2, "heads": 4, "dropout": 0.0}
 CONV = {"body": "conv", "dim": 16, "depth": 2, "dropout": 0.0}
 # Every shape a run can ask for: the two bodies as they first shipped, then the transformer told what each
@@ -30,21 +43,19 @@ BODIES = [
 
 @pytest.mark.parametrize("learner", BODIES)
 def test_each_body_gives_one_number_a_board_and_learns(learner):
+    torch.manual_seed(11)
     model = build_net(learner, marks=3, context=6)
     tokens, marks, context = batch()
     output = model(tokens, marks, context)
     assert output.shape == (5,)
     assert parameter_count(model) > 0
     wanted = torch.tensor([0.0, 1.0, 2.0, 3.0, 4.0])
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-2)
-    first = None
-    for _ in range(60):
-        loss = torch.nn.functional.mse_loss(model(tokens, marks, context), wanted)
-        first = first if first is not None else loss.item()
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-    assert loss.item() < first / 4
+
+    def loss():
+        return torch.nn.functional.mse_loss(model(tokens, marks, context), wanted)
+
+    first, last = fit(model, loss, steps=60)
+    assert last < first / 4
 
 
 def test_the_transformer_reads_marks_context_and_geometry():
@@ -146,38 +157,34 @@ def test_a_hybrid_is_blocks_of_the_tower_then_layers_of_the_transformer():
 
 @pytest.mark.parametrize("learner", BODIES)
 def test_a_head_for_tags_gives_every_board_a_logit_a_tag_and_learns(learner):
+    torch.manual_seed(11)
     model = build_net(learner, marks=3, context=6, outputs=4)
     tokens, marks, context = batch()
     assert model(tokens, marks, context).shape == (5, 4)
     wanted = torch.tensor([[1, 0, 0, 1], [0, 1, 0, 0], [0, 0, 0, 0], [1, 1, 1, 0], [0, 0, 1, 1]]).float()
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-2)
-    first = None
-    for _ in range(80):
-        loss = torch.nn.functional.binary_cross_entropy_with_logits(model(tokens, marks, context), wanted)
-        first = first if first is not None else loss.item()
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-    assert loss.item() < first / 4
+
+    def loss():
+        return torch.nn.functional.binary_cross_entropy_with_logits(model(tokens, marks, context), wanted)
+
+    first, last = fit(model, loss, steps=80)
+    assert last < first / 4
 
 
 @pytest.mark.parametrize("learner", BODIES)
 def test_a_head_for_squares_gives_every_square_its_own_logit_and_learns(learner):
+    torch.manual_seed(11)
     model = build_net(learner, marks=3, context=6, squares=True)
     tokens, marks, context = batch()
     assert model.body.squares(tokens, marks, context).shape == (5, 64, model.body.square_dim)
     assert model(tokens, marks, context).shape == (5, 64)
     wanted = (tokens == 4).float()
     assert 0 < wanted.sum() < wanted.numel()
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-2)
-    first = None
-    for _ in range(80):
-        loss = torch.nn.functional.binary_cross_entropy_with_logits(model(tokens, marks, context), wanted)
-        first = first if first is not None else loss.item()
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-    assert loss.item() < first / 4
+
+    def loss():
+        return torch.nn.functional.binary_cross_entropy_with_logits(model(tokens, marks, context), wanted)
+
+    first, last = fit(model, loss, steps=80)
+    assert last < first / 4
     said = model.eval()(tokens, marks, context)
     assert ((said > 0) == (wanted > 0)).float().mean() > 0.95
 
@@ -196,19 +203,17 @@ def over_allowed(logits, pairs):
 
 @pytest.mark.parametrize("learner", BODIES)
 def test_a_head_for_moves_gives_every_pair_of_squares_a_logit_and_learns(learner):
+    torch.manual_seed(11)
     model = build_net(learner, marks=3, context=6, moves=True)
     tokens, marks, context = batch()
     assert model(tokens, marks, context).shape == (5, 64 * 64)
     pairs, played = allowed_pairs()
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-2)
-    first = None
-    for _ in range(120):
-        loss = torch.nn.functional.cross_entropy(over_allowed(model(tokens, marks, context), pairs), played)
-        first = first if first is not None else loss.item()
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-    assert loss.item() < first / 4
+
+    def loss():
+        return torch.nn.functional.cross_entropy(over_allowed(model(tokens, marks, context), pairs), played)
+
+    first, last = fit(model, loss, steps=120)
+    assert last < first / 4
     said = over_allowed(model.eval()(tokens, marks, context), pairs).argmax(dim=1)
     assert torch.equal(said, played)
 
@@ -279,20 +284,22 @@ def game_batch(marks: int = 3, numbers: int = 5, context: int = 2):
 
 @pytest.mark.parametrize("learner", BODIES)
 def test_a_body_over_a_game_gives_one_number_a_row_and_learns(learner):
+    torch.manual_seed(11)
     model = build_net({**learner, **OVER}, marks=3, context=2, steps=5, most=6)
     inputs = game_batch()
     assert model(*inputs).shape == (4,)
     assert model.body.out_dim == 2 * model.body.board.out_dim and model.body.place.shape[0] == 6
     wanted = torch.tensor([0.0, 1.0, 2.0, 3.0])
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-2)
-    first = None
-    for _ in range(80):
-        loss = torch.nn.functional.mse_loss(model(*inputs), wanted)
-        first = first if first is not None else loss.item()
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-    assert loss.item() < first / 4
+
+    def loss():
+        return torch.nn.functional.mse_loss(model(*inputs), wanted)
+
+    # A net that says the rows' mean for every row leaves about a third of the first loss, so a quarter asks
+    # it to tell the rows apart. At the rate the one-board tests fit at, a transformer under the layers over
+    # the game stays at that mean for a number of steps that depends on where it starts, and about one start
+    # in five was still there after these 80. At a third of that rate no start of any shape is.
+    first, last = fit(model, loss, steps=80, rate=3e-3)
+    assert last < first / 4
 
 
 @pytest.mark.parametrize("learner", BODIES)
