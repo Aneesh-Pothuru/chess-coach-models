@@ -2,7 +2,8 @@
 
 **The question.** At each key moment of a game, Game Review explains what the
 player's move allowed and what the better move does, in text the app's code
-writes from facts it has checked on the board ([explain-top-move](../explain-top-move/)).
+writes from facts it has checked on the board (the explain-top-move study, which
+has left this repository; [its history keeps it](https://github.com/Aneesh-Pothuru/chess-coach-models/tree/4652bcd3734161872da8056be5a0c3f88142616f/projects/explain-top-move)).
 That text is true, but it is long, it names no lesson idea, and it reads the
 same at every level. Can an open language model that Cloudflare's Workers AI
 serves, so the app could call it from a Pages Function, rewrite the explanation
