@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Runs a research project's script against the chess app:
+# Runs a script against the chess app:
 #
-#   bridge/run.sh projects/<project>/<script>.mjs [args...]
+#   bridge/run.sh models/<model>/<folder>/<script>.mjs [args...]
 #
 # The script runs under the app's own tsx with CHESS_DIR set, so it can import
 # the app's TypeScript through bridge/lib/chess.mjs, and packages by name from

@@ -1,7 +1,7 @@
 // Where the lab keeps what it reads and writes, for scripts that need no app
 // code. bridge/lib/chess.mjs re-exports all of this beside the app import.
 import { execFileSync } from 'node:child_process'
-import { mkdirSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -21,24 +21,38 @@ export function records() {
   return recordsDir
 }
 
-/** Where a project writes per-game data: private/<project>/, which git ignores. */
+/** Where a set of scripts writes per-game data: private/<project>/, which git ignores. */
 export function privateDir(project) {
   const out = join(LAB_DIR, 'private', project)
   mkdirSync(out, { recursive: true })
   return out
 }
 
-/** A research project's folder: projects/<project>/. */
+/**
+ * The folder a set of scripts lives in, by its name: models/<name>/, a folder
+ * inside a model (models/<model>/<name>/), or projects/<name>/. The name stays
+ * the same wherever the folder sits, since private/<name>/ and the splits
+ * hashed from it are keyed by it.
+ */
 export function projectDir(project) {
-  return join(LAB_DIR, 'projects', project)
+  const direct = [join(LAB_DIR, 'models', project), join(LAB_DIR, 'projects', project)]
+  for (const dir of direct) if (existsSync(dir)) return dir
+  const models = join(LAB_DIR, 'models')
+  if (existsSync(models)) {
+    for (const model of readdirSync(models)) {
+      const dir = join(models, model, project)
+      if (existsSync(dir)) return dir
+    }
+  }
+  return direct[0]
 }
 
-/** A project's hill-climb record: projects/<project>/hillclimb/ (the changes tried and their aggregates). */
+/** A hill-climb record: <its folder>/hillclimb/ (the changes tried and their aggregates). */
 export function hillclimbDir(project) {
   return join(projectDir(project), 'hillclimb')
 }
 
-/** Where a project's scripts write the results its paper cites: projects/<project>/results/. */
+/** Where a folder's scripts write their aggregates: <its folder>/results/. */
 export function resultsDir(project) {
   const out = join(projectDir(project), 'results')
   mkdirSync(out, { recursive: true })

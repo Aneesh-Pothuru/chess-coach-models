@@ -49,7 +49,7 @@ def test_overrides_skip_the_checkout(
     reason="needs a chess checkout with node_modules (set CHESS_DIR)",
 )
 def test_app_win_percent_through_the_bridge() -> None:
-    script = ROOT / "projects" / "winprob-parity" / "app.mts"
+    script = ROOT / "bridge" / "winprob-parity" / "app.mts"
     out = run_eval(script, {"cp": [0, 1000], "mate": [1, -1]})
     assert out["cp"][0] == pytest.approx(50.0)
     assert out["cp"][1] > 97.0

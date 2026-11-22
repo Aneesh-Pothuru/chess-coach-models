@@ -20,11 +20,14 @@ jobs:
         run: python scripts/check_private.py
         env:
           PRIVATE_PATTERNS: ${{ secrets.PRIVATE_PATTERNS }}
-      # The models' tests need Torch, LightGBM and downloaded data; these need
-      # only python-chess, so every push runs them in seconds.
+      # The training tests need Torch and LightGBM; these need only a few
+      # small packages, so every push runs them in seconds.
       - name: Install the light dependencies
         run: |
-          pip install pytest python-chess pyyaml
+          pip install pytest python-chess pyyaml numpy polars zstandard
           pip install --no-deps -e .
-      - name: Tests that need no models or data
-        run: python -m pytest tests/test_bridge.py tests/test_winprob.py tests/test_features.py
+      - name: Tests that need no Torch or data
+        run: >
+          python -m pytest tests/test_bridge.py tests/test_winprob.py tests/test_features.py
+          tests/test_encode.py tests/test_games_data.py tests/test_metrics.py tests/test_hand_features.py
+          tests/test_open_prompts.py

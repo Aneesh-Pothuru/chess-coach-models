@@ -1,0 +1,177 @@
+# The design of the lab
+
+The lab makes models for a chess coaching app. An engine already says which move is best, and
+board code already says what a move does. What neither can compute is what people do: which move a
+player at a level finds, where they go wrong, how hard a tactic is for them, how long they think.
+Each model here answers one such question from a position or a game, is trained on open data, and
+has to beat a plain baseline on games it never saw.
+
+This page says how the lab is built and why. [`CLAUDE.md`](../CLAUDE.md) has the rules for working
+in it, and [`ideas.md`](ideas.md) the models that could come next.
+
+## One shape for every model
+
+A model that reads a position is always the same five steps: get labelled positions from open
+data, turn a board into numbers, fit a learner, score it on held-out games, and compare it with a
+baseline. Written once for each model, those steps drift apart, and two models stop being
+comparable. So they are written once for all of them, and a model is what is left:
+
+| What a model brings | Where |
+|---|---|
+| The question, the rule for what counts as better | `models/<model>/README.md`, its card |
+| Its label, the numbers it may read beside the board, its metric | a `Task` in `src/chess_coach_models/tasks/` |
+| Its learners | `models/<model>/configs/<run>.yaml` |
+| Its rows, when no dataset has them yet | a builder in `data/` and a recipe in `datasets/` |
+
+The input is a position as a FEN, with what the task knows about it: the moves that led to it or
+follow from it, both ratings, both clocks, the time control. The output today is one number, a
+quantity or a chance. What changes from idea to idea is the label and what the model may read.
+
+## Datasets
+
+A dataset is built from a recipe, `datasets/<name>.yaml`: an open source, filters, a fixed sample
+and a split. `lab data <name>` writes it under `data/processed/<name>/` as four files:
+
+- `rows.parquet`: one row a position, with its key, its game, its split, its labels and every
+  number a learner may read;
+- `tokens.npy` and `marks.npy`: each board as the networks read it;
+- `manifest.json`: the source, its licence, the recipe, how many rows were read and kept, the
+  commit of the code that built it, and the names of the marks and hand features.
+
+Three choices hold for every dataset.
+
+**Streams, never copies.** A month of Lichess games is tens of gigabytes. The builders read it as
+a stream (`data/lichess.py`) and keep only the rows the recipe asks for, so a dataset builds on a
+laptop or a free notebook.
+
+**A sample is a hash.** Whether a puzzle or a game is in the sample is decided by a hash of its
+id (`data/splits.py`), so the same recipe builds the same rows on any machine, and a bigger sample
+contains the smaller one.
+
+**Whole games move together.** The split is a hash of the game, so no game has positions on both
+sides of it. Puzzles are grouped by the game they were cut from. The same grouping is used when a
+score's noise is measured.
+
+Datasets are not committed. A recipe builds the same rows on any machine, and the manifest
+carries a fingerprint that proves it: a hash of the boards and of every exact column. A run record
+names the fingerprint of the data it read, and the leaderboard refuses to rank runs that read
+different data.
+
+## A board as the networks read it
+
+`encode/board.py` turns a FEN into 64 tokens seen from the side to move: the mover's pieces are
+tokens 1 to 6, the opponent's 7 to 12, an empty square 0. When Black is to move the board is
+turned, so the mover always plays up the board and a model learns one game instead of a white one
+and a black one.
+
+What a task knows about squares travels as marks, one bit a channel in a 16-bit number per
+square: the en passant square always, then the last move's squares, or for a puzzle the squares of
+the move that set it up and of its solution. Everything that is not about a square is a context
+number: castling rights, ratings, clocks, the time control, the ply.
+
+The tree baseline cannot read 64 tokens, so `encode/hand.py` computes what a person would count:
+material, mobility, checks and captures on offer, hanging pieces, passed pawns, attackers near each
+king, and for a puzzle the shape of its solution (how many moves, how many quiet ones, whether it
+starts with a sacrifice, how far the first piece travels). These are the features a network has to
+do better than.
+
+## Bodies and a head
+
+A network is a body and a head (`nets/model.py`). The body turns tokens, marks and context into
+one vector. The head, two layers, turns the vector into the task's output. Two bodies ship so a
+leaderboard can say what the architecture is worth on each task.
+
+**The square transformer.** Each square is a token and every square attends to every other from
+the first layer, so a bishop on a1 and a king on h8 meet at once. Attention is told about the
+board's geometry by a learned bias for each offset between two squares, one per head: files, ranks,
+diagonals and knight hops are all offsets, so a head can learn to look along them. The context
+numbers enter as one more token. This is the design the strongest published human-move models have
+moved to.
+
+**The convolutional tower.** Residual blocks of 3x3 convolutions over the 8x8 board, the kind of
+network the first AlphaZero-style engines used. It is cheap, it trains on a CPU, and it sees
+further only as it gets deeper. It is here as the honest alternative: where it matches the
+transformer, the cheaper model wins.
+
+Sizes are settings of a run (`dim`, `depth`, `heads`), not code.
+
+## Learners and the run record
+
+A run is one config file and names one of three learners (`train/learners.py`):
+
+- `constant`: one number for every row. The floor: a model that does not beat it learned nothing.
+- `gbm`: gradient-boosted trees on the context numbers (`gbm-context`), or on those and the hand
+  features (`gbm-hand`). `gbm-hand` is the reference every other run is compared with.
+- `net`: a body and the head, trained by one loop for every task: AdamW, a warm-up then a cosine
+  schedule, mixed precision on a GPU, gradient clipping, and the epoch that scored best on the
+  valid rows kept.
+
+A chance is calibrated before it is scored: a slope and an intercept are fitted on the valid rows
+and applied to the test rows, so a model is not marked down for being sure of itself in a way one
+line can fix.
+
+`lab train <model> <run>` writes `models/<model>/results/<run>.json`: the config, what the learner
+did (trees grown, epochs, the features the trees leaned on), the processor it ran on, the commit,
+the fingerprint of the data it read, and the scores on valid and test with their intervals, by
+rating band, and for a chance its calibration table. Its predictions on the test rows go under
+`artifacts/runs/`, which git ignores.
+
+A record is complete in itself. When a run finishes it is compared, row by row, with the
+reference run trained on the same machine, and the gain is written into the record. A leaderboard
+is then written from the records alone, so the trees can be trained on a desktop and the
+transformers on a rented GPU and still share one table. Two things keep that honest: every record
+names its data by a fingerprint of the boards and the exact columns, and each gain names the score
+of the reference it was measured against, which the leaderboard holds to the reference it shows.
+
+## Evaluation
+
+`evals/metrics.py` holds the metrics: for a quantity the root mean squared error, the mean
+absolute error, R squared and the rank correlation; for a chance the area under the
+precision-recall curve, the area under the ROC curve, the Brier score, the log loss and the
+calibration error. A task names one of them as primary, on its card, before its first run.
+
+**Noise is measured over games.** Positions of one game are not independent, so every interval
+resamples whole games (`evals/bootstrap.py`).
+
+**A gain is paired.** A run and the reference are scored on the same resampled games, and the
+difference is reported with its interval. A gain counts when that interval leaves zero out. Two
+models that are both good on easy games and bad on hard ones are compared fairly this way, where
+two separate intervals would overlap and hide a real difference.
+
+**Test rows are for the final score.** The epoch, the number of trees and the calibration are all
+chosen on valid rows.
+
+`lab eval` writes `results/leaderboard.md` and `results/leaderboard.json`; `lab report` writes
+the README's table from every model's leaderboard. No result in this repository is typed.
+
+## Smoke runs
+
+`--smoke` on any command builds a small sample and trains for a moment. It proves the code runs
+end to end, on any machine, in minutes. Its records go under `artifacts/smoke/`, which git ignores,
+so a smoke score can never be mistaken for a result.
+
+## What stays outside the harness
+
+- **The coach narrator** is a language model, with its own scripts under
+  [`models/coach-narrator/`](../models/coach-narrator/): facts from the app's code, a teacher, a
+  truth check, a blind judge. It shares the lab's rules, not this harness.
+- **The first pipeline** (`scripts/`, `configs/config.yaml`, `reports/`) is kept as it ran. Its
+  models move onto the harness one at a time, each as its own change with its old score beside
+  the new one.
+- **The bridge** (`bridge/`) runs a script on the app's own code. A model never re-implements an
+  instrument the app has; it imports it, or is held to it by a parity check.
+
+## Growing it
+
+The harness has one head with one output. These are the next kinds of input and output, each a
+new body or head in `nets/` with a test and a paragraph here:
+
+| Kind | What it opens |
+|---|---|
+| A move as output: a score for each legal move | Human-move prediction, the chance a given move is found |
+| A label per square | Where a player should look, which piece is in danger |
+| A whole game as a sequence of positions | A rating from one game, tilt, time trouble |
+| Pre-training on engine evaluations | A body that knows chess before it learns about people, from the open Lichess evaluations |
+| A published body under a new head | Maia's board understanding, fine-tuned for a coaching question |
+
+The order they are built in follows [`ideas.md`](ideas.md).

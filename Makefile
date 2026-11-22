@@ -1,15 +1,50 @@
 PYTHON ?= .venv/bin/python
 PIP ?= .venv/bin/pip
+LAB ?= .venv/bin/lab
 CONFIG ?= configs/config.yaml
 PYTHON_BOOTSTRAP ?= $(shell command -v python3.12 2>/dev/null || command -v python3)
 
-.PHONY: setup data train eval reports test all benchmark concepts chess parity papers
+# The models on the shared harness (src/chess_coach_models, docs/design.md).
+STARTERS := puzzle-difficulty blunder-hazard think-time
+
+.PHONY: setup test smoke starters report chess parity papers data train eval benchmark concepts reports
 
 setup:
 	test -d .venv || $(PYTHON_BOOTSTRAP) -m venv .venv
 	$(PIP) install --upgrade pip setuptools wheel
 	$(PIP) install -r requirements.txt
 
+test:
+	$(PYTHON) -m pytest
+
+# Every starter model end to end on a small sample: a check that the code runs.
+# It writes under artifacts/smoke/ and is never a result.
+smoke:
+	for model in $(STARTERS); do $(LAB) all $$model --smoke || exit 1; done
+
+# The full datasets, every run this machine can train, the leaderboards and
+# the README's table. Runs marked `needs: cuda` wait for a GPU (docs/compute.md).
+starters:
+	for model in $(STARTERS); do $(LAB) all $$model || exit 1; done
+	$(LAB) report
+
+report:
+	$(LAB) report
+
+# The bridge to the app's own code (CLAUDE.md, "The bridge to the app").
+chess:
+	bridge/checkout.sh
+	bridge/checkout.sh records
+
+parity:
+	$(PYTHON) bridge/winprob-parity/parity.py
+
+# The one study of the app's code still here: its numbers, then its PDF.
+papers:
+	bridge/run.sh projects/learner-solve-chance/paper/generate.mjs
+	cd projects/learner-solve-chance/paper && latexmk -pdf -interaction=nonstopmode -halt-on-error paper.tex
+
+# The first pipeline (the 2019 models), kept as it ran. They need zstd and Stockfish.
 data:
 	bash scripts/stream_data.sh $(CONFIG)
 
@@ -32,53 +67,3 @@ concepts:
 
 reports:
 	$(PYTHON) scripts/generate_reports.py --config $(CONFIG)
-
-test:
-	$(PYTHON) -m pytest
-
-chess:
-	bridge/checkout.sh
-	bridge/checkout.sh records
-
-parity:
-	$(PYTHON) projects/winprob-parity/parity.py
-
-# Each paper's numbers from what its project last wrote, then its PDF. The
-# projects' reproductions come first (projects/README.md gives the order).
-PAPERS := accuracy-vs-chesscom explain-top-move judge-in-context maia-punish maia-rating-offset maia-calibration winprob-parity focus-backtest detector-themes drill-decks think-time-rapid praise-gate learner-solve-chance band-above phone-vs-routine book-advice period-writer findable-move judge-factors his-habits positions-like-this structure-breaks break-ready central-strike rules-of-thumb rules-after-check tiebreak-rules video-coaching period-video-coaching lesson-moves lesson-videos review-lessons review-walk
-
-papers:
-	bridge/run.sh projects/accuracy-vs-chesscom/paper/generate.mjs
-	bridge/run.sh projects/explain-top-move/paper/generate.mjs
-	bridge/run.sh projects/judge-in-context/paper/generate.mjs
-	bridge/run.sh projects/maia-punish/paper/generate.mjs
-	bridge/run.sh projects/maia-rating-offset/paper/generate.mjs
-	bridge/run.sh projects/maia-calibration/paper/generate.mjs
-	$(PYTHON) projects/winprob-parity/paper/generate.py
-	bridge/run.sh projects/focus-backtest/paper/generate.mjs
-	bridge/run.sh projects/detector-themes/paper/generate.mjs
-	bridge/run.sh projects/drill-decks/paper/generate.mjs
-	bridge/run.sh projects/think-time-rapid/paper/generate.mjs
-	bridge/run.sh projects/praise-gate/paper/generate.mjs
-	bridge/run.sh projects/learner-solve-chance/paper/generate.mjs
-	bridge/run.sh projects/band-above/paper/generate.mjs
-	bridge/run.sh projects/phone-vs-routine/paper/generate.mjs
-	bridge/run.sh projects/book-advice/paper/generate.mjs
-	bridge/run.sh projects/period-writer/paper/generate.mjs
-	bridge/run.sh projects/findable-move/paper/generate.mjs
-	bridge/run.sh projects/judge-factors/paper/generate.mjs
-	bridge/run.sh projects/his-habits/paper/generate.mjs
-	bridge/run.sh projects/positions-like-this/paper/generate.mjs
-	bridge/run.sh projects/structure-breaks/paper/generate.mjs
-	bridge/run.sh projects/break-ready/paper/generate.mjs
-	bridge/run.sh projects/central-strike/paper/generate.mjs
-	bridge/run.sh projects/rules-of-thumb/paper/generate.mjs
-	bridge/run.sh projects/rules-after-check/paper/generate.mjs
-	bridge/run.sh projects/tiebreak-rules/paper/generate.mjs
-	bridge/run.sh projects/video-coaching/paper/generate.mjs
-	bridge/run.sh projects/period-video-coaching/paper/generate.mjs
-	bridge/run.sh projects/lesson-moves/paper/generate.mjs
-	bridge/run.sh projects/lesson-videos/paper/generate.mjs
-	for p in $(PAPERS); do (cd projects/$$p/paper && latexmk -pdf -interaction=nonstopmode -halt-on-error paper.tex) || exit 1; done
-
-all: setup data eval reports

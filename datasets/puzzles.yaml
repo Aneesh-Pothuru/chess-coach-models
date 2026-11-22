@@ -1,0 +1,16 @@
+# The Lichess puzzle database, as the puzzle models read it (data/puzzles.py).
+name: puzzles-v1
+builder: puzzles
+source: https://database.lichess.org/lichess_db_puzzle.csv.zst
+# A rating the crowd has settled: Glicko deviation at most 100 after at least 100 attempts.
+filters:
+  max_rating_deviation: 100
+  min_plays: 100
+# A fixed quarter of the puzzles that pass, chosen by a hash of the puzzle id.
+sample: 0.25
+split:
+  salt: puzzles-v1
+  valid: 0.05
+  test: 0.10
+smoke:
+  sample: 0.01

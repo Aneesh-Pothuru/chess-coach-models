@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "chess-coach-models"
 version = "0.1.0"
-description = "Danger, difficulty, and punishment models for chess coaching"
+description = "Models that read chess positions and games, for a chess coaching app"
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
 license = {text = "MIT"}
@@ -32,6 +32,7 @@ dev = [
 ]
 
 [project.scripts]
+lab = "chess_coach_models.cli:main"
 chess-coach-filter = "chess_coach_models.pipeline:main"
 chess-coach-score = "chess_coach_models.scorer:main"
 chess-coach-hazard = "chess_coach_models.hazard:main"

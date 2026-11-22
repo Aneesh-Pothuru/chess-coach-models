@@ -4,7 +4,7 @@
 #
 #   bridge/candidate.sh <name> <app path>=<file> [<app path>=<file> ...]
 #   CHESS_DIR="$(bridge/candidate.sh v1 src/services/review/accuracy.ts=v1/accuracy.ts)" \
-#     bridge/run.sh projects/accuracy-vs-chesscom/run-eval.mjs --variant v1
+#     bridge/run.sh models/<model>/<folder>/<script>.mjs --variant v1
 #
 # The copy hard-links the pinned checkout, node_modules included, so it costs
 # no disk, and each named file is replaced by a new file rather than written

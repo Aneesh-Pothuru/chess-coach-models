@@ -1,0 +1,16 @@
+# Positions from rated Lichess rapid games with engine evaluations and clocks (data/positions.py).
+name: game-positions-2026-10
+builder: game_positions
+month: "2026-10"
+speeds: [rapid]
+# The Maia protocol's opening cut: nothing before each side's sixth move.
+min_ply: 11
+per_game: 24
+# The stream is read from the start of the month until this many games have given rows.
+games: 30000
+split:
+  salt: game-positions-v1
+  valid: 0.05
+  test: 0.10
+smoke:
+  games: 600
