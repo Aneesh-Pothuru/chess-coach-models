@@ -1,0 +1,334 @@
+{
+  "model": "blunder-hazard",
+  "run": "transformer-medium-long",
+  "task": {
+    "label": "blunder",
+    "kind": "binary",
+    "unit": "chance the mover loses more than 20 points of win probability",
+    "primary": "pr_auc",
+    "lower_is_better": false,
+    "context": [
+      "mover_elo",
+      "opponent_elo",
+      "log_clock",
+      "log_opponent_clock",
+      "log_base",
+      "increment",
+      "ply",
+      "win_before",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "game-positions-2026-10",
+    "source": "https://database.lichess.org/standard/lichess_db_standard_rated_2026-10.pgn.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 698013,
+    "splits": {
+      "test": 68579,
+      "train": 594940,
+      "valid": 34494
+    },
+    "fingerprint": "340c68ed5c918cd6dfea4f5cb24218c52d8d0a88cb29e50498218aefdb9dfbd0",
+    "built": "2026-11-22T05:45:24Z",
+    "code": "3a74aa4b28f6805e3da49ea7c054bc4b5cf4d712"
+  },
+  "config": {
+    "needs": "cuda",
+    "learner": {
+      "kind": "net",
+      "body": "transformer",
+      "dim": 256,
+      "depth": 8,
+      "heads": 8,
+      "dropout": 0.1
+    },
+    "train": {
+      "epochs": 24,
+      "batch": 1024,
+      "lr": 0.0006,
+      "weight_decay": 0.05,
+      "warmup": 0.05,
+      "patience": 3
+    }
+  },
+  "learner": {
+    "parameters": 6554177,
+    "device": "NVIDIA A100-SXM4-80GB",
+    "best_epoch": 14,
+    "fit_seconds": 683.6,
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.23434,
+        "valid_pr_auc": 0.1881,
+        "rows_a_second": 14805
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.21136,
+        "valid_pr_auc": 0.1996,
+        "rows_a_second": 15061
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.20769,
+        "valid_pr_auc": 0.2036,
+        "rows_a_second": 15057
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.20627,
+        "valid_pr_auc": 0.20464,
+        "rows_a_second": 15094
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.20536,
+        "valid_pr_auc": 0.20585,
+        "rows_a_second": 15103
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.20498,
+        "valid_pr_auc": 0.21074,
+        "rows_a_second": 15061
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.2037,
+        "valid_pr_auc": 0.21704,
+        "rows_a_second": 15098
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.20312,
+        "valid_pr_auc": 0.21844,
+        "rows_a_second": 15069
+      },
+      {
+        "epoch": 9,
+        "train_loss": 0.20254,
+        "valid_pr_auc": 0.21638,
+        "rows_a_second": 15085
+      },
+      {
+        "epoch": 10,
+        "train_loss": 0.20182,
+        "valid_pr_auc": 0.20859,
+        "rows_a_second": 15059
+      },
+      {
+        "epoch": 11,
+        "train_loss": 0.20148,
+        "valid_pr_auc": 0.21915,
+        "rows_a_second": 15046
+      },
+      {
+        "epoch": 12,
+        "train_loss": 0.20085,
+        "valid_pr_auc": 0.21593,
+        "rows_a_second": 15056
+      },
+      {
+        "epoch": 13,
+        "train_loss": 0.20037,
+        "valid_pr_auc": 0.21799,
+        "rows_a_second": 15059
+      },
+      {
+        "epoch": 14,
+        "train_loss": 0.19974,
+        "valid_pr_auc": 0.22392,
+        "rows_a_second": 15088
+      },
+      {
+        "epoch": 15,
+        "train_loss": 0.19934,
+        "valid_pr_auc": 0.22144,
+        "rows_a_second": 15067
+      },
+      {
+        "epoch": 16,
+        "train_loss": 0.19865,
+        "valid_pr_auc": 0.22226,
+        "rows_a_second": 15096
+      },
+      {
+        "epoch": 17,
+        "train_loss": 0.19798,
+        "valid_pr_auc": 0.22319,
+        "rows_a_second": 15099
+      }
+    ]
+  },
+  "calibration": {
+    "platt_slope": 0.9492719439755738,
+    "platt_intercept": -0.09981974290499193,
+    "fitted_on": "valid"
+  },
+  "machine": {
+    "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "threads": 12,
+    "system": "Linux"
+  },
+  "software": {
+    "python": "3.13.16",
+    "numpy": "2.4.6",
+    "polars": "2.1.0",
+    "lightgbm": "4.6.0",
+    "torch": "2.14.1+cu130"
+  },
+  "code": "3a74aa4b28f6805e3da49ea7c054bc4b5cf4d712",
+  "trained": "2026-11-22T07:23:15Z",
+  "seconds": 685.5,
+  "valid": {
+    "pr_auc": 0.2239171825677362,
+    "roc_auc": 0.8166736212583802,
+    "brier": 0.055405199114480615,
+    "log_loss": 0.19761500919844496,
+    "calibration_error": 0.004665182070211486
+  },
+  "test": {
+    "pr_auc": {
+      "value": 0.23593083432412262,
+      "low": 0.22361274211713297,
+      "high": 0.24878740378672823
+    },
+    "roc_auc": {
+      "value": 0.8165888163793192,
+      "low": 0.8106735371471128,
+      "high": 0.8224846102148267
+    },
+    "brier": {
+      "value": 0.05753356341356361,
+      "low": 0.0556312356809532,
+      "high": 0.05949493120054502
+    },
+    "log_loss": {
+      "value": 0.20402127806194725,
+      "low": 0.19820092404591097,
+      "high": 0.20986159521714742
+    },
+    "calibration_error": {
+      "value": 0.002618586922759398,
+      "low": 0.0016023733643038898,
+      "high": 0.004917442086498159
+    }
+  },
+  "test_rows": 68579,
+  "test_groups": 2944,
+  "test_by_band": {
+    "1100-1400": {
+      "rows": 16674,
+      "pr_auc": 0.23335634688135196,
+      "roc_auc": 0.8143069869596976,
+      "brier": 0.06491623592537378,
+      "log_loss": 0.22405393470634877,
+      "calibration_error": 0.007303670025073547
+    },
+    "1400-1700": {
+      "rows": 19614,
+      "pr_auc": 0.19235480789168613,
+      "roc_auc": 0.7971266197656305,
+      "brier": 0.05391954750252702,
+      "log_loss": 0.195831078809017,
+      "calibration_error": 0.003572347311747163
+    },
+    "1700-2000": {
+      "rows": 14453,
+      "pr_auc": 0.17513759571300658,
+      "roc_auc": 0.7925107032058207,
+      "brier": 0.04689201647419284,
+      "log_loss": 0.17695230770127016,
+      "calibration_error": 0.005685209929329634
+    },
+    "2000+": {
+      "rows": 7126,
+      "pr_auc": 0.14299137145050383,
+      "roc_auc": 0.799380149162542,
+      "brier": 0.0345587573972089,
+      "log_loss": 0.13869464540265514,
+      "calibration_error": 0.005975298298737585
+    },
+    "<1100": {
+      "rows": 10712,
+      "pr_auc": 0.32641940198600466,
+      "roc_auc": 0.8213085624040392,
+      "brier": 0.08230086851106344,
+      "log_loss": 0.267815477484203,
+      "calibration_error": 0.006155467526371236
+    }
+  },
+  "test_calibration": [
+    {
+      "n": 6858,
+      "predicted": 2.9864389418552873e-06,
+      "observed": 0.0
+    },
+    {
+      "n": 6858,
+      "predicted": 2.8938329316902307e-05,
+      "observed": 0.00014581510644502772
+    },
+    {
+      "n": 6858,
+      "predicted": 0.006524611369994296,
+      "observed": 0.006561679790026247
+    },
+    {
+      "n": 6858,
+      "predicted": 0.01741051501809221,
+      "observed": 0.016768737241178187
+    },
+    {
+      "n": 6858,
+      "predicted": 0.03130574899656787,
+      "observed": 0.03455818022747156
+    },
+    {
+      "n": 6858,
+      "predicted": 0.048805960269760675,
+      "observed": 0.050306211723534555
+    },
+    {
+      "n": 6858,
+      "predicted": 0.07096159406158782,
+      "observed": 0.07611548556430446
+    },
+    {
+      "n": 6858,
+      "predicted": 0.10078860777030392,
+      "observed": 0.09813356663750364
+    },
+    {
+      "n": 6858,
+      "predicted": 0.14534538357968113,
+      "observed": 0.15150189559638377
+    },
+    {
+      "n": 6857,
+      "predicted": 0.24475228144304906,
+      "observed": 0.251421904623013
+    }
+  ],
+  "weights": [
+    {
+      "file": "model.pt",
+      "bytes": 26246175,
+      "sha256": "d94eb6ffed26c3657f60c475b1758fd671a6b6c7d82ceb1fd09e6b0718c687e9"
+    }
+  ],
+  "gain": {
+    "gain": -0.01735782331786309,
+    "low": -0.02569168094973313,
+    "high": -0.008905257917773185,
+    "beyond_noise": true,
+    "reference": "gbm-hand",
+    "reference_trained": "2026-11-22T07:11:20Z",
+    "reference_value": 0.2532886576419857
+  }
+}

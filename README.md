@@ -46,9 +46,9 @@ The best run of each model on the harness, beside the tree baseline it is compar
 |---|---|---|---|---|---|---|---|
 | [`blunder-hazard`](models/blunder-hazard/) | chance the mover loses more than 20 points of win probability | `transformer-medium-hand` | PR-AUC 0.2666 (0.2526 to 0.2822) | `gbm-hand` | 0.2533 | +0.01331 | 68,579 |
 | [`practical-chances`](models/practical-chances/) | expected score of the mover in the game (a win 1, a draw 0.5, a loss 0) | `conv-small` | RMSE 0.4235 (0.4183 to 0.4291) | `gbm-hand` | 0.4237 | +0.0001616 (within noise) | 68,579 |
-| [`puzzle-difficulty`](models/puzzle-difficulty/) | Lichess puzzle rating points | `transformer-medium-hand` | RMSE 270.2 (268.8 to 271.6) | `gbm-hand` | 294.9 | +24.68 | 112,450 |
+| [`puzzle-difficulty`](models/puzzle-difficulty/) | Lichess puzzle rating points | `transformer-medium-hand-long` | RMSE 261.9 (260.6 to 263.2) | `gbm-hand` | 294.9 | +32.98 | 112,450 |
 | [`tactic-found`](models/tactic-found/) | chance the move played is the first move of the tactic | `transformer-medium-hand` | Log loss 0.5369 (0.5338 to 0.5402) | `gbm-hand` | 0.5414 | +0.004443 | 81,135 |
-| [`think-time`](models/think-time/) | log(1 + seconds spent on the move) | `transformer-medium-hand` | MAE 0.6200 (0.6148 to 0.6246) | `gbm-hand` | 0.6306 | +0.01063 | 68,579 |
+| [`think-time`](models/think-time/) | log(1 + seconds spent on the move) | `transformer-medium-hand-long` | MAE 0.6185 (0.6134 to 0.6231) | `gbm-hand` | 0.6306 | +0.01205 | 68,579 |
 <!-- LEADERBOARDS_END -->
 
 ### Papers

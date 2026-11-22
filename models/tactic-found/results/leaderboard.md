@@ -11,7 +11,9 @@ Written by `lab eval tactic-found` from the run records in this folder.
 | Run | Learner | Log loss | PR-AUC | ROC-AUC | Brier | Calibration error | Gain over `gbm-hand` | Parameters | Trained on | Time |
 |---|---|---|---|---|---|---|---|---|---|---|
 | `transformer-medium-hand` | transformer, 8 layers of width 256, with hand features | 0.5369 (0.5338 to 0.5402) | 0.8599 | 0.7399 | 0.1810 | 0.0050 | **+0.004443 (+0.003247 to +0.00573)** | 6,565,953 | NVIDIA A100-SXM4-40GB | 10 min |
+| `transformer-medium-hand-long` | transformer, 8 layers of width 256, with hand features | 0.5373 (0.5339 to 0.5407) | 0.8599 | 0.7401 | 0.1812 | 0.0053 | **+0.004086 (+0.002865 to +0.005432)** | 6,565,953 | NVIDIA A100-SXM4-80GB | 12 min |
 | `gbm-hand` | LightGBM, context and hand features | 0.5414 (0.5381 to 0.5447) | 0.8560 | 0.7337 | 0.1828 | 0.0043 | reference |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 31 s |
+| `transformer-medium-long` | transformer, 8 layers of width 256 | 0.5502 (0.5472 to 0.5536) | 0.8456 | 0.7197 | 0.1861 | 0.0028 | **-0.008867 (-0.01048 to -0.007188)** | 6,557,505 | NVIDIA A100-SXM4-80GB | 14 min |
 | `conv-small` | conv, 6 layers of width 96 | 0.5513 (0.5484 to 0.5546) | 0.8462 | 0.7198 | 0.1866 | 0.0078 | **-0.009968 (-0.01184 to -0.008098)** | 1,041,121 | NVIDIA A100-SXM4-40GB | 2 min |
 | `transformer-medium` | transformer, 8 layers of width 256 | 0.5517 (0.5486 to 0.5551) | 0.8447 | 0.7174 | 0.1867 | 0.0040 | **-0.01037 (-0.01199 to -0.008681)** | 6,557,505 | NVIDIA A100-SXM4-40GB | 10 min |
 | `transformer-small` | transformer, 4 layers of width 128 | 0.5531 (0.5500 to 0.5563) | 0.8442 | 0.7153 | 0.1874 | 0.0041 | **-0.01175 (-0.0134 to -0.01015)** | 863,649 | NVIDIA A100-SXM4-40GB | 3 min |
@@ -24,7 +26,9 @@ Written by `lab eval tactic-found` from the run records in this folder.
 | Run | <1700 | 1700-1899 | 1900-2099 | 2100-2299 | 2300+ |
 |---|---|---|---|---|---|
 | `transformer-medium-hand` | 0.5484 | 0.5446 | 0.5239 | 0.5214 | 0.5355 |
+| `transformer-medium-hand-long` | 0.5501 | 0.5453 | 0.5243 | 0.5194 | 0.5350 |
 | `gbm-hand` | 0.5563 | 0.5491 | 0.5291 | 0.5206 | 0.5377 |
+| `transformer-medium-long` | 0.5654 | 0.5588 | 0.5362 | 0.5295 | 0.5469 |
 | `conv-small` | 0.5676 | 0.5581 | 0.5389 | 0.5298 | 0.5492 |
 | `transformer-medium` | 0.5658 | 0.5605 | 0.5384 | 0.5310 | 0.5483 |
 | `transformer-small` | 0.5682 | 0.5619 | 0.5394 | 0.5312 | 0.5498 |
