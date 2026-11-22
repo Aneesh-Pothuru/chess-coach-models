@@ -1,0 +1,191 @@
+{
+  "model": "puzzle-difficulty",
+  "run": "transformer-small",
+  "task": {
+    "label": "rating",
+    "kind": "regression",
+    "unit": "Lichess puzzle rating points",
+    "primary": "rmse",
+    "lower_is_better": true,
+    "context": [
+      "solver_moves",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "puzzles-v1",
+    "source": "https://database.lichess.org/lichess_db_puzzle.csv.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 1127915,
+    "splits": {
+      "test": 112450,
+      "train": 958941,
+      "valid": 56524
+    },
+    "fingerprint": "d14731fa4425fc6efdadb45c94ee53e07f5afe9151992b690b81edc71064cd5d",
+    "built": "2026-11-22T00:59:32Z",
+    "code": "85d0c35a08069598b9b5d0d17ac80052a4509a64"
+  },
+  "config": {
+    "learner": {
+      "kind": "net",
+      "body": "transformer",
+      "dim": 128,
+      "depth": 4,
+      "heads": 8,
+      "dropout": 0.1
+    },
+    "train": {
+      "epochs": 8,
+      "batch": 512,
+      "lr": 0.001,
+      "weight_decay": 0.05,
+      "warmup": 0.05,
+      "patience": 3
+    }
+  },
+  "learner": {
+    "parameters": 862497,
+    "device": "NVIDIA A100-SXM4-80GB",
+    "best_epoch": 8,
+    "fit_seconds": 277.8,
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.5632,
+        "valid_rmse": 340.85173,
+        "rows_a_second": 27645
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.44491,
+        "valid_rmse": 324.02055,
+        "rows_a_second": 27918
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.40981,
+        "valid_rmse": 314.95958,
+        "rows_a_second": 28173
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.3861,
+        "valid_rmse": 308.51157,
+        "rows_a_second": 27272
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.36777,
+        "valid_rmse": 300.80912,
+        "rows_a_second": 28732
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.35193,
+        "valid_rmse": 295.38556,
+        "rows_a_second": 27573
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.33937,
+        "valid_rmse": 292.37797,
+        "rows_a_second": 28020
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.33225,
+        "valid_rmse": 292.3505,
+        "rows_a_second": 28757
+      }
+    ]
+  },
+  "calibration": null,
+  "machine": {
+    "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "threads": 12,
+    "system": "Linux"
+  },
+  "code": "85d0c35a08069598b9b5d0d17ac80052a4509a64+changes",
+  "trained": "2026-11-22T01:37:42Z",
+  "seconds": 278.3,
+  "valid": {
+    "rmse": 292.35050259396655,
+    "mae": 223.69160965156948,
+    "r2": 0.66113536242777,
+    "spearman": 0.8172825988755746
+  },
+  "test": {
+    "rmse": {
+      "value": 293.07559513676506,
+      "low": 291.52857230704717,
+      "high": 294.4088449268396
+    },
+    "mae": {
+      "value": 224.2281968331411,
+      "low": 223.05288254481647,
+      "high": 225.2743614063933
+    },
+    "r2": {
+      "value": 0.6603471416288317,
+      "low": 0.65675627780515,
+      "high": 0.6641794271664411
+    },
+    "spearman": {
+      "value": 0.817837448651473,
+      "low": 0.8156174714626554,
+      "high": 0.820297817394352
+    }
+  },
+  "test_rows": 112450,
+  "test_groups": 112450,
+  "test_by_band": {
+    "1000-1399": {
+      "rows": 31846,
+      "rmse": 268.65350320368685,
+      "mae": 205.60789594870076,
+      "r2": -4.850451267555155,
+      "spearman": 0.3748245914580349
+    },
+    "1400-1799": {
+      "rows": 28501,
+      "rmse": 271.03673556188716,
+      "mae": 215.24238912309957,
+      "r2": -4.737542419164545,
+      "spearman": 0.2877751834217628
+    },
+    "1800-2199": {
+      "rows": 19518,
+      "rmse": 315.42391686444574,
+      "mae": 246.9109272949519,
+      "r2": -6.524301146982095,
+      "spearman": 0.23048935216549046
+    },
+    "2200+": {
+      "rows": 9834,
+      "rmse": 466.4493921173666,
+      "mae": 390.77281176862084,
+      "r2": -7.102569822659744,
+      "spearman": 0.28145943950722463
+    },
+    "<1000": {
+      "rows": 22751,
+      "rmse": 228.22220885392636,
+      "mae": 170.10157958909258,
+      "r2": -1.121664177977821,
+      "spearman": 0.6284017352777749
+    }
+  },
+  "gain": {
+    "gain": 1.8471422718556028,
+    "low": 0.7441302353097029,
+    "high": 3.053324952439374,
+    "beyond_noise": true,
+    "reference": "gbm-hand",
+    "reference_trained": "2026-11-22T01:01:02Z",
+    "reference_value": 294.92273740862066
+  }
+}

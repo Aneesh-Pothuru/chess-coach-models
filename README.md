@@ -40,9 +40,9 @@ The best run of each model on the shared harness, beside the tree baseline it is
 <!-- LEADERBOARDS_START -->
 | Model | Predicts | Best run | Score | Reference | Its score | Gain | Test rows |
 |---|---|---|---|---|---|---|---|
-| [`blunder-hazard`](models/blunder-hazard/) | chance the mover loses more than 20 points of win probability | `gbm-hand` | PR-AUC 0.2533 (0.2396 to 0.2681) | `gbm-hand` | 0.2533 | the reference is the best run | 68,579 |
-| [`puzzle-difficulty`](models/puzzle-difficulty/) | Lichess puzzle rating points | `gbm-hand` | RMSE 294.9 (293.5 to 296.2) | `gbm-hand` | 294.9 | the reference is the best run | 112,450 |
-| [`think-time`](models/think-time/) | log(1 + seconds spent on the move) | `gbm-hand` | MAE 0.6306 (0.6255 to 0.6352) | `gbm-hand` | 0.6306 | the reference is the best run | 68,579 |
+| [`blunder-hazard`](models/blunder-hazard/) | chance the mover loses more than 20 points of win probability | `transformer-medium-hand` | PR-AUC 0.2666 (0.2526 to 0.2822) | `gbm-hand` | 0.2533 | +0.01331 | 68,579 |
+| [`puzzle-difficulty`](models/puzzle-difficulty/) | Lichess puzzle rating points | `transformer-medium-hand` | RMSE 270.2 (268.8 to 271.6) | `gbm-hand` | 294.9 | +24.68 | 112,450 |
+| [`think-time`](models/think-time/) | log(1 + seconds spent on the move) | `transformer-medium-hand` | MAE 0.6200 (0.6148 to 0.6246) | `gbm-hand` | 0.6306 | +0.01063 | 68,579 |
 <!-- LEADERBOARDS_END -->
 
 ## One harness for every model
