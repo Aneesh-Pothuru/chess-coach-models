@@ -117,6 +117,10 @@ and scoring are shared, and adding a model touches none of them.
 \paragraph{The data is split by game.}
 A dataset's rows are positions, and the positions of one game are alike, so
 a game's rows all go to one side.
+\ifrowsequences
+A row of game rating is one player's moves through a whole game, and the two
+players of a game go to one side together.
+\fi
 \ifsplitapart
 In the dataset of every model but \V{lab.split.apart.names},
 \V{lab.split.test.percent}\% of the games are test games and
@@ -161,6 +165,59 @@ Where a formula already answers a model's question with nothing fitted, the
 formula is a run too: an engine's win probability read as a forecast of the
 result, or the rating formula on two ratings. Each model's own paper
 describes the learners in full.
+\ifpaperless
+No paper is written yet for \V{lab.paperless.names}. For those, what this
+paper says a model's paper holds is on the model's card and in the files
+the card links.
+\fi
+
+\ifanswersets
+\paragraph{The ladder where the answer is a set.}
+Some models answer with a chance for each of a list of candidates, and not
+with one number. Their rungs are the same. The floor gives every row the
+same chances, each candidate's share of the training rows, and a network
+gives a chance to every candidate at once.
+\ifanswersquares
+In where to look the candidates are the
+\V{where-to-look.task.candidates.count} squares of the board. Its trees are
+one booster that reads a row for each square of a position: the position's
+numbers, the piece on the square, and with the hand-made counts what
+attacks the square and which moves start or end there. A position is that
+many rows to them, so they are trained on
+\V{where-to-look.run.gbm-hand.train-rows} of the
+\V{where-to-look.data.rows.train} training puzzles, and the networks on all
+of them.
+\fi
+\ifanswertags
+In puzzle themes the candidates are
+\V{puzzle-themes.task.candidates.count} themes, and its trees are a booster
+for each theme.
+\fi
+\fi
+
+\ifanswermoves
+\paragraph{The ladder where the answer is a move.}
+In human move the candidates are the moves a row's own position allows. The
+floor gives each of them the same chance. The trees are one booster that
+reads a row for each legal move: what moves, from where and to where, and
+with the hand-made counts what attacks those two squares. So they are
+trained on \V{human-move.run.gbm-hand.train-rows} of the
+\V{human-move.data.rows.train} training positions, and the networks on all
+of them. A network scores a move by the square it leaves and the square it
+reaches. A published model of human play is a run as well, as a formula is
+elsewhere: Maia-2~\cite{maia2} as its authors released it, read on the same
+rows with nothing fitted but one temperature, which every run of the model
+is given.
+\fi
+
+\ifrowsequences
+\paragraph{The ladder where a row is a game.}
+In game rating a row is a player's moves through one game. The trees read
+counts over those moves: what they lost, how the clock was used and what
+there was to choose from. A network reads each position with the body the
+other models use, and transformer layers over those then read the positions
+in order.
+\fi
 
 \paragraph{A score has an interval, and a comparison is paired.}
 A score is given with a 95\% interval from \V{method.resamples} resamples of
@@ -173,7 +230,9 @@ games and its paired gain on the test games is beyond the noise.
 \paragraph{One scale for this paper.}
 The models are scored in different units: rating points, the area under a
 precision-recall curve, a log loss, an error in the logarithm of seconds, an
-error in an expected score. To set them side by side this paper uses the
+error in an expected score\ifanswersets, an average precision over a row's
+candidates\fi\ifanswermoves, how often the move a run puts first is the one
+played\fi. To set them side by side this paper uses the
 reference's \emph{step}: how much better the trees with the hand-made counts
 are than the floor, on the model's own score. A run's share of the step is 0
 for the floor and 100 for the reference, and a gain over the reference is a
@@ -218,17 +277,58 @@ was found.
 \item \textbf{Practical chances} asks who wins from a position between two
 people at these ratings and clocks: the mover's expected score in the game,
 set against the chance an engine's evaluation gives.
+\ifanswersquares
+\item \textbf{Where to look} asks which squares a tactic runs through. It
+reads a puzzle's position as the solver sees it, with the opponent's last
+move and nothing of the solution, and gives each square the chance that a
+move of the solution leaves it or lands on it.
+\fi
+\ifanswertags
+\item \textbf{Puzzle themes} asks what kind of tactic a puzzle is. It reads
+a puzzle's position and its solution and gives a chance to each of
+\V{puzzle-themes.task.candidates.count} themes Lichess tags its puzzles
+with: a fork, a pin, a deflection, a named mate.
+\fi
+\ifanswermoves
+\item \textbf{Human move} asks which move a player of a given rating makes
+in a position. It reads the position, both ratings and both clocks, and
+nothing an engine says, and gives a chance to every legal move. The app
+already asks this of a published model, Maia-2~\cite{maia2}, which is a run
+of this model's leaderboard on the same rows.
+\fi
+\ifrowsequences
+\item \textbf{Game rating} asks what rating a player's play in one game
+looks like. It reads the player's moves in order, each with its clocks, the
+seconds it took and what an engine says it lost, and neither player's
+rating.
+\fi
 \end{itemize}
 
 Blunder hazard, think time and practical chances read the same positions:
 \V{blunder-hazard.data.rows} of them, from
 \V{blunder-hazard.recipe.games} rated \V{blunder-hazard.recipe.speeds}
 games of \V{blunder-hazard.data.month} that carry clocks and engine
-analysis. The other
-three read puzzles: puzzle difficulty and its unsolved version the same
-\V{puzzle-difficulty.data.rows}, and tactic found
+analysis.
+\ifanswermoves
+Human move reads those positions too.
+\fi
+Puzzle difficulty and its unsolved version read the same
+\V{puzzle-difficulty.data.rows} puzzles, and tactic found
 \V{tactic-found.data.rows} that could be joined to the games they were cut
 from.
+\ifanswersquares
+Where to look reads puzzle difficulty's puzzles, row for row.
+\fi
+\ifanswertags
+Puzzle themes reads puzzle difficulty's puzzles as well.
+\fi
+\ifrowsequences
+Game rating reads \V{game-rating.data.rows} rows from
+\V{game-rating.recipe.games} rated \V{game-rating.recipe.speeds} games of
+\V{game-rating.data.month}: a row for each player with at least
+\V{game-rating.recipe.least-moves} moves that carry a clock and an engine's
+evaluation, \V{game-rating.data.positions} positions in all.
+\fi
 
 \ifbodies
 Table~\ref{tab:models} also lists \V{lab.bodies.names}, which is of another
@@ -832,9 +932,13 @@ Longer schedules are among the runs of Section~\ref{sec:next}.
 \section{What each model found}
 \label{sec:each}
 
-Each model has a paper of its own, with every run, the cuts of its closer
-look and example positions. What follows is the part of each that a coach
-would want first.
+\ifpaperless
+Every model but \V{lab.paperless.names} has a paper of its own,
+\else
+Each model has a paper of its own,
+\fi
+with every run, the cuts of its closer look and example positions. What
+follows is the part of each that a coach would want first.
 
 \subsection{Puzzle difficulty}
 
@@ -1072,14 +1176,20 @@ speed of game or another site differs.
 \item \textbf{Analysed games only.} A position has an engine's evaluation
 only when someone asked the server to analyse its game, and players choose
 which games to analyse.
-\item \textbf{Three models share their test games.} Blunder hazard, think
-time and practical chances are scored on the same
+\item \textbf{\ifanswermoves Four\else Three\fi{} models share their test
+games.} Blunder hazard, think time\ifanswermoves, human move\fi{} and
+practical chances are scored on the same
 \V{blunder-hazard.data.games.test} games. The intervals resample games, so
-they are as wide as that number allows, and the three results are not
-independent of one another.
-\item \textbf{Tactics that became puzzles.} The three models that read
-puzzles see the tactics Lichess made puzzles of. A tactic nobody made a puzzle of may be
-another kind of tactic.
+they are as wide as that number allows, and the
+\ifanswermoves four\else three\fi{} results are not independent of one
+another.
+\ifrowsequences
+Game rating reads games of the same month under the same split, so a game
+in both datasets is a test game in both.
+\fi
+\item \textbf{Tactics that became puzzles.} The models that read puzzles
+see the tactics Lichess made puzzles of. A tactic nobody made a puzzle of
+may be another kind of tactic.
 \item \textbf{Small networks, by today's measure.} The largest network here
 has \V{puzzle-difficulty.run.transformer-medium.parameters.millions} million
 parameters, and the largest set about people it was trained on has
@@ -1142,6 +1252,17 @@ what an engine says of it, since what people do is what every model here is
 asked.
 \fi
 
+\ifshapes
+\paragraph{A shape with a start of its own.}
+Every run of Section~\ref{sec:shapes} starts from nothing, as the
+transformer it changes does.
+\ifchangestart
+Where a model's best network started from the body of
+Section~\ref{sec:start}, a shape that is ahead of the ladder's transformer
+has still to be set against that run, and for that it needs a body of its
+own shape that has learned the same evaluations.
+\fi
+\else
 \paragraph{Other shapes of network.}
 The ladder's networks are a small tower and a transformer at two sizes.
 Runs that change only the body of the larger transformer are written and
@@ -1149,13 +1270,16 @@ wait for their GPU: a tower of about its size whose blocks weigh their
 channels by the whole board, blocks of that tower under transformer layers,
 a transformer whose attention is told what each piece attacks, and one
 three times the size.
+\fi
 
 \ifgames
+\ifmore\else
 \paragraph{Larger datasets.}
 Section~\ref{sec:games} says each doubling of the games still pays, and
 pays a network most. The same runs on twice and on four times the games,
 from larger builds of the same sources, are written and are the next
 measurement.
+\fi
 \else
 \paragraph{Fewer games.}
 The reference and the best network on half and on a quarter of the training
@@ -1180,6 +1304,16 @@ Their heads and bodies are on the shared harness, and their first full runs
 are the next to be made.
 \else
 The lab's list of ideas has more models, and each starts as a card.
+\fi
+
+\ifpaperless
+\paragraph{A paper for every model.}
+No paper is written yet for \V{lab.paperless.names}. A model's paper is
+drawn from its closer look, and the closer look's tables read one number a
+row. So a model that answers with a chance for each square, each theme or
+each legal move has its leaderboard and its pairs for now, each changed run
+set against the run it changed, and its paper waits for a closer look of its
+own kind.
 \fi
 
 \bibliographystyle{unsrt}
@@ -1232,6 +1366,34 @@ A changed run that was not kept stands here until it is filed.
 \block{practical-chances-leaderboard}
 \caption{Practical chances.}
 \end{table}
+
+\ifanswersquares
+\begin{table}[htbp]\centering\small
+\block{where-to-look-leaderboard}
+\caption{Where to look.}
+\end{table}
+\fi
+
+\ifanswertags
+\begin{table}[htbp]\centering\small
+\block{puzzle-themes-leaderboard}
+\caption{Puzzle themes.}
+\end{table}
+\fi
+
+\ifanswermoves
+\begin{table}[htbp]\centering\small
+\block{human-move-leaderboard}
+\caption{Human move.}
+\end{table}
+\fi
+
+\ifrowsequences
+\begin{table}[htbp]\centering\small
+\block{game-rating-leaderboard}
+\caption{Game rating.}
+\end{table}
+\fi
 
 \ifbodies
 \begin{table}[htbp]\centering\small

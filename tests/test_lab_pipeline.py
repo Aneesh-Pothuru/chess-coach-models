@@ -271,7 +271,11 @@ def test_the_lab_s_paper_reads_every_model_under_its_name_and_lists_one_that_wai
         "waiting": True, "changehand": True, "changeepochs": False, "changestart": False, "changeattacks": False,
         "changegeometry": False, "changeconv": False, "changehybrid": False, "changelarger": False, "shapes": False,
         "games": False, "features": False, "studies": False, "more": False, "splitapart": False, "bodies": False,
+        "answersets": False, "answersquares": False, "answertags": False, "answermoves": False, "rowsequences": False,
+        "paperless": True,
     }  # fmt: skip
+    # No prose is written for the model yet, and the lab's paper can say so by name.
+    assert out.values["lab.paperless.names"] == "puzzle difficulty"
     # Everything a model's own paper can read is there under the model's name.
     _, own = papers.generate(model, smoke=True)
     assert all(out.values[f"{model}.{key}"] == value for key, value in own.values.items())
@@ -960,6 +964,7 @@ def test_a_model_that_predicts_squares_runs_scores_and_ranks(lab, temp_lab):
     src, out = papers.generate(model, smoke=True)
     switches = papers.switches(src, out)
     assert switches["pairs"] and not switches["look"] and "pair.gbm-hand-few.gbm-hand.gain" in out.values
+    assert out.values["task.candidates.count"] == "64"
     assert out.values["pair.gbm-hand-few.gbm-hand.kept"] in ("kept", "not kept")
     # A run whose predictions are gone is left out of the look, and its pair has no gain.
     paths.predictions(model, "gbm-hand-few", smoke=True).unlink()
@@ -1633,12 +1638,16 @@ def test_a_model_whose_answer_is_a_move_has_its_pairs_and_stands_in_the_lab_s_pa
     assert {"pairs", "pairs-figure", "leaderboard"} <= set(out.files)
     assert out.values["pair.transformer-small-hand.transformer-small.differs"] == "reads the hand features"
     assert all(f"run.{name}.temperature" in out.values and f"run.{name}.platt.slope" not in out.values for name in ranked)
+    # A row's candidates are its own position's moves, so a paper has no count of them to give.
+    assert "task.candidates.count" not in out.values
     assert out.values["run.maia2.log-loss.before"] != out.values["run.maia2.log-loss"]
 
     # The lab's paper sets it on the one scale with every model: a share of first moves right, where more is
     # better. The published model is a run on that scale and no network of the lab's.
     whole, across = overview.generate(smoke=True)
     assert list(whole.models) == [model] and not whole.waiting and not whole.bodies
+    kinds = overview.switches(whole)
+    assert kinds["answermoves"] and not kinds["answersets"] and not kinds["rowsequences"] and kinds["paperless"]
     floor, reference, published = (records[name]["test"]["top1"]["value"] for name in ("constant", "gbm-hand", "maia2"))
     assert overview.step(src) == pytest.approx(reference - floor)
     assert overview.share(src, src.run("maia2")) == pytest.approx(100.0 * (published - floor) / (reference - floor))

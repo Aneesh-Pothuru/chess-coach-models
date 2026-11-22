@@ -606,6 +606,17 @@ read.
   keeps other shares is named apart with its own (`\ifsplitapart`, `lab.split.apart.names`), and
   where the models apart differ among themselves no value is set, so the build stops at the
   sentence that says it of all of them.
+- **A model of another kind.** What the prose says of a model whose answer is not one number for
+  a row of one position stands inside the switch of its kind, which turns on when a model of that
+  kind has full runs: `\ifanswersquares` for a chance for each square, `\ifanswertags` for a
+  chance for each tag, `\ifanswersets` for either of those, `\ifanswermoves` for a chance for
+  each legal move, `\ifrowsequences` for a row that is a sequence of positions. Each kind has a
+  switch of its own, so the words for one build while another kind's first runs are still to
+  come. A set's paper values count its candidates (`task.candidates.count`).
+- **A model with no paper.** The prose sends a reader to a model's own paper for its gains in its
+  own units. A model that is set side by side and has no `paper.tex` is named
+  (`lab.paperless.names`, inside `\ifpaperless`), so the lab's paper sends nobody to a paper that
+  is not written.
 
 ## Smoke runs
 

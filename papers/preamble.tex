@@ -96,6 +96,18 @@
 \newif\ifstudies
 \newif\ifsplitapart
 \newif\ifbodies
+% And whether a model of another kind than one number for a row of one
+% position has full runs: an answer that is a set (\ifanswersets), which is
+% a chance for each square (\ifanswersquares) or for each tag
+% (\ifanswertags), an answer that is a move (\ifanswermoves), a row that is
+% a sequence of positions (\ifrowsequences).
+\newif\ifanswersets
+\newif\ifanswersquares
+\newif\ifanswertags
+\newif\ifanswermoves
+\newif\ifrowsequences
+% And whether a model that is set side by side has no paper of its own yet.
+\newif\ifpaperless
 \makeatletter
 \newcommand{\setvalue}[2]{\expandafter\gdef\csname labvalue@#1\endcsname{#2}}
 \DeclareRobustCommand{\V}[1]{\@ifundefined{labvalue@#1}%

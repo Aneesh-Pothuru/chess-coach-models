@@ -51,6 +51,7 @@ from typing import Any
 
 from .. import paths, tasks
 from ..evals import leaderboard
+from ..evals.metrics import SETS
 from ..encode.hand import GROUPS as GROUP_FEATURES
 from . import build, changes, charts, glossary, tex
 from .results import day, method_values, trained_on
@@ -128,6 +129,11 @@ def question(model: str) -> str:
     card = paths.model(model) / "README.md"
     found = QUESTION.search(card.read_text(encoding="utf-8")) if card.exists() else None
     return " ".join(LINK.sub(r"\1", found.group(1)).split()) if found else ""
+
+
+def paperless(lab: Lab) -> list[str]:
+    """The models set side by side that have no paper of their own: the ones no prose is written for."""
+    return [name for name in lab.models if not (paths.paper(name) / "paper.tex").exists()]
 
 
 def _listed(names: list[str]) -> str:
@@ -334,6 +340,7 @@ def values(lab: Lab, out: tex.Generated) -> None:
     out.set("lab.tasks.count", tex.word(len(every) + len(lab.waiting)))
     out.set("lab.waiting.count", tex.word(len(lab.waiting)))
     out.set("lab.waiting.names", _listed([said(name) for name in lab.waiting]))
+    out.set("lab.paperless.names", _listed([said(name) for name in paperless(lab)]))
     out.set("lab.runs.count", tex.count(sum(len(src.runs) for src in every)))
     out.set("lab.networks.count", tex.count(sum(len(src.networks) for src in every)))
     out.set("lab.studies.count", tex.count(sum(len(src.studies) for src in every)))
@@ -785,11 +792,23 @@ def switches(lab: Lab) -> dict[str, bool]:
     shape has (``shapes``), whether a model has runs of the games or the features study, whether any has a
     study run at all, whether any has a run on more games than the run it changes (``more``), whether some
     model's dataset is split by other shares than most (``splitapart``), and whether a model with a run is
-    one the lab has for its body (``bodies``)."""
+    one the lab has for its body (``bodies``). And whether a model of another kind than one number for a
+    row of one position has runs: an answer that is a set (``answersets``), which is a chance for each
+    square (``answersquares``) or for each tag (``answertags``), an answer that is a move
+    (``answermoves``), a row that is a sequence of positions (``rowsequences``). Each kind has its own
+    switch, so the words for one stand when the models of another have no run yet. And whether a model
+    set side by side has no paper of its own (``paperless``)."""
     measured = {key for key, _ in kinds(lab)}
     studied = {run["config"]["study"] for src in lab.every.values() for run in src.studies}
+    answers = {src.task.kind for src in lab.models.values()}
     return {
         "waiting": bool(lab.waiting),
+        "answersets": bool(answers & set(SETS)),
+        "answersquares": "squares" in answers,
+        "answertags": "tags" in answers,
+        "answermoves": "moves" in answers,
+        "rowsequences": any(src.sequence for src in lab.models.values()),
+        "paperless": bool(paperless(lab)),
         **{f"change{short}": short in measured for short in TITLES},
         "shapes": any(short in measured for short in changes.SHAPES),
         **{study: study in studied for study in STUDIES},

@@ -173,6 +173,9 @@ def values(src: Sources, out: tex.Generated) -> None:
     out.set("task.marks.count", tex.word(len(src.marks)))
     if src.sequence:
         out.set("task.steps.count", tex.word(len(src.steps)))
+    if task.candidates:
+        # Where the answer is a set: how many candidates every row is given a chance for.
+        out.set("task.candidates.count", tex.count(len(task.candidates)))
     data = src.best["dataset"]
     out.set("data.name", f"\\texttt{{{tex.esc(data['dataset'])}}}")
     out.set("data.rows", tex.count(data["rows"]))

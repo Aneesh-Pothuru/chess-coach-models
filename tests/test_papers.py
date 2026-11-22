@@ -289,16 +289,49 @@ def test_the_one_scale_reads_a_score_where_higher_is_better_the_same_way():
     lab = overview.Lab({"blunder-hazard": src}, {}, {})
     # A gain whose interval holds zero is level with the reference, however large it is.
     assert overview._verdicts(lab, lambda one: one.networks[0]) == ([], ["blunder-hazard"], [])
+    # Blunder hazard has its paper, so no switch is on: not the one for a model without one either.
     assert overview.pairs(src) == [] and not any(overview.switches(lab).values())
     assert set(overview.switches(lab)) == {
         "waiting", "changehand", "changeepochs", "changestart", "changeattacks", "changegeometry", "changeconv", "changehybrid",
-        "changelarger", "shapes", "games", "features", "studies", "more", "splitapart", "bodies",
+        "changelarger", "shapes", "games", "features", "studies", "more", "splitapart", "bodies", "answersets", "answersquares",
+        "answertags", "answermoves", "rowsequences", "paperless",
     }  # fmt: skip
     # A model the lab has for its body stands with every model and in no comparison of them.
     lender = _sources("puzzle-difficulty", [_record("gbm-hand", {"kind": "gbm", "features": "hand"}, 1.0, "rmse")])
     both = overview.Lab({"blunder-hazard": src}, {}, {}, {"puzzle-difficulty": lender})
     assert list(both.every) == ["blunder-hazard", "puzzle-difficulty"] and overview.switches(both)["bodies"]
     assert overview._verdicts(both, lambda one: one.networks[0]) == ([], ["blunder-hazard"], [])
+
+
+def test_each_other_kind_of_model_has_a_switch_of_its_own_in_the_lab_s_paper(tmp_path, monkeypatch):
+    kinds = ("answersets", "answersquares", "answertags", "answermoves", "rowsequences")
+
+    def lab_of(*names, steps=()):
+        models = {}
+        for name in names:
+            task = tasks.get(name)
+            runs = [_record("gbm-hand", {"kind": "gbm", "features": "hand"}, 0.5, task.primary)]
+            models[name] = sources.Sources(name, False, task, runs, [], {}, {}, None, (), (), steps)
+        return overview.Lab(models, {}, {})
+
+    def on(*names, steps=()):
+        switches = overview.switches(lab_of(*names, steps=steps))
+        return {kind for kind in kinds if switches[kind]}
+
+    assert on("puzzle-difficulty") == set()
+    assert on("where-to-look") == {"answersets", "answersquares"}
+    assert on("puzzle-themes") == {"answersets", "answertags"}
+    assert on("human-move") == {"answermoves"}
+    assert on("game-rating", steps=("ply",)) == {"rowsequences"}
+    assert on("puzzle-difficulty", "where-to-look", "puzzle-themes", "human-move") == set(kinds) - {"rowsequences"}
+    # A model with no prose of its own is named, so the lab's paper never sends a reader to a paper that is not there.
+    both, alone = lab_of("puzzle-difficulty", "where-to-look"), lab_of("puzzle-difficulty")
+    monkeypatch.setattr(paths, "ROOT", tmp_path)
+    assert overview.paperless(both) == ["puzzle-difficulty", "where-to-look"] and overview.switches(both)["paperless"]
+    paths.paper("puzzle-difficulty").mkdir(parents=True)
+    (paths.paper("puzzle-difficulty") / "paper.tex").write_text("its prose", encoding="utf-8")
+    assert overview.paperless(both) == ["where-to-look"] and overview.switches(both)["paperless"]
+    assert not overview.switches(alone)["paperless"]
 
 
 def _longer(model, gain):
