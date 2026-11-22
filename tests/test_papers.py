@@ -220,6 +220,15 @@ def test_two_runs_differ_in_the_settings_one_changes_or_in_the_learner():
     assert changes.changed(longer, plain) == [("learner", "features"), ("train", "epochs")]
     assert changes.changed(plain, plain) == []
     assert changes.changed(longer, trees) is None and changes.differs(longer, trees) == "another learner"
+    # Two networks of different bodies or sizes differ in that, and a table says it.
+    tower = {"config": {"learner": {"kind": "net", "body": "conv", "dim": 192, "depth": 10, "squeeze": 4}, "train": plain["config"]["train"]}}
+    large = {"config": {"learner": {**body, "dim": 384, "depth": 12}, "train": plain["config"]["train"]}}
+    told = {"config": {"learner": {**body, "attacks": True}, "train": plain["config"]["train"]}}
+    blind = {"config": {"learner": {**body, "geometry": False}, "train": plain["config"]["train"]}}
+    assert changes.differs(tower, plain) == "its body is a convolutional tower for a transformer"
+    assert changes.differs(large, plain) == "12 layers of width 384 for 8 of width 256"
+    assert changes.differs(told, plain) == "its attention is told what each piece attacks"
+    assert changes.differs(blind, plain) == "its attention is not told the offsets between squares"
 
 
 def _record(name, learner, score, primary, gain=None, **config):

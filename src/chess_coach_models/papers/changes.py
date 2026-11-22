@@ -108,6 +108,10 @@ def _change(block: str, key: str, new: Any, old: Any) -> str:
     if (block, key) == ("learner", "without"):
         groups = " and ".join(glossary.group(name) for name in new or [])
         return f"does not read the hand features of {groups}"
+    if (block, key) == ("learner", "attacks"):
+        return "its attention is told what each piece attacks" if new else "its attention is told nothing of the attacks"
+    if (block, key) == ("learner", "geometry"):
+        return "its attention is not told the offsets between squares" if new is False else "its attention is told the offsets between squares"
     if (block, key) == ("data", "train_share"):
         return f"trains on {share_words(float(new))} of the training games" if new is not None else "trains on all the training games"
     name = {"epochs": "epochs", "patience": "epochs of patience", "lr": "peak learning rate", "batch": "rows a batch"}.get(key)
@@ -133,12 +137,21 @@ def changed(run: dict[str, Any], other: dict[str, Any]) -> list[tuple[str, str]]
     ]
 
 
+# A network's body as a table says it.
+BODIES = {"transformer": "a transformer", "conv": "a convolutional tower", "hybrid": "convolutions under a transformer"}
+
+
 def differs(run: dict[str, Any], other: dict[str, Any]) -> str:
-    """What one run's config changes in another's, in words. Two runs of different learners differ in the
-    learner, and their names say how."""
+    """What one run's config changes in another's, in words. Two networks of different bodies or sizes differ in
+    that, and it is said. Two runs of different learners differ in the learner, and their names say how."""
     settings = changed(run, other)
     if settings is None:
-        return "another learner"
+        ours, theirs = run["config"]["learner"], other["config"]["learner"]
+        if ours.get("kind") != "net" or theirs.get("kind") != "net":
+            return "another learner"
+        if ours["body"] != theirs["body"]:
+            return f"its body is {BODIES.get(ours['body'], tex.esc(ours['body']))} for {BODIES.get(theirs['body'], tex.esc(theirs['body']))}"
+        return f"{tex.plain(ours['depth'])} layers of width {tex.plain(ours['dim'])} for {tex.plain(theirs['depth'])} of width {tex.plain(theirs['dim'])}"
     ours, theirs = run["config"], other["config"]
     said = [_change(block, key, (ours.get(block) or {}).get(key), (theirs.get(block) or {}).get(key)) for block, key in settings]
     return "; ".join(said) if said else "nothing its config names"
