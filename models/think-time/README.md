@@ -84,12 +84,32 @@ numbers are in the leaderboard):
 - **Stronger players are harder to predict.** The error grows with the mover's
   rating band in every run.
 
+What twice the epochs say (commit `0ba155a`: `transformer-medium-long` and
+`transformer-medium-hand-long`, each set against the run it changed among the
+`pairs` of [`results/analysis.json`](results/analysis.json)):
+
+- **Both longer runs are kept, by a little.** Each is better than the run it
+  changed on the valid rows, and on the test rows beyond the noise.
+  `transformer-medium-hand-long` is now the model's best run. Both gains are
+  small beside the step the hand features make, and the gain is smaller for
+  the run that already reads them.
+- **On the board alone, the epochs take the transformer past the trees.** At
+  twelve epochs it was just behind the reference, and with twice as many it
+  is just ahead, beyond the noise both times.
+- **Twenty-four epochs were enough.** Both runs used the whole schedule, and
+  their valid scores had flattened over its last few epochs. A still longer
+  schedule is not the next run.
+
 **Weights.** Every run's weights and test predictions are on the owner's
 machine, under `artifacts/runs/think-time/<run>/`, as the GPU session
-packed them; none is published. The best run's `model.pt` is 26,258,975
-bytes, sha256 `4e82080046f9aea0c6ec20458cbccd6f072b6ce7c8f157f3fb1ae764e292e496`,
-read off the file there: these records were written before a record named its
-weights, which every later one does.
+packed them; none is published. The best run's `model.pt` is
+26,258,975 bytes, sha256
+`71ba8b151cdc2b572c4ee4c2b18bb7d87eabc357a84f0cb44f7c1e6b2ddb95ef`
+(`weights` in [its record](results/transformer-medium-hand-long.json)). The
+records of the first full runs were written before a record named its
+weights: `transformer-medium-hand`'s `model.pt` is 26,258,975 bytes, sha256
+`4e82080046f9aea0c6ec20458cbccd6f072b6ce7c8f157f3fb1ae764e292e496`, read off
+the file there.
 
 ## What it does not say yet
 

@@ -223,16 +223,21 @@ different kinds, both sit within a few points of the trees, and the larger
 step comes with the \V{run.transformer-medium.parameters.millions} million
 parameters of the medium transformer.
 
-The second is that the hand features still pay under a network. The medium
-transformer that reads them scores \V{run.transformer-medium-hand.over-twin}
-points better than the same transformer without them.
+The second is that the hand features still pay under a network. On the
+ladder's schedule, the medium transformer that reads them scores
+\V{run.transformer-medium-hand.over-twin} points better than the same
+transformer without them.
 \ifpairs
 Set against each other on the same resampled games, the one that reads them
 is \V{pair.transformer-medium-hand.transformer-medium.verdict}
 (Table~\ref{tab:pairs}).
 \fi
-Eight layers of attention did not learn from the squares everything that a
-few dozen counts hold.
+In that many epochs, eight layers of attention did not learn from the squares
+everything that a few dozen counts hold.
+\ifvariants
+Section~\ref{sec:changes} gives both transformers twice the epochs, and most
+of that difference goes.
+\fi
 \iffeatures
 Which of the counts the trees cannot do without is in
 Section~\ref{sec:changes}.
@@ -241,10 +246,11 @@ Which of the counts carry that is a run still to make, with one group of
 features left out at a time.
 \fi
 
-Set against the ladder, the best run's gain is \V{best.gain.percent}\% of
-the reference's own error, and \V{best.gain.of-lift}\% as large as the step
-from the floor to the reference. Counting the right things with trees does
-most of the work, and the network refines it.
+Set against what the trees already do, the best run's gain is
+\V{best.gain.percent}\% of the reference's own error, and
+\V{best.gain.of-lift}\% as large as the step from the floor to the
+reference. Counting the right things with trees does most of the work, and
+the network refines it.
 
 \subsection{Good at ranking, loose on the rating}
 
@@ -346,6 +352,66 @@ feature's share of the total gain of the splits made on it.}
 \label{sec:changes}
 
 \input{../../../papers/changes}
+
+\ifvariants
+\paragraph{What twice the epochs were worth here.}
+Each medium transformer was trained again on a schedule of
+\V{run.transformer-medium-long.epochs} epochs for the ladder's
+\V{run.transformer-medium.epochs}. On the board alone,
+\V{run.transformer-medium-long.name} is
+\V{pair.transformer-medium-long.transformer-medium.valid.verdict} than the
+run it changed on the valid puzzles and
+\V{pair.transformer-medium-long.transformer-medium.verdict} on the test
+puzzles, by \V{pair.transformer-medium-long.transformer-medium.gain} points:
+it is \V{pair.transformer-medium-long.transformer-medium.kept}. With the
+hand features, \V{run.transformer-medium-hand-long.name} is
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.valid.verdict}
+than the run it changed on the valid puzzles and
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.verdict} on the
+test puzzles, by
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain}: it is
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.kept}, and it
+is now the model's best run.
+
+Two things follow. The first is that the epochs were worth more than the
+hand features. The longer schedule gave the transformer on the board alone
+more than the features had given it on the ladder
+(\V{pair.transformer-medium-hand.transformer-medium.gain} points, and the
+two intervals in Table~\ref{tab:pairs} do not touch), and with it that
+transformer is ahead of the ladder's transformer that reads the features: a
+gain over the reference of \V{run.transformer-medium-long.gain} against
+\V{run.transformer-medium-hand.gain}.
+
+The second is that under the longer schedule the features add little.
+\V{best.name} scores \V{best.over-twin} points better than
+\V{best.twin.name}, where on the ladder the same difference was
+\V{run.transformer-medium-hand.over-twin}. The two long runs order puzzles
+equally well, with rank correlations of
+\V{run.transformer-medium-hand-long.spearman} and
+\V{run.transformer-medium-long.spearman}, and their mean absolute errors,
+\V{run.transformer-medium-hand-long.mae} and
+\V{run.transformer-medium-long.mae} points, lie inside each other's
+intervals. By band the run with the features is ahead on the puzzles rated
+1800 and over and behind on those under 1400 (Table~\ref{tab:bands}, which
+draws no interval). A reading: given the steps, eight layers learn from the
+squares most of what the counts hold, and the counts still help where a
+puzzle is hard. The two long runs have not been set against each other on
+the same resampled games yet. The model's analysis plan now asks for that
+pair, and the next closer look measures it.
+
+Neither run used its whole schedule. \V{run.transformer-medium-long.name}
+had its best valid epoch at \V{run.transformer-medium-long.best-epoch} of
+\V{run.transformer-medium-long.epochs} and
+\V{run.transformer-medium-hand-long.name} at
+\V{run.transformer-medium-hand-long.best-epoch}, and each was stopped
+\V{networks.patience} epochs later, as the trainer stops any run whose valid
+score has not improved for that long (Figure~\ref{fig:variants}). Their
+training loss was still falling: from there a network is fitting the
+training puzzles. So a still longer schedule is not the next run. More
+puzzles or a better start may be.
+\fi
+
+\input{../../../papers/studies}
 \fi
 
 \section{A closer look}
@@ -382,9 +448,12 @@ the best run said. The group it rates lowest it calls
 \V{best.reliability.lowest.said} on average, and those puzzles' true ratings
 average \V{best.reliability.lowest.happened}. The group it rates highest it
 calls \V{best.reliability.highest.said}, against
-\V{best.reliability.highest.happened}. In no group between are the two
-further apart than \V{best.reliability.widest-gap} points. A stated rating is
-right on average at every level.
+\V{best.reliability.highest.happened}. In no group are the two further apart
+than \V{best.reliability.widest-gap} points, which is under a third of a
+rating class: a stated rating is close to right on average at every level.
+The gaps lean one way, though. The run's lowest ratings are a little too low
+and its highest a little too high, so what it says is spread slightly wider
+than the truth, and the two ends are where a stated rating is least exact.
 
 The wash is the other half of the answer. Around one stated number, the
 middle four fifths of the true ratings span about \V{best.reliability.spread}
@@ -471,12 +540,12 @@ Its gain is largest for the theme
 \texttt{\V{slice.themes.gain.most.group}}, at \V{slice.themes.gain.most}
 points, and smallest for \texttt{\V{slice.themes.gain.least.group}}, at
 \V{slice.themes.gain.least}. The themes near the top of the figure have
-something in common: quiet moves, pawn endings, pins and defensive moves are
+something in common: pawn endings, quiet moves, pins and defensive moves are
 hard for reasons no list of counts states. A quiet move has to be thought of
-with nothing to prompt it, and a pawn ending turns on a tempo. Near the bottom
-are mates in one, promotions and rook endings, where a count or two says
-most of what there is to say. The network pays for itself where the board has
-to be read, which is what it was given the squares for.
+with nothing to prompt it, and a pawn ending turns on a tempo. At the bottom
+are mates in one and promotions, where a count or two says most of what
+there is to say. The network pays for itself where the board has to be read,
+which is what it was given the squares for.
 
 The table behind the figure is in the appendix
 (Table~\ref{tab:slice-themes}).
@@ -556,23 +625,24 @@ back.
 
 The network's lead is not the same for every puzzle. By the rating's
 deviation it is \V{slice.deviation.-75.gain} points for the most settled
-ratings, a deviation under 75, and that interval holds zero. For the least
-settled, a deviation of 90 and over, it is \V{slice.deviation.90+.gain}
+ratings, a deviation under 75, and \V{slice.deviation.90+.gain} for the
+least settled, a deviation of 90 and over
 (Table~\ref{tab:slice-deviation}). By attempts it falls from
 \V{slice.plays.-200.gain} for puzzles tried fewer than two hundred times to
 \V{slice.plays.5000+.gain} for those tried five thousand times or more
 (Table~\ref{tab:slice-plays}).
 
-So on the puzzles whose ratings are measured best, the network is no better
-than the trees, and its lead grows as a rating is less settled and a puzzle
-less played. The tables do not say why. The most settled ratings average
-\V{slice.deviation.-75.happened} and the least settled
-\V{slice.deviation.90+.happened}, so the two groups are different puzzles and
-not only differently measured ones, and the lead by rating band is uneven too
-(Table~\ref{tab:bands}). A cut by deviation inside each band would separate
-the two, and nobody has made it. Until then the careful reading is that the
-network's gain is proven for the less-played nine tenths of the test puzzles
-and unproven for the best-measured ones.
+So the network's lead is smallest on the puzzles whose ratings are measured
+best, about a tenth of what it is on the least settled, and it grows as a
+rating is less settled and a puzzle less played. The tables do not say why.
+The most settled ratings average \V{slice.deviation.-75.happened} and the
+least settled \V{slice.deviation.90+.happened}, so the two groups are
+different puzzles and not only differently measured ones, and the lead by
+rating band is uneven too (Table~\ref{tab:bands}). A cut by deviation inside
+each band would separate the two, and nobody has made it. Until then the
+careful reading is that most of the network's gain is on the less-played
+nine tenths of the test puzzles, and that on the best-measured ones it is
+small.
 
 \subsection{Two things at once}
 
@@ -711,6 +781,12 @@ hash of the best run's weights.
 \item \textbf{A longer schedule.} Most of the networks were still improving
 when training stopped, so more epochs is the cheapest run to add.
 \fi
+\ifvariants\ifgames\else
+\item \textbf{More puzzles.} The longer runs ended by fitting the training
+puzzles, and the recipe keeps \V{recipe.sample.percent}\% of the puzzles
+that pass its filters. The same runs on half and on a quarter of these
+puzzles say what a larger sample would be worth.
+\fi\fi
 \iffeatures\else
 \item \textbf{Which hand features a network is missing.} Leaving out one
 group of features at a time says which counts a learner cannot do without.

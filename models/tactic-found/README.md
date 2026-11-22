@@ -123,6 +123,30 @@ numbers are in the leaderboard):
   rated 2100 to 2299 and higher on both sides, for the floor as well, so
   compare runs within a band, not one band with another.
 
+What twice the epochs say (commit `0ba155a`: `transformer-medium-long` and
+`transformer-medium-hand-long`, each set against the run it changed among the
+`pairs` of [`results/analysis.json`](results/analysis.json)):
+
+- **One of the two longer runs is kept: the transformer on the board alone.**
+  `transformer-medium-long` is better than `transformer-medium` on the valid
+  rows, and on the test rows beyond the noise. The gain is small, and the run
+  is still behind the trees beyond the noise. So the epochs were not what
+  the squares lacked: at this many games a network does not work out from
+  the marked squares what the hand features count about the line.
+- **With the hand features, twice the epochs change nothing.**
+  `transformer-medium-hand-long` is a little better than the run it changed
+  on the valid rows and level with it on the test rows (the interval of its
+  paired gain holds zero). It is not kept, and `transformer-medium-hand`
+  stays the model's best run.
+- **Both stopped early.** Each had its best valid epoch a little past halfway
+  and was stopped three epochs later: the training loss went on falling and
+  the valid score did not.
+
+A run that is not kept stays in the results as a measurement of what its
+change is worth. `transformer-medium-hand-long` is filed under a study of its
+own (`lab file`) once the runs now training are in; until then the
+leaderboard still ranks it.
+
 **Weights.** Every run's weights and test predictions are on the owner's
 machine, under `artifacts/runs/tactic-found/<run>/`, as the GPU session
 packed them; none is published. Each record names its run's files by size

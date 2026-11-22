@@ -12,7 +12,9 @@ written where the test predictions are. One kind of pair needs no closer
 look: a run that changes the reference was compared with it when it was
 trained, and its record holds that gain.
 
-A pair's values sit under ``pair.<run>.<the run it is set against>``. A
+A pair's values sit under ``pair.<run>.<the run it is set against>``: its gain
+on the test rows with its interval and verdict, its gain on the valid rows,
+and ``kept``, which is the lab's rule for a change read off the two. A
 study's table is the block ``study-<name>`` and its figure
 ``study-<name>-figure``; the features study has one figure a run it was made
 on, the reference's under that name and another run's as
@@ -85,6 +87,12 @@ def verdict(entry: dict[str, Any]) -> str:
     if not entry["beyond_noise"]:
         return "inside the noise"
     return "better beyond the noise" if entry["gain"] > 0 else "worse beyond the noise"
+
+
+def kept(entry: dict[str, Any], ahead: float) -> bool:
+    """The lab's rule for a change, both halves of it: the run is better than the run it changed on the valid
+    rows (``ahead``), and its paired gain on the test rows is above zero beyond the noise."""
+    return ahead > 0 and bool(entry["beyond_noise"]) and entry["gain"] > 0
 
 
 def share_words(share: float) -> str:
@@ -164,6 +172,8 @@ def values(src: Sources, out: tex.Generated) -> None:
             if ahead is not None:
                 out.set(f"{prefix}.valid.gain", tex.sig(ahead, 3, sign=True))
                 out.set(f"{prefix}.valid.verdict", "better" if ahead > 0 else "no better")
+                if not tabled(entry):
+                    out.set(f"{prefix}.kept", "kept" if kept(entry, ahead) else "not kept")
     plain = [entry for entry in pairs(src) if not tabled(entry)]
     out.set("pairs.count", tex.word(len(plain)))
     for study in sorted({run["config"]["study"] for run in src.studies}):

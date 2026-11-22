@@ -279,7 +279,7 @@ with it.}
 \end{table}
 
 Read that way, the best run leads the reference in \V{bands.best-ahead.of},
-by almost the same margin in each: between \V{bands.lead.narrowest} and
+by a small margin in each: between \V{bands.lead.narrowest} and
 \V{bands.lead.widest} (Figure~\ref{fig:bands}).
 \iflook
 Paired inside each band, the lead is beyond the noise in
@@ -341,6 +341,52 @@ feature's share of the total gain of the splits made on it.}
 \label{sec:changes}
 
 \input{../../../papers/changes}
+
+\ifvariants
+\paragraph{What twice the epochs were worth here.}
+Each medium transformer was trained again on a schedule of
+\V{run.transformer-medium-long.epochs} epochs for the ladder's
+\V{run.transformer-medium.epochs}. On the board alone,
+\V{run.transformer-medium-long.name} is
+\V{pair.transformer-medium-long.transformer-medium.valid.verdict} than the
+run it changed on the valid positions and
+\V{pair.transformer-medium-long.transformer-medium.verdict} on the test
+positions, by \V{pair.transformer-medium-long.transformer-medium.gain}
+(\V{pair.transformer-medium-long.transformer-medium.gain.low} to
+\V{pair.transformer-medium-long.transformer-medium.gain.high}): it is
+\V{pair.transformer-medium-long.transformer-medium.kept}. With the hand
+features, \V{run.transformer-medium-hand-long.name} is
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.valid.verdict}
+than the run it changed on the valid positions and
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.verdict} on the
+test positions, by
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain}
+(\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain.low} to
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain.high}): it
+is \V{pair.transformer-medium-hand-long.transformer-medium-hand.kept}, and
+it is now the model's best run.
+
+Both gains are small. Each is a fraction of what the hand features are worth
+to the same transformer
+(\V{pair.transformer-medium-hand.transformer-medium.gain}), and the smaller
+of the two belongs to the run that already reads them. One of them still
+moves a run across the reference: on the board alone the medium transformer
+was behind the trees on the ladder (\V{run.transformer-medium.gain}) and is
+ahead of them after the longer schedule
+(\V{run.transformer-medium-long.gain}), beyond the noise both times. So the
+finding of Section~\ref{sec:results} stands with a footnote. The squares
+hold little that the clocks and a few counts do not, and a network needs the
+longer schedule to find even that.
+
+Both runs used the whole schedule. Their best valid epochs were
+\V{run.transformer-medium-long.best-epoch} and
+\V{run.transformer-medium-hand-long.best-epoch} of
+\V{run.transformer-medium-long.epochs}, and their curves are flat over the
+last few (Figure~\ref{fig:variants}). A still longer schedule is not the
+next run.
+\fi
+
+\input{../../../papers/studies}
 \fi
 
 \section{A closer look}
@@ -382,10 +428,11 @@ what the best run said. For the group it calls fastest it says
 \V{best.reliability.lowest.said} seconds, and the typical time taken there
 was \V{best.reliability.lowest.happened}. For the group it calls slowest it
 says \V{best.reliability.highest.said}, against
-\V{best.reliability.highest.happened}. No group is further than about
-\V{best.reliability.widest-gap} second from what it was called. As a
-statement of the usual pace, the number can be trusted across its whole
-range.
+\V{best.reliability.highest.happened}. No group is further than
+\V{best.reliability.widest-gap} seconds from what it was called, and the
+widest gap is in the group called slowest. As a statement of the usual pace,
+the number holds across its whole range, a little long at the slow end and a
+little short at the fast one.
 
 \begin{figure}[htbp]\centering
 \block{reliability}
@@ -600,7 +647,7 @@ position says either is about to happen, and a yardstick of the usual pace
 is better for not chasing them. The positions the model calls slowest and
 fastest are in the appendix (Figures~\ref{fig:highest}
 and~\ref{fig:lowest}): the slowest are middlegames in the longer time
-controls with most of the clock left, and the fastest are the last seconds
+controls with much of the clock left, and the fastest are the last seconds
 of a game.
 
 \examples{examples-typical}{Ordinary positions: the first \V{examples.count}

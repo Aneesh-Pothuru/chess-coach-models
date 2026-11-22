@@ -406,6 +406,49 @@ feature's share of the total gain of the splits made on it.}
 \label{sec:changes}
 
 \input{../../../papers/changes}
+
+\ifvariants
+\paragraph{What twice the epochs were worth here.}
+Each medium transformer was trained again on a schedule of
+\V{run.transformer-medium-long.epochs} epochs for the ladder's
+\V{run.transformer-medium.epochs}. On the board alone,
+\V{run.transformer-medium-long.name} is
+\V{pair.transformer-medium-long.transformer-medium.valid.verdict} than the
+run it changed on the valid rows and
+\V{pair.transformer-medium-long.transformer-medium.verdict} on the test
+rows, by \V{pair.transformer-medium-long.transformer-medium.gain}
+(\V{pair.transformer-medium-long.transformer-medium.gain.low} to
+\V{pair.transformer-medium-long.transformer-medium.gain.high}): it is
+\V{pair.transformer-medium-long.transformer-medium.kept}. The gain is a
+fraction of what the hand features are worth to the same transformer
+(\V{pair.transformer-medium-hand.transformer-medium.gain}), and the run is
+still behind the reference (\V{run.transformer-medium-long.gain}). So the
+claim of Section~\ref{sec:results} now rests on a run that was given the
+time to learn: at this size and with this many games, the marked squares are
+not enough.
+
+With the hand features, \V{run.transformer-medium-hand-long.name} is
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.valid.verdict}
+than the run it changed on the valid rows and
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.verdict} on the
+test rows (\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain},
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain.low} to
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain.high}): it
+is \V{pair.transformer-medium-hand-long.transformer-medium-hand.kept}, and
+\V{best.name} stays the model's best run. A run that is not kept leaves the
+leaderboard when it is filed. Its row stays in Table~\ref{tab:pairs}, as the
+measurement of what the epochs were worth to a network that reads the
+counts: nothing that these test rows can show.
+
+Neither run used its whole schedule. Their best valid epochs were
+\V{run.transformer-medium-long.best-epoch} and
+\V{run.transformer-medium-hand-long.best-epoch} of
+\V{run.transformer-medium-long.epochs}, and each was stopped
+\V{networks.patience} epochs later, as the trainer stops any run whose valid
+score has not improved for that long (Figure~\ref{fig:variants}).
+\fi
+
+\input{../../../papers/studies}
 \fi
 
 \section{A closer look}

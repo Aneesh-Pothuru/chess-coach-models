@@ -24,9 +24,13 @@ model"). The order below is the order they are worth building in.
 
 What the first full runs ([the leaderboards](../README.md#leaderboards)) leave to try. Each is a
 run or a recipe, not a new model. Nine of the sixteen network runs had their best valid epoch at
-the last one, so each model has two runs with twice the epochs (`transformer-medium-long`,
-`transformer-medium-hand-long`). Two studies are written as runs on every model
-([`design.md`](design.md), "A run that changes another"):
+the last one, so four models were given two runs with twice the epochs (`transformer-medium-long`,
+`transformer-medium-hand-long`). Those are in, and each card says what they found: both are kept
+in puzzle difficulty and in think time, the one on the board alone in tactic found, neither in
+blunder hazard. All but think time's stopped before the end of the longer schedule, and think
+time's had flattened by it, so a still longer one is not on this list. Practical chances has
+none: its networks stopped early on the first schedule. Two studies are written as runs on every
+model ([`design.md`](design.md), "A run that changes another"):
 
 - **`games`: fewer training games.** The reference trees and the best network on half and on a
   quarter of the games. Where a score is still climbing at all the games a model has, a larger
@@ -34,7 +38,8 @@ the last one, so each model has two runs with twice the epochs (`transformer-med
   games of a month's, `puzzles` a quarter of the puzzles that pass, `tactics` half of them.
 - **`features`: one group of hand features left out at a time**, from the reference trees and, on
   `blunder-hazard`, from the best network too, to say which of them a network still needs beside
-  the board. The network that reads them is the best run of every model.
+  the board. The network that reads them is the best run of every model but practical chances,
+  where no network is ahead of the trees beyond the noise.
 
 What is left:
 

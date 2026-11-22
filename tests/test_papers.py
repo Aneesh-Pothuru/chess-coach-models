@@ -299,6 +299,29 @@ def test_a_run_that_was_filed_keeps_its_pair_and_its_place_beside_the_run_it_cha
     assert (measured["run"], measured["over"], measured["gain"]) == ("transformer-medium-long", "transformer-medium", 0.1)
 
 
+def test_a_change_is_kept_only_when_both_halves_of_the_rule_hold():
+    def said(gain, valid):
+        """What a paper says of a longer run whose valid score is ``valid`` beside the 8.0 of the run it changed."""
+        tried = _longer("puzzle-difficulty", gain)
+        tried.runs[0]["valid"], tried.runs[1]["valid"] = {tried.task.primary: valid}, {tried.task.primary: 8.0}
+        written = tex.Generated("a test")
+        changes.values(tried, written)
+        return {key.rsplit(".", 1)[-1]: value for key, value in written.values.items() if key.endswith((".kept", "valid.verdict"))}
+
+    # Puzzle difficulty is an error, so the lower valid score is the better one.
+    assert said((0.3, 0.1, 0.5), 7.0) == {"verdict": "better", "kept": "kept"}
+    # Better on the valid rows and inside the noise on the test rows: not kept.
+    assert said((0.1, -0.2, 0.4), 7.0) == {"verdict": "better", "kept": "not kept"}
+    # Beyond the noise on the test rows and no better on the valid rows: not kept either.
+    assert said((0.3, 0.1, 0.5), 9.0) == {"verdict": "no better", "kept": "not kept"}
+    # Worse beyond the noise is not kept, whatever the valid rows say.
+    assert said((-0.3, -0.5, -0.1), 7.0)["kept"] == "not kept"
+    # A run that names no valid score has no verdict by the rule.
+    tried, written = _longer("puzzle-difficulty", (0.3, 0.1, 0.5)), tex.Generated("a test")
+    changes.values(tried, written)
+    assert not [key for key in written.values if key.endswith(".kept")]
+
+
 def test_a_card_s_question_is_read_up_to_its_question_mark(tmp_path, monkeypatch):
     monkeypatch.setattr(paths, "ROOT", tmp_path)
     card = tmp_path / "models" / "some-model" / "README.md"

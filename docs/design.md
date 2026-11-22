@@ -275,7 +275,10 @@ the model's committed files, on any machine, and compiles `models/<model>/paper/
   text serves before and after a batch of runs lands.
 - **Shared sections.** What is the same for every model is typed once under `papers/`: how a board
   is read, the learners, how a result is scored, what a closer look is, how one change at a time
-  is read, the preamble and the references.
+  is read (`changes.tex`), how the two studies are read (`studies.tex`), the preamble and the
+  references. A paper says what its own runs found between those two: which changes it kept by
+  the lab's rule, read off each pair (`pair.<run>.<the run it changed>.kept`, beside its gain on
+  the valid rows and its verdict on the test rows).
 - **Every run by name.** The closer look resamples one pair of runs group by group: the best run
   that is not the reference, against the reference. A paper can set any other run beside the
   reference by its name. What that run said in each group and cell is a value, and its figures

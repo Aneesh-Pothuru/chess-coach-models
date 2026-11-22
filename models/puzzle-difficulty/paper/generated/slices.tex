@@ -2,15 +2,15 @@
 \begin{table}[htbp]\centering\footnotesize
 \begin{tabular}{lrrrrrrrr}
 \toprule
- &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand-\allowbreak long}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
 Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
 \midrule
-\textless{}1000 & 22{,}751 & 805.9 & 906.6 & 196.5 & 970.6 & 245.3 & \textbf{+48.80} & +46.86 to +50.57 \\
-1000-1399 & 31{,}846 & 1200.6 & 1291.6 & 247.3 & 1329.7 & 270.2 & \textbf{+22.97} & +21.22 to +24.48 \\
-1400-1799 & 28{,}501 & 1590.0 & 1595.6 & 254.8 & 1589.4 & 250.6 & \textbf{$-$4.145} & $-$5.678 to $-$2.387 \\
-1800-2199 & 19{,}518 & 1987.2 & 1851.5 & 297.6 & 1801.0 & 311.4 & \textbf{+13.82} & +11.48 to +15.96 \\
-2200+ & 9{,}834 & 2406.8 & 2066.2 & 428.9 & 1982.6 & 494.4 & \textbf{+65.56} & +62.65 to +68.58 \\
+\textless{}1000 & 22{,}751 & 805.9 & 888.2 & 184.8 & 970.6 & 245.3 & \textbf{+60.41} & +58.40 to +62.51 \\
+1000-1399 & 31{,}846 & 1200.6 & 1286.4 & 239.0 & 1329.7 & 270.2 & \textbf{+31.19} & +29.31 to +32.93 \\
+1400-1799 & 28{,}501 & 1590.0 & 1601.1 & 251.1 & 1589.4 & 250.6 & $-$0.468 & $-$2.222 to +1.512 \\
+1800-2199 & 19{,}518 & 1987.2 & 1869.0 & 291.8 & 1801.0 & 311.4 & \textbf{+19.60} & +16.63 to +22.17 \\
+2200+ & 9{,}834 & 2406.8 & 2093.4 & 410.8 & 1982.6 & 494.4 & \textbf{+83.60} & +79.55 to +87.20 \\
 \bottomrule
 \end{tabular}
 \caption{The test rows by: the puzzle's rating.}
@@ -20,15 +20,15 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \begin{table}[htbp]\centering\footnotesize
 \begin{tabular}{lrrrrrrrr}
 \toprule
- &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand-\allowbreak long}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
 Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
 \midrule
-1 & 14{,}854 & 961.2 & 935.7 & 213.8 & 960.5 & 226.3 & \textbf{+12.52} & +11.06 to +13.92 \\
-2 & 57{,}896 & 1394.8 & 1386.1 & 261.6 & 1394.7 & 285.0 & \textbf{+23.39} & +21.91 to +24.63 \\
-3 & 31{,}251 & 1687.8 & 1692.2 & 295.1 & 1690.2 & 325.3 & \textbf{+30.18} & +28.39 to +31.94 \\
-4 & 6{,}303 & 1913.6 & 1929.0 & 316.1 & 1914.7 & 344.3 & \textbf{+28.23} & +24.07 to +32.96 \\
-5+ & 2{,}146 & 2098.0 & 2097.9 & 320.5 & 2084.7 & 351.1 & \textbf{+30.59} & +22.07 to +37.29 \\
+1 & 14{,}854 & 961.2 & 930.0 & 204.8 & 960.5 & 226.3 & \textbf{+21.51} & +19.41 to +23.31 \\
+2 & 57{,}896 & 1394.8 & 1387.7 & 252.1 & 1394.7 & 285.0 & \textbf{+32.83} & +31.30 to +34.32 \\
+3 & 31{,}251 & 1687.8 & 1697.0 & 287.9 & 1690.2 & 325.3 & \textbf{+37.43} & +35.55 to +39.38 \\
+4 & 6{,}303 & 1913.6 & 1932.4 & 310.4 & 1914.7 & 344.3 & \textbf{+33.94} & +28.51 to +38.80 \\
+5+ & 2{,}146 & 2098.0 & 2098.2 & 316.5 & 2084.7 & 351.1 & \textbf{+34.54} & +25.28 to +42.43 \\
 \bottomrule
 \end{tabular}
 \caption{The test rows by: moves the solver has to find.}
@@ -38,40 +38,40 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \begin{table}[htbp]\centering\footnotesize
 \begin{tabular}{lrrrrrrrr}
 \toprule
- &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand-\allowbreak long}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
 Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
 \midrule
-short & 57{,}439 & 1394.5 & 1385.7 & 261.5 & 1394.3 & 284.9 & \textbf{+23.46} & +22.03 to +24.94 \\
-endgame & 55{,}361 & 1443.4 & 1437.3 & 281.2 & 1443.7 & 306.0 & \textbf{+24.85} & +23.34 to +26.37 \\
-middlegame & 51{,}328 & 1489.5 & 1485.5 & 261.8 & 1489.9 & 286.9 & \textbf{+25.14} & +23.89 to +26.36 \\
-crushing & 43{,}433 & 1610.9 & 1607.8 & 297.3 & 1607.8 & 323.5 & \textbf{+26.18} & +24.62 to +28.05 \\
-mate & 34{,}439 & 1118.2 & 1099.6 & 220.7 & 1117.4 & 240.8 & \textbf{+20.07} & +18.79 to +21.29 \\
-advantage & 33{,}591 & 1617.7 & 1621.5 & 279.1 & 1623.5 & 305.8 & \textbf{+26.77} & +25.16 to +28.39 \\
-long & 30{,}918 & 1688.1 & 1692.2 & 295.0 & 1690.2 & 325.0 & \textbf{+29.94} & +28.05 to +31.73 \\
-master & 15{,}509 & 1492.7 & 1478.8 & 279.2 & 1474.6 & 302.0 & \textbf{+22.83} & +20.46 to +25.33 \\
-fork & 15{,}186 & 1397.5 & 1390.3 & 246.4 & 1409.1 & 268.7 & \textbf{+22.32} & +20.11 to +24.67 \\
-oneMove & 14{,}812 & 960.9 & 935.5 & 213.8 & 960.4 & 226.3 & \textbf{+12.53} & +10.97 to +14.30 \\
-mateIn1 & 14{,}788 & 960.0 & 934.7 & 213.5 & 959.7 & 226.0 & \textbf{+12.49} & +10.78 to +13.86 \\
-mateIn2 & 14{,}791 & 1169.0 & 1153.2 & 220.7 & 1168.6 & 244.4 & \textbf{+23.65} & +21.57 to +25.54 \\
-kingsideAttack & 9{,}742 & 1302.5 & 1290.2 & 243.0 & 1310.0 & 269.1 & \textbf{+26.10} & +22.96 to +29.25 \\
-sacrifice & 8{,}857 & 1648.7 & 1642.1 & 245.4 & 1635.2 & 275.0 & \textbf{+29.66} & +26.13 to +32.55 \\
-veryLong & 8{,}358 & 1959.8 & 1971.3 & 317.2 & 1957.5 & 345.8 & \textbf{+28.51} & +24.59 to +32.24 \\
-pin & 7{,}235 & 1628.5 & 1634.3 & 275.9 & 1632.2 & 307.9 & \textbf{+31.94} & +28.98 to +34.93 \\
-advancedPawn & 7{,}237 & 1612.2 & 1617.4 & 313.3 & 1645.6 & 342.6 & \textbf{+29.28} & +25.16 to +34.24 \\
-defensiveMove & 6{,}116 & 1894.1 & 1878.9 & 351.7 & 1851.7 & 382.5 & \textbf{+30.79} & +25.95 to +35.62 \\
-discoveredAttack & 6{,}150 & 1503.1 & 1515.2 & 263.3 & 1497.3 & 284.2 & \textbf{+20.98} & +18.03 to +24.37 \\
-rookEndgame & 5{,}741 & 1475.5 & 1469.9 & 293.5 & 1473.9 & 311.9 & \textbf{+18.34} & +13.79 to +23.78 \\
-opening & 5{,}761 & 1384.2 & 1366.8 & 235.0 & 1385.3 & 253.7 & \textbf{+18.73} & +14.87 to +21.69 \\
-deflection & 5{,}294 & 1555.7 & 1561.6 & 271.8 & 1554.5 & 294.8 & \textbf{+23.06} & +19.21 to +26.56 \\
-attraction & 4{,}573 & 1685.3 & 1682.3 & 252.6 & 1670.1 & 277.7 & \textbf{+25.07} & +20.46 to +29.26 \\
-pawnEndgame & 4{,}171 & 1734.5 & 1750.3 & 333.9 & 1746.1 & 371.8 & \textbf{+37.83} & +30.27 to +45.07 \\
-mateIn3 & 4{,}097 & 1386.0 & 1378.4 & 235.5 & 1382.9 & 265.1 & \textbf{+29.65} & +24.66 to +33.83 \\
-quietMove & 3{,}992 & 1952.1 & 1944.7 & 307.4 & 1903.0 & 346.9 & \textbf{+39.47} & +33.21 to +45.59 \\
-hangingPiece & 4{,}040 & 1392.7 & 1380.1 & 285.3 & 1383.2 & 311.3 & \textbf{+26.01} & +21.42 to +30.32 \\
-exposedKing & 3{,}645 & 1760.9 & 1757.5 & 299.7 & 1743.9 & 322.2 & \textbf{+22.49} & +18.25 to +27.10 \\
-backRankMate & 2{,}952 & 895.6 & 879.9 & 167.0 & 919.4 & 191.4 & \textbf{+24.43} & +19.71 to +28.57 \\
-promotion & 2{,}901 & 1512.1 & 1517.7 & 307.1 & 1520.5 & 323.2 & \textbf{+16.11} & +9.79 to +23.05 \\
+short & 57{,}439 & 1394.5 & 1387.3 & 252.1 & 1394.3 & 284.9 & \textbf{+32.90} & +31.21 to +34.43 \\
+endgame & 55{,}361 & 1443.4 & 1433.8 & 272.3 & 1443.7 & 306.0 & \textbf{+33.72} & +32.24 to +35.22 \\
+middlegame & 51{,}328 & 1489.5 & 1492.0 & 254.2 & 1489.9 & 286.9 & \textbf{+32.77} & +31.26 to +34.17 \\
+crushing & 43{,}433 & 1610.9 & 1606.5 & 288.3 & 1607.8 & 323.5 & \textbf{+35.23} & +33.24 to +37.11 \\
+mate & 34{,}439 & 1118.2 & 1098.5 & 211.2 & 1117.4 & 240.8 & \textbf{+29.51} & +27.97 to +31.07 \\
+advantage & 33{,}591 & 1617.7 & 1629.5 & 272.4 & 1623.5 & 305.8 & \textbf{+33.39} & +31.66 to +35.19 \\
+long & 30{,}918 & 1688.1 & 1696.9 & 287.7 & 1690.2 & 325.0 & \textbf{+37.29} & +34.97 to +39.66 \\
+master & 15{,}509 & 1492.7 & 1479.2 & 271.7 & 1474.6 & 302.0 & \textbf{+30.39} & +27.98 to +33.34 \\
+fork & 15{,}186 & 1397.5 & 1399.1 & 238.9 & 1409.1 & 268.7 & \textbf{+29.87} & +27.49 to +32.35 \\
+oneMove & 14{,}812 & 960.9 & 929.8 & 204.8 & 960.4 & 226.3 & \textbf{+21.47} & +19.66 to +23.52 \\
+mateIn1 & 14{,}788 & 960.0 & 928.9 & 204.6 & 959.7 & 226.0 & \textbf{+21.40} & +19.66 to +23.06 \\
+mateIn2 & 14{,}791 & 1169.0 & 1153.7 & 210.3 & 1168.6 & 244.4 & \textbf{+34.12} & +31.86 to +36.68 \\
+kingsideAttack & 9{,}742 & 1302.5 & 1295.7 & 233.7 & 1310.0 & 269.1 & \textbf{+35.44} & +31.72 to +38.39 \\
+sacrifice & 8{,}857 & 1648.7 & 1648.9 & 238.0 & 1635.2 & 275.0 & \textbf{+37.06} & +33.50 to +40.86 \\
+veryLong & 8{,}358 & 1959.8 & 1973.9 & 312.1 & 1957.5 & 345.8 & \textbf{+33.69} & +29.28 to +38.87 \\
+pin & 7{,}235 & 1628.5 & 1637.7 & 263.8 & 1632.2 & 307.9 & \textbf{+44.08} & +39.63 to +47.97 \\
+advancedPawn & 7{,}237 & 1612.2 & 1596.0 & 308.2 & 1645.6 & 342.6 & \textbf{+34.38} & +30.22 to +39.80 \\
+defensiveMove & 6{,}116 & 1894.1 & 1874.4 & 345.6 & 1851.7 & 382.5 & \textbf{+36.92} & +30.78 to +42.44 \\
+discoveredAttack & 6{,}150 & 1503.1 & 1529.7 & 256.5 & 1497.3 & 284.2 & \textbf{+27.69} & +23.60 to +31.85 \\
+rookEndgame & 5{,}741 & 1475.5 & 1463.9 & 281.8 & 1473.9 & 311.9 & \textbf{+30.09} & +24.37 to +35.82 \\
+opening & 5{,}761 & 1384.2 & 1374.6 & 226.4 & 1385.3 & 253.7 & \textbf{+27.31} & +24.05 to +30.52 \\
+deflection & 5{,}294 & 1555.7 & 1571.7 & 264.8 & 1554.5 & 294.8 & \textbf{+30.05} & +25.54 to +34.31 \\
+attraction & 4{,}573 & 1685.3 & 1687.5 & 242.3 & 1670.1 & 277.7 & \textbf{+35.37} & +30.62 to +40.43 \\
+pawnEndgame & 4{,}171 & 1734.5 & 1724.7 & 316.1 & 1746.1 & 371.8 & \textbf{+55.68} & +48.13 to +62.98 \\
+mateIn3 & 4{,}097 & 1386.0 & 1384.8 & 225.9 & 1382.9 & 265.1 & \textbf{+39.17} & +32.81 to +44.18 \\
+quietMove & 3{,}992 & 1952.1 & 1935.9 & 299.0 & 1903.0 & 346.9 & \textbf{+47.88} & +40.98 to +54.61 \\
+hangingPiece & 4{,}040 & 1392.7 & 1379.1 & 278.2 & 1383.2 & 311.3 & \textbf{+33.07} & +27.01 to +38.58 \\
+exposedKing & 3{,}645 & 1760.9 & 1770.3 & 291.3 & 1743.9 & 322.2 & \textbf{+30.91} & +25.35 to +36.47 \\
+backRankMate & 2{,}952 & 895.6 & 873.2 & 161.4 & 919.4 & 191.4 & \textbf{+30.02} & +24.37 to +35.33 \\
+promotion & 2{,}901 & 1512.1 & 1495.4 & 300.0 & 1520.5 & 323.2 & \textbf{+23.19} & +14.46 to +31.33 \\
 \bottomrule
 \end{tabular}
 \caption{The test rows by: theme.}
@@ -81,16 +81,16 @@ promotion & 2{,}901 & 1512.1 & 1517.7 & 307.1 & 1520.5 & 323.2 & \textbf{+16.11}
 \begin{table}[htbp]\centering\footnotesize
 \begin{tabular}{lrrrrrrrr}
 \toprule
- &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand-\allowbreak long}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
 Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
 \midrule
-pawn & 13{,}094 & 1674.3 & 1675.5 & 302.2 & 1675.4 & 330.1 & \textbf{+27.94} & +24.74 to +31.32 \\
-knight & 16{,}147 & 1440.7 & 1433.3 & 258.7 & 1441.1 & 280.2 & \textbf{+21.57} & +19.09 to +23.63 \\
-bishop & 12{,}862 & 1529.2 & 1524.0 & 268.5 & 1528.1 & 293.5 & \textbf{+24.98} & +22.18 to +27.55 \\
-rook & 29{,}442 & 1424.6 & 1419.3 & 265.5 & 1425.7 & 291.9 & \textbf{+26.41} & +24.70 to +28.01 \\
-queen & 35{,}764 & 1357.3 & 1347.3 & 252.8 & 1357.3 & 275.7 & \textbf{+22.98} & +21.56 to +24.44 \\
-king & 5{,}141 & 1750.0 & 1758.1 & 354.9 & 1750.3 & 381.6 & \textbf{+26.74} & +21.61 to +32.19 \\
+pawn & 13{,}094 & 1674.3 & 1668.9 & 295.5 & 1675.4 & 330.1 & \textbf{+34.62} & +30.91 to +38.11 \\
+knight & 16{,}147 & 1440.7 & 1445.1 & 252.1 & 1441.1 & 280.2 & \textbf{+28.15} & +25.90 to +30.64 \\
+bishop & 12{,}862 & 1529.2 & 1526.8 & 259.7 & 1528.1 & 293.5 & \textbf{+33.78} & +30.54 to +36.62 \\
+rook & 29{,}442 & 1424.6 & 1422.5 & 256.7 & 1425.7 & 291.9 & \textbf{+35.23} & +33.51 to +37.21 \\
+queen & 35{,}764 & 1357.3 & 1346.4 & 243.9 & 1357.3 & 275.7 & \textbf{+31.88} & +30.30 to +33.47 \\
+king & 5{,}141 & 1750.0 & 1753.3 & 344.7 & 1750.3 & 381.6 & \textbf{+36.91} & +30.18 to +43.45 \\
 \bottomrule
 \end{tabular}
 \caption{The test rows by: the piece that makes the first move.}
@@ -100,12 +100,12 @@ king & 5{,}141 & 1750.0 & 1758.1 & 354.9 & 1750.3 & 381.6 & \textbf{+26.74} & +2
 \begin{table}[htbp]\centering\footnotesize
 \begin{tabular}{lrrrrrrrr}
 \toprule
- &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand-\allowbreak long}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
 Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
 \midrule
-no & 67{,}465 & 1458.6 & 1451.5 & 268.2 & 1457.5 & 291.7 & \textbf{+23.54} & +22.61 to +24.81 \\
-yes & 44{,}985 & 1465.7 & 1462.0 & 273.3 & 1468.2 & 299.6 & \textbf{+26.36} & +24.89 to +27.62 \\
+no & 67{,}465 & 1458.6 & 1451.9 & 259.6 & 1457.5 & 291.7 & \textbf{+32.12} & +31.01 to +33.57 \\
+yes & 44{,}985 & 1465.7 & 1465.3 & 265.4 & 1468.2 & 299.6 & \textbf{+34.25} & +32.60 to +35.87 \\
 \bottomrule
 \end{tabular}
 \caption{The test rows by: the first move takes something.}
@@ -115,12 +115,12 @@ yes & 44{,}985 & 1465.7 & 1462.0 & 273.3 & 1468.2 & 299.6 & \textbf{+26.36} & +2
 \begin{table}[htbp]\centering\footnotesize
 \begin{tabular}{lrrrrrrrr}
 \toprule
- &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand-\allowbreak long}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
 Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
 \midrule
-no & 42{,}741 & 1724.4 & 1727.9 & 298.9 & 1725.8 & 326.6 & \textbf{+27.70} & +26.19 to +29.44 \\
-yes & 69{,}709 & 1300.2 & 1288.8 & 251.1 & 1299.9 & 273.7 & \textbf{+22.64} & +21.64 to +23.79 \\
+no & 42{,}741 & 1724.4 & 1727.6 & 290.7 & 1725.8 & 326.6 & \textbf{+35.89} & +33.91 to +37.72 \\
+yes & 69{,}709 & 1300.2 & 1291.6 & 242.6 & 1299.9 & 273.7 & \textbf{+31.07} & +29.89 to +32.34 \\
 \bottomrule
 \end{tabular}
 \caption{The test rows by: the first move gives check.}
@@ -130,12 +130,12 @@ yes & 69{,}709 & 1300.2 & 1288.8 & 251.1 & 1299.9 & 273.7 & \textbf{+22.64} & +2
 \begin{table}[htbp]\centering\footnotesize
 \begin{tabular}{lrrrrrrrr}
 \toprule
- &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand-\allowbreak long}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
 Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
 \midrule
-no & 97{,}168 & 1442.8 & 1436.1 & 273.0 & 1442.7 & 297.2 & \textbf{+24.16} & +23.21 to +25.09 \\
-yes & 15{,}282 & 1580.0 & 1580.3 & 251.9 & 1583.1 & 280.2 & \textbf{+28.31} & +26.10 to +30.64 \\
+no & 97{,}168 & 1442.8 & 1437.3 & 264.6 & 1442.7 & 297.2 & \textbf{+32.62} & +31.43 to +33.68 \\
+yes & 15{,}282 & 1580.0 & 1584.3 & 244.6 & 1583.1 & 280.2 & \textbf{+35.53} & +33.10 to +38.08 \\
 \bottomrule
 \end{tabular}
 \caption{The test rows by: the first move gives up material.}
@@ -145,12 +145,12 @@ yes & 15{,}282 & 1580.0 & 1580.3 & 251.9 & 1583.1 & 280.2 & \textbf{+28.31} & +2
 \begin{table}[htbp]\centering\footnotesize
 \begin{tabular}{lrrrrrrrr}
 \toprule
- &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand-\allowbreak long}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
 Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
 \midrule
-no & 102{,}725 & 1452.4 & 1446.4 & 268.8 & 1453.0 & 294.1 & \textbf{+25.28} & +24.33 to +26.18 \\
-yes & 9{,}725 & 1556.6 & 1553.4 & 285.1 & 1554.7 & 303.8 & \textbf{+18.67} & +15.72 to +22.21 \\
+no & 102{,}725 & 1452.4 & 1448.7 & 260.2 & 1453.0 & 294.1 & \textbf{+33.86} & +32.63 to +34.93 \\
+yes & 9{,}725 & 1556.6 & 1548.6 & 279.5 & 1554.7 & 303.8 & \textbf{+24.25} & +21.04 to +27.61 \\
 \bottomrule
 \end{tabular}
 \caption{The test rows by: the first move goes backward.}
@@ -160,14 +160,14 @@ yes & 9{,}725 & 1556.6 & 1553.4 & 285.1 & 1554.7 & 303.8 & \textbf{+18.67} & +15
 \begin{table}[htbp]\centering\footnotesize
 \begin{tabular}{lrrrrrrrr}
 \toprule
- &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand-\allowbreak long}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
 Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
 \midrule
-0 & 76{,}556 & 1301.4 & 1289.4 & 247.8 & 1301.5 & 269.9 & \textbf{+22.17} & +21.20 to +23.33 \\
-1 & 23{,}549 & 1758.8 & 1765.6 & 303.2 & 1759.3 & 330.2 & \textbf{+27.00} & +24.64 to +29.41 \\
-2 & 8{,}817 & 1872.1 & 1878.9 & 328.1 & 1872.4 & 363.5 & \textbf{+35.43} & +31.40 to +39.91 \\
-3+ & 3{,}528 & 1923.5 & 1937.2 & 335.9 & 1927.8 & 364.7 & \textbf{+28.86} & +22.97 to +35.45 \\
+0 & 76{,}556 & 1301.4 & 1294.2 & 239.6 & 1301.5 & 269.9 & \textbf{+30.36} & +29.10 to +31.63 \\
+1 & 23{,}549 & 1758.8 & 1765.4 & 294.3 & 1759.3 & 330.2 & \textbf{+35.91} & +33.38 to +38.49 \\
+2 & 8{,}817 & 1872.1 & 1870.1 & 320.4 & 1872.4 & 363.5 & \textbf{+43.08} & +39.10 to +48.01 \\
+3+ & 3{,}528 & 1923.5 & 1909.1 & 326.6 & 1927.8 & 364.7 & \textbf{+38.18} & +30.60 to +46.31 \\
 \bottomrule
 \end{tabular}
 \caption{The test rows by: solver's moves that neither take nor check.}
@@ -177,12 +177,12 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \begin{table}[htbp]\centering\footnotesize
 \begin{tabular}{lrrrrrrrr}
 \toprule
- &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand-\allowbreak long}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
 Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
 \midrule
-no & 77{,}904 & 1613.5 & 1613.5 & 289.5 & 1614.4 & 316.0 & \textbf{+26.49} & +25.39 to +27.73 \\
-yes & 34{,}546 & 1118.6 & 1099.9 & 220.7 & 1117.7 & 240.7 & \textbf{+20.03} & +18.67 to +21.20 \\
+no & 77{,}904 & 1613.5 & 1616.3 & 281.5 & 1614.4 & 316.0 & \textbf{+34.48} & +32.91 to +35.71 \\
+yes & 34{,}546 & 1118.6 & 1098.8 & 211.2 & 1117.7 & 240.7 & \textbf{+29.49} & +27.93 to +30.96 \\
 \bottomrule
 \end{tabular}
 \caption{The test rows by: the line ends in mate.}
@@ -192,15 +192,15 @@ yes & 34{,}546 & 1118.6 & 1099.9 & 220.7 & 1117.7 & 240.7 & \textbf{+20.03} & +1
 \begin{table}[htbp]\centering\footnotesize
 \begin{tabular}{lrrrrrrrr}
 \toprule
- &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand-\allowbreak long}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
 Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
 \midrule
-\textless{}3 & 15{,}773 & 1590.9 & 1593.4 & 318.8 & 1592.3 & 348.8 & \textbf{+30.00} & +27.18 to +32.82 \\
-3-6 & 24{,}519 & 1343.8 & 1332.0 & 263.5 & 1342.5 & 286.2 & \textbf{+22.70} & +20.84 to +24.47 \\
-6-9 & 37{,}334 & 1475.4 & 1471.0 & 266.7 & 1476.2 & 291.4 & \textbf{+24.70} & +23.12 to +26.04 \\
-9-12 & 22{,}790 & 1470.2 & 1464.9 & 260.0 & 1472.0 & 284.2 & \textbf{+24.18} & +22.61 to +25.74 \\
-12+ & 12{,}034 & 1471.4 & 1462.5 & 243.1 & 1469.5 & 264.8 & \textbf{+21.66} & +19.41 to +24.29 \\
+\textless{}3 & 15{,}773 & 1590.9 & 1576.2 & 308.3 & 1592.3 & 348.8 & \textbf{+40.45} & +36.86 to +43.83 \\
+3-6 & 24{,}519 & 1343.8 & 1332.4 & 255.3 & 1342.5 & 286.2 & \textbf{+30.91} & +28.73 to +32.84 \\
+6-9 & 37{,}334 & 1475.4 & 1476.0 & 258.9 & 1476.2 & 291.4 & \textbf{+32.54} & +30.85 to +34.18 \\
+9-12 & 22{,}790 & 1470.2 & 1472.2 & 252.0 & 1472.0 & 284.2 & \textbf{+32.14} & +30.26 to +34.06 \\
+12+ & 12{,}034 & 1471.4 & 1469.7 & 235.8 & 1469.5 & 264.8 & \textbf{+28.97} & +26.48 to +32.30 \\
 \bottomrule
 \end{tabular}
 \caption{The test rows by: knights, bishops, rooks and queens on the board.}
@@ -210,15 +210,15 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \begin{table}[htbp]\centering\footnotesize
 \begin{tabular}{lrrrrrrrr}
 \toprule
- &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand-\allowbreak long}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
 Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
 \midrule
-\textless{}200 & 19{,}367 & 1389.4 & 1360.1 & 265.9 & 1375.0 & 295.2 & \textbf{+29.29} & +27.31 to +31.53 \\
-200-500 & 27{,}949 & 1336.2 & 1337.2 & 265.3 & 1355.1 & 295.0 & \textbf{+29.72} & +28.35 to +31.69 \\
-500-1000 & 19{,}769 & 1449.3 & 1447.6 & 275.2 & 1455.3 & 304.4 & \textbf{+29.25} & +26.72 to +31.42 \\
-1000-5000 & 32{,}437 & 1572.8 & 1565.8 & 278.6 & 1560.7 & 298.1 & \textbf{+19.52} & +17.88 to +21.57 \\
-5000+ & 12{,}928 & 1579.2 & 1591.3 & 258.1 & 1584.4 & 270.5 & \textbf{+12.40} & +10.20 to +14.91 \\
+\textless{}200 & 19{,}367 & 1389.4 & 1358.0 & 257.1 & 1375.0 & 295.2 & \textbf{+38.10} & +35.55 to +40.69 \\
+200-500 & 27{,}949 & 1336.2 & 1333.6 & 255.0 & 1355.1 & 295.0 & \textbf{+39.97} & +38.21 to +42.05 \\
+500-1000 & 19{,}769 & 1449.3 & 1447.8 & 267.1 & 1455.3 & 304.4 & \textbf{+37.28} & +34.87 to +39.93 \\
+1000-5000 & 32{,}437 & 1572.8 & 1571.8 & 270.6 & 1560.7 & 298.1 & \textbf{+27.51} & +25.77 to +29.43 \\
+5000+ & 12{,}928 & 1579.2 & 1600.6 & 253.6 & 1584.4 & 270.5 & \textbf{+16.88} & +13.99 to +19.58 \\
 \bottomrule
 \end{tabular}
 \caption{The test rows by: attempts the puzzle has had.}
@@ -228,14 +228,14 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \begin{table}[htbp]\centering\footnotesize
 \begin{tabular}{lrrrrrrrr}
 \toprule
- &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand-\allowbreak long}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
 Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
 \midrule
-\textless{}75 & 6{,}359 & 1669.0 & 1681.8 & 243.5 & 1662.1 & 244.6 & +1.170 & $-$1.701 to +4.352 \\
-75-80 & 69{,}429 & 1500.0 & 1508.6 & 261.8 & 1511.9 & 277.4 & \textbf{+15.63} & +14.44 to +16.81 \\
-80-90 & 25{,}600 & 1407.0 & 1367.7 & 294.1 & 1379.5 & 332.2 & \textbf{+38.13} & +36.38 to +40.10 \\
-90+ & 11{,}062 & 1226.3 & 1197.4 & 279.4 & 1222.5 & 333.8 & \textbf{+54.34} & +51.06 to +57.83 \\
+\textless{}75 & 6{,}359 & 1669.0 & 1689.2 & 238.3 & 1662.1 & 244.6 & \textbf{+6.32} & +2.69 to +11.05 \\
+75-80 & 69{,}429 & 1500.0 & 1512.2 & 255.4 & 1511.9 & 277.4 & \textbf{+21.97} & +20.59 to +23.39 \\
+80-90 & 25{,}600 & 1407.0 & 1366.7 & 282.4 & 1379.5 & 332.2 & \textbf{+49.85} & +47.68 to +52.02 \\
+90+ & 11{,}062 & 1226.3 & 1189.5 & 266.1 & 1222.5 & 333.8 & \textbf{+67.66} & +64.07 to +71.39 \\
 \bottomrule
 \end{tabular}
 \caption{The test rows by: the rating's deviation.}

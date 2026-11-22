@@ -457,12 +457,13 @@ def shares_figure(lab: Lab) -> str | None:
 
 
 def networks_figure(lab: Lab) -> str | None:
-    """Each network of the ladder against the reference, model by model, on the one scale."""
+    """Each network on a model's leaderboard against the reference, model by model, on the one scale: the
+    ladder's, and under each of them the runs that changed one thing in it and stand on the leaderboard."""
     groups = []
     for name, src in lab.models.items():
         rows = [
             (run["run"], *on_step(src, run["gain"]), charts.run_colour(run["run"]))
-            for run in _in_order(src.ladder)
+            for run in _in_order(src.networks)
             if run.get("gain") and step(src) is not None
         ]
         if rows:

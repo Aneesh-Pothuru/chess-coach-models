@@ -403,6 +403,50 @@ feature's share of the total gain of the splits made on it.}
 \label{sec:changes}
 
 \input{../../../papers/changes}
+
+\ifvariants
+\paragraph{What twice the epochs were worth here.}
+Each medium transformer was trained again on a schedule of
+\V{run.transformer-medium-long.epochs} epochs for the ladder's
+\V{run.transformer-medium.epochs}. On the board alone,
+\V{run.transformer-medium-long.name} is
+\V{pair.transformer-medium-long.transformer-medium.valid.verdict} than the
+run it changed on the valid positions and
+\V{pair.transformer-medium-long.transformer-medium.verdict} on the test
+positions (\V{pair.transformer-medium-long.transformer-medium.gain},
+\V{pair.transformer-medium-long.transformer-medium.gain.low} to
+\V{pair.transformer-medium-long.transformer-medium.gain.high}): it is
+\V{pair.transformer-medium-long.transformer-medium.kept}. With the hand
+features, \V{run.transformer-medium-hand-long.name} is
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.valid.verdict}
+than the run it changed on the valid positions and
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.verdict} on the
+test positions
+(\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain},
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain.low} to
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain.high}): it
+is \V{pair.transformer-medium-hand-long.transformer-medium-hand.kept}
+either. So \V{best.name} stays the model's best run. A run that is not kept leaves
+the leaderboard when it is filed, and its row stays in
+Table~\ref{tab:pairs} as the measurement of what the epochs were worth.
+
+Neither run used its whole schedule. Both had their best valid epoch at
+\V{run.transformer-medium-long.best-epoch} of
+\V{run.transformer-medium-long.epochs}, and each was stopped
+\V{networks.patience} epochs later, as the trainer stops any run whose valid
+score has not improved for that long (Figure~\ref{fig:variants}). The valid
+positions come from few games, and their score moves from one epoch to the
+next by more than the two schedules differ, so where a run stopped is partly
+chance. As trained, the longer runs are no better.
+
+A reading: this model is short of games, not of steps. The transformer on
+the board alone was still improving when the ladder's schedule ran out, and
+more of the same games did not carry it further. That fits the plain reading
+of Section~\ref{sec:results}, that \V{recipe.games} games are too few for
+a network to learn off the squares what the hand features count.
+\fi
+
+\input{../../../papers/studies}
 \fi
 
 \section{A closer look}

@@ -1,0 +1,12 @@
+% Written by `lab paper tactic-found`; do not edit by hand.
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.45cm}>{\raggedright\arraybackslash}p{2.45cm}Lrrr}
+\toprule
+ &  &  & \multicolumn{3}{c}{Gain in Log loss} \\
+\cmidrule(lr){4-6}
+Run & Set against & What the run changes & Valid rows & Test rows & 95\% interval \\
+\midrule
+{\ttfamily transformer-\allowbreak medium-\allowbreak long} & {\ttfamily transformer-\allowbreak medium} & 24 epochs for 12 & +0.00190 & \textbf{+0.001499} & +0.000711 to +0.002272 \\
+{\ttfamily transformer-\allowbreak medium-\allowbreak hand-\allowbreak long} & {\ttfamily transformer-\allowbreak medium-\allowbreak hand} & 24 epochs for 12 & +0.00124 & $-$0.000357 & $-$0.001175 to +0.000428 \\
+{\ttfamily transformer-\allowbreak medium-\allowbreak hand} & {\ttfamily transformer-\allowbreak medium} & reads the hand features & +0.0119 & \textbf{+0.01481} & +0.01332 to +0.01628 \\
+\bottomrule
+\end{tabularx}

@@ -1,7 +1,7 @@
 % Written by `lab paper`; do not edit by hand.
 \waitingtrue
 \changehandtrue
-\changeepochsfalse
+\changeepochstrue
 \changestartfalse
 \gamesfalse
 \featuresfalse
@@ -20,35 +20,42 @@
 \setvalue{blunder-hazard.recipe.games}{30{,}000}
 \setvalue{blunder-hazard.recipe.speeds}{rapid}
 \setvalue{blunder-hazard.reference.score}{0.2533}
-\setvalue{lab.board.ahead.names}{puzzle difficulty}
-\setvalue{lab.board.ahead.of}{one of the five models}
+\setvalue{lab.board.ahead.names}{puzzle difficulty and think time}
+\setvalue{lab.board.ahead.of}{two of the five models}
 \setvalue{lab.board.behind.names}{blunder hazard and tactic found}
 \setvalue{lab.board.behind.of}{two of the five models}
-\setvalue{lab.board.level.names}{practical chances and think time}
-\setvalue{lab.board.level.of}{two of the five models}
+\setvalue{lab.board.level.names}{practical chances}
+\setvalue{lab.board.level.of}{one of the five models}
+\setvalue{lab.change.epochs.net.better.of}{five of the eight pairs}
+\setvalue{lab.change.epochs.net.level}{three}
+\setvalue{lab.change.epochs.over.transformer-medium-hand.gain.most}{+4.0}
+\setvalue{lab.change.epochs.over.transformer-medium-hand.said}{better beyond the noise in two of the four models (puzzle difficulty and think time) and inside the noise in two of the four models (blunder hazard and tactic found)}
+\setvalue{lab.change.epochs.over.transformer-medium.count}{four}
+\setvalue{lab.change.epochs.over.transformer-medium.gain.most}{+9.4}
+\setvalue{lab.change.epochs.over.transformer-medium.said}{better beyond the noise in three of the four models (puzzle difficulty, tactic found and think time) and inside the noise in one of the four models (blunder hazard)}
 \setvalue{lab.change.hand.over.gbm-context.said}{better beyond the noise in all five models (blunder hazard, practical chances, puzzle difficulty, tactic found and think time)}
-\setvalue{lab.change.hand.over.transformer-medium.models}{practical chances}
-\setvalue{lab.change.hand.over.transformer-medium.said}{inside the noise in the one model (practical chances)}
+\setvalue{lab.change.hand.over.transformer-medium.models}{blunder hazard, practical chances, puzzle difficulty, tactic found and think time}
+\setvalue{lab.change.hand.over.transformer-medium.said}{better beyond the noise in four of the five models (blunder hazard, puzzle difficulty, tactic found and think time) and inside the noise in one of the five models (practical chances)}
 \setvalue{lab.context.share.least}{35}
 \setvalue{lab.context.share.least.model}{tactic found}
 \setvalue{lab.context.share.most}{97}
 \setvalue{lab.context.share.most.model}{practical chances}
-\setvalue{lab.cost.seconds.networks}{115 min}
+\setvalue{lab.cost.seconds.networks}{4.0 h}
 \setvalue{lab.cost.seconds.others}{3 min}
 \setvalue{lab.cost.seconds.studies}{0 s}
 \setvalue{lab.ladder.at-last-epoch.of}{nine of the 20 networks}
 \setvalue{lab.models.count}{five}
 \setvalue{lab.network.ahead.names}{blunder hazard, puzzle difficulty, tactic found and think time}
 \setvalue{lab.network.ahead.of}{four of the five models}
-\setvalue{lab.network.ahead.runs}{\run{transformer-medium-hand}}
+\setvalue{lab.network.ahead.runs}{\run{transformer-medium-hand} and \run{transformer-medium-hand-long}}
 \setvalue{lab.network.behind.of}{none of the five models}
-\setvalue{lab.network.gain.most}{12}
+\setvalue{lab.network.gain.most}{16}
 \setvalue{lab.network.gain.most.model}{puzzle difficulty}
 \setvalue{lab.network.level.names}{practical chances}
 \setvalue{lab.network.level.of}{one of the five models}
-\setvalue{lab.networks.count}{20}
+\setvalue{lab.networks.count}{28}
 \setvalue{lab.results.date}{22 November 2026}
-\setvalue{lab.runs.count}{38}
+\setvalue{lab.runs.count}{46}
 \setvalue{lab.small.ahead.of}{one of the five models}
 \setvalue{lab.small.behind.of}{two of the five models}
 \setvalue{lab.small.level.of}{two of the five models}
@@ -72,9 +79,10 @@
 \setvalue{practical-chances.slice.clock.-30.engine-curve.said}{0.480}
 \setvalue{practical-chances.slice.clock.-30.happened}{0.383}
 \setvalue{practical-chances.slice.win.80-90.happened}{0.699}
-\setvalue{puzzle-difficulty.best.mae}{204.8}
-\setvalue{puzzle-difficulty.best.score}{270.2}
-\setvalue{puzzle-difficulty.best.spearman}{0.8484}
+\setvalue{puzzle-difficulty.best.mae}{196.8}
+\setvalue{puzzle-difficulty.best.reliability.widest-gap}{61.3}
+\setvalue{puzzle-difficulty.best.score}{261.9}
+\setvalue{puzzle-difficulty.best.spearman}{0.8601}
 \setvalue{puzzle-difficulty.context.lift.share}{36}
 \setvalue{puzzle-difficulty.data.rows}{1{,}127{,}915}
 \setvalue{puzzle-difficulty.data.rows.test}{112{,}450}
@@ -84,6 +92,8 @@
 \setvalue{puzzle-difficulty.ladder.count}{four}
 \setvalue{puzzle-difficulty.reference.score}{294.9}
 \setvalue{puzzle-difficulty.run.conv-small.parameters.millions}{1.0}
+\setvalue{puzzle-difficulty.run.transformer-medium-long.epochs}{24}
+\setvalue{puzzle-difficulty.run.transformer-medium.epochs}{12}
 \setvalue{puzzle-difficulty.run.transformer-medium.parameters.millions}{6.6}
 \setvalue{puzzle-difficulty.run.transformer-small.parameters.millions}{0.9}
 \setvalue{puzzle-difficulty.task.metric}{RMSE}
@@ -100,8 +110,9 @@
 \setvalue{tactic-found.slice.sacrifice.no.happened}{72.0\%}
 \setvalue{tactic-found.slice.sacrifice.yes.happened}{51.0\%}
 \setvalue{think-time.best.mae.factor}{1.86}
-\setvalue{think-time.best.r2}{0.3129}
+\setvalue{think-time.best.r2}{0.3144}
 \setvalue{think-time.context.lift.share}{66}
 \setvalue{think-time.floor.mae.factor}{2.16}
 \setvalue{think-time.reference.mae.factor}{1.88}
 \setvalue{think-time.run.gbm-context.leans.1.feature}{the mover's clock}
+\setvalue{think-time.run.transformer-medium-long.gain.of-lift}{2}

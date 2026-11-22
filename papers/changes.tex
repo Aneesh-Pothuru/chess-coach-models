@@ -1,7 +1,8 @@
-% One change at a time: what the runs that change one thing in another run
-% say, and how to read them. The same for every model, so a paper reads this
-% under its own heading, after its results, and adds what its own numbers
-% mean. Each part waits for its runs: a model that has none prints nothing.
+% One change at a time: the runs that change one thing in another run, set
+% against that run, and how to read them. The same for every model, so a
+% paper reads this under its own heading, after its results, then says what
+% its own numbers mean, then reads studies.tex. Each part waits for its runs:
+% a model that has none prints nothing.
 \ifpairs
 \paragraph{Runs set against the run each changed.}
 The ladder says what each learner is worth. A change asks a narrower
@@ -42,66 +43,5 @@ changed one thing in it (the broken lines), after every epoch on the valid
 rows. One panel a network, all on one scale. The dashed level is the
 reference's score on the same rows.}
 \label{fig:variants}
-\end{figure}
-\fi
-
-\ifgames
-\paragraph{Fewer training games.}
-How much of a score is the data, and would more of it help? The games study
-trains a run again on half and on a quarter of the training games, and
-scores it on the same test rows (Table~\ref{tab:games},
-Figure~\ref{fig:games}). The games are chosen by a hash, so the quarter lies
-inside the half. A network is given twice the epochs on half the games and
-four times on a quarter, so it takes as many steps each time and loses only
-the games. The study is read forward: where halving the games costs little,
-doubling them would buy little, so the curve says what a larger dataset is
-worth before anyone builds one.
-
-\begin{table}[htbp]\centering\footnotesize
-\block{study-games}
-\caption{The games study. Each run is trained on a share of the training
-games and scored on all the test rows. Its gain is paired with the run that
-was trained on all the games: below zero the run is worse, and bold when the
-95\% interval leaves zero out.}
-\label{tab:games}
-\end{table}
-
-\begin{figure}[htbp]\centering
-\block{study-games-figure}
-\caption{The games study as a learning curve: the score on the test rows by
-the share of the training games a run was given. Each step to the right
-doubles the games.}
-\label{fig:games}
-\end{figure}
-\fi
-
-\iffeatures
-\paragraph{A group of hand features left out.}
-The hand features come in groups: material, the moves on offer, pieces that
-can be taken, passed pawns and attacks near the kings, and for a model that
-reads a line of moves, its first move and the line as a whole. The features
-study trains a run again without one group at a time
-(Table~\ref{tab:features}, Figure~\ref{fig:features}). A run that is worse
-without a group was using it, and nothing else the run reads holds the same.
-A run that is no worse either made no use of the group or finds the same
-elsewhere, in another group or on the board. So the study measures what a
-group adds on top of everything else, which is less than what it knows: a
-group can matter a great deal on a board and cost nothing here.
-
-\begin{table}[htbp]\centering\footnotesize
-\block{study-features}
-\caption{The features study. Each run reads every hand feature but one
-group. Its gain is paired with the run that reads them all: below zero the
-run is worse without the group, and bold when the 95\% interval leaves zero
-out. The group whose loss costs most comes first.}
-\label{tab:features}
-\end{table}
-
-\begin{figure}[htbp]\centering
-\block{study-features-figure}
-\caption{What leaving a group of hand features out costs the reference: the
-paired gain of the run without the group over the run with it, with its 95\%
-interval. Left of the line the run is worse without the group.}
-\label{fig:features}
 \end{figure}
 \fi

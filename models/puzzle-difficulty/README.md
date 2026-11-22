@@ -79,28 +79,62 @@ the numbers are in the leaderboard):
   convolutional tower, the small transformer.
 - **The hand features still pay under a network.** The medium transformer with
   the features is well ahead of the same transformer without them (the
-  intervals of their gains do not touch), so eight layers did not learn from
-  the board everything the features count. Which features carry that is a run
-  to make: one group left out at a time.
+  intervals of their gains do not touch), so in twelve epochs eight layers did
+  not learn from the board everything the features count. Which features
+  carry that is a run to make: one group left out at a time.
 - **Good at ranking, loose on the rating.** The best run orders puzzles well
-  (its rank correlation) and its typical miss is still more than a rating
-  class. It can sort the tactics of a game into easier and harder ones, and it
-  cannot yet give one a rating worth stating.
+  (its rank correlation) and still misses a puzzle's rating by about a rating
+  class on average. It can sort the tactics of a game into easier and harder
+  ones, and it cannot yet give one a rating worth stating.
 - **A band rewards hedging.** Bands are cut by the true rating, so the floor,
   which says the average for every puzzle, has the smallest error of all in
   the middle band and the largest at both ends. Read a band's column from the
-  top down, not across the bands. The best network's lead over the trees is at
+  top down, not across the bands. The best network leads the trees by most at
   the two ends, the easiest and the hardest puzzles, and in the middle band
   the trees are level with it.
 - **No network had finished learning.** Three of the four had their best valid
-  epoch at the last one, so a longer schedule is the cheapest run to add.
+  epoch at the last one, so a longer schedule was the cheapest run to add.
+
+What twice the epochs say (commit `0ba155a`: `transformer-medium-long` and
+`transformer-medium-hand-long`, each set against the run it changed among the
+`pairs` of [`results/analysis.json`](results/analysis.json)):
+
+- **Both longer runs are kept.** Each is better than the run it changed on
+  the valid rows, and on the test rows beyond the noise.
+  `transformer-medium-hand-long` is now the model's best run.
+- **The epochs were worth more than the hand features.** The transformer on
+  the board alone gained more from twice the epochs than it had from the
+  features, and with the epochs it is ahead of the twelve-epoch transformer
+  that reads the features (the intervals of their gains over the reference do
+  not touch).
+- **Under the longer schedule the features add little.** The two long runs
+  order puzzles equally well and miss by as much on average: their rank
+  correlations and their mean absolute errors lie inside each other's
+  intervals (`test` in the two records). The one with the features is ahead
+  on RMSE, and by band only on the puzzles rated 1800 and up; under 1400 the
+  board alone does better (the leaderboard's table by band, which draws no
+  interval). A reading: given the steps, eight layers learn from the board
+  most of what the features count, and the features still help where a
+  puzzle is hard. `analysis.yaml` now sets the two long runs against each
+  other, so the next closer look says how much of that difference is beyond
+  the noise.
+- **Twenty-four epochs were enough.** Both runs had their best valid epoch
+  about three quarters of the way through, and the trainer stopped them three
+  epochs later: the training loss went on falling and the valid score did
+  not. So a still longer schedule is not the next run. More puzzles or a
+  better start may be, and each is being measured: the `games` study and the
+  `-pretrained` runs.
 
 **Weights.** Every run's weights and test predictions are on the owner's
 machine, under `artifacts/runs/puzzle-difficulty/<run>/`, as the GPU session
-packed them; none is published. The best run's `model.pt` is 26,285,279
-bytes, sha256 `346b597547beb8884841dd188f8832a132a4d85a54fa7ea3234ac5b5e7e98eab`,
-read off the file there: these records were written before a record named its
-weights, which every later one does.
+packed them; none is published. The best run's `model.pt` is
+26,285,279 bytes, sha256
+`5b3d0e624fd6658d58881700839970866a8114559dea7e67414d8132c96c097d`
+(`weights` in [its record](results/transformer-medium-hand-long.json)). The
+records of the first full runs were written before a record named its
+weights: `transformer-medium-hand`'s `model.pt` is 26,285,279 bytes, sha256
+`346b597547beb8884841dd188f8832a132a4d85a54fa7ea3234ac5b5e7e98eab`, read off
+the file there.
 
 ## What it does not say yet
 

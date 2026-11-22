@@ -199,7 +199,8 @@ its results.
 \label{sec:across}
 
 Table~\ref{tab:scores} gives each model's rungs in its own units, and
-Figure~\ref{fig:shares} places every run on the one scale.
+Figure~\ref{fig:shares} places every run of the ladder and every formula
+on the one scale.
 
 \begin{table}[htbp]\centering\small
 \block{lab-scores}
@@ -214,10 +215,12 @@ has every run of every model.}
 
 \begin{figure}[htbp]\centering
 \block{lab-shares}
-\caption{Where each run stands between the floor and the reference, model by
-model. The scale is the share of the reference's step from the floor: 0 is
-the floor, 100 the trees with the hand-made counts. Each run keeps its
-colour, its mark and its lane in every strip.}
+\caption{Where each run of the ladder and each formula stands between the
+floor and the reference, model by model. The scale is the share of the
+reference's step from the floor: 0 is the floor, 100 the trees with the
+hand-made counts. Each run keeps its colour, its mark and its lane in every
+strip. A run that changes one thing in a run of the ladder is in
+Figure~\ref{fig:networks}.}
 \label{fig:shares}
 \end{figure}
 
@@ -250,8 +253,9 @@ board at all.
 
 \subsection{What a network adds to the trees}
 
-Figure~\ref{fig:networks} sets each network of the ladder against the
-reference.
+Figure~\ref{fig:networks} sets each network on a model's leaderboard
+against the reference: the networks of the ladder, and under each of them
+any run that changed one thing in it.
 
 \begin{figure}[htbp]\centering
 \block{lab-networks}
@@ -270,9 +274,9 @@ in \V{lab.network.level.of}, \V{lab.network.level.names}, and behind it in
 the step. So where a network wins, what it adds is small beside what the
 trees had already taken from the floor.
 
-Where it wins, the best network is \V{lab.network.ahead.runs}: the larger
-transformer with the hand-made counts beside the board. From the board alone
-the picture is another. The best network that reads no hand-made count is
+Where it wins, the best network is \V{lab.network.ahead.runs}: every time
+the larger transformer with the hand-made counts beside the board. From the
+board alone the picture is another. The best network that reads no hand-made count is
 ahead of the trees beyond the noise in \V{lab.board.ahead.of}
 (\V{lab.board.ahead.names}), level with them in \V{lab.board.level.of}
 (\V{lab.board.level.names}) and behind them in \V{lab.board.behind.of}
@@ -280,14 +284,19 @@ ahead of the trees beyond the noise in \V{lab.board.ahead.of}
 better: the best of them is ahead in \V{lab.small.ahead.of}, level in
 \V{lab.small.level.of} and behind in \V{lab.small.behind.of}.
 
-Puzzle difficulty is where the board alone is enough to pass the trees, and
-\V{puzzle-difficulty.ladder.ahead.of} do. Why there and not elsewhere is open. Two
-readings fit what is here. Its dataset has the most rows
-(Table~\ref{tab:models}). And a
-puzzle's difficulty lies in the shape of its line, which the marks on the
-squares show a network directly, while a blunder or a missed tactic in a
-game also turns on counts a network has to work out for itself: what is
-hanging, how many moves each side has.
+Puzzle difficulty is where the board alone is enough to pass the trees on
+the ladder's own schedule, and \V{puzzle-difficulty.ladder.ahead.of} do.
+\ifchangeepochs
+In think time it takes the longer schedule of Section~\ref{sec:epochs}, and
+the lead is \V{think-time.run.transformer-medium-long.gain.of-lift}
+hundredths of the step.
+\fi
+Why there and not elsewhere is open. Two readings fit what is here. Its
+dataset has the most rows (Table~\ref{tab:models}). And a puzzle's
+difficulty lies in the shape of its line, which the marks on the squares
+show a network directly, while a blunder or a missed tactic in a game also
+turns on counts a network has to work out for itself: what is hanging, how
+many moves each side has.
 \ifgames
 Section~\ref{sec:games} trains the reference and a network on half and on a
 quarter of each model's training games, which bears on the first reading.
@@ -372,16 +381,41 @@ is a group the model's counts do not have.}
 
 \ifchangeepochs
 \subsection{What a longer schedule is worth}
+\label{sec:epochs}
 
 On the valid games, \V{lab.ladder.at-last-epoch.of} of the ladder had their
 best epoch at the last epoch of their schedule, so some had more to learn.
-The two transformers sized for a GPU were trained again with twice the
-epochs and nothing else changed (Table~\ref{tab:changes}). With the longer
-schedule, the one that reads the board alone is
+In \V{lab.change.epochs.over.transformer-medium.count} models the two
+transformers sized for a GPU were trained again on a schedule of
+\V{puzzle-difficulty.run.transformer-medium-long.epochs} epochs for
+\V{puzzle-difficulty.run.transformer-medium.epochs}, with nothing else
+changed (Table~\ref{tab:changes}). Practical chances has no such runs: its
+networks had stopped improving before the half of the ladder's schedule.
+With the longer schedule, the transformer that reads the board alone is
 \V{lab.change.epochs.over.transformer-medium.said}, and the one that reads
 the hand-made counts as well is
-\V{lab.change.epochs.over.transformer-medium-hand.said}. A longer run is
-kept as a model's run only where it is better beyond the noise.
+\V{lab.change.epochs.over.transformer-medium-hand.said}.
+
+Puzzle difficulty is where the epochs pay. The gain there is
+\V{lab.change.epochs.over.transformer-medium.gain.most} hundredths of the
+step on the board alone, which is more than the hand-made counts were worth
+to the same transformer, and
+\V{lab.change.epochs.over.transformer-medium-hand.gain.most} with the
+counts. In the other models a gain is a few hundredths or nothing. Only in
+think time did the longer runs use their whole schedule. In the other three
+the trainer stopped them early, their score on the valid games no longer
+improving, so a still longer schedule is not what any of these models
+lacks.
+
+A change is kept on both halves of the rule. On the test games
+\V{lab.change.epochs.net.better.of} are better beyond the noise, and each
+of those is better on the valid games too, so those longer runs are now runs
+of their models.
+In puzzle difficulty and in think time the longer run with the hand-made
+counts is the model's best run. The other \V{lab.change.epochs.net.level}
+are not kept. Each stays in its model's paper as a measurement of what the
+epochs were worth there, and leaves its model's leaderboard when it is
+filed.
 \fi
 
 \ifchangestart
@@ -480,7 +514,8 @@ error is \V{puzzle-difficulty.best.score} rating points
 \V{puzzle-difficulty.floor.score} for the floor. It orders puzzles well,
 with a rank correlation of \V{puzzle-difficulty.best.spearman}, and its
 typical miss is \V{puzzle-difficulty.best.mae} points. What it states is
-right on average along the whole scale and loose on the single puzzle
+right on average to within \V{puzzle-difficulty.best.reliability.widest-gap}
+points along the whole scale, and loose on the single puzzle
 (Figure~\ref{fig:puzzle}). So it can sort the tactics of a game into easier
 and harder ones, and it cannot yet give one a rating worth showing.
 
@@ -723,6 +758,11 @@ card.
 Each table is a model's leaderboard on its test rows, best first: the score
 its runs are ranked by with its 95\% interval, and the paired gain over the
 reference with its interval, bold when the interval leaves zero out.
+\ifchangeepochs
+A run whose name ends in \texttt{-long} is the run its name starts with on
+the longer schedule of Section~\ref{sec:epochs}. One that was not kept
+stands here until it is filed.
+\fi
 
 \begin{table}[htbp]\centering\small
 \block{puzzle-difficulty-leaderboard}

@@ -87,6 +87,30 @@ numbers are in the leaderboard):
   the rating band rises, and so does the base rate (the floor's row), so
   compare runs within a band, not one band with another.
 
+What twice the epochs say (commit `0ba155a`: `transformer-medium-long` and
+`transformer-medium-hand-long`, each set against the run it changed among the
+`pairs` of [`results/analysis.json`](results/analysis.json)):
+
+- **Neither longer run is kept.** `transformer-medium-long` is a hair better
+  than the run it changed on the valid rows and level with it on the test
+  rows. `transformer-medium-hand-long` is no better on either. The intervals
+  of both paired gains hold zero, so `transformer-medium-hand` stays the
+  model's best run.
+- **Both stopped early.** Each had its best valid epoch at the fourteenth of
+  its twenty-four and was stopped three epochs later, while the training
+  loss went on falling. The valid rows are few here, and their score moves
+  from one epoch to the next by more than the two schedules differ, so where
+  a run stopped is partly chance; either way the runs as trained are no
+  better.
+- **A reading: this model is short of games, not of steps.** That fits what
+  the first runs said, that more games is the run to add. The `games` study
+  measures how much the score moves with the number of games.
+
+A run that is not kept stays in the results as a measurement of what its
+change is worth. The two long runs are filed under a study of their own
+(`lab file`) once the runs now training are in; until then the leaderboard
+still ranks them.
+
 **Weights.** Every run's weights and test predictions are on the owner's
 machine, under `artifacts/runs/blunder-hazard/<run>/`, as the GPU session
 packed them; none is published. The best run's `model.pt` is 26,259,999
