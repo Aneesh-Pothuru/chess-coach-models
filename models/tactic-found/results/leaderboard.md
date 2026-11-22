@@ -3,13 +3,15 @@
 Written by `lab eval tactic-found` from the run records in this folder.
 
 - **Predicts:** chance the move played is the first move of the tactic.
-- **Data:** `tactics-v1`, 810,140 rows (test 81,135, train 688,480, valid 40,525) from https://huggingface.co/datasets/Lichess/chess-puzzles-with-games/tree/3510a01f320eaaab7b7775ebc73afcfe0b33b4c2 (CC0 1.0, huggingface.co/datasets/Lichess/chess-puzzles-with-games), built 2026-11-22T03:16:08Z at lab commit `b91c606`.
+- **Data:** `tactics-v1`, 810,140 rows (test 81,135, train 688,480, valid 40,525) from https://huggingface.co/datasets/Lichess/chess-puzzles-with-games/tree/3510a01f320eaaab7b7775ebc73afcfe0b33b4c2 (CC0 1.0, huggingface.co/datasets/Lichess/chess-puzzles-with-games), built 2026-11-22T13:52:00Z at lab commit `36a0ad9`.
 - **Test set:** 81,135 rows from 81,135 games, never seen in training or in choosing an epoch.
 - **Ranked by:** Log loss (lower is better), with its 95% interval over resampled games.
 - **Gain:** how much better than `gbm-hand` on the same resampled test games, measured when the run was trained; **bold** when the interval leaves zero out.
 
 | Run | Learner | Log loss | PR-AUC | ROC-AUC | Brier | Calibration error | Gain over `gbm-hand` | Parameters | Trained on | Time |
 |---|---|---|---|---|---|---|---|---|---|---|
+| `transformer-medium-hand-pretrained` | transformer, 8 layers of width 256, with hand features, started from `position-evaluation/transformer-medium` | 0.5287 (0.5254 to 0.5321) | 0.8667 | 0.7513 | 0.1778 | 0.0047 | **+0.01263 (+0.01105 to +0.01423)** | 6,565,953 | NVIDIA A100-SXM4-40GB | 9 min |
+| `transformer-medium-pretrained` | transformer, 8 layers of width 256, started from `position-evaluation/transformer-medium` | 0.5329 (0.5295 to 0.5362) | 0.8628 | 0.7460 | 0.1793 | 0.0050 | **+0.008507 (+0.006708 to +0.01035)** | 6,557,505 | NVIDIA A100-SXM4-40GB | 9 min |
 | `transformer-medium-hand` | transformer, 8 layers of width 256, with hand features | 0.5369 (0.5338 to 0.5402) | 0.8599 | 0.7399 | 0.1810 | 0.0050 | **+0.004443 (+0.003247 to +0.00573)** | 6,565,953 | NVIDIA A100-SXM4-40GB | 10 min |
 | `transformer-medium-hand-long` | transformer, 8 layers of width 256, with hand features | 0.5373 (0.5339 to 0.5407) | 0.8599 | 0.7401 | 0.1812 | 0.0053 | **+0.004086 (+0.002865 to +0.005432)** | 6,565,953 | NVIDIA A100-SXM4-80GB | 12 min |
 | `gbm-hand` | LightGBM, context and hand features | 0.5414 (0.5381 to 0.5447) | 0.8560 | 0.7337 | 0.1828 | 0.0043 | reference |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 31 s |
@@ -25,6 +27,8 @@ Written by `lab eval tactic-found` from the run records in this folder.
 
 | Run | <1700 | 1700-1899 | 1900-2099 | 2100-2299 | 2300+ |
 |---|---|---|---|---|---|
+| `transformer-medium-hand-pretrained` | 0.5401 | 0.5360 | 0.5165 | 0.5121 | 0.5281 |
+| `transformer-medium-pretrained` | 0.5446 | 0.5414 | 0.5190 | 0.5143 | 0.5326 |
 | `transformer-medium-hand` | 0.5484 | 0.5446 | 0.5239 | 0.5214 | 0.5355 |
 | `transformer-medium-hand-long` | 0.5501 | 0.5453 | 0.5243 | 0.5194 | 0.5350 |
 | `gbm-hand` | 0.5563 | 0.5491 | 0.5291 | 0.5206 | 0.5377 |
@@ -37,22 +41,22 @@ Written by `lab eval tactic-found` from the run records in this folder.
 | `constant` | 0.6428 | 0.6266 | 0.6090 | 0.5989 | 0.6080 |
 | rows | 15,408 | 28,346 | 18,674 | 8,845 | 9,862 |
 
-## Calibration of `transformer-medium-hand`
+## Calibration of `transformer-medium-hand-pretrained`
 
 Test rows in ten equal groups by predicted chance: what the model said against what happened.
 
 | Predicted | Happened | Rows |
 |---|---|---|
-| 32.8% | 32.8% | 8,114 |
-| 49.4% | 49.0% | 8,114 |
-| 57.9% | 57.6% | 8,114 |
-| 63.9% | 62.9% | 8,114 |
-| 69.0% | 68.7% | 8,114 |
-| 73.5% | 72.5% | 8,113 |
-| 77.9% | 78.8% | 8,113 |
-| 82.4% | 82.5% | 8,113 |
-| 87.7% | 88.0% | 8,113 |
-| 95.2% | 95.7% | 8,113 |
+| 30.2% | 30.8% | 8,114 |
+| 48.3% | 47.7% | 8,114 |
+| 57.2% | 57.0% | 8,114 |
+| 63.8% | 63.7% | 8,114 |
+| 69.2% | 67.9% | 8,114 |
+| 74.0% | 74.1% | 8,113 |
+| 78.6% | 78.3% | 8,113 |
+| 83.3% | 83.4% | 8,113 |
+| 88.7% | 89.7% | 8,113 |
+| 96.1% | 95.9% | 8,113 |
 
 ## Studies
 

@@ -25,13 +25,91 @@
       "valid": 56524
     },
     "fingerprint": "d14731fa4425fc6efdadb45c94ee53e07f5afe9151992b690b81edc71064cd5d",
-    "built": "2026-11-22T06:09:46Z",
-    "code": "3a74aa4b28f6805e3da49ea7c054bc4b5cf4d712"
+    "built": "2026-11-22T13:46:53Z",
+    "code": "36a0ad94d25b6b17bb33c15f065bfe68fa3faf15"
   },
   "test_rows": 112450,
   "test_groups": 112450,
   "reference": "gbm-hand",
   "runs": [
+    {
+      "run": "transformer-medium-hand-pretrained",
+      "learner": "transformer, 8 layers of width 256, with hand features, started from `position-evaluation/transformer-medium`",
+      "test": {
+        "rmse": {
+          "value": 251.70068768984785,
+          "low": 250.2636079803335,
+          "high": 253.12479854647623
+        },
+        "mae": {
+          "value": 187.2638131356992,
+          "low": 186.2039102520635,
+          "high": 188.30097936611423
+        },
+        "r2": {
+          "value": 0.7494786364211894,
+          "low": 0.7464264234736205,
+          "high": 0.7526692303346314
+        },
+        "spearman": {
+          "value": 0.8733090380951999,
+          "low": 0.8715472877046383,
+          "high": 0.8750151661403044
+        }
+      },
+      "test_by_band": {
+        "1000-1399": {
+          "rows": 31846,
+          "rmse": 221.48900413138233,
+          "mae": 164.96376654063084,
+          "r2": -2.976570541271218,
+          "spearman": 0.470629904321253
+        },
+        "1400-1799": {
+          "rows": 28501,
+          "rmse": 243.4258637959061,
+          "mae": 191.00797981612075,
+          "r2": -3.628103184903143,
+          "spearman": 0.35639138854995434
+        },
+        "1800-2199": {
+          "rows": 19518,
+          "rmse": 287.8025168582362,
+          "mae": 223.51009593345626,
+          "r2": -5.264207041953277,
+          "spearman": 0.2751947080884599
+        },
+        "2200+": {
+          "rows": 9834,
+          "rmse": 402.3877695662863,
+          "mae": 323.9575942890756,
+          "r2": -5.0298049416494015,
+          "spearman": 0.3257202728051542
+        },
+        "<1000": {
+          "rows": 22751,
+          "rmse": 170.8335950862671,
+          "mae": 123.60741112255369,
+          "r2": -0.1887961665181248,
+          "spearman": 0.7142538752850566
+        }
+      },
+      "parameters": 6563649,
+      "device": "NVIDIA A100-SXM4-40GB",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 837.9,
+      "code": "36a0ad94d25b6b17bb33c15f065bfe68fa3faf15",
+      "trained": "2026-11-22T16:36:02Z",
+      "gain": {
+        "gain": 43.22204971877281,
+        "low": 41.99337536721428,
+        "high": 44.44112856050142,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-22T16:06:49Z",
+        "reference_value": 294.92273740862066
+      }
+    },
     {
       "run": "transformer-medium-hand-long",
       "learner": "transformer, 8 layers of width 256, with hand features",
@@ -107,6 +185,84 @@
         "beyond_noise": true,
         "reference": "gbm-hand",
         "reference_trained": "2026-11-22T06:24:55Z",
+        "reference_value": 294.92273740862066
+      }
+    },
+    {
+      "run": "transformer-medium-pretrained",
+      "learner": "transformer, 8 layers of width 256, started from `position-evaluation/transformer-medium`",
+      "test": {
+        "rmse": {
+          "value": 262.01296675411476,
+          "low": 260.5442201731578,
+          "high": 263.4894881877141
+        },
+        "mae": {
+          "value": 194.7563415766165,
+          "low": 193.69417484612845,
+          "high": 195.76909170620428
+        },
+        "r2": {
+          "value": 0.7285301944002569,
+          "low": 0.7254115881995191,
+          "high": 0.7319032418907545
+        },
+        "spearman": {
+          "value": 0.8626657263346489,
+          "low": 0.8608290227729276,
+          "high": 0.8646652621652372
+        }
+      },
+      "test_by_band": {
+        "1000-1399": {
+          "rows": 31846,
+          "rmse": 226.52317780733844,
+          "mae": 169.4901678488646,
+          "r2": -3.159389978391115,
+          "spearman": 0.45537920920669245
+        },
+        "1400-1799": {
+          "rows": 28501,
+          "rmse": 247.58665748317665,
+          "mae": 193.85937694663195,
+          "r2": -3.787668444313918,
+          "spearman": 0.3405130085598028
+        },
+        "1800-2199": {
+          "rows": 19518,
+          "rmse": 301.247228097094,
+          "mae": 234.9572671068803,
+          "r2": -5.863142989226958,
+          "spearman": 0.2639695006908207
+        },
+        "2200+": {
+          "rows": 9834,
+          "rmse": 432.338624023982,
+          "mae": 351.52825657129046,
+          "r2": -5.960842244929,
+          "spearman": 0.3075723818962733
+        },
+        "<1000": {
+          "rows": 22751,
+          "rmse": 179.0281126581942,
+          "mae": 128.99458520968173,
+          "r2": -0.30557943814104305,
+          "spearman": 0.6892290686741724
+        }
+      },
+      "parameters": 6555201,
+      "device": "NVIDIA A100-SXM4-40GB",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 838.1,
+      "code": "36a0ad94d25b6b17bb33c15f065bfe68fa3faf15",
+      "trained": "2026-11-22T16:21:24Z",
+      "gain": {
+        "gain": 32.909770654505905,
+        "low": 31.671102114544667,
+        "high": 34.17145291046511,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-22T16:06:49Z",
         "reference_value": 294.92273740862066
       }
     },
@@ -565,9 +721,9 @@
       "parameters": null,
       "device": "cpu",
       "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
-      "seconds": 100.0,
-      "code": "0ba155afac19364bfc996e771f2be7757fd57a6d",
-      "trained": "2026-11-22T11:20:55Z",
+      "seconds": 86.6,
+      "code": "36a0ad94d25b6b17bb33c15f065bfe68fa3faf15",
+      "trained": "2026-11-22T16:06:49Z",
       "gain": null
     },
     {

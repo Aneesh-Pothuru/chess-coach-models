@@ -1,0 +1,322 @@
+{
+  "model": "tactic-found",
+  "run": "transformer-medium-hand-pretrained",
+  "task": {
+    "label": "found",
+    "kind": "binary",
+    "unit": "chance the move played is the first move of the tactic",
+    "primary": "log_loss",
+    "lower_is_better": true,
+    "context": [
+      "mover_elo",
+      "opponent_elo",
+      "log_clock",
+      "log_opponent_clock",
+      "log_base",
+      "increment",
+      "ply",
+      "win_prior",
+      "win_before",
+      "solver_moves",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "tactics-v1",
+    "source": "https://huggingface.co/datasets/Lichess/chess-puzzles-with-games/tree/3510a01f320eaaab7b7775ebc73afcfe0b33b4c2",
+    "licence": "CC0 1.0, huggingface.co/datasets/Lichess/chess-puzzles-with-games",
+    "rows": 810140,
+    "splits": {
+      "test": 81135,
+      "train": 688480,
+      "valid": 40525
+    },
+    "fingerprint": "15bd888b36b8fa30bcf93923ba28de9274fed4facb8662ebe5daac040a66193a",
+    "built": "2026-11-22T13:52:00Z",
+    "code": "36a0ad94d25b6b17bb33c15f065bfe68fa3faf15"
+  },
+  "config": {
+    "needs": "cuda",
+    "learner": {
+      "kind": "net",
+      "body": "transformer",
+      "features": "hand",
+      "dim": 256,
+      "depth": 8,
+      "heads": 8,
+      "dropout": 0.1,
+      "init": {
+        "model": "position-evaluation",
+        "run": "transformer-medium"
+      }
+    },
+    "train": {
+      "epochs": 12,
+      "batch": 1024,
+      "lr": 0.0006,
+      "weight_decay": 0.05,
+      "warmup": 0.05,
+      "patience": 3
+    },
+    "base": "transformer-medium-hand"
+  },
+  "learner": {
+    "features": 47,
+    "parameters": 6565953,
+    "device": "NVIDIA A100-SXM4-40GB",
+    "best_epoch": 8,
+    "fit_seconds": 550.4,
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.56641,
+        "valid_log_loss": 0.55164,
+        "rows_a_second": 14014
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.54563,
+        "valid_log_loss": 0.54874,
+        "rows_a_second": 13990
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.53921,
+        "valid_log_loss": 0.53971,
+        "rows_a_second": 13986
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.53436,
+        "valid_log_loss": 0.53672,
+        "rows_a_second": 14019
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.52944,
+        "valid_log_loss": 0.53498,
+        "rows_a_second": 14023
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.52534,
+        "valid_log_loss": 0.53558,
+        "rows_a_second": 14035
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.52006,
+        "valid_log_loss": 0.53288,
+        "rows_a_second": 14016
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.51503,
+        "valid_log_loss": 0.52931,
+        "rows_a_second": 14037
+      },
+      {
+        "epoch": 9,
+        "train_loss": 0.50962,
+        "valid_log_loss": 0.531,
+        "rows_a_second": 14024
+      },
+      {
+        "epoch": 10,
+        "train_loss": 0.50478,
+        "valid_log_loss": 0.5325,
+        "rows_a_second": 14040
+      },
+      {
+        "epoch": 11,
+        "train_loss": 0.50091,
+        "valid_log_loss": 0.53352,
+        "rows_a_second": 14031
+      }
+    ],
+    "started_from": {
+      "model": "position-evaluation",
+      "run": "transformer-medium",
+      "sha256": "e74b67486516834822284bd0ff23bd93b12da4acc5a14d559c8f13436a4ee65e",
+      "tensors_taken": 109,
+      "marks_taken": [
+        "en_passant"
+      ],
+      "new": [
+        "body.context",
+        "head"
+      ]
+    }
+  },
+  "calibration": {
+    "platt_slope": 0.9235753210133165,
+    "platt_intercept": 0.07200926578708154,
+    "fitted_on": "valid"
+  },
+  "machine": {
+    "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "threads": 12,
+    "system": "Linux"
+  },
+  "software": {
+    "python": "3.13.16",
+    "numpy": "2.4.6",
+    "polars": "2.1.0",
+    "lightgbm": "4.6.0",
+    "torch": "2.14.1+cu130"
+  },
+  "code": "36a0ad94d25b6b17bb33c15f065bfe68fa3faf15",
+  "trained": "2026-11-22T16:56:57Z",
+  "seconds": 551.4,
+  "train_rows": 688480,
+  "train_groups": 688480,
+  "valid": {
+    "pr_auc": 0.8662495588975113,
+    "roc_auc": 0.7516682656734873,
+    "brier": 0.17761491782508096,
+    "log_loss": 0.5288343290822561,
+    "calibration_error": 0.006146375144385074
+  },
+  "test": {
+    "pr_auc": {
+      "value": 0.8667108546472135,
+      "low": 0.8638998148924624,
+      "high": 0.8694680760243112
+    },
+    "roc_auc": {
+      "value": 0.7512730443291538,
+      "low": 0.7479462227889041,
+      "high": 0.7547417914701183
+    },
+    "brier": {
+      "value": 0.17777213914784354,
+      "low": 0.1763738799425109,
+      "high": 0.1791098375024134
+    },
+    "log_loss": {
+      "value": 0.5287330890726621,
+      "low": 0.5253771137573381,
+      "high": 0.5320902768712376
+    },
+    "calibration_error": {
+      "value": 0.004692919515189206,
+      "low": 0.003851285453426344,
+      "high": 0.008182566440001652
+    }
+  },
+  "test_rows": 81135,
+  "test_groups": 81135,
+  "test_by_band": {
+    "1700-1899": {
+      "rows": 28346,
+      "pr_auc": 0.85954066747244,
+      "roc_auc": 0.7480395670645367,
+      "brier": 0.1805576536740994,
+      "log_loss": 0.5360083588807277,
+      "calibration_error": 0.005860789139133822
+    },
+    "1900-2099": {
+      "rows": 18674,
+      "pr_auc": 0.8775111337877846,
+      "roc_auc": 0.7549944927716702,
+      "brier": 0.1730813881812421,
+      "log_loss": 0.5165053212017182,
+      "calibration_error": 0.00603376838123761
+    },
+    "2100-2299": {
+      "rows": 8845,
+      "pr_auc": 0.881407158800417,
+      "roc_auc": 0.7489631504505142,
+      "brier": 0.17135433481539714,
+      "log_loss": 0.5120549024481329,
+      "calibration_error": 0.005373265579550879
+    },
+    "2300+": {
+      "rows": 9862,
+      "pr_auc": 0.8704468806652701,
+      "roc_auc": 0.7390789493875569,
+      "brier": 0.1779163876354962,
+      "log_loss": 0.5281147646700461,
+      "calibration_error": 0.017972973913770132
+    },
+    "<1700": {
+      "rows": 15408,
+      "pr_auc": 0.8531244157460444,
+      "roc_auc": 0.7587440150722022,
+      "brier": 0.18192451385736624,
+      "log_loss": 0.5401383989892731,
+      "calibration_error": 0.01046991124553539
+    }
+  },
+  "test_calibration": [
+    {
+      "n": 8114,
+      "predicted": 0.3015500395770658,
+      "observed": 0.3081094404732561
+    },
+    {
+      "n": 8114,
+      "predicted": 0.48312984440665435,
+      "observed": 0.4767069263002218
+    },
+    {
+      "n": 8114,
+      "predicted": 0.5718723508735724,
+      "observed": 0.5697559773231452
+    },
+    {
+      "n": 8114,
+      "predicted": 0.6378046727099624,
+      "observed": 0.6368005915701257
+    },
+    {
+      "n": 8114,
+      "predicted": 0.6915674424603186,
+      "observed": 0.6787034754744885
+    },
+    {
+      "n": 8113,
+      "predicted": 0.7400967413861325,
+      "observed": 0.741032910144213
+    },
+    {
+      "n": 8113,
+      "predicted": 0.7860967768644689,
+      "observed": 0.7828176999876741
+    },
+    {
+      "n": 8113,
+      "predicted": 0.8334687893802373,
+      "observed": 0.8343399482312338
+    },
+    {
+      "n": 8113,
+      "predicted": 0.8873474866511879,
+      "observed": 0.89744853938124
+    },
+    {
+      "n": 8113,
+      "predicted": 0.9614825650936739,
+      "observed": 0.9587082460248983
+    }
+  ],
+  "weights": [
+    {
+      "file": "model.pt",
+      "bytes": 26294879,
+      "sha256": "8c03dd1520494c30e78a359a6747b102fee7596fb59e269d0c47d32cf08bf68d"
+    }
+  ],
+  "gain": {
+    "gain": 0.012633509594111247,
+    "low": 0.011052148306007356,
+    "high": 0.014227475073852455,
+    "beyond_noise": true,
+    "reference": "gbm-hand",
+    "reference_trained": "2026-11-22T16:37:13Z",
+    "reference_value": 0.5413665986667734
+  }
+}

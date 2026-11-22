@@ -1,0 +1,171 @@
+{
+  "model": "position-evaluation",
+  "run": "gbm-hand",
+  "task": {
+    "label": "win",
+    "kind": "regression",
+    "unit": "the mover's chance of winning by the engine's evaluation (percent)",
+    "primary": "rmse",
+    "lower_is_better": true,
+    "context": [
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "evaluations-v1",
+    "source": "https://database.lichess.org/lichess_db_eval.jsonl.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 6000000,
+    "splits": {
+      "test": 120035,
+      "train": 5819934,
+      "valid": 60031
+    },
+    "fingerprint": "a815743c4639860a64567274f2d7eb2cd52d1fcb7de2c5cc672aeb7ffd093326",
+    "built": "2026-11-22T13:39:30Z",
+    "code": "36a0ad94d25b6b17bb33c15f065bfe68fa3faf15"
+  },
+  "config": {
+    "learner": {
+      "kind": "gbm",
+      "features": "hand",
+      "rounds": 1000
+    }
+  },
+  "learner": {
+    "features": 17,
+    "trees": 1000,
+    "fit_seconds": 125.2,
+    "leans_on": [
+      {
+        "feature": "material_imbalance",
+        "share_of_gain": 0.4789
+      },
+      {
+        "feature": "legal_moves",
+        "share_of_gain": 0.1651
+      },
+      {
+        "feature": "material_count",
+        "share_of_gain": 0.081
+      },
+      {
+        "feature": "legal_checks",
+        "share_of_gain": 0.0654
+      },
+      {
+        "feature": "attackers_near_own_king",
+        "share_of_gain": 0.0446
+      },
+      {
+        "feature": "attackers_near_opponent_king",
+        "share_of_gain": 0.0372
+      },
+      {
+        "feature": "legal_captures",
+        "share_of_gain": 0.0278
+      },
+      {
+        "feature": "hanging_opponent",
+        "share_of_gain": 0.0239
+      },
+      {
+        "feature": "phase_piece_count",
+        "share_of_gain": 0.0236
+      },
+      {
+        "feature": "passed_pawns_opponent",
+        "share_of_gain": 0.0142
+      }
+    ]
+  },
+  "calibration": null,
+  "machine": {
+    "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "threads": 12,
+    "system": "Linux"
+  },
+  "software": {
+    "python": "3.13.16",
+    "numpy": "2.4.6",
+    "polars": "2.1.0",
+    "lightgbm": "4.6.0",
+    "torch": "2.14.1+cu130"
+  },
+  "code": "36a0ad94d25b6b17bb33c15f065bfe68fa3faf15",
+  "trained": "2026-11-22T14:02:32Z",
+  "seconds": 128.8,
+  "train_rows": 5819934,
+  "train_groups": 5819934,
+  "valid": {
+    "rmse": 16.41988026421429,
+    "mae": 11.188273823456617,
+    "r2": 0.5906315118829335,
+    "spearman": 0.67519957877532
+  },
+  "test": {
+    "rmse": {
+      "value": 16.44898302606398,
+      "low": 16.346800798872906,
+      "high": 16.55627328460838
+    },
+    "mae": {
+      "value": 11.214900010413709,
+      "low": 11.144894551520037,
+      "high": 11.283840690171848
+    },
+    "r2": {
+      "value": 0.5924011553217945,
+      "low": 0.5872003940127283,
+      "high": 0.5971880249867365
+    },
+    "spearman": {
+      "value": 0.6782045902777428,
+      "low": 0.6739348991231893,
+      "high": 0.6820971849319746
+    }
+  },
+  "test_rows": 120035,
+  "test_groups": 120035,
+  "test_by_band": {
+    "17-24": {
+      "rows": 34199,
+      "rmse": 18.458182690008968,
+      "mae": 13.41974420345199,
+      "r2": 0.48752184104777885,
+      "spearman": 0.6452397749334945
+    },
+    "25-32": {
+      "rows": 46498,
+      "rmse": 11.763599529697943,
+      "mae": 7.983733053805089,
+      "r2": 0.3258413161031899,
+      "spearman": 0.4234384974864486
+    },
+    "9-16": {
+      "rows": 23338,
+      "rmse": 19.800555838601735,
+      "mae": 13.894816496913569,
+      "r2": 0.6158359890054812,
+      "spearman": 0.7825551915840742
+    },
+    "<9": {
+      "rows": 16000,
+      "rmse": 18.099653578502366,
+      "mae": 11.983365237209819,
+      "r2": 0.7765451625194997,
+      "spearman": 0.8831423501438843
+    }
+  },
+  "weights": [
+    {
+      "file": "model.txt",
+      "bytes": 11584227,
+      "sha256": "9ec9cae2ea9b156526255981ab44e20c34a2d1b0e74dada19472c9fcaed302a7"
+    }
+  ],
+  "gain": null
+}

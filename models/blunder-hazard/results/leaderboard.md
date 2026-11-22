@@ -3,16 +3,18 @@
 Written by `lab eval blunder-hazard` from the run records in this folder.
 
 - **Predicts:** chance the mover loses more than 20 points of win probability.
-- **Data:** `game-positions-2026-10`, 698,013 rows (test 68,579, train 594,940, valid 34,494) from https://database.lichess.org/standard/lichess_db_standard_rated_2026-10.pgn.zst (CC0 1.0, database.lichess.org), built 2026-11-22T01:42:50Z at lab commit `85d0c35+changes`.
+- **Data:** `game-positions-2026-10`, 698,013 rows (test 68,579, train 594,940, valid 34,494) from https://database.lichess.org/standard/lichess_db_standard_rated_2026-10.pgn.zst (CC0 1.0, database.lichess.org), built 2026-11-22T13:43:02Z at lab commit `36a0ad9`.
 - **Test set:** 68,579 rows from 2,944 games, never seen in training or in choosing an epoch.
 - **Ranked by:** PR-AUC (higher is better), with its 95% interval over resampled games.
 - **Gain:** how much better than `gbm-hand` on the same resampled test games, measured when the run was trained; **bold** when the interval leaves zero out.
 
 | Run | Learner | PR-AUC | ROC-AUC | Brier | Log loss | Calibration error | Gain over `gbm-hand` | Parameters | Trained on | Time |
 |---|---|---|---|---|---|---|---|---|---|---|
+| `transformer-medium-hand-pretrained` | transformer, 8 layers of width 256, with hand features, started from `position-evaluation/transformer-medium` | 0.2776 (0.2643 to 0.2921) | 0.8403 | 0.0558 | 0.1959 | 0.0023 | **+0.02429 (+0.01473 to +0.03381)** | 6,557,505 | NVIDIA A100-SXM4-40GB | 9 min |
+| `transformer-medium-pretrained` | transformer, 8 layers of width 256, started from `position-evaluation/transformer-medium` | 0.2747 (0.2611 to 0.2895) | 0.8411 | 0.0558 | 0.1956 | 0.0022 | **+0.02142 (+0.01202 to +0.03066)** | 6,554,177 | NVIDIA A100-SXM4-40GB | 9 min |
 | `transformer-medium-hand` | transformer, 8 layers of width 256, with hand features | 0.2666 (0.2526 to 0.2822) | 0.8279 | 0.0565 | 0.2000 | 0.0032 | **+0.01331 (+0.007014 to +0.01978)** | 6,557,505 | NVIDIA A100-SXM4-80GB | 8 min |
 | `transformer-medium-hand-long` | transformer, 8 layers of width 256, with hand features | 0.2628 (0.2491 to 0.2780) | 0.8266 | 0.0565 | 0.2002 | 0.0023 | **+0.009522 (+0.002803 to +0.01715)** | 6,557,505 | NVIDIA A100-SXM4-80GB | 11 min |
-| `gbm-hand` | LightGBM, context and hand features | 0.2533 (0.2396 to 0.2681) | 0.8232 | 0.0569 | 0.2013 | 0.0042 | reference |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 10 s |
+| `gbm-hand` | LightGBM, context and hand features | 0.2533 (0.2396 to 0.2681) | 0.8232 | 0.0569 | 0.2013 | 0.0042 | reference |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 11 s |
 | `transformer-medium` | transformer, 8 layers of width 256 | 0.2370 (0.2244 to 0.2506) | 0.8177 | 0.0575 | 0.2037 | 0.0026 | **-0.01631 (-0.02519 to -0.007419)** | 6,554,177 | NVIDIA A100-SXM4-80GB | 8 min |
 | `conv-small` | conv, 6 layers of width 96 | 0.2369 (0.2252 to 0.2504) | 0.8187 | 0.0574 | 0.2033 | 0.0021 | **-0.01642 (-0.02564 to -0.007133)** | 1,031,425 | NVIDIA A100-SXM4-80GB | 2 min |
 | `transformer-small` | transformer, 4 layers of width 128 | 0.2364 (0.2244 to 0.2500) | 0.8190 | 0.0575 | 0.2033 | 0.0021 | **-0.01692 (-0.02552 to -0.00821)** | 861,985 | NVIDIA A100-SXM4-80GB | 3 min |
@@ -24,6 +26,8 @@ Written by `lab eval blunder-hazard` from the run records in this folder.
 
 | Run | <1100 | 1100-1400 | 1400-1700 | 1700-2000 | 2000+ |
 |---|---|---|---|---|---|
+| `transformer-medium-hand-pretrained` | 0.3799 | 0.2850 | 0.2343 | 0.2057 | 0.1590 |
+| `transformer-medium-pretrained` | 0.3728 | 0.2752 | 0.2296 | 0.2201 | 0.1606 |
 | `transformer-medium-hand` | 0.3666 | 0.2730 | 0.2218 | 0.1882 | 0.1375 |
 | `transformer-medium-hand-long` | 0.3611 | 0.2730 | 0.2150 | 0.1868 | 0.1287 |
 | `gbm-hand` | 0.3426 | 0.2593 | 0.2160 | 0.1794 | 0.1293 |
@@ -35,7 +39,7 @@ Written by `lab eval blunder-hazard` from the run records in this folder.
 | `constant` | 0.1066 | 0.0782 | 0.0621 | 0.0530 | 0.0380 |
 | rows | 10,712 | 16,674 | 19,614 | 14,453 | 7,126 |
 
-## Calibration of `transformer-medium-hand`
+## Calibration of `transformer-medium-hand-pretrained`
 
 Test rows in ten equal groups by predicted chance: what the model said against what happened.
 
@@ -43,14 +47,14 @@ Test rows in ten equal groups by predicted chance: what the model said against w
 |---|---|---|
 | 0.0% | 0.0% | 6,858 |
 | 0.0% | 0.0% | 6,858 |
-| 0.4% | 0.5% | 6,858 |
-| 1.2% | 1.4% | 6,858 |
-| 2.6% | 2.8% | 6,858 |
-| 4.4% | 4.7% | 6,858 |
-| 6.8% | 7.6% | 6,858 |
-| 10.1% | 10.2% | 6,858 |
-| 15.0% | 14.4% | 6,858 |
-| 26.2% | 26.9% | 6,857 |
+| 0.3% | 0.3% | 6,858 |
+| 1.0% | 1.5% | 6,858 |
+| 2.2% | 2.2% | 6,858 |
+| 4.1% | 4.1% | 6,858 |
+| 6.4% | 6.8% | 6,858 |
+| 9.8% | 10.2% | 6,858 |
+| 15.0% | 15.9% | 6,858 |
+| 27.6% | 27.5% | 6,857 |
 
 ## Studies
 

@@ -1,0 +1,240 @@
+{
+  "model": "position-evaluation",
+  "task": {
+    "label": "win",
+    "kind": "regression",
+    "unit": "the mover's chance of winning by the engine's evaluation (percent)",
+    "primary": "rmse",
+    "lower_is_better": true,
+    "context": [
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "evaluations-v1",
+    "source": "https://database.lichess.org/lichess_db_eval.jsonl.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 6000000,
+    "splits": {
+      "test": 120035,
+      "train": 5819934,
+      "valid": 60031
+    },
+    "fingerprint": "a815743c4639860a64567274f2d7eb2cd52d1fcb7de2c5cc672aeb7ffd093326",
+    "built": "2026-11-22T13:39:30Z",
+    "code": "36a0ad94d25b6b17bb33c15f065bfe68fa3faf15"
+  },
+  "test_rows": 120035,
+  "test_groups": 120035,
+  "reference": "gbm-hand",
+  "runs": [
+    {
+      "run": "transformer-medium",
+      "learner": "transformer, 8 layers of width 256",
+      "test": {
+        "rmse": {
+          "value": 12.963119303275302,
+          "low": 12.859162808329947,
+          "high": 13.070250910755927
+        },
+        "mae": {
+          "value": 7.971756449410082,
+          "low": 7.913201547569956,
+          "high": 8.027514471641254
+        },
+        "r2": {
+          "value": 0.7468523644061169,
+          "low": 0.7425732056374833,
+          "high": 0.7512201774243336
+        },
+        "spearman": {
+          "value": 0.8174635818408545,
+          "low": 0.8146487901153712,
+          "high": 0.8202531016936458
+        }
+      },
+      "test_by_band": {
+        "17-24": {
+          "rows": 34199,
+          "rmse": 14.631777135461686,
+          "mae": 9.64051984839283,
+          "r2": 0.6779734820778431,
+          "spearman": 0.7982977632068075
+        },
+        "25-32": {
+          "rows": 46498,
+          "rmse": 9.150509062214795,
+          "mae": 5.8720688761655815,
+          "r2": 0.5920826464848745,
+          "spearman": 0.7010792027283426
+        },
+        "9-16": {
+          "rows": 23338,
+          "rmse": 15.653798087598663,
+          "mae": 9.73753101194414,
+          "r2": 0.7598949088888072,
+          "spearman": 0.8715759749372063
+        },
+        "<9": {
+          "rows": 16000,
+          "rmse": 14.224126772443572,
+          "mae": 7.931230609315834,
+          "r2": 0.8619932069082734,
+          "spearman": 0.9182257570928031
+        }
+      },
+      "parameters": 6551617,
+      "device": "NVIDIA A100-SXM4-40GB",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 2511.5,
+      "code": "36a0ad94d25b6b17bb33c15f065bfe68fa3faf15",
+      "trained": "2026-11-22T14:45:32Z",
+      "gain": {
+        "gain": 3.485863722788679,
+        "low": 3.387155630006414,
+        "high": 3.584275605022046,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-22T14:02:32Z",
+        "reference_value": 16.44898302606398
+      }
+    },
+    {
+      "run": "gbm-hand",
+      "learner": "LightGBM, context and hand features",
+      "test": {
+        "rmse": {
+          "value": 16.44898302606398,
+          "low": 16.346800798872906,
+          "high": 16.55627328460838
+        },
+        "mae": {
+          "value": 11.214900010413709,
+          "low": 11.144894551520037,
+          "high": 11.283840690171848
+        },
+        "r2": {
+          "value": 0.5924011553217945,
+          "low": 0.5872003940127283,
+          "high": 0.5971880249867365
+        },
+        "spearman": {
+          "value": 0.6782045902777428,
+          "low": 0.6739348991231893,
+          "high": 0.6820971849319746
+        }
+      },
+      "test_by_band": {
+        "17-24": {
+          "rows": 34199,
+          "rmse": 18.458182690008968,
+          "mae": 13.41974420345199,
+          "r2": 0.48752184104777885,
+          "spearman": 0.6452397749334945
+        },
+        "25-32": {
+          "rows": 46498,
+          "rmse": 11.763599529697943,
+          "mae": 7.983733053805089,
+          "r2": 0.3258413161031899,
+          "spearman": 0.4234384974864486
+        },
+        "9-16": {
+          "rows": 23338,
+          "rmse": 19.800555838601735,
+          "mae": 13.894816496913569,
+          "r2": 0.6158359890054812,
+          "spearman": 0.7825551915840742
+        },
+        "<9": {
+          "rows": 16000,
+          "rmse": 18.099653578502366,
+          "mae": 11.983365237209819,
+          "r2": 0.7765451625194997,
+          "spearman": 0.8831423501438843
+        }
+      },
+      "parameters": null,
+      "device": "cpu",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 128.8,
+      "code": "36a0ad94d25b6b17bb33c15f065bfe68fa3faf15",
+      "trained": "2026-11-22T14:02:32Z",
+      "gain": null
+    },
+    {
+      "run": "constant",
+      "learner": "one number for every row",
+      "test": {
+        "rmse": {
+          "value": 25.76456262332697,
+          "low": 25.665673704013994,
+          "high": 25.865589412789156
+        },
+        "mae": {
+          "value": 18.482569207380692,
+          "low": 18.377883029481342,
+          "high": 18.585404891200515
+        },
+        "r2": {
+          "value": -8.936056719033303e-07,
+          "low": -4.522476000685671e-05,
+          "high": -9.389787031244298e-09
+        },
+        "spearman": {
+          "value": NaN,
+          "low": NaN,
+          "high": NaN
+        }
+      },
+      "test_by_band": {
+        "17-24": {
+          "rows": 34199,
+          "rmse": 25.791429453889013,
+          "mae": 19.559722149612178,
+          "r2": -0.0005719111819719735,
+          "spearman": NaN
+        },
+        "25-32": {
+          "rows": 46498,
+          "rmse": 14.332900154028254,
+          "mae": 9.346083858649838,
+          "r2": -0.0008058180905623491,
+          "spearman": NaN
+        },
+        "9-16": {
+          "rows": 23338,
+          "rmse": 31.946304579456203,
+          "mae": 25.593694092968686,
+          "r2": -7.2975230878125075e-06,
+          "spearman": NaN
+        },
+        "<9": {
+          "rows": 16000,
+          "rmse": 38.37438821288847,
+          "mae": 32.359526063259466,
+          "r2": -0.004458885926060363,
+          "spearman": NaN
+        }
+      },
+      "parameters": null,
+      "device": "cpu",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 0.9,
+      "code": "36a0ad94d25b6b17bb33c15f065bfe68fa3faf15",
+      "trained": "2026-11-22T14:03:11Z",
+      "gain": {
+        "gain": -9.315579597262989,
+        "low": -9.42606063625839,
+        "high": -9.19995552663267,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-22T14:02:32Z",
+        "reference_value": 16.44898302606398
+      }
+    }
+  ]
+}

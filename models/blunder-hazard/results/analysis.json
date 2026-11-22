@@ -1,8 +1,8 @@
 {
  "model": "blunder-hazard",
  "written_by": "lab analyse blunder-hazard",
- "written": "2026-11-22T12:38:24Z",
- "code": "36a0ad94d25b6b17bb33c15f065bfe68fa3faf15",
+ "written": "2026-11-22T18:44:13Z",
+ "code": "492a6a3ab32718ddf248d206ea5ee7deb61b7b9f",
  "dataset": {
   "dataset": "game-positions-2026-10",
   "builder": "game_positions",
@@ -63,6 +63,8 @@
   "band": "band"
  },
  "runs": [
+  "transformer-medium-hand-pretrained",
+  "transformer-medium-pretrained",
   "transformer-medium-hand",
   "transformer-medium-hand-long",
   "gbm-hand",
@@ -74,9 +76,9 @@
   "constant"
  ],
  "skipped": {},
- "best": "transformer-medium-hand",
+ "best": "transformer-medium-hand-pretrained",
  "reference": "gbm-hand",
- "challenger": "transformer-medium-hand",
+ "challenger": "transformer-medium-hand-pretrained",
  "test_rows": 68579,
  "label": {
   "kind": "binary",
@@ -226,6 +228,110 @@
   }
  },
  "reliability": {
+  "transformer-medium-hand-pretrained": [
+   {
+    "n": 6858,
+    "predicted": 4.57857e-05,
+    "observed": 0.0
+   },
+   {
+    "n": 6858,
+    "predicted": 0.00013782,
+    "observed": 0.00029163
+   },
+   {
+    "n": 6858,
+    "predicted": 0.00272345,
+    "observed": 0.00306212
+   },
+   {
+    "n": 6858,
+    "predicted": 0.00962377,
+    "observed": 0.015019
+   },
+   {
+    "n": 6858,
+    "predicted": 0.0221231,
+    "observed": 0.0221639
+   },
+   {
+    "n": 6858,
+    "predicted": 0.0405541,
+    "observed": 0.0405366
+   },
+   {
+    "n": 6858,
+    "predicted": 0.0644772,
+    "observed": 0.067804
+   },
+   {
+    "n": 6858,
+    "predicted": 0.0976984,
+    "observed": 0.102071
+   },
+   {
+    "n": 6858,
+    "predicted": 0.150379,
+    "observed": 0.159084
+   },
+   {
+    "n": 6857,
+    "predicted": 0.275668,
+    "observed": 0.275485
+   }
+  ],
+  "transformer-medium-pretrained": [
+   {
+    "n": 6858,
+    "predicted": 6.52333e-05,
+    "observed": 0.0
+   },
+   {
+    "n": 6858,
+    "predicted": 0.000133925,
+    "observed": 0.0
+   },
+   {
+    "n": 6858,
+    "predicted": 0.00328991,
+    "observed": 0.00393701
+   },
+   {
+    "n": 6858,
+    "predicted": 0.0106309,
+    "observed": 0.011811
+   },
+   {
+    "n": 6858,
+    "predicted": 0.0235087,
+    "observed": 0.0247886
+   },
+   {
+    "n": 6858,
+    "predicted": 0.04133,
+    "observed": 0.0418489
+   },
+   {
+    "n": 6858,
+    "predicted": 0.0653327,
+    "observed": 0.067804
+   },
+   {
+    "n": 6858,
+    "predicted": 0.0989002,
+    "observed": 0.096238
+   },
+   {
+    "n": 6858,
+    "predicted": 0.15165,
+    "observed": 0.157918
+   },
+   {
+    "n": 6857,
+    "predicted": 0.274,
+    "observed": 0.281173
+   }
+  ],
   "transformer-medium-hand": [
    {
     "n": 6858,
@@ -696,6 +802,16 @@
   ]
  },
  "against_reference": {
+  "transformer-medium-hand-pretrained": {
+   "correlation": 0.800005,
+   "closer_share": 0.47831,
+   "tied_share": 0.0
+  },
+  "transformer-medium-pretrained": {
+   "correlation": 0.805658,
+   "closer_share": 0.463159,
+   "tied_share": 0.0
+  },
   "transformer-medium-hand": {
    "correlation": 0.909846,
    "closer_share": 0.645868,
@@ -750,6 +866,16 @@
      "rows": 10712,
      "label_mean": 0.106609,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0911736,
+       "bias": -0.0154358,
+       "pr_auc": 0.379907
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0939988,
+       "bias": -0.0126106,
+       "pr_auc": 0.372778
+      },
       "transformer-medium-hand": {
        "mean": 0.0986982,
        "bias": -0.00791122,
@@ -797,9 +923,9 @@
       }
      },
      "gain": {
-      "gain": 0.0240104,
-      "low": 0.00798317,
-      "high": 0.0372095,
+      "gain": 0.0372904,
+      "low": 0.0147108,
+      "high": 0.0564534,
       "beyond_noise": true
      }
     },
@@ -810,6 +936,16 @@
      "rows": 16674,
      "label_mean": 0.0782056,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.073378,
+       "bias": -0.00482754,
+       "pr_auc": 0.28499
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0747185,
+       "bias": -0.00348705,
+       "pr_auc": 0.275229
+      },
       "transformer-medium-hand": {
        "mean": 0.0770487,
        "bias": -0.00115693,
@@ -857,9 +993,9 @@
       }
      },
      "gain": {
-      "gain": 0.0136675,
-      "low": 0.00213288,
-      "high": 0.0235034,
+      "gain": 0.0257024,
+      "low": 0.00637502,
+      "high": 0.0419621,
       "beyond_noise": true
      }
     },
@@ -870,6 +1006,16 @@
      "rows": 19614,
      "label_mean": 0.0620985,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0632838,
+       "bias": 0.0011853,
+       "pr_auc": 0.234314
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0648696,
+       "bias": 0.00277107,
+       "pr_auc": 0.229637
+      },
       "transformer-medium-hand": {
        "mean": 0.0619758,
        "bias": -0.000122694,
@@ -917,9 +1063,9 @@
       }
      },
      "gain": {
-      "gain": 0.00579682,
-      "low": -0.00551605,
-      "high": 0.0160883,
+      "gain": 0.0183371,
+      "low": -0.000276927,
+      "high": 0.0368003,
       "beyond_noise": false
      }
     },
@@ -930,6 +1076,16 @@
      "rows": 14453,
      "label_mean": 0.0529994,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.054963,
+       "bias": 0.00196359,
+       "pr_auc": 0.205688
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0543841,
+       "bias": 0.00138477,
+       "pr_auc": 0.220108
+      },
       "transformer-medium-hand": {
        "mean": 0.0511294,
        "bias": -0.00187,
@@ -977,10 +1133,10 @@
       }
      },
      "gain": {
-      "gain": 0.00887658,
-      "low": -0.00887592,
-      "high": 0.0245472,
-      "beyond_noise": false
+      "gain": 0.0263264,
+      "low": 0.00320994,
+      "high": 0.045708,
+      "beyond_noise": true
      }
     },
     {
@@ -990,6 +1146,16 @@
      "rows": 7126,
      "label_mean": 0.0380298,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0440282,
+       "bias": 0.00599841,
+       "pr_auc": 0.159027
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0386616,
+       "bias": 0.00063181,
+       "pr_auc": 0.160554
+      },
       "transformer-medium-hand": {
        "mean": 0.0374146,
        "bias": -0.000615116,
@@ -1037,9 +1203,9 @@
       }
      },
      "gain": {
-      "gain": 0.0081612,
-      "low": -0.0143327,
-      "high": 0.0321249,
+      "gain": 0.0297152,
+      "low": -0.00200476,
+      "high": 0.0620572,
       "beyond_noise": false
      }
     }
@@ -1057,6 +1223,16 @@
      "rows": 718,
      "label_mean": 0.0598886,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0636734,
+       "bias": 0.0037848,
+       "pr_auc": 0.176422
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0599696,
+       "bias": 8.10193e-05,
+       "pr_auc": 0.178887
+      },
       "transformer-medium-hand": {
        "mean": 0.0601697,
        "bias": 0.00028109,
@@ -1104,9 +1280,9 @@
       }
      },
      "gain": {
-      "gain": -0.0396384,
-      "low": -0.117176,
-      "high": 0.00556008,
+      "gain": -0.0440542,
+      "low": -0.127483,
+      "high": 0.0225716,
       "beyond_noise": false
      }
     },
@@ -1117,6 +1293,16 @@
      "rows": 777,
      "label_mean": 0.0900901,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.072643,
+       "bias": -0.0174471,
+       "pr_auc": 0.350011
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0748766,
+       "bias": -0.0152135,
+       "pr_auc": 0.362461
+      },
       "transformer-medium-hand": {
        "mean": 0.0735956,
        "bias": -0.0164945,
@@ -1164,9 +1350,9 @@
       }
      },
      "gain": {
-      "gain": -0.0491792,
-      "low": -0.114828,
-      "high": 0.0134582,
+      "gain": -0.0656648,
+      "low": -0.195334,
+      "high": 0.042606,
       "beyond_noise": false
      }
     },
@@ -1177,6 +1363,16 @@
      "rows": 1456,
      "label_mean": 0.0473901,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0585465,
+       "bias": 0.0111564,
+       "pr_auc": 0.198225
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0561346,
+       "bias": 0.00874449,
+       "pr_auc": 0.202098
+      },
       "transformer-medium-hand": {
        "mean": 0.0572799,
        "bias": 0.00988978,
@@ -1224,9 +1420,9 @@
       }
      },
      "gain": {
-      "gain": 0.01137,
-      "low": -0.0372487,
-      "high": 0.0593534,
+      "gain": 0.0180728,
+      "low": -0.0403246,
+      "high": 0.100891,
       "beyond_noise": false
      }
     },
@@ -1237,6 +1433,16 @@
      "rows": 7214,
      "label_mean": 0.0572498,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0608601,
+       "bias": 0.00361031,
+       "pr_auc": 0.281672
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0581035,
+       "bias": 0.000853689,
+       "pr_auc": 0.278499
+      },
       "transformer-medium-hand": {
        "mean": 0.0600901,
        "bias": 0.00284027,
@@ -1284,9 +1490,9 @@
       }
      },
      "gain": {
-      "gain": 0.00540211,
-      "low": -0.0158034,
-      "high": 0.0257062,
+      "gain": 0.0175687,
+      "low": -0.0202947,
+      "high": 0.0468378,
       "beyond_noise": false
      }
     },
@@ -1297,6 +1503,16 @@
      "rows": 18755,
      "label_mean": 0.0707011,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0702097,
+       "bias": -0.00049146,
+       "pr_auc": 0.296464
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0693796,
+       "bias": -0.00132159,
+       "pr_auc": 0.294056
+      },
       "transformer-medium-hand": {
        "mean": 0.0706843,
        "bias": -1.68797e-05,
@@ -1344,9 +1560,9 @@
       }
      },
      "gain": {
-      "gain": 0.00845412,
-      "low": -0.0047673,
-      "high": 0.0220533,
+      "gain": 0.00823312,
+      "low": -0.0116035,
+      "high": 0.0263495,
       "beyond_noise": false
      }
     },
@@ -1357,6 +1573,16 @@
      "rows": 39659,
      "label_mean": 0.0700976,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0657177,
+       "bias": -0.0043799,
+       "pr_auc": 0.274496
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0676593,
+       "bias": -0.00243831,
+       "pr_auc": 0.269191
+      },
       "transformer-medium-hand": {
        "mean": 0.066068,
        "bias": -0.00402963,
@@ -1404,9 +1630,9 @@
       }
      },
      "gain": {
-      "gain": 0.0198125,
-      "low": 0.0128314,
-      "high": 0.0257019,
+      "gain": 0.0401111,
+      "low": 0.0292898,
+      "high": 0.0497262,
       "beyond_noise": true
      }
     }
@@ -1424,6 +1650,16 @@
      "rows": 6535,
      "label_mean": 0.0312165,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0402417,
+       "bias": 0.00902517,
+       "pr_auc": 0.204199
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.041267,
+       "bias": 0.0100505,
+       "pr_auc": 0.205063
+      },
       "transformer-medium-hand": {
        "mean": 0.0424644,
        "bias": 0.0112479,
@@ -1471,9 +1707,9 @@
       }
      },
      "gain": {
-      "gain": -0.0211191,
-      "low": -0.0572025,
-      "high": 0.00277559,
+      "gain": 0.00581313,
+      "low": -0.0389561,
+      "high": 0.0453782,
       "beyond_noise": false
      }
     },
@@ -1484,6 +1720,16 @@
      "rows": 19500,
      "label_mean": 0.0478462,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0547266,
+       "bias": 0.0068804,
+       "pr_auc": 0.212659
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0559709,
+       "bias": 0.00812475,
+       "pr_auc": 0.219491
+      },
       "transformer-medium-hand": {
        "mean": 0.0557728,
        "bias": 0.00792668,
@@ -1531,9 +1777,9 @@
       }
      },
      "gain": {
-      "gain": 0.00510685,
-      "low": -0.00651925,
-      "high": 0.016066,
+      "gain": 0.0151421,
+      "low": -0.00334978,
+      "high": 0.0319898,
       "beyond_noise": false
      }
     },
@@ -1544,6 +1790,16 @@
      "rows": 16756,
      "label_mean": 0.068095,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0690551,
+       "bias": 0.000960129,
+       "pr_auc": 0.256966
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0692868,
+       "bias": 0.00119182,
+       "pr_auc": 0.25691
+      },
       "transformer-medium-hand": {
        "mean": 0.0685482,
        "bias": 0.000453239,
@@ -1591,9 +1847,9 @@
       }
      },
      "gain": {
-      "gain": 0.0134083,
-      "low": 0.00292138,
-      "high": 0.026826,
+      "gain": 0.0339949,
+      "low": 0.0149372,
+      "high": 0.0502189,
       "beyond_noise": true
      }
     },
@@ -1604,6 +1860,16 @@
      "rows": 14077,
      "label_mean": 0.088087,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0765204,
+       "bias": -0.0115665,
+       "pr_auc": 0.318139
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0768572,
+       "bias": -0.0112298,
+       "pr_auc": 0.313805
+      },
       "transformer-medium-hand": {
        "mean": 0.0764775,
        "bias": -0.0116094,
@@ -1651,9 +1917,9 @@
       }
      },
      "gain": {
-      "gain": 0.0165256,
-      "low": 0.00583999,
-      "high": 0.0283532,
+      "gain": 0.0218724,
+      "low": 0.00813984,
+      "high": 0.0392894,
       "beyond_noise": true
      }
     },
@@ -1664,6 +1930,16 @@
      "rows": 8028,
      "label_mean": 0.094295,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0834859,
+       "bias": -0.010809,
+       "pr_auc": 0.328501
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.083461,
+       "bias": -0.010834,
+       "pr_auc": 0.31352
+      },
       "transformer-medium-hand": {
        "mean": 0.0829132,
        "bias": -0.0113818,
@@ -1711,9 +1987,9 @@
       }
      },
      "gain": {
-      "gain": 0.0187859,
-      "low": 0.00590373,
-      "high": 0.0359755,
+      "gain": 0.0332214,
+      "low": 0.0108481,
+      "high": 0.0586956,
       "beyond_noise": true
      }
     },
@@ -1724,6 +2000,16 @@
      "rows": 3683,
      "label_mean": 0.115667,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0854987,
+       "bias": -0.0301679,
+       "pr_auc": 0.354988
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0848803,
+       "bias": -0.0307863,
+       "pr_auc": 0.34873
+      },
       "transformer-medium-hand": {
        "mean": 0.0834309,
        "bias": -0.0322356,
@@ -1771,9 +2057,9 @@
       }
      },
      "gain": {
-      "gain": 0.00999149,
-      "low": -0.0102301,
-      "high": 0.030644,
+      "gain": 0.00460324,
+      "low": -0.0261824,
+      "high": 0.0363352,
       "beyond_noise": false
      }
     }
@@ -1791,6 +2077,16 @@
      "rows": 9442,
      "label_mean": 0.0,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 7.55074e-05,
+       "bias": 7.55074e-05,
+       "pr_auc": null
+      },
+      "transformer-medium-pretrained": {
+       "mean": 9.60971e-05,
+       "bias": 9.60971e-05,
+       "pr_auc": null
+      },
       "transformer-medium-hand": {
        "mean": 6.37206e-06,
        "bias": 6.37206e-06,
@@ -1846,6 +2142,16 @@
      "rows": 4367,
      "label_mean": 0.0,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.000523608,
+       "bias": 0.000523608,
+       "pr_auc": null
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.000363138,
+       "bias": 0.000363138,
+       "pr_auc": null
+      },
       "transformer-medium-hand": {
        "mean": 0.000331949,
        "bias": 0.000331949,
@@ -1901,6 +2207,16 @@
      "rows": 6545,
      "label_mean": 0.0877005,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.082521,
+       "bias": -0.00517953,
+       "pr_auc": 0.260522
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0906688,
+       "bias": 0.00296827,
+       "pr_auc": 0.269627
+      },
       "transformer-medium-hand": {
        "mean": 0.0811488,
        "bias": -0.00655169,
@@ -1948,10 +2264,10 @@
       }
      },
      "gain": {
-      "gain": 0.00457958,
-      "low": -0.00874226,
-      "high": 0.0187768,
-      "beyond_noise": false
+      "gain": 0.019006,
+      "low": 0.000323559,
+      "high": 0.0421582,
+      "beyond_noise": true
      }
     },
     {
@@ -1961,6 +2277,16 @@
      "rows": 23235,
      "label_mean": 0.0751022,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0711698,
+       "bias": -0.0039324,
+       "pr_auc": 0.261393
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0747816,
+       "bias": -0.000320599,
+       "pr_auc": 0.261942
+      },
       "transformer-medium-hand": {
        "mean": 0.0708896,
        "bias": -0.00421264,
@@ -2008,9 +2334,9 @@
       }
      },
      "gain": {
-      "gain": 0.0107718,
-      "low": 0.00191479,
-      "high": 0.0205999,
+      "gain": 0.0249899,
+      "low": 0.0121214,
+      "high": 0.0377572,
       "beyond_noise": true
      }
     },
@@ -2021,6 +2347,16 @@
      "rows": 8077,
      "label_mean": 0.123932,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.118458,
+       "bias": -0.00547406,
+       "pr_auc": 0.331282
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.120574,
+       "bias": -0.0033581,
+       "pr_auc": 0.319764
+      },
       "transformer-medium-hand": {
        "mean": 0.12152,
        "bias": -0.0024126,
@@ -2068,9 +2404,9 @@
       }
      },
      "gain": {
-      "gain": 0.0198639,
-      "low": 0.0039389,
-      "high": 0.0375697,
+      "gain": 0.0451625,
+      "low": 0.0206382,
+      "high": 0.0692678,
       "beyond_noise": true
      }
     },
@@ -2081,6 +2417,16 @@
      "rows": 5223,
      "label_mean": 0.142638,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.133394,
+       "bias": -0.00924415,
+       "pr_auc": 0.301399
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.127772,
+       "bias": -0.0148665,
+       "pr_auc": 0.296702
+      },
       "transformer-medium-hand": {
        "mean": 0.138437,
        "bias": -0.00420153,
@@ -2128,9 +2474,9 @@
       }
      },
      "gain": {
-      "gain": 0.0118287,
-      "low": -0.00667567,
-      "high": 0.03161,
+      "gain": 0.0159169,
+      "low": -0.0112338,
+      "high": 0.0436673,
       "beyond_noise": false
      }
     },
@@ -2141,6 +2487,16 @@
      "rows": 11690,
      "label_mean": 0.0544055,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.05982,
+       "bias": 0.00541451,
+       "pr_auc": 0.220262
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0523473,
+       "bias": -0.00205816,
+       "pr_auc": 0.219458
+      },
       "transformer-medium-hand": {
        "mean": 0.0580693,
        "bias": 0.00366383,
@@ -2188,9 +2544,9 @@
       }
      },
      "gain": {
-      "gain": 0.0164152,
-      "low": -0.00213498,
-      "high": 0.0347111,
+      "gain": -0.00772736,
+      "low": -0.0341704,
+      "high": 0.0175547,
       "beyond_noise": false
      }
     }
@@ -2208,6 +2564,16 @@
      "rows": 13809,
      "label_mean": 0.0,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.000217216,
+       "bias": 0.000217216,
+       "pr_auc": null
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.000180547,
+       "bias": 0.000180547,
+       "pr_auc": null
+      },
       "transformer-medium-hand": {
        "mean": 0.000109333,
        "bias": 0.000109333,
@@ -2263,6 +2629,16 @@
      "rows": 54770,
      "label_mean": 0.0858317,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0830113,
+       "bias": -0.00282034,
+       "pr_auc": 0.277606
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0836981,
+       "bias": -0.00213352,
+       "pr_auc": 0.274713
+      },
       "transformer-medium-hand": {
        "mean": 0.0832872,
        "bias": -0.0025445,
@@ -2310,9 +2686,9 @@
       }
      },
      "gain": {
-      "gain": 0.0133171,
-      "low": 0.0075771,
-      "high": 0.0202309,
+      "gain": 0.0243176,
+      "low": 0.0155089,
+      "high": 0.0340183,
       "beyond_noise": true
      }
     }
@@ -2330,6 +2706,16 @@
      "rows": 13950,
      "label_mean": 0.0589247,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0534894,
+       "bias": -0.00543532,
+       "pr_auc": 0.266264
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0578549,
+       "bias": -0.00106986,
+       "pr_auc": 0.265406
+      },
       "transformer-medium-hand": {
        "mean": 0.0537797,
        "bias": -0.00514499,
@@ -2377,9 +2763,9 @@
       }
      },
      "gain": {
-      "gain": 0.0184988,
-      "low": 0.000748848,
-      "high": 0.0333486,
+      "gain": 0.0253693,
+      "low": 0.00565014,
+      "high": 0.0456811,
       "beyond_noise": true
      }
     },
@@ -2390,6 +2776,16 @@
      "rows": 14918,
      "label_mean": 0.0786298,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0752023,
+       "bias": -0.00342753,
+       "pr_auc": 0.267265
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0775462,
+       "bias": -0.00108365,
+       "pr_auc": 0.26058
+      },
       "transformer-medium-hand": {
        "mean": 0.0770962,
        "bias": -0.00153364,
@@ -2437,9 +2833,9 @@
       }
      },
      "gain": {
-      "gain": 0.0169582,
-      "low": 0.0068482,
-      "high": 0.0271501,
+      "gain": 0.0221939,
+      "low": 0.00569341,
+      "high": 0.0378182,
       "beyond_noise": true
      }
     },
@@ -2450,6 +2846,16 @@
      "rows": 12936,
      "label_mean": 0.0848794,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0784048,
+       "bias": -0.00647457,
+       "pr_auc": 0.302326
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0781968,
+       "bias": -0.00668258,
+       "pr_auc": 0.308167
+      },
       "transformer-medium-hand": {
        "mean": 0.0793095,
        "bias": -0.00556986,
@@ -2497,9 +2903,9 @@
       }
      },
      "gain": {
-      "gain": 0.0209051,
-      "low": 0.0084614,
-      "high": 0.0338058,
+      "gain": 0.0415772,
+      "low": 0.0227747,
+      "high": 0.0608099,
       "beyond_noise": true
      }
     },
@@ -2510,6 +2916,16 @@
      "rows": 15865,
      "label_mean": 0.0678853,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0696341,
+       "bias": 0.00174881,
+       "pr_auc": 0.284843
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0682158,
+       "bias": 0.000330503,
+       "pr_auc": 0.271099
+      },
       "transformer-medium-hand": {
        "mean": 0.0694494,
        "bias": 0.00156414,
@@ -2557,9 +2973,9 @@
       }
      },
      "gain": {
-      "gain": 0.0120139,
-      "low": 0.000659017,
-      "high": 0.0216705,
+      "gain": 0.0259864,
+      "low": 0.00852102,
+      "high": 0.0445151,
       "beyond_noise": true
      }
     },
@@ -2570,6 +2986,16 @@
      "rows": 6749,
      "label_mean": 0.0542303,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0567099,
+       "bias": 0.00247967,
+       "pr_auc": 0.294846
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.053136,
+       "bias": -0.0010943,
+       "pr_auc": 0.293162
+      },
       "transformer-medium-hand": {
        "mean": 0.054817,
        "bias": 0.000586774,
@@ -2617,9 +3043,9 @@
       }
      },
      "gain": {
-      "gain": 0.00312157,
-      "low": -0.0211732,
-      "high": 0.0261598,
+      "gain": 0.00561904,
+      "low": -0.0322887,
+      "high": 0.0442096,
       "beyond_noise": false
      }
     },
@@ -2630,6 +3056,16 @@
      "rows": 4161,
      "label_mean": 0.0396539,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.043201,
+       "bias": 0.00354704,
+       "pr_auc": 0.237729
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0409321,
+       "bias": 0.00127819,
+       "pr_auc": 0.244844
+      },
       "transformer-medium-hand": {
        "mean": 0.039672,
        "bias": 1.80976e-05,
@@ -2677,10 +3113,10 @@
       }
      },
      "gain": {
-      "gain": -0.0500977,
-      "low": -0.0880094,
-      "high": -0.0102714,
-      "beyond_noise": true
+      "gain": -0.0224374,
+      "low": -0.0797925,
+      "high": 0.0324918,
+      "beyond_noise": false
      }
     }
    ]
@@ -2697,6 +3133,16 @@
      "rows": 41279,
      "label_mean": 0.0632041,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.059342,
+       "bias": -0.00386205,
+       "pr_auc": 0.255799
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0617405,
+       "bias": -0.00146354,
+       "pr_auc": 0.255493
+      },
       "transformer-medium-hand": {
        "mean": 0.0588514,
        "bias": -0.00435266,
@@ -2744,9 +3190,9 @@
       }
      },
      "gain": {
-      "gain": 0.0111527,
-      "low": 0.00369797,
-      "high": 0.0198762,
+      "gain": 0.0247864,
+      "low": 0.0113391,
+      "high": 0.0383092,
       "beyond_noise": true
      }
     },
@@ -2757,6 +3203,16 @@
      "rows": 21433,
      "label_mean": 0.075771,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.075413,
+       "bias": -0.000358003,
+       "pr_auc": 0.290498
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0744719,
+       "bias": -0.00129909,
+       "pr_auc": 0.289263
+      },
       "transformer-medium-hand": {
        "mean": 0.0764484,
        "bias": 0.000677415,
@@ -2804,9 +3260,9 @@
       }
      },
      "gain": {
-      "gain": 0.0162169,
-      "low": 0.00334718,
-      "high": 0.02863,
+      "gain": 0.0188065,
+      "low": 0.00242768,
+      "high": 0.0369659,
       "beyond_noise": true
      }
     },
@@ -2817,6 +3273,16 @@
      "rows": 5001,
      "label_mean": 0.0793841,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0809177,
+       "bias": 0.00153353,
+       "pr_auc": 0.336863
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0751656,
+       "bias": -0.00421849,
+       "pr_auc": 0.312984
+      },
       "transformer-medium-hand": {
        "mean": 0.0834658,
        "bias": 0.00408166,
@@ -2864,10 +3330,10 @@
       }
      },
      "gain": {
-      "gain": 0.0134588,
-      "low": -0.00932086,
-      "high": 0.0364495,
-      "beyond_noise": false
+      "gain": 0.0333487,
+      "low": 0.00166469,
+      "high": 0.0633987,
+      "beyond_noise": true
      }
     },
     {
@@ -2877,6 +3343,16 @@
      "rows": 866,
      "label_mean": 0.0819861,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0911724,
+       "bias": 0.00918628,
+       "pr_auc": 0.439547
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0762053,
+       "bias": -0.00578085,
+       "pr_auc": 0.446961
+      },
       "transformer-medium-hand": {
        "mean": 0.0899415,
        "bias": 0.00795534,
@@ -2924,9 +3400,9 @@
       }
      },
      "gain": {
-      "gain": 0.0217223,
-      "low": -0.0210588,
-      "high": 0.0821816,
+      "gain": 0.0572881,
+      "low": -0.0139967,
+      "high": 0.147853,
       "beyond_noise": false
      }
     }
@@ -2944,6 +3420,16 @@
      "rows": 47113,
      "label_mean": 0.067943,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0653886,
+       "bias": -0.00255447,
+       "pr_auc": 0.274178
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0651238,
+       "bias": -0.00281927,
+       "pr_auc": 0.271929
+      },
       "transformer-medium-hand": {
        "mean": 0.065208,
        "bias": -0.00273499,
@@ -2991,9 +3477,9 @@
       }
      },
      "gain": {
-      "gain": 0.0154307,
-      "low": 0.00742488,
-      "high": 0.0241259,
+      "gain": 0.0251402,
+      "low": 0.0146372,
+      "high": 0.0366983,
       "beyond_noise": true
      }
     },
@@ -3004,6 +3490,16 @@
      "rows": 17063,
      "label_mean": 0.0697415,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.068031,
+       "bias": -0.00171056,
+       "pr_auc": 0.284952
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0703557,
+       "bias": 0.000614176,
+       "pr_auc": 0.285344
+      },
       "transformer-medium-hand": {
        "mean": 0.0686919,
        "bias": -0.00104969,
@@ -3051,10 +3547,10 @@
       }
      },
      "gain": {
-      "gain": 0.00919665,
-      "low": -0.00426627,
-      "high": 0.0215289,
-      "beyond_noise": false
+      "gain": 0.0199173,
+      "low": 0.00467873,
+      "high": 0.0379839,
+      "beyond_noise": true
      }
     },
     {
@@ -3064,6 +3560,16 @@
      "rows": 3761,
      "label_mean": 0.0688647,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0695714,
+       "bias": 0.000706753,
+       "pr_auc": 0.253342
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0724884,
+       "bias": 0.00362378,
+       "pr_auc": 0.261502
+      },
       "transformer-medium-hand": {
        "mean": 0.0712383,
        "bias": 0.00237367,
@@ -3111,9 +3617,9 @@
       }
      },
      "gain": {
-      "gain": -0.00544018,
-      "low": -0.0275671,
-      "high": 0.0190548,
+      "gain": 0.00474254,
+      "low": -0.0269212,
+      "high": 0.0372371,
       "beyond_noise": false
      }
     },
@@ -3124,6 +3630,16 @@
      "rows": 642,
      "label_mean": 0.0794393,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.072286,
+       "bias": -0.00715326,
+       "pr_auc": 0.458891
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0706477,
+       "bias": -0.00879155,
+       "pr_auc": 0.420013
+      },
       "transformer-medium-hand": {
        "mean": 0.0794151,
        "bias": -2.41493e-05,
@@ -3171,9 +3687,9 @@
       }
      },
      "gain": {
-      "gain": 0.0301184,
-      "low": -0.0431186,
-      "high": 0.100227,
+      "gain": 0.0725589,
+      "low": -0.0120442,
+      "high": 0.170818,
       "beyond_noise": false
      }
     }
@@ -3191,6 +3707,16 @@
      "rows": 63024,
      "label_mean": 0.0711316,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0686955,
+       "bias": -0.00243613,
+       "pr_auc": 0.280975
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0690405,
+       "bias": -0.0020911,
+       "pr_auc": 0.279545
+      },
       "transformer-medium-hand": {
        "mean": 0.0690933,
        "bias": -0.00203836,
@@ -3238,9 +3764,9 @@
       }
      },
      "gain": {
-      "gain": 0.0135691,
-      "low": 0.00770475,
-      "high": 0.0210576,
+      "gain": 0.0251591,
+      "low": 0.0152269,
+      "high": 0.0368124,
       "beyond_noise": true
      }
     },
@@ -3251,6 +3777,16 @@
      "rows": 5555,
      "label_mean": 0.0392439,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0396155,
+       "bias": 0.000371583,
+       "pr_auc": 0.208003
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0423816,
+       "bias": 0.00313769,
+       "pr_auc": 0.200614
+      },
       "transformer-medium-hand": {
        "mean": 0.0375541,
        "bias": -0.00168982,
@@ -3298,9 +3834,9 @@
       }
      },
      "gain": {
-      "gain": -0.00602789,
-      "low": -0.036834,
-      "high": 0.0185387,
+      "gain": -0.00238277,
+      "low": -0.0355522,
+      "high": 0.0286639,
       "beyond_noise": false
      }
     }
@@ -3318,6 +3854,16 @@
      "rows": 4276,
      "label_mean": 0.0301684,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0334563,
+       "bias": 0.00328787,
+       "pr_auc": 0.183356
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0348585,
+       "bias": 0.00469013,
+       "pr_auc": 0.192068
+      },
       "transformer-medium-hand": {
        "mean": 0.0325322,
        "bias": 0.00236381,
@@ -3365,9 +3911,9 @@
       }
      },
      "gain": {
-      "gain": -0.0175294,
-      "low": -0.0607509,
-      "high": 0.0191233,
+      "gain": -0.0288142,
+      "low": -0.0788183,
+      "high": 0.00951432,
       "beyond_noise": false
      }
     },
@@ -3378,6 +3924,16 @@
      "rows": 3433,
      "label_mean": 0.0483542,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0409806,
+       "bias": -0.00737363,
+       "pr_auc": 0.280326
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0416616,
+       "bias": -0.00669264,
+       "pr_auc": 0.263915
+      },
       "transformer-medium-hand": {
        "mean": 0.0358456,
        "bias": -0.0125086,
@@ -3425,9 +3981,9 @@
       }
      },
      "gain": {
-      "gain": 0.0171022,
-      "low": -0.0385767,
-      "high": 0.0596427,
+      "gain": 0.0579142,
+      "low": -0.000249772,
+      "high": 0.122945,
       "beyond_noise": false
      }
     },
@@ -3438,6 +3994,16 @@
      "rows": 6393,
      "label_mean": 0.0466135,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0464675,
+       "bias": -0.000145962,
+       "pr_auc": 0.242772
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0455647,
+       "bias": -0.0010488,
+       "pr_auc": 0.253496
+      },
       "transformer-medium-hand": {
        "mean": 0.0434513,
        "bias": -0.00316217,
@@ -3485,9 +4051,9 @@
       }
      },
      "gain": {
-      "gain": -0.0179165,
-      "low": -0.044961,
-      "high": 0.0102578,
+      "gain": -0.0309897,
+      "low": -0.0774223,
+      "high": 0.00482526,
       "beyond_noise": false
      }
     },
@@ -3498,6 +4064,16 @@
      "rows": 22311,
      "label_mean": 0.0644525,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0617208,
+       "bias": -0.00273174,
+       "pr_auc": 0.271227
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0641398,
+       "bias": -0.000312698,
+       "pr_auc": 0.263177
+      },
       "transformer-medium-hand": {
        "mean": 0.0613432,
        "bias": -0.00310932,
@@ -3545,10 +4121,10 @@
       }
      },
      "gain": {
-      "gain": 0.00491133,
-      "low": -0.00580736,
-      "high": 0.0147465,
-      "beyond_noise": false
+      "gain": 0.0278247,
+      "low": 0.0131079,
+      "high": 0.0436616,
+      "beyond_noise": true
      }
     },
     {
@@ -3558,6 +4134,16 @@
      "rows": 25536,
      "label_mean": 0.0811795,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0784622,
+       "bias": -0.00271727,
+       "pr_auc": 0.287406
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0788107,
+       "bias": -0.00236885,
+       "pr_auc": 0.289582
+      },
       "transformer-medium-hand": {
        "mean": 0.0802255,
        "bias": -0.000954041,
@@ -3605,9 +4191,9 @@
       }
      },
      "gain": {
-      "gain": 0.0227695,
-      "low": 0.0133228,
-      "high": 0.0296057,
+      "gain": 0.0263795,
+      "low": 0.0141998,
+      "high": 0.0412836,
       "beyond_noise": true
      }
     },
@@ -3618,6 +4204,16 @@
      "rows": 6630,
      "label_mean": 0.0900452,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0886959,
+       "bias": -0.00134936,
+       "pr_auc": 0.304784
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0844244,
+       "bias": -0.00562085,
+       "pr_auc": 0.302868
+      },
       "transformer-medium-hand": {
        "mean": 0.0913924,
        "bias": 0.00134715,
@@ -3665,9 +4261,9 @@
       }
      },
      "gain": {
-      "gain": 0.0162618,
-      "low": 0.00170055,
-      "high": 0.0344019,
+      "gain": 0.035267,
+      "low": 0.0118306,
+      "high": 0.0662678,
       "beyond_noise": true
      }
     }
@@ -3685,6 +4281,16 @@
      "rows": 4148,
      "label_mean": 0.0402604,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0409317,
+       "bias": 0.000671321,
+       "pr_auc": 0.196487
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0365361,
+       "bias": -0.00372422,
+       "pr_auc": 0.214975
+      },
       "transformer-medium-hand": {
        "mean": 0.0352136,
        "bias": -0.00504678,
@@ -3732,9 +4338,9 @@
       }
      },
      "gain": {
-      "gain": -0.0163035,
-      "low": -0.0797342,
-      "high": 0.0401838,
+      "gain": -0.018366,
+      "low": -0.0894016,
+      "high": 0.0408778,
       "beyond_noise": false
      }
     },
@@ -3745,6 +4351,16 @@
      "rows": 7579,
      "label_mean": 0.03734,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.042798,
+       "bias": 0.005458,
+       "pr_auc": 0.248058
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0415604,
+       "bias": 0.00422041,
+       "pr_auc": 0.228555
+      },
       "transformer-medium-hand": {
        "mean": 0.0419944,
        "bias": 0.00465439,
@@ -3792,9 +4408,9 @@
       }
      },
      "gain": {
-      "gain": -0.0132901,
-      "low": -0.0449464,
-      "high": 0.0208963,
+      "gain": 0.0191689,
+      "low": -0.0240294,
+      "high": 0.0596968,
       "beyond_noise": false
      }
     },
@@ -3805,6 +4421,16 @@
      "rows": 13919,
      "label_mean": 0.0706229,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0714504,
+       "bias": 0.000827498,
+       "pr_auc": 0.284861
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0707416,
+       "bias": 0.000118755,
+       "pr_auc": 0.284665
+      },
       "transformer-medium-hand": {
        "mean": 0.0694422,
        "bias": -0.00118072,
@@ -3852,9 +4478,9 @@
       }
      },
      "gain": {
-      "gain": 0.00890894,
-      "low": -0.00814488,
-      "high": 0.0224237,
+      "gain": 0.0141408,
+      "low": -0.00794906,
+      "high": 0.0338718,
       "beyond_noise": false
      }
     },
@@ -3865,6 +4491,16 @@
      "rows": 16671,
      "label_mean": 0.0764801,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.072299,
+       "bias": -0.00418108,
+       "pr_auc": 0.299871
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0720781,
+       "bias": -0.00440198,
+       "pr_auc": 0.286628
+      },
       "transformer-medium-hand": {
        "mean": 0.0736889,
        "bias": -0.00279118,
@@ -3912,9 +4548,9 @@
       }
      },
      "gain": {
-      "gain": 0.0234206,
-      "low": 0.0117977,
-      "high": 0.0341262,
+      "gain": 0.0331818,
+      "low": 0.0171926,
+      "high": 0.0480385,
       "beyond_noise": true
      }
     },
@@ -3925,6 +4561,16 @@
      "rows": 26262,
      "label_mean": 0.0758891,
      "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 0.0706558,
+       "bias": -0.00523327,
+       "pr_auc": 0.276549
+      },
+      "transformer-medium-pretrained": {
+       "mean": 0.0736362,
+       "bias": -0.0022529,
+       "pr_auc": 0.276047
+      },
       "transformer-medium-hand": {
        "mean": 0.0724915,
        "bias": -0.00339761,
@@ -3972,9 +4618,9 @@
       }
      },
      "gain": {
-      "gain": 0.0157936,
-      "low": 0.00695784,
-      "high": 0.0239323,
+      "gain": 0.0315704,
+      "low": 0.0183569,
+      "high": 0.044732,
       "beyond_noise": true
      }
     }
@@ -4014,6 +4660,8 @@
       "rows": 47,
       "label_mean": 0.0851064,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0499557,
+       "transformer-medium-pretrained": 0.0478461,
        "transformer-medium-hand": 0.0508014,
        "transformer-medium-hand-long": 0.0465263,
        "gbm-hand": 0.0494039,
@@ -4031,6 +4679,8 @@
       "rows": 70,
       "label_mean": 0.128571,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0696194,
+       "transformer-medium-pretrained": 0.086594,
        "transformer-medium-hand": 0.0932327,
        "transformer-medium-hand-long": 0.0948998,
        "gbm-hand": 0.090348,
@@ -4048,6 +4698,8 @@
       "rows": 112,
       "label_mean": 0.0535714,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0609372,
+       "transformer-medium-pretrained": 0.0506659,
        "transformer-medium-hand": 0.0647684,
        "transformer-medium-hand-long": 0.0627982,
        "gbm-hand": 0.0586961,
@@ -4065,6 +4717,8 @@
       "rows": 936,
       "label_mean": 0.0662393,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0654853,
+       "transformer-medium-pretrained": 0.0651663,
        "transformer-medium-hand": 0.0709156,
        "transformer-medium-hand-long": 0.0685221,
        "gbm-hand": 0.0650612,
@@ -4082,6 +4736,8 @@
       "rows": 9547,
       "label_mean": 0.111134,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0944077,
+       "transformer-medium-pretrained": 0.0976155,
        "transformer-medium-hand": 0.102096,
        "transformer-medium-hand-long": 0.103948,
        "gbm-hand": 0.101105,
@@ -4101,6 +4757,8 @@
       "rows": 102,
       "label_mean": 0.0588235,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0946806,
+       "transformer-medium-pretrained": 0.0915651,
        "transformer-medium-hand": 0.0924638,
        "transformer-medium-hand-long": 0.0950796,
        "gbm-hand": 0.0673657,
@@ -4118,6 +4776,8 @@
       "rows": 136,
       "label_mean": 0.102941,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0852141,
+       "transformer-medium-pretrained": 0.0862961,
        "transformer-medium-hand": 0.0885463,
        "transformer-medium-hand-long": 0.0971801,
        "gbm-hand": 0.0914864,
@@ -4135,6 +4795,8 @@
       "rows": 270,
       "label_mean": 0.0444444,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0631031,
+       "transformer-medium-pretrained": 0.0667328,
        "transformer-medium-hand": 0.0696554,
        "transformer-medium-hand-long": 0.0731042,
        "gbm-hand": 0.0700855,
@@ -4152,6 +4814,8 @@
       "rows": 1471,
       "label_mean": 0.0666213,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0685883,
+       "transformer-medium-pretrained": 0.0659792,
        "transformer-medium-hand": 0.0705842,
        "transformer-medium-hand-long": 0.0705859,
        "gbm-hand": 0.0664831,
@@ -4169,6 +4833,8 @@
       "rows": 14695,
       "label_mean": 0.0798911,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0737889,
+       "transformer-medium-pretrained": 0.075516,
        "transformer-medium-hand": 0.0776182,
        "transformer-medium-hand-long": 0.0786171,
        "gbm-hand": 0.0777278,
@@ -4188,6 +4854,8 @@
       "rows": 177,
       "label_mean": 0.101695,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0660843,
+       "transformer-medium-pretrained": 0.0626345,
        "transformer-medium-hand": 0.0600312,
        "transformer-medium-hand-long": 0.0730015,
        "gbm-hand": 0.0565884,
@@ -4205,6 +4873,8 @@
       "rows": 206,
       "label_mean": 0.0873786,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0759365,
+       "transformer-medium-pretrained": 0.0839622,
        "transformer-medium-hand": 0.0819662,
        "transformer-medium-hand-long": 0.0831722,
        "gbm-hand": 0.0693026,
@@ -4222,6 +4892,8 @@
       "rows": 380,
       "label_mean": 0.0526316,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0683154,
+       "transformer-medium-pretrained": 0.0654022,
        "transformer-medium-hand": 0.066585,
        "transformer-medium-hand-long": 0.0676029,
        "gbm-hand": 0.0598058,
@@ -4239,6 +4911,8 @@
       "rows": 1961,
       "label_mean": 0.0535441,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0592774,
+       "transformer-medium-pretrained": 0.056979,
        "transformer-medium-hand": 0.0598127,
        "transformer-medium-hand-long": 0.0588629,
        "gbm-hand": 0.0562266,
@@ -4256,6 +4930,8 @@
       "rows": 16890,
       "label_mean": 0.0625814,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0634521,
+       "transformer-medium-pretrained": 0.0655643,
        "transformer-medium-hand": 0.0618998,
        "transformer-medium-hand-long": 0.061661,
        "gbm-hand": 0.0635746,
@@ -4275,6 +4951,8 @@
       "rows": 223,
       "label_mean": 0.044843,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0646417,
+       "transformer-medium-pretrained": 0.0620627,
        "transformer-medium-hand": 0.0629485,
        "transformer-medium-hand-long": 0.0749115,
        "gbm-hand": 0.0533818,
@@ -4292,6 +4970,8 @@
       "rows": 218,
       "label_mean": 0.0688073,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0644654,
+       "transformer-medium-pretrained": 0.0596075,
        "transformer-medium-hand": 0.0606344,
        "transformer-medium-hand-long": 0.062035,
        "gbm-hand": 0.060477,
@@ -4309,6 +4989,8 @@
       "rows": 406,
       "label_mean": 0.0517241,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0509585,
+       "transformer-medium-pretrained": 0.0514947,
        "transformer-medium-hand": 0.0506597,
        "transformer-medium-hand-long": 0.0523798,
        "gbm-hand": 0.0529999,
@@ -4326,6 +5008,8 @@
       "rows": 1711,
       "label_mean": 0.0625365,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0614364,
+       "transformer-medium-pretrained": 0.0594183,
        "transformer-medium-hand": 0.0562918,
        "transformer-medium-hand-long": 0.0549573,
        "gbm-hand": 0.0522968,
@@ -4343,6 +5027,8 @@
       "rows": 11895,
       "label_mean": 0.0515343,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0538129,
+       "transformer-medium-pretrained": 0.053519,
        "transformer-medium-hand": 0.050007,
        "transformer-medium-hand-long": 0.0482456,
        "gbm-hand": 0.0506524,
@@ -4362,6 +5048,8 @@
       "rows": 169,
       "label_mean": 0.0295858,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0449711,
+       "transformer-medium-pretrained": 0.0387188,
        "transformer-medium-hand": 0.0397622,
        "transformer-medium-hand-long": 0.0441672,
        "gbm-hand": 0.0368276,
@@ -4379,6 +5067,8 @@
       "rows": 147,
       "label_mean": 0.0952381,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0699644,
+       "transformer-medium-pretrained": 0.0686435,
        "transformer-medium-hand": 0.0579039,
        "transformer-medium-hand-long": 0.0560616,
        "gbm-hand": 0.0624396,
@@ -4396,6 +5086,8 @@
       "rows": 288,
       "label_mean": 0.0347222,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0511521,
+       "transformer-medium-pretrained": 0.0426384,
        "transformer-medium-hand": 0.0398207,
        "transformer-medium-hand-long": 0.0379918,
        "gbm-hand": 0.0435572,
@@ -4413,6 +5105,8 @@
       "rows": 1135,
       "label_mean": 0.0361233,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0488956,
+       "transformer-medium-pretrained": 0.0420324,
        "transformer-medium-hand": 0.0437666,
        "transformer-medium-hand-long": 0.0410205,
        "gbm-hand": 0.0395775,
@@ -4430,6 +5124,8 @@
       "rows": 5387,
       "label_mean": 0.037312,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0418844,
+       "transformer-medium-pretrained": 0.0369188,
        "transformer-medium-hand": 0.0353149,
        "transformer-medium-hand-long": 0.03303,
        "gbm-hand": 0.0331342,
@@ -4476,6 +5172,8 @@
       "rows": 2821,
       "label_mean": 0.0,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.000298128,
+       "transformer-medium-pretrained": 0.000201771,
        "transformer-medium-hand": 0.00015128,
        "transformer-medium-hand-long": 0.00028202,
        "gbm-hand": 2.70619e-05,
@@ -4493,6 +5191,8 @@
       "rows": 984,
       "label_mean": 0.142276,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.123274,
+       "transformer-medium-pretrained": 0.137469,
        "transformer-medium-hand": 0.126581,
        "transformer-medium-hand-long": 0.136004,
        "gbm-hand": 0.135163,
@@ -4510,6 +5210,8 @@
       "rows": 2216,
       "label_mean": 0.15704,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.126152,
+       "transformer-medium-pretrained": 0.141528,
        "transformer-medium-hand": 0.139778,
        "transformer-medium-hand-long": 0.148688,
        "gbm-hand": 0.145914,
@@ -4527,6 +5229,8 @@
       "rows": 1159,
       "label_mean": 0.203624,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.175577,
+       "transformer-medium-pretrained": 0.189473,
        "transformer-medium-hand": 0.191259,
        "transformer-medium-hand-long": 0.200271,
        "gbm-hand": 0.198805,
@@ -4544,6 +5248,8 @@
       "rows": 3532,
       "label_mean": 0.118347,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.105171,
+       "transformer-medium-pretrained": 0.0956545,
        "transformer-medium-hand": 0.113492,
        "transformer-medium-hand-long": 0.106502,
        "gbm-hand": 0.100375,
@@ -4563,6 +5269,8 @@
       "rows": 3821,
       "label_mean": 0.0,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.000197052,
+       "transformer-medium-pretrained": 0.000161434,
        "transformer-medium-hand": 0.000100746,
        "transformer-medium-hand-long": 0.000161982,
        "gbm-hand": 2.6903e-05,
@@ -4580,6 +5288,8 @@
       "rows": 1538,
       "label_mean": 0.0975293,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0913784,
+       "transformer-medium-pretrained": 0.101683,
        "transformer-medium-hand": 0.0944226,
        "transformer-medium-hand-long": 0.0959834,
        "gbm-hand": 0.0983483,
@@ -4597,6 +5307,8 @@
       "rows": 4844,
       "label_mean": 0.0970273,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0875016,
+       "transformer-medium-pretrained": 0.0944672,
        "transformer-medium-hand": 0.0938604,
        "transformer-medium-hand-long": 0.0984052,
        "gbm-hand": 0.0985726,
@@ -4614,6 +5326,8 @@
       "rows": 1954,
       "label_mean": 0.145343,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.134113,
+       "transformer-medium-pretrained": 0.138375,
        "transformer-medium-hand": 0.142789,
        "transformer-medium-hand-long": 0.145556,
        "gbm-hand": 0.146927,
@@ -4631,6 +5345,8 @@
       "rows": 4517,
       "label_mean": 0.0885544,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0877349,
+       "transformer-medium-pretrained": 0.079891,
        "transformer-medium-hand": 0.0897569,
        "transformer-medium-hand-long": 0.0868784,
        "gbm-hand": 0.0802081,
@@ -4650,6 +5366,8 @@
       "rows": 3866,
       "label_mean": 0.0,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.00016735,
+       "transformer-medium-pretrained": 0.000196883,
        "transformer-medium-hand": 8.15879e-05,
        "transformer-medium-hand-long": 0.000141438,
        "gbm-hand": 2.70557e-05,
@@ -4667,6 +5385,8 @@
       "rows": 1937,
       "label_mean": 0.0851833,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0753359,
+       "transformer-medium-pretrained": 0.0846015,
        "transformer-medium-hand": 0.0722758,
        "transformer-medium-hand-long": 0.069984,
        "gbm-hand": 0.0766011,
@@ -4684,6 +5404,8 @@
       "rows": 6761,
       "label_mean": 0.0681852,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0698567,
+       "transformer-medium-pretrained": 0.074315,
        "transformer-medium-hand": 0.0682368,
        "transformer-medium-hand-long": 0.0702859,
        "gbm-hand": 0.0727557,
@@ -4701,6 +5423,8 @@
       "rows": 2341,
       "label_mean": 0.109355,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.112536,
+       "transformer-medium-pretrained": 0.114759,
        "transformer-medium-hand": 0.112414,
        "transformer-medium-hand-long": 0.108593,
        "gbm-hand": 0.110977,
@@ -4718,6 +5442,8 @@
       "rows": 4709,
       "label_mean": 0.0713527,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0762217,
+       "transformer-medium-pretrained": 0.0714852,
        "transformer-medium-hand": 0.074489,
        "transformer-medium-hand-long": 0.0737104,
        "gbm-hand": 0.0702646,
@@ -4737,6 +5463,8 @@
       "rows": 2299,
       "label_mean": 0.0,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.000225755,
+       "transformer-medium-pretrained": 0.000176219,
        "transformer-medium-hand": 9.35765e-05,
        "transformer-medium-hand-long": 0.000137285,
        "gbm-hand": 2.79062e-05,
@@ -4754,6 +5482,8 @@
       "rows": 1419,
       "label_mean": 0.0577872,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0656028,
+       "transformer-medium-pretrained": 0.0703668,
        "transformer-medium-hand": 0.0619239,
        "transformer-medium-hand-long": 0.0563486,
        "gbm-hand": 0.0626419,
@@ -4771,6 +5501,8 @@
       "rows": 6120,
       "label_mean": 0.0550654,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0547543,
+       "transformer-medium-pretrained": 0.0551585,
        "transformer-medium-hand": 0.0497398,
        "transformer-medium-hand-long": 0.0499165,
        "gbm-hand": 0.0528672,
@@ -4788,6 +5520,8 @@
       "rows": 1816,
       "label_mean": 0.097467,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0947843,
+       "transformer-medium-pretrained": 0.0924212,
        "transformer-medium-hand": 0.0914932,
        "transformer-medium-hand-long": 0.0848071,
        "gbm-hand": 0.0860695,
@@ -4805,6 +5539,8 @@
       "rows": 2799,
       "label_mean": 0.060736,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0691483,
+       "transformer-medium-pretrained": 0.0644342,
        "transformer-medium-hand": 0.064426,
        "transformer-medium-hand-long": 0.0641784,
        "gbm-hand": 0.0606622,
@@ -4824,6 +5560,8 @@
       "rows": 1002,
       "label_mean": 0.0,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.000239118,
+       "transformer-medium-pretrained": 0.000140582,
        "transformer-medium-hand": 0.000167189,
        "transformer-medium-hand-long": 0.00014639,
        "gbm-hand": 2.71128e-05,
@@ -4841,6 +5579,8 @@
       "rows": 667,
       "label_mean": 0.0554723,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0588343,
+       "transformer-medium-pretrained": 0.0570402,
        "transformer-medium-hand": 0.0501844,
        "transformer-medium-hand-long": 0.0426162,
        "gbm-hand": 0.0504372,
@@ -4858,6 +5598,8 @@
       "rows": 3294,
       "label_mean": 0.0391621,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0433587,
+       "transformer-medium-pretrained": 0.038346,
        "transformer-medium-hand": 0.0355055,
        "transformer-medium-hand-long": 0.0345083,
        "gbm-hand": 0.0346923,
@@ -4875,6 +5617,8 @@
       "rows": 807,
       "label_mean": 0.0594796,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.068973,
+       "transformer-medium-pretrained": 0.0587438,
        "transformer-medium-hand": 0.063841,
        "transformer-medium-hand-long": 0.0553557,
        "gbm-hand": 0.0533086,
@@ -4892,6 +5636,8 @@
       "rows": 1356,
       "label_mean": 0.0420354,
       "runs": {
+       "transformer-medium-hand-pretrained": 0.0558834,
+       "transformer-medium-pretrained": 0.0469009,
        "transformer-medium-hand": 0.0475673,
        "transformer-medium-hand-long": 0.0473627,
        "gbm-hand": 0.0445398,
@@ -4917,6 +5663,8 @@
     },
     "label": 0.0,
     "predicted": {
+     "transformer-medium-hand-pretrained": 0.116236,
+     "transformer-medium-pretrained": 0.14594,
      "transformer-medium-hand": 0.111653,
      "transformer-medium-hand-long": 0.107175,
      "gbm-hand": 0.191968,
@@ -4947,6 +5695,8 @@
     },
     "label": 0.0,
     "predicted": {
+     "transformer-medium-hand-pretrained": 0.248444,
+     "transformer-medium-pretrained": 0.360406,
      "transformer-medium-hand": 0.300829,
      "transformer-medium-hand-long": 0.234045,
      "gbm-hand": 0.402861,
@@ -4977,6 +5727,8 @@
     },
     "label": 0.0,
     "predicted": {
+     "transformer-medium-hand-pretrained": 0.00746098,
+     "transformer-medium-pretrained": 0.0143222,
      "transformer-medium-hand": 0.00985356,
      "transformer-medium-hand-long": 0.0151469,
      "gbm-hand": 0.0116289,
@@ -5002,341 +5754,299 @@
   ],
   "highest": [
    {
-    "fen": "rnb4r/pp5p/2p2b1n/q1kp3Q/4p3/2P5/PP3PPP/RN2KBNR b KQ - 0 14",
+    "fen": "7R/2p1B2P/2k5/4p1N1/1pK5/1P4p1/8/7q w - - 2 45",
     "moves": {
-     "last_move": "c2c3",
-     "move": "b8d7"
+     "last_move": "h3h1",
+     "move": "h8f8"
     },
     "label": 1.0,
     "predicted": {
-     "transformer-medium-hand": 0.534158,
-     "transformer-medium-hand-long": 0.489729,
-     "gbm-hand": 0.633622,
-     "transformer-medium": 0.43765,
-     "conv-small": 0.434179,
-     "transformer-small": 0.432881,
-     "transformer-medium-long": 0.408586,
-     "gbm-context": 0.313966,
+     "transformer-medium-hand-pretrained": 0.631303,
+     "transformer-medium-pretrained": 0.611303,
+     "transformer-medium-hand": 0.418469,
+     "transformer-medium-hand-long": 0.422714,
+     "gbm-hand": 0.426433,
+     "transformer-medium": 0.42839,
+     "conv-small": 0.405878,
+     "transformer-small": 0.395993,
+     "transformer-medium-long": 0.444995,
+     "gbm-context": 0.399206,
      "constant": 0.0654027
     },
     "show": {
-     "mover_elo": 468,
-     "opponent_elo": 636,
-     "clock": 477.0,
-     "opponent_clock": 471.0,
+     "mover_elo": 896,
+     "opponent_elo": 913,
+     "clock": 342.0,
+     "opponent_clock": 37.0,
      "base": 600,
-     "increment": 0,
-     "spent": 19.0,
-     "win_before": 74.0658,
-     "win_after": 8.83106
+     "increment": 5,
+     "spent": 5.0,
+     "win_before": 37.0466,
+     "win_after": 9.50538
     }
    },
    {
-    "fen": "1n1k3N/3r2pp/8/2pn4/3qP1b1/3Q4/PPPK1bPP/R1B4R w - - 0 18",
+    "fen": "1r3r2/p3N1kp/6p1/5pN1/7q/P3QPb1/1p2KRP1/1R6 w - - 1 30",
     "moves": {
-     "last_move": "e7d5",
-     "move": "c2c4"
+     "last_move": "g8g7",
+     "move": "e3e5"
     },
     "label": 1.0,
     "predicted": {
-     "transformer-medium-hand": 0.534034,
-     "transformer-medium-hand-long": 0.480196,
-     "gbm-hand": 0.685423,
-     "transformer-medium": 0.474768,
-     "conv-small": 0.464191,
-     "transformer-small": 0.455141,
-     "transformer-medium-long": 0.412175,
-     "gbm-context": 0.281229,
+     "transformer-medium-hand-pretrained": 0.5932,
+     "transformer-medium-pretrained": 0.61274,
+     "transformer-medium-hand": 0.457618,
+     "transformer-medium-hand-long": 0.471567,
+     "gbm-hand": 0.349011,
+     "transformer-medium": 0.466753,
+     "conv-small": 0.469432,
+     "transformer-small": 0.45101,
+     "transformer-medium-long": 0.417857,
+     "gbm-context": 0.28533,
      "constant": 0.0654027
     },
     "show": {
-     "mover_elo": 745,
-     "opponent_elo": 797,
-     "clock": 482.0,
-     "opponent_clock": 433.0,
+     "mover_elo": 844,
+     "opponent_elo": 886,
+     "clock": 241.0,
+     "opponent_clock": 329.0,
      "base": 600,
      "increment": 0,
-     "spent": 22.0,
-     "win_before": 51.1964,
+     "spent": 5.0,
+     "win_before": 52.2997,
      "win_after": 2.45526
     }
    },
    {
-    "fen": "1n1k3N/r3nBpp/5q2/1pp5/4P1b1/8/PPPK1bPP/R1B2Q1R w - - 0 15",
+    "fen": "r2r1bk1/pp1b1Rp1/2p1p2B/4P2Q/3P3R/2P3P1/2q4P/6K1 b - - 1 21",
     "moves": {
-     "last_move": "a6b5",
-     "move": "f1b5"
+     "last_move": "d2h6",
+     "move": "g7h6"
     },
     "label": 1.0,
     "predicted": {
-     "transformer-medium-hand": 0.53228,
-     "transformer-medium-hand-long": 0.48747,
-     "gbm-hand": 0.708383,
-     "transformer-medium": 0.46273,
-     "conv-small": 0.448505,
-     "transformer-small": 0.454202,
-     "transformer-medium-long": 0.451314,
-     "gbm-context": 0.330451,
+     "transformer-medium-hand-pretrained": 0.589532,
+     "transformer-medium-pretrained": 0.564235,
+     "transformer-medium-hand": 0.511715,
+     "transformer-medium-hand-long": 0.484369,
+     "gbm-hand": 0.723708,
+     "transformer-medium": 0.3135,
+     "conv-small": 0.325912,
+     "transformer-small": 0.269249,
+     "transformer-medium-long": 0.335301,
+     "gbm-context": 0.139624,
      "constant": 0.0654027
     },
     "show": {
-     "mover_elo": 745,
-     "opponent_elo": 797,
-     "clock": 499.0,
-     "opponent_clock": 485.0,
+     "mover_elo": 1601,
+     "opponent_elo": 1514,
+     "clock": 550.0,
+     "opponent_clock": 227.0,
      "base": 600,
-     "increment": 0,
-     "spent": 1.0,
-     "win_before": 46.966,
+     "increment": 5,
+     "spent": 31.0,
+     "win_before": 50.0,
      "win_after": 2.45526
     }
    }
   ],
   "lowest": [
    {
-    "fen": "rnb2rk1/1pp2pp1/p2p2n1/3Pp3/2B1P3/2b5/PPP1RPPP/5RK1 w - - 0 15",
+    "fen": "8/6pp/1p6/1P1pp3/Pk4P1/3K3P/8/8 w - - 1 39",
     "moves": {
-     "last_move": "d2c3",
-     "move": "b2c3"
+     "last_move": "c5b4",
+     "move": "a4a5"
     },
     "label": 0.0,
     "predicted": {
-     "transformer-medium-hand": 2.32821e-06,
-     "transformer-medium-hand-long": 1.53919e-05,
-     "gbm-hand": 1.41674e-05,
-     "transformer-medium": 1.72651e-06,
+     "transformer-medium-hand-pretrained": 3.47869e-05,
+     "transformer-medium-pretrained": 7.69238e-05,
+     "transformer-medium-hand": 4.30447e-06,
+     "transformer-medium-hand-long": 1.87814e-05,
+     "gbm-hand": 3.50612e-05,
+     "transformer-medium": 2.41632e-06,
      "conv-small": 9.92476e-07,
-     "transformer-small": 2.2144e-06,
-     "transformer-medium-long": 3.09695e-06,
-     "gbm-context": 0.000613642,
+     "transformer-small": 5.09185e-06,
+     "transformer-medium-long": 2.91856e-06,
+     "gbm-context": 0.000515621,
      "constant": 0.0654027
     },
     "show": {
-     "mover_elo": 1219,
-     "opponent_elo": 1218,
-     "clock": 498.0,
-     "opponent_clock": 561.0,
+     "mover_elo": 1785,
+     "opponent_elo": 1782,
+     "clock": 468.0,
+     "opponent_clock": 497.0,
      "base": 600,
      "increment": 0,
+     "spent": 4.0,
+     "win_before": 2.45526,
+     "win_after": 2.45526
+    }
+   },
+   {
+    "fen": "r4Bk1/p4ppp/1p6/2P5/1P1q4/P5PP/2P5/R5K1 w - - 1 24",
+    "moves": {
+     "last_move": "e4d4",
+     "move": "g1g2"
+    },
+    "label": 0.0,
+    "predicted": {
+     "transformer-medium-hand-pretrained": 3.54604e-05,
+     "transformer-medium-pretrained": 7.69238e-05,
+     "transformer-medium-hand": 4.66211e-06,
+     "transformer-medium-hand-long": 1.6207e-05,
+     "gbm-hand": 2.05699e-05,
+     "transformer-medium": 3.30511e-06,
+     "conv-small": 9.92476e-07,
+     "transformer-small": 2.16134e-06,
+     "transformer-medium-long": 2.12165e-06,
+     "gbm-context": 0.000609242,
+     "constant": 0.0654027
+    },
+    "show": {
+     "mover_elo": 1266,
+     "opponent_elo": 1346,
+     "clock": 346.0,
+     "opponent_clock": 380.0,
+     "base": 600,
+     "increment": 0,
+     "spent": 5.0,
+     "win_before": 2.45526,
+     "win_after": 2.45526
+    }
+   },
+   {
+    "fen": "8/5pp1/3k3p/R4p2/3K4/P7/b4PPP/8 b - - 0 31",
+    "moves": {
+     "last_move": "d3d4",
+     "move": "a2b3"
+    },
+    "label": 0.0,
+    "predicted": {
+     "transformer-medium-hand-pretrained": 3.54604e-05,
+     "transformer-medium-pretrained": 6.94035e-05,
+     "transformer-medium-hand": 5.29714e-06,
+     "transformer-medium-hand-long": 2.22513e-05,
+     "gbm-hand": 3.05716e-05,
+     "transformer-medium": 3.54035e-06,
+     "conv-small": 9.92476e-07,
+     "transformer-small": 3.18599e-06,
+     "transformer-medium-long": 4.07478e-06,
+     "gbm-context": 0.000537499,
+     "constant": 0.0654027
+    },
+    "show": {
+     "mover_elo": 1651,
+     "opponent_elo": 1691,
+     "clock": 341.0,
+     "opponent_clock": 102.0,
+     "base": 600,
+     "increment": 5,
      "spent": 2.0,
-     "win_before": 4.29428,
-     "win_after": 4.33991
-    }
-   },
-   {
-    "fen": "5rk1/2pbnppp/1p2p3/r2pP3/p2P4/2PB1N2/P4PPP/RNB2RK1 b - - 5 15",
-    "moves": {
-     "last_move": "e1g1",
-     "move": "d7b5"
-    },
-    "label": 0.0,
-    "predicted": {
-     "transformer-medium-hand": 2.34686e-06,
-     "transformer-medium-hand-long": 1.38827e-05,
-     "gbm-hand": 2.88566e-05,
-     "transformer-medium": 1.55138e-06,
-     "conv-small": 9.92476e-07,
-     "transformer-small": 1.75162e-06,
-     "transformer-medium-long": 2.96217e-06,
-     "gbm-context": 0.000668629,
-     "constant": 0.0654027
-    },
-    "show": {
-     "mover_elo": 952,
-     "opponent_elo": 960,
-     "clock": 541.0,
-     "opponent_clock": 510.0,
-     "base": 600,
-     "increment": 0,
-     "spent": 3.0,
-     "win_before": 4.55903,
-     "win_after": 4.43256
-    }
-   },
-   {
-    "fen": "rnb2rk1/1pp2pp1/p2p2n1/3Pp3/2B1P3/2N5/PPPb1PPP/4RRK1 w - - 2 14",
-    "moves": {
-     "last_move": "g5d2",
-     "move": "e1e2"
-    },
-    "label": 0.0,
-    "predicted": {
-     "transformer-medium-hand": 2.36567e-06,
-     "transformer-medium-hand-long": 1.31845e-05,
-     "gbm-hand": 2.14782e-05,
-     "transformer-medium": 1.82135e-06,
-     "conv-small": 9.92476e-07,
-     "transformer-small": 2.09257e-06,
-     "transformer-medium-long": 3.00643e-06,
-     "gbm-context": 0.000639572,
-     "constant": 0.0654027
-    },
-    "show": {
-     "mover_elo": 1219,
-     "opponent_elo": 1218,
-     "clock": 499.0,
-     "opponent_clock": 564.0,
-     "base": 600,
-     "increment": 0,
-     "spent": 1.0,
-     "win_before": 3.82172,
-     "win_after": 3.6756
+     "win_before": 7.82047,
+     "win_after": 6.79915
     }
    }
   ],
   "surprised-no": [
    {
-    "fen": "5rk1/2Q1bppp/8/4P3/8/4B1P1/PPP1KP1P/RN1r3q w - - 5 20",
+    "fen": "rn2k1nr/pppb1ppp/1b2p3/3p2B1/1P1P2P1/2PB1q2/P2Q1P2/RN2R1K1 w kq - 0 15",
     "moves": {
-     "last_move": "e4h1",
-     "move": "c7e7"
+     "last_move": "h3f3",
+     "move": "e1e3"
     },
     "label": 0.0,
     "predicted": {
-     "transformer-medium-hand": 0.515142,
-     "transformer-medium-hand-long": 0.481867,
-     "gbm-hand": 0.566058,
-     "transformer-medium": 0.168943,
-     "conv-small": 0.228384,
-     "transformer-small": 0.248513,
-     "transformer-medium-long": 0.25851,
-     "gbm-context": 0.178302,
+     "transformer-medium-hand-pretrained": 0.566148,
+     "transformer-medium-pretrained": 0.476759,
+     "transformer-medium-hand": 0.386452,
+     "transformer-medium-hand-long": 0.489441,
+     "gbm-hand": 0.500375,
+     "transformer-medium": 0.28781,
+     "conv-small": 0.234463,
+     "transformer-small": 0.260786,
+     "transformer-medium-long": 0.284155,
+     "gbm-context": 0.231113,
      "constant": 0.0654027
     },
     "show": {
-     "mover_elo": 1250,
-     "opponent_elo": 1266,
-     "clock": 402.0,
-     "opponent_clock": 368.0,
+     "mover_elo": 928,
+     "opponent_elo": 1014,
+     "clock": 471.0,
+     "opponent_clock": 510.0,
      "base": 600,
      "increment": 0,
-     "spent": 13.0,
-     "win_before": 32.0572,
-     "win_after": 29.089
+     "spent": 18.0,
+     "win_before": 37.3907,
+     "win_after": 37.5633
     }
    },
    {
-    "fen": "r3q1k1/p1p4p/3b2r1/8/5pb1/5Q2/PPPNNK2/R1B2R2 w - - 0 23",
+    "fen": "r1b3k1/3r1ppp/pp2pP2/1q6/5B2/6Q1/P1n2PBP/5RK1 b - - 0 26",
     "moves": {
-     "last_move": "e6g4",
-     "move": "f3d5"
+     "last_move": "g5f6",
+     "move": "g7g6"
     },
     "label": 0.0,
     "predicted": {
-     "transformer-medium-hand": 0.511193,
-     "transformer-medium-hand-long": 0.48012,
-     "gbm-hand": 0.686435,
-     "transformer-medium": 0.439737,
-     "conv-small": 0.451768,
-     "transformer-small": 0.428359,
-     "transformer-medium-long": 0.419606,
-     "gbm-context": 0.300957,
+     "transformer-medium-hand-pretrained": 0.539688,
+     "transformer-medium-pretrained": 0.507003,
+     "transformer-medium-hand": 0.422724,
+     "transformer-medium-hand-long": 0.35486,
+     "gbm-hand": 0.433737,
+     "transformer-medium": 0.2744,
+     "conv-small": 0.340446,
+     "transformer-small": 0.329167,
+     "transformer-medium-long": 0.320289,
+     "gbm-context": 0.23853,
      "constant": 0.0654027
     },
     "show": {
-     "mover_elo": 1180,
-     "opponent_elo": 1151,
-     "clock": 388.0,
-     "opponent_clock": 413.0,
+     "mover_elo": 1333,
+     "opponent_elo": 1298,
+     "clock": 331.0,
+     "opponent_clock": 209.0,
      "base": 600,
      "increment": 0,
      "spent": 3.0,
-     "win_before": 46.691,
-     "win_after": 44.4083
+     "win_before": 73.9241,
+     "win_after": 72.9909
     }
    },
    {
-    "fen": "8/ppkb1p2/2P5/8/B1Q5/7r/PPP1RK2/RN1q4 b - - 4 35",
+    "fen": "r1b1kr2/1pp2Npp/p1n5/2b1p1Bq/4p1n1/1B1P3P/PPP2PP1/RN1Q1RK1 w q - 3 13",
     "moves": {
-     "last_move": "e3f2",
-     "move": "h3h2"
+     "last_move": "h4h5",
+     "move": "d3e4"
     },
     "label": 0.0,
     "predicted": {
-     "transformer-medium-hand": 0.505497,
-     "transformer-medium-hand-long": 0.486542,
-     "gbm-hand": 0.613623,
-     "transformer-medium": 0.455378,
-     "conv-small": 0.428132,
-     "transformer-small": 0.440338,
-     "transformer-medium-long": 0.393003,
-     "gbm-context": 0.224744,
+     "transformer-medium-hand-pretrained": 0.536808,
+     "transformer-medium-pretrained": 0.44989,
+     "transformer-medium-hand": 0.409152,
+     "transformer-medium-hand-long": 0.435834,
+     "gbm-hand": 0.356037,
+     "transformer-medium": 0.362363,
+     "conv-small": 0.372807,
+     "transformer-small": 0.377363,
+     "transformer-medium-long": 0.384742,
+     "gbm-context": 0.107764,
      "constant": 0.0654027
     },
     "show": {
-     "mover_elo": 830,
-     "opponent_elo": 801,
-     "clock": 165.0,
-     "opponent_clock": 255.0,
+     "mover_elo": 1277,
+     "opponent_elo": 1283,
+     "clock": 529.0,
+     "opponent_clock": 456.0,
      "base": 600,
      "increment": 0,
-     "spent": 19.0,
-     "win_before": 52.2997,
-     "win_after": 50.3682
+     "spent": 52.0,
+     "win_before": 56.6796,
+     "win_after": 49.5398
     }
    }
   ],
   "surprised-yes": [
-   {
-    "fen": "2r2rk1/1p1b1ppp/4q3/pB1p4/2PPp1n1/6P1/PP1N1P1P/2RQ1RK1 w - - 1 18",
-    "moves": {
-     "last_move": "e5e6",
-     "move": "c4d5"
-    },
-    "label": 1.0,
-    "predicted": {
-     "transformer-medium-hand": 9.52305e-05,
-     "transformer-medium-hand-long": 0.00519631,
-     "gbm-hand": 0.190531,
-     "transformer-medium": 0.0210776,
-     "conv-small": 0.00250243,
-     "transformer-small": 0.00810557,
-     "transformer-medium-long": 0.0364107,
-     "gbm-context": 0.208911,
-     "constant": 0.0654027
-    },
-    "show": {
-     "mover_elo": 1794,
-     "opponent_elo": 1397,
-     "clock": 199.0,
-     "opponent_clock": 92.0,
-     "base": 0,
-     "increment": 20,
-     "spent": 28.0,
-     "win_before": 46.3246,
-     "win_after": 14.0892
-    }
-   },
-   {
-    "fen": "2r2rk1/1p1q1ppp/8/p7/3PN1n1/6P1/PP3P1P/2RQ1RK1 b - - 0 20",
-    "moves": {
-     "last_move": "d2e4",
-     "move": "d7d5"
-    },
-    "label": 1.0,
-    "predicted": {
-     "transformer-medium-hand": 0.000124915,
-     "transformer-medium-hand-long": 0.00783102,
-     "gbm-hand": 0.178803,
-     "transformer-medium": 0.0924928,
-     "conv-small": 0.0029244,
-     "transformer-small": 0.0173089,
-     "transformer-medium-long": 0.0196847,
-     "gbm-context": 0.178448,
-     "constant": 0.0654027
-    },
-    "show": {
-     "mover_elo": 1397,
-     "opponent_elo": 1794,
-     "clock": 128.0,
-     "opponent_clock": 217.0,
-     "base": 0,
-     "increment": 20,
-     "spent": 16.0,
-     "win_before": 48.4356,
-     "win_after": 12.2003
-    }
-   },
    {
     "fen": "8/2p1rk2/7p/8/2PR1Pp1/P5P1/5K1P/8 b - - 0 46",
     "moves": {
@@ -5345,6 +6055,8 @@
     },
     "label": 1.0,
     "predicted": {
+     "transformer-medium-hand-pretrained": 0.000105108,
+     "transformer-medium-pretrained": 0.00217436,
      "transformer-medium-hand": 0.000430276,
      "transformer-medium-hand-long": 0.000104617,
      "gbm-hand": 0.0307633,
@@ -5365,6 +6077,70 @@
      "spent": 0.0,
      "win_before": 23.8694,
      "win_after": 2.45526
+    }
+   },
+   {
+    "fen": "r1bqkbnr/pppp1p1p/2n5/3NP3/3P1p1R/5N2/PPP1Q1P1/R1B1KB2 b Qkq - 0 10",
+    "moves": {
+     "last_move": "h1h4",
+     "move": "g8e7"
+    },
+    "label": 1.0,
+    "predicted": {
+     "transformer-medium-hand-pretrained": 0.000696744,
+     "transformer-medium-pretrained": 0.00376549,
+     "transformer-medium-hand": 0.00642566,
+     "transformer-medium-hand-long": 0.0109574,
+     "gbm-hand": 0.0298042,
+     "transformer-medium": 0.000207673,
+     "conv-small": 0.0131252,
+     "transformer-small": 0.000163297,
+     "transformer-medium-long": 0.000302876,
+     "gbm-context": 0.0143093,
+     "constant": 0.0654027
+    },
+    "show": {
+     "mover_elo": 1405,
+     "opponent_elo": 1444,
+     "clock": 525.0,
+     "opponent_clock": 545.0,
+     "base": 600,
+     "increment": 0,
+     "spent": 17.0,
+     "win_before": 23.4041,
+     "win_after": 2.45526
+    }
+   },
+   {
+    "fen": "8/6pp/6k1/1K6/1P3p2/8/P7/8 w - - 0 41",
+    "moves": {
+     "last_move": "f5f4",
+     "move": "a2a4"
+    },
+    "label": 1.0,
+    "predicted": {
+     "transformer-medium-hand-pretrained": 0.00125779,
+     "transformer-medium-pretrained": 0.0140682,
+     "transformer-medium-hand": 0.00251541,
+     "transformer-medium-hand-long": 0.000368906,
+     "gbm-hand": 0.0796692,
+     "transformer-medium": 0.0655029,
+     "conv-small": 0.106348,
+     "transformer-small": 0.0616076,
+     "transformer-medium-long": 0.0611852,
+     "gbm-context": 0.126636,
+     "constant": 0.0654027
+    },
+    "show": {
+     "mover_elo": 1002,
+     "opponent_elo": 880,
+     "clock": 960.0,
+     "opponent_clock": 945.0,
+     "base": 900,
+     "increment": 10,
+     "spent": 2.0,
+     "win_before": 29.0132,
+     "win_after": 4.30944
     }
    }
   ]
@@ -5512,12 +6288,28 @@
    "beyond_noise": false
   },
   {
+   "run": "transformer-medium-hand-pretrained",
+   "over": "transformer-medium-hand",
+   "gain": 0.0109834,
+   "low": 0.00233556,
+   "high": 0.01966,
+   "beyond_noise": true
+  },
+  {
    "run": "transformer-medium-hand-quarter",
    "over": "transformer-medium-hand",
    "gain": -0.0253056,
    "study": "games",
    "low": -0.0321337,
    "high": -0.0187415,
+   "beyond_noise": true
+  },
+  {
+   "run": "transformer-medium-pretrained",
+   "over": "transformer-medium",
+   "gain": 0.0377266,
+   "low": 0.0281594,
+   "high": 0.0483238,
    "beyond_noise": true
   }
  ],
@@ -5538,6 +6330,186 @@
   "transformer-medium-hand-quarter"
  ],
  "ranking": {
+  "transformer-medium-hand-pretrained": {
+   "top": [
+    {
+     "share": 0.01,
+     "rows": 686,
+     "precision": 0.488338,
+     "recall": 0.0712614,
+     "lift": 7.12396
+    },
+    {
+     "share": 0.02,
+     "rows": 1372,
+     "precision": 0.422741,
+     "recall": 0.123378,
+     "lift": 6.16701
+    },
+    {
+     "share": 0.05,
+     "rows": 3429,
+     "precision": 0.342957,
+     "recall": 0.25016,
+     "lift": 5.00312
+    },
+    {
+     "share": 0.1,
+     "rows": 6858,
+     "precision": 0.275299,
+     "recall": 0.401617,
+     "lift": 4.01611
+    },
+    {
+     "share": 0.2,
+     "rows": 13716,
+     "precision": 0.217337,
+     "recall": 0.63412,
+     "lift": 3.17056
+    },
+    {
+     "share": 0.5,
+     "rows": 34290,
+     "precision": 0.129017,
+     "recall": 0.941076,
+     "lift": 1.88213
+    }
+   ],
+   "bottom": [
+    {
+     "share": 0.01,
+     "rows": 686,
+     "precision": 1.0,
+     "recall": 0.0107392,
+     "lift": 1.07359
+    },
+    {
+     "share": 0.02,
+     "rows": 1372,
+     "precision": 1.0,
+     "recall": 0.0214784,
+     "lift": 1.07359
+    },
+    {
+     "share": 0.05,
+     "rows": 3429,
+     "precision": 1.0,
+     "recall": 0.0536805,
+     "lift": 1.07359
+    },
+    {
+     "share": 0.1,
+     "rows": 6858,
+     "precision": 1.0,
+     "recall": 0.107361,
+     "lift": 1.07359
+    },
+    {
+     "share": 0.2,
+     "rows": 13716,
+     "precision": 0.999854,
+     "recall": 0.214691,
+     "lift": 1.07344
+    },
+    {
+     "share": 0.5,
+     "rows": 34290,
+     "precision": 0.991893,
+     "recall": 0.532452,
+     "lift": 1.06489
+    }
+   ]
+  },
+  "transformer-medium-pretrained": {
+   "top": [
+    {
+     "share": 0.01,
+     "rows": 686,
+     "precision": 0.482507,
+     "recall": 0.0704106,
+     "lift": 7.0389
+    },
+    {
+     "share": 0.02,
+     "rows": 1372,
+     "precision": 0.422012,
+     "recall": 0.123165,
+     "lift": 6.15638
+    },
+    {
+     "share": 0.05,
+     "rows": 3429,
+     "precision": 0.337708,
+     "recall": 0.246331,
+     "lift": 4.92654
+    },
+    {
+     "share": 0.1,
+     "rows": 6858,
+     "precision": 0.281277,
+     "recall": 0.410338,
+     "lift": 4.10332
+    },
+    {
+     "share": 0.2,
+     "rows": 13716,
+     "precision": 0.219452,
+     "recall": 0.640289,
+     "lift": 3.2014
+    },
+    {
+     "share": 0.5,
+     "rows": 34290,
+     "precision": 0.128988,
+     "recall": 0.940864,
+     "lift": 1.8817
+    }
+   ],
+   "bottom": [
+    {
+     "share": 0.01,
+     "rows": 686,
+     "precision": 1.0,
+     "recall": 0.0107392,
+     "lift": 1.07359
+    },
+    {
+     "share": 0.02,
+     "rows": 1372,
+     "precision": 1.0,
+     "recall": 0.0214784,
+     "lift": 1.07359
+    },
+    {
+     "share": 0.05,
+     "rows": 3429,
+     "precision": 1.0,
+     "recall": 0.0536805,
+     "lift": 1.07359
+    },
+    {
+     "share": 0.1,
+     "rows": 6858,
+     "precision": 1.0,
+     "recall": 0.107361,
+     "lift": 1.07359
+    },
+    {
+     "share": 0.2,
+     "rows": 13716,
+     "precision": 1.0,
+     "recall": 0.214722,
+     "lift": 1.07359
+    },
+    {
+     "share": 0.5,
+     "rows": 34290,
+     "precision": 0.991893,
+     "recall": 0.532452,
+     "lift": 1.06489
+    }
+   ]
+  },
   "transformer-medium-hand": {
    "top": [
     {
