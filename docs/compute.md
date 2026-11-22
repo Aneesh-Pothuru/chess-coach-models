@@ -75,18 +75,30 @@ the models that have results, `pretrain` the body trained on engine evaluations 
 start from it, `sets` the two models whose answer is a set, `games` the first pass of game rating,
 `moves` the first pass of human moves beside Maia-2, `bodies-first` and `bodies-rest` the
 architecture test in two passes, `more` the runs on twice and four times the training games, which
-build a larger build of each dataset first. Its last cell packs two zips and prints their hashes:
-`lab-results.zip`, the run records and leaderboards under `models/*/results/`, and `lab-runs.zip`,
-every run's trained weights and test predictions.
+build a larger build of each dataset first. Names joined with `+` are read into one pass
+(`sets+games+moves`): a model that two of them name is given the runs of both.
 
 1. Open the notebook in Colab and choose a GPU runtime.
 2. Run every cell.
-3. Save both zips from the Files panel, before the runtime is released.
+3. Save `lab-runs-<plan>.zip` from the Files panel within 45 minutes of the last cell, and check
+   that the browser saved `lab-results-<plan>.zip` by itself (if it did not, save that one too).
 4. Unzip both at the root of a clone: the records replace `models/*/results/`, and the weights
    land under `artifacts/runs/`, which git ignores. Then `lab eval <model>` for each model,
    `lab report`, commit and push.
 
 Nothing is pushed from Colab, and the notebook holds no credentials.
+
+**A pass ends by itself** (`src/chess_coach_models/colab.py`, which the notebook's cells call).
+Its last cell packs two zips and prints their hashes: `lab-results-<plan>.zip`, the run records,
+leaderboards and logs, with each run's test predictions where a row has one number, and
+`lab-runs-<plan>.zip`, every run's files, its trained weights among them. It asks the browser that
+opened the notebook to save the first, which is all `lab eval`, `lab analyse` and a report read.
+Then it sets the runtime to hand itself back to Colab 45 minutes later (`RELEASE_AFTER_MINUTES` in
+the first cell), from a process of its own, so that the GPU is not paid for while nobody is
+there. A run that fails ends the pass the same way, with what had finished, and a cell that stops
+before any full run sets the release too. Starting another plan on the same runtime cancels it.
+The fourth pass of 2026-11-22 is why: it finished with nobody watching, and its GPU sat idle for
+an hour and three quarters with the only copy of its results on its disk.
 
 **A published model is a run, and its package is no part of the lab.** `human-move` scores Maia-2
 as its authors published it, through their `maia2` package (MIT). The package pins exact versions
@@ -105,7 +117,8 @@ for a GPU, and every other run of the model goes ahead. Where the package and th
 **A runtime's disk goes with the runtime.** The coach narrator's first adapter was lost that way:
 it was trained, scored, and never copied off before the runtime was deleted. So a notebook's last
 cell always packs what the run made, weights included, and the zips are saved before anything else
-is done.
+is done. The weights are the one thing a pass that ends alone can lose: they are too large to send
+to the browser unasked, so they are saved by hand within the 45 minutes, or trained again.
 
 The coach narrator has its own script for the same reason,
 [`models/coach-narrator/colab/retrain.sh`](../models/coach-narrator/colab/retrain.sh): its teacher
