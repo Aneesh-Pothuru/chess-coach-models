@@ -32,6 +32,11 @@ METRIC_WORDS = {
 }
 
 
+# The studies a paper gives tables of their own. A run under any other study was tried as a run of the
+# model's own, and filed there when it did not beat the run it changed (``train/filing.py``).
+STUDIES = ("games", "features")
+
+
 @dataclass
 class Sources:
     model: str
@@ -82,9 +87,18 @@ class Sources:
         """The networks every model is given, without the runs that change one thing in one of them."""
         return [run for run in self.networks if not charts.variant(run["run"])]
 
+    @property
+    def filed(self) -> list[dict[str, Any]]:
+        """The runs that were tried as runs of the model's own and filed under a study when they did not beat
+        the run they changed: the study runs outside the games and the features study."""
+        return [run for run in self.studies if run["config"]["study"] not in STUDIES]
+
     def variants(self, run: dict[str, Any]) -> list[dict[str, Any]]:
-        """The networks on the leaderboard that change one thing in a run: more epochs, another start."""
-        return [other for other in self.networks if other is not run and charts.family(other["run"]) == run["run"]]
+        """The networks that change one thing in a run (more epochs, another start): the ones on the
+        leaderboard, then the ones that were filed."""
+        ranked = [other for other in self.networks if other is not run and charts.family(other["run"]) == run["run"]]
+        filed = [other for other in self.filed if other["config"].get("base") == run["run"] and other["config"]["learner"]["kind"] == "net"]
+        return ranked + filed
 
     @property
     def board_only(self) -> dict[str, Any] | None:
@@ -171,11 +185,18 @@ def read(model: str, *, smoke: bool = False) -> Sources:
                 f"{path} looks at another build of the data than {model}'s records name: "
                 f"run `lab analyse {model}` again where the dataset and the predictions are"
             )
-        missing = [name for name in (run["run"] for run in runs) if name not in look["runs"]]
+        names = [run["run"] for run in runs]
+        missing = [name for name in names if name not in look["runs"]]
         if missing:
             raise ValueError(
                 f"{path} has no look at {', '.join(missing)}: run `lab analyse {model}` again "
                 "where the predictions are, so the paper's closer look covers every run on the leaderboard"
+            )
+        gone = [name for name in look["runs"] if name not in names]
+        if gone:
+            raise ValueError(
+                f"{path} looks at {', '.join(gone)}, which the leaderboard no longer ranks: run `lab analyse {model}` "
+                "again where the predictions are, so the paper's closer look is of the runs as they are filed now"
             )
     return Sources(
         model=model,

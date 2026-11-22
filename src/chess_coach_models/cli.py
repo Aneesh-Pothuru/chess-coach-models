@@ -5,6 +5,7 @@
     lab eval puzzle-difficulty               the model's leaderboard
     lab all puzzle-difficulty                its data, every run this machine can train, its leaderboard
     lab analyse puzzle-difficulty            the closer look, from its dataset and test predictions
+    lab file puzzle-difficulty <run>         a trained run's record, filed as its config files it now
     lab paper puzzle-difficulty              its paper: every number and figure, then the PDF
     lab paper                                the lab's own paper: every model's results side by side
     lab report                               the README's table, from the leaderboards
@@ -108,6 +109,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     closer.add_argument("model", choices=models)
 
+    filing = commands.add_parser(
+        "file", help="file a trained run's record as its config files it now (under a study, against its base), then the leaderboard"
+    )
+    filing.add_argument("model", choices=models)
+    filing.add_argument("runs", nargs="+", metavar="run")
+
     paper = commands.add_parser(
         "paper", help="write what a model's paper shows from its results, and compile it; with no model, the lab's own paper"
     )
@@ -116,7 +123,7 @@ def main(argv: list[str] | None = None) -> int:
     paper.add_argument("--no-pdf", action="store_true", help="write the generated files and leave LaTeX out")
 
     commands.add_parser("report", help="write the README's leaderboard table")
-    for command in (build, train, evaluate, everything, closer, paper):
+    for command in (build, train, evaluate, everything, closer, filing, paper):
         command.add_argument("--smoke", action="store_true")
 
     args = parser.parse_args(argv)
@@ -152,6 +159,15 @@ def main(argv: list[str] | None = None) -> int:
             log(f"{args.model}: {len(look['studies'])} study runs set against the runs they change")
         for name, reason in look["skipped"].items():
             log(f"{args.model}/{name}: left out, {reason}")
+    elif args.command == "file":
+        from .evals.leaderboard import build as leaderboard
+        from .train.filing import file_run
+
+        for name in args.runs:
+            said = file_run(args.model, name, smoke=args.smoke)
+            log(f"{args.model}/{name}: {said or 'its record is filed as its config files it already'}")
+        leaderboard(args.model, smoke=args.smoke)
+        log(f"{args.model}: leaderboard written. Its closer look is of the runs as they were filed before: `lab analyse {args.model}`")
     elif args.command == "paper":
         from .papers import build as papers, overview
 

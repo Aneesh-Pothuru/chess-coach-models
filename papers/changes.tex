@@ -11,14 +11,19 @@ Each is a pair of runs that differ in that one thing.
 Table~\ref{tab:pairs} sets the first of each pair against the second on the
 same resampled test games, the way every run is set against the reference,
 and gives the first run's gain. This is where the lab's rule for keeping a
-change is read: a change is kept when the interval of its gain leaves zero
-out, and dropped when it does not, however good its own score looks.
+change is read: a change is kept as a run of the model's own when its run is
+better on the valid rows and the interval of its gain on the test rows
+leaves zero out, however good its own score looks. A change that is not kept
+is not thrown away: its row stays in this table, as a measurement of what
+the change is worth.
 
 \begin{table}[htbp]\centering\footnotesize
 \block{pairs}
-\caption{Runs set against the run each changed or has to beat. The gain is
-the first run's over the second's on the same resampled test games: positive
-when the first is better, and bold when its 95\% interval leaves zero out.}
+\caption{Runs set against the run each changed or has to beat. A gain is
+the first run's over the second's, positive when the first is better. On the
+valid rows it is the difference of the two scores. On the test rows it is
+measured on the same resampled games, and it is bold when its 95\% interval
+leaves zero out.}
 \label{tab:pairs}
 \end{table}
 \fi

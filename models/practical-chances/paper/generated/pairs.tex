@@ -1,12 +1,14 @@
 % Written by `lab paper practical-chances`; do not edit by hand.
-\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.1cm}>{\raggedright\arraybackslash}p{3.1cm}Lrr}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.45cm}>{\raggedright\arraybackslash}p{2.45cm}Lrrr}
 \toprule
-Run & Set against & What the run changes & Gain in RMSE & 95\% interval \\
+ &  &  & \multicolumn{3}{c}{Gain in RMSE} \\
+\cmidrule(lr){4-6}
+Run & Set against & What the run changes & Valid rows & Test rows & 95\% interval \\
 \midrule
-{\ttfamily gbm-\allowbreak context} & {\ttfamily engine-\allowbreak curve} & another learner & \textbf{+0.01136} & +0.00892 to +0.01369 \\
-{\ttfamily gbm-\allowbreak context} & {\ttfamily elo-\allowbreak gap} & another learner & \textbf{+0.07069} & +0.06454 to +0.07692 \\
-{\ttfamily gbm-\allowbreak hand} & {\ttfamily gbm-\allowbreak context} & reads the hand features & \textbf{+0.002288} & +0.001502 to +0.003088 \\
-{\ttfamily transformer-\allowbreak medium-\allowbreak hand} & {\ttfamily engine-\allowbreak curve} & another learner & \textbf{+0.01243} & +0.00992 to +0.01502 \\
-{\ttfamily transformer-\allowbreak medium-\allowbreak hand} & {\ttfamily transformer-\allowbreak medium} & reads the hand features & $-$0.000479 & $-$0.001288 to +0.000368 \\
+{\ttfamily gbm-\allowbreak context} & {\ttfamily engine-\allowbreak curve} & another learner & +0.0129 & \textbf{+0.01136} & +0.00892 to +0.01369 \\
+{\ttfamily gbm-\allowbreak context} & {\ttfamily elo-\allowbreak gap} & another learner & +0.0715 & \textbf{+0.07069} & +0.06454 to +0.07692 \\
+{\ttfamily gbm-\allowbreak hand} & {\ttfamily gbm-\allowbreak context} & reads the hand features & +0.000407 & \textbf{+0.002288} & +0.001502 to +0.003088 \\
+{\ttfamily transformer-\allowbreak medium-\allowbreak hand} & {\ttfamily engine-\allowbreak curve} & another learner & +0.0121 & \textbf{+0.01243} & +0.00992 to +0.01502 \\
+{\ttfamily transformer-\allowbreak medium-\allowbreak hand} & {\ttfamily transformer-\allowbreak medium} & reads the hand features & $-$0.000913 & $-$0.000479 & $-$0.001288 to +0.000368 \\
 \bottomrule
 \end{tabularx}

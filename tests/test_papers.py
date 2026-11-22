@@ -270,6 +270,35 @@ def test_one_change_is_read_model_by_model_by_the_run_it_was_made_in():
     assert overview._tally([], ["think-time"], []) == "inside the noise in the one model (think time)"
 
 
+def test_a_run_that_was_filed_keeps_its_pair_and_its_place_beside_the_run_it_changed():
+    tried = _longer("puzzle-difficulty", (0.1, -0.2, 0.4))
+    longer, base = tried.runs[0], tried.runs[1]
+    assert tried.variants(base) == [longer] and tried.filed == []
+    table, written = changes.pairs_table(tried), tex.Generated("a test")
+    changes.values(tried, written)
+    assert "transformer-\\allowbreak medium-\\allowbreak long" in table and written.values["pairs.count"] == "one"
+
+    # Filed: its record names the run it changed and its study, no leaderboard ranks it, and its pair names the study.
+    primary = tried.task.primary
+    longer["config"].update(base="transformer-medium", study="epochs")
+    half = _record("gbm-hand-half", {"kind": "gbm", "features": "hand"}, 9.5, primary, base="gbm-hand", study="games", data={"train_share": 0.5})
+    pairs = [
+        {**tried.look["pairs"][0], "study": "epochs"},
+        {"run": "gbm-hand-half", "over": "gbm-hand", "study": "games", "gain": -0.5, "low": -0.6, "high": -0.4, "beyond_noise": True},
+    ]
+    filed = sources.Sources(tried.model, False, tried.task, tried.runs[1:], [longer, half], {}, {}, {"pairs": pairs}, (), ())
+    assert filed.filed == [longer] and filed.variants(base) == [longer] and filed.run("transformer-medium-long") is None
+    # Its pair stands with the other pairs, as before; a run of the games study has a table of its own.
+    assert changes.pairs_table(filed) == table
+    written = tex.Generated("a test")
+    changes.values(filed, written)
+    assert written.values["pairs.count"] == "one" and written.values["study.epochs.runs"] == "one"
+    assert written.values["pair.transformer-medium-long.transformer-medium.verdict"] == "inside the noise"
+    # And the lab still reads it as what more epochs are worth in this model.
+    (measured,) = [one for one in overview.pairs(filed) if one["kind"] == ("epochs", "More epochs")]
+    assert (measured["run"], measured["over"], measured["gain"]) == ("transformer-medium-long", "transformer-medium", 0.1)
+
+
 def test_a_card_s_question_is_read_up_to_its_question_mark(tmp_path, monkeypatch):
     monkeypatch.setattr(paths, "ROOT", tmp_path)
     card = tmp_path / "models" / "some-model" / "README.md"

@@ -24,7 +24,7 @@ from __future__ import annotations
 from typing import Any
 
 from . import charts, glossary, tex
-from .sources import METRIC_NAMES, METRIC_WORDS, Sources, run_cell, run_tex
+from .sources import METRIC_NAMES, METRIC_WORDS, STUDIES, Sources, run_cell, run_tex
 
 
 # A share of the training games as prose and an axis say it.
@@ -63,8 +63,21 @@ def pairs(src: Sources) -> list[dict[str, Any]]:
     return found
 
 
+def tabled(entry: dict[str, Any]) -> bool:
+    """Whether a pair is a run of the games or the features study, which has a table of its own. A run filed
+    under another study was tried as a run of the model's own, and its pair stands with the other pairs."""
+    return entry.get("study") in STUDIES
+
+
 def pair(src: Sources, run: str, over: str) -> dict[str, Any] | None:
     return next((one for one in pairs(src) if one["run"] == run and one["over"] == over), None)
+
+
+def valid_gain(src: Sources, run: dict[str, Any], over: dict[str, Any]) -> float | None:
+    """How much better one run is than another on the valid rows, by the primary metric: positive when it is
+    better. A change is kept only when this is, and its gain on the test rows is beyond the noise."""
+    ours, theirs = (one.get("valid", {}).get(src.primary) for one in (run, over))
+    return None if ours is None or theirs is None else src.better_by(ours, theirs)
 
 
 def verdict(entry: dict[str, Any]) -> str:
@@ -147,7 +160,11 @@ def values(src: Sources, out: tex.Generated) -> None:
                 out.set(f"{prefix}.gain.percent", tex.sig(100.0 * abs(entry["gain"]) / abs(score), 2))
         if entry["run"] in known and other is not None:
             out.set(f"{prefix}.differs", differs(known[entry["run"]], other))
-    plain = [entry for entry in pairs(src) if "study" not in entry]
+            ahead = valid_gain(src, known[entry["run"]], other)
+            if ahead is not None:
+                out.set(f"{prefix}.valid.gain", tex.sig(ahead, 3, sign=True))
+                out.set(f"{prefix}.valid.verdict", "better" if ahead > 0 else "no better")
+    plain = [entry for entry in pairs(src) if not tabled(entry)]
     out.set("pairs.count", tex.word(len(plain)))
     for study in sorted({run["config"]["study"] for run in src.studies}):
         runs = [run for run in src.studies if run["config"]["study"] == study]
@@ -175,27 +192,31 @@ def values(src: Sources, out: tex.Generated) -> None:
 
 def pairs_table(src: Sources) -> str | None:
     """The runs set against the run each changed or has to beat: what differs between the two, and the first's
-    paired gain over the second. The study runs have tables of their own."""
+    paired gain over the second. The runs of the games and the features study have tables of their own."""
     known = records(src)
-    asked = [entry for entry in (src.look or {}).get("pairs") or [] if "study" not in entry]
-    measured = {(entry["run"], entry["over"]): entry for entry in pairs(src) if "study" not in entry}
+    asked = [entry for entry in (src.look or {}).get("pairs") or [] if not tabled(entry)]
+    measured = {(entry["run"], entry["over"]): entry for entry in pairs(src) if not tabled(entry)}
     listed = [(entry["run"], entry["over"]) for entry in asked]
     listed += [names for names in measured if names not in listed]
     rows = []
     for run, over in listed:
         if run not in known or over not in known:
             continue
-        rows.append([run_cell(run), run_cell(over), differs(known[run], known[over]), *_gain_cells(measured.get((run, over)))])
+        ahead = valid_gain(src, known[run], known[over])
+        on_valid = "" if ahead is None else tex.sig(ahead, 3, sign=True)
+        rows.append([run_cell(run), run_cell(over), differs(known[run], known[over]), on_valid, *_gain_cells(measured.get((run, over)))])
     if not rows:
         return None
-    name = ">{\\raggedright\\arraybackslash}p{3.1cm}"
-    head = ["Run", "Set against", "What the run changes", f"Gain in {METRIC_NAMES[src.primary]}", "95\\% interval"]
-    return tex.tabular(f"{name}{name}Lrr", head, rows, width="\\textwidth")
+    name = ">{\\raggedright\\arraybackslash}p{2.45cm}"
+    head = ["Run", "Set against", "What the run changes", "Valid rows", "Test rows", "95\\% interval"]
+    table = tex.tabular(f"{name}{name}Lrrr", head, rows, width="\\textwidth")
+    gain = f"\\multicolumn{{3}}{{c}}{{Gain in {METRIC_NAMES[src.primary]}}}"
+    return tex.grouped(table, ["", "", "", gain], [(4, 6)])
 
 
 def pairs_figure(src: Sources) -> str | None:
     """Each measured pair's gain with its interval, zero as the line to read against."""
-    measured = [entry for entry in pairs(src) if "study" not in entry]
+    measured = [entry for entry in pairs(src) if not tabled(entry)]
     if not measured:
         return None
     rows = [(f"{entry['run']} over {entry['over']}", entry["gain"], entry["low"], entry["high"]) for entry in measured]

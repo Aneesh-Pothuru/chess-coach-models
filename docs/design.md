@@ -173,6 +173,16 @@ features out. A run that also names a `study` is there to say what one thing is 
 a candidate. `lab all <model>` trains a model's own runs, and `--runs study:games` asks for a
 study by name.
 
+**A run that was tried and not kept.** A candidate is kept as a run of the model's own only when
+it beats the run it changed on valid and on test beyond the noise. One that does not is still a
+measurement of what its change is worth, so it is filed, not deleted: its config names the run it
+changed as its `base` and what it measured as its `study` (`epochs` for a longer schedule, `start`
+for a body begun from another run's), and `lab file <model> <run>` writes the same two names into
+its record and writes the leaderboard again (`train/filing.py`). A record is filed only as what
+it was trained with: a config with another setting is refused. The closer look is then of runs as
+they were filed before, so `lab analyse` is run again where the predictions are, and until it is
+a paper of that model does not build.
+
 A record is complete in itself. When a run finishes it is compared, row by row, with the
 reference run trained on the same machine, and the gain is written into the record. A leaderboard
 is then written from the records alone, so the trees can be trained on a desktop and the
@@ -205,7 +215,9 @@ the README's table from every model's leaderboard. No result in this repository 
 model's best run. Its leaderboard lists it under its study, with the run it changes, what it
 changes setting by setting (read off the two records' configs), how many rows it trained on, and
 both scores. It keeps its predictions on the test rows, which the closer look reads, and no
-weights: nobody will run it.
+weights: nobody will run it. A paper gives the games and the features study tables of their own;
+a run filed under any other study was tried as a candidate, and its pair stands with the other
+pairs, beside the run it changed.
 
 ## The closer look
 

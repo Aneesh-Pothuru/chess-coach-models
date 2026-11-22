@@ -38,7 +38,7 @@ from .. import paths, tasks
 from ..evals import leaderboard
 from . import build, changes, charts, tex
 from .results import day, method_values, trained_on
-from .sources import METRIC_NAMES, Sources, run_cell, run_tex
+from .sources import METRIC_NAMES, STUDIES, Sources, run_cell, run_tex
 
 
 # One change measured in model after model, by the one setting it changes: its name in a key, and in words.
@@ -49,8 +49,6 @@ KINDS = {
 }
 # What a learner is called where a change is said to be made under it.
 UNDER = {"gbm": "under the trees", "net": "under a network"}
-# The studies every model's paper has a switch for, which the lab's prose asks by the same names.
-STUDIES = ("games", "features")
 # The ladder from its floor up: the order a table names the runs a change was made in.
 LADDER = ("constant", "gbm-context", "gbm-hand", "conv-small", "transformer-small", "transformer-medium", "transformer-medium-hand")
 

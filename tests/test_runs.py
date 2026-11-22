@@ -10,7 +10,8 @@ import yaml
 from chess_coach_models import cli, paths
 from chess_coach_models.data import store
 from chess_coach_models.evals import analysis, leaderboard
-from chess_coach_models.train import run as runs
+from chess_coach_models.papers import changes, sources
+from chess_coach_models.train import filing, run as runs
 
 
 ROWS = 900
@@ -176,3 +177,73 @@ def test_a_model_needs_a_run_of_its_own_before_a_study(lab):
     runs.run("tiny", "constant-half", log=lambda _: None)
     with pytest.raises(FileNotFoundError, match="study runs only"):
         leaderboard.build("tiny")
+
+
+SCALED = {"learner": {"kind": "column", "column": "win_before", "scale": 0.02}}
+
+
+def test_a_run_that_was_tried_is_filed_under_a_study_against_the_run_it_changed(lab):
+    write_configs(lab.root, "tiny", {"engine-curve-scaled": SCALED})
+    for name in ("engine-curve", "constant", "engine-curve-scaled"):
+        runs.run("tiny", name, log=lambda _: None)
+    path = paths.results("tiny") / "engine-curve-scaled.json"
+    tried = json.loads(path.read_text())
+    assert {entry["run"] for entry in leaderboard.build("tiny")["runs"]} == {"engine-curve", "constant", "engine-curve-scaled"}
+    assert filing.file_run("tiny", "engine-curve-scaled") is None and json.loads(path.read_text()) == tried
+
+    write_configs(lab.root, "tiny", {"engine-curve-scaled": {"base": "engine-curve", "study": "scale", "learner": {"scale": 0.02}}})
+    assert cli.main(["file", "tiny", "engine-curve-scaled"]) == 0
+    filed = json.loads(path.read_text())
+    assert filed["config"] == {**SCALED, "base": "engine-curve", "study": "scale"}
+    assert filed.pop("filed") and {**filed, "config": SCALED} == tried
+    assert filing.file_run("tiny", "engine-curve-scaled") is None
+
+    board = json.loads((paths.results("tiny") / "leaderboard.json").read_text())
+    assert {entry["run"] for entry in board["runs"]} == {"engine-curve", "constant"}
+    (study,) = board["studies"]["scale"]
+    assert (study["run"], study["base"], study["changes"]) == ("engine-curve-scaled", "engine-curve", ["`learner.scale` 0.02 (the base has 0.01)"])
+    look = analysis.analyse("tiny")
+    assert set(look["runs"]) == {"engine-curve", "constant"} and look["studies"] == ["engine-curve-scaled"]
+    (pair,) = look["pairs"]
+    assert (pair["run"], pair["over"], pair["study"]) == ("engine-curve-scaled", "engine-curve", "scale")
+
+
+def test_a_paper_is_not_drawn_from_a_closer_look_of_runs_as_they_were_filed_before(lab):
+    lab.recipe("tiny", {"name": "tiny-v1", "builder": "game_positions"})
+    write_configs(lab.root, "tiny", {"engine-curve-scaled": SCALED})
+    for name in ("engine-curve", "constant", "engine-curve-scaled"):
+        runs.run("tiny", name, log=lambda _: None)
+    analysis.analyse("tiny")
+    assert sorted(sources.read("tiny").names) == ["constant", "engine-curve", "engine-curve-scaled"]
+
+    write_configs(lab.root, "tiny", {"engine-curve-scaled": {"base": "engine-curve", "study": "scale", "learner": {"scale": 0.02}}})
+    filing.file_run("tiny", "engine-curve-scaled")
+    with pytest.raises(ValueError, match="looks at engine-curve-scaled, which the leaderboard no longer ranks"):
+        sources.read("tiny")
+    analysis.analyse("tiny")
+    src = sources.read("tiny")
+    assert sorted(src.names) == ["constant", "engine-curve"] and [run["run"] for run in src.filed] == ["engine-curve-scaled"]
+    # Its pair stands with the pairs a paper lists, under the name of the study it is filed under.
+    (pair,) = changes.pairs(src)
+    assert (pair["run"], pair["over"], pair["study"]) == ("engine-curve-scaled", "engine-curve", "scale")
+    assert "engine-\\allowbreak curve-\\allowbreak scaled" in changes.pairs_table(src)
+
+
+def test_a_record_is_filed_only_as_what_it_was_trained_with(lab):
+    write_configs(lab.root, "tiny", {"engine-curve-scaled": SCALED})
+    with pytest.raises(FileNotFoundError, match="filed once it is trained"):
+        filing.file_run("tiny", "engine-curve-scaled")
+    for name in ("engine-curve", "constant", "constant-half", "engine-curve-scaled"):
+        runs.run("tiny", name, log=lambda _: None)
+    before = {name: (paths.results("tiny") / f"{name}.json").read_text() for name in ("constant-half", "engine-curve-scaled")}
+
+    write_configs(lab.root, "tiny", {"engine-curve-scaled": {"base": "engine-curve", "study": "scale", "learner": {"scale": 0.03}}})
+    with pytest.raises(ValueError, match=r"no longer says what its record was trained with \(learner.scale\)"):
+        filing.file_run("tiny", "engine-curve-scaled")
+    write_configs(lab.root, "tiny", {"engine-curve-scaled": {**SCALED, "study": "scale"}})
+    with pytest.raises(ValueError, match="names no base"):
+        filing.file_run("tiny", "engine-curve-scaled")
+    write_configs(lab.root, "tiny", {"constant-half": {"learner": {"kind": "constant"}, "data": {"train_share": 0.5}}})
+    with pytest.raises(ValueError, match="kept no weights"):
+        filing.file_run("tiny", "constant-half")
+    assert before == {name: (paths.results("tiny") / f"{name}.json").read_text() for name in before}

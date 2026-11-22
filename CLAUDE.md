@@ -85,6 +85,12 @@ a move) is a new body or head in `nets/`, with a test, and a line in
   better. Change one thing a run, and keep it only when it beats the run it
   changed on valid and on test beyond the noise (the paired gain's interval
   leaves zero out).
+- A run that was tried and is not kept stays as a measurement of what its
+  change is worth. Give its config the run it changed as its `base` and what
+  it measured as its `study` (`epochs`, `start`), run `lab file <model> <run>`
+  so its record and the leaderboard say the same, then `lab analyse <model>`
+  where the predictions are, `lab report`, and the model's paper. The card
+  says what was tried and what it found.
 - A run that changes one thing in another names that run as its `base` and
   writes only the change. One that is there to measure something, not to be
   kept (fewer training games, a group of hand features left out), also names
@@ -178,6 +184,7 @@ win probability behind the blunder label to the app's.
 | `make smoke` | Every model on the harness end to end on a small sample |
 | `make models` | The full datasets, every run this machine can train, the leaderboards, the README table |
 | `lab data|train|eval|all|analyse|report` | One step of the harness (`lab --help`) |
+| `lab file <model> <run>` | Files a trained run's record as its config files it now (under a study, against its base), then writes the leaderboard |
 | `lab paper <model>` | The model's paper from its committed results: `paper/generated/`, then `paper/paper.pdf` (`--list` prints every value and block, `--no-pdf` leaves LaTeX out) |
 | `lab paper` | The lab's own paper from every model's committed results: `papers/lab/generated/`, then `papers/lab/paper.pdf` (the same flags) |
 | `make papers` | Every model's paper that has its prose, then the lab's own |
