@@ -146,6 +146,18 @@ def test_rows_in_groups_stand_under_their_group_s_name_on_one_axis():
     assert "(axis cs:0,-0.6) -- (axis cs:0,4.6)" in drawn and "{reference}" in drawn
 
 
+def test_a_level_far_from_every_series_is_inside_the_axis():
+    # pgfplots takes an axis's limits from its plots, and a level is drawn. Two runs that end one epoch a
+    # fraction of a point apart, forty points from the level, once put the level metres off the page.
+    one = charts.Series("a", [(1, 501.686)])
+    two = charts.Series("b", [(1, 501.886)])
+    drawn = charts.lines([one, two], xlabel="Epoch", ylabel="RMSE", level=(460.148, "reference", "labOrange"))
+    held = [line for line in drawn.splitlines() if line.startswith("\\addplot[draw=none") and "forget plot" in line]
+    assert held == ["\\addplot[draw=none, mark=none, forget plot] coordinates {(1,460.148)};"]
+    assert drawn.index(held[0]) < drawn.index("\\draw[labOrange")
+    assert "draw=none" not in charts.lines([one, two], xlabel="Epoch", ylabel="RMSE")
+
+
 def test_a_run_keeps_its_lane_colour_and_mark_from_strip_to_strip():
     drawn = charts.strips(
         [("first-model", [("gbm-context", 40.0), ("transformer-small", 101.0)]), ("second-model", [("gbm-context", 65.0)])],

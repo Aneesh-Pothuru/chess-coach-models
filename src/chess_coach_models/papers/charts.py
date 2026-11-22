@@ -352,6 +352,9 @@ def lines(
     if level is not None and xs:
         value, label, colour = level
         left, right = (-0.5, len(tick_labels) - 0.5) if tick_labels is not None else (min(xs), max(xs))
+        # pgfplots sets an axis's limits from its plots alone. The level is drawn, not plotted, so a plot of
+        # nothing holds its place: a level far from every series is then inside the axis, not metres off it.
+        body.append(f"\\addplot[draw=none, mark=none, forget plot] coordinates {{({_number(min(xs))},{_number(value)})}};")
         body.append(
             f"\\draw[{colour}, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:{_number(left)},{_number(value)}) -- "
             f"(axis cs:{_number(right)},{_number(value)}) node[anchor=west, font=\\sffamily\\scriptsize, text=labSecondary, inner sep=2pt] {{{label}}};"
