@@ -1,0 +1,150 @@
+{
+  "model": "puzzle-difficulty",
+  "run": "gbm-context",
+  "task": {
+    "label": "rating",
+    "kind": "regression",
+    "unit": "Lichess puzzle rating points",
+    "primary": "rmse",
+    "lower_is_better": true,
+    "context": [
+      "solver_moves",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "puzzles-v1",
+    "source": "https://database.lichess.org/lichess_db_puzzle.csv.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 1127915,
+    "splits": {
+      "test": 112450,
+      "train": 958941,
+      "valid": 56524
+    },
+    "fingerprint": "d14731fa4425fc6efdadb45c94ee53e07f5afe9151992b690b81edc71064cd5d",
+    "built": "2026-11-22T00:20:03Z",
+    "code": "5e4946ac1bff231bb0df94429fdc044c3ea9e6ec"
+  },
+  "config": {
+    "learner": {
+      "kind": "gbm",
+      "features": "context"
+    }
+  },
+  "learner": {
+    "features": 5,
+    "trees": 185,
+    "fit_seconds": 4.5,
+    "leans_on": [
+      {
+        "feature": "solver_moves",
+        "share_of_gain": 0.9928
+      },
+      {
+        "feature": "castle_own_king",
+        "share_of_gain": 0.0039
+      },
+      {
+        "feature": "castle_opp_queen",
+        "share_of_gain": 0.0012
+      },
+      {
+        "feature": "castle_own_queen",
+        "share_of_gain": 0.0011
+      },
+      {
+        "feature": "castle_opp_king",
+        "share_of_gain": 0.001
+      }
+    ]
+  },
+  "calibration": null,
+  "machine": {
+    "processor": "AMD Ryzen 7 3700X 8-Core Processor",
+    "threads": 16,
+    "system": "Linux"
+  },
+  "code": "5e4946ac1bff231bb0df94429fdc044c3ea9e6ec",
+  "trained": "2026-11-22T00:22:11Z",
+  "seconds": 4.8,
+  "valid": {
+    "rmse": 428.84223522153536,
+    "mae": 348.22081910867786,
+    "r2": 0.2708554021143549,
+    "spearman": 0.5003192399922146
+  },
+  "test": {
+    "rmse": {
+      "value": 428.7522335056803,
+      "low": 427.18930433837556,
+      "high": 430.47438143792175
+    },
+    "mae": {
+      "value": 348.44725976543924,
+      "low": 346.98531343010814,
+      "high": 350.0132518666616
+    },
+    "r2": {
+      "value": 0.27307642543080346,
+      "low": 0.26843661870606406,
+      "high": 0.2773226442633717
+    },
+    "spearman": {
+      "value": 0.5022468573014417,
+      "low": 0.4976842769171282,
+      "high": 0.5067976034575143
+    }
+  },
+  "test_rows": 112450,
+  "test_groups": 112450,
+  "test_by_band": {
+    "1000-1399": {
+      "rows": 31846,
+      "rmse": 321.8989538861026,
+      "mae": 271.75556541630266,
+      "r2": -7.399307489826304,
+      "spearman": 0.1499129820128873
+    },
+    "1400-1799": {
+      "rows": 28501,
+      "rmse": 243.67226152788677,
+      "mae": 194.4029519741617,
+      "r2": -3.637477137600036,
+      "spearman": 0.11112042153062178
+    },
+    "1800-2199": {
+      "rows": 19518,
+      "rmse": 450.53467154898436,
+      "mae": 399.26804744600713,
+      "r2": -14.350883119267719,
+      "spearman": 0.09875992191141901
+    },
+    "2200+": {
+      "rows": 9834,
+      "rmse": 759.0572104692548,
+      "mae": 715.2908070893228,
+      "r2": -20.45669063303815,
+      "spearman": 0.15847982393826077
+    },
+    "<1000": {
+      "rows": 22751,
+      "rmse": 515.7429326389192,
+      "mae": 446.6091399583718,
+      "r2": -9.834962335177874,
+      "spearman": 0.251032347921207
+    }
+  },
+  "gain": {
+    "gain": -133.82949609705366,
+    "low": -135.39612875187217,
+    "high": -132.24003606283577,
+    "beyond_noise": true,
+    "reference": "gbm-hand",
+    "reference_trained": "2026-11-22T00:21:24Z",
+    "reference_value": 294.92273740862663
+  }
+}

@@ -1,0 +1,354 @@
+{
+  "model": "blunder-hazard",
+  "task": {
+    "label": "blunder",
+    "kind": "binary",
+    "unit": "chance the mover loses more than 20 points of win probability",
+    "primary": "pr_auc",
+    "lower_is_better": false,
+    "context": [
+      "mover_elo",
+      "opponent_elo",
+      "log_clock",
+      "log_opponent_clock",
+      "log_base",
+      "increment",
+      "ply",
+      "win_before",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "game-positions-2026-10",
+    "source": "https://database.lichess.org/standard/lichess_db_standard_rated_2026-10.pgn.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 698013,
+    "splits": {
+      "test": 68579,
+      "train": 594940,
+      "valid": 34494
+    },
+    "fingerprint": "340c68ed5c918cd6dfea4f5cb24218c52d8d0a88cb29e50498218aefdb9dfbd0",
+    "built": "2026-11-22T00:26:19Z",
+    "code": "5e4946ac1bff231bb0df94429fdc044c3ea9e6ec"
+  },
+  "test_rows": 68579,
+  "test_groups": 2944,
+  "reference": "gbm-hand",
+  "runs": [
+    {
+      "run": "gbm-hand",
+      "learner": "LightGBM, context and hand features",
+      "test": {
+        "pr_auc": {
+          "value": 0.2532886576419857,
+          "low": 0.23964641106494833,
+          "high": 0.26813110113138766
+        },
+        "roc_auc": {
+          "value": 0.8231656016745226,
+          "low": 0.8170471932878005,
+          "high": 0.8288295492422044
+        },
+        "brier": {
+          "value": 0.05687015967075623,
+          "low": 0.055030720375983715,
+          "high": 0.05877511601501996
+        },
+        "log_loss": {
+          "value": 0.20129817010030807,
+          "low": 0.19587115374131658,
+          "high": 0.20694614873443207
+        },
+        "calibration_error": {
+          "value": 0.004195969377021701,
+          "low": 0.002511932290565876,
+          "high": 0.006035991110994135
+        }
+      },
+      "test_by_band": {
+        "1100-1400": {
+          "rows": 16674,
+          "pr_auc": 0.2592879394096629,
+          "roc_auc": 0.8171392462409841,
+          "brier": 0.06422363733104211,
+          "log_loss": 0.22166814965117085,
+          "calibration_error": 0.002136050122122817
+        },
+        "1400-1700": {
+          "rows": 19614,
+          "pr_auc": 0.2159774118677307,
+          "roc_auc": 0.8083695373914012,
+          "brier": 0.053155370865507076,
+          "log_loss": 0.19240185761410278,
+          "calibration_error": 0.004393167474334725
+        },
+        "1700-2000": {
+          "rows": 14453,
+          "pr_auc": 0.17936120694397722,
+          "roc_auc": 0.7957143682871876,
+          "brier": 0.046720351736051415,
+          "log_loss": 0.17609949336499134,
+          "calibration_error": 0.004083566019799726
+        },
+        "2000+": {
+          "rows": 7126,
+          "pr_auc": 0.12931208204719077,
+          "roc_auc": 0.8042460993537726,
+          "brier": 0.034792203756555645,
+          "log_loss": 0.13852893490989623,
+          "calibration_error": 0.0061914130351448556
+        },
+        "<1100": {
+          "rows": 10712,
+          "pr_auc": 0.34261692164314134,
+          "roc_auc": 0.8357612906649684,
+          "brier": 0.08060733937981453,
+          "log_loss": 0.26163548142366044,
+          "calibration_error": 0.009599094231833282
+        }
+      },
+      "parameters": null,
+      "device": "cpu",
+      "processor": "AMD Ryzen 7 3700X 8-Core Processor",
+      "seconds": 7.4,
+      "code": "5e4946ac1bff231bb0df94429fdc044c3ea9e6ec",
+      "trained": "2026-11-22T00:26:27Z",
+      "gain": null
+    },
+    {
+      "run": "gbm-context",
+      "learner": "LightGBM, context numbers only",
+      "test": {
+        "pr_auc": {
+          "value": 0.18793543072142638,
+          "low": 0.17823699028730647,
+          "high": 0.20007229382631528
+        },
+        "roc_auc": {
+          "value": 0.7796504123583965,
+          "low": 0.7730906388259914,
+          "high": 0.7864512384435345
+        },
+        "brier": {
+          "value": 0.05945241170571856,
+          "low": 0.05746047686259287,
+          "high": 0.061488749738195625
+        },
+        "log_loss": {
+          "value": 0.21421356035862085,
+          "low": 0.20842473185039725,
+          "high": 0.22010270222504966
+        },
+        "calibration_error": {
+          "value": 0.0026897624647749855,
+          "low": 0.0019730977481302128,
+          "high": 0.005270265710026757
+        }
+      },
+      "test_by_band": {
+        "1100-1400": {
+          "rows": 16674,
+          "pr_auc": 0.18659080842363523,
+          "roc_auc": 0.7741741790437111,
+          "brier": 0.06718386627623998,
+          "log_loss": 0.23509037608635658,
+          "calibration_error": 0.003109304609039612
+        },
+        "1400-1700": {
+          "rows": 19614,
+          "pr_auc": 0.1477224010396273,
+          "roc_auc": 0.7536181519792088,
+          "brier": 0.05545495565478668,
+          "log_loss": 0.20539733682563532,
+          "calibration_error": 0.004861795181336714
+        },
+        "1700-2000": {
+          "rows": 14453,
+          "pr_auc": 0.13273972532516082,
+          "roc_auc": 0.7483402710467767,
+          "brier": 0.048092287160482375,
+          "log_loss": 0.1850738046066874,
+          "calibration_error": 0.003140824303646516
+        },
+        "2000+": {
+          "rows": 7126,
+          "pr_auc": 0.11066355782003837,
+          "roc_auc": 0.7672491057514513,
+          "brier": 0.035226832015251466,
+          "log_loss": 0.14336161064447978,
+          "calibration_error": 0.004508202577875841
+        },
+        "<1100": {
+          "rows": 10712,
+          "pr_auc": 0.25872132524941605,
+          "roc_auc": 0.7813375313616874,
+          "brier": 0.08618049146679685,
+          "log_loss": 0.28430964572805484,
+          "calibration_error": 0.010019035238304832
+        }
+      },
+      "parameters": null,
+      "device": "cpu",
+      "processor": "AMD Ryzen 7 3700X 8-Core Processor",
+      "seconds": 4.9,
+      "code": "5e4946ac1bff231bb0df94429fdc044c3ea9e6ec",
+      "trained": "2026-11-22T00:27:03Z",
+      "gain": {
+        "gain": -0.06535322692055934,
+        "low": -0.0752429962594751,
+        "high": -0.05528261053211609,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-22T00:26:27Z",
+        "reference_value": 0.2532886576419857
+      }
+    },
+    {
+      "run": "constant",
+      "learner": "one number for every row",
+      "test": {
+        "pr_auc": {
+          "value": 0.0685486810831304,
+          "low": 0.06592826893189521,
+          "high": 0.07121159621276031
+        },
+        "roc_auc": {
+          "value": 0.5,
+          "low": 0.5,
+          "high": 0.5
+        },
+        "brier": {
+          "value": 0.06385965673572012,
+          "low": 0.06158200853260267,
+          "high": 0.06617424829995054
+        },
+        "log_loss": {
+          "value": 0.24994833428583269,
+          "low": 0.24297921047393722,
+          "high": 0.2570304970021872
+        },
+        "calibration_error": {
+          "value": 0.00605052741869858,
+          "low": 0.0024480159369755627,
+          "high": 0.006355867257762698
+        }
+      },
+      "test_by_band": {
+        "1100-1400": {
+          "rows": 16674,
+          "pr_auc": 0.07820558954060212,
+          "roc_auc": 0.5,
+          "brier": 0.07225338983051682,
+          "log_loss": 0.2756313897733204,
+          "calibration_error": 0.012802910813867056
+        },
+        "1400-1700": {
+          "rows": 19614,
+          "pr_auc": 0.062098501070663815,
+          "roc_auc": 0.5,
+          "brier": 0.05825319482542346,
+          "log_loss": 0.23279374160288255,
+          "calibration_error": 0.00518296743429277
+        },
+        "1700-2000": {
+          "rows": 14453,
+          "pr_auc": 0.05299937729191171,
+          "roc_auc": 0.5,
+          "brier": 0.0503442851850644,
+          "log_loss": 0.20859414377855015,
+          "calibration_error": 0.012403301434823365
+        },
+        "2000+": {
+          "rows": 7126,
+          "pr_auc": 0.038029750210496774,
+          "roc_auc": 0.5,
+          "brier": 0.037332765524979085,
+          "log_loss": 0.16878163394145926,
+          "calibration_error": 0.027372928516238303
+        },
+        "<1100": {
+          "rows": 10712,
+          "pr_auc": 0.10660941000746825,
+          "roc_auc": 0.5,
+          "brier": 0.09694183840817032,
+          "log_loss": 0.35117284285013184,
+          "calibration_error": 0.04120673128073319
+        }
+      },
+      "parameters": null,
+      "device": "cpu",
+      "processor": "AMD Ryzen 7 3700X 8-Core Processor",
+      "seconds": 0.1,
+      "code": "5e4946ac1bff231bb0df94429fdc044c3ea9e6ec",
+      "trained": "2026-11-22T00:26:48Z",
+      "gain": {
+        "gain": -0.18473997655885532,
+        "low": -0.1982214604277767,
+        "high": -0.17222303040225154,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-22T00:26:27Z",
+        "reference_value": 0.2532886576419857
+      }
+    }
+  ],
+  "calibration": {
+    "run": "gbm-hand",
+    "bins": [
+      {
+        "n": 6858,
+        "predicted": 1.9886755526836127e-05,
+        "observed": 0.0
+      },
+      {
+        "n": 6858,
+        "predicted": 3.312118036500222e-05,
+        "observed": 0.0
+      },
+      {
+        "n": 6858,
+        "predicted": 0.005905328013087771,
+        "observed": 0.004374453193350831
+      },
+      {
+        "n": 6858,
+        "predicted": 0.016887565591168795,
+        "observed": 0.017497812773403325
+      },
+      {
+        "n": 6858,
+        "predicted": 0.029806378192116883,
+        "observed": 0.027267424905220182
+      },
+      {
+        "n": 6858,
+        "predicted": 0.0458923621600437,
+        "observed": 0.052639253426655
+      },
+      {
+        "n": 6858,
+        "predicted": 0.06738353948155755,
+        "observed": 0.07655293088363954
+      },
+      {
+        "n": 6858,
+        "predicted": 0.09678414938166975,
+        "observed": 0.10382035578885973
+      },
+      {
+        "n": 6858,
+        "predicted": 0.14193820228334492,
+        "observed": 0.13677456984543598
+      },
+      {
+        "n": 6857,
+        "predicted": 0.25747768152110545,
+        "observed": 0.2665888872684848
+      }
+    ]
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "model": "puzzle-difficulty",
+  "run": "constant",
+  "task": {
+    "label": "rating",
+    "kind": "regression",
+    "unit": "Lichess puzzle rating points",
+    "primary": "rmse",
+    "lower_is_better": true,
+    "context": [
+      "solver_moves",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "puzzles-v1",
+    "source": "https://database.lichess.org/lichess_db_puzzle.csv.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 1127915,
+    "splits": {
+      "test": 112450,
+      "train": 958941,
+      "valid": 56524
+    },
+    "fingerprint": "d14731fa4425fc6efdadb45c94ee53e07f5afe9151992b690b81edc71064cd5d",
+    "built": "2026-11-22T00:20:03Z",
+    "code": "5e4946ac1bff231bb0df94429fdc044c3ea9e6ec"
+  },
+  "config": {
+    "learner": {
+      "kind": "constant"
+    }
+  },
+  "learner": {
+    "constant": 1462.388485840109
+  },
+  "calibration": null,
+  "machine": {
+    "processor": "AMD Ryzen 7 3700X 8-Core Processor",
+    "threads": 16,
+    "system": "Linux"
+  },
+  "code": "5e4946ac1bff231bb0df94429fdc044c3ea9e6ec",
+  "trained": "2026-11-22T00:21:49Z",
+  "seconds": 0.2,
+  "valid": {
+    "rmse": 502.22059778865895,
+    "mae": 414.84820170365555,
+    "r2": -1.7504056252004574e-05,
+    "spearman": NaN
+  },
+  "test": {
+    "rmse": {
+      "value": 502.8781849339514,
+      "low": 501.1428787561826,
+      "high": 504.7239759133679
+    },
+    "mae": {
+      "value": 415.7028684875458,
+      "low": 414.023776996326,
+      "high": 417.4808985402265
+    },
+    "r2": {
+      "value": -3.580425200544468e-06,
+      "low": -5.9420088814249314e-05,
+      "high": -1.3590820852060762e-08
+    },
+    "spearman": {
+      "value": NaN,
+      "low": NaN,
+      "high": NaN
+    }
+  },
+  "test_rows": 112450,
+  "test_groups": 112450,
+  "test_by_band": {
+    "1000-1399": {
+      "rows": 31846,
+      "rmse": 284.3591498859512,
+      "mae": 261.7699780212306,
+      "r2": -5.554487874863014,
+      "spearman": NaN
+    },
+    "1400-1799": {
+      "rows": 28501,
+      "rmse": 170.53473916271972,
+      "mae": 138.3426980243141,
+      "r2": -1.2714088632652043,
+      "spearman": NaN
+    },
+    "1800-2199": {
+      "rows": 19518,
+      "rmse": 537.2186749158858,
+      "mae": 524.7676777012374,
+      "r2": -20.826250278476582,
+      "spearman": NaN
+    },
+    "2200+": {
+      "rows": 9834,
+      "rmse": 958.5224471522581,
+      "mae": 944.4112904462445,
+      "r2": -33.2151379254216,
+      "spearman": NaN
+    },
+    "<1000": {
+      "rows": 22751,
+      "rmse": 674.9710166403129,
+      "mae": 656.5337541799622,
+      "r2": -17.557996317145417,
+      "spearman": NaN
+    }
+  },
+  "gain": {
+    "gain": -207.95544752532476,
+    "low": -210.065944750771,
+    "high": -206.14306129668742,
+    "beyond_noise": true,
+    "reference": "gbm-hand",
+    "reference_trained": "2026-11-22T00:21:24Z",
+    "reference_value": 294.92273740862663
+  }
+}

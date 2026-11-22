@@ -1,0 +1,162 @@
+{
+  "model": "puzzle-difficulty",
+  "run": "gbm-hand",
+  "task": {
+    "label": "rating",
+    "kind": "regression",
+    "unit": "Lichess puzzle rating points",
+    "primary": "rmse",
+    "lower_is_better": true,
+    "context": [
+      "solver_moves",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "puzzles-v1",
+    "source": "https://database.lichess.org/lichess_db_puzzle.csv.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 1127915,
+    "splits": {
+      "test": 112450,
+      "train": 958941,
+      "valid": 56524
+    },
+    "fingerprint": "d14731fa4425fc6efdadb45c94ee53e07f5afe9151992b690b81edc71064cd5d",
+    "built": "2026-11-22T00:20:03Z",
+    "code": "5e4946ac1bff231bb0df94429fdc044c3ea9e6ec"
+  },
+  "config": {
+    "learner": {
+      "kind": "gbm",
+      "features": "hand"
+    }
+  },
+  "learner": {
+    "features": 38,
+    "trees": 2970,
+    "fit_seconds": 76.2,
+    "leans_on": [
+      {
+        "feature": "line_quiet",
+        "share_of_gain": 0.2188
+      },
+      {
+        "feature": "ends_in_mate",
+        "share_of_gain": 0.1147
+      },
+      {
+        "feature": "line_pieces_moved",
+        "share_of_gain": 0.1
+      },
+      {
+        "feature": "solver_moves",
+        "share_of_gain": 0.0855
+      },
+      {
+        "feature": "legal_checks",
+        "share_of_gain": 0.0728
+      },
+      {
+        "feature": "final_material_gain",
+        "share_of_gain": 0.0585
+      },
+      {
+        "feature": "first_check",
+        "share_of_gain": 0.0331
+      },
+      {
+        "feature": "legal_captures",
+        "share_of_gain": 0.0314
+      },
+      {
+        "feature": "material_count",
+        "share_of_gain": 0.031
+      },
+      {
+        "feature": "first_piece",
+        "share_of_gain": 0.0256
+      }
+    ]
+  },
+  "calibration": null,
+  "machine": {
+    "processor": "AMD Ryzen 7 3700X 8-Core Processor",
+    "threads": 16,
+    "system": "Linux"
+  },
+  "code": "5e4946ac1bff231bb0df94429fdc044c3ea9e6ec",
+  "trained": "2026-11-22T00:21:24Z",
+  "seconds": 79.5,
+  "valid": {
+    "rmse": 295.0473130623984,
+    "mae": 229.08559908882094,
+    "r2": 0.6548547598501993,
+    "spearman": 0.8120978954499476
+  },
+  "test": {
+    "rmse": {
+      "value": 294.92273740862663,
+      "low": 293.5283738706043,
+      "high": 296.2176522819523
+    },
+    "mae": {
+      "value": 229.03417103900324,
+      "low": 227.91540867202588,
+      "high": 230.09038506089243
+    },
+    "r2": {
+      "value": 0.6560522480768454,
+      "low": 0.6527534229352948,
+      "high": 0.6595143442615791
+    },
+    "spearman": {
+      "value": 0.8132712554094683,
+      "low": 0.8110257586337581,
+      "high": 0.815568255811599
+    }
+  },
+  "test_rows": 112450,
+  "test_groups": 112450,
+  "test_by_band": {
+    "1000-1399": {
+      "rows": 31846,
+      "rmse": 270.2234216419971,
+      "mae": 210.06001916962973,
+      "r2": -4.919027090382242,
+      "spearman": 0.3644542115935979
+    },
+    "1400-1799": {
+      "rows": 28501,
+      "rmse": 250.6261637832274,
+      "mae": 198.3725221338835,
+      "r2": -3.9059419694582305,
+      "spearman": 0.276524054196604
+    },
+    "1800-2199": {
+      "rows": 19518,
+      "rmse": 311.3964627119719,
+      "mae": 247.62996309615727,
+      "r2": -6.333381491683234,
+      "spearman": 0.22314245202464317
+    },
+    "2200+": {
+      "rows": 9834,
+      "rmse": 494.4336895508312,
+      "mae": 431.273475450426,
+      "r2": -8.10394927154194,
+      "spearman": 0.26715424847249253
+    },
+    "<1000": {
+      "rows": 22751,
+      "rmse": 245.2564935821495,
+      "mae": 190.63429881024072,
+      "r2": -1.450201858012457,
+      "spearman": 0.6372473897270082
+    }
+  },
+  "gain": null
+}

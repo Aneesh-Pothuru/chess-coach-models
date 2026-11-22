@@ -1,0 +1,168 @@
+{
+  "model": "think-time",
+  "run": "gbm-hand",
+  "task": {
+    "label": "log_spent",
+    "kind": "regression",
+    "unit": "log(1 + seconds spent on the move)",
+    "primary": "mae",
+    "lower_is_better": true,
+    "context": [
+      "mover_elo",
+      "opponent_elo",
+      "log_clock",
+      "log_opponent_clock",
+      "log_base",
+      "increment",
+      "ply",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "game-positions-2026-10",
+    "source": "https://database.lichess.org/standard/lichess_db_standard_rated_2026-10.pgn.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 698013,
+    "splits": {
+      "test": 68579,
+      "train": 594940,
+      "valid": 34494
+    },
+    "fingerprint": "340c68ed5c918cd6dfea4f5cb24218c52d8d0a88cb29e50498218aefdb9dfbd0",
+    "built": "2026-11-22T00:26:19Z",
+    "code": "5e4946ac1bff231bb0df94429fdc044c3ea9e6ec"
+  },
+  "config": {
+    "learner": {
+      "kind": "gbm",
+      "features": "hand"
+    }
+  },
+  "learner": {
+    "features": 24,
+    "trees": 709,
+    "fit_seconds": 23.2,
+    "leans_on": [
+      {
+        "feature": "log_clock",
+        "share_of_gain": 0.2056
+      },
+      {
+        "feature": "legal_moves",
+        "share_of_gain": 0.1114
+      },
+      {
+        "feature": "increment",
+        "share_of_gain": 0.0775
+      },
+      {
+        "feature": "material_imbalance",
+        "share_of_gain": 0.0756
+      },
+      {
+        "feature": "material_count",
+        "share_of_gain": 0.0749
+      },
+      {
+        "feature": "phase_piece_count",
+        "share_of_gain": 0.065
+      },
+      {
+        "feature": "ply",
+        "share_of_gain": 0.0621
+      },
+      {
+        "feature": "log_opponent_clock",
+        "share_of_gain": 0.0561
+      },
+      {
+        "feature": "hanging_opponent",
+        "share_of_gain": 0.0507
+      },
+      {
+        "feature": "log_base",
+        "share_of_gain": 0.0492
+      }
+    ]
+  },
+  "calibration": null,
+  "machine": {
+    "processor": "AMD Ryzen 7 3700X 8-Core Processor",
+    "threads": 16,
+    "system": "Linux"
+  },
+  "code": "5e4946ac1bff231bb0df94429fdc044c3ea9e6ec",
+  "trained": "2026-11-22T00:28:01Z",
+  "seconds": 24.3,
+  "valid": {
+    "rmse": 0.8101872886862238,
+    "mae": 0.6405710155771398,
+    "r2": 0.28832970187949303,
+    "spearman": 0.5301112292424295
+  },
+  "test": {
+    "rmse": {
+      "value": 0.7992486352772205,
+      "low": 0.7930992079766961,
+      "high": 0.8049102635740133
+    },
+    "mae": {
+      "value": 0.6305820451868338,
+      "low": 0.6254788539936675,
+      "high": 0.635218372617043
+    },
+    "r2": {
+      "value": 0.29385324954223657,
+      "low": 0.2854804038838525,
+      "high": 0.30352127296520043
+    },
+    "spearman": {
+      "value": 0.5321987362243236,
+      "low": 0.5238779864305286,
+      "high": 0.540647332317627
+    }
+  },
+  "test_rows": 68579,
+  "test_groups": 2944,
+  "test_by_band": {
+    "1100-1400": {
+      "rows": 16674,
+      "rmse": 0.7738110283357889,
+      "mae": 0.6132529402720043,
+      "r2": 0.2818378348274383,
+      "spearman": 0.5198332321840495
+    },
+    "1400-1700": {
+      "rows": 19614,
+      "rmse": 0.7927930206844591,
+      "mae": 0.6261884812597652,
+      "r2": 0.3072976945055663,
+      "spearman": 0.5470564232057326
+    },
+    "1700-2000": {
+      "rows": 14453,
+      "rmse": 0.8245207215542455,
+      "mae": 0.6480045721435135,
+      "r2": 0.30765335195081434,
+      "spearman": 0.5455212859423592
+    },
+    "2000+": {
+      "rows": 7126,
+      "rmse": 0.8758727964307709,
+      "mae": 0.6896050520066302,
+      "r2": 0.2854514870046877,
+      "spearman": 0.5283359641738291
+    },
+    "<1100": {
+      "rows": 10712,
+      "rmse": 0.7610188357792825,
+      "mae": 0.6028295367395439,
+      "r2": 0.2631121296491832,
+      "spearman": 0.5016276234067217
+    }
+  },
+  "gain": null
+}

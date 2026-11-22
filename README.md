@@ -37,7 +37,11 @@ The best run of each model on the shared harness, beside the tree baseline it is
 `results/leaderboard.md` has every run.
 
 <!-- LEADERBOARDS_START -->
-No full run has been recorded yet.
+| Model | Predicts | Best run | Score | Reference | Its score | Gain | Test rows |
+|---|---|---|---|---|---|---|---|
+| [`blunder-hazard`](models/blunder-hazard/) | chance the mover loses more than 20 points of win probability | `gbm-hand` | PR-AUC 0.2533 (0.2396 to 0.2681) | `gbm-hand` | 0.2533 | the reference is the best run | 68,579 |
+| [`puzzle-difficulty`](models/puzzle-difficulty/) | Lichess puzzle rating points | `gbm-hand` | RMSE 294.9 (293.5 to 296.2) | `gbm-hand` | 294.9 | the reference is the best run | 112,450 |
+| [`think-time`](models/think-time/) | log(1 + seconds spent on the move) | `gbm-hand` | MAE 0.6306 (0.6255 to 0.6352) | `gbm-hand` | 0.6306 | the reference is the best run | 68,579 |
 <!-- LEADERBOARDS_END -->
 
 ## One harness for every model

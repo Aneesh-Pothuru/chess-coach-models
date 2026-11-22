@@ -1,0 +1,176 @@
+{
+  "model": "think-time",
+  "run": "gbm-context",
+  "task": {
+    "label": "log_spent",
+    "kind": "regression",
+    "unit": "log(1 + seconds spent on the move)",
+    "primary": "mae",
+    "lower_is_better": true,
+    "context": [
+      "mover_elo",
+      "opponent_elo",
+      "log_clock",
+      "log_opponent_clock",
+      "log_base",
+      "increment",
+      "ply",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "game-positions-2026-10",
+    "source": "https://database.lichess.org/standard/lichess_db_standard_rated_2026-10.pgn.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 698013,
+    "splits": {
+      "test": 68579,
+      "train": 594940,
+      "valid": 34494
+    },
+    "fingerprint": "340c68ed5c918cd6dfea4f5cb24218c52d8d0a88cb29e50498218aefdb9dfbd0",
+    "built": "2026-11-22T00:26:19Z",
+    "code": "5e4946ac1bff231bb0df94429fdc044c3ea9e6ec"
+  },
+  "config": {
+    "learner": {
+      "kind": "gbm",
+      "features": "context"
+    }
+  },
+  "learner": {
+    "features": 11,
+    "trees": 198,
+    "fit_seconds": 6.6,
+    "leans_on": [
+      {
+        "feature": "log_clock",
+        "share_of_gain": 0.3457
+      },
+      {
+        "feature": "ply",
+        "share_of_gain": 0.2756
+      },
+      {
+        "feature": "increment",
+        "share_of_gain": 0.135
+      },
+      {
+        "feature": "log_opponent_clock",
+        "share_of_gain": 0.0742
+      },
+      {
+        "feature": "log_base",
+        "share_of_gain": 0.0725
+      },
+      {
+        "feature": "mover_elo",
+        "share_of_gain": 0.0436
+      },
+      {
+        "feature": "opponent_elo",
+        "share_of_gain": 0.0382
+      },
+      {
+        "feature": "castle_own_king",
+        "share_of_gain": 0.0049
+      },
+      {
+        "feature": "castle_opp_king",
+        "share_of_gain": 0.004
+      },
+      {
+        "feature": "castle_opp_queen",
+        "share_of_gain": 0.0034
+      }
+    ]
+  },
+  "calibration": null,
+  "machine": {
+    "processor": "AMD Ryzen 7 3700X 8-Core Processor",
+    "threads": 16,
+    "system": "Linux"
+  },
+  "code": "5e4946ac1bff231bb0df94429fdc044c3ea9e6ec",
+  "trained": "2026-11-22T00:28:24Z",
+  "seconds": 6.7,
+  "valid": {
+    "rmse": 0.8656757528752701,
+    "mae": 0.6920157224947509,
+    "r2": 0.1875091156145512,
+    "spearman": 0.4203115025623343
+  },
+  "test": {
+    "rmse": {
+      "value": 0.8536080777249482,
+      "low": 0.8466905235903046,
+      "high": 0.8597289150674454
+    },
+    "mae": {
+      "value": 0.6794301137123221,
+      "low": 0.6736619418306088,
+      "high": 0.6846432825865375
+    },
+    "r2": {
+      "value": 0.19453218682712214,
+      "low": 0.18505899601402287,
+      "high": 0.2043602078948414
+    },
+    "spearman": {
+      "value": 0.4265357514009233,
+      "low": 0.41664998253881985,
+      "high": 0.43698309785772216
+    }
+  },
+  "test_rows": 68579,
+  "test_groups": 2944,
+  "test_by_band": {
+    "1100-1400": {
+      "rows": 16674,
+      "rmse": 0.824761961610551,
+      "mae": 0.659880433192579,
+      "r2": 0.18415071488869583,
+      "spearman": 0.4123580758370961
+    },
+    "1400-1700": {
+      "rows": 19614,
+      "rmse": 0.8528965677554148,
+      "mae": 0.6789590510640966,
+      "r2": 0.19828551534210692,
+      "spearman": 0.4343564636940255
+    },
+    "1700-2000": {
+      "rows": 14453,
+      "rmse": 0.8857383673335452,
+      "mae": 0.7035880646938312,
+      "r2": 0.20102836872934282,
+      "spearman": 0.4346746550995805
+    },
+    "2000+": {
+      "rows": 7126,
+      "rmse": 0.9301758141721155,
+      "mae": 0.7365486523264323,
+      "r2": 0.19410264541443445,
+      "spearman": 0.42788250019937224
+    },
+    "<1100": {
+      "rows": 10712,
+      "rmse": 0.7999810136194241,
+      "mae": 0.6401311241742891,
+      "r2": 0.18572714847531757,
+      "spearman": 0.4147519644088833
+    }
+  },
+  "gain": {
+    "gain": -0.048848068525488286,
+    "low": -0.051552870993375174,
+    "high": -0.04636772616264204,
+    "beyond_noise": true,
+    "reference": "gbm-hand",
+    "reference_trained": "2026-11-22T00:28:01Z",
+    "reference_value": 0.6305820451868338
+  }
+}

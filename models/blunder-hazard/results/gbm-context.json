@@ -1,0 +1,244 @@
+{
+  "model": "blunder-hazard",
+  "run": "gbm-context",
+  "task": {
+    "label": "blunder",
+    "kind": "binary",
+    "unit": "chance the mover loses more than 20 points of win probability",
+    "primary": "pr_auc",
+    "lower_is_better": false,
+    "context": [
+      "mover_elo",
+      "opponent_elo",
+      "log_clock",
+      "log_opponent_clock",
+      "log_base",
+      "increment",
+      "ply",
+      "win_before",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "game-positions-2026-10",
+    "source": "https://database.lichess.org/standard/lichess_db_standard_rated_2026-10.pgn.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 698013,
+    "splits": {
+      "test": 68579,
+      "train": 594940,
+      "valid": 34494
+    },
+    "fingerprint": "340c68ed5c918cd6dfea4f5cb24218c52d8d0a88cb29e50498218aefdb9dfbd0",
+    "built": "2026-11-22T00:26:19Z",
+    "code": "5e4946ac1bff231bb0df94429fdc044c3ea9e6ec"
+  },
+  "config": {
+    "learner": {
+      "kind": "gbm",
+      "features": "context"
+    }
+  },
+  "learner": {
+    "features": 12,
+    "trees": 114,
+    "fit_seconds": 4.8,
+    "leans_on": [
+      {
+        "feature": "win_before",
+        "share_of_gain": 0.5922
+      },
+      {
+        "feature": "mover_elo",
+        "share_of_gain": 0.1245
+      },
+      {
+        "feature": "ply",
+        "share_of_gain": 0.1119
+      },
+      {
+        "feature": "opponent_elo",
+        "share_of_gain": 0.0535
+      },
+      {
+        "feature": "log_clock",
+        "share_of_gain": 0.0506
+      },
+      {
+        "feature": "log_opponent_clock",
+        "share_of_gain": 0.047
+      },
+      {
+        "feature": "increment",
+        "share_of_gain": 0.0064
+      },
+      {
+        "feature": "castle_opp_king",
+        "share_of_gain": 0.004
+      },
+      {
+        "feature": "log_base",
+        "share_of_gain": 0.0036
+      },
+      {
+        "feature": "castle_opp_queen",
+        "share_of_gain": 0.0025
+      }
+    ]
+  },
+  "calibration": {
+    "platt_slope": 1.0343032141592217,
+    "platt_intercept": 0.051614870290691936,
+    "fitted_on": "valid"
+  },
+  "machine": {
+    "processor": "AMD Ryzen 7 3700X 8-Core Processor",
+    "threads": 16,
+    "system": "Linux"
+  },
+  "code": "5e4946ac1bff231bb0df94429fdc044c3ea9e6ec",
+  "trained": "2026-11-22T00:27:03Z",
+  "seconds": 4.9,
+  "valid": {
+    "pr_auc": 0.18244502552746622,
+    "roc_auc": 0.7797305220833174,
+    "brier": 0.05706237644601145,
+    "log_loss": 0.20730263043585417,
+    "calibration_error": 0.0020105236219335916
+  },
+  "test": {
+    "pr_auc": {
+      "value": 0.18793543072142638,
+      "low": 0.17823699028730647,
+      "high": 0.20007229382631528
+    },
+    "roc_auc": {
+      "value": 0.7796504123583965,
+      "low": 0.7730906388259914,
+      "high": 0.7864512384435345
+    },
+    "brier": {
+      "value": 0.05945241170571856,
+      "low": 0.05746047686259287,
+      "high": 0.061488749738195625
+    },
+    "log_loss": {
+      "value": 0.21421356035862085,
+      "low": 0.20842473185039725,
+      "high": 0.22010270222504966
+    },
+    "calibration_error": {
+      "value": 0.0026897624647749855,
+      "low": 0.0019730977481302128,
+      "high": 0.005270265710026757
+    }
+  },
+  "test_rows": 68579,
+  "test_groups": 2944,
+  "test_by_band": {
+    "1100-1400": {
+      "rows": 16674,
+      "pr_auc": 0.18659080842363523,
+      "roc_auc": 0.7741741790437111,
+      "brier": 0.06718386627623998,
+      "log_loss": 0.23509037608635658,
+      "calibration_error": 0.003109304609039612
+    },
+    "1400-1700": {
+      "rows": 19614,
+      "pr_auc": 0.1477224010396273,
+      "roc_auc": 0.7536181519792088,
+      "brier": 0.05545495565478668,
+      "log_loss": 0.20539733682563532,
+      "calibration_error": 0.004861795181336714
+    },
+    "1700-2000": {
+      "rows": 14453,
+      "pr_auc": 0.13273972532516082,
+      "roc_auc": 0.7483402710467767,
+      "brier": 0.048092287160482375,
+      "log_loss": 0.1850738046066874,
+      "calibration_error": 0.003140824303646516
+    },
+    "2000+": {
+      "rows": 7126,
+      "pr_auc": 0.11066355782003837,
+      "roc_auc": 0.7672491057514513,
+      "brier": 0.035226832015251466,
+      "log_loss": 0.14336161064447978,
+      "calibration_error": 0.004508202577875841
+    },
+    "<1100": {
+      "rows": 10712,
+      "pr_auc": 0.25872132524941605,
+      "roc_auc": 0.7813375313616874,
+      "brier": 0.08618049146679685,
+      "log_loss": 0.28430964572805484,
+      "calibration_error": 0.010019035238304832
+    }
+  },
+  "test_calibration": [
+    {
+      "n": 6858,
+      "predicted": 0.0005394624324560871,
+      "observed": 0.0
+    },
+    {
+      "n": 6858,
+      "predicted": 0.0006251323776817035,
+      "observed": 0.0
+    },
+    {
+      "n": 6858,
+      "predicted": 0.012734039009979966,
+      "observed": 0.012248468941382326
+    },
+    {
+      "n": 6858,
+      "predicted": 0.027030618206905353,
+      "observed": 0.026975794692330125
+    },
+    {
+      "n": 6858,
+      "predicted": 0.040001051103364514,
+      "observed": 0.04403616214639837
+    },
+    {
+      "n": 6858,
+      "predicted": 0.057836705980103306,
+      "observed": 0.06430446194225722
+    },
+    {
+      "n": 6858,
+      "predicted": 0.07898107802301277,
+      "observed": 0.0836978710994459
+    },
+    {
+      "n": 6858,
+      "predicted": 0.10364621523079422,
+      "observed": 0.10236220472440945
+    },
+    {
+      "n": 6858,
+      "predicted": 0.13724707717376278,
+      "observed": 0.13808690580344124
+    },
+    {
+      "n": 6857,
+      "predicted": 0.20594623129129336,
+      "observed": 0.21379612075251567
+    }
+  ],
+  "gain": {
+    "gain": -0.06535322692055934,
+    "low": -0.0752429962594751,
+    "high": -0.05528261053211609,
+    "beyond_noise": true,
+    "reference": "gbm-hand",
+    "reference_trained": "2026-11-22T00:26:27Z",
+    "reference_value": 0.2532886576419857
+  }
+}

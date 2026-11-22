@@ -1,0 +1,262 @@
+{
+  "model": "puzzle-difficulty",
+  "task": {
+    "label": "rating",
+    "kind": "regression",
+    "unit": "Lichess puzzle rating points",
+    "primary": "rmse",
+    "lower_is_better": true,
+    "context": [
+      "solver_moves",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "puzzles-v1",
+    "source": "https://database.lichess.org/lichess_db_puzzle.csv.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 1127915,
+    "splits": {
+      "test": 112450,
+      "train": 958941,
+      "valid": 56524
+    },
+    "fingerprint": "d14731fa4425fc6efdadb45c94ee53e07f5afe9151992b690b81edc71064cd5d",
+    "built": "2026-11-22T00:20:03Z",
+    "code": "5e4946ac1bff231bb0df94429fdc044c3ea9e6ec"
+  },
+  "test_rows": 112450,
+  "test_groups": 112450,
+  "reference": "gbm-hand",
+  "runs": [
+    {
+      "run": "gbm-hand",
+      "learner": "LightGBM, context and hand features",
+      "test": {
+        "rmse": {
+          "value": 294.92273740862663,
+          "low": 293.5283738706043,
+          "high": 296.2176522819523
+        },
+        "mae": {
+          "value": 229.03417103900324,
+          "low": 227.91540867202588,
+          "high": 230.09038506089243
+        },
+        "r2": {
+          "value": 0.6560522480768454,
+          "low": 0.6527534229352948,
+          "high": 0.6595143442615791
+        },
+        "spearman": {
+          "value": 0.8132712554094683,
+          "low": 0.8110257586337581,
+          "high": 0.815568255811599
+        }
+      },
+      "test_by_band": {
+        "1000-1399": {
+          "rows": 31846,
+          "rmse": 270.2234216419971,
+          "mae": 210.06001916962973,
+          "r2": -4.919027090382242,
+          "spearman": 0.3644542115935979
+        },
+        "1400-1799": {
+          "rows": 28501,
+          "rmse": 250.6261637832274,
+          "mae": 198.3725221338835,
+          "r2": -3.9059419694582305,
+          "spearman": 0.276524054196604
+        },
+        "1800-2199": {
+          "rows": 19518,
+          "rmse": 311.3964627119719,
+          "mae": 247.62996309615727,
+          "r2": -6.333381491683234,
+          "spearman": 0.22314245202464317
+        },
+        "2200+": {
+          "rows": 9834,
+          "rmse": 494.4336895508312,
+          "mae": 431.273475450426,
+          "r2": -8.10394927154194,
+          "spearman": 0.26715424847249253
+        },
+        "<1000": {
+          "rows": 22751,
+          "rmse": 245.2564935821495,
+          "mae": 190.63429881024072,
+          "r2": -1.450201858012457,
+          "spearman": 0.6372473897270082
+        }
+      },
+      "parameters": null,
+      "device": "cpu",
+      "processor": "AMD Ryzen 7 3700X 8-Core Processor",
+      "seconds": 79.5,
+      "code": "5e4946ac1bff231bb0df94429fdc044c3ea9e6ec",
+      "trained": "2026-11-22T00:21:24Z",
+      "gain": null
+    },
+    {
+      "run": "gbm-context",
+      "learner": "LightGBM, context numbers only",
+      "test": {
+        "rmse": {
+          "value": 428.7522335056803,
+          "low": 427.18930433837556,
+          "high": 430.47438143792175
+        },
+        "mae": {
+          "value": 348.44725976543924,
+          "low": 346.98531343010814,
+          "high": 350.0132518666616
+        },
+        "r2": {
+          "value": 0.27307642543080346,
+          "low": 0.26843661870606406,
+          "high": 0.2773226442633717
+        },
+        "spearman": {
+          "value": 0.5022468573014417,
+          "low": 0.4976842769171282,
+          "high": 0.5067976034575143
+        }
+      },
+      "test_by_band": {
+        "1000-1399": {
+          "rows": 31846,
+          "rmse": 321.8989538861026,
+          "mae": 271.75556541630266,
+          "r2": -7.399307489826304,
+          "spearman": 0.1499129820128873
+        },
+        "1400-1799": {
+          "rows": 28501,
+          "rmse": 243.67226152788677,
+          "mae": 194.4029519741617,
+          "r2": -3.637477137600036,
+          "spearman": 0.11112042153062178
+        },
+        "1800-2199": {
+          "rows": 19518,
+          "rmse": 450.53467154898436,
+          "mae": 399.26804744600713,
+          "r2": -14.350883119267719,
+          "spearman": 0.09875992191141901
+        },
+        "2200+": {
+          "rows": 9834,
+          "rmse": 759.0572104692548,
+          "mae": 715.2908070893228,
+          "r2": -20.45669063303815,
+          "spearman": 0.15847982393826077
+        },
+        "<1000": {
+          "rows": 22751,
+          "rmse": 515.7429326389192,
+          "mae": 446.6091399583718,
+          "r2": -9.834962335177874,
+          "spearman": 0.251032347921207
+        }
+      },
+      "parameters": null,
+      "device": "cpu",
+      "processor": "AMD Ryzen 7 3700X 8-Core Processor",
+      "seconds": 4.8,
+      "code": "5e4946ac1bff231bb0df94429fdc044c3ea9e6ec",
+      "trained": "2026-11-22T00:22:11Z",
+      "gain": {
+        "gain": -133.82949609705366,
+        "low": -135.39612875187217,
+        "high": -132.24003606283577,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-22T00:21:24Z",
+        "reference_value": 294.92273740862663
+      }
+    },
+    {
+      "run": "constant",
+      "learner": "one number for every row",
+      "test": {
+        "rmse": {
+          "value": 502.8781849339514,
+          "low": 501.1428787561826,
+          "high": 504.7239759133679
+        },
+        "mae": {
+          "value": 415.7028684875458,
+          "low": 414.023776996326,
+          "high": 417.4808985402265
+        },
+        "r2": {
+          "value": -3.580425200544468e-06,
+          "low": -5.9420088814249314e-05,
+          "high": -1.3590820852060762e-08
+        },
+        "spearman": {
+          "value": NaN,
+          "low": NaN,
+          "high": NaN
+        }
+      },
+      "test_by_band": {
+        "1000-1399": {
+          "rows": 31846,
+          "rmse": 284.3591498859512,
+          "mae": 261.7699780212306,
+          "r2": -5.554487874863014,
+          "spearman": NaN
+        },
+        "1400-1799": {
+          "rows": 28501,
+          "rmse": 170.53473916271972,
+          "mae": 138.3426980243141,
+          "r2": -1.2714088632652043,
+          "spearman": NaN
+        },
+        "1800-2199": {
+          "rows": 19518,
+          "rmse": 537.2186749158858,
+          "mae": 524.7676777012374,
+          "r2": -20.826250278476582,
+          "spearman": NaN
+        },
+        "2200+": {
+          "rows": 9834,
+          "rmse": 958.5224471522581,
+          "mae": 944.4112904462445,
+          "r2": -33.2151379254216,
+          "spearman": NaN
+        },
+        "<1000": {
+          "rows": 22751,
+          "rmse": 674.9710166403129,
+          "mae": 656.5337541799622,
+          "r2": -17.557996317145417,
+          "spearman": NaN
+        }
+      },
+      "parameters": null,
+      "device": "cpu",
+      "processor": "AMD Ryzen 7 3700X 8-Core Processor",
+      "seconds": 0.2,
+      "code": "5e4946ac1bff231bb0df94429fdc044c3ea9e6ec",
+      "trained": "2026-11-22T00:21:49Z",
+      "gain": {
+        "gain": -207.95544752532476,
+        "low": -210.065944750771,
+        "high": -206.14306129668742,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-22T00:21:24Z",
+        "reference_value": 294.92273740862663
+      }
+    }
+  ]
+}
