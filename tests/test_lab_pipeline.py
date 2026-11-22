@@ -143,3 +143,19 @@ def test_platt_scaling_recovers_a_known_distortion():
     assert slope == pytest.approx(0.5, abs=0.05)
     fixed = runs.apply_platt(distorted, slope, intercept)
     assert abs(fixed.mean() - y.mean()) < 0.01
+
+
+def test_platt_scaling_comes_back_from_predictions_that_are_far_off():
+    import numpy as np
+
+    rng = np.random.default_rng(1)
+    gap = rng.normal(400, 500, size=5_000)
+    truth = 1 / (1 + np.exp(-(0.45 + 0.0012 * gap)))
+    y = (rng.random(5_000) < truth).astype(float)
+    stated = 1 / (1 + 10 ** (-gap / 400))
+    slope, intercept = runs.platt(stated, y)
+    assert slope == pytest.approx(0.0012 * 400 / np.log(10), abs=0.03)
+    assert intercept == pytest.approx(0.45, abs=0.08)
+    fixed = runs.apply_platt(stated, slope, intercept)
+    x = np.log(stated / (1 - stated))
+    assert abs(np.sum(fixed - y)) < 1e-6 and abs(np.sum((fixed - y) * x)) < 1e-5
