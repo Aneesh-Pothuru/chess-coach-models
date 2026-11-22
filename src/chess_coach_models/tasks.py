@@ -11,6 +11,7 @@ its results, so a model is one folder and adding one touches no code:
     reference: gbm-hand           the run every other run is compared with
     context: [solver_moves]       the numbers every learner reads beside the board
     band: band                    the column its results are also given by
+    scale: log1p                  how its label reads: as it is (linear), or as log(1 + x)
 
 How a model's paper looks at its results is beside it, in ``analysis.yaml``
 (``evals/analysis.py``): changing that changes no run.
@@ -27,7 +28,8 @@ from .evals.metrics import LOWER_IS_BETTER, METRICS
 
 
 REQUIRED = ("dataset", "kind", "label", "unit", "primary", "reference", "context")
-OPTIONAL = ("band",)
+OPTIONAL = ("band", "scale")
+SCALES = ("linear", "log1p")
 
 
 @dataclass(frozen=True)
@@ -37,7 +39,10 @@ class Task:
     ``name`` is the model's folder under ``models/``. ``context`` names the
     numbers every learner reads beside the board; the tree baseline also reads
     the dataset's hand features. ``reference`` is the run every other run is
-    compared against, pair by pair on the same test rows.
+    compared against, pair by pair on the same test rows. ``scale`` says how a
+    quantity's label reads: with ``log1p`` a label of 2.4 is 10 of something
+    and an error of 0.69 is a factor of two, which a paper needs to know to
+    say either in plain units.
     """
 
     name: str
@@ -49,6 +54,7 @@ class Task:
     primary: str
     reference: str
     band: str = "band"
+    scale: str = "linear"
 
     @property
     def lower_is_better(self) -> bool:
@@ -88,6 +94,10 @@ def get(name: str) -> Task:
             f"{path}: a {loaded['kind']} task is ranked by one of {', '.join(METRICS[loaded['kind']])}, "
             f"not {loaded['primary']!r}"
         )
+    if loaded.get("scale", "linear") not in SCALES:
+        raise ValueError(f"{path}: a label's scale is one of {', '.join(SCALES)}, not {loaded['scale']!r}")
+    if loaded.get("scale", "linear") != "linear" and loaded["kind"] != "regression":
+        raise ValueError(f"{path}: only a quantity has a scale, and this task predicts a chance")
     return Task(
         name=name,
         dataset=loaded["dataset"],
@@ -98,4 +108,5 @@ def get(name: str) -> Task:
         primary=loaded["primary"],
         reference=loaded["reference"],
         band=loaded.get("band", "band"),
+        scale=loaded.get("scale", "linear"),
     )

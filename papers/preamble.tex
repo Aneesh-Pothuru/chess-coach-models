@@ -1,0 +1,138 @@
+% The preamble every paper of the lab shares: \input{../../../papers/preamble}
+% from models/<model>/paper/. Boards come from chessboard and xskak, plots from
+% pgfplots. A paper prints no number by hand: `lab paper` writes every number,
+% table and figure under the paper's generated/ folder, and paper.tex says
+% what they mean.
+
+% The same files give the same PDF, byte for byte: no date, no build
+% information and a fixed trailer id, so a rebuilt paper shows no change that
+% is not one.
+\pdfinfoomitdate=1
+\pdfsuppressptexinfo=-1
+\pdftrailerid{}
+\usepackage[LSBC4,T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage[obeyspaces,spaces]{url}
+\usepackage{xskak}
+\usepackage{pgfplots}
+\usepackage{sansmath}
+\usepgfplotslibrary{groupplots}
+\usetikzlibrary{positioning,arrows.meta,calc,fit}
+\pgfplotsset{compat=1.18}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{enumitem}
+\usepackage[section]{placeins}
+\usepackage[hidelinks]{hyperref}
+
+% A generated value by its key: generated/values.tex sets them, \V{key} prints
+% one, and a key nobody set stops the build. \block{name} places a generated
+% table, figure or board. \iflook is true when the model's closer look was
+% there to draw from, so a paper can hold sections that wait for it. A smoke
+% build sets \iflablenient, and prints a mark where a value or a block is not
+% in it, since a small check has fewer runs than the paper names.
+\newif\iflook
+\newif\iflablenient
+% \ifchance is true when the model gives a chance, false when it gives a
+% quantity: the shared sections say what differs between the two.
+\newif\ifchance
+\makeatletter
+\newcommand{\setvalue}[2]{\expandafter\gdef\csname labvalue@#1\endcsname{#2}}
+\DeclareRobustCommand{\V}[1]{\@ifundefined{labvalue@#1}%
+  {\iflablenient\textit{n/a}\else
+    \PackageError{lab}{No generated value named '#1'}{Run `lab paper` for this model again.}\fi}%
+  {\csname labvalue@#1\endcsname}}
+\newcommand{\block}[1]{\IfFileExists{generated/#1.tex}{\input{generated/#1}}%
+  {\iflablenient\fbox{\footnotesize\texttt{#1}: not in a smoke build}\else
+    \PackageError{lab}{No generated block named '#1'}{Run `lab paper` for this model again.}\fi}}
+\makeatother
+
+% Chart colours. A run keeps its colour in every figure of every paper.
+\definecolor{labBlue}{HTML}{2A78D6}
+\definecolor{labOrange}{HTML}{EB6834}
+\definecolor{labAqua}{HTML}{1BAF7A}
+\definecolor{labYellow}{HTML}{EDA100}
+\definecolor{labMagenta}{HTML}{E87BA4}
+\definecolor{labGreen}{HTML}{008300}
+\definecolor{labViolet}{HTML}{6250D6}
+\definecolor{labGray}{HTML}{898781}
+\definecolor{labInk}{HTML}{0B0B0B}
+\definecolor{labSecondary}{HTML}{52514E}
+\definecolor{labGrid}{HTML}{E1E0D9}
+\definecolor{labAxis}{HTML}{C3C2B7}
+\definecolor{labWash}{HTML}{CDE2FB}
+
+\pgfplotsset{
+  lab/.style={
+    font=\sffamily\footnotesize,
+    axis line style={labAxis},
+    tick style={labAxis},
+    tick label style={labSecondary, font=\sansmath\sffamily\footnotesize, /pgf/number format/fixed,
+      /pgf/number format/precision=4},
+    label style={labSecondary},
+    title style={labInk, font=\sffamily\small\bfseries, align=left},
+    grid style={labGrid, line width=0.3pt},
+    major grid style={labGrid, line width=0.3pt},
+    axis lines*=left,
+    tick align=outside,
+    clip=false,
+    legend style={draw=none, fill=none, font=\sffamily\footnotesize, text=labSecondary,
+      cells={anchor=west}, legend columns=-1, column sep=6pt, at={(0,1.03)}, anchor=south west},
+    every axis plot/.append style={line width=1.1pt, line join=round, line cap=round},
+    scaled ticks=false,
+    /pgf/number format/1000 sep={},
+  },
+  % The upright axis of a chart of counts marks its thousands; an axis of ratings does not.
+  lab counts/.style={yticklabel style={/pgf/number format/1000 sep={{,}}}},
+  lab marks/.style={mark=*, mark size=1.9pt, mark options={draw=white, line width=0.6pt}},
+}
+
+% With this board font a dark square is a mask under a hatch, so both take the colour.
+\setchessboard{boardfontencoding=LSBC4, boardfontfamily=skaknew, blackfieldmaskcolor=black!14,
+  blackfieldcolor=black!14, whitefieldmaskcolor=white, whitefieldcolor=white, setfontcolors,
+  showmover=false, label=true, labelfontsize=6pt, boardfontsize=12pt}
+
+% A move or line in UCI, a position in FEN (breakable at a slash), and a run's name.
+\newcommand{\uci}[1]{\texttt{#1}}
+\newcommand{\fen}[1]{{\footnotesize\path{#1}}}
+\newcommand{\run}[1]{\texttt{#1}}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}
+
+% A page may be mostly floats before LaTeX gives them a page of their own, so
+% a figure stays near the words about it.
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.08}
+\renewcommand{\floatpagefraction}{0.75}
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{5}
+
+\setlength{\parskip}{0.4em}
+\setlength{\parindent}{0pt}
+\captionsetup{font=small, labelfont=bf}
+\setlist{itemsep=0.15em, topsep=0.2em}
+
+% A paper's head: its name, the question it answers, and the line that says
+% which results it was drawn from. Then its summary, set apart.
+\newcommand{\labtitle}[3]{%
+  \hypersetup{pdftitle={#1: #2}, pdfauthor={Chess Coach Models}}%
+  \begin{center}
+  {\sffamily\small\color{labSecondary}Chess Coach Models\quad\textperiodcentered\quad a paper of the model lab\par}
+  \medskip
+  {\LARGE\bfseries #1\par}
+  \smallskip
+  {\large #2\par}
+  \medskip
+  {\small\color{labSecondary}#3\par}
+  \end{center}}
+\newenvironment{summary}{\begin{quote}\small\textbf{Summary.}}{\end{quote}}

@@ -1,0 +1,65 @@
+% How a position reaches a learner: the same for every model, so each paper
+% reads it from here, under its own section heading, and adds what is its own.
+Every model of the lab reads a position the same way, so two models differ in
+what they are asked and never in how a board reaches them.
+
+\paragraph{The board.}
+A position arrives as a FEN and becomes 64 tokens, one a square. The mover's
+pawn, knight, bishop, rook, queen and king are tokens 1 to 6, the opponent's
+are 7 to 12, and an empty square is 0. When Black is to move the board is
+turned and the colours are swapped, so the side to move always plays up the
+board. A network then learns one game, not a white one and a black one, and a
+position it meets with White to move also teaches it the mirrored position
+with Black to move.
+
+\paragraph{Marks.}
+What the task knows about particular squares travels as marks: yes-or-no
+channels laid over the 64 squares, which a network reads together with the
+pieces. This model has \V{task.marks.count} (Table~\ref{tab:marks}). The first
+is always the square a pawn may be taken on in passing. The others name the
+squares a move leaves and reaches, which is how a network is shown a move
+without being told what the move does.
+
+\paragraph{Context numbers.}
+Whatever is not about a square is a number beside the board: the four castling
+rights, the mover's first, and what the task knows about the game. This model
+has \V{task.context.count} (Table~\ref{tab:reads}). Every learner reads them,
+the trees that see no board included. A network reads them standardised by the
+mean and spread of the train rows.
+
+\paragraph{Hand features.}
+Gradient-boosted trees cannot read 64 tokens, so the lab also computes what a
+person would count on a board: material, mobility, checks and captures on
+offer, pieces that can be taken, passed pawns and pressure on each king, and
+for a line of moves what the line does. Table~\ref{tab:hand} in the appendix
+lists all \V{task.hand.count}. They serve twice. They are what the reference
+run reads, which makes them the bar for a network: a network that reads the
+squares themselves should find at least what a few dozen counts already hold.
+And a run can hand them to a network beside the board, where they join the
+context numbers, which tests whether the network had found them on its own.
+
+\begin{table}[htbp]\centering\small
+\block{reads}
+\caption{The context numbers: what every learner reads beside the board.}
+\label{tab:reads}
+\end{table}
+
+\begin{table}[htbp]\centering\small
+\block{marks}
+\caption{The marks: what the task tells a network about squares. A square
+is always given as the mover sees it, after the board is turned.}
+\label{tab:marks}
+\end{table}
+
+\iflook
+\begin{figure}[htbp]\centering
+\block{encoding}
+\caption{One position of the dataset twice. Left: as it was played, with an
+arrow for the opponent's move that led to it (grey) and for the move the row
+is about (blue). Right: as a network reads it, turned so that the mover plays
+up the board, with a wash on every square a mark is set on: grey for the
+opponent's move and, where the task marks a line of moves, blue for the
+mover's and orange for the replies.}
+\label{fig:encoding}
+\end{figure}
+\fi

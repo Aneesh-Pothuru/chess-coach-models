@@ -3,8 +3,9 @@
 Everything that reads or writes a file asks here, so a test can stand a whole
 lab up in a temporary folder by setting ``ROOT``.
 
-    models/<model>/           a model: its card, task.yaml, configs/, results/, analysis.yaml
+    models/<model>/           a model: its card, task.yaml, configs/, results/, paper/
     datasets/<name>.yaml      a dataset's recipe
+    papers/                   what every paper shares, and the lab's own paper
     data/processed/<name>/    a built dataset (not committed)
     artifacts/runs/           each run's test predictions and weights (not committed)
     artifacts/smoke*/         everything a ``--smoke`` check writes (not committed)
@@ -54,3 +55,12 @@ def run_files(name: str, run: str, *, smoke: bool = False) -> Path:
 
 def predictions(name: str, run: str, *, smoke: bool = False) -> Path:
     return run_files(name, run, smoke=smoke) / "predictions.parquet"
+
+
+def papers() -> Path:
+    return ROOT / "papers"
+
+
+def paper(name: str, *, smoke: bool = False) -> Path:
+    """A model's paper folder. A smoke check builds its paper in a copy of the tree under the artifacts, so the paper's own relative paths still hold."""
+    return (artifacts() / "smoke-papers" if smoke else ROOT) / "models" / name / "paper"

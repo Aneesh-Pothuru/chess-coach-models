@@ -10,6 +10,11 @@ import numpy as np
 from .base import Fitted, Prepared, features
 
 
+# What a tree run uses unless its config says otherwise, and the three settings no config changes.
+DEFAULTS = {"learning_rate": 0.05, "num_leaves": 127, "min_child_samples": 40, "rounds": 4000, "patience": 100}
+FIXED = {"subsample": 0.8, "subsample_freq": 1, "colsample_bytree": 0.8, "lambda_l2": 1.0}
+
+
 def fit(prepared: Prepared, config: dict[str, Any], *, log, device=None) -> Fitted:
     """LightGBM on the context numbers, with the hand features when the run asks for them."""
     import lightgbm as lgb
@@ -26,13 +31,10 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device=None) -> Fitt
     params = {
         "objective": objective,
         "metric": metric,
-        "learning_rate": float(learner.get("learning_rate", 0.05)),
-        "num_leaves": int(learner.get("num_leaves", 127)),
-        "min_child_samples": int(learner.get("min_child_samples", 40)),
-        "subsample": 0.8,
-        "subsample_freq": 1,
-        "colsample_bytree": 0.8,
-        "lambda_l2": 1.0,
+        "learning_rate": float(learner.get("learning_rate", DEFAULTS["learning_rate"])),
+        "num_leaves": int(learner.get("num_leaves", DEFAULTS["num_leaves"])),
+        "min_child_samples": int(learner.get("min_child_samples", DEFAULTS["min_child_samples"])),
+        **FIXED,
         "seed": int(config.get("seed", 0)),
         "verbosity": -1,
     }
@@ -42,10 +44,10 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device=None) -> Fitt
     booster = lgb.train(
         params,
         train,
-        num_boost_round=int(learner.get("rounds", 4000)),
+        num_boost_round=int(learner.get("rounds", DEFAULTS["rounds"])),
         valid_sets=[valid],
         callbacks=[
-            lgb.early_stopping(int(learner.get("patience", 100)), verbose=False),
+            lgb.early_stopping(int(learner.get("patience", DEFAULTS["patience"])), verbose=False),
             lgb.log_evaluation(200),
         ],
     )

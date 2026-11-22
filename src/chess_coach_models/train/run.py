@@ -26,7 +26,7 @@ import yaml
 from .. import paths, tasks
 from ..data import recipe
 from ..data.store import code_commit, read_dataset
-from ..evals.bootstrap import intervals, paired
+from ..evals.bootstrap import RESAMPLES, SMOKE_RESAMPLES, intervals, paired
 from ..evals.calibration import apply_platt, platt
 from ..evals.metrics import METRICS, calibration_table, score
 from . import learners
@@ -55,7 +55,7 @@ def gain_over_reference(
     fingerprint: str,
     *,
     smoke: bool = False,
-    resamples: int = 1000,
+    resamples: int = RESAMPLES,
 ) -> dict[str, Any] | None:
     """How much better a run is than its model's reference run on the same resampled test games.
 
@@ -150,7 +150,7 @@ def run(
         "seconds": round(time.time() - started, 1),
         "valid": score(task.kind, y_valid, valid_p),
         "test": intervals(
-            task.kind, y_test, test_p, groups_test, resamples=100 if smoke else 1000
+            task.kind, y_test, test_p, groups_test, resamples=SMOKE_RESAMPLES if smoke else RESAMPLES
         ),
         "test_rows": int(len(y_test)),
         "test_groups": int(len(set(groups_test.tolist()))),
@@ -174,7 +174,7 @@ def run(
     fitted.save(predictions.parent)
     record["weights"] = saved_weights(predictions.parent, predictions)
     record["gain"] = gain_over_reference(
-        model, name, frame, dataset.manifest["fingerprint"], smoke=smoke, resamples=100 if smoke else 1000
+        model, name, frame, dataset.manifest["fingerprint"], smoke=smoke, resamples=SMOKE_RESAMPLES if smoke else RESAMPLES
     )
     out = paths.results(model, smoke=smoke)
     out.mkdir(parents=True, exist_ok=True)

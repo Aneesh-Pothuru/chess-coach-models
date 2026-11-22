@@ -49,7 +49,8 @@ def _span(entry: dict[str, float]) -> str:
     return f"{_number(entry['value'])} ({_number(entry['low'])} to {_number(entry['high'])})"
 
 
-def _learner(record: dict[str, Any]) -> str:
+def learner_words(record: dict[str, Any]) -> str:
+    """A run's learner in a few words, from its record's config."""
     learner = record["config"]["learner"]
     if learner["kind"] == "constant":
         return "one number for every row"
@@ -115,7 +116,7 @@ def build(model: str, *, smoke: bool = False) -> dict[str, Any]:
         entries.append(
             {
                 "run": run["run"],
-                "learner": _learner(run),
+                "learner": learner_words(run),
                 "test": run["test"],
                 "test_by_band": run["test_by_band"],
                 "parameters": run["learner"].get("parameters"),

@@ -4,6 +4,8 @@ kind: regression
 label: log_spent
 unit: log(1 + seconds spent on the move)
 primary: mae
+# The label is log(1 + seconds): a paper gives seconds, and an error as a factor.
+scale: log1p
 reference: gbm-hand
 # The numbers every learner reads beside the board.
 context:

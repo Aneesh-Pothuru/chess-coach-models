@@ -12,6 +12,11 @@ import numpy as np
 from .metrics import LOWER_IS_BETTER, METRICS
 
 
+# How many times the games are drawn again for a full run's intervals, and for a smoke run's.
+RESAMPLES = 1000
+SMOKE_RESAMPLES = 100
+
+
 class Resampler:
     """Draws rows by whole groups."""
 
@@ -36,7 +41,7 @@ def intervals(
     p: np.ndarray,
     groups: np.ndarray,
     *,
-    resamples: int = 1000,
+    resamples: int = RESAMPLES,
     seed: int = 0,
 ) -> dict[str, dict[str, float]]:
     """Each metric with its 95% interval over resampled groups."""
@@ -73,7 +78,7 @@ def paired(
     p_reference: np.ndarray,
     groups: np.ndarray,
     *,
-    resamples: int = 1000,
+    resamples: int = RESAMPLES,
     seed: int = 0,
 ) -> dict[str, float | bool]:
     """How much better ``p`` is than ``p_reference`` on one metric, as a gain where positive means better.
