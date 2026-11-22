@@ -20,7 +20,7 @@ from ..encode.board import CASTLING, encode_positions, move_squares, white_to_mo
 from ..encode.hand import LINE_FEATURES, POSITION_FEATURES, line_features, position_features
 from .lichess import LICENCE, open_zst, puzzle_rows
 from .splits import keep, split_of
-from .store import CHUNK, batches, worker_pool
+from .store import CHUNK, batches, fed, worker_pool
 
 
 MARKS = (
@@ -150,7 +150,7 @@ def build(
 
     parts = []
     with open_zst(source or recipe["source"]) as text, worker_pool(workers) as pool:
-        replayed = (row for row in pool.imap(example, items(text), chunksize=500) if row is not None)
+        replayed = (row for row in pool.imap(example, fed(items(text)), chunksize=500) if row is not None)
         for rows in batches(replayed, CHUNK):
             parts.append(encode(rows))
             log(f"puzzles: read {counts['read']:,}, rows {sum(len(part[0]) for part in parts):,}")

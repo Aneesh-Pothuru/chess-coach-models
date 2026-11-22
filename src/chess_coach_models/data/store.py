@@ -48,6 +48,21 @@ def worker_pool(workers: int | None) -> Pool:
     return get_context("spawn").Pool(workers)
 
 
+def fed(items: Iterable[Any]) -> Iterator[Any]:
+    """The items a pool's ``imap`` is given, so that whatever stops them stops the build.
+
+    The thread that feeds a pool hands an ``Exception`` on to the build and dies on anything else, and the
+    build then waits for results that never come. A Rust panic in Polars is such a thing: it is raised as a
+    ``BaseException``. Here it becomes an error the pool passes on.
+    """
+    try:
+        yield from items
+    except (Exception, GeneratorExit):
+        raise
+    except BaseException as error:
+        raise RuntimeError(f"the rows for the pool stopped on {type(error).__name__}: {error}") from error
+
+
 @dataclass
 class Dataset:
     name: str

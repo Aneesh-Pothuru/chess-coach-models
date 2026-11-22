@@ -23,7 +23,7 @@ from ..encode.hand import POSITION_FEATURES, position_features
 from .games import game_rows, wanted
 from .lichess import LICENCE, game_blocks, games_url, open_zst
 from .splits import split_of
-from .store import batches, worker_pool
+from .store import batches, fed, worker_pool
 
 
 MARKS = ("en_passant", "last_from", "last_to")
@@ -93,7 +93,7 @@ def build(
 
     def kept_games(pool) -> Iterator[list[dict[str, Any]]]:
         games = 0
-        for game in pool.imap(_rows, jobs(text), chunksize=32):
+        for game in pool.imap(_rows, fed(jobs(text)), chunksize=32):
             counts["read"] = read_at.popleft()
             if game:
                 games += 1

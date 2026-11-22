@@ -44,7 +44,9 @@ Three choices hold for every dataset.
 a stream (`data/lichess.py`) and keep only the rows the recipe asks for, so a dataset builds on a
 laptop or a free notebook. A source that comes as files that cannot be streamed (the puzzles
 joined to their games, fourteen Parquet files) is fetched one file at a time, and each file is let
-go once its rows are read (`data/tactics.py`).
+go once its rows are read (`data/tactics.py`). A download that stops early is an error, never the
+end of the data, and so is anything that stops the rows on their way to the worker pool
+(`fed` in `data/store.py`): a build fails rather than keep a part or wait for ever.
 
 **A sample is a hash.** Whether a puzzle or a game is in the sample is decided by a hash of its
 id (`data/splits.py`), so the same recipe builds the same rows on any machine, and a bigger sample

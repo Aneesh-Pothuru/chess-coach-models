@@ -26,26 +26,40 @@ def games_url(month: str) -> str:
     return f"https://database.lichess.org/standard/lichess_db_standard_rated_{month}.pgn.zst"
 
 
+class Download:
+    """A URL's bytes as curl sends them, to be read like a file.
+
+    A download that fails looks, to its reader, like one that ended: the bytes stop. So the end of the
+    bytes asks curl how it went, and a build stops on a failed download instead of keeping the part that
+    arrived. A reader that stops first closes it, and curl is ended with it.
+    """
+
+    def __init__(self, url: str) -> None:
+        self.url = url
+        self.process = subprocess.Popen(["curl", "-sSL", "--fail", "--retry", "3", url], stdout=subprocess.PIPE)
+
+    def read(self, size: int = -1) -> bytes:
+        data = self.process.stdout.read(size)
+        if not data and self.process.wait() != 0:
+            raise OSError(f"the download of {self.url} stopped early: curl exited with {self.process.returncode}")
+        return data
+
+    def close(self) -> None:
+        self.process.stdout.close()
+        self.process.terminate()
+        self.process.wait()
+
+
 @contextmanager
 def open_zst(source: str | Path) -> Iterator[TextIO]:
     """A ``.zst`` file or URL as decompressed text."""
     name = str(source)
-    process = None
-    if name.startswith(("http://", "https://")):
-        process = subprocess.Popen(
-            ["curl", "-sSL", "--fail", "--retry", "3", name], stdout=subprocess.PIPE
-        )
-        raw = process.stdout
-    else:
-        raw = open(name, "rb")
+    raw = Download(name) if name.startswith(("http://", "https://")) else open(name, "rb")
     try:
         reader = zstandard.ZstdDecompressor(max_window_size=2**31).stream_reader(raw)
         yield io.TextIOWrapper(reader, encoding="utf-8", errors="replace")
     finally:
         raw.close()
-        if process is not None:
-            process.terminate()
-            process.wait()
 
 
 def puzzle_rows(text: TextIO) -> Iterator[dict[str, str]]:

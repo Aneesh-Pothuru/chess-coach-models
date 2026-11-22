@@ -32,7 +32,7 @@ from ..winprob import mover_win_percent
 from .games import parse_export
 from .puzzles import HAND, MARKS, line_marks
 from .splits import keep, split_of
-from .store import CHUNK, batches, worker_pool
+from .store import CHUNK, batches, fed, worker_pool
 
 
 LICENCE = "CC0 1.0, huggingface.co/datasets/Lichess/chess-puzzles-with-games"
@@ -291,7 +291,7 @@ def build(
                 yield result
 
     with worker_pool(workers) as pool:
-        for rows in batches(readable(pool.imap(example, items(), chunksize=200)), CHUNK):
+        for rows in batches(readable(pool.imap(example, fed(items()), chunksize=200)), CHUNK):
             parts.append(encode(rows))
             log(f"tactics: read {counts['read']:,}, rows {sum(len(part[0]) for part in parts):,}")
     if not parts:
