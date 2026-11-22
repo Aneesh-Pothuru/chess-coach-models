@@ -10,11 +10,11 @@ A paper is strict: a value or a block its prose reads and the model's files
 cannot give stops the build, before LaTeX runs. Two things are let through.
 What stands inside a switch that is off waits: ``\\iflook ... \\fi`` for the
 closer look, so a paper can be drawn before ``lab analyse`` has run where the
-predictions are, and ``\\ifpairs``, ``\\ifvariants``, ``\\ifgames`` and
-``\\iffeatures`` for runs a model may not have yet, with ``\\ifchanges`` for
-any of the four, ``\\ifmore`` for a run on more games than the run it changes,
-and ``\\ifshown`` and ``\\ifshownpaired`` for a model read
-against the one that is shown more (``switches``). And a smoke
+predictions are, and ``\\ifpairs``, ``\\ifvariants``, ``\\ifshapes``,
+``\\ifgames`` and ``\\iffeatures`` for runs a model may not have yet, with
+``\\ifchanges`` for any of the five, ``\\ifmore`` for a run on more games
+than the run it changes, and ``\\ifshown`` and ``\\ifshownpaired`` for a
+model read against the one that is shown more (``switches``). And a smoke
 build (``--smoke``) draws the same prose from the small check's records under
 ``artifacts/smoke-papers/``, printing a mark where the check has no such run:
 it proves the paper compiles, and is never a result.
@@ -48,7 +48,7 @@ def generate(model: str, *, smoke: bool = False) -> tuple[Sources, tex.Generated
     changes.blocks(src, out)
     shown.values(src, out)
     shown.blocks(src, out)
-    if src.look is not None:
+    if src.closer:
         closer.values(src, out)
         closer.blocks(src, out)
     return src, out
@@ -60,12 +60,13 @@ def switches(src: Sources, out: tex.Generated) -> dict[str, bool]:
     found = {
         "pairs": "pairs" in out.files,
         "variants": "variants" in out.files,
+        "shapes": "shapes" in out.files,
         "games": "study-games" in out.files,
         "features": "study-features" in out.files,
     }
     beside = {"shown": "shown" in out.files, "shownpaired": bool(shown.measured(src))}
     return {
-        "look": src.look is not None,
+        "look": src.closer,
         "chance": src.task.kind == "binary",
         **found,
         "changes": any(found.values()),

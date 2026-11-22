@@ -46,11 +46,13 @@
 \newif\ifchance
 % What a model may not have yet: runs set against the run each changed
 % (\ifpairs), a run of the ladder trained longer or started elsewhere
-% (\ifvariants), and the two studies (\ifgames, \iffeatures). \ifchanges is
-% true when any of the four is. A paper holds what it says about each inside
-% its switch, and it appears once the runs do. \ifmore is true when a run
-% trained on more games than the run it changes, from a larger build of the
-% dataset, has been set against that run.
+% (\ifvariants), a run of another shape than the network of the ladder it
+% changes (\ifshapes, declared below with the lab's own), and the two
+% studies (\ifgames, \iffeatures). \ifchanges is true when any of the five
+% is. A paper holds what it says about each inside its switch, and it appears
+% once the runs do. \ifmore is true when a run trained on more games than
+% the run it changes, from a larger build of the dataset, has been set
+% against that run.
 \newif\ifpairs
 \newif\ifvariants
 \newif\ifgames
@@ -70,10 +72,23 @@
 % a study run (\ifstudies), whether some model's dataset is split by
 % other shares than most (\ifsplitapart), and whether a model with full
 % runs is one the lab has for its body, not for its answer (\ifbodies).
+% A network of another shape than the run it changes is a kind of change
+% too: a convolutional tower or a hybrid for the transformer (\ifchangeconv,
+% \ifchangehybrid), the same body larger (\ifchangelarger), attention told
+% what each piece attacks (\ifchangeattacks) or not told the offsets between
+% squares (\ifchangegeometry). \ifshapes is true when any of those five is
+% measured in some model, and in a model's own paper when the model has a
+% run of one of them to draw.
 \newif\ifwaiting
 \newif\ifchangehand
 \newif\ifchangeepochs
 \newif\ifchangestart
+\newif\ifchangeattacks
+\newif\ifchangegeometry
+\newif\ifchangeconv
+\newif\ifchangehybrid
+\newif\ifchangelarger
+\newif\ifshapes
 \newif\ifstudies
 \newif\ifsplitapart
 \newif\ifbodies

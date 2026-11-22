@@ -332,9 +332,12 @@ each tag by itself, as one yes or no over the test rows: how many carry it, and 
 chance tells those rows from the rest. The leaderboard prints that table for the best run, since
 a mean over rows is led by the common tags.
 
-What a set does not have yet: the closer look and a model's own paper read one number a row, so
-`lab analyse` refuses a model of these kinds, and it has a leaderboard and no paper. The lab's
-paper sets its runs on the one scale with every other model's, which needs only the records.
+What a set does not have yet: the tables of the closer look and the sections of a model's own
+paper that are drawn from them read one number a row. So `lab analyse` writes such a model's
+pairs alone (a run set against the run it changed, from what each test row scored in the two
+runs' predictions), which is what the rule for a change needs, and the model has a leaderboard
+and no paper of its own. The lab's paper sets its runs on the one scale with every other
+model's, which needs only the records, and reads its pairs as it reads any model's.
 
 ## An answer that is a move
 
@@ -382,9 +385,10 @@ human-move papers report. In the first three is whether it is among the three gi
 The log loss is minus the log of the chance given to the move played. Moves given the same chance
 share the credit.
 
-What a move does not have yet: the closer look and a model's own paper, as for a set. So two
-named runs, a network trained here and Maia-2, are set side by side by their own intervals, and
-their paired difference waits for the closer look.
+What a move does not have yet: the closer look's tables and a model's own paper, as for a set.
+Its closer look is its pairs alone. A run that names a base is set against that run there, and
+two runs neither of which names the other, a network trained here and Maia-2, are a pair when
+the model's `analysis.yaml` asks for it under `pairs`.
 
 ## A row that is a sequence
 
@@ -453,7 +457,9 @@ them, and writes `results/analysis.json`: small tables, committed, that any mach
   the number it has to beat. A leaderboard gives every run's gain over the reference; a pair is how
   one thing changed in a run is judged. Every run that names a `base` is paired with it whether
   the plan asks or not, and that pair is all a study run is read for: the tables above are of a
-  model's own runs.
+  model's own runs. The pairs are also all the closer look holds of a model whose answer is a set
+  or a move: its other tables read one number a row, and a pair needs only what each test row
+  scored, which a run's predictions keep.
 - **Shown.** One model can ask another's question with something hidden: the same rows, the same
   label and the same test rows, with less for a learner to read (puzzle difficulty without its
   solution). Its plan names the other model as `shown`, and each run here is then set against the
@@ -485,8 +491,9 @@ the model's committed files, on any machine, and compiles `models/<model>/paper/
   block that is one table or one picture is wrapped in `\fit` (`tex.fit`, `papers/preamble.tex`):
   wider than the text it is drawn smaller, at the text's width, and one that fits is left as it is.
 - **Switches.** What depends on files a model may not have yet stands inside a switch: `\iflook`
-  for the closer look, `\ifpairs`, `\ifvariants`, `\ifgames` and `\iffeatures` for pairs, runs
-  that change a network, and the two studies, `\ifchanges` for any of those four, and `\ifchance`
+  for the closer look, `\ifpairs`, `\ifvariants`, `\ifshapes`, `\ifgames` and `\iffeatures` for
+  pairs, runs that change how a network is trained, runs of another shape, and the two studies,
+  `\ifchanges` for any of those five, and `\ifchance`
   for a model that predicts a chance. `\ifshown` is on where the model is read against one that
   is shown more and that one has runs (the table of the two leaderboards side by side,
   `papers/shown.py`), and `\ifshownpaired` where a closer look has measured the pairs. `\ifmore`
@@ -566,6 +573,20 @@ read.
   kind of change some model has measured, `\ifgames` and `\iffeatures` for the two studies,
   `\ifmore` for a run on more games than the run it changes, and `\ifstudies` for any study run
   at all. What the prose says while a kind is unmeasured stands on the switch's other side.
+- **Another shape of network.** A network set against the transformer whose body it changes is a
+  kind of change too, named by what it is: a convolutional tower (`conv`), a hybrid (`hybrid`),
+  the same body with more parameters (`larger`), attention told what each piece attacks
+  (`attacks`), attention without its offsets (`geometry`). Each has its switch
+  (`\ifchangeconv` and so on) and its values like any kind (`lab.change.conv.over.<run>.said`).
+  They stand in a table and a figure of their own, `lab-shapes` and `lab-shapes-figure`, and
+  `\ifshapes` is on while any of them is measured. What kind a pair is of is one function for the
+  lab's paper and a model's (`changes.kind`): a network of another body or size is of its shape's
+  kind when it differs from the run it changes in its shape and, at most, in its learning rate,
+  and a pairs table says both. In a model's own paper the runs of these kinds are drawn apart
+  from the runs that change how a network is trained: the block `variants` follows a ladder
+  network and those runs in one panel, epoch by epoch on the valid rows, and the block `shapes`
+  gives each run of another shape a panel of its own beside the network it changes, since five
+  broken lines of one colour cannot be told apart in one panel.
 - **Kept or not, by both halves of the rule.** For each kind of change the prose reads how many
   pairs are better on the test rows beyond the noise (`lab.change.<kind>.net.better.of`) and how
   many also pass on the valid rows, which is the lab's rule for keeping a change

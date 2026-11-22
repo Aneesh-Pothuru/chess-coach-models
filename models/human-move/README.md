@@ -124,7 +124,8 @@ and the same chances to the four places the package prints
 (`tests/test_maia.py`). Its first full pass is the plan `moves` in
 [`colab/plans/`](../../colab/plans/). The leaderboard will be
 `results/leaderboard.md`, written by `lab eval human-move`. A model whose
-answer is a move has no closer look and no paper yet.
+answer is a move has no paper of its own yet, and its closer look holds only
+its pairs: each run set against the run it changed on the same test games.
 
 ## What it does not say yet
 

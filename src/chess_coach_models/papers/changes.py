@@ -19,6 +19,13 @@ study's table is the block ``study-<name>`` and its figure
 ``study-<name>-figure``; the features study has one figure a run it was made
 on, the reference's under that name and another run's as
 ``study-features-<run>``. A model without a study has none of them.
+
+A change is of a kind (``kind``): the one setting it changes, or what a
+network of another body or size is beside the run it changes. The kinds that
+change a network's shape (``SHAPES``) are drawn apart from the others: the
+block ``variants`` follows a ladder network and the runs that changed how it
+is trained, epoch by epoch, and ``shapes`` each run of another shape beside
+the network it changes.
 """
 
 from __future__ import annotations
@@ -26,6 +33,7 @@ from __future__ import annotations
 from typing import Any
 
 from . import charts, glossary, tex
+from .results import reference_level, valid_curve
 from .sources import METRIC_NAMES, METRIC_WORDS, STUDIES, Sources, run_tex
 
 
@@ -195,12 +203,13 @@ def _change(block: str, key: str, new: Any, old: Any) -> str:
     return f"\\texttt{{{tex.esc(block)}.{tex.esc(key)}}} {said}" + ("" if old is None else f" for {tex.esc(old)}")
 
 
-def changed(run: dict[str, Any], other: dict[str, Any]) -> list[tuple[str, str]] | None:
-    """The settings one run's config changes in another's, each as ``(block, key)``, or nothing for two
-    runs of different learners, which differ in more than a setting."""
+# The settings that say a network's shape: its body, and what the body is made of.
+SHAPE = frozenset(("learner", key) for key in ("body", "dim", "depth", "heads", "convs", "squeeze"))
+
+
+def differing(run: dict[str, Any], other: dict[str, Any]) -> list[tuple[str, str]]:
+    """Every setting one run's config has otherwise than another's, each as ``(block, key)``."""
     ours, theirs = run["config"], other["config"]
-    if any(ours["learner"].get(key) != theirs["learner"].get(key) for key in ("kind", "body", "dim", "depth")):
-        return None
     return [
         (block, key)
         for block in ("learner", "data", "train")
@@ -209,23 +218,78 @@ def changed(run: dict[str, Any], other: dict[str, Any]) -> list[tuple[str, str]]
     ]
 
 
+def changed(run: dict[str, Any], other: dict[str, Any]) -> list[tuple[str, str]] | None:
+    """The settings one run's config changes in another's, each as ``(block, key)``, or nothing for two
+    runs of different learners, which differ in more than a setting."""
+    ours, theirs = run["config"], other["config"]
+    if any(ours["learner"].get(key) != theirs["learner"].get(key) for key in ("kind", "body", "dim", "depth")):
+        return None
+    return differing(run, other)
+
+
+def beside_shape(run: dict[str, Any], other: dict[str, Any]) -> list[tuple[str, str]]:
+    """What two networks differ in beside their shape: a tower trained at a rate of its own differs from
+    the transformer it is set against in its body and in that rate."""
+    return [setting for setting in differing(run, other) if setting not in SHAPE]
+
+
+# A kind of change by the one setting that makes it: the hand features, more epochs, a start from another
+# run's body, attention told what each piece attacks, attention without the offsets between squares.
+KIND_OF = {
+    ("learner", "features"): "hand",
+    ("train", "epochs"): "epochs",
+    ("learner", "init"): "start",
+    ("learner", "attacks"): "attacks",
+    ("learner", "geometry"): "geometry",
+}
+# The kinds that change a network's shape and nothing it is trained on or for how long: another body for
+# the transformer's, the same body larger, attention told more of the board or less. A table and a figure
+# have them in this order.
+SHAPES = ("conv", "hybrid", "larger", "attacks", "geometry")
+# What a network of another body or size may change beside its shape and still be of its shape's kind: a
+# tower is trained at the rate a tower takes.
+AT_ITS_RATE = {("train", "lr")}
+
+
+def kind(run: dict[str, Any], over: dict[str, Any]) -> str | None:
+    """The kind of change one run makes in another: the one setting it changes when that is one of
+    ``KIND_OF``, and for two networks of different bodies or sizes what the first is beside the second: a
+    convolutional tower or a hybrid for a transformer (``conv``, ``hybrid``), or the same body with more
+    parameters (``larger``). Two runs that differ in more, or in something else, are of no kind. A network
+    of another shape may be trained at a rate of its own (``AT_ITS_RATE``) and is still of its shape's kind."""
+    settings = changed(run, over)
+    if settings is not None:
+        return KIND_OF.get(settings[0]) if len(settings) == 1 else None
+    ours, theirs = run["config"]["learner"], over["config"]["learner"]
+    if ours.get("kind") != "net" or theirs.get("kind") != "net":
+        return None
+    if not set(beside_shape(run, over)) <= AT_ITS_RATE:
+        return None
+    if ours["body"] != theirs["body"]:
+        return ours["body"] if theirs["body"] == "transformer" and ours["body"] in SHAPES else None
+    return "larger" if run["learner"]["parameters"] > over["learner"]["parameters"] else None
+
+
 # A network's body as a table says it.
 BODIES = {"transformer": "a transformer", "conv": "a convolutional tower", "hybrid": "convolutions under a transformer"}
 
 
 def differs(run: dict[str, Any], other: dict[str, Any]) -> str:
     """What one run's config changes in another's, in words. Two networks of different bodies or sizes differ in
-    that, and it is said. Two runs of different learners differ in the learner, and their names say how."""
+    that, and it is said first, before anything they differ in beside their shape. Two runs of different
+    learners differ in the learner, and their names say how."""
     settings = changed(run, other)
+    said = []
     if settings is None:
         ours, theirs = run["config"]["learner"], other["config"]["learner"]
         if ours.get("kind") != "net" or theirs.get("kind") != "net":
             return "another learner"
         if ours["body"] != theirs["body"]:
-            return f"its body is {BODIES.get(ours['body'], tex.esc(ours['body']))} for {BODIES.get(theirs['body'], tex.esc(theirs['body']))}"
-        return f"{tex.plain(ours['depth'])} layers of width {tex.plain(ours['dim'])} for {tex.plain(theirs['depth'])} of width {tex.plain(theirs['dim'])}"
+            said.append(f"its body is {BODIES.get(ours['body'], tex.esc(ours['body']))} for {BODIES.get(theirs['body'], tex.esc(theirs['body']))}")
+        else:
+            said.append(f"{tex.plain(ours['depth'])} layers of width {tex.plain(ours['dim'])} for {tex.plain(theirs['depth'])} of width {tex.plain(theirs['dim'])}")
+        settings = beside_shape(run, other)
     ours, theirs = run["config"], other["config"]
-    said = []
     times = multiple(run, other) if ("data", "train_on") in settings else None
     if times is not None:
         # A larger build and the share of it a run takes are one change: how many games it trains on.
@@ -365,6 +429,56 @@ def pairs_figure(src: Sources) -> str | None:
     )
 
 
+def _curved(src: Sources, run: dict[str, Any]) -> list[tuple[str | None, dict[str, Any]]]:
+    """The networks that change one thing in a ladder network and have a score for every epoch, each with
+    the kind of its change."""
+    return [(kind(other, run), other) for other in src.variants(run) if other["learner"].get("history")]
+
+
+def variants_figure(src: Sources) -> str | None:
+    """Each ladder network that another run changed in how it is trained (more epochs, another start),
+    beside those runs, on the valid rows epoch by epoch: one panel a ladder network, all on one scale. A run
+    of another shape is not among them: ``shapes_figure`` has it."""
+    groups = []
+    for run in src.ladder:
+        family = [run] if run["learner"].get("history") else []
+        family += [other for made, other in _curved(src, run) if made not in SHAPES]
+        if len(family) > 1:
+            groups.append([valid_curve(src, one) for one in family])
+    if not groups:
+        return None
+    return charts.panels(
+        groups,
+        xlabel="Epoch",
+        ylabel=f"{METRIC_NAMES[src.primary]} on the valid rows",
+        level=reference_level(src),
+        width=f"{min(0.52, 0.98 / len(groups)):.2f}\\textwidth",
+    )
+
+
+def shapes_figure(src: Sources) -> str | None:
+    """Each run of another shape than the ladder network it changes (``SHAPES``), beside that network, on the
+    valid rows epoch by epoch: one panel a run, two panels a row, all on one scale. The panels are in the
+    order of the ladder, and under a network in the order of the kinds."""
+    groups = []
+    for run in src.ladder:
+        if not run["learner"].get("history"):
+            continue
+        shaped = [(SHAPES.index(made), other) for made, other in _curved(src, run) if made in SHAPES]
+        groups += [[valid_curve(src, run), valid_curve(src, other)] for _, other in sorted(shaped, key=lambda item: item[0])]
+    if not groups:
+        return None
+    return charts.panels(
+        groups,
+        xlabel="Epoch",
+        ylabel=f"{METRIC_NAMES[src.primary]} on the valid rows",
+        level=reference_level(src),
+        width="0.52\\textwidth",
+        height="4.5cm",
+        columns=2,
+    )
+
+
 def _study(src: Sources, study: str) -> dict[str, list[dict[str, Any]]]:
     """A study's runs by the run each changes, the reference's first."""
     by_base: dict[str, list[dict[str, Any]]] = {}
@@ -486,6 +600,8 @@ def blocks(src: Sources, out: tex.Generated) -> None:
     made: dict[str, str | None] = {
         "pairs": pairs_table(src),
         "pairs-figure": pairs_figure(src),
+        "variants": variants_figure(src),
+        "shapes": shapes_figure(src),
         "study-games": games_table(src),
         "study-games-figure": games_figure(src),
         "study-features": features_table(src),

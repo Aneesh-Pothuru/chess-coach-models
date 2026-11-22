@@ -79,6 +79,7 @@ No full run has been recorded yet. `results/leaderboard.md` is written by
   The first move's two squares alone are the same task with a shorter label.
 - A square says where to look, not what to see there. The line itself is
   [puzzle difficulty](../puzzle-difficulty/)'s input and an engine's output.
-- The closer look and the paper read one number a row
+- The closer look's tables and the paper read one number a row
   ([`docs/design.md`](../../docs/design.md), "The closer look"), so this
-  model has a leaderboard and no closer look yet.
+  model has a leaderboard, a closer look that holds only its pairs (a run
+  set against the run it changed), and no paper of its own yet.

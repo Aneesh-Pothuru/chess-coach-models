@@ -58,6 +58,12 @@ class Sources:
         return self.task.primary
 
     @property
+    def closer(self) -> bool:
+        """Whether the closer look has what a paper's closer sections are drawn from: its cuts, its examples,
+        how sure a run is. The look of a model whose answer is a set or a move holds its pairs alone."""
+        return self.look is not None and "slices" in self.look
+
+    @property
     def metrics(self) -> list[str]:
         """The task's metrics, the one its runs are ranked by first."""
         return [self.primary, *(name for name in METRICS[self.task.kind] if name != self.primary)]

@@ -239,7 +239,7 @@ the model for its body. Its network is the larger transformer of the
 ladder, trained on \V{position-evaluation.data.rows.train} positions from
 the open file of positions Lichess holds an engine's evaluation
 for~\cite{lichessdb}, and the other models' transformers can start from
-what it learned (Section~\ref{sec:start}). Those positions come with no
+what it learned\ifchangestart{} (Section~\ref{sec:start})\fi. Those positions come with no
 game, each of them once, so its split is by position. The model is listed,
 costed and given its leaderboard with the rest, and it is counted in no
 statement of how the models compare: from here on \emph{the models} are the
@@ -643,6 +643,75 @@ The body was made once: at one size, for
 this measures one start and not the best one, and Section~\ref{sec:next}
 names the next to try.
 \fi
+\fi
+
+\ifshapes
+\subsection{What another shape of network is worth}
+\label{sec:shapes}
+
+The networks of the ladder are of two shapes: a small convolutional tower,
+and a transformer with a token for each square~\cite{attention} whose
+attention is told the offset between every two squares~\cite{relative}. The
+runs of this section change the body of a transformer of the ladder and
+keep the rest: the same rows, the same numbers beside the board, the same
+head and as many epochs. Each is set against the transformer it changes on
+the same resampled test games (Table~\ref{tab:shapes},
+Figure~\ref{fig:shapes}).
+\begin{itemize}
+\ifchangeconv
+\item \emph{A convolutional tower.} A residual tower of about the
+transformer's size, each block also weighing its channels by a mean over the
+whole board. It is trained at the peak learning rate the ladder's small
+tower takes, which is higher than a transformer's, and that is the one
+thing it changes beside its body. Set against the transformer that reads
+the hand-made counts, the tower is
+\V{lab.change.conv.over.transformer-medium-hand.said}.
+\fi
+\ifchangehybrid
+\item \emph{A hybrid.} A few residual blocks of convolutions first, then layers of the
+transformer over the squares they give. It is
+\V{lab.change.hybrid.over.transformer-medium-hand.said}.
+\fi
+\ifchangelarger
+\item \emph{A larger transformer.} More layers and a wider token for each
+square: \V{puzzle-difficulty.run.transformer-large-hand.parameters.millions}
+million parameters for
+\V{puzzle-difficulty.run.transformer-medium-hand.parameters.millions}. It is
+\V{lab.change.larger.over.transformer-medium-hand.said}.
+\fi
+\ifchangeattacks
+\item \emph{Attention told what each piece attacks.} An offset says that two
+squares share a diagonal, and not whether anything stands between them. Here
+each head also learns a bias for a pair of squares when the piece on one
+attacks the other on this board. Told that, the transformer that reads the
+counts is \V{lab.change.attacks.over.transformer-medium-hand.said}, and the
+one that reads the board alone is
+\V{lab.change.attacks.over.transformer-medium.said}.
+\fi
+\ifchangegeometry
+\item \emph{Attention without the offsets.} A study, to say what the offsets
+are worth. Without them the transformer is
+\V{lab.change.geometry.over.transformer-medium-hand.said}.
+\fi
+\end{itemize}
+
+\begin{table}[htbp]\centering\small
+\block{lab-shapes}
+\caption{A network of another shape, model by model. Under each shape a pair
+of columns is the transformer whose body was changed, and a row gives the
+changed run's paired gain over that transformer on the same resampled test
+games, in hundredths of the reference's step, with its 95\% interval. Bold
+when the interval leaves zero out. Each model's paper has the same gains in
+the model's own units.}
+\label{tab:shapes}
+\end{table}
+
+\begin{figure}[htbp]\centering
+\block{lab-shapes-figure}
+\caption{The pairs of Table~\ref{tab:shapes}, each with its 95\%
+interval.}
+\label{fig:shapes}
+\end{figure}
 \fi
 
 \ifgames

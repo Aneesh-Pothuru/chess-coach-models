@@ -13,6 +13,8 @@ import pytest
 
 from chess_coach_models import data, paths, tasks
 from chess_coach_models.encode.hand import GROUPS, group_of
+from chess_coach_models.encode.moves import MOVE_HAND, MOVE_PLAIN
+from chess_coach_models.encode.squares import SQUARE_HAND, SQUARE_PLAIN
 from chess_coach_models.evals import analysis
 from chess_coach_models.papers import build, changes, charts, glossary, overview, sources, tex
 
@@ -227,6 +229,10 @@ def test_two_runs_differ_in_the_settings_one_changes_or_in_the_learner():
     blind = {"config": {"learner": {**body, "geometry": False}, "train": plain["config"]["train"]}}
     assert changes.differs(tower, plain) == "its body is a convolutional tower for a transformer"
     assert changes.differs(large, plain) == "12 layers of width 384 for 8 of width 256"
+    # What they differ in beside their shape is said after it: a tower at the rate a tower takes.
+    faster = {"config": {"learner": tower["config"]["learner"], "train": {"epochs": 12, "lr": 0.002}}}
+    assert changes.beside_shape(tower, plain) == [] and changes.beside_shape(faster, plain) == [("train", "lr")]
+    assert changes.differs(faster, plain) == "its body is a convolutional tower for a transformer; 0.002 peak learning rate for 0.0006"
     assert changes.differs(told, plain) == "its attention is told what each piece attacks"
     assert changes.differs(blind, plain) == "its attention is not told the offsets between squares"
 
@@ -261,7 +267,7 @@ def test_the_lab_s_one_scale_is_the_reference_s_step_from_the_floor():
     # look measured it, the trees' record holds it from the other side.
     (pair,) = overview.pairs(src)
     assert (pair["run"], pair["over"], pair["gain"], pair["low"], pair["high"]) == ("gbm-hand", "gbm-context", 120.0, 110.0, 130.0)
-    assert pair["kind"] == ("hand", "The hand features") and pair["learner"] == "gbm" and pair["beyond_noise"]
+    assert pair["kind"] == "hand" and pair["learner"] == "gbm" and pair["beyond_noise"]
     # A reference that is no better than the floor is no step to measure by.
     runs[1]["test"][primary]["value"] = 500.0
     assert overview.step(src) is None and overview.share(src, runs[0]) is None
@@ -285,7 +291,8 @@ def test_the_one_scale_reads_a_score_where_higher_is_better_the_same_way():
     assert overview._verdicts(lab, lambda one: one.networks[0]) == ([], ["blunder-hazard"], [])
     assert overview.pairs(src) == [] and not any(overview.switches(lab).values())
     assert set(overview.switches(lab)) == {
-        "waiting", "changehand", "changeepochs", "changestart", "games", "features", "studies", "more", "splitapart", "bodies",
+        "waiting", "changehand", "changeepochs", "changestart", "changeattacks", "changegeometry", "changeconv", "changehybrid",
+        "changelarger", "shapes", "games", "features", "studies", "more", "splitapart", "bodies",
     }  # fmt: skip
     # A model the lab has for its body stands with every model and in no comparison of them.
     lender = _sources("puzzle-difficulty", [_record("gbm-hand", {"kind": "gbm", "features": "hand"}, 1.0, "rmse")])
@@ -334,6 +341,153 @@ def test_one_change_is_read_model_by_model_by_the_run_it_was_made_in():
     assert overview._tally([], ["think-time"], []) == "inside the noise in the one model (think time)"
 
 
+def _shaped(model, gains):
+    """A model whose larger transformer with hand features was set against networks of other shapes, and the
+    pairs its closer look measured: ``gains`` has each changed run's paired gain over that transformer."""
+    primary = tasks.get(model).primary
+    body = {"kind": "net", "body": "transformer", "dim": 256, "depth": 8, "features": "hand"}
+    shapes = {
+        "transformer-medium-hand": (body, 6_500_000),
+        "conv-medium-hand": ({**body, "body": "conv", "dim": 192, "depth": 10, "squeeze": 4}, 6_900_000),
+        "hybrid-medium-hand": ({**body, "body": "hybrid", "convs": 2, "depth": 5}, 6_600_000),
+        "transformer-large-hand": ({**body, "dim": 384, "depth": 12}, 21_000_000),
+        "transformer-medium-hand-attacks": ({**body, "attacks": True}, 6_500_256),
+        "transformer-medium-hand-no-geometry": ({**body, "geometry": False}, 6_400_000),
+    }
+    better = -1.0 if tasks.get(model).lower_is_better else 1.0
+    runs = [_record(name, learner, 10.0 + 2 * better, primary, train={"epochs": 12}) for name, (learner, _) in shapes.items()]
+    for run, (_, parameters) in zip(runs, shapes.values()):
+        run["learner"] = {"parameters": parameters}
+    runs += [
+        _record("gbm-hand", {"kind": "gbm", "features": "hand"}, 10.0 + better, primary),
+        _record("constant", {"kind": "constant"}, 10.0, primary),
+    ]
+    pairs = [
+        {"run": name, "over": "transformer-medium-hand", "gain": amount, "low": low, "high": high, "beyond_noise": low > 0 or high < 0}
+        for name, (amount, low, high) in gains.items()
+    ]
+    return _sources(model, runs, look={"pairs": pairs})
+
+
+def test_a_network_of_another_shape_is_a_kind_of_change_with_a_table_of_its_own():
+    level, ahead, behind = (0.1, -0.2, 0.4), (0.3, 0.1, 0.5), (-0.3, -0.5, -0.1)
+    names = ("conv-medium-hand", "hybrid-medium-hand", "transformer-large-hand", "transformer-medium-hand-attacks", "transformer-medium-hand-no-geometry")
+    one = _shaped("puzzle-difficulty", dict(zip(names, (behind, level, ahead, ahead, behind))))
+    other = _shaped("blunder-hazard", {"conv-medium-hand": level, "transformer-medium-hand-attacks": level})
+    base = one.run("transformer-medium-hand")
+    kinds = {name: changes.kind(one.run(name), base) for name in names}
+    assert kinds == {
+        "conv-medium-hand": "conv",
+        "hybrid-medium-hand": "hybrid",
+        "transformer-large-hand": "larger",
+        "transformer-medium-hand-attacks": "attacks",
+        "transformer-medium-hand-no-geometry": "geometry",
+    }
+    assert set(kinds.values()) == set(changes.SHAPES) and set(changes.SHAPES) < set(overview.TITLES)
+    # The other way round is no kind the lab reads model by model: a transformer for a tower, a smaller net.
+    assert changes.kind(base, one.run("conv-medium-hand")) is None and changes.kind(base, one.run("transformer-large-hand")) is None
+    assert changes.kind(one.run("hybrid-medium-hand"), one.run("conv-medium-hand")) is None
+    assert changes.kind(one.run("conv-medium-hand"), one.run("gbm-hand")) is None
+    # A tower trained at the rate a tower takes is still a tower for the transformer. One given more epochs
+    # as well differs in more than its shape, and is of no kind.
+    tower = one.run("conv-medium-hand")
+    at_its_rate = {**tower, "config": {**tower["config"], "train": {"epochs": 12, "lr": 0.002}}}
+    longer = {**tower, "config": {**tower["config"], "train": {"epochs": 24}}}
+    assert changes.kind(at_its_rate, base) == "conv" and changes.kind(longer, base) is None
+
+    lab = overview.Lab({"blunder-hazard": other, "puzzle-difficulty": one}, {}, {})
+    order = list(changes.SHAPES)
+    assert order == ["conv", "hybrid", "larger", "attacks", "geometry"]
+    assert list(overview.kinds(lab)) == [(key, "net") for key in order]
+    switches = overview.switches(lab)
+    assert switches["shapes"] and all(switches[f"change{key}"] for key in order)
+    assert not switches["changehand"] and not switches["changeepochs"] and not switches["changestart"]
+    # The shapes have a table and a figure of their own, and the table of the other changes holds none of them.
+    assert overview.changes_table(lab) is None and overview.changes_figure(lab) is None
+    table = overview.changes_table(lab, changes.SHAPES)
+    assert all(f"\\textbf{{{overview.TITLES[key]}}}" in table for key in order)
+    assert table.count("over \\run{transformer-medium-hand}") == len(order)
+    # A step of 1 in both models: thirty hundredths of it ahead, and a model with no pair of a kind has no row there.
+    assert "\\run{puzzle-difficulty} & \\textbf{+30.0} & +10.0 to +50.0" in table
+    assert "\\run{blunder-hazard} & +10.0 & $-$20.0 to +40.0" in table
+    assert table.count("\\run{blunder-hazard}") == 2 and table.count("\\run{puzzle-difficulty}") == len(order)
+    figure = overview.changes_figure(lab, changes.SHAPES)
+    assert "A convolutional tower for the transformer, under a network" in figure
+    # What a shape is worth is read model by model as any change is, by the run it was made in.
+    found, written = overview.by_base(lab), tex.Generated("a test")
+    assert list(found) == order and all(list(bases) == ["transformer-medium-hand"] for bases in found.values())
+    for key in ("conv", "larger"):
+        overview._across(lab, written, f"lab.change.{key}.over.transformer-medium-hand", found[key]["transformer-medium-hand"])
+    assert written.values["lab.change.conv.over.transformer-medium-hand.said"] == (
+        "inside the noise in one of the two models (blunder hazard) and worse beyond the noise in one of the two models (puzzle difficulty)"
+    )
+    assert written.values["lab.change.larger.over.transformer-medium-hand.said"] == "better beyond the noise in the one model (puzzle difficulty)"
+    # A lab with no pair of these kinds asks for none of what is said of them.
+    plain = overview.Lab({"puzzle-difficulty": _longer("puzzle-difficulty", level)}, {}, {})
+    assert not overview.switches(plain)["shapes"] and overview.changes_table(plain, changes.SHAPES) is None
+
+
+def test_a_model_s_paper_draws_a_run_of_another_shape_in_a_panel_of_its_own():
+    src = _shaped("puzzle-difficulty", {})
+    primary = src.task.primary
+    networks = [run for run in src.runs if run["config"]["learner"]["kind"] == "net"]
+    longer = _record("transformer-medium-hand-long", networks[0]["config"]["learner"], 7.9, primary, base="transformer-medium-hand", train={"epochs": 24})
+    longer["learner"] = {"parameters": 6_500_000}
+    src.runs.append(longer)
+    for index, run in enumerate([*networks, longer]):
+        run["learner"]["history"] = [{"epoch": epoch, f"valid_{primary}": 300.0 - 10 * epoch - index} for epoch in (1, 2, 3)]
+    src.run("gbm-hand")["valid"] = {primary: 280.0}
+    base = src.run("transformer-medium-hand")
+    assert [run["run"] for run in src.ladder] == ["transformer-medium-hand"]
+    assert {run["run"] for run in src.variants(base)} == {run["run"] for run in [*networks[1:], longer]}
+
+    # The run that changed how the network is trained shares the network's panel, and no shape is in it.
+    trained = changes.variants_figure(src)
+    assert trained.count("\\nextgroupplot") == 1 and trained.count("\\addplot") == 2
+    assert "{\\texttt{transformer-medium-hand-long}}" in trained and "conv-medium-hand" not in trained
+    # Each shape has a panel beside the network, two panels a row, in the order of the kinds.
+    shaped = changes.shapes_figure(src)
+    names = ["conv-medium-hand", "hybrid-medium-hand", "transformer-large-hand", "transformer-medium-hand-attacks", "transformer-medium-hand-no-geometry"]
+    assert shaped.count("\\nextgroupplot") == 5 and shaped.count("\\addplot") == 10
+    assert shaped.count("\\addlegendentry{\\texttt{transformer-medium-hand}}") == 5 and "transformer-medium-hand-long" not in shaped
+    places = [shaped.index(f"\\addlegendentry{{\\texttt{{{name}}}}}") for name in names]
+    assert places == sorted(places)
+    assert "group size=2 by 3" in shaped and "vertical sep" in shaped and "xlabels at=edge bottom" in shaped
+    # Two shapes never share a way of breaking a line, and a panel names the reference's level once.
+    dashes = [charts.run_dash(name) for name in names]
+    assert None not in dashes and len(set(dashes)) == len(names) and charts.OTHER_DASH not in dashes
+    assert shaped.count("{\\run{gbm-hand}}") == 1
+
+    out = tex.Generated("a test")
+    changes.blocks(src, out)
+    assert {"variants", "shapes"} <= set(out.files)
+    # A model with no run of another shape has no such figure, and its other figure is as it was.
+    plain = _shaped("puzzle-difficulty", {})
+    plain.runs[:] = [run for run in plain.runs if run["run"] in ("transformer-medium-hand", "gbm-hand", "constant")] + [longer]
+    plain.run("transformer-medium-hand")["learner"]["history"] = base["learner"]["history"]
+    plain.run("gbm-hand")["valid"] = {primary: 280.0}
+    assert changes.shapes_figure(plain) is None and changes.variants_figure(plain) == trained
+
+
+def test_panels_fill_rows_when_they_are_given_columns():
+    one = charts.Series("one", [(1, 1.0), (2, 2.0)])
+    row = charts.panels([[one], [one], [one]], xlabel="Epoch", ylabel="Score")
+    assert "group size=3 by 1" in row and "vertical sep" not in row and "xlabels at" not in row
+    grid = charts.panels([[one], [one], [one]], xlabel="Epoch", ylabel="Score", columns=2)
+    assert "group size=2 by 2" in grid and "vertical sep=1.9cm, xlabels at=edge bottom" in grid
+    # Fewer panels than columns are one row of that many.
+    assert "group size=1 by 1" in charts.panels([[one]], xlabel="Epoch", ylabel="Score", columns=2)
+
+
+def test_every_switch_a_build_sets_is_one_the_preamble_declares():
+    import re
+
+    declared = set(re.findall(r"\\newif\\if([a-z]+)", (paths.ROOT / "papers" / "preamble.tex").read_text(encoding="utf-8")))
+    src = _longer("puzzle-difficulty", (0.1, -0.2, 0.4))
+    assert set(overview.switches(overview.Lab({"puzzle-difficulty": src}, {}, {}))) <= declared
+    assert set(build.switches(src, tex.Generated("a test"))) <= declared
+
+
 def test_a_run_that_was_filed_keeps_its_pair_and_its_place_beside_the_run_it_changed():
     tried = _longer("puzzle-difficulty", (0.1, -0.2, 0.4))
     longer, base = tried.runs[0], tried.runs[1]
@@ -359,7 +513,7 @@ def test_a_run_that_was_filed_keeps_its_pair_and_its_place_beside_the_run_it_cha
     assert written.values["pairs.count"] == "one" and written.values["study.epochs.runs"] == "one"
     assert written.values["pair.transformer-medium-long.transformer-medium.verdict"] == "inside the noise"
     # And the lab still reads it as what more epochs are worth in this model.
-    (measured,) = [one for one in overview.pairs(filed) if one["kind"] == ("epochs", "More epochs")]
+    (measured,) = [one for one in overview.pairs(filed) if one["kind"] == "epochs"]
     assert (measured["run"], measured["over"], measured["gain"]) == ("transformer-medium-long", "transformer-medium", 0.1)
 
 
@@ -540,6 +694,24 @@ def test_the_glossary_has_words_for_every_name_a_paper_can_show(model):
         label, sentence = glossary.COLUMNS[name]
         assert label and sentence.endswith(".")
         assert glossary.title(name)[0] == label[0].upper()
+    # Where a row's answer is a set of squares or a move, the trees read a row a square or a row a legal
+    # move, and a paper names what they lean on: the square's or the move's own numbers, and the marks there.
+    rows = []
+    if task.kind == "squares":
+        rows = [*SQUARE_PLAIN, *SQUARE_HAND, *(f"square_{name}" for name in marks)]
+    if task.kind == "moves":
+        rows = [*MOVE_PLAIN, *MOVE_HAND, *(f"{end}{name}" for end in glossary.ENDS for name in marks)]
+    for name in rows:
+        assert glossary.label(name) and glossary.says(name).endswith(".") and glossary.title(name)[0].isupper()
+    assert len({glossary.label(name) for name in rows}) == len(rows)
+
+
+def test_a_feature_of_one_end_of_a_move_is_worded_from_the_square_s_own():
+    assert glossary.label("to_last_to") == "where the move ends: square the last move reached"
+    assert glossary.says("from_square_pinned") == "Of the square the move leaves: whether the piece on the square is pinned to its own king."
+    assert glossary.label("move_piece") == "piece that moves"
+    with pytest.raises(KeyError):
+        glossary.label("to_nothing_known")
 
 
 def test_the_glossary_has_words_for_every_group_of_hand_features():

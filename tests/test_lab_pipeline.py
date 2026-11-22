@@ -268,8 +268,9 @@ def test_the_lab_s_paper_reads_every_model_under_its_name_and_lists_one_that_wai
     whole, out = overview.generate(smoke=True)
     assert list(whole.models) == [model] and list(whole.waiting) == [waiting]
     assert overview.switches(whole) == {
-        "waiting": True, "changehand": True, "changeepochs": False, "changestart": False, "games": False, "features": False,
-        "studies": False, "more": False, "splitapart": False, "bodies": False,
+        "waiting": True, "changehand": True, "changeepochs": False, "changestart": False, "changeattacks": False,
+        "changegeometry": False, "changeconv": False, "changehybrid": False, "changelarger": False, "shapes": False,
+        "games": False, "features": False, "studies": False, "more": False, "splitapart": False, "bodies": False,
     }  # fmt: skip
     # Everything a model's own paper can read is there under the model's name.
     _, own = papers.generate(model, smoke=True)
@@ -832,6 +833,22 @@ def test_a_run_that_changes_only_the_body_trains_and_is_set_against_the_run_it_n
     assert all(pairs[name, base]["gain"] is not None for name in others)
     assert pairs["transformer-hand-no-geometry", base]["study"] == "geometry"
 
+    # The lab's paper reads each of them as a kind of change, in a table and a figure of the shapes alone.
+    whole, out = overview.generate(smoke=True)
+    src = whole.models[model]
+    kinds = {entry["run"]: entry["kind"] for entry in overview.pairs(src)}
+    assert kinds == {
+        "transformer-hand-attacks": "attacks", "transformer-hand-no-geometry": "geometry", "conv-hand-weighed": "conv", "hybrid-hand": "hybrid",
+    }  # fmt: skip
+    assert list(overview.kinds(whole)) == [(key, "net") for key in ("conv", "hybrid", "attacks", "geometry")]
+    switches = overview.switches(whole)
+    assert switches["shapes"] and switches["changeconv"] and switches["changegeometry"] and not switches["changelarger"]
+    assert not switches["changehand"] and "lab-changes" not in out.files and "lab-changes-figure" not in out.files
+    assert all(overview.TITLES[key] in out.files["lab-shapes"] for key in ("attacks", "geometry", "conv", "hybrid"))
+    assert out.files["lab-shapes"].count(f"over {run_tex(base)}") == 4 and "lab-shapes-figure" in out.files
+    assert all(out.values[f"lab.change.{key}.over.{base}.models"] == "puzzle difficulty" for key in ("attacks", "geometry", "conv", "hybrid"))
+    assert out.values[f"lab.change.conv.over.{base}.said"].endswith("in the one model (puzzle difficulty)")
+
 
 SET_CONFIGS = {
     "gbm-hand": {"learner": {"kind": "gbm", "features": "hand", "rounds": 20, "min_child_samples": 5}},
@@ -921,8 +938,34 @@ def test_a_model_that_predicts_squares_runs_scores_and_ranks(lab, temp_lab):
     assert "which of 64 squares are right" in text and "LightGBM on a row a square" in text
     assert "each square's share of the training rows" in text and "Every square of every test row" in text
     assert "not compared" not in text and "by itself" not in text
-    with pytest.raises(ValueError, match="the closer look reads one number a row"):
-        analysis.analyse(model, smoke=True)
+    # The closer look of a set is its pairs alone, since no other table of it reads a chance for each square:
+    # a run set against the run it changed, from what each test row scored in the two runs' predictions.
+    look = analysis.analyse(model, smoke=True)
+    assert look["runs"] == [entry["run"] for entry in board["runs"]] and look["pairs"] == [] and look["skipped"] == {}
+    temp_lab.model(model, {**SET_CONFIGS, "gbm-hand-few": {"base": "gbm-hand", "learner": {"rounds": 3}}})
+    fewer = runs.run(model, "gbm-hand-few", smoke=True, log=lambda _: None)
+    look = analysis.analyse(model, smoke=True)
+    assert set(look) == {
+        "model", "written_by", "written", "code", "dataset", "task", "runs", "skipped", "best", "reference", "challenger",
+        "test_rows", "pairs",
+    }  # fmt: skip
+    assert look["best"] == look["runs"][0] and look["reference"] == "gbm-hand" and look["challenger"] != "gbm-hand"
+    (pair,) = look["pairs"]
+    ours, theirs = (read_set_predictions(model, name)[0] for name in ("gbm-hand-few", "gbm-hand"))
+    assert (pair["run"], pair["over"]) == ("gbm-hand-few", "gbm-hand") and "study" not in pair
+    assert pair["gain"] == pytest.approx(ours["ap"].mean() - theirs["ap"].mean(), abs=1e-6)
+    assert pair["gain"] == pytest.approx(fewer["test"]["ap"]["value"] - scores["gbm-hand"], abs=1e-6)
+    assert pair["low"] <= pair["gain"] <= pair["high"] and pair["beyond_noise"] == (pair["low"] > 0 or pair["high"] < 0)
+    # A paper reads the pair, and none of the sections that wait for the closer tables.
+    src, out = papers.generate(model, smoke=True)
+    switches = papers.switches(src, out)
+    assert switches["pairs"] and not switches["look"] and "pair.gbm-hand-few.gbm-hand.gain" in out.values
+    assert out.values["pair.gbm-hand-few.gbm-hand.kept"] in ("kept", "not kept")
+    # A run whose predictions are gone is left out of the look, and its pair has no gain.
+    paths.predictions(model, "gbm-hand-few", smoke=True).unlink()
+    look = analysis.analyse(model, smoke=True)
+    assert look["skipped"] == {"gbm-hand-few": "its test predictions are not on this machine"}
+    assert look["pairs"] == [{"run": "gbm-hand-few", "over": "gbm-hand", "gain": None}]
 
 
 def test_trees_that_read_a_row_a_square_ask_for_a_share_of_the_games(lab, temp_lab, monkeypatch):
@@ -992,8 +1035,9 @@ def test_a_model_that_predicts_tags_runs_scores_and_ranks(lab, temp_lab):
     assert f"which of {len(tags)} tags are right" in text and "a LightGBM booster a tag" in text
     assert f"## Each tag by itself, for `{board['runs'][0]['run']}`" in text and "| Tag | Rows | Share | PR-AUC | ROC-AUC |" in text
     assert "each tag's share of the training rows" in text and "| n/a |" in text
-    with pytest.raises(ValueError, match="the closer look reads one number a row"):
-        analysis.analyse(model, smoke=True)
+    # The closer look of a model that predicts tags is its pairs alone too, and none was asked here.
+    look = analysis.analyse(model, smoke=True)
+    assert look["pairs"] == [] and look["runs"] == [entry["run"] for entry in board["runs"]] and "slices" not in look
 
 
 GAME_CONFIGS = {
@@ -1307,8 +1351,11 @@ def test_a_model_that_predicts_the_move_played_runs_scores_and_ranks(positions_l
     assert "**A row's answer is a move:**" in text and "LightGBM on a row a legal move" in text
     assert "the same chance for every legal move" in text and "Every legal move of every test row" in text
     assert "not compared" not in text and "by itself" not in text
-    with pytest.raises(ValueError, match="the closer look reads one number a row"):
-        analysis.analyse(model, smoke=True)
+    # The closer look of a model that predicts a move is its pairs alone. The model's plan asks for the
+    # published model against networks that are not among these runs, so none is measured here.
+    look = analysis.analyse(model, smoke=True)
+    assert look["runs"] == [entry["run"] for entry in board["runs"]] and "slices" not in look
+    assert look["pairs"] and all(pair["run"] == "maia2" and pair["gain"] is None for pair in look["pairs"])
 
 
 def test_trees_that_read_a_row_a_legal_move_ask_for_a_share_of_the_games(positions_lab, monkeypatch):
@@ -1477,7 +1524,7 @@ def test_the_published_model_is_a_run_scored_on_the_same_rows_with_nothing_fitte
     text = (paths.results(model, smoke=True) / "leaderboard.md").read_text()
     assert "Maia-2 as published, its rapid model: nothing is fitted here" in text
     assert "told both players are rated 1500" not in text.split("## Studies")[0]
-    assert "by their two intervals, with no paired difference" in text and "under `pairs`" not in text
+    assert "under `pairs`" in text and "no paired difference" not in text
 
 
 def test_a_run_of_the_published_model_waits_for_its_package(positions_lab, monkeypatch):
@@ -1543,3 +1590,51 @@ def test_platt_scaling_comes_back_from_predictions_that_are_far_off():
     fixed = calibration.apply_platt(stated, slope, intercept)
     x = np.log(stated / (1 - stated))
     assert abs(np.sum(fixed - y)) < 1e-6 and abs(np.sum((fixed - y) * x)) < 1e-5
+
+
+
+
+def test_a_model_whose_answer_is_a_move_has_its_pairs_and_stands_in_the_lab_s_paper(positions_lab, monkeypatch):
+    a_stand_in_for_maia(monkeypatch)
+    model = "human-move"
+    tried = {"transformer-small-hand": {"base": "transformer-small", "learner": {"features": "hand"}}}
+    positions_lab.model(model, {**MAIA_CONFIGS, **tried})
+    records = {name: runs.run(model, name, smoke=True, log=lambda _: None) for name in [*MAIA_CONFIGS, *tried]}
+    look = analysis.analyse(model, smoke=True)
+    ranked = [name for name in records if name != "maia2-one-rating"]
+    assert sorted(look["runs"]) == sorted(ranked) and look["studies"] == ["maia2-one-rating"] and look["skipped"] == {}
+    assert not {"slices", "examples", "reliability", "label", "closeness"} & set(look)
+    # A run that names a base is set against it, a study's run too: by how often each row's move was said first.
+    pairs = {(pair["run"], pair["over"]): pair for pair in look["pairs"] if pair["gain"] is not None}
+    assert set(pairs) == {("transformer-small-hand", "transformer-small"), ("maia2-one-rating", "maia2")}
+    assert pairs["maia2-one-rating", "maia2"]["study"] == "ratings" and "study" not in pairs["transformer-small-hand", "transformer-small"]
+    for (ours, theirs), pair in pairs.items():
+        first = {name: read_move_predictions(model, name)[0]["top1"].mean() for name in (ours, theirs)}
+        assert pair["gain"] == pytest.approx(first[ours] - first[theirs], abs=1e-6)
+        assert pair["gain"] == pytest.approx(records[ours]["test"]["top1"]["value"] - records[theirs]["test"]["top1"]["value"], abs=1e-6)
+        assert pair["low"] <= pair["gain"] <= pair["high"]
+
+    # Its paper reads the pairs, and one temperature where a model of one number has a slope and an intercept.
+    src, out = papers.generate(model, smoke=True)
+    switches = papers.switches(src, out)
+    assert switches["pairs"] and switches["changes"] and not switches["look"] and not switches["chance"]
+    assert {"pairs", "pairs-figure", "leaderboard"} <= set(out.files)
+    assert out.values["pair.transformer-small-hand.transformer-small.differs"] == "reads the hand features"
+    assert all(f"run.{name}.temperature" in out.values and f"run.{name}.platt.slope" not in out.values for name in ranked)
+    assert out.values["run.maia2.log-loss.before"] != out.values["run.maia2.log-loss"]
+
+    # The lab's paper sets it on the one scale with every model: a share of first moves right, where more is
+    # better. The published model is a run on that scale and no network of the lab's.
+    whole, across = overview.generate(smoke=True)
+    assert list(whole.models) == [model] and not whole.waiting and not whole.bodies
+    floor, reference, published = (records[name]["test"]["top1"]["value"] for name in ("constant", "gbm-hand", "maia2"))
+    assert overview.step(src) == pytest.approx(reference - floor)
+    assert overview.share(src, src.run("maia2")) == pytest.approx(100.0 * (published - floor) / (reference - floor))
+    assert across.values["lab.networks.count"] == "3" and across.values["lab.ladder.count"] == "2"
+    assert across.values[f"{model}.run.maia2.lift.share"] == tex.fixed(overview.share(src, src.run("maia2")), 0)
+    assert "First right" in across.files["lab-scores"] and "First right, higher is better" in across.files["lab-models"]
+    # The hand features under a network are a pair of this model as of any other.
+    measured = {(entry["run"], entry["over"]): entry["kind"] for entry in overview.pairs(src)}
+    assert measured["transformer-small-hand", "transformer-small"] == "hand"
+    assert measured["gbm-hand", "gbm-context"] == "hand" and measured["maia2-one-rating", "maia2"] is None
+    assert across.values["lab.change.hand.over.transformer-small.models"] == "human move"

@@ -58,6 +58,7 @@ VARIANT_DASHES = {
     "long": "on 5pt off 2pt",
     "pretrained": "on 1pt off 2pt",
     "attacks": "on 5pt off 2pt on 1pt off 2pt on 1pt off 2pt",
+    "no-geometry": "on 3pt off 2pt on 1pt off 2pt on 1pt off 2pt on 1pt off 2pt",
     "tower": "on 9pt off 3pt",
     "hybrid": "on 9pt off 2pt on 1pt off 2pt",
     "large": "on 2.5pt off 2.5pt",
@@ -425,12 +426,14 @@ def panels(
     level: tuple[float, str, str] | None = None,
     width: str = "0.5\\textwidth",
     height: str = "5.4cm",
+    columns: int | None = None,
 ) -> str:
     """Line charts side by side on one upright scale, one a group of series, each with its own legend.
 
     For runs that are read in families: a run and the runs that changed one thing in it share a panel, and
     the panels share their scale, so a family is compared inside its panel and families across them.
-    ``level`` is as in ``lines`` and is drawn in every panel, named in the last.
+    ``level`` is as in ``lines`` and is drawn in every panel, named in the last. With ``columns`` the
+    panels fill rows of that many, each row under the legends of its own panels.
     """
     every = [y for group in groups for one in group for _, y in one.points if known(y)]
     if level is not None:
@@ -463,9 +466,13 @@ def panels(
             coordinates = " ".join(f"({_number(x)},{_number(y)})" for x, y in one.points if known(y))
             body.append(f"\\addplot[{', '.join(style)}] coordinates {{{coordinates}}};")
             body.append(f"\\addlegendentry{{{_name(one.name, one.code)}}}")
+    across = min(columns or len(groups), len(groups))
+    down = -(-len(groups) // across)
+    # A row below another leaves room for its panels' legends, and only the last row names the level axis.
+    rows = ", vertical sep=1.9cm, xlabels at=edge bottom" if down > 1 else ""
     options = [
         "lab",
-        f"group style={{group size={len(groups)} by 1, horizontal sep=0.5cm, ylabels at=edge left, yticklabels at=edge left}}",
+        f"group style={{group size={across} by {down}, horizontal sep=0.5cm{rows}, ylabels at=edge left, yticklabels at=edge left}}",
         f"width={width}",
         f"height={height}",
         "ymajorgrids",

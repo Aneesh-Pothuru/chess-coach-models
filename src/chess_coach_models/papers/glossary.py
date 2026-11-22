@@ -142,8 +142,29 @@ COLUMNS: dict[str, tuple[str, str]] = {
     "square_checks_to": ("checks that end on the square", "How many of the mover's legal moves to the square give check."),
     "square_to_own_king": ("distance to the mover's king", "How many king moves the square is from the mover's king."),
     "square_to_opponent_king": ("distance to the opponent's king", "How many king moves the square is from the opponent's king."),
+    # What the trees of a model that predicts the move read of each legal move (encode/moves.py). What they
+    # read of its two squares is named after a square's own feature, and worded from it (``_entry``).
+    "move_from_file": ("file the move leaves", "The file of the square the move leaves, counted from the mover's left."),
+    "move_from_rank": ("rank the move leaves", "The rank of the square the move leaves, counted from the mover's side."),
+    "move_to_file": ("file the move reaches", "The file of the square the move reaches, counted from the mover's left."),
+    "move_to_rank": ("rank the move reaches", "The rank of the square the move reaches, counted from the mover's side."),
+    "move_files": ("files the move crosses", "How many files the move goes to the mover's right, or to the left when it is below 0."),
+    "move_ranks": ("ranks the move crosses", "How many ranks the move goes up the board, or back down it when it is below 0."),
+    "move_piece": ("piece that moves", "Which of the mover's six kinds of piece moves, as the networks read it."),
+    "move_takes": ("what stands where the move lands", "What stands on the square the move reaches, as the networks read it: nothing, or one of the opponent's kinds of piece."),
+    "move_check": ("move gives check", "Whether the move gives check."),
+    "move_castles": ("move castles", "Whether the move castles."),
+    "move_promotes": ("move promotes", "Whether the move promotes a pawn."),
+    "move_in_passing": ("move takes in passing", "Whether the move takes a pawn in passing."),
     # What a row is shown with.
     "puzzle_id": ("puzzle", "The puzzle's id on Lichess."),
+}
+
+# A feature of one of a move's two squares is a square's feature with the end of the move before its name
+# (``from_square_hanging``, ``to_last_to``): which end, in a label and in a sentence.
+ENDS: dict[str, tuple[str, str]] = {
+    "from_": ("where the move starts", "the square the move leaves"),
+    "to_": ("where the move ends", "the square the move reaches"),
 }
 
 MARKS: dict[str, str] = {
@@ -197,9 +218,22 @@ UNITS: dict[str, str] = {
 }
 
 
+def _entry(name: str) -> tuple[str, str]:
+    """A name's label and its sentence: its own, or for a feature of one of a move's two squares the square's
+    feature said of that end of the move."""
+    if name in COLUMNS:
+        return COLUMNS[name]
+    for end, (where, which) in ENDS.items():
+        if name.startswith(end):
+            rest = name[len(end) :]
+            short, long = COLUMNS[rest if rest.startswith("square_") else f"square_{rest}"]
+            return f"{where}: {short}", f"Of {which}: {long[:1].lower()}{long[1:]}"
+    raise KeyError(name)
+
+
 def label(name: str) -> str:
     """A column's short name for a chart or a table cell."""
-    return COLUMNS[name][0]
+    return _entry(name)[0]
 
 
 def title(name: str) -> str:
@@ -210,7 +244,7 @@ def title(name: str) -> str:
 
 def says(name: str) -> str:
     """What a column is, as a sentence."""
-    return COLUMNS[name][1]
+    return _entry(name)[1]
 
 
 def group(name: str) -> str:

@@ -97,9 +97,16 @@ def run_values(src: Sources, out: tex.Generated, prefix: str, run: dict[str, Any
     for index, lean in enumerate(details.get("leans_on", []), start=1):
         out.set(f"{prefix}.leans.{index}.feature", tex.esc(glossary.label(lean["feature"])))
         out.set(f"{prefix}.leans.{index}.share", tex.percent(lean["share_of_gain"], 0))
-    if run.get("calibration"):
-        out.set(f"{prefix}.platt.slope", tex.fixed(run["calibration"]["platt_slope"], 2))
-        out.set(f"{prefix}.platt.intercept", tex.fixed(run["calibration"]["platt_intercept"], 2, sign=True))
+    # A chance is rescaled on the valid rows: a slope and an intercept where a row has one chance or a set
+    # of them, and one temperature where a row's chances are shared out among its legal moves.
+    calibration = run.get("calibration") or {}
+    if "platt_slope" in calibration:
+        out.set(f"{prefix}.platt.slope", tex.fixed(calibration["platt_slope"], 2))
+        out.set(f"{prefix}.platt.intercept", tex.fixed(calibration["platt_intercept"], 2, sign=True))
+    if "temperature" in calibration:
+        out.set(f"{prefix}.temperature", tex.fixed(calibration["temperature"], 2))
+        if calibration.get("log_loss_before"):
+            out.set(f"{prefix}.log-loss.before", tex.score(calibration["log_loss_before"]["test"]))
     for name in ("dim", "depth", "heads", "dropout"):
         if name in learner:
             out.set(f"{prefix}.{name}", tex.plain(learner[name]))
@@ -486,12 +493,12 @@ def gains_figure(src: Sources) -> str | None:
     )
 
 
-def _valid_curve(src: Sources, run: dict[str, Any]) -> charts.Series:
+def valid_curve(src: Sources, run: dict[str, Any]) -> charts.Series:
     key = f"valid_{src.primary}"
     return charts.run_series(run["run"], [(epoch["epoch"], epoch[key]) for epoch in run["learner"]["history"]])
 
 
-def _reference_level(src: Sources) -> tuple[float, str, str] | None:
+def reference_level(src: Sources) -> tuple[float, str, str] | None:
     reference = src.reference
     if reference is None:
         return None
@@ -503,38 +510,19 @@ def curves_figure(src: Sources) -> str | None:
     networks = [run for run in src.ladder if run["learner"].get("history")]
     if not networks:
         return None
-    series = [_valid_curve(src, run) for run in networks]
+    series = [valid_curve(src, run) for run in networks]
     longest = max(len(one.points) for one in series)
     return charts.lines(
         series,
         xlabel="Epoch",
         ylabel=f"{METRIC_NAMES[src.primary]} on the valid rows",
-        level=_reference_level(src),
+        level=reference_level(src),
         legend_columns=2,
         width="0.66\\textwidth",
         extra=[
             "xtick distance=1" if longest <= 12 else "xtick distance=2",
             f"xmin=0.5, xmax={longest + 0.5}",
         ],
-    )
-
-
-def variants_figure(src: Sources) -> str | None:
-    """Each ladder network that another run changed one thing in, beside those runs, on the valid rows epoch by
-    epoch: one panel a ladder network, all on one scale."""
-    groups = []
-    for run in src.ladder:
-        family = [one for one in [run, *src.variants(run)] if one["learner"].get("history")]
-        if len(family) > 1:
-            groups.append([_valid_curve(src, one) for one in family])
-    if not groups:
-        return None
-    return charts.panels(
-        groups,
-        xlabel="Epoch",
-        ylabel=f"{METRIC_NAMES[src.primary]} on the valid rows",
-        level=_reference_level(src),
-        width=f"{min(0.52, 0.98 / len(groups)):.2f}\\textwidth",
     )
 
 
@@ -623,7 +611,6 @@ def blocks(src: Sources, out: tex.Generated) -> None:
         "scores": scores_figure(src),
         "gains": gains_figure(src),
         "curves": curves_figure(src),
-        "variants": variants_figure(src),
         "leans": leans_figure(src, src.reference),
         "calibration-table": calibration_table(src),
         "calibration": calibration_figure(src),

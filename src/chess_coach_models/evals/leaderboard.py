@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Any
 
 from .. import bands, paths, tasks
-from .metrics import BY_ROW, LOWER_IS_BETTER, METRICS, SETS
+from .metrics import LOWER_IS_BETTER, METRICS, SETS
 
 
 START = "<!-- LEADERBOARDS_START -->"
@@ -377,14 +377,8 @@ def markdown(board: dict[str, Any]) -> str:
             "## Studies",
             "",
             "A run here changes one thing in a run above, to say what that thing is worth. It is no candidate, so "
-            "it is not ranked with the runs above. "
-            + (
-                "The closer look does not read this kind of model yet, so a run here is set beside the run it "
-                "changes by their two intervals, with no paired difference."
-                if task["kind"] in BY_ROW
-                else "Its paired difference from the run it changes, on the same resampled test games, is in the "
-                "closer look (`analysis.json`, under `pairs`)."
-            ),
+            "it is not ranked with the runs above. Its paired difference from the run it changes, on the same "
+            "resampled test games, is in the closer look (`analysis.json`, under `pairs`).",
         ]
         for study, runs in board["studies"].items():
             lines += [

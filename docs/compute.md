@@ -62,9 +62,9 @@ lab analyse tactic-found         # writes models/tactic-found/results/analysis.j
 ```
 
 It reads a run's predictions only when they are the ones its record scored on this machine's build
-of the data, and names the runs it left out and why. A model whose answer is a set or a move has
-no closer look yet ([`design.md`](design.md), "An answer that is a set" and "An answer that is a
-move"): its records and its leaderboard are all it commits.
+of the data, and names the runs it left out and why. For a model whose answer is a set or a move
+the closer look is its pairs alone ([`design.md`](design.md), "An answer that is a set" and "An
+answer that is a move"): each run set against the run it changed.
 
 ## On Colab
 

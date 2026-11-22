@@ -31,6 +31,14 @@ of change stands inside that kind's switch (``\\ifchangeepochs``,
 ``\\ifchangestart``), on while a pair of that kind is measured in some model,
 and what it says of a study inside ``\\ifgames`` and ``\\iffeatures``, on
 while some model has a run of that study.
+
+A network of another shape than the run it changes is a kind of change as
+well: another body under the same head (``\\ifchangeconv``,
+``\\ifchangehybrid``), the same body larger (``\\ifchangelarger``), or
+attention told more or less of the board (``\\ifchangeattacks``,
+``\\ifchangegeometry``). Those kinds have a table and a figure of their own
+(``lab-shapes``), and what the prose says of them together stands inside
+``\\ifshapes``, on while a pair of any of them is measured.
 """
 
 from __future__ import annotations
@@ -49,12 +57,21 @@ from .results import day, method_values, trained_on
 from .sources import METRIC_NAMES, STUDIES, Sources, run_head, run_tex
 
 
-# One change measured in model after model, by the one setting it changes: its name in a key, and in words.
-KINDS = {
-    ("learner", "features"): ("hand", "The hand features"),
-    ("train", "epochs"): ("epochs", "More epochs"),
-    ("learner", "init"): ("start", "A body that learned an engine's evaluations first"),
+# One kind of change measured in model after model (``changes.kind``), as a table's block and a figure's
+# group name it, in the order a table has the kinds.
+TITLES = {
+    "hand": "The hand features",
+    "epochs": "More epochs",
+    "start": "A body that learned an engine's evaluations first",
+    "conv": "A convolutional tower for the transformer",
+    "hybrid": "Convolutions under the transformer's layers",
+    "larger": "A larger network of the same body",
+    "attacks": "Attention told what each piece attacks",
+    "geometry": "Attention without the offsets between squares",
 }
+# The kinds that change what a run reads or how it is trained have the table and the figure of changes,
+# and the kinds that change a network's shape (``changes.SHAPES``) a table and a figure of their own.
+CHANGES = tuple(key for key in TITLES if key not in changes.SHAPES)
 # What a learner is called where a change is said to be made under it.
 UNDER = {"gbm": "under the trees", "net": "under a network"}
 # A share of the training games in a key, or a multiple of them for a run on a larger build of the dataset.
@@ -190,9 +207,9 @@ def _verdicts(lab: Lab, pick) -> tuple[list[str], list[str], list[str]]:
 
 
 def pairs(src: Sources) -> list[dict[str, Any]]:
-    """A model's measured pairs, each with the one setting it changes when it changes one of ``KINDS``. A run
-    of the games or the features study changes none of them, so its pair has no kind here, and a run that was
-    tried as a candidate and then filed under a study of its own (more epochs, another start) keeps its kind.
+    """A model's measured pairs, each with the kind of change it makes (``changes.kind``). A run of the games
+    or the features study makes none of them, so its pair has no kind here, and a run that was tried as a
+    candidate and then filed under a study of its own (more epochs, another start) keeps its kind.
 
     The reference set against the trees that read no hand feature is among the pairs of every model: where
     the closer look did not measure that pair, the trees' record holds it from the other side, and the gain
@@ -207,21 +224,20 @@ def pairs(src: Sources) -> list[dict[str, Any]]:
                 {"run": reference["run"], "over": blind["run"], "gain": -gain["gain"], "low": -gain["high"], "high": -gain["low"], "beyond_noise": gain["beyond_noise"]}
             )
     for entry in found:
-        settings = changes.changed(known[entry["run"]], known[entry["over"]])
-        entry["kind"] = KINDS.get(settings[0]) if settings is not None and len(settings) == 1 else None
+        entry["kind"] = changes.kind(known[entry["run"]], known[entry["over"]])
         entry["learner"] = known[entry["run"]]["config"]["learner"]["kind"]
     return found
 
 
 def kinds(lab: Lab) -> dict[tuple[str, str], list[tuple[str, dict[str, Any]]]]:
-    """Every pair that changes one known setting, by ``(the kind's key, the learner it is made under)``, each with its model."""
+    """Every pair of a known kind, by ``(the kind, the learner it is made under)``, each with its model."""
     found: dict[tuple[str, str], list[tuple[str, dict[str, Any]]]] = {}
     for name, src in lab.models.items():
         for entry in pairs(src):
             if entry["kind"] is not None:
-                found.setdefault((entry["kind"][0], entry["learner"]), []).append((name, entry))
-    # One order whatever a model's files list first: the kinds as ``KINDS`` has them, the trees before a network.
-    shorts, learners = [short for short, _ in KINDS.values()], list(UNDER)
+                found.setdefault((entry["kind"], entry["learner"]), []).append((name, entry))
+    # One order whatever a model's files list first: the kinds as ``TITLES`` has them, the trees before a network.
+    shorts, learners = list(TITLES), list(UNDER)
     place = lambda key: (shorts.index(key[0]), learners.index(key[1]) if key[1] in learners else len(learners), key[1])  # noqa: E731
     return {key: found[key] for key in sorted(found, key=place)}
 
@@ -300,8 +316,7 @@ def _tally(better: list[str], level: list[str], worse: list[str]) -> str:
 
 
 def _kind_title(key: str, learner: str) -> str:
-    words = next(title for short, title in KINDS.values() if short == key)
-    return f"{words}, {UNDER.get(learner, 'under ' + learner)}"
+    return f"{TITLES[key]}, {UNDER.get(learner, 'under ' + learner)}"
 
 
 def values(lab: Lab, out: tex.Generated) -> None:
@@ -558,10 +573,13 @@ def networks_figure(lab: Lab) -> str | None:
     )
 
 
-def changes_figure(lab: Lab) -> str | None:
-    """One change in model after model: each pair's gain on the one scale, a group a kind of change."""
+def changes_figure(lab: Lab, keys: tuple[str, ...] = CHANGES) -> str | None:
+    """One change in model after model: each pair's gain on the one scale, a group a kind of change. The
+    kinds are the ones ``keys`` names: the changes to what a run reads or how it is trained, or the shapes."""
     groups = []
     for (key, learner), found in kinds(lab).items():
+        if key not in keys:
+            continue
         rows = []
         for name, entry in found:
             amounts = on_step(lab.models[name], entry)
@@ -580,11 +598,11 @@ def changes_figure(lab: Lab) -> str | None:
     )
 
 
-def changes_table(lab: Lab) -> str | None:
+def changes_table(lab: Lab, keys: tuple[str, ...] = CHANGES) -> str | None:
     """The same pairs as a table: a kind of change a block, a model a row, and a column for each run the
     change was made in. A cell is the changed run's paired gain over that run on the one scale with its
     interval, bold when the interval leaves zero out. The gain in a model's own units is in that model's paper."""
-    blocks = by_base(lab)
+    blocks = {key: bases for key, bases in by_base(lab).items() if key in keys}
     if not blocks:
         return None
     widest = max(len(bases) for bases in blocks.values())
@@ -592,8 +610,7 @@ def changes_table(lab: Lab) -> str | None:
     for key, bases in blocks.items():
         if rows:
             rows.append(["\\addlinespace"])
-        title = next(words for short, words in KINDS.values() if short == key)
-        rows.append([f"\\multicolumn{{{1 + 2 * widest}}}{{l}}{{\\textbf{{{title}}}}}"])
+        rows.append([f"\\multicolumn{{{1 + 2 * widest}}}{{l}}{{\\textbf{{{TITLES[key]}}}}}"])
         heads = [f"\\multicolumn{{2}}{{c}}{{over {run_tex(run)}}}" for run in bases]
         rows.append(["", *heads, *["\\multicolumn{2}{c}{}"] * (widest - len(bases))])
         for name in lab.models:
@@ -734,6 +751,8 @@ def blocks(lab: Lab, out: tex.Generated) -> None:
         "lab-networks": networks_figure(lab),
         "lab-changes": changes_table(lab),
         "lab-changes-figure": changes_figure(lab),
+        "lab-shapes": changes_table(lab, changes.SHAPES),
+        "lab-shapes-figure": changes_figure(lab, changes.SHAPES),
         "lab-games": games_table(lab),
         "lab-games-figure": games_figure(lab),
         "lab-games-more-figure": games_figure(lab, more=True),
@@ -762,15 +781,17 @@ def generate(*, smoke: bool = False) -> tuple[Lab, tex.Generated]:
 
 def switches(lab: Lab) -> dict[str, bool]:
     """What the lab's prose may ask before it reads: whether a model is still waiting for its runs, whether
-    a kind of change has a pair measured in some model, whether a model has runs of the games or the features
-    study, whether any has a study run at all, whether any has a run on more games than the run it changes
-    (``more``), whether some model's dataset is split by other shares than most (``splitapart``), and whether
-    a model with a run is one the lab has for its body (``bodies``)."""
+    a kind of change has a pair measured in some model, whether any of the kinds that change a network's
+    shape has (``shapes``), whether a model has runs of the games or the features study, whether any has a
+    study run at all, whether any has a run on more games than the run it changes (``more``), whether some
+    model's dataset is split by other shares than most (``splitapart``), and whether a model with a run is
+    one the lab has for its body (``bodies``)."""
     measured = {key for key, _ in kinds(lab)}
     studied = {run["config"]["study"] for src in lab.every.values() for run in src.studies}
     return {
         "waiting": bool(lab.waiting),
-        **{f"change{short}": short in measured for short, _ in KINDS.values()},
+        **{f"change{short}": short in measured for short in TITLES},
+        "shapes": any(short in measured for short in changes.SHAPES),
         **{study: study in studied for study in STUDIES},
         "studies": bool(studied),
         "more": any(changes.more(src) for src in lab.models.values()),
