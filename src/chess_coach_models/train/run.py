@@ -15,50 +15,28 @@ machine, from runs made on several.
 
 from __future__ import annotations
 
-import hashlib
 import json
-import os
-import platform
 import time
 from datetime import datetime, timezone
-from importlib import metadata
-from pathlib import Path
 from typing import Any
 
-import numpy as np
 import polars as pl
 import yaml
 
-from .. import tasks
-from ..data.store import ROOT, code_commit, read_dataset
+from .. import paths, tasks
+from ..data import recipe
+from ..data.store import code_commit, read_dataset
 from ..evals.bootstrap import intervals, paired
+from ..evals.calibration import apply_platt, platt
 from ..evals.metrics import METRICS, calibration_table, score
-from .learners import LEARNERS, prepare
-
-
-MODELS = ROOT / "models"
-DATASETS = ROOT / "datasets"
-ARTIFACTS = ROOT / "artifacts"
-SOFTWARE = ("numpy", "polars", "lightgbm", "torch")
-
-
-def load_yaml(path: Path) -> dict[str, Any]:
-    with path.open("r", encoding="utf-8") as handle:
-        return yaml.safe_load(handle)
-
-
-def recipe(dataset: str, *, smoke: bool = False) -> dict[str, Any]:
-    """A dataset's recipe, ``datasets/<dataset>.yaml``; a smoke build takes its ``smoke`` overrides and its own name."""
-    loaded = load_yaml(DATASETS / f"{dataset}.yaml")
-    overrides = loaded.pop("smoke", {})
-    if smoke:
-        loaded.update(overrides)
-        loaded["name"] = f"{loaded['name']}-smoke"
-    return loaded
+from . import learners
+from .record import machine, saved_weights, software
 
 
 def run_config(model: str, run: str, *, smoke: bool = False) -> dict[str, Any]:
-    config = load_yaml(MODELS / model / "configs" / f"{run}.yaml")
+    """A run's config; a smoke run takes its ``smoke`` overrides, block by block."""
+    with (paths.configs(model) / f"{run}.yaml").open("r", encoding="utf-8") as handle:
+        config = yaml.safe_load(handle)
     overrides = config.pop("smoke", {})
     if smoke:
         for block, values in overrides.items():
@@ -67,91 +45,7 @@ def run_config(model: str, run: str, *, smoke: bool = False) -> dict[str, Any]:
 
 
 def run_names(model: str) -> list[str]:
-    return sorted(path.stem for path in (MODELS / model / "configs").glob("*.yaml"))
-
-
-def results_dir(model: str, *, smoke: bool = False) -> Path:
-    return ARTIFACTS / "smoke" / model if smoke else MODELS / model / "results"
-
-
-def predictions_path(model: str, run: str, *, smoke: bool = False) -> Path:
-    return ARTIFACTS / ("smoke-runs" if smoke else "runs") / model / run / "predictions.parquet"
-
-
-def saved_weights(directory: Path, predictions: Path) -> list[dict[str, Any]]:
-    """What a learner saved beside its predictions, by name, size and hash.
-
-    Weights are not committed, so the record says which file it is the record of.
-    """
-    return [
-        {"file": path.name, "bytes": path.stat().st_size, "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
-        for path in sorted(directory.iterdir())
-        if path.is_file() and path != predictions
-    ]
-
-
-def platt(p: np.ndarray, y: np.ndarray) -> tuple[float, float]:
-    """The slope and intercept that best map a model's log-odds onto what happened.
-
-    Newton's method on the log loss, with a step halved until the loss does not rise: from predictions that are
-    far from calibrated a full step can overshoot and never come back.
-    """
-    clipped = np.clip(p, 1e-6, 1 - 1e-6)
-    x = np.log(clipped / (1 - clipped))
-
-    def loss(slope: float, intercept: float) -> float:
-        z = slope * x + intercept
-        return float(np.mean(np.logaddexp(0.0, z) - y * z))
-
-    slope, intercept = 1.0, 0.0
-    current = loss(slope, intercept)
-    for _ in range(100):
-        q = 1.0 / (1.0 + np.exp(-(slope * x + intercept)))
-        weight = q * (1 - q)
-        gradient = np.array([np.sum((q - y) * x), np.sum(q - y)])
-        hessian = np.array(
-            [[np.sum(weight * x * x), np.sum(weight * x)], [np.sum(weight * x), np.sum(weight)]]
-        ) + 1e-9 * np.eye(2)
-        step = np.linalg.solve(hessian, gradient)
-        scale = 1.0
-        while scale > 1e-8 and loss(slope - scale * step[0], intercept - scale * step[1]) > current:
-            scale /= 2
-        if scale <= 1e-8:
-            break
-        slope, intercept = slope - scale * step[0], intercept - scale * step[1]
-        current = loss(slope, intercept)
-        if np.max(np.abs(scale * step)) < 1e-9:
-            break
-    return float(slope), float(intercept)
-
-
-def apply_platt(p: np.ndarray, slope: float, intercept: float) -> np.ndarray:
-    clipped = np.clip(p, 1e-6, 1 - 1e-6)
-    return 1.0 / (1.0 + np.exp(-(slope * np.log(clipped / (1 - clipped)) + intercept)))
-
-
-def machine() -> dict[str, Any]:
-    """The hardware a run used, without the machine's name."""
-    processor = platform.processor()
-    try:
-        for line in Path("/proc/cpuinfo").read_text(encoding="utf-8").splitlines():
-            if line.startswith("model name"):
-                processor = line.split(":", 1)[1].strip()
-                break
-    except OSError:
-        pass
-    return {"processor": processor, "threads": os.cpu_count(), "system": platform.system()}
-
-
-def software() -> dict[str, str]:
-    """The versions a run was made with: Python, and each library a dataset or a learner rests on that is installed."""
-    versions = {"python": platform.python_version()}
-    for name in SOFTWARE:
-        try:
-            versions[name] = metadata.version(name)
-        except metadata.PackageNotFoundError:
-            continue
-    return versions
+    return sorted(path.stem for path in paths.configs(model).glob("*.yaml"))
 
 
 def gain_over_reference(
@@ -173,8 +67,8 @@ def gain_over_reference(
     task = tasks.get(model)
     if name == task.reference:
         return None
-    record_path = results_dir(model, smoke=smoke) / f"{task.reference}.json"
-    path = predictions_path(model, task.reference, smoke=smoke)
+    record_path = paths.results(model, smoke=smoke) / f"{task.reference}.json"
+    path = paths.predictions(model, task.reference, smoke=smoke)
     if not (record_path.exists() and path.exists()):
         return None
     record = json.loads(record_path.read_text(encoding="utf-8"))
@@ -208,13 +102,13 @@ def run(
             f"{dataset.name} was built before datasets carried a fingerprint: "
             f"build it again with `lab data {task.dataset} --rebuild`"
         )
-    prepared = prepare(task, dataset)
+    prepared = learners.prepare(task, dataset)
     log(
         f"{model}/{name}: {len(prepared.train):,} train, {len(prepared.valid):,} valid, "
         f"{len(prepared.test):,} test rows of {dataset.name}"
     )
     started = time.time()
-    fitted = LEARNERS[config["learner"]["kind"]](prepared, config, log=log, device=device)
+    fitted = learners.fit(prepared, config, log=log, device=device)
     valid_p, test_p = fitted.valid, fitted.test
     y_valid, y_test = prepared.y[prepared.valid], prepared.y[prepared.test]
     calibration = None
@@ -265,7 +159,7 @@ def run(
     if task.kind == "binary":
         record["test_calibration"] = calibration_table(y_test, test_p)
 
-    predictions = predictions_path(model, name, smoke=smoke)
+    predictions = paths.predictions(model, name, smoke=smoke)
     predictions.parent.mkdir(parents=True, exist_ok=True)
     frame = pl.DataFrame(
         {
@@ -282,7 +176,7 @@ def run(
     record["gain"] = gain_over_reference(
         model, name, frame, dataset.manifest["fingerprint"], smoke=smoke, resamples=100 if smoke else 1000
     )
-    out = results_dir(model, smoke=smoke)
+    out = paths.results(model, smoke=smoke)
     out.mkdir(parents=True, exist_ok=True)
     (out / f"{name}.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     primary = record["test"][task.primary]

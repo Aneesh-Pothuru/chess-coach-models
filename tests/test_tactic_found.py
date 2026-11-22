@@ -10,11 +10,12 @@ import pytest
 pytest.importorskip("torch")
 pytest.importorskip("lightgbm")
 
-from chess_coach_models import tasks  # noqa: E402
-from chess_coach_models.data import store, tactics  # noqa: E402
+from chess_coach_models import cli, paths, tasks  # noqa: E402
+from chess_coach_models.data import store  # noqa: E402
 from chess_coach_models.evals import leaderboard  # noqa: E402
 from chess_coach_models.train import learners  # noqa: E402
 from chess_coach_models.train import run as runs  # noqa: E402
+from chess_coach_models.train.learners import rating_formula  # noqa: E402
 
 
 FIXTURE = Path(__file__).parent / "fixtures" / "puzzles_with_games_sample.parquet"
@@ -28,6 +29,7 @@ RECIPE = {
     "sample": 1.0,
     "split": {"salt": "test", "valid": 0.2, "test": 0.2},
 }
+DATASET = "tactics-test-smoke"
 CONFIGS = {
     "gbm-hand": {"learner": {"kind": "gbm", "features": "hand", "rounds": 20, "min_child_samples": 5}},
     "constant": {"learner": {"kind": "constant"}},
@@ -40,14 +42,11 @@ CONFIGS = {
 
 
 @pytest.fixture()
-def lab(tmp_path, monkeypatch):
-    monkeypatch.setattr(store, "PROCESSED", tmp_path / "processed")
-    monkeypatch.setattr(runs, "ARTIFACTS", tmp_path / "artifacts")
-    monkeypatch.setattr(runs, "MODELS", tmp_path / "models")
-    monkeypatch.setattr(runs, "recipe", lambda dataset, smoke=False: dict(RECIPE))
-    monkeypatch.setattr(runs, "run_config", lambda model, name, smoke=False: json.loads(json.dumps(CONFIGS[name])))
-    rows, tokens, marks, manifest = tactics.build(RECIPE, source=str(FIXTURE), workers=2, log=lambda _: None)
-    store.write_dataset(RECIPE["name"], rows, tokens, marks, manifest)
+def lab(temp_lab, tmp_path):
+    temp_lab.recipe("tactics", RECIPE)
+    temp_lab.model("tactic-found", CONFIGS)
+    temp_lab.model("puzzle-difficulty", {})
+    cli.build_data("tactics", smoke=True, source=str(FIXTURE), workers=2, rebuild=False)
     return tmp_path
 
 
@@ -66,7 +65,7 @@ def test_every_learner_runs_and_the_leaderboard_ranks_them_by_log_loss(lab):
     gains = {entry["run"]: entry["gain"] for entry in board["runs"]}
     assert gains[task.reference] is None
     assert all(gains[name] is not None for name in CONFIGS if name != task.reference)
-    text = (runs.results_dir("tactic-found", smoke=True) / "leaderboard.md").read_text()
+    text = (paths.results("tactic-found", smoke=True) / "leaderboard.md").read_text()
     assert "the rating formula on `mover_elo` against `rating`" in text
     assert "Log loss (lower is better)" in text and "not compared" not in text
 
@@ -74,21 +73,21 @@ def test_every_learner_runs_and_the_leaderboard_ranks_them_by_log_loss(lab):
 def test_the_rating_formula_reads_the_two_ratings_and_nothing_else(lab):
     record = runs.run("tactic-found", "puzzle-rating", smoke=True, log=lambda _: None)
     assert record["learner"] == {"player": "mover_elo", "against": "rating", "scale": 400}
-    dataset = store.read_dataset("tactics-test")
+    dataset = store.read_dataset(DATASET)
     prepared = learners.prepare(tasks.get("tactic-found"), dataset)
-    fitted = learners.fit_rating_formula(prepared, CONFIGS["puzzle-rating"], log=lambda _: None)
+    fitted = rating_formula.fit(prepared, CONFIGS["puzzle-rating"], log=lambda _: None)
     test = dataset.rows[prepared.test]
     gap = (test["mover_elo"] - test["rating"]).to_numpy()
     assert np.allclose(fitted.test, 1 / (1 + 10 ** (-gap / 400)))
     level = fitted.test[np.argmin(np.abs(gap))]
     assert abs(level - 0.5) < 0.05
-    scored = pl.read_parquet(runs.predictions_path("tactic-found", "puzzle-rating", smoke=True))
+    scored = pl.read_parquet(paths.predictions("tactic-found", "puzzle-rating", smoke=True))
     order = np.argsort(gap, kind="mergesort")
     steps = np.diff(scored["p"].to_numpy()[order])
     assert (steps >= -1e-12).all() or (steps <= 1e-12).all()
 
 
 def test_the_rating_formula_needs_a_yes_or_no_label(lab):
-    prepared = learners.prepare(tasks.get("puzzle-difficulty"), store.read_dataset("tactics-test"))
+    prepared = learners.prepare(tasks.get("puzzle-difficulty"), store.read_dataset(DATASET))
     with pytest.raises(ValueError, match="yes-or-no"):
-        learners.fit_rating_formula(prepared, CONFIGS["puzzle-rating"], log=lambda _: None)
+        rating_formula.fit(prepared, CONFIGS["puzzle-rating"], log=lambda _: None)

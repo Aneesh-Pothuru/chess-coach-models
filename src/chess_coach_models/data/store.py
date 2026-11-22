@@ -22,13 +22,14 @@ from typing import Any
 import numpy as np
 import polars as pl
 
+from .. import paths
 
-ROOT = Path(__file__).resolve().parents[3]
-PROCESSED = ROOT / "data" / "processed"
+
 CHUNK = 50_000
-# What a result is made from: the harness, the dataset recipes and the run configs. A session
-# writes results and the README's table over tracked files as it goes, and those are not code.
-CODE = ("src", "datasets", ":(glob)models/*/configs/**")
+# What a result is made from: the harness, the dataset recipes, each model's task and its run configs.
+# A session writes results, papers and the README's tables over tracked files as it goes, and those
+# are not code.
+CODE = ("src", "datasets", ":(glob)models/*/task.yaml", ":(glob)models/*/configs/**")
 
 
 def batches(items: Iterable[Any], size: int) -> Iterator[list[Any]]:
@@ -80,13 +81,13 @@ def code_commit() -> str:
     """The lab commit a build or a run was made from, marked when its code, a recipe or a config had changes."""
     try:
         commit = subprocess.run(
-            ["git", "-C", str(ROOT), "rev-parse", "HEAD"],
+            ["git", "-C", str(paths.ROOT), "rev-parse", "HEAD"],
             check=True,
             capture_output=True,
             text=True,
         ).stdout.strip()
         dirty = subprocess.run(
-            ["git", "-C", str(ROOT), "status", "--porcelain", "--", *CODE],
+            ["git", "-C", str(paths.ROOT), "status", "--porcelain", "--", *CODE],
             check=True,
             capture_output=True,
             text=True,
@@ -97,7 +98,7 @@ def code_commit() -> str:
 
 
 def dataset_dir(name: str) -> Path:
-    return PROCESSED / name
+    return paths.processed() / name
 
 
 def fingerprint(rows: pl.DataFrame, tokens: np.ndarray, marks: np.ndarray) -> str:
@@ -153,7 +154,7 @@ def read_dataset(name: str) -> Dataset:
     directory = dataset_dir(name)
     if not (directory / "manifest.json").exists():
         raise FileNotFoundError(
-            f"{directory} holds no dataset: build it first with `lab data <model>`"
+            f"{directory} holds no dataset: build it first with `lab data <dataset>`"
         )
     return Dataset(
         name=name,

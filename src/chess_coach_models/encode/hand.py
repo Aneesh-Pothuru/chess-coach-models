@@ -9,13 +9,15 @@ from __future__ import annotations
 
 import chess
 
-from ..features import (
-    PIECE_VALUES,
-    _hanging_piece_count,
-    _king_attackers,
-    _material,
-    _passed_pawns,
-)
+
+PIECE_VALUES = {
+    chess.PAWN: 1.0,
+    chess.KNIGHT: 3.0,
+    chess.BISHOP: 3.25,
+    chess.ROOK: 5.0,
+    chess.QUEEN: 9.0,
+    chess.KING: 0.0,
+}
 
 
 POSITION_FEATURES = (
@@ -57,6 +59,54 @@ LINE_FEATURES = (
     "setup_capture",
     "final_material_gain",
 )
+
+
+def _material(board: chess.Board, color: chess.Color) -> float:
+    return sum(len(board.pieces(piece_type, color)) * value for piece_type, value in PIECE_VALUES.items())
+
+
+def _hanging_piece_count(board: chess.Board, color: chess.Color) -> int:
+    """Pieces that can be taken by something cheaper, or by anything when nothing defends them: a count that stands in for a full exchange search."""
+    count = 0
+    opponent = not color
+    for square, piece in board.piece_map().items():
+        if piece.color != color or piece.piece_type == chess.KING:
+            continue
+        attackers = board.attackers(opponent, square)
+        if not attackers:
+            continue
+        cheapest = min(PIECE_VALUES[board.piece_type_at(attacker)] for attacker in attackers)
+        defended = bool(board.attackers(color, square))
+        if cheapest < PIECE_VALUES[piece.piece_type] or not defended:
+            count += 1
+    return count
+
+
+def _passed_pawns(board: chess.Board, color: chess.Color) -> int:
+    enemy_pawns = board.pieces(chess.PAWN, not color)
+    count = 0
+    for square in board.pieces(chess.PAWN, color):
+        file_index = chess.square_file(square)
+        rank_index = chess.square_rank(square)
+        blocked = False
+        for enemy in enemy_pawns:
+            in_lane = abs(chess.square_file(enemy) - file_index) <= 1
+            enemy_rank = chess.square_rank(enemy)
+            ahead = enemy_rank > rank_index if color == chess.WHITE else enemy_rank < rank_index
+            if in_lane and ahead:
+                blocked = True
+                break
+        count += int(not blocked)
+    return count
+
+
+def _king_attackers(board: chess.Board, color: chess.Color) -> int:
+    """How many attacks the opponent has on the squares around this side's king."""
+    king = board.king(color)
+    if king is None:
+        return 0
+    ring = chess.SquareSet(chess.BB_KING_ATTACKS[king])
+    return sum(len(board.attackers(not color, square)) for square in ring)
 
 
 def position_features(board: chess.Board) -> dict[str, float]:

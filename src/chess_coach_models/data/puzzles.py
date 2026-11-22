@@ -16,6 +16,7 @@ import chess
 import numpy as np
 import polars as pl
 
+from .. import bands
 from ..encode.board import CASTLING, encode_positions, move_squares, white_to_move
 from ..encode.hand import LINE_FEATURES, POSITION_FEATURES, line_features, position_features
 from .lichess import LICENCE, open_zst, puzzle_rows
@@ -41,11 +42,10 @@ MARKS = (
 )
 LATER = MARKS.index("later")
 HAND = POSITION_FEATURES + LINE_FEATURES
-BANDS = ((2200, "2200+"), (1800, "1800-2199"), (1400, "1400-1799"), (1000, "1000-1399"), (0, "<1000"))
 
 
 def puzzle_band(rating: int) -> str:
-    return next(name for floor, name in BANDS if rating >= floor)
+    return bands.band(rating, bands.PUZZLE)
 
 
 def source_game(url: str) -> str:

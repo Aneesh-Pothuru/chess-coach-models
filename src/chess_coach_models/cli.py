@@ -17,9 +17,9 @@ import json
 import sys
 import time
 
-from . import tasks
+from . import data, tasks
 from .data.store import dataset_dir, write_dataset
-from .train.run import recipe, run, run_config, run_names
+from .train.run import run, run_config, run_names
 
 
 def log(message: str) -> None:
@@ -27,19 +27,12 @@ def log(message: str) -> None:
 
 
 def build_data(dataset: str, *, smoke: bool, source: str | None, workers: int | None, rebuild: bool) -> None:
-    plan = recipe(dataset, smoke=smoke)
+    plan = data.recipe(dataset, smoke=smoke)
     manifest_path = dataset_dir(plan["name"]) / "manifest.json"
     if manifest_path.exists() and not rebuild:
         log(f"{plan['name']} is already built ({manifest_path}); --rebuild builds it again")
         return
-    if plan["builder"] == "puzzles":
-        from .data.puzzles import build
-    elif plan["builder"] == "game_positions":
-        from .data.positions import build
-    elif plan["builder"] == "tactics":
-        from .data.tactics import build
-    else:
-        raise ValueError(f"no builder named {plan['builder']!r}")
+    build = data.builder(plan["builder"])
     started = time.time()
     rows, tokens, marks, manifest = build(plan, source=source, workers=workers, log=log)
     manifest["build_seconds"] = round(time.time() - started, 1)
@@ -67,15 +60,15 @@ def main(argv: list[str] | None = None) -> int:
     data.add_argument("--rebuild", action="store_true")
 
     train = commands.add_parser("train", help="train and score one run")
-    train.add_argument("model", choices=sorted(tasks.TASKS))
+    train.add_argument("model", choices=tasks.names())
     train.add_argument("run")
     train.add_argument("--device")
 
     evaluate = commands.add_parser("eval", help="write a model's leaderboard from its runs")
-    evaluate.add_argument("model", choices=sorted(tasks.TASKS))
+    evaluate.add_argument("model", choices=tasks.names())
 
     everything = commands.add_parser("all", help="a model's data, its runs and its leaderboard")
-    everything.add_argument("model", choices=sorted(tasks.TASKS))
+    everything.add_argument("model", choices=tasks.names())
     everything.add_argument("--runs", help="comma-separated run names; default every config this machine can train")
     everything.add_argument("--source")
     everything.add_argument("--workers", type=int)
