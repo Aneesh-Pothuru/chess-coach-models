@@ -330,7 +330,11 @@ what was right, every candidate's chance and each row's scores, so a run is comp
 reference from the two files of row scores. A record of a model that predicts tags also gives
 each tag by itself, as one yes or no over the test rows: how many carry it, and how well its
 chance tells those rows from the rest. The leaderboard prints that table for the best run, since
-a mean over rows is led by the common tags.
+a mean over rows is led by the common tags. A paper can read it too: the block `candidates` is
+the table, with the reference beside the best run, and the values under `candidates` name the
+commonest and the rarest tag and the tags the best run tells best and worst from the rest
+(`candidates.roc.most.name`). A score that is a share of the rows, such as first right, is also
+given as a percentage (`best.top1.percent`).
 
 What a set does not have yet: the tables of the closer look and the sections of a model's own
 paper that are drawn from them read one number a row. So `lab analyse` writes such a model's
@@ -384,6 +388,9 @@ whether the move given the highest chance is the one played, the move-matching a
 human-move papers report. In the first three is whether it is among the three given the highest.
 The log loss is minus the log of the chance given to the move played. Moves given the same chance
 share the credit.
+
+A record says how many candidates a test row has on average and at most, and a paper can read
+both (`candidates.mean`, `candidates.most`).
 
 What a move does not have yet: the closer look's tables and a model's own paper, as for a set.
 Its closer look is its pairs alone. A run that names a base is set against that run there, and
@@ -612,7 +619,10 @@ read.
   chance for each tag, `\ifanswersets` for either of those, `\ifanswermoves` for a chance for
   each legal move, `\ifrowsequences` for a row that is a sequence of positions. Each kind has a
   switch of its own, so the words for one build while another kind's first runs are still to
-  come. A set's paper values count its candidates (`task.candidates.count`).
+  come. A set's paper values count its candidates (`task.candidates.count`). In "What each model
+  found" the sentences that carry such a model's numbers read values every record gives and name
+  each rung by what it is (the trees, the best network, the floor), not by which is best, so they
+  read true whichever run leads.
 - **A model with no paper.** The prose sends a reader to a model's own paper for its gains in its
   own units. A model that is set side by side and has no `paper.tex` is named
   (`lab.paperless.names`, inside `\ifpaperless`), so the lab's paper sends nobody to a paper that

@@ -52,6 +52,11 @@ def _weights(run: dict[str, Any]) -> dict[str, Any] | None:
     return next((file for file in run.get("weights", []) if file["file"].startswith("model.")), None)
 
 
+# The scores that are a share of the test rows: how often the candidate a run puts first is right, or the move
+# played is among its first three.
+SHARES_OF_ROWS = ("top1", "top3")
+
+
 def run_values(src: Sources, out: tex.Generated, prefix: str, run: dict[str, Any]) -> None:
     """One run's values under ``prefix``."""
     task = src.task
@@ -63,6 +68,10 @@ def run_values(src: Sources, out: tex.Generated, prefix: str, run: dict[str, Any
             out.set(tex.key(prefix, metric) + part, tex.score(text))
         if task.scale == "log1p" and metric in ("mae", "rmse"):
             out.set(tex.key(prefix, metric) + ".factor", tex.fixed(math.exp(entry["value"]), 2))
+        if metric in SHARES_OF_ROWS:
+            # A share of the rows, which prose says as a percentage.
+            for part, text in zip(("", ".low", ".high"), (entry["value"], entry["low"], entry["high"])):
+                out.set(tex.key(prefix, metric) + ".percent" + part, tex.percent(text))
     for metric, value in run["valid"].items():
         out.set(tex.key(prefix, "valid", metric), tex.score(value))
     primary = run["test"][task.primary]
@@ -156,6 +165,13 @@ def method_values(out: tex.Generated) -> None:
 
 def band_names(src: Sources) -> list[str]:
     return sorted({band for run in src.runs for band in run["test_by_band"]}, key=bands.order)
+
+
+def band_digits(src: Sources) -> int:
+    """The decimals every band's score is printed with: those of the largest of them. An error in rating points
+    can be under a hundred in one band and over it in the next, and the small one is not known to a thousandth."""
+    scores = [entry[src.primary] for run in src.runs for entry in run["test_by_band"].values()]
+    return min((tex.score_digits(value) for value in scores if tex.known(value)), default=4)
 
 
 def values(src: Sources, out: tex.Generated) -> None:
@@ -272,7 +288,7 @@ def values(src: Sources, out: tex.Generated) -> None:
         out.set(f"band.{index}.rows", tex.count(src.best["test_by_band"][name]["rows"]))
         for part, run in parts.items():
             if run is not None and name in run["test_by_band"]:
-                out.set(f"band.{index}.{part}", tex.score(run["test_by_band"][name][primary]))
+                out.set(f"band.{index}.{part}", tex.score(run["test_by_band"][name][primary], digits=band_digits(src)))
     if reference is not None and src.best is not reference:
         leads = {
             name: src.better_by(src.best["test_by_band"][name][primary], reference["test_by_band"][name][primary])
@@ -285,6 +301,7 @@ def values(src: Sources, out: tex.Generated) -> None:
         out.set("bands.lead.narrowest", tex.sig(leads[narrowest], 3, sign=True))
         out.set("bands.best-ahead", tex.word(sum(lead > 0 for lead in leads.values())))
         out.set("bands.best-ahead.of", tex.of(sum(lead > 0 for lead in leads.values()), len(names), "bands"))
+    candidate_values(src, out)
     for run_part, run in (("best", src.best), ("reference", reference)):
         table = run.get("test_calibration") if run is not None else None
         if table:
@@ -293,6 +310,53 @@ def values(src: Sources, out: tex.Generated) -> None:
             out.set(f"{run_part}.calibration.lowest", tex.percent(table[0]["predicted"]))
             out.set(f"{run_part}.calibration.highest", tex.percent(table[-1]["predicted"]))
             out.set(f"{run_part}.calibration.groups", tex.word(len(table)))
+
+
+def candidate_values(src: Sources, out: tex.Generated) -> None:
+    """What the best run's record says of a row's candidates. Where they are a position's legal moves: how many
+    a test row has. Where they are tags: each tag by itself, as one yes or no over the test rows, so prose can
+    name the commonest and the rarest, and the tag whose chance tells its rows from the rest best and worst."""
+    moves = src.best.get("test_candidates")
+    if moves:
+        out.set("candidates.mean", tex.fixed(moves["mean"], 1))
+        out.set("candidates.most", tex.count(moves["most"]))
+    each = src.best.get("test_by_candidate")
+    if not each:
+        return
+    out.set("candidates.run", run_tex(src.best["run"]))
+    by_rows = sorted(each, key=lambda name: (-each[name]["rows"], name))
+    for part, name in (("common", by_rows[0]), ("rare", by_rows[-1])):
+        out.set(f"candidates.{part}.name", f"\\texttt{{{tex.esc(name)}}}")
+        out.set(f"candidates.{part}.rows", tex.count(each[name]["rows"]))
+        out.set(f"candidates.{part}.share", tex.percent(each[name]["share"]))
+    told = {name: row["roc_auc"] for name, row in each.items() if tex.known(row["roc_auc"])}
+    if told:
+        for part, name in (("most", max(told, key=told.get)), ("least", min(told, key=told.get))):
+            out.set(f"candidates.roc.{part}.name", f"\\texttt{{{tex.esc(name)}}}")
+            out.set(f"candidates.roc.{part}", tex.fixed(told[name], 2))
+            out.set(f"candidates.roc.{part}.share", tex.percent(each[name]["share"]))
+
+
+def candidates_table(src: Sources) -> str | None:
+    """Each tag by itself, for the best run and for the reference beside it: how many test rows carry it, and
+    how well a run's chance for it tells those rows from the rest. The most common first."""
+    best, reference = src.best, src.reference
+    each = best.get("test_by_candidate")
+    if not each:
+        return None
+    other = reference if reference is not None and reference is not best and "test_by_candidate" in reference else None
+    shown = [best] + ([other] if other is not None else [])
+    rows = []
+    for name in sorted(each, key=lambda name: (-each[name]["rows"], name)):
+        cells = [f"\\texttt{{{tex.esc(name)}}}", tex.count(each[name]["rows"]), tex.percent(each[name]["share"]) + "\\%"]
+        for run in shown:
+            entry = run["test_by_candidate"][name]
+            cells += [tex.fixed(entry["pr_auc"], 3), tex.fixed(entry["roc_auc"], 3)]
+        rows.append(cells)
+    head = ["Tag", "Test rows", "Share"] + ["PR-AUC", "ROC-AUC"] * len(shown)
+    top = ["", "", ""] + [run_head(run["run"], 2, "2.9cm") for run in shown]
+    table = tex.tabular("lrr" + "rr" * len(shown), head, rows)
+    return tex.grouped(table, top, [(4 + 2 * index, 5 + 2 * index) for index in range(len(shown))])
 
 
 def _gain_cells(src: Sources, run: dict[str, Any]) -> list[str]:
@@ -433,11 +497,11 @@ def data_table(src: Sources) -> str:
 
 def bands_table(src: Sources) -> str:
     """The primary metric of every run in every band, with the band's test rows underneath."""
-    names = band_names(src)
+    names, digits = band_names(src), band_digits(src)
     rows = [
         [
             run_tex(run["run"]),
-            *(tex.score(run["test_by_band"][name][src.primary]) if name in run["test_by_band"] else "n/a" for name in names),
+            *(tex.score(run["test_by_band"][name][src.primary], digits=digits) if name in run["test_by_band"] else "n/a" for name in names),
         ]
         for run in src.runs
     ]
@@ -640,6 +704,7 @@ def blocks(src: Sources, out: tex.Generated) -> None:
         "leans": leans_figure(src, src.reference),
         "calibration-table": calibration_table(src),
         "calibration": calibration_figure(src),
+        "candidates": candidates_table(src),
         "reads": reads_table(src),
         "steps": steps_table(src),
         "hand": hand_table(src),

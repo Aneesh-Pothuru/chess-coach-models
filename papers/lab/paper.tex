@@ -1117,6 +1117,117 @@ with the reference beside it.}
 \label{fig:practical}
 \end{figure}
 
+\ifanswersquares
+\subsection{Where to look}
+
+A run ranks the squares of each test position by the chance it gives them,
+and the score is the average precision of that ranking: 1 when every square
+the tactic's line leaves or lands on comes before every other square. The
+trees with the hand-made counts score \V{where-to-look.reference.score}, the
+best network, \V{where-to-look.network.name},
+\V{where-to-look.network.score}, and the floor, which ranks the squares in
+the same order in every position, \V{where-to-look.floor.score}. The square
+a run puts first is one of the line's in
+\V{where-to-look.reference.top1.percent}\% of the test positions for the
+trees, \V{where-to-look.network.top1.percent}\% for that network and
+\V{where-to-look.floor.top1.percent}\% for the floor. Table~\ref{tab:look}
+gives the score by the puzzle's rating.
+
+\begin{table}[htbp]\centering\small
+\block{where-to-look-bands-table}
+\caption{Where to look: each run's average precision by the puzzle's
+rating.}
+\label{tab:look}
+\end{table}
+\fi
+
+\ifanswertags
+\subsection{Puzzle themes}
+
+A run ranks the \V{puzzle-themes.task.candidates.count} themes for each
+test puzzle, and the score is the average precision of that ranking over
+the puzzles that carry at least one of them. The trees with the hand-made
+counts score \V{puzzle-themes.reference.score}, the best network,
+\V{puzzle-themes.network.name}, \V{puzzle-themes.network.score}, and the
+floor, which ranks the themes by how common they are,
+\V{puzzle-themes.floor.score}. The theme a run puts first is one the puzzle
+carries in \V{puzzle-themes.reference.top1.percent}\% of those puzzles for
+the trees, \V{puzzle-themes.network.top1.percent}\% for that network and
+\V{puzzle-themes.floor.top1.percent}\% for the floor.
+
+A mean over puzzles is led by the common themes, so Table~\ref{tab:themes}
+takes each theme by itself, as one yes or no over the test puzzles. The
+commonest is \V{puzzle-themes.candidates.common.name}, on
+\V{puzzle-themes.candidates.common.share}\% of the test puzzles, and the
+rarest \V{puzzle-themes.candidates.rare.name}, on
+\V{puzzle-themes.candidates.rare.share}\%. The theme that
+\V{puzzle-themes.candidates.run} tells best from the rest is
+\V{puzzle-themes.candidates.roc.most.name}, with an area under the ROC
+curve of \V{puzzle-themes.candidates.roc.most}, and the one it tells worst
+is \V{puzzle-themes.candidates.roc.least.name}, with
+\V{puzzle-themes.candidates.roc.least}.
+
+\begin{table}[htbp]\centering\small
+\block{puzzle-themes-candidates}
+\caption{Puzzle themes: each theme by itself over the test puzzles, the
+most common first. Test rows and Share say how many test puzzles carry the
+theme. The two areas say how well a run's chance for the theme tells those
+puzzles from the rest: under the precision-recall curve, where a rare theme
+starts low, and under the ROC curve, where 0.5 is a coin and 1 is every
+puzzle with the theme ranked before every puzzle without it.}
+\label{tab:themes}
+\end{table}
+\fi
+
+\ifanswermoves
+\subsection{Human move}
+
+A test position has \V{human-move.candidates.mean} legal moves on average,
+and the score is how often the move a run gives the highest chance is the
+move that was played. Maia-2, the published model, names it in
+\V{human-move.run.maia2.top1.percent}\% of the test positions and has it
+among its first three in \V{human-move.run.maia2.top3.percent}\%. The best
+network trained here, \V{human-move.network.name}, names it in
+\V{human-move.network.top1.percent}\% and has it among its first three in
+\V{human-move.network.top3.percent}\%. The trees name it in
+\V{human-move.reference.top1.percent}\%, and the floor, which gives every
+legal move the same chance, in \V{human-move.floor.top1.percent}\%.
+Table~\ref{tab:move} gives the score by the mover's rating, which is how the
+app asks: what do players of this player's level do here.
+
+\begin{table}[htbp]\centering\small
+\block{human-move-bands-table}
+\caption{Human move: how often the move a run puts first is the move
+played, as a share of the test positions, by the mover's rating.}
+\label{tab:move}
+\end{table}
+\fi
+
+\ifrowsequences
+\subsection{Game rating}
+
+A row is one player in one game, and the answer is that player's rating
+when the game was played. The trees with the counts over the player's moves
+are off by \V{game-rating.reference.score} rating points on average
+(\V{game-rating.task.metric}), the best network,
+\V{game-rating.network.name}, by \V{game-rating.network.score}, and the
+floor, which says the same rating for every player, by
+\V{game-rating.floor.score}. Trees that read only the time control and the
+length of the game are off by \V{game-rating.run.gbm-context.score}. The
+best run's readings order the players with a rank correlation of
+\V{game-rating.best.spearman} with their ratings. Table~\ref{tab:rating}
+gives the error by the player's rating. The bands are bands of the answer
+itself, so a run that pulls every reading toward the middle has an error
+that grows toward both ends.
+
+\begin{table}[htbp]\centering\small
+\block{game-rating-bands-table}
+\caption{Game rating: each run's mean error in rating points, by the
+player's rating.}
+\label{tab:rating}
+\end{table}
+\fi
+
 \section{What the app can use today}
 \label{sec:use}
 

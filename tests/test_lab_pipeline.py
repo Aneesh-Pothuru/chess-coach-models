@@ -1043,6 +1043,12 @@ def test_a_model_that_predicts_tags_runs_scores_and_ranks(lab, temp_lab):
     # The closer look of a model that predicts tags is its pairs alone too, and none was asked here.
     look = analysis.analyse(model, smoke=True)
     assert look["pairs"] == [] and look["runs"] == [entry["run"] for entry in board["runs"]] and "slices" not in look
+    # A paper counts the tags and reads each by itself from the best run's record, as the leaderboard prints it.
+    src, out = papers.generate(model, smoke=True)
+    assert out.values["task.candidates.count"] == str(len(tags))
+    assert out.values["candidates.run"] == f"\\run{{{board['runs'][0]['run']}}}"
+    assert all(f"\\texttt{{{tag}}}" in out.files["candidates"] for tag in tags)
+    assert out.values["best.top1.percent"] == tex.percent(src.best["test"]["top1"]["value"])
 
 
 GAME_CONFIGS = {
@@ -1638,8 +1644,12 @@ def test_a_model_whose_answer_is_a_move_has_its_pairs_and_stands_in_the_lab_s_pa
     assert {"pairs", "pairs-figure", "leaderboard"} <= set(out.files)
     assert out.values["pair.transformer-small-hand.transformer-small.differs"] == "reads the hand features"
     assert all(f"run.{name}.temperature" in out.values and f"run.{name}.platt.slope" not in out.values for name in ranked)
-    # A row's candidates are its own position's moves, so a paper has no count of them to give.
-    assert "task.candidates.count" not in out.values
+    # A row's candidates are its own position's moves, so a paper has no count of them to give: it says how
+    # many a test row has, and a share of the rows as a percentage.
+    assert "task.candidates.count" not in out.values and "candidates" not in out.files
+    assert out.values["candidates.mean"] == tex.fixed(records["maia2"]["test_candidates"]["mean"], 1)
+    assert out.values["run.maia2.top1.percent"] == tex.percent(records["maia2"]["test"]["top1"]["value"])
+    assert out.values["run.maia2.top3.percent.low"] == tex.percent(records["maia2"]["test"]["top3"]["low"])
     assert out.values["run.maia2.log-loss.before"] != out.values["run.maia2.log-loss"]
 
     # The lab's paper sets it on the one scale with every model: a share of first moves right, where more is

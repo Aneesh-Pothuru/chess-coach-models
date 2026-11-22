@@ -334,6 +334,63 @@ def test_each_other_kind_of_model_has_a_switch_of_its_own_in_the_lab_s_paper(tmp
     assert not overview.switches(alone)["paperless"]
 
 
+def test_a_model_of_tags_gives_each_tag_by_itself_and_one_of_moves_how_many_a_row_has():
+    task = tasks.get("puzzle-themes")
+    each = {
+        "fork": {"rows": 40, "share": 0.4, "pr_auc": 0.8, "roc_auc": 0.9},
+        "pin": {"rows": 10, "share": 0.1, "pr_auc": 0.2, "roc_auc": 0.6},
+        "zugzwang": {"rows": 0, "share": 0.0, "pr_auc": float("nan"), "roc_auc": float("nan")},
+    }
+    worse = {name: {**row, "roc_auc": row["roc_auc"] - 0.1} for name, row in each.items()}
+    best = {**_record("transformer-small", {"kind": "net", "body": "transformer"}, 0.7, task.primary), "test_by_candidate": each}
+    reference = {**_record("gbm-hand", {"kind": "gbm", "features": "hand"}, 0.6, task.primary), "test_by_candidate": worse}
+    src = _sources("puzzle-themes", [best, reference])
+    # The most common tag first, the best run's two columns and then the reference's.
+    lines = [line for line in results.candidates_table(src).splitlines() if line.startswith("\\texttt")]
+    assert [line.split(" & ")[0] for line in lines] == ["\\texttt{fork}", "\\texttt{pin}", "\\texttt{zugzwang}"]
+    assert lines[0] == "\\texttt{fork} & 40 & 40.0\\% & 0.800 & 0.900 & 0.800 & 0.800 \\\\"
+    # A tag no test row carries has nothing to be told from, and is the best or the worst told of none.
+    assert lines[2] == "\\texttt{zugzwang} & 0 & 0.0\\% & n/a & n/a & n/a & n/a \\\\"
+    out = tex.Generated("a test")
+    results.candidate_values(src, out)
+    assert out.values["candidates.run"] == "\\run{transformer-small}"
+    assert (out.values["candidates.common.name"], out.values["candidates.common.share"]) == ("\\texttt{fork}", "40.0")
+    assert (out.values["candidates.rare.name"], out.values["candidates.rare.rows"]) == ("\\texttt{zugzwang}", "0")
+    assert (out.values["candidates.roc.most.name"], out.values["candidates.roc.most"]) == ("\\texttt{fork}", "0.90")
+    assert (out.values["candidates.roc.least.name"], out.values["candidates.roc.least"]) == ("\\texttt{pin}", "0.60")
+    # The reference is not set beside itself.
+    assert results.candidates_table(_sources("puzzle-themes", [reference])).count("ROC-AUC") == 1
+    # A model of moves says how many a test row has, and has no table of them.
+    moves = {**_record("maia2", {"kind": "maia2"}, 0.5, "top1"), "test_candidates": {"mean": 31.46, "most": 79}}
+    src, out = _sources("human-move", [moves]), tex.Generated("a test")
+    results.candidate_values(src, out)
+    assert out.values == {"candidates.mean": "31.5", "candidates.most": "79"} and results.candidates_table(src) is None
+    # A model of one number a row has neither.
+    plain, out = _sources("puzzle-difficulty", [_record("gbm-hand", {"kind": "gbm", "features": "hand"}, 300.0, "rmse")]), tex.Generated("a test")
+    results.candidate_values(plain, out)
+    assert out.values == {} and results.candidates_table(plain) is None
+
+
+def test_a_table_by_band_keeps_one_precision_on_both_sides_of_a_hundred():
+    def banded(name, learner, scores):
+        by_band = {band: {"mae": value, "rows": 10} for band, value in scores.items()}
+        return {**_record(name, learner, 300.0, "mae"), "test_by_band": by_band}
+
+    runs = [
+        banded("gbm-hand", {"kind": "gbm", "features": "hand"}, {"<1100": 438.72, "1400-1700": 73.014}),
+        banded("constant", {"kind": "constant"}, {"<1100": 600.24, "1400-1700": 72.233}),
+    ]
+    src = _sources("game-rating", runs)
+    assert results.band_digits(src) == 1
+    table = results.bands_table(src)
+    assert "\\run{gbm-hand} & 438.7 & 73.0 \\\\" in table and "\\run{constant} & 600.2 & 72.2 \\\\" in table
+    # Scores that are all under a hundred, or all under one, keep the decimals a score has anywhere.
+    for run in runs:
+        run["test_by_band"] = {band: {"mae": entry["mae"] / 1000.0, "rows": 10} for band, entry in run["test_by_band"].items()}
+    assert results.band_digits(src) == 4 and "0.4387 & 0.0730" in results.bands_table(src)
+    assert tex.score(73.014) == "73.014" and tex.score(73.014, digits=1) == "73.0" and tex.score(None, digits=1) == "n/a"
+
+
 def _longer(model, gain):
     """A model whose larger transformer was trained again with twice the epochs, and the pair its closer look measured."""
     primary = tasks.get(model).primary

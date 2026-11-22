@@ -59,12 +59,17 @@ def fixed(value: float | None, digits: int = 1, *, sign: bool = False) -> str:
     return text.replace("-", "$-$")
 
 
-def score(value: float | None, *, sign: bool = False) -> str:
-    """A score at the precision the leaderboards print: one decimal from a hundred up, four below one."""
+def score_digits(value: float) -> int:
+    """The decimals a score is printed with: one from a hundred up, three from one, four below one."""
+    return 1 if abs(value) >= 100 else 3 if abs(value) >= 1 else 4
+
+
+def score(value: float | None, *, sign: bool = False, digits: int | None = None) -> str:
+    """A score at the precision the leaderboards print: one decimal from a hundred up, four below one. A table
+    whose scores lie on both sides of a hundred gives ``digits``, so that its columns keep one precision."""
     if not known(value):
         return "n/a"
-    digits = 1 if abs(value) >= 100 else 3 if abs(value) >= 1 else 4
-    return fixed(value, digits, sign=sign)
+    return fixed(value, score_digits(value) if digits is None else digits, sign=sign)
 
 
 def sig(value: float | None, digits: int = 4, *, sign: bool = False) -> str:
