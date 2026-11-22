@@ -68,8 +68,58 @@ look's `pairs`), which says something only when its interval leaves zero out.
 
 ## Results
 
-No full run has been recorded yet. `results/leaderboard.md` is written by
-`lab eval practical-chances` once the runs are in.
+[`results/leaderboard.md`](results/leaderboard.md), written by
+`lab eval practical-chances`, and the closer look,
+[`results/analysis.json`](results/analysis.json), written by
+`lab analyse practical-chances`. What the first full runs say (commit
+`72d43ea`; the numbers are in those two files):
+
+- **Every fitted run beats the engine's curve, beyond the noise.**
+  `gbm-context` reads only the evaluation, the ratings, the clocks and the
+  move number, and it is ahead of `engine-curve` on the same resampled test
+  games; so is the largest network (`pairs` in the closer look). The number
+  a review shows today is not the best guess of how a game between two people
+  ends.
+- **The curve is too sure at both ends, and most of all at low ratings.**
+  Where the engine gives the mover four chances in five or more, movers under
+  1100 score well short of what the curve says, and movers above 2000 nearly
+  what it says. Where it gives one chance in five or less, movers under 1400
+  score more than twice the curve's number (the grid `rating-win`: each cell
+  has the mean result of its positions and each run's mean prediction there).
+- **A clear edge is worth little at low ratings.** In positions the engine
+  gives 60 to 80 percent, movers under 1100 score only a little over half.
+  Movers above 2000 score what the curve says.
+- **The clock is the largest thing the engine does not see.** With under a
+  minute left, the mover scores well under half in positions the engine calls
+  level, and less than half even in positions it gives 60 to 80 percent (the
+  grid `clock-win`). The fitted runs' lead over the curve is widest there
+  (the slice `clock`).
+- **By band, the lead over the curve is largest for movers under 1100** and
+  smallest between 1700 and 2000.
+- **The rating formula alone says less than the mean result.** `elo-gap`
+  lands below `constant`. Games are paired by rating, so the gap between the
+  two players is small, and from the sixth move on the position says far
+  more than the ratings do.
+- **No network beats the trees.** All four land inside the noise of
+  `gbm-hand`: the two CPU-sized ones level with it, the two GPU transformers
+  a little below. The GPU transformers had their best epoch on valid before
+  the half of their schedule and were stopped early, so more epochs is not
+  the run to add. The hand features add a little to the context numbers,
+  beyond the noise (`gbm-hand` over `gbm-context` in `pairs`), and the trees
+  take most of their gain from the evaluation, then the two ratings, the
+  material and the clocks (`leans_on` in
+  [the reference's record](results/gbm-hand.json)).
+
+So the model to carry to the app is the trees: seconds to train, no GPU, and
+nothing a network adds here. What it changes in a review is the number beside
+a position: the result two players at these ratings and clocks get from it,
+not the result best play gets.
+
+**Weights.** Every run's weights and test predictions are on the owner's
+machine, under `artifacts/runs/practical-chances/<run>/`, as the GPU session
+packed them; none is published. Each record names its run's files by size
+and sha256. The reference's `model.txt` is 2,437,650 bytes, sha256
+`5b3526084ab51c61a60ab182996e0cebe2b9a707e92e3771684121f93ba03969`.
 
 ## What it does not say yet
 
