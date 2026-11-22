@@ -1,0 +1,21 @@
+% Written by `lab paper puzzle-difficulty-unsolved`; do not edit by hand.
+\begin{tabularx}{\textwidth}{lL}
+\toprule
+Feature & What it counts \\
+\midrule
+\texttt{material\_count} & Both sides' material added up, a pawn as 1, a knight 3, a bishop 3.25, a rook 5, a queen 9. \\
+\texttt{material\_imbalance} & The mover's material less the opponent's, on the same scale. \\
+\texttt{phase\_piece\_count} & Knights, bishops, rooks and queens still on the board, both sides. \\
+\texttt{in\_check} & Whether the mover is in check. \\
+\texttt{legal\_moves} & How many legal moves the mover has. \\
+\texttt{legal\_captures} & How many of the mover's legal moves take something. \\
+\texttt{legal\_checks} & How many of the mover's legal moves give check. \\
+\texttt{hanging\_own} & The mover's pieces that something cheaper attacks, or that anything attacks while nothing defends them. \\
+\texttt{hanging\_opponent} & The opponent's pieces that something cheaper attacks, or that anything attacks while nothing defends them. \\
+\texttt{passed\_pawns\_own} & The mover's pawns with no enemy pawn ahead of them on their file or a neighbouring one. \\
+\texttt{passed\_pawns\_opponent} & The opponent's pawns with no enemy pawn ahead of them on their file or a neighbouring one. \\
+\texttt{attackers\_near\_own\_king} & How many attacks the opponent has on the squares around the mover's king. \\
+\texttt{attackers\_near\_opponent\_king} & How many attacks the mover has on the squares around the opponent's king. \\
+\texttt{setup\_capture} & Whether the opponent's move that set the position up took something. \\
+\bottomrule
+\end{tabularx}

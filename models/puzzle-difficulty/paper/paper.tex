@@ -395,9 +395,16 @@ intervals. By band the run with the features is ahead on the puzzles rated
 1800 and over and behind on those under 1400 (Table~\ref{tab:bands}, which
 draws no interval). A reading: given the steps, eight layers learn from the
 squares most of what the counts hold, and the counts still help where a
-puzzle is hard. The two long runs have not been set against each other on
-the same resampled games yet. The model's analysis plan now asks for that
-pair, and the next closer look measures it.
+puzzle is hard. Set against each other on the same resampled games,
+\V{best.name} is
+\V{pair.transformer-medium-hand-long.transformer-medium-long.valid.verdict}
+than \V{best.twin.name} on the valid puzzles and
+\V{pair.transformer-medium-hand-long.transformer-medium-long.verdict} on
+the test puzzles, by
+\V{pair.transformer-medium-hand-long.transformer-medium-long.gain} points
+(\V{pair.transformer-medium-hand-long.transformer-medium-long.gain.low} to
+\V{pair.transformer-medium-hand-long.transformer-medium-long.gain.high},
+Table~\ref{tab:pairs}).
 
 Neither run used its whole schedule. \V{run.transformer-medium-long.name}
 had its best valid epoch at \V{run.transformer-medium-long.best-epoch} of
@@ -408,10 +415,52 @@ had its best valid epoch at \V{run.transformer-medium-long.best-epoch} of
 score has not improved for that long (Figure~\ref{fig:variants}). Their
 training loss was still falling: from there a network is fitting the
 training puzzles. So a still longer schedule is not the next run. More
-puzzles or a better start may be.
+puzzles or a better start may be, and the games study below says what
+puzzles are worth.
 \fi
 
 \input{../../../papers/studies}
+
+\ifgames
+\paragraph{What more puzzles are worth here.}
+Both learners are worse on fewer puzzles, and the network by more. Against
+the run trained on every training puzzle, \V{run.transformer-medium-hand.name} has a paired
+gain of \V{pair.transformer-medium-hand-half.transformer-medium-hand.gain} points on half of them and of
+\V{pair.transformer-medium-hand-quarter.transformer-medium-hand.gain} on a quarter. The trees' gains are
+\V{pair.gbm-hand-half.gbm-hand.gain} and \V{pair.gbm-hand-quarter.gbm-hand.gain}.
+The network's lead over the trees widens with every doubling
+(Table~\ref{tab:games}), and the curve of Figure~\ref{fig:games} is
+still falling where it ends. The last doubling was worth about as much to
+the network as twice the epochs were to the same run
+(\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain}). The dataset is a fixed
+\V{recipe.sample.percent}\% of the puzzles whose rating has settled, so
+the rest are there to be read. A reading: more puzzles are the next thing to
+try for this model, ahead of a longer schedule.
+\fi
+
+\iffeatures
+\paragraph{Which counts the trees need here.}
+In \V{study.features.gbm-hand.worse.of} the trees are worse beyond the
+noise without the group. What costs most is
+\V{study.features.gbm-hand.most.group}: without the counts of what the
+solution's moves do, the trees' paired gain is
+\V{study.features.gbm-hand.most.gain} points, and that is with the number
+of moves the solver has to find still beside the board. After it come the
+moves on offer in the position (\V{pair.gbm-hand-no-mobility.gbm-hand.gain})
+and the first move of the solution
+(\V{pair.gbm-hand-no-first-move.gbm-hand.gain}). The other groups cost little:
+material \V{pair.gbm-hand-no-material.gbm-hand.gain}, the attackers near the
+kings \V{pair.gbm-hand-no-kings.gbm-hand.gain}, loose pieces
+\V{pair.gbm-hand-no-hanging.gbm-hand.gain} and passed pawns
+\V{pair.gbm-hand-no-pawns.gbm-hand.gain}. Without the one count of the
+opponent's last move the trees are
+\V{study.features.gbm-hand.least.verdict}, by
+\V{study.features.gbm-hand.least.gain} points, which is small enough for
+another training to undo. A reading: what these trees know of a puzzle's
+difficulty is mostly what its solution looks like. The lab's model that
+hides the solution measures the same from the other side, and its paper
+gives that number.
+\fi
 \fi
 
 \section{A closer look}

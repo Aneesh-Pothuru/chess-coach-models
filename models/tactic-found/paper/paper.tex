@@ -449,6 +449,37 @@ score has not improved for that long (Figure~\ref{fig:variants}).
 \fi
 
 \input{../../../papers/studies}
+
+\ifgames
+\paragraph{What more games are worth here.}
+Both learners are worse on fewer games, and the network by more. Against the
+run trained on every training game, \V{run.transformer-medium-hand.name} has a paired gain of
+\V{pair.transformer-medium-hand-half.transformer-medium-hand.gain} on half of them and of \V{pair.transformer-medium-hand-quarter.transformer-medium-hand.gain} on a
+quarter. The trees' gains are \V{pair.gbm-hand-half.gbm-hand.gain} and
+\V{pair.gbm-hand-quarter.gbm-hand.gain}. On a quarter of the games the trees
+are ahead of the network, on half the two are level, and only on all of
+them does the network lead (Table~\ref{tab:games}). So the network's
+place at the top of this leaderboard comes with the data, and twice the
+epochs gave the same network nothing
+(\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain}). A reading: more games are the next thing to try
+for this model.
+\fi
+
+\iffeatures
+\paragraph{Which counts the trees need here.}
+In \V{study.features.gbm-hand.worse.of} the trees are worse beyond the
+noise without the group. What costs most is
+\V{study.features.gbm-hand.most.group}, at
+\V{study.features.gbm-hand.most.gain}: what the move to be found looks
+like says most about whether a player finds it. After it come the line as a
+whole (\V{pair.gbm-hand-no-line.gbm-hand.gain}), the moves on offer
+(\V{pair.gbm-hand-no-mobility.gbm-hand.gain}), loose pieces
+(\V{pair.gbm-hand-no-hanging.gbm-hand.gain}), the opponent's last move
+(\V{pair.gbm-hand-no-setup.gbm-hand.gain}) and material
+(\V{pair.gbm-hand-no-material.gbm-hand.gain}). Without the attackers near the
+kings the trees are \V{pair.gbm-hand-no-kings.gbm-hand.verdict}, and
+without the passed pawns \V{pair.gbm-hand-no-pawns.gbm-hand.verdict}.
+\fi
 \fi
 
 \section{A closer look}

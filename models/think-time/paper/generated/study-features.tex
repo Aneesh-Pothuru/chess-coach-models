@@ -1,0 +1,13 @@
+% Written by `lab paper think-time`; do not edit by hand.
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.7cm}Lrrrr}
+\toprule
+Run & Left out & Features & MAE & Gain & 95\% interval \\
+\midrule
+{\ttfamily gbm-\allowbreak hand} & nothing &  & 0.6306 &  &  \\
+{\ttfamily gbm-\allowbreak hand-\allowbreak no-\allowbreak material} & material & 3 & 0.6447 & \textbf{$-$0.01410} & $-$0.01551 to $-$0.01277 \\
+{\ttfamily gbm-\allowbreak hand-\allowbreak no-\allowbreak hanging} & pieces that can be taken & 2 & 0.6402 & \textbf{$-$0.00965} & $-$0.01084 to $-$0.00839 \\
+{\ttfamily gbm-\allowbreak hand-\allowbreak no-\allowbreak mobility} & the moves on offer & 4 & 0.6387 & \textbf{$-$0.008161} & $-$0.009225 to $-$0.007152 \\
+{\ttfamily gbm-\allowbreak hand-\allowbreak no-\allowbreak kings} & attacks near the kings & 2 & 0.6327 & \textbf{$-$0.002082} & $-$0.002836 to $-$0.001288 \\
+{\ttfamily gbm-\allowbreak hand-\allowbreak no-\allowbreak pawns} & passed pawns & 2 & 0.6305 & +0.0001036 & $-$0.0003920 to +0.0006039 \\
+\bottomrule
+\end{tabularx}

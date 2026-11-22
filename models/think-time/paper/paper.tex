@@ -387,6 +387,34 @@ next run.
 \fi
 
 \input{../../../papers/studies}
+
+\ifgames
+\paragraph{What more games are worth here.}
+Both learners are worse on fewer games, and the network by more. Against the
+run trained on every training game, \V{run.transformer-medium-hand.name} has a paired gain of
+\V{pair.transformer-medium-hand-half.transformer-medium-hand.gain} on half of them and of \V{pair.transformer-medium-hand-quarter.transformer-medium-hand.gain} on a
+quarter. The trees' gains are \V{pair.gbm-hand-half.gbm-hand.gain} and
+\V{pair.gbm-hand-quarter.gbm-hand.gain}. The network's lead over the trees
+widens with every doubling (Table~\ref{tab:games}). Twice the epochs were
+worth \V{pair.transformer-medium-hand-long.transformer-medium-hand.gain} to the same network, so the last doubling of
+the games was worth more than the longer schedule. A reading: like blunder
+hazard, this model is short of games before it is short of steps, and
+\V{recipe.games} games of one month leave many more to read.
+\fi
+
+\iffeatures
+\paragraph{Which counts the trees need here.}
+In \V{study.features.gbm-hand.worse.of} the trees are worse beyond the
+noise without the group. The group that costs most is
+\V{study.features.gbm-hand.most.group}, at
+\V{study.features.gbm-hand.most.gain}. Then come loose pieces
+(\V{pair.gbm-hand-no-hanging.gbm-hand.gain}), the moves on offer
+(\V{pair.gbm-hand-no-mobility.gbm-hand.gain}) and the attackers near the
+kings (\V{pair.gbm-hand-no-kings.gbm-hand.gain}). Without the passed pawns
+the trees are \V{pair.gbm-hand-no-pawns.gbm-hand.verdict}. A reading:
+beside the clocks, what moves a player's time is how far the game has gone,
+whether something can be taken, and how much there is to choose from.
+\fi
 \fi
 
 \section{A closer look}
@@ -500,6 +528,7 @@ opening, which are played quickly (Table~\ref{tab:slice-ply}).
 \label{tab:clock}
 \end{table}
 
+\begin{sloppypar}
 Both runs follow that pace group by group (Figure~\ref{fig:clock}): at its
 furthest \V{challenger.name} is \V{slice.clock.challenger.widest-off}
 seconds from the typical time taken. The network's lead over the trees is
@@ -507,6 +536,7 @@ beyond the noise in \V{slice.clock.ahead.of}
 (\V{slice.clock.ahead.groups}). Under two minutes the two are level, and
 there are few positions there to tell them apart: a rapid game is mostly
 played with time in hand.
+\end{sloppypar}
 
 \begin{figure}[htbp]\centering
 \block{slice-clock-said}

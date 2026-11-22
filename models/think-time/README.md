@@ -100,6 +100,23 @@ What twice the epochs say (commit `0ba155a`: `transformer-medium-long` and
   their valid scores had flattened over its last few epochs. A still longer
   schedule is not the next run.
 
+What the two studies say (commit `ceae3ec`; a study run is listed apart on
+the leaderboard and set against the run it changed among the `pairs` of
+[`results/analysis.json`](results/analysis.json)):
+
+- **More games would help, and the network most.** Trained on half and on a
+  quarter of the training games, the trees and the best twelve-epoch network
+  are both worse beyond the noise, and the network loses more. Its lead over
+  the trees widens with every doubling, and the last doubling was worth more
+  to it than twice the epochs were. Like blunder hazard, this model is short
+  of games before it is short of steps.
+- **Beside the clocks, the trees need material most.** With one group of
+  hand features left out at a time, the material group costs the trees most,
+  then loose pieces, the moves on offer and the attackers near the kings.
+  Passed pawns cost nothing these test rows can show. A reading: what moves a
+  player's time, beyond the clock, is how far the game has gone, whether
+  something can be taken, and how much there is to choose from.
+
 **Weights.** Every run's weights and test predictions are on the owner's
 machine, under `artifacts/runs/think-time/<run>/`, as the GPU session
 packed them; none is published. The best run's `model.pt` is

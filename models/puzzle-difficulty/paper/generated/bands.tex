@@ -1,4 +1,5 @@
 % Written by `lab paper puzzle-difficulty`; do not edit by hand.
+\fit{%
 \begin{tikzpicture}
 \begin{axis}[
   lab,
@@ -12,6 +13,7 @@
   xticklabels={{\textless{}1000},{1000-1399},{1400-1799},{1800-2199},{2200+}},
   xmin=-0.5, xmax=4.5,
 ]
+\addplot[draw=none, mark=none, forget plot] coordinates {(0,0)};
 \draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:-0.5,0) -- (axis cs:4.5,0) node[anchor=west, font=\sffamily\scriptsize, text=labSecondary, inner sep=2pt] {\run{gbm-hand}};
 \addplot[color=labBlue, dash pattern=on 5pt off 2pt, mark=*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labBlue}] coordinates {(0,60.4078) (1,31.193) (2,-0.467572) (3,19.5955) (4,83.6021)};
 \addlegendentry{\texttt{transformer-medium-hand-long}}
@@ -24,4 +26,5 @@
 \addplot[color=labYellow, mark=diamond*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labYellow}] coordinates {(0,17.0343) (1,1.56992) (2,-20.4106) (3,-4.02745) (4,27.9843)};
 \addlegendentry{\texttt{transformer-small}}
 \end{axis}
-\end{tikzpicture}
+\end{tikzpicture}%
+}

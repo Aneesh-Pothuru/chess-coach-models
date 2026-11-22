@@ -1,4 +1,5 @@
 % Written by `lab paper think-time`; do not edit by hand.
+\fit{%
 \begin{tikzpicture}
 \begin{axis}[
   lab,
@@ -12,6 +13,7 @@
   xticklabels={{\textless{}1100},{1100-1400},{1400-1700},{1700-2000},{2000+}},
   xmin=-0.5, xmax=4.5,
 ]
+\addplot[draw=none, mark=none, forget plot] coordinates {(0,0)};
 \draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:-0.5,0) -- (axis cs:4.5,0) node[anchor=west, font=\sffamily\scriptsize, text=labSecondary, inner sep=2pt] {\run{gbm-hand}};
 \addplot[color=labBlue, dash pattern=on 5pt off 2pt, mark=*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labBlue}] coordinates {(0,0.0101198) (1,0.0115609) (2,0.0124355) (3,0.0112764) (4,0.0165607)};
 \addlegendentry{\texttt{transformer-medium-hand-long}}
@@ -24,4 +26,5 @@
 \addplot[color=labAqua, mark=triangle*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labAqua}] coordinates {(0,-0.00639906) (1,-0.00277518) (2,-0.00342528) (3,-0.00028331) (4,0.00564489)};
 \addlegendentry{\texttt{transformer-medium}}
 \end{axis}
-\end{tikzpicture}
+\end{tikzpicture}%
+}

@@ -63,6 +63,7 @@ One more paper sets the models side by side on one scale, and `lab paper` with n
 |---|---|
 | [The model lab](papers/lab/paper.pdf) | What holds across the models, and what can the app use today? |
 | [Puzzle difficulty](models/puzzle-difficulty/paper/paper.pdf) | How hard is this tactic for people? |
+| [Puzzle difficulty, unsolved](models/puzzle-difficulty-unsolved/paper/paper.pdf) | How hard is this tactic, judged from the position alone? |
 | [Blunder hazard](models/blunder-hazard/paper/paper.pdf) | Before a move is played, how likely is the player to blunder here? |
 | [Think time](models/think-time/paper/paper.pdf) | How long do players at a level think in this position, on this clock? |
 | [Tactic found](models/tactic-found/paper/paper.pdf) | The opponent has just gone wrong. Does the player to move find the tactic? |

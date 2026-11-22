@@ -1,0 +1,15 @@
+% Written by `lab paper puzzle-difficulty-unsolved`; do not edit by hand.
+\fit{%
+\begin{tabular}{l>{\raggedright\arraybackslash}p{5.1cm}l>{\raggedright\arraybackslash}p{3.9cm}r}
+\toprule
+Run & Learner & Kept & Trained on & Time \\
+\midrule
+\run{conv-small} & conv, 6 layers of width 96 & epoch 7 of 8 & NVIDIA A100-SXM4-80GB & 3 min \\
+\run{transformer-medium-hand} & transformer, 8 layers of width 256, with hand features & epoch 12 of 12 & NVIDIA A100-SXM4-80GB & 13 min \\
+\run{transformer-medium} & transformer, 8 layers of width 256 & epoch 12 of 12 & NVIDIA A100-SXM4-80GB & 13 min \\
+\run{transformer-small} & transformer, 4 layers of width 128 & epoch 8 of 8 & NVIDIA A100-SXM4-80GB & 5 min \\
+\run{gbm-hand} & LightGBM, context and hand features & 1{,}212 trees & Intel Xeon CPU @ 2.20GHz & 34 s \\
+\run{constant} & one number for every row &  & Intel Xeon CPU @ 2.20GHz & 0 s \\
+\bottomrule
+\end{tabular}%
+}

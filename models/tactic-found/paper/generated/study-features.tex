@@ -1,0 +1,16 @@
+% Written by `lab paper tactic-found`; do not edit by hand.
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.7cm}Lrrrr}
+\toprule
+Run & Left out & Features & Log loss & Gain & 95\% interval \\
+\midrule
+{\ttfamily gbm-\allowbreak hand} & nothing &  & 0.5414 &  &  \\
+{\ttfamily gbm-\allowbreak hand-\allowbreak no-\allowbreak first-\allowbreak move} & the first move & 9 & 0.5547 & \textbf{$-$0.01330} & $-$0.01438 to $-$0.01216 \\
+{\ttfamily gbm-\allowbreak hand-\allowbreak no-\allowbreak line} & the line & 11 & 0.5465 & \textbf{$-$0.005165} & $-$0.005955 to $-$0.004403 \\
+{\ttfamily gbm-\allowbreak hand-\allowbreak no-\allowbreak mobility} & the moves on offer & 4 & 0.5452 & \textbf{$-$0.003835} & $-$0.004692 to $-$0.003019 \\
+{\ttfamily gbm-\allowbreak hand-\allowbreak no-\allowbreak hanging} & pieces that can be taken & 2 & 0.5443 & \textbf{$-$0.002901} & $-$0.003627 to $-$0.002214 \\
+{\ttfamily gbm-\allowbreak hand-\allowbreak no-\allowbreak setup} & the opponent's move & 1 & 0.5440 & \textbf{$-$0.002627} & $-$0.003304 to $-$0.001918 \\
+{\ttfamily gbm-\allowbreak hand-\allowbreak no-\allowbreak material} & material & 3 & 0.5437 & \textbf{$-$0.002310} & $-$0.003004 to $-$0.001620 \\
+{\ttfamily gbm-\allowbreak hand-\allowbreak no-\allowbreak kings} & attacks near the kings & 2 & 0.5416 & $-$0.0002682 & $-$0.0008292 to +0.0004065 \\
+{\ttfamily gbm-\allowbreak hand-\allowbreak no-\allowbreak pawns} & passed pawns & 2 & 0.5415 & $-$0.0001288 & $-$0.0006863 to +0.0004111 \\
+\bottomrule
+\end{tabularx}

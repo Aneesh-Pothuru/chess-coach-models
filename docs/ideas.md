@@ -29,20 +29,29 @@ the last one, so four models were given two runs with twice the epochs (`transfo
 in puzzle difficulty and in think time, the one on the board alone in tactic found, neither in
 blunder hazard. All but think time's stopped before the end of the longer schedule, and think
 time's had flattened by it, so a still longer one is not on this list. Practical chances has
-none: its networks stopped early on the first schedule. Two studies are written as runs on every
-model ([`design.md`](design.md), "A run that changes another"):
+none: its networks stopped early on the first schedule. Two studies then ran on every model
+([`design.md`](design.md), "A run that changes another"), and each card says what they found:
 
-- **`games`: fewer training games.** The reference trees and the best network on half and on a
-  quarter of the games. Where a score is still climbing at all the games a model has, a larger
-  build of its dataset is the run to add, and each has more to take: `game-positions` keeps 30,000
-  games of a month's, `puzzles` a quarter of the puzzles that pass, `tactics` half of them.
+- **`games`: fewer training games.** The reference trees and the best twelve-epoch network on half
+  and on a quarter of the games. The network is worse beyond the noise on half the games in all
+  five models, and it loses more than the trees do in every one. Its lead over the trees comes
+  with the data: in blunder hazard the two are level on a quarter of the games, in tactic found on
+  half. Only in practical chances do fewer games cost the trees nothing the test rows can show.
 - **`features`: one group of hand features left out at a time**, from the reference trees and, on
-  `blunder-hazard`, from the best network too, to say which of them a network still needs beside
-  the board. The network that reads them is the best run of every model but practical chances,
-  where no network is ahead of the trees beyond the noise.
+  `blunder-hazard`, from the best network too. Material costs the trees something in every model
+  and passed pawns next to nothing in any. The two models that read a line lean on it most (the
+  line's counts in puzzle difficulty, its first move in tactic found). In blunder hazard the
+  material group is most of what the hand features give the network, and the attackers near the
+  kings, which cost the trees, cost the network nothing.
 
 What is left:
 
+- **Larger builds of the datasets.** The games study says each doubling still pays, and pays a
+  network most, and each dataset has more to take: `game-positions` keeps 30,000 games of a
+  month's, `puzzles` a quarter of the puzzles that pass, `tactics` half of them. The measurement
+  to make first is the games study turned round: the best network and the trees on twice and on
+  four times the training games, scored on the test rows the model has now, so the gain is paired
+  with the run on today's games.
 - **Tactic found, with the whole line as the label**: the player found the tactic only if the game
   followed it to the end, which a game answers while the opponent follows the puzzle's replies.
 

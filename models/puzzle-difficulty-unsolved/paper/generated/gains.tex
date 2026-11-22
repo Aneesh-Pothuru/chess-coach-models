@@ -1,0 +1,30 @@
+% Written by `lab paper puzzle-difficulty-unsolved`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.6\textwidth,
+  height=3.70cm,
+  y dir=reverse,
+  ymin=-0.6, ymax=3.6,
+  ytick={0,1,2,3},
+  yticklabels={{\texttt{conv-small}},{\texttt{transformer-medium-hand}},{\texttt{transformer-medium}},{\texttt{transformer-small}}},
+  ytick style={draw=none},
+  y axis line style={draw=none},
+  xmajorgrids,
+  xlabel={Gain in RMSE over the reference (right of the line is better)},
+  xmin=-3.71681, xmax=50.1769,
+]
+\draw[labAxis, line width=0.6pt] (axis cs:0,-0.6) -- (axis cs:0,3.6);
+\node[anchor=south, font=\sffamily\scriptsize, text=labSecondary, inner sep=1.5pt] at (axis cs:0,-0.6) {\run{gbm-hand}};
+\draw[labMagenta, line width=1pt, line cap=round] (axis cs:43.4863,0) -- (axis cs:46.4601,0);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labMagenta, mark options={draw=white, line width=0.6pt}] coordinates {(45.0079,0)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:39.5131,1) -- (axis cs:41.9015,1);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(40.7054,1)};
+\draw[labAqua, line width=1pt, line cap=round] (axis cs:29.8039,2) -- (axis cs:32.2388,2);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(31.0968,2)};
+\draw[labYellow, line width=1pt, line cap=round] (axis cs:25.8323,3) -- (axis cs:28.2964,3);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labYellow, mark options={draw=white, line width=0.6pt}] coordinates {(27.1142,3)};
+\end{axis}
+\end{tikzpicture}%
+}

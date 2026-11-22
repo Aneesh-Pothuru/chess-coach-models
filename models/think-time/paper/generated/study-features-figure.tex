@@ -1,0 +1,32 @@
+% Written by `lab paper think-time`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.5\textwidth,
+  height=3.90cm,
+  y dir=reverse,
+  ymin=-0.6, ymax=4.6,
+  ytick={0,1,2,3,4},
+  yticklabels={{material},{pieces that can be taken},{the moves on offer},{attacks near the kings},{passed pawns}},
+  ytick style={draw=none},
+  y axis line style={draw=none},
+  xmajorgrids,
+  xlabel={Gain in MAE without the group (left of the line: worse without it)},
+  xmin=-0.0168038, xmax=0.00189336,
+]
+\draw[labAxis, line width=0.6pt] (axis cs:0,-0.6) -- (axis cs:0,4.6);
+\node[anchor=south, font=\sffamily\scriptsize, text=labSecondary, inner sep=1.5pt] at (axis cs:0,-0.6) {\run{gbm-hand}};
+\draw[labOrange, line width=1pt, line cap=round] (axis cs:-0.0155143,0) -- (axis cs:-0.0127717,0);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labOrange, mark options={draw=white, line width=0.6pt}] coordinates {(-0.014099,0)};
+\draw[labOrange, line width=1pt, line cap=round] (axis cs:-0.0108401,1) -- (axis cs:-0.00839431,1);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labOrange, mark options={draw=white, line width=0.6pt}] coordinates {(-0.0096546,1)};
+\draw[labOrange, line width=1pt, line cap=round] (axis cs:-0.00922493,2) -- (axis cs:-0.00715162,2);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labOrange, mark options={draw=white, line width=0.6pt}] coordinates {(-0.00816101,2)};
+\draw[labOrange, line width=1pt, line cap=round] (axis cs:-0.00283637,3) -- (axis cs:-0.00128827,3);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labOrange, mark options={draw=white, line width=0.6pt}] coordinates {(-0.00208231,3)};
+\draw[labOrange, line width=1pt, line cap=round] (axis cs:-0.000392018,4) -- (axis cs:0.000603904,4);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labOrange, mark options={draw=white, line width=0.6pt}] coordinates {(0.000103594,4)};
+\end{axis}
+\end{tikzpicture}%
+}

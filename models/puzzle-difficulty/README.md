@@ -81,7 +81,8 @@ the numbers are in the leaderboard):
   the features is well ahead of the same transformer without them (the
   intervals of their gains do not touch), so in twelve epochs eight layers did
   not learn from the board everything the features count. Which features
-  carry that is a run to make: one group left out at a time.
+  carry that under a network is still a run to make here: the features
+  study below left a group out of the trees only.
 - **Good at ranking, loose on the rating.** The best run orders puzzles well
   (its rank correlation) and still misses a puzzle's rating by about a rating
   class on average. It can sort the tactics of a game into easier and harder
@@ -115,15 +116,37 @@ What twice the epochs say (commit `0ba155a`: `transformer-medium-long` and
   board alone does better (the leaderboard's table by band, which draws no
   interval). A reading: given the steps, eight layers learn from the board
   most of what the features count, and the features still help where a
-  puzzle is hard. `analysis.yaml` now sets the two long runs against each
-  other, so the next closer look says how much of that difference is beyond
-  the noise.
+  puzzle is hard. Set against each other on the same resampled games
+  (`pairs`), the run with the features is better on the valid rows and, by a
+  small margin, beyond the noise on the test rows: a fraction of what the
+  features were worth at twelve epochs.
 - **Twenty-four epochs were enough.** Both runs had their best valid epoch
   about three quarters of the way through, and the trainer stopped them three
   epochs later: the training loss went on falling and the valid score did
   not. So a still longer schedule is not the next run. More puzzles or a
-  better start may be, and each is being measured: the `games` study and the
+  better start may be: the `games` study below says puzzles are, and the
   `-pretrained` runs.
+
+What the two studies say (commit `ceae3ec`; a study run is listed apart on
+the leaderboard and set against the run it changed among the `pairs` of
+[`results/analysis.json`](results/analysis.json)):
+
+- **More puzzles would help, and the network most.** Trained on half and on
+  a quarter of the training puzzles, the trees and the best twelve-epoch
+  network are both worse beyond the noise, and the network loses more than
+  twice what the trees lose. Its lead over the trees widens with every
+  doubling, and the last doubling was worth about as much to it as twice the
+  epochs were. The dataset is a fixed quarter of the puzzles whose rating has
+  settled, so the next thing to try is the rest of them.
+- **The trees know a puzzle mostly by its solution.** With one group of hand
+  features left out at a time, the counts of what the line's moves do cost
+  the trees by far the most, though they are still told the line's length.
+  Then come the moves on offer in the position and the first move of the
+  solution. Material, the attackers near the kings, loose pieces and passed
+  pawns cost little, and without the one count of the opponent's last move
+  the trees are a hair better.
+  [Puzzle difficulty, unsolved](../puzzle-difficulty-unsolved/) measures the
+  same from the other side: what is left when the whole solution is hidden.
 
 **Weights.** Every run's weights and test predictions are on the owner's
 machine, under `artifacts/runs/puzzle-difficulty/<run>/`, as the GPU session

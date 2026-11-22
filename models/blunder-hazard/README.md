@@ -104,12 +104,33 @@ What twice the epochs say (commit `0ba155a`: `transformer-medium-long` and
   better.
 - **A reading: this model is short of games, not of steps.** That fits what
   the first runs said, that more games is the run to add. The `games` study
-  measures how much the score moves with the number of games.
+  below measured it.
 
 A run that is not kept stays in the results as a measurement of what its
 change is worth. The two long runs are filed under a study of their own
 (`lab file`) once the runs now training are in; until then the leaderboard
 still ranks them.
+
+What the two studies say (commit `ceae3ec`; a study run is listed apart on
+the leaderboard and set against the run it changed among the `pairs` of
+[`results/analysis.json`](results/analysis.json)):
+
+- **The model is short of games.** Trained on half and on a quarter of the
+  training games, the best network is worse beyond the noise both times. On a
+  quarter of the games the network and the trees are level, and the network's
+  lead opens as the games are added. The trees lose less: on half the games
+  they are inside the noise. This is what the longer schedule suggested, now
+  measured, and the dataset's games are a small part of one month of the
+  Lichess database. A larger dataset is the next thing to try.
+- **Material is what the hand features carry.** With one group left out at a
+  time, the trees and the network both lose most without the material group,
+  and for the network that loss is most of what the hand features gave it.
+  Loose pieces and the moves on offer cost both learners something. The
+  attackers near the kings cost the trees and not the network, and passed
+  pawns cost neither anything these test rows can show. A reading: the
+  network reads off the squares what stands near a king, and does not learn
+  from these games the sums over the whole board: how much is left, who is
+  ahead, how far the game has gone.
 
 **Weights.** Every run's weights and test predictions are on the owner's
 machine, under `artifacts/runs/blunder-hazard/<run>/`, as the GPU session

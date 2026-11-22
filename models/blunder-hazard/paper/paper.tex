@@ -447,6 +447,47 @@ a network to learn off the squares what the hand features count.
 \fi
 
 \input{../../../papers/studies}
+
+\ifgames
+\paragraph{What more games are worth here.}
+The network is worse on fewer games in
+\V{study.games.transformer-medium-hand.worse.of}. Against the run trained on every training
+game, \V{run.transformer-medium-hand.name} has a paired gain of \V{pair.transformer-medium-hand-half.transformer-medium-hand.gain} on
+half of them and of \V{pair.transformer-medium-hand-quarter.transformer-medium-hand.gain} on a quarter. The trees are
+worse beyond the noise in \V{study.games.gbm-hand.worse.of}, with gains
+of \V{pair.gbm-hand-half.gbm-hand.gain} and
+\V{pair.gbm-hand-quarter.gbm-hand.gain}. On a quarter of the games the two
+learners are level, and the network's lead opens as the games are added
+(Table~\ref{tab:games}). That is the reading of the longer schedule,
+now measured: this model is short of games. \V{recipe.games} games of one
+month are a small part of what the Lichess database holds, so a larger
+dataset is the next thing to try.
+\fi
+
+\iffeatures
+\paragraph{Which counts each learner needs here.}
+The study was run twice here: on the trees, and on the transformer that
+reads the hand features. Both lose most without \V{study.features.gbm-hand.most.group}: the trees' paired gain
+without it is \V{study.features.gbm-hand.most.gain} and the network's
+\V{study.features.transformer-medium-hand.most.gain}. For the network that is most of what
+the hand features gave it in the first place
+(\V{pair.transformer-medium-hand.transformer-medium.gain}, Table~\ref{tab:pairs}). Loose pieces
+and the moves on offer cost both learners something: the trees
+\V{pair.gbm-hand-no-hanging.gbm-hand.gain} and
+\V{pair.gbm-hand-no-mobility.gbm-hand.gain}, the network
+\V{pair.transformer-medium-hand-no-hanging.transformer-medium-hand.gain} and \V{pair.transformer-medium-hand-no-mobility.transformer-medium-hand.gain}. The
+attackers near the kings split the two. Without them the trees are
+\V{pair.gbm-hand-no-kings.gbm-hand.verdict}
+(\V{pair.gbm-hand-no-kings.gbm-hand.gain}) and the network is
+\V{pair.transformer-medium-hand-no-kings.transformer-medium-hand.verdict}. Without the passed pawns the trees
+are \V{pair.gbm-hand-no-pawns.gbm-hand.verdict} and the network is
+\V{pair.transformer-medium-hand-no-pawns.transformer-medium-hand.verdict}.
+
+A reading: the network reads off the squares what stands near a king and
+where the pawns are. What it does not learn from \V{recipe.games} games is
+the three sums of the material group: how much is on the board, who is
+ahead, and how far the game has gone. Those stay worth handing to it.
+\fi
 \fi
 
 \section{A closer look}

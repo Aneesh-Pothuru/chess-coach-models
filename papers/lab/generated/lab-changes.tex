@@ -1,21 +1,24 @@
 % Written by `lab paper`; do not edit by hand.
-\begin{tabular}{>{\raggedright\arraybackslash}p{3.4cm}rrrr}
+\fit{%
+\begin{tabular}{>{\raggedright\arraybackslash}p{3.4cm}rrrrrr}
 \toprule
-Model & Gain & 95\% interval & Gain & 95\% interval \\
+Model & Gain & 95\% interval & Gain & 95\% interval & Gain & 95\% interval \\
 \midrule
-\multicolumn{5}{l}{\textbf{The hand features}} \\
- & \multicolumn{2}{c}{over \run{gbm-context}} & \multicolumn{2}{c}{over \run{transformer-medium}} \\
-{\ttfamily blunder-\allowbreak hazard} & \textbf{+35.4} & +29.9 to +40.7 & \textbf{+16.0} & +11.4 to +20.6 \\
-{\ttfamily practical-\allowbreak chances} & \textbf{+3.4} & +2.2 to +4.5 & $-$0.7 & $-$1.9 to +0.5 \\
-{\ttfamily puzzle-\allowbreak difficulty} & \textbf{+64.4} & +63.6 to +65.1 & \textbf{+6.6} & +6.1 to +7.1 \\
-{\ttfamily tactic-\allowbreak found} & \textbf{+64.5} & +62.1 to +67.0 & \textbf{+18.7} & +16.9 to +20.6 \\
-{\ttfamily think-\allowbreak time} & \textbf{+34.5} & +32.7 to +36.4 & \textbf{+9.0} & +7.9 to +10.1 \\
+\multicolumn{7}{l}{\textbf{The hand features}} \\
+ & \multicolumn{2}{c}{over \run{gbm-context}} & \multicolumn{2}{c}{over \run{transformer-medium}} & \multicolumn{2}{c}{over \run{transformer-medium-long}} \\
+{\ttfamily blunder-\allowbreak hazard} & \textbf{+35.4} & +29.9 to +40.7 & \textbf{+16.0} & +11.4 to +20.6 &  &  \\
+{\ttfamily practical-\allowbreak chances} & \textbf{+3.4} & +2.2 to +4.5 & $-$0.7 & $-$1.9 to +0.5 &  &  \\
+{\ttfamily puzzle-\allowbreak difficulty} & \textbf{+64.4} & +63.6 to +65.1 & \textbf{+6.6} & +6.1 to +7.1 & \textbf{+1.2} & +0.6 to +1.8 \\
+{\ttfamily puzzle-\allowbreak difficulty-\allowbreak unsolved} &  &  & \textbf{+20.9} & +18.7 to +23.2 &  &  \\
+{\ttfamily tactic-\allowbreak found} & \textbf{+64.5} & +62.1 to +67.0 & \textbf{+18.7} & +16.9 to +20.6 &  &  \\
+{\ttfamily think-\allowbreak time} & \textbf{+34.5} & +32.7 to +36.4 & \textbf{+9.0} & +7.9 to +10.1 & \textbf{+6.7} & +5.5 to +7.9 \\
 \addlinespace
-\multicolumn{5}{l}{\textbf{More epochs}} \\
- & \multicolumn{2}{c}{over \run{transformer-medium}} & \multicolumn{2}{c}{over \run{transformer-medium-hand}} \\
-{\ttfamily blunder-\allowbreak hazard} & $-$0.6 & $-$2.8 to +1.5 & $-$2.1 & $-$4.4 to +0.5 \\
-{\ttfamily puzzle-\allowbreak difficulty} & \textbf{+9.4} & +8.9 to +9.9 & \textbf{+4.0} & +3.6 to +4.4 \\
-{\ttfamily tactic-\allowbreak found} & \textbf{+1.9} & +0.9 to +2.9 & $-$0.5 & $-$1.5 to +0.5 \\
-{\ttfamily think-\allowbreak time} & \textbf{+3.3} & +2.6 to +4.0 & \textbf{+1.0} & +0.3 to +1.8 \\
+\multicolumn{7}{l}{\textbf{More epochs}} \\
+ & \multicolumn{2}{c}{over \run{transformer-medium}} & \multicolumn{2}{c}{over \run{transformer-medium-hand}} & \multicolumn{2}{c}{} \\
+{\ttfamily blunder-\allowbreak hazard} & $-$0.6 & $-$2.8 to +1.5 & $-$2.1 & $-$4.4 to +0.5 &  &  \\
+{\ttfamily puzzle-\allowbreak difficulty} & \textbf{+9.4} & +8.9 to +9.9 & \textbf{+4.0} & +3.6 to +4.4 &  &  \\
+{\ttfamily tactic-\allowbreak found} & \textbf{+1.9} & +0.9 to +2.9 & $-$0.5 & $-$1.5 to +0.5 &  &  \\
+{\ttfamily think-\allowbreak time} & \textbf{+3.3} & +2.6 to +4.0 & \textbf{+1.0} & +0.3 to +1.8 &  &  \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}

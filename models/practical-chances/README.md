@@ -156,6 +156,22 @@ nothing a network adds here. What it changes in a review is the number beside
 a position: the result two players at these ratings and clocks get from it,
 not the result best play gets.
 
+What the two studies say (commit `ceae3ec`; a study run is listed apart on
+the leaderboard and set against the run it changed among the `pairs` of
+[`results/analysis.json`](results/analysis.json)):
+
+- **The trees do not need more games.** Trained on half and on a quarter of
+  the training games, the trees are inside the noise both times. The network
+  loses a little both times and stays behind the trees on every share of the
+  games, by less as the games are added. A reading: what this model can say
+  is set by what it reads, the engine's evaluation and the two ratings, and
+  not by how many games it has seen.
+- **Little beyond material.** With one group of hand features left out at a
+  time, the material group costs the trees most and the moves on offer a
+  little. Loose pieces, the attackers near the kings and passed pawns cost
+  nothing these test rows can show, and every one of these costs is small
+  beside what the trees add to the engine's curve.
+
 **Weights.** Every run's weights and test predictions are on the owner's
 machine, under `artifacts/runs/practical-chances/<run>/`, as the GPU session
 packed them; none is published. Each record names its run's files by size

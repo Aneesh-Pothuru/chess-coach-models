@@ -147,6 +147,22 @@ change is worth. `transformer-medium-hand-long` is filed under a study of its
 own (`lab file`) once the runs now training are in; until then the
 leaderboard still ranks it.
 
+What the two studies say (commit `ceae3ec`; a study run is listed apart on
+the leaderboard and set against the run it changed among the `pairs` of
+[`results/analysis.json`](results/analysis.json)):
+
+- **The network leads only with all the data.** Trained on half and on a
+  quarter of the training games, the trees and the best network are both
+  worse beyond the noise, and the network loses more. On a quarter of the
+  games the trees are ahead of it, on half the two are level, and only on all
+  of them does the network lead. Twice the epochs gave the same network
+  nothing, so more games are the next thing to try here.
+- **The first move says most.** With one group of hand features left out at
+  a time, what the move to be found looks like costs the trees most. After it
+  come the line as a whole, the moves on offer, loose pieces, the opponent's
+  last move and material. The attackers near the kings and passed pawns cost
+  nothing these test rows can show.
+
 **Weights.** Every run's weights and test predictions are on the owner's
 machine, under `artifacts/runs/tactic-found/<run>/`, as the GPU session
 packed them; none is published. Each record names its run's files by size

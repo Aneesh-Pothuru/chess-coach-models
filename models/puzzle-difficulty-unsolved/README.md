@@ -56,8 +56,53 @@ Written before the first full run.
 
 ## Results
 
-No full run has been recorded yet. `results/leaderboard.md` is written by
-`lab eval puzzle-difficulty-unsolved` once the runs are in.
+[`results/leaderboard.md`](results/leaderboard.md), written by
+`lab eval puzzle-difficulty-unsolved`. What the first full runs say (commit
+`ceae3ec`; the numbers are in the leaderboard, and the table that sets the
+two models side by side is in [the paper](paper/paper.pdf)):
+
+- **A position alone says some of a tactic's difficulty, and less than
+  half.** Every network beats the trees beyond the noise, and the trees beat
+  the floor. Measured from the floor, the best run here makes a bit over a
+  third of the step that the best run of puzzle difficulty makes on the same
+  test puzzles. No run keeps half of what the run of the same name makes
+  when it is shown the solution, and the trees keep the least, about a fifth.
+- **A network matters most here.** With the line's counts gone the trees have
+  only the counts of the position, and each network leads them by more than
+  the same network leads the trees of puzzle difficulty.
+- **The convolutional tower is first.** In puzzle difficulty the medium
+  transformers lead. Here the small tower is ahead of them. Each was trained
+  once and the two have not been set against each other on resampled games,
+  so the order of the first two is a reading and not yet a finding.
+- **The position's counts still pay under a network.** The medium transformer
+  that reads them is better than the same transformer on the board alone, on
+  the valid rows and beyond the noise on the test rows (`pairs` in
+  [`results/analysis.json`](results/analysis.json)).
+- **A sorter, not a judge.** The best run puts puzzles in order (its rank
+  correlation) and misses a single puzzle's rating by well over a rating
+  class. What it says holds on average: the puzzles it rates lowest and
+  highest are far apart in truth (the closer look's reliability groups).
+- **The position gives the line away in part.** Cut by facts no learner here
+  reads (the length of the line, a quiet move in it, a mate at its end, a
+  check or a sacrifice on its first move), what the best run says moves the
+  way the truth does, and by less.
+- **For the app: rate a tactic after the line is known.** The app has the
+  engine's line whenever it has a tactic, and the model that reads the line
+  is far closer. Nothing here is a model to port. The finding is where the
+  difficulty is.
+
+Still to come: the two `-pretrained` runs, which are trained after position
+evaluation, and the intervals of the comparison. The paper's table is drawn
+from the two leaderboards. The paired gain of each shown run over its hidden
+run, overall and by slice, is measured by the next closer look on the machine
+that holds both models' predictions.
+
+**Weights.** Every run's weights and test predictions are on the owner's
+machine, under `artifacts/runs/puzzle-difficulty-unsolved/<run>/`, as the GPU
+session packed them; none is published. The best run's `model.pt` is
+4,153,095 bytes, sha256
+`a96b36b33c6c727f5700371985965b91222a19e95645658eb099748829ea2497`
+(`weights` in [its record](results/conv-small.json)).
 
 ## What it does not say yet
 

@@ -1,0 +1,269 @@
+% Written by `lab paper puzzle-difficulty-unsolved`; do not edit by hand.
+\begin{table}[htbp]\centering\footnotesize
+\fit{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily conv-\allowbreak small}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+\midrule
+\textless{}1000 & 22{,}751 & 805.9 & 1132.4 & 434.8 & 1313.7 & 556.9 & \textbf{+122.2} & +118.4 to +125.8 \\
+1000-1399 & 31{,}846 & 1200.6 & 1427.7 & 343.4 & 1441.2 & 313.9 & \textbf{$-$29.46} & $-$31.86 to $-$27.26 \\
+1400-1799 & 28{,}501 & 1590.0 & 1563.2 & 242.0 & 1504.7 & 217.2 & \textbf{$-$24.81} & $-$27.67 to $-$22.58 \\
+1800-2199 & 19{,}518 & 1987.2 & 1638.0 & 425.1 & 1547.0 & 487.1 & \textbf{+62.01} & +58.93 to +65.25 \\
+2200+ & 9{,}834 & 2406.8 & 1687.1 & 769.2 & 1581.1 & 861.4 & \textbf{+92.14} & +88.02 to +96.40 \\
+\bottomrule
+\end{tabular}%
+}
+\caption{The test rows by: the puzzle's rating.}
+\label{tab:slice-band}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\fit{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily conv-\allowbreak small}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+\midrule
+1 & 14{,}854 & 961.2 & 1149.9 & 360.2 & 1354.0 & 498.9 & \textbf{+138.7} & +133.9 to +143.5 \\
+2 & 57{,}896 & 1394.8 & 1468.1 & 385.0 & 1458.8 & 408.8 & \textbf{+23.82} & +22.04 to +25.57 \\
+3 & 31{,}251 & 1687.8 & 1557.8 & 434.2 & 1499.0 & 468.4 & \textbf{+34.21} & +31.54 to +36.83 \\
+4 & 6{,}303 & 1913.6 & 1600.6 & 530.6 & 1529.6 & 585.4 & \textbf{+54.84} & +49.58 to +60.75 \\
+5+ & 2{,}146 & 2098.0 & 1629.2 & 645.9 & 1563.8 & 708.2 & \textbf{+62.25} & +52.75 to +71.53 \\
+\bottomrule
+\end{tabular}%
+}
+\caption{The test rows by: moves the solver has to find.}
+\label{tab:slice-moves}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\fit{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily conv-\allowbreak small}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+\midrule
+short & 57{,}439 & 1394.5 & 1467.8 & 385.1 & 1458.6 & 408.9 & \textbf{+23.79} & +21.76 to +25.94 \\
+endgame & 55{,}361 & 1443.4 & 1441.1 & 424.8 & 1443.0 & 457.6 & \textbf{+32.82} & +30.72 to +34.90 \\
+middlegame & 51{,}328 & 1489.5 & 1492.7 & 403.9 & 1489.4 & 460.0 & \textbf{+56.12} & +53.50 to +58.04 \\
+crushing & 43{,}433 & 1610.9 & 1566.9 & 447.2 & 1514.3 & 475.1 & \textbf{+27.95} & +25.68 to +30.06 \\
+mate & 34{,}439 & 1118.2 & 1237.9 & 348.3 & 1363.5 & 440.0 & \textbf{+91.70} & +88.99 to +95.36 \\
+advantage & 33{,}591 & 1617.7 & 1552.5 & 424.1 & 1495.1 & 449.9 & \textbf{+25.80} & +23.23 to +28.53 \\
+long & 30{,}918 & 1688.1 & 1557.5 & 434.1 & 1498.9 & 468.4 & \textbf{+34.29} & +31.32 to +37.19 \\
+master & 15{,}509 & 1492.7 & 1506.2 & 423.2 & 1485.9 & 459.9 & \textbf{+36.65} & +32.20 to +40.41 \\
+fork & 15{,}186 & 1397.5 & 1423.8 & 386.7 & 1420.6 & 415.2 & \textbf{+28.45} & +24.69 to +31.58 \\
+oneMove & 14{,}812 & 960.9 & 1149.7 & 360.3 & 1354.0 & 499.2 & \textbf{+138.9} & +133.6 to +143.2 \\
+mateIn1 & 14{,}788 & 960.0 & 1149.0 & 360.1 & 1353.8 & 499.2 & \textbf{+139.1} & +133.8 to +144.0 \\
+mateIn2 & 14{,}791 & 1169.0 & 1275.9 & 331.8 & 1361.6 & 388.0 & \textbf{+56.24} & +51.83 to +60.14 \\
+kingsideAttack & 9{,}742 & 1302.5 & 1347.0 & 371.3 & 1428.3 & 491.4 & \textbf{+120.1} & +114.3 to +126.2 \\
+sacrifice & 8{,}857 & 1648.7 & 1520.9 & 399.5 & 1489.5 & 472.3 & \textbf{+72.79} & +67.38 to +78.01 \\
+veryLong & 8{,}358 & 1959.8 & 1607.3 & 562.0 & 1538.0 & 618.4 & \textbf{+56.44} & +51.37 to +61.22 \\
+pin & 7{,}235 & 1628.5 & 1553.3 & 409.7 & 1477.1 & 458.3 & \textbf{+48.60} & +42.87 to +53.33 \\
+advancedPawn & 7{,}237 & 1612.2 & 1595.7 & 466.2 & 1511.9 & 495.5 & \textbf{+29.34} & +23.22 to +34.63 \\
+defensiveMove & 6{,}116 & 1894.1 & 1636.8 & 535.5 & 1621.3 & 554.0 & \textbf{+18.56} & +12.44 to +24.74 \\
+discoveredAttack & 6{,}150 & 1503.1 & 1504.7 & 403.9 & 1447.4 & 418.9 & \textbf{+14.98} & +9.72 to +20.56 \\
+rookEndgame & 5{,}741 & 1475.5 & 1447.6 & 443.6 & 1463.3 & 472.6 & \textbf{+29.02} & +23.86 to +35.84 \\
+opening & 5{,}761 & 1384.2 & 1379.2 & 350.2 & 1401.9 & 419.0 & \textbf{+68.77} & +61.88 to +75.50 \\
+deflection & 5{,}294 & 1555.7 & 1522.9 & 395.2 & 1465.8 & 414.8 & \textbf{+19.62} & +14.50 to +25.46 \\
+attraction & 4{,}573 & 1685.3 & 1581.9 & 391.3 & 1480.0 & 437.3 & \textbf{+46.02} & +39.16 to +52.98 \\
+pawnEndgame & 4{,}171 & 1734.5 & 1753.5 & 453.3 & 1743.7 & 472.2 & \textbf{+18.88} & +13.28 to +25.57 \\
+mateIn3 & 4{,}097 & 1386.0 & 1369.1 & 336.7 & 1391.4 & 368.7 & \textbf{+32.04} & +24.28 to +39.22 \\
+quietMove & 3{,}992 & 1952.1 & 1630.9 & 571.6 & 1583.2 & 611.0 & \textbf{+39.43} & +32.04 to +46.02 \\
+hangingPiece & 4{,}040 & 1392.7 & 1425.1 & 435.9 & 1465.0 & 488.8 & \textbf{+52.91} & +44.72 to +59.56 \\
+exposedKing & 3{,}645 & 1760.9 & 1566.3 & 464.3 & 1485.0 & 501.1 & \textbf{+36.84} & +28.63 to +44.82 \\
+backRankMate & 2{,}952 & 895.6 & 954.1 & 258.0 & 1221.3 & 444.4 & \textbf{+186.4} & +175.8 to +198.3 \\
+promotion & 2{,}901 & 1512.1 & 1537.8 & 462.8 & 1485.4 & 476.6 & \textbf{+13.79} & +4.90 to +21.93 \\
+\bottomrule
+\end{tabular}%
+}
+\caption{The test rows by: theme.}
+\label{tab:slice-themes}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\fit{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily conv-\allowbreak small}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+\midrule
+pawn & 13{,}094 & 1674.3 & 1633.9 & 446.1 & 1551.7 & 476.0 & \textbf{+29.90} & +25.97 to +34.17 \\
+knight & 16{,}147 & 1440.7 & 1442.3 & 389.7 & 1448.7 & 433.8 & \textbf{+44.09} & +40.71 to +48.01 \\
+bishop & 12{,}862 & 1529.2 & 1525.2 & 413.0 & 1473.4 & 434.2 & \textbf{+21.24} & +17.43 to +25.30 \\
+rook & 29{,}442 & 1424.6 & 1429.8 & 409.3 & 1418.5 & 447.5 & \textbf{+38.23} & +35.39 to +41.06 \\
+queen & 35{,}764 & 1357.3 & 1384.9 & 393.8 & 1440.1 & 467.2 & \textbf{+73.45} & +70.87 to +76.03 \\
+king & 5{,}141 & 1750.0 & 1637.7 & 510.8 & 1650.5 & 509.2 & $-$1.592 & $-$8.663 to +4.977 \\
+\bottomrule
+\end{tabular}%
+}
+\caption{The test rows by: the piece that makes the first move.}
+\label{tab:slice-first-piece}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\fit{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily conv-\allowbreak small}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+\midrule
+no & 67{,}465 & 1458.6 & 1443.5 & 415.1 & 1445.7 & 456.8 & \textbf{+41.72} & +39.89 to +43.67 \\
+yes & 44{,}985 & 1465.7 & 1488.4 & 406.8 & 1486.7 & 456.8 & \textbf{+49.98} & +47.90 to +52.11 \\
+\bottomrule
+\end{tabular}%
+}
+\caption{The test rows by: the first move takes something.}
+\label{tab:slice-capture}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\fit{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily conv-\allowbreak small}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+\midrule
+no & 42{,}741 & 1724.4 & 1625.3 & 452.3 & 1564.4 & 481.5 & \textbf{+29.24} & +26.81 to +31.15 \\
+yes & 69{,}709 & 1300.2 & 1361.0 & 384.9 & 1399.3 & 441.0 & \textbf{+56.09} & +54.02 to +57.72 \\
+\bottomrule
+\end{tabular}%
+}
+\caption{The test rows by: the first move gives check.}
+\label{tab:slice-check}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\fit{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily conv-\allowbreak small}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+\midrule
+no & 97{,}168 & 1442.8 & 1449.2 & 416.7 & 1456.3 & 461.5 & \textbf{+44.81} & +43.14 to +46.19 \\
+yes & 15{,}282 & 1580.0 & 1539.5 & 379.2 & 1499.0 & 425.7 & \textbf{+46.52} & +42.53 to +50.92 \\
+\bottomrule
+\end{tabular}%
+}
+\caption{The test rows by: the first move gives up material.}
+\label{tab:slice-sacrifice}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\fit{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily conv-\allowbreak small}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+\midrule
+no & 102{,}725 & 1452.4 & 1457.5 & 408.8 & 1459.4 & 457.4 & \textbf{+48.61} & +47.23 to +49.99 \\
+yes & 9{,}725 & 1556.6 & 1503.7 & 442.4 & 1490.3 & 450.6 & \textbf{+8.16} & +4.02 to +13.10 \\
+\bottomrule
+\end{tabular}%
+}
+\caption{The test rows by: the first move goes backward.}
+\label{tab:slice-backward}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\fit{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily conv-\allowbreak small}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+\midrule
+0 & 76{,}556 & 1301.4 & 1387.8 & 371.4 & 1418.0 & 419.6 & \textbf{+48.20} & +46.47 to +50.20 \\
+1 & 23{,}549 & 1758.8 & 1603.4 & 453.8 & 1532.9 & 495.9 & \textbf{+42.07} & +38.75 to +45.01 \\
+2 & 8{,}817 & 1872.1 & 1646.5 & 534.0 & 1591.2 & 576.8 & \textbf{+42.80} & +37.22 to +47.55 \\
+3+ & 3{,}528 & 1923.5 & 1651.1 & 569.6 & 1622.0 & 598.1 & \textbf{+28.50} & +19.45 to +35.76 \\
+\bottomrule
+\end{tabular}%
+}
+\caption{The test rows by: solver's moves that neither take nor check.}
+\label{tab:slice-quiet}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\fit{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily conv-\allowbreak small}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+\midrule
+no & 77{,}904 & 1613.5 & 1560.5 & 437.1 & 1505.8 & 464.2 & \textbf{+27.15} & +25.44 to +28.99 \\
+yes & 34{,}546 & 1118.6 & 1238.3 & 348.2 & 1363.5 & 439.7 & \textbf{+91.49} & +88.72 to +95.20 \\
+\bottomrule
+\end{tabular}%
+}
+\caption{The test rows by: the line ends in mate.}
+\label{tab:slice-mate}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\fit{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily conv-\allowbreak small}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+\midrule
+\textless{}3 & 15{,}773 & 1590.9 & 1585.4 & 463.9 & 1588.7 & 482.5 & \textbf{+18.60} & +15.01 to +22.13 \\
+3-6 & 24{,}519 & 1343.8 & 1345.3 & 407.0 & 1342.7 & 443.7 & \textbf{+36.68} & +33.68 to +39.54 \\
+6-9 & 37{,}334 & 1475.4 & 1473.4 & 412.9 & 1476.9 & 459.0 & \textbf{+46.11} & +43.93 to +48.67 \\
+9-12 & 22{,}790 & 1470.2 & 1476.4 & 401.1 & 1474.5 & 462.0 & \textbf{+60.97} & +57.60 to +64.27 \\
+12+ & 12{,}034 & 1471.4 & 1470.7 & 362.9 & 1470.0 & 431.3 & \textbf{+68.38} & +64.01 to +73.29 \\
+\bottomrule
+\end{tabular}%
+}
+\caption{The test rows by: knights, bishops, rooks and queens on the board.}
+\label{tab:slice-pieces}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\fit{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily conv-\allowbreak small}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+\midrule
+\textless{}200 & 19{,}367 & 1389.4 & 1389.2 & 441.3 & 1433.2 & 510.9 & \textbf{+69.60} & +66.56 to +73.51 \\
+200-500 & 27{,}949 & 1336.2 & 1390.0 & 435.6 & 1432.4 & 501.3 & \textbf{+65.76} & +62.70 to +68.93 \\
+500-1000 & 19{,}769 & 1449.3 & 1462.2 & 425.3 & 1464.7 & 470.4 & \textbf{+45.05} & +41.76 to +48.16 \\
+1000-5000 & 32{,}437 & 1572.8 & 1531.7 & 394.4 & 1492.8 & 417.0 & \textbf{+22.63} & +20.19 to +25.37 \\
+5000+ & 12{,}928 & 1579.2 & 1547.2 & 326.1 & 1488.4 & 325.8 & $-$0.286 & $-$3.777 to +3.250 \\
+\bottomrule
+\end{tabular}%
+}
+\caption{The test rows by: attempts the puzzle has had.}
+\label{tab:slice-plays}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\fit{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily conv-\allowbreak small}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+\midrule
+\textless{}75 & 6{,}359 & 1669.0 & 1575.5 & 303.6 & 1504.7 & 319.8 & \textbf{+16.17} & +9.18 to +23.03 \\
+75-80 & 69{,}429 & 1500.0 & 1505.0 & 363.7 & 1479.7 & 382.8 & \textbf{+19.12} & +17.21 to +20.77 \\
+80-90 & 25{,}600 & 1407.0 & 1403.1 & 482.7 & 1443.2 & 548.8 & \textbf{+66.15} & +63.20 to +69.38 \\
+90+ & 11{,}062 & 1226.3 & 1258.3 & 549.2 & 1371.0 & 667.6 & \textbf{+118.5} & +113.7 to +123.2 \\
+\bottomrule
+\end{tabular}%
+}
+\caption{The test rows by: the rating's deviation.}
+\label{tab:slice-deviation}
+\end{table}

@@ -398,6 +398,38 @@ feature's share of the total gain of the splits made on it.}
 \input{../../../papers/changes}
 
 \input{../../../papers/studies}
+
+\ifgames
+\paragraph{What more games are worth here.}
+The trees do not need all the games they have. Trained on half of them and
+on a quarter, they are worse beyond the noise in
+\V{study.games.gbm-hand.worse.of}: the paired gains are
+\V{pair.gbm-hand-half.gbm-hand.gain} and
+\V{pair.gbm-hand-quarter.gbm-hand.gain}. The network does lose, in
+\V{study.games.transformer-medium-hand.worse.of}: \V{pair.transformer-medium-hand-half.transformer-medium-hand.gain} on half the games
+and \V{pair.transformer-medium-hand-quarter.transformer-medium-hand.gain} on a quarter. It is behind the trees on every
+share of the games, by less as the games are added
+(Table~\ref{tab:games}). A reading: what this model can say is set by what
+it reads, the engine's evaluation and the two ratings, and not by how many
+games it has seen. On that reading a larger dataset would at most bring the
+network level with the trees.
+\fi
+
+\iffeatures
+\paragraph{Which counts the trees need here.}
+The trees are worse beyond the noise without the group in
+\V{study.features.gbm-hand.worse.of}. The group that costs most is
+\V{study.features.gbm-hand.most.group}, at
+\V{study.features.gbm-hand.most.gain}, and the moves on offer cost
+\V{pair.gbm-hand-no-mobility.gbm-hand.gain}. Without loose pieces the trees
+are \V{pair.gbm-hand-no-hanging.gbm-hand.verdict}, without the
+attackers near the kings \V{pair.gbm-hand-no-kings.gbm-hand.verdict},
+and without the passed pawns
+\V{pair.gbm-hand-no-pawns.gbm-hand.verdict}. Every one of these is
+small beside what the trees gain over the engine's curve alone
+(Table~\ref{tab:pairs}): the counts of the position add little to an
+evaluation that has already weighed it.
+\fi
 \fi
 
 \section{A closer look}
