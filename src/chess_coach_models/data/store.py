@@ -26,6 +26,9 @@ import polars as pl
 ROOT = Path(__file__).resolve().parents[3]
 PROCESSED = ROOT / "data" / "processed"
 CHUNK = 50_000
+# What a result is made from: the harness, the dataset recipes and the run configs. A session
+# writes results and the README's table over tracked files as it goes, and those are not code.
+CODE = ("src", "datasets", ":(glob)models/*/configs/**")
 
 
 def batches(items: Iterable[Any], size: int) -> Iterator[list[Any]]:
@@ -59,7 +62,7 @@ class Dataset:
 
 
 def code_commit() -> str:
-    """The lab commit a build or a run was made from, marked when the tree had changes."""
+    """The lab commit a build or a run was made from, marked when its code, a recipe or a config had changes."""
     try:
         commit = subprocess.run(
             ["git", "-C", str(ROOT), "rev-parse", "HEAD"],
@@ -68,7 +71,7 @@ def code_commit() -> str:
             text=True,
         ).stdout.strip()
         dirty = subprocess.run(
-            ["git", "-C", str(ROOT), "status", "--porcelain", "--untracked-files=no"],
+            ["git", "-C", str(ROOT), "status", "--porcelain", "--", *CODE],
             check=True,
             capture_output=True,
             text=True,
