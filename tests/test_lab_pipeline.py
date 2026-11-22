@@ -10,6 +10,8 @@ pytest.importorskip("torch")
 pytest.importorskip("lightgbm")
 zstandard = pytest.importorskip("zstandard")
 
+import polars as pl  # noqa: E402
+
 from chess_coach_models import tasks  # noqa: E402
 from chess_coach_models.data import puzzles, store  # noqa: E402
 from chess_coach_models.evals import leaderboard  # noqa: E402
@@ -91,6 +93,8 @@ def test_every_learner_runs_and_the_leaderboard_ranks_them(lab):
         assert primary["low"] <= primary["value"] <= primary["high"]
         assert record["test_rows"] == sum(band["rows"] for band in record["test_by_band"].values())
         assert "node" not in record["machine"]
+        assert set(record["software"]) == {"python", "numpy", "polars", "lightgbm", "torch"}
+        assert record["software"]["polars"] == pl.__version__
         saved = runs.predictions_path("puzzle-difficulty", name, smoke=True).parent
         assert record["weights"] == [
             {"file": path.name, "bytes": path.stat().st_size, "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}

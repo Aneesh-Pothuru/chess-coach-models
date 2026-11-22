@@ -21,6 +21,7 @@ import os
 import platform
 import time
 from datetime import datetime, timezone
+from importlib import metadata
 from pathlib import Path
 from typing import Any
 
@@ -38,6 +39,7 @@ from .learners import LEARNERS, prepare
 MODELS = ROOT / "models"
 DATASETS = ROOT / "datasets"
 ARTIFACTS = ROOT / "artifacts"
+SOFTWARE = ("numpy", "polars", "lightgbm", "torch")
 
 
 def load_yaml(path: Path) -> dict[str, Any]:
@@ -141,6 +143,17 @@ def machine() -> dict[str, Any]:
     return {"processor": processor, "threads": os.cpu_count(), "system": platform.system()}
 
 
+def software() -> dict[str, str]:
+    """The versions a run was made with: Python, and each library a dataset or a learner rests on that is installed."""
+    versions = {"python": platform.python_version()}
+    for name in SOFTWARE:
+        try:
+            versions[name] = metadata.version(name)
+        except metadata.PackageNotFoundError:
+            continue
+    return versions
+
+
 def gain_over_reference(
     model: str,
     name: str,
@@ -237,6 +250,7 @@ def run(
         "learner": fitted.details,
         "calibration": calibration,
         "machine": machine(),
+        "software": software(),
         "code": code_commit(),
         "trained": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "seconds": round(time.time() - started, 1),
