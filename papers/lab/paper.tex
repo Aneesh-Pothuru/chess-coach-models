@@ -287,45 +287,80 @@ readings fit what is here. Its dataset has the most rows
 puzzle's difficulty lies in the shape of its line, which the marks on the
 squares show a network directly, while a blunder or a missed tactic in a
 game also turns on counts a network has to work out for itself: what is
-hanging, how many moves each side has. Runs on half and on a quarter of each
-model's training games, named in Section~\ref{sec:next}, say how much of a
-network's standing is the amount of data, which bears on the first reading.
+hanging, how many moves each side has.
+\ifgames\else
+Runs on half and on a quarter of each model's training games, named in
+Section~\ref{sec:next}, say how much of a network's standing is the amount
+of data, which bears on the first reading.
+\fi
 
 \subsection{What the hand-made counts are worth}
 
 Under the trees the answer is the rest of the step: what the reference adds
-to the trees on the context numbers. It is beyond the noise in
-\V{lab.change.hand.gbm.better.of} of Table~\ref{tab:changes}, one a model,
-and it is the larger part of the step in the two tactic models.
+to the trees on the context numbers. With the counts the trees are
+\V{lab.change.hand.over.gbm-context.said} (Table~\ref{tab:changes}), and
+the counts are the larger part of the step in the two tactic models.
 
 \begin{table}[htbp]\centering\small
 \block{lab-changes}
-\caption{One change measured in model after model: the first run's paired
-gain over the second on the same resampled test games, in the model's own
-units with its 95\% interval, and in hundredths of the reference's step.
-Bold when the interval leaves zero out.}
+\caption{One change measured in model after model. Under each kind of
+change a pair of columns is the run the change was made in, and a row gives
+the changed run's paired gain over that run on the same resampled test
+games, in hundredths of the reference's step, with its 95\% interval. Bold
+when the interval leaves zero out. Each model's paper has the same gains in
+the model's own units.}
 \label{tab:changes}
 \end{table}
 
 \begin{figure}[htbp]\centering
 \block{lab-changes-figure}
-\caption{The pairs of Table~\ref{tab:changes} on the one scale, each with
-its 95\% interval.}
+\caption{The pairs of Table~\ref{tab:changes}, each with its 95\%
+interval.}
 \label{fig:changes}
 \end{figure}
 
 Under a network the direct measure is the pair: the transformer that reads
 the counts over the same transformer without them, on the same resampled
-games. Table~\ref{tab:changes} has the pairs measured so far. In practical
-chances the pair is inside the noise, as every run above the trees is
-there. For the other models Figure~\ref{fig:networks} gives two gains over
-the same reference in place of a pair. In blunder hazard, tactic found and
-think time the transformer with the counts is ahead of the trees beyond the
-noise and the same transformer without them is behind the trees beyond the
-noise, so the counts are worth something to the network there. In puzzle
-difficulty both are ahead and their intervals stand apart. Two intervals
-that do not overlap are not a paired gain, and the pairs are measured with
-the runs named in Section~\ref{sec:next}.
+games. Table~\ref{tab:changes} has that pair for
+\V{lab.change.hand.over.transformer-medium.models}, and with the counts the
+network is \V{lab.change.hand.over.transformer-medium.said}.
+\ifchangeepochs\else
+% The closer look measures this pair for the other models in the same pass
+% as their longer runs, so until those land the ladder stands in for it.
+For the other models Figure~\ref{fig:networks} gives two gains over the same
+reference in place of a pair. In blunder hazard, tactic found and think time
+the transformer with the counts is ahead of the trees beyond the noise and
+the same transformer without them is behind the trees beyond the noise, so
+the counts are worth something to the network there. In puzzle difficulty
+both are ahead and their intervals stand apart. Two intervals that do not
+overlap are not a paired gain, and the pairs are measured with the runs
+named in Section~\ref{sec:next}.
+\fi
+
+\ifchangeepochs
+\subsection{What a longer schedule is worth}
+
+On the valid games, \V{lab.ladder.at-last-epoch.of} of the ladder had their
+best epoch at the last epoch of their schedule, so some had more to learn.
+The two transformers sized for a GPU were trained again with twice the
+epochs and nothing else changed (Table~\ref{tab:changes}). With the longer
+schedule, the one that reads the board alone is
+\V{lab.change.epochs.over.transformer-medium.said}, and the one that reads
+the hand-made counts as well is
+\V{lab.change.epochs.over.transformer-medium-hand.said}. A longer run is
+kept as a model's run only where it is better beyond the noise.
+\fi
+
+\ifchangestart
+\subsection{What a start from an engine's evaluations is worth}
+
+The same two transformers were also started from a body that had first
+learned an engine's evaluation of positions, with nothing else changed
+(Table~\ref{tab:changes}). Started from it, the one that reads the board
+alone is \V{lab.change.start.over.transformer-medium.said}, and the one
+that reads the hand-made counts as well is
+\V{lab.change.start.over.transformer-medium-hand.said}.
+\fi
 
 \subsection{What the runs cost}
 
@@ -343,9 +378,11 @@ that runs anywhere. A network needs its weights and something to run them
 on. With gains of \V{lab.network.gain.most} hundredths of the step at most,
 that is the trade a port to the app has to weigh.
 
+\ifchangeepochs\else
 On the valid games, \V{lab.ladder.at-last-epoch.of} of the ladder had their
 best epoch at the last epoch of their schedule, so some had more to learn.
 Longer schedules are among the runs of Section~\ref{sec:next}.
+\fi
 
 \section{What each model found}
 \label{sec:each}
@@ -554,28 +591,39 @@ the paired gain in that model's own units, in its own paper.
 \label{tab:waiting}
 \end{table}
 
-Table~\ref{tab:waiting} lists the tasks with no full run in this paper.
-One is puzzle difficulty with the solution hidden: the same puzzles and the
-same test puzzles, read as the solver sees them, which is the model that
-could rate a tactic nobody has solved yet. The other trains the larger
-transformer on an engine's evaluation of millions of positions, as a body
-for the other models to start from.
+Table~\ref{tab:waiting} lists the tasks with no full run in this paper,
+each with the question its card opens with.
 \fi
 
-Three kinds of run change one thing in a run of the ladder, and are measured
-as pairs against the run they change.
-\begin{itemize}
-\item \textbf{Longer.} Each GPU transformer with twice the epochs, for the
-networks that were still improving when their schedule ended.
-\item \textbf{Another start.} Each GPU transformer started from the body that
-learned an engine's evaluations, to see whether knowing what a position is
-worth helps a network learn what people do in it.
-\item \textbf{Less of something.} The reference and the best network on half
-and on a quarter of the training games, which says whether more games would
-help, and the trees with one group of hand-made counts left out at a time,
-which says which counts carry the step.
-\end{itemize}
+% Runs that change one thing in a run of the ladder, each measured as a pair
+% against the run it changes. A paragraph leaves when its runs are in.
+\ifchangeepochs\else
+\paragraph{A longer schedule.}
+Each transformer sized for a GPU with twice the epochs and nothing else
+changed, for the networks that were still improving when their schedule
+ended.
+\fi
 
+\ifchangestart\else
+\paragraph{Another start.}
+Each transformer sized for a GPU started from a body that first learned an
+engine's evaluation of positions, to see whether knowing what a position is
+worth helps a network learn what people do in it.
+\fi
+
+\ifgames\else
+\paragraph{Fewer games.}
+The reference and the best network on half and on a quarter of the training
+games, which says whether more games would help.
+\fi
+
+\iffeatures\else
+\paragraph{A group of counts left out.}
+The trees with one group of hand-made counts left out at a time, which says
+which counts carry the step.
+\fi
+
+\paragraph{Other kinds of answer.}
 Beyond the ladder, the lab's list of ideas has models with other kinds of
 answer: the squares of a position that matter, as a label for each square;
 a chance for each theme a position's line holds; a chance for every legal

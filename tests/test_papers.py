@@ -174,16 +174,16 @@ def test_two_runs_differ_in_the_settings_one_changes_or_in_the_learner():
     assert changes.changed(longer, trees) is None and changes.differs(longer, trees) == "another learner"
 
 
-def _record(name, learner, score, primary, gain=None):
-    record = {"run": name, "config": {"learner": learner}, "test": {primary: {"value": score}}}
+def _record(name, learner, score, primary, gain=None, **config):
+    record = {"run": name, "config": {"learner": learner, **config}, "test": {primary: {"value": score}}}
     if gain is not None:
         amount, low, high = gain
         record["gain"] = {"gain": amount, "low": low, "high": high, "beyond_noise": low > 0 or high < 0}
     return record
 
 
-def _sources(model, runs):
-    return sources.Sources(model, False, tasks.get(model), runs, [], {}, {}, None, (), ())
+def _sources(model, runs, look=None):
+    return sources.Sources(model, False, tasks.get(model), runs, [], {}, {}, look, (), ())
 
 
 def test_the_lab_s_one_scale_is_the_reference_s_step_from_the_floor():
@@ -226,7 +226,62 @@ def test_the_one_scale_reads_a_score_where_higher_is_better_the_same_way():
     lab = overview.Lab({"blunder-hazard": src}, {}, {})
     # A gain whose interval holds zero is level with the reference, however large it is.
     assert overview._verdicts(lab, lambda one: one.networks[0]) == ([], ["blunder-hazard"], [])
-    assert overview.switches(lab) == {"waiting": False} and overview.pairs(src) == []
+    assert overview.pairs(src) == [] and not any(overview.switches(lab).values())
+    assert set(overview.switches(lab)) == {"waiting", "changehand", "changeepochs", "changestart", "games", "features"}
+
+
+def _longer(model, gain):
+    """A model whose larger transformer was trained again with twice the epochs, and the pair its closer look measured."""
+    primary = tasks.get(model).primary
+    body = {"kind": "net", "body": "transformer", "dim": 256, "depth": 8}
+    better = -1.0 if tasks.get(model).lower_is_better else 1.0
+    runs = [
+        _record("transformer-medium-long", body, 10.0 + 3 * better, primary, train={"epochs": 24}),
+        _record("transformer-medium", body, 10.0 + 2 * better, primary, train={"epochs": 12}),
+        _record("gbm-hand", {"kind": "gbm", "features": "hand"}, 10.0 + better, primary),
+        _record("gbm-context", {"kind": "gbm", "features": "context"}, 10.0 + 0.5 * better, primary, gain=(-0.5, -0.6, -0.4)),
+        _record("constant", {"kind": "constant"}, 10.0, primary),
+    ]
+    amount, low, high = gain
+    pair = {"run": "transformer-medium-long", "over": "transformer-medium", "gain": amount, "low": low, "high": high, "beyond_noise": low > 0 or high < 0}
+    return _sources(model, runs, look={"pairs": [pair]})
+
+
+def test_one_change_is_read_model_by_model_by_the_run_it_was_made_in():
+    lab = overview.Lab(
+        {"blunder-hazard": _longer("blunder-hazard", (0.1, -0.2, 0.4)), "puzzle-difficulty": _longer("puzzle-difficulty", (0.3, 0.1, 0.5))},
+        {},
+        {},
+    )
+    # The kinds come in one order whatever a model's files list first: the hand features under the trees, then the epochs.
+    assert list(overview.kinds(lab)) == [("hand", "gbm"), ("epochs", "net")]
+    found = overview.by_base(lab)
+    assert list(found) == ["hand", "epochs"] and list(found["epochs"]) == ["transformer-medium"]
+    assert list(found["epochs"]["transformer-medium"]) == ["blunder-hazard", "puzzle-difficulty"]
+    switches = overview.switches(lab)
+    assert switches["changehand"] and switches["changeepochs"] and not switches["changestart"]
+    table = overview.changes_table(lab)
+    assert "\\textbf{More epochs}" in table and "over \\run{transformer-medium}" in table and "over \\run{gbm-context}" in table
+    # A step of 1 in both models, so a gain of 0.3 is thirty hundredths of it, and only the gain beyond the noise is bold.
+    assert "\\textbf{+30.0} & +10.0 to +50.0" in table and "& +10.0 & $-$20.0 to +40.0" in table
+    assert overview._tally(["puzzle-difficulty"], ["blunder-hazard"], []) == (
+        "better beyond the noise in one of the two models (puzzle difficulty) and inside the noise in one of the two models (blunder hazard)"
+    )
+    assert overview._tally([], ["think-time"], []) == "inside the noise in the one model (think time)"
+
+
+def test_a_card_s_question_is_read_up_to_its_question_mark(tmp_path, monkeypatch):
+    monkeypatch.setattr(paths, "ROOT", tmp_path)
+    card = tmp_path / "models" / "some-model" / "README.md"
+    card.parent.mkdir(parents=True)
+    assert overview.question("some-model") == ""
+    card.write_text("# Some model\n\n**The question.** How hard is this\n[tactic](../other/) for people? A rating says.\n", encoding="utf-8")
+    assert overview.question("some-model") == "How hard is this tactic for people?"
+
+
+@pytest.mark.parametrize("model", MODELS)
+def test_every_model_s_card_opens_with_its_question(model):
+    assert overview.question(model).endswith("?")
 
 
 def test_a_name_and_a_count_read_as_the_lab_s_prose_says_them():

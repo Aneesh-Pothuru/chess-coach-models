@@ -266,7 +266,9 @@ def test_the_lab_s_paper_reads_every_model_under_its_name_and_lists_one_that_wai
     analysis.analyse(model, smoke=True)
     whole, out = overview.generate(smoke=True)
     assert list(whole.models) == [model] and list(whole.waiting) == [waiting]
-    assert overview.switches(whole) == {"waiting": True}
+    assert overview.switches(whole) == {
+        "waiting": True, "changehand": True, "changeepochs": False, "changestart": False, "games": False, "features": False
+    }
     # Everything a model's own paper can read is there under the model's name.
     _, own = papers.generate(model, smoke=True)
     assert all(out.values[f"{model}.{key}"] == value for key, value in own.values.items())
@@ -287,7 +289,9 @@ def test_the_lab_s_paper_reads_every_model_under_its_name_and_lists_one_that_wai
     (pair,) = [entry for entry in overview.pairs(src) if entry["kind"] is not None]
     assert (pair["run"], pair["over"]) == ("gbm-hand", "gbm-context") and pair["gain"] == -records["gbm-context"]["gain"]["gain"]
     made = {"lab-models", "lab-scores", "lab-shares", "lab-networks", "lab-changes", "lab-changes-figure", "lab-cost", "lab-waiting"}
-    assert made <= set(out.files) and "unsolved" in out.files["lab-waiting"] and "\\texttt{puzzles}" in out.files["lab-waiting"]
+    assert made <= set(out.files) and "unsolved" in out.files["lab-waiting"] and "over \\run{gbm-context}" in out.files["lab-changes"]
+    assert out.values["lab.change.hand.over.gbm-context.models"] == "puzzle difficulty"
+    assert out.values["lab.change.hand.over.gbm-context.said"].endswith("in the one model (puzzle difficulty)")
 
     # The paper itself is drawn from the committed results: here the small check's records stand in for them.
     shutil.copytree(paths.results(model, smoke=True), paths.results(model))

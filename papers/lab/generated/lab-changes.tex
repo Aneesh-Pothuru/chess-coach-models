@@ -1,16 +1,14 @@
 % Written by `lab paper`; do not edit by hand.
-\begin{tabular}{>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{2.6cm}rrr}
+\begin{tabular}{>{\raggedright\arraybackslash}p{3.4cm}rrrr}
 \toprule
-Model & Run & Set against & Gain & 95\% interval & Of the step \\
+Model & Gain & 95\% interval & Gain & 95\% interval \\
 \midrule
-\multicolumn{6}{l}{\textbf{The hand features, under the trees}} \\
-{\ttfamily blunder-\allowbreak hazard} & {\ttfamily gbm-\allowbreak hand} & {\ttfamily gbm-\allowbreak context} & \textbf{+0.06535} & +0.05528 to +0.07524 & +35.4 \\
-{\ttfamily practical-\allowbreak chances} & {\ttfamily gbm-\allowbreak hand} & {\ttfamily gbm-\allowbreak context} & \textbf{+0.002288} & +0.001502 to +0.003088 & +3.4 \\
-{\ttfamily puzzle-\allowbreak difficulty} & {\ttfamily gbm-\allowbreak hand} & {\ttfamily gbm-\allowbreak context} & \textbf{+133.8} & +132.2 to +135.4 & +64.4 \\
-{\ttfamily tactic-\allowbreak found} & {\ttfamily gbm-\allowbreak hand} & {\ttfamily gbm-\allowbreak context} & \textbf{+0.05098} & +0.04909 to +0.05289 & +64.5 \\
-{\ttfamily think-\allowbreak time} & {\ttfamily gbm-\allowbreak hand} & {\ttfamily gbm-\allowbreak context} & \textbf{+0.04885} & +0.04637 to +0.05155 & +34.5 \\
-\addlinespace
-\multicolumn{6}{l}{\textbf{The hand features, under a network}} \\
-{\ttfamily practical-\allowbreak chances} & {\ttfamily transformer-\allowbreak medium-\allowbreak hand} & {\ttfamily transformer-\allowbreak medium} & $-$0.000479 & $-$0.001288 to +0.000368 & $-$0.7 \\
+\multicolumn{5}{l}{\textbf{The hand features}} \\
+ & \multicolumn{2}{c}{over \run{gbm-context}} & \multicolumn{2}{c}{over \run{transformer-medium}} \\
+{\ttfamily blunder-\allowbreak hazard} & \textbf{+35.4} & +29.9 to +40.7 &  &  \\
+{\ttfamily practical-\allowbreak chances} & \textbf{+3.4} & +2.2 to +4.5 & $-$0.7 & $-$1.9 to +0.5 \\
+{\ttfamily puzzle-\allowbreak difficulty} & \textbf{+64.4} & +63.6 to +65.1 &  &  \\
+{\ttfamily tactic-\allowbreak found} & \textbf{+64.5} & +62.1 to +67.0 &  &  \\
+{\ttfamily think-\allowbreak time} & \textbf{+34.5} & +32.7 to +36.4 &  &  \\
 \bottomrule
 \end{tabular}

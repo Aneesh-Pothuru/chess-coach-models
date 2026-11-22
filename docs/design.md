@@ -303,8 +303,17 @@ read.
   divided by the step. The step is a measured number too and its noise is left out, so the scale
   is for setting models side by side, and a claim about one model rests on the paired gain in
   that model's own units.
-- **One switch.** A model with a task and no full run yet is listed as waiting, and what the
-  prose says of waiting models stands inside `\ifwaiting`.
+- **One change, the run it was made in, model by model.** A pair of runs that differ in exactly
+  one setting is a change of one kind: the hand features, the epochs, the start. The table of
+  changes has a kind a block, the run the change was made in a pair of columns and a model a
+  row, and the prose reads a count of the models where the change is better beyond the noise,
+  inside it, or worse (`lab.change.<kind>.over.<run>.said`). A study's run counts when the one
+  thing it changes is one of these.
+- **Its switches.** What waits on runs stands inside a switch that turns on by itself when a
+  model has them: `\ifwaiting` for a model with a task and no full run (it is listed with the
+  question its card opens with), `\ifchangehand`, `\ifchangeepochs` and `\ifchangestart` for a
+  kind of change some model has measured, and `\ifgames` and `\iffeatures` for the two studies.
+  What the prose says while a kind is unmeasured stands on the switch's other side.
 - **Said of every model, or not said.** A value the lab states for all its models at once, such
   as the share of games kept for the test, is set only where every model has the same one.
   Where they differ the build stops at the sentence that says it.

@@ -19,11 +19,16 @@ scale is for setting models side by side, and each model's paper has the
 gain in the model's own units.
 
 A model with a task and no run yet is listed as waiting, and what the prose
-says of waiting models stands inside ``\\ifwaiting``.
+says of waiting models stands inside ``\\ifwaiting``. What it says of one kind
+of change stands inside that kind's switch (``\\ifchangeepochs``,
+``\\ifchangestart``), on while a pair of that kind is measured in some model,
+and what it says of a study inside ``\\ifgames`` and ``\\iffeatures``, on
+while some model has a run of that study.
 """
 
 from __future__ import annotations
 
+import re
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
@@ -44,6 +49,10 @@ KINDS = {
 }
 # What a learner is called where a change is said to be made under it.
 UNDER = {"gbm": "under the trees", "net": "under a network"}
+# The studies every model's paper has a switch for, which the lab's prose asks by the same names.
+STUDIES = ("games", "features")
+# The ladder from its floor up: the order a table names the runs a change was made in.
+LADDER = ("constant", "gbm-context", "gbm-hand", "conv-small", "transformer-small", "transformer-medium", "transformer-medium-hand")
 
 
 @dataclass
@@ -72,6 +81,17 @@ def read(*, smoke: bool = False) -> Lab:
 def said(model: str) -> str:
     """A model's name as a sentence says it: its folder's, with spaces."""
     return model.replace("-", " ")
+
+
+QUESTION = re.compile(r"\*\*The question\.\*\*\s+(.*?\?)", re.DOTALL)
+LINK = re.compile(r"\[([^\]]*)\]\([^)]*\)")
+
+
+def question(model: str) -> str:
+    """The question a model's card opens with, up to its question mark, or nothing where a card has none."""
+    card = paths.model(model) / "README.md"
+    found = QUESTION.search(card.read_text(encoding="utf-8")) if card.exists() else None
+    return " ".join(LINK.sub(r"\1", found.group(1)).split()) if found else ""
 
 
 def _listed(names: list[str]) -> str:
@@ -137,13 +157,15 @@ def _verdicts(lab: Lab, pick) -> tuple[list[str], list[str], list[str]]:
 
 
 def pairs(src: Sources) -> list[dict[str, Any]]:
-    """A model's measured pairs outside its studies, each with the one setting it changes when it changes one.
+    """A model's measured pairs, each with the one setting it changes when it changes one of ``KINDS``. A run
+    of the games or the features study changes none of them, so its pair has no kind here, and a run that was
+    tried as a candidate and then filed under a study of its own (more epochs, another start) keeps its kind.
 
-    The reference set against the trees that read no hand feature is among them for every model: where the
-    closer look did not measure that pair, the trees' record holds it from the other side, and the gain and
-    its interval change sign."""
+    The reference set against the trees that read no hand feature is among the pairs of every model: where
+    the closer look did not measure that pair, the trees' record holds it from the other side, and the gain
+    and its interval change sign."""
     known = changes.records(src)
-    found = [dict(entry) for entry in changes.pairs(src) if "study" not in entry and entry["run"] in known and entry["over"] in known]
+    found = [dict(entry) for entry in changes.pairs(src) if entry["run"] in known and entry["over"] in known]
     blind, reference = context_run(src), src.reference
     if blind is not None and reference is not None and blind.get("gain"):
         if not any((entry["run"], entry["over"]) == (reference["run"], blind["run"]) for entry in found):
@@ -165,7 +187,33 @@ def kinds(lab: Lab) -> dict[tuple[str, str], list[tuple[str, dict[str, Any]]]]:
         for entry in pairs(src):
             if entry["kind"] is not None:
                 found.setdefault((entry["kind"][0], entry["learner"]), []).append((name, entry))
-    return found
+    # One order whatever a model's files list first: the kinds as ``KINDS`` has them, the trees before a network.
+    shorts, learners = [short for short, _ in KINDS.values()], list(UNDER)
+    place = lambda key: (shorts.index(key[0]), learners.index(key[1]) if key[1] in learners else len(learners), key[1])  # noqa: E731
+    return {key: found[key] for key in sorted(found, key=place)}
+
+
+def by_base(lab: Lab) -> dict[str, dict[str, dict[str, dict[str, Any]]]]:
+    """The same pairs by the run the change was made in: a kind's key, then that run, then the model, to the pair.
+    The runs are in the ladder's order, so a table of them reads from the trees to the largest network."""
+    found: dict[str, dict[str, dict[str, dict[str, Any]]]] = {}
+    for (key, _), entries in kinds(lab).items():
+        for name, entry in entries:
+            found.setdefault(key, {}).setdefault(entry["over"], {})[name] = entry
+    place = lambda run: (LADDER.index(run) if run in LADDER else len(LADDER), run)  # noqa: E731
+    return {key: {run: bases[run] for run in sorted(bases, key=place)} for key, bases in found.items()}
+
+
+def _tally(better: list[str], level: list[str], worse: list[str]) -> str:
+    """Where a change is better, inside the noise and worse, as one clause: each part with its models by
+    name, and a part with no model left out."""
+    whole = len(better) + len(level) + len(worse)
+    parts = [
+        f"{words} in {_of(len(group), whole, 'model')} ({_listed([said(name) for name in group])})"
+        for words, group in (("better beyond the noise", better), ("inside the noise", level), ("worse beyond the noise", worse))
+        if group
+    ]
+    return _listed(parts)
 
 
 def _kind_title(key: str, learner: str) -> str:
@@ -255,6 +303,25 @@ def values(lab: Lab, out: tex.Generated) -> None:
         out.set(f"{prefix}.level", tex.word(len(found) - len(better) - len(worse)))
         out.set(f"{prefix}.better.models", _listed(list(dict.fromkeys(said(name) for name in better))))
         out.set(f"{prefix}.worse.models", _listed(list(dict.fromkeys(said(name) for name in worse))))
+    # The same by the run the change was made in, where a model has one pair: a clause prose can read whole.
+    for key, bases in by_base(lab).items():
+        for run, entries in bases.items():
+            prefix = tex.key("lab", "change", key, "over", run)
+            better = [name for name, entry in entries.items() if entry["beyond_noise"] and entry["gain"] > 0]
+            worse = [name for name, entry in entries.items() if entry["beyond_noise"] and entry["gain"] < 0]
+            level = [name for name in entries if name not in better and name not in worse]
+            out.set(f"{prefix}.count", tex.word(len(entries)))
+            out.set(f"{prefix}.models", _listed([said(name) for name in entries]))
+            out.set(f"{prefix}.said", _tally(better, level, worse))
+            for word, group in (("better", better), ("level", level), ("worse", worse)):
+                out.set(f"{prefix}.{word}.of", _of(len(group), len(entries), "model"))
+                out.set(f"{prefix}.{word}.models", _listed([said(name) for name in group]))
+            amounts = {name: on_step(lab.models[name], entry) for name, entry in entries.items()}
+            amounts = {name: amount[0] for name, amount in amounts.items() if amount is not None}
+            if amounts:
+                for end, name in (("most", max(amounts, key=amounts.get)), ("least", min(amounts, key=amounts.get))):
+                    out.set(f"{prefix}.gain.{end}", tex.fixed(amounts[name], 1, sign=True))
+                    out.set(f"{prefix}.gain.{end}.model", said(name))
 
 
 def models_table(lab: Lab) -> str:
@@ -368,31 +435,38 @@ def changes_figure(lab: Lab) -> str | None:
 
 
 def changes_table(lab: Lab) -> str | None:
-    """The same pairs as a table, a kind of change over its pairs: the two runs, and the first's paired gain
-    in the model's own units and on the one scale."""
-    rows = []
-    for (key, learner), found in kinds(lab).items():
+    """The same pairs as a table: a kind of change a block, a model a row, and a column for each run the
+    change was made in. A cell is the changed run's paired gain over that run on the one scale with its
+    interval, bold when the interval leaves zero out. The gain in a model's own units is in that model's paper."""
+    blocks = by_base(lab)
+    if not blocks:
+        return None
+    widest = max(len(bases) for bases in blocks.values())
+    rows: list[list[str]] = []
+    for key, bases in blocks.items():
         if rows:
             rows.append(["\\addlinespace"])
-        rows.append([f"\\multicolumn{{6}}{{l}}{{\\textbf{{{_kind_title(key, learner)}}}}}"])
-        for name, entry in found:
-            value, low, high = tex.trio(entry["gain"], entry["low"], entry["high"])
-            amounts = on_step(lab.models[name], entry)
-            rows.append(
-                [
-                    run_cell(name),
-                    run_cell(entry["run"]),
-                    run_cell(entry["over"]),
-                    tex.bold(value, entry["beyond_noise"]),
-                    f"{low} to {high}",
-                    tex.fixed(amounts[0], 1, sign=True) if amounts is not None else "",
+        title = next(words for short, words in KINDS.values() if short == key)
+        rows.append([f"\\multicolumn{{{1 + 2 * widest}}}{{l}}{{\\textbf{{{title}}}}}"])
+        heads = [f"\\multicolumn{{2}}{{c}}{{over {run_tex(run)}}}" for run in bases]
+        rows.append(["", *heads, *["\\multicolumn{2}{c}{}"] * (widest - len(bases))])
+        for name in lab.models:
+            if not any(name in entries for entries in bases.values()):
+                continue
+            cells: list[str] = []
+            for entries in bases.values():
+                entry = entries.get(name)
+                amounts = on_step(lab.models[name], entry) if entry is not None else None
+                if amounts is None:
+                    cells += ["", ""]
+                    continue
+                cells += [
+                    tex.bold(tex.fixed(amounts[0], 1, sign=True), entry["beyond_noise"]),
+                    f"{tex.fixed(amounts[1], 1, sign=True)} to {tex.fixed(amounts[2], 1, sign=True)}",
                 ]
-            )
-    if not rows:
-        return None
-    head = ["Model", "Run", "Set against", "Gain", "95\\% interval", "Of the step"]
-    name = ">{\\raggedright\\arraybackslash}p{2.6cm}"
-    table = tex.tabular(f"{name}{name}{name}rrr", head, rows)
+            rows.append([run_cell(name), *cells, *[""] * (2 * (widest - len(bases)))])
+    head = ["Model", *["Gain", "95\\% interval"] * widest]
+    table = tex.tabular(f">{{\\raggedright\\arraybackslash}}p{{3.4cm}}{'rr' * widest}", head, rows)
     return table.replace("\\addlinespace \\\\", "\\addlinespace")
 
 
@@ -424,9 +498,9 @@ def waiting_table(lab: Lab) -> str | None:
     rows = []
     for name, task in lab.waiting.items():
         unit = tex.esc(task.unit)
-        rows.append([run_cell(name), unit[:1].upper() + unit[1:], f"\\texttt{{{tex.esc(task.dataset)}}}", METRIC_NAMES[task.primary]])
-    head = ["Model", "Predicts", "Dataset", "Ranked by"]
-    return tex.tabular(">{\\raggedright\\arraybackslash}p{3.2cm}Lll", head, rows, width="\\textwidth")
+        rows.append([run_cell(name), tex.esc(question(name)), unit[:1].upper() + unit[1:], METRIC_NAMES[task.primary]])
+    head = ["Model", "The question on its card", "Predicts", "Ranked by"]
+    return tex.tabular(">{\\raggedright\\arraybackslash}p{3.2cm}LLl", head, rows, width="\\textwidth")
 
 
 def blocks(lab: Lab, out: tex.Generated) -> None:
@@ -460,8 +534,15 @@ def generate(*, smoke: bool = False) -> tuple[Lab, tex.Generated]:
 
 
 def switches(lab: Lab) -> dict[str, bool]:
-    """What the lab's prose may ask before it reads: whether a model is still waiting for its runs."""
-    return {"waiting": bool(lab.waiting)}
+    """What the lab's prose may ask before it reads: whether a model is still waiting for its runs, and
+    whether a kind of change has a pair measured in some model."""
+    measured = {key for key, _ in kinds(lab)}
+    studied = {run["config"]["study"] for src in lab.models.values() for run in src.studies}
+    return {
+        "waiting": bool(lab.waiting),
+        **{f"change{short}": short in measured for short, _ in KINDS.values()},
+        **{study: study in studied for study in STUDIES},
+    }
 
 
 def prose() -> str:
