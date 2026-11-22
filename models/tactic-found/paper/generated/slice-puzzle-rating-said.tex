@@ -1,0 +1,23 @@
+% Written by `lab paper tactic-found`; do not edit by hand.
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.66\textwidth,
+  height=5.2cm,
+  ymajorgrids,
+  xlabel={The puzzle's rating},
+  ylabel={Share (percent)},
+  legend columns=-1,
+  xtick={0,1,2,3,4,5,6,7},
+  xticklabels={{\textless{}1000},{1000-1200},{1200-1400},{1400-1600},{1600-1800},{1800-2000},{2000-2200},{2200+}},
+  xmin=-0.5, xmax=7.5,
+  x tick label style={labSecondary, rotate=30, anchor=north east},
+]
+\addplot[color=labInk, mark=o, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labInk}] coordinates {(0,84.0115) (1,79.8985) (2,76.4191) (3,71.0954) (4,65.4181) (5,58.8894) (6,54.1696) (7,48.6863)};
+\addlegendentry{what happened}
+\addplot[color=labBlue, mark=*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labBlue}] coordinates {(0,80.8388) (1,75.8873) (2,72.351) (3,68.3759) (4,64.828) (5,62.7466) (6,60.8948) (7,59.1277)};
+\addlegendentry{\texttt{transformer-medium-hand}}
+\addplot[color=labOrange, mark=square*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labOrange}] coordinates {(0,80.5338) (1,75.596) (2,71.9386) (3,68.3529) (4,64.8274) (5,62.891) (6,61.2638) (7,58.9694)};
+\addlegendentry{\texttt{gbm-hand}}
+\end{axis}
+\end{tikzpicture}

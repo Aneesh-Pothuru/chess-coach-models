@@ -14,6 +14,12 @@ positions are hard to hold there, and which "lost" ones were still a game.
 | **Data** | The positions [blunder hazard](../blunder-hazard/) and [think time](../think-time/) read: rated Lichess rapid games of October 2026 (CC0) that carry Lichess's engine analysis and clocks, up to 24 positions a game from each side's sixth move on, each with its game's result. Recipe: [`datasets/game-positions.yaml`](../../datasets/game-positions.yaml). |
 | **Split** | By game: 85% train, 5% valid, 10% test. |
 
+**The paper.** [`paper/paper.pdf`](paper/paper.pdf) reads these results at
+length: every run, the figures, the cuts of the closer look, and positions
+as boards (ordinary ones, the ones the best run was surest of and the ones
+it got most wrong). `lab paper practical-chances` builds it from the results
+committed here ([`docs/design.md`](../../docs/design.md), "The paper").
+
 ## The rule
 
 Written before the first full run.
@@ -98,8 +104,13 @@ look's `pairs`), which says something only when its interval leaves zero out.
   smallest between 1700 and 2000.
 - **The rating formula alone says less than the mean result.** `elo-gap`
   lands below `constant`. Games are paired by rating, so the gap between the
-  two players is small, and from the sixth move on the position says far
-  more than the ratings do.
+  two players is usually small, and where it is large the formula is far too
+  sure of it: where it gives the mover about one chance in five, movers score
+  about two in five, and where it gives four in five, about three in five
+  (`reliability` in the closer look). Why its line is that flat on these
+  games is open. The paper names two readings, ratings that are not settled
+  in unusual pairings and which games players choose to analyse, and the
+  check that would tell them apart.
 - **No network beats the trees.** All four land inside the noise of
   `gbm-hand`: the two CPU-sized ones level with it, the two GPU transformers
   a little below. The GPU transformers had their best epoch on valid before
@@ -109,6 +120,36 @@ look's `pairs`), which says something only when its interval leaves zero out.
   take most of their gain from the evaluation, then the two ratings, the
   material and the clocks (`leans_on` in
   [the reference's record](results/gbm-hand.json)).
+
+What the paper's closer look adds, with every run set beside the reference in
+each cut:
+
+- **The curve flatters whoever is to move, by half a move.** Over all the
+  test positions the curve gives the mover a little more than half, and
+  movers score half. The engine's number before a move is the position's
+  worth if the mover finds the best move, and a person's move gives
+  something away on average: if a move costs so many points of winning
+  chances, the number before it stands half of that above an even split.
+  The trees have no such lean. One cut fits this reading: a mover in check
+  has few moves to choose from and less to give away, and there the curve's
+  mean is a little under the result, not over it (the slice `check`).
+- **The curve was fitted to much stronger players, without the clock.**
+  Lichess fitted its multiplier to rapid games between players rated 2300 and
+  over, with games lost on time left out (the pull request the paper cites).
+  That fits the cuts: nearly right above 2000, too sure below, and well off
+  where a clock is short. With under half a minute left the mover scores
+  well under what the curve says, and with the opponent that short, well
+  over it (the slices `clock` and `opponent-clock`). A reading: no run here
+  refits the curve by band or with a clock, which is the run that would
+  measure it.
+- **On most positions the curve is the closer of the two.** It has the lowest
+  MAE on the leaderboard and is nearer the result than the reference on more
+  than half the test positions (`against_reference`). On a result that is
+  nearly always 1 or 0, the absolute error rewards a run for being sure,
+  right or wrong, and the curve is the surer of the two and the less true:
+  where it is wrong it is wrong by more, which RMSE counts and which only the
+  true expected score makes lowest. The MAE column is not the one to rank
+  these runs by.
 
 So the model to carry to the app is the trees: seconds to train, no GPU, and
 nothing a network adds here. What it changes in a review is the number beside

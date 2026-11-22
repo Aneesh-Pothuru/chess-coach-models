@@ -1,0 +1,25 @@
+% Written by `lab paper blunder-hazard`; do not edit by hand.
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.66\textwidth,
+  height=5.2cm,
+  ymajorgrids,
+  xlabel={The mover's rating},
+  ylabel={Lead in PR-AUC},
+  legend columns=2,
+  xtick={0,1,2,3,4},
+  xticklabels={{\textless{}1100},{1100-1400},{1400-1700},{1700-2000},{2000+}},
+  xmin=-0.5, xmax=4.5,
+]
+\draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:-0.5,0) -- (axis cs:4.5,0) node[anchor=west, font=\sffamily\scriptsize, text=labSecondary, inner sep=2pt] {\run{gbm-hand}};
+\addplot[color=labBlue, mark=*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labBlue}] coordinates {(0,0.0240104) (1,0.0136675) (2,0.00579682) (3,0.00887658) (4,0.0081612)};
+\addlegendentry{\texttt{transformer-medium-hand}}
+\addplot[color=labAqua, mark=triangle*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labAqua}] coordinates {(0,-0.00983773) (1,-0.0298518) (2,-0.0251732) (3,-0.00129818) (4,0.0135649)};
+\addlegendentry{\texttt{transformer-medium}}
+\addplot[color=labMagenta, mark=pentagon*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labMagenta}] coordinates {(0,-0.0259054) (1,-0.0124484) (2,-0.0229282) (3,-0.0110547) (4,0.0138102)};
+\addlegendentry{\texttt{conv-small}}
+\addplot[color=labYellow, mark=diamond*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labYellow}] coordinates {(0,-0.0101358) (1,-0.0284451) (2,-0.0226286) (3,-0.0128193) (4,0.00162293)};
+\addlegendentry{\texttt{transformer-small}}
+\end{axis}
+\end{tikzpicture}

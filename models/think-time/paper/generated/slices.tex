@@ -1,0 +1,183 @@
+% Written by `lab paper think-time`; do not edit by hand.
+\begin{table}[htbp]\centering\footnotesize
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Group & Test rows & Happened & said & MAE & said & MAE & Gain & 95\% interval \\
+\midrule
+\textless{}1100 & 10{,}712 & 7.5 & 7.2 & 0.5920 & 7.4 & 0.6028 & \textbf{+0.01078} & +0.00741 to +0.01393 \\
+1100-1400 & 16{,}674 & 7.1 & 6.8 & 0.6031 & 6.9 & 0.6133 & \textbf{+0.01018} & +0.00708 to +0.01296 \\
+1400-1700 & 19{,}614 & 6.9 & 6.6 & 0.6152 & 6.6 & 0.6262 & \textbf{+0.01097} & +0.00745 to +0.01325 \\
+1700-2000 & 14{,}453 & 6.9 & 6.5 & 0.6373 & 6.6 & 0.6480 & \textbf{+0.01072} & +0.00673 to +0.01418 \\
+2000+ & 7{,}126 & 6.5 & 6.1 & 0.6793 & 6.1 & 0.6896 & \textbf{+0.01035} & +0.00341 to +0.01589 \\
+\bottomrule
+\end{tabular}
+\caption{The test rows by: the mover's rating.}
+\label{tab:slice-band}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Group & Test rows & Happened & said & MAE & said & MAE & Gain & 95\% interval \\
+\midrule
+\textless{}30 & 718 & 2.7 & 2.8 & 0.4440 & 2.8 & 0.4534 & +0.00941 & $-$0.00722 to +0.02310 \\
+30-60 & 777 & 4.6 & 4.7 & 0.5351 & 4.3 & 0.5316 & $-$0.00344 & $-$0.01801 to +0.00947 \\
+60-120 & 1{,}456 & 6.2 & 6.0 & 0.6016 & 6.1 & 0.5988 & $-$0.00271 & $-$0.01324 to +0.00733 \\
+120-300 & 7{,}214 & 7.8 & 7.6 & 0.6513 & 7.6 & 0.6599 & \textbf{+0.00852} & +0.00316 to +0.01361 \\
+300-480 & 18{,}755 & 8.1 & 7.9 & 0.6401 & 8.0 & 0.6526 & \textbf{+0.01253} & +0.01004 to +0.01528 \\
+480+ & 39{,}659 & 6.6 & 6.1 & 0.6103 & 6.3 & 0.6212 & \textbf{+0.01091} & +0.00914 to +0.01304 \\
+\bottomrule
+\end{tabular}
+\caption{The test rows by: seconds on the mover's clock.}
+\label{tab:slice-clock}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Group & Test rows & Happened & said & MAE & said & MAE & Gain & 95\% interval \\
+\midrule
+\textless{}2 & 6{,}535 & 0.7 & 3.3 & 0.9227 & 3.6 & 0.9754 & \textbf{+0.05278} & +0.04689 to +0.05845 \\
+2-5 & 19{,}500 & 2.8 & 4.9 & 0.5268 & 5.1 & 0.5524 & \textbf{+0.02560} & +0.02209 to +0.02911 \\
+5-10 & 16{,}756 & 6.6 & 6.7 & 0.3858 & 6.8 & 0.3664 & \textbf{$-$0.01943} & $-$0.02172 to $-$0.01660 \\
+10-20 & 14{,}077 & 13.3 & 8.4 & 0.5258 & 8.4 & 0.5178 & \textbf{$-$0.00792} & $-$0.01129 to $-$0.00445 \\
+20-40 & 8{,}028 & 26.5 & 10.6 & 0.8785 & 10.3 & 0.9007 & \textbf{+0.02225} & +0.01664 to +0.02795 \\
+40-80 & 2{,}945 & 52.4 & 13.1 & 1.330 & 12.7 & 1.363 & \textbf{+0.03381} & +0.02480 to +0.04304 \\
+80+ & 738 & 110.4 & 16.2 & 1.869 & 15.2 & 1.928 & \textbf{+0.05942} & +0.04424 to +0.07615 \\
+\bottomrule
+\end{tabular}
+\caption{The test rows by: seconds the move took.}
+\label{tab:slice-seconds}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Group & Test rows & Happened & said & MAE & said & MAE & Gain & 95\% interval \\
+\midrule
+\textless{}20 & 13{,}950 & 5.7 & 5.2 & 0.5939 & 5.3 & 0.6048 & \textbf{+0.01090} & +0.00759 to +0.01410 \\
+20-30 & 14{,}918 & 7.8 & 7.2 & 0.6389 & 7.5 & 0.6487 & \textbf{+0.00988} & +0.00703 to +0.01268 \\
+30-40 & 12{,}936 & 8.7 & 8.3 & 0.6465 & 8.5 & 0.6585 & \textbf{+0.01197} & +0.00811 to +0.01521 \\
+40-60 & 15{,}865 & 8.2 & 8.1 & 0.6383 & 8.1 & 0.6515 & \textbf{+0.01322} & +0.01054 to +0.01591 \\
+60-80 & 6{,}749 & 6.0 & 5.7 & 0.5986 & 5.7 & 0.6087 & \textbf{+0.01015} & +0.00582 to +0.01421 \\
+80+ & 4{,}161 & 3.4 & 3.1 & 0.5216 & 3.1 & 0.5207 & $-$0.000847 & $-$0.006557 to +0.004359 \\
+\bottomrule
+\end{tabular}
+\caption{The test rows by: ply of the game.}
+\label{tab:slice-ply}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Group & Test rows & Happened & said & MAE & said & MAE & Gain & 95\% interval \\
+\midrule
+\textless{}5 & 4{,}276 & 4.1 & 3.9 & 0.5146 & 3.9 & 0.5162 & +0.001586 & $-$0.004264 to +0.007713 \\
+5-15 & 3{,}433 & 3.9 & 3.5 & 0.5425 & 3.6 & 0.5366 & $-$0.00589 & $-$0.01277 to +0.00145 \\
+15-25 & 6{,}393 & 5.3 & 4.9 & 0.5898 & 5.0 & 0.5977 & \textbf{+0.00793} & +0.00421 to +0.01235 \\
+25-35 & 22{,}311 & 6.9 & 6.5 & 0.6278 & 6.6 & 0.6422 & \textbf{+0.01441} & +0.01218 to +0.01683 \\
+35-45 & 25{,}536 & 8.3 & 7.9 & 0.6393 & 8.0 & 0.6490 & \textbf{+0.00976} & +0.00700 to +0.01202 \\
+45+ & 6{,}630 & 9.6 & 9.4 & 0.6563 & 9.5 & 0.6746 & \textbf{+0.01829} & +0.01370 to +0.02296 \\
+\bottomrule
+\end{tabular}
+\caption{The test rows by: legal moves.}
+\label{tab:slice-moves}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Group & Test rows & Happened & said & MAE & said & MAE & Gain & 95\% interval \\
+\midrule
+0 & 12{,}381 & 5.2 & 4.8 & 0.5607 & 4.9 & 0.5647 & \textbf{+0.003951} & +0.000667 to +0.007071 \\
+1 & 15{,}622 & 6.3 & 6.0 & 0.6056 & 6.0 & 0.6148 & \textbf{+0.00929} & +0.00627 to +0.01188 \\
+2 & 15{,}888 & 7.3 & 7.0 & 0.6336 & 7.1 & 0.6443 & \textbf{+0.01063} & +0.00761 to +0.01328 \\
+3 & 12{,}109 & 8.0 & 7.6 & 0.6437 & 7.7 & 0.6579 & \textbf{+0.01417} & +0.01082 to +0.01766 \\
+4+ & 12{,}579 & 8.8 & 8.5 & 0.6559 & 8.6 & 0.6714 & \textbf{+0.01546} & +0.01078 to +0.01923 \\
+\bottomrule
+\end{tabular}
+\caption{The test rows by: captures on offer.}
+\label{tab:slice-captures}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Group & Test rows & Happened & said & MAE & said & MAE & Gain & 95\% interval \\
+\midrule
+0 & 41{,}279 & 6.8 & 6.5 & 0.6139 & 6.6 & 0.6220 & \textbf{+0.008112} & +0.006193 to +0.009829 \\
+1 & 21{,}433 & 7.3 & 6.9 & 0.6249 & 7.0 & 0.6403 & \textbf{+0.01539} & +0.01220 to +0.01815 \\
+2 & 5{,}001 & 7.4 & 7.0 & 0.6436 & 7.1 & 0.6549 & \textbf{+0.01132} & +0.00544 to +0.01732 \\
+3+ & 866 & 7.8 & 7.3 & 0.6505 & 7.3 & 0.6595 & +0.00901 & $-$0.00567 to +0.02439 \\
+\bottomrule
+\end{tabular}
+\caption{The test rows by: the mover's pieces that can be taken.}
+\label{tab:slice-hanging}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Group & Test rows & Happened & said & MAE & said & MAE & Gain & 95\% interval \\
+\midrule
+no & 63{,}024 & 7.3 & 6.9 & 0.6282 & 7.0 & 0.6399 & \textbf{+0.01171} & +0.00992 to +0.01330 \\
+yes & 5{,}555 & 4.4 & 4.2 & 0.5267 & 4.3 & 0.5251 & $-$0.001618 & $-$0.005616 to +0.003766 \\
+\bottomrule
+\end{tabular}
+\caption{The test rows by: the mover is in check.}
+\label{tab:slice-check}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Group & Test rows & Happened & said & MAE & said & MAE & Gain & 95\% interval \\
+\midrule
+\textless{}10 & 9{,}442 & 6.1 & 5.4 & 0.5944 & 5.4 & 0.6062 & \textbf{+0.01180} & +0.00680 to +0.01511 \\
+10-20 & 4{,}367 & 7.8 & 6.9 & 0.6525 & 7.0 & 0.6635 & \textbf{+0.01097} & +0.00402 to +0.01733 \\
+20-40 & 6{,}545 & 7.9 & 7.2 & 0.6451 & 7.3 & 0.6548 & \textbf{+0.00970} & +0.00497 to +0.01388 \\
+40-60 & 23{,}235 & 6.7 & 6.2 & 0.6205 & 6.4 & 0.6302 & \textbf{+0.00973} & +0.00739 to +0.01213 \\
+60-80 & 8{,}077 & 8.2 & 7.9 & 0.6290 & 8.0 & 0.6407 & \textbf{+0.01167} & +0.00700 to +0.01575 \\
+80-90 & 5{,}223 & 8.1 & 8.1 & 0.6266 & 8.2 & 0.6396 & \textbf{+0.01305} & +0.00881 to +0.01788 \\
+90+ & 11{,}690 & 6.4 & 6.9 & 0.6040 & 7.0 & 0.6141 & \textbf{+0.01008} & +0.00642 to +0.01344 \\
+\bottomrule
+\end{tabular}
+\caption{The test rows by: the mover's winning chances before the move (percent).}
+\label{tab:slice-win}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Group & Test rows & Happened & said & MAE & said & MAE & Gain & 95\% interval \\
+\midrule
+\textless{}3 & 4{,}148 & 3.0 & 2.7 & 0.5192 & 2.8 & 0.5186 & $-$0.000646 & $-$0.006620 to +0.004557 \\
+3-6 & 7{,}579 & 5.4 & 5.2 & 0.5817 & 5.1 & 0.5909 & \textbf{+0.00921} & +0.00454 to +0.01336 \\
+6-9 & 13{,}919 & 8.0 & 7.7 & 0.6364 & 7.8 & 0.6490 & \textbf{+0.01254} & +0.00972 to +0.01557 \\
+9-12 & 16{,}671 & 8.3 & 7.9 & 0.6455 & 8.1 & 0.6573 & \textbf{+0.01177} & +0.00885 to +0.01438 \\
+12+ & 26{,}262 & 7.2 & 6.7 & 0.6220 & 6.8 & 0.6331 & \textbf{+0.01109} & +0.00835 to +0.01361 \\
+\bottomrule
+\end{tabular}
+\caption{The test rows by: knights, bishops, rooks and queens on the board.}
+\label{tab:slice-pieces}
+\end{table}

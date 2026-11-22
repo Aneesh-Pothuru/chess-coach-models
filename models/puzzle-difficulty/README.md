@@ -15,6 +15,12 @@ right height.
 | **Data** | The [Lichess puzzle database](https://database.lichess.org/#puzzles) (CC0): puzzles whose rating has settled (Glicko deviation at most 100 after at least 100 attempts), a fixed quarter of them chosen by a hash of the puzzle id. Recipe: [`datasets/puzzles.yaml`](../../datasets/puzzles.yaml). |
 | **Split** | By the game a puzzle was cut from: 85% train, 5% valid, 10% test. |
 
+**The paper.** [`paper/paper.pdf`](paper/paper.pdf) reads these results at
+length: every run, the figures, the cuts of the closer look, and positions
+as boards (ordinary ones, the ones the best run was surest of and the ones
+it got most wrong). `lab paper puzzle-difficulty` builds it from the results
+committed here ([`docs/design.md`](../../docs/design.md), "The paper").
+
 ## The rule
 
 Written before the first full run.

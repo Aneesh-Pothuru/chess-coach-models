@@ -51,6 +51,20 @@ The best run of each model on the harness, beside the tree baseline it is compar
 | [`think-time`](models/think-time/) | log(1 + seconds spent on the move) | `transformer-medium-hand` | MAE 0.6200 (0.6148 to 0.6246) | `gbm-hand` | 0.6306 | +0.01063 | 68,579 |
 <!-- LEADERBOARDS_END -->
 
+### Papers
+
+Each model with full results has a paper: its data, what it reads, every run, a closer look at
+where it is right and where it is wrong, example positions, and what the app can use today.
+`lab paper <model>` draws a paper from the model's committed results, so no number in it is typed.
+
+| Paper | Its question |
+|---|---|
+| [Puzzle difficulty](models/puzzle-difficulty/paper/paper.pdf) | How hard is this tactic for people? |
+| [Blunder hazard](models/blunder-hazard/paper/paper.pdf) | Before a move is played, how likely is the player to blunder here? |
+| [Think time](models/think-time/paper/paper.pdf) | How long do players at a level think in this position, on this clock? |
+| [Tactic found](models/tactic-found/paper/paper.pdf) | The opponent has just gone wrong. Does the player to move find the tactic? |
+| [Practical chances](models/practical-chances/paper/paper.pdf) | Between two people at these ratings, with these clocks, who wins from here? |
+
 ## One folder a model, one harness for all
 
 A model that reads a position does the same five things: get labelled positions from open data,
@@ -116,6 +130,7 @@ make setup        # .venv with Torch, LightGBM and the rest
 make test         # every test; CI runs the ones that need no Torch or data
 make smoke        # every model on the harness end to end on a small sample
 make models       # the full datasets, every run this machine can train, the leaderboards
+make papers       # every model's paper, drawn from its committed results (needs LaTeX)
 ```
 
 Runs marked `needs: cuda` wait for a GPU: [`colab/lab.ipynb`](colab/lab.ipynb) runs the same

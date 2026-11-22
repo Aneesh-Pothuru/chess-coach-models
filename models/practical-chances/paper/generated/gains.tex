@@ -1,0 +1,28 @@
+% Written by `lab paper practical-chances`; do not edit by hand.
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.6\textwidth,
+  height=3.70cm,
+  y dir=reverse,
+  ymin=-0.6, ymax=3.6,
+  ytick={0,1,2,3},
+  yticklabels={{\texttt{conv-small}},{\texttt{transformer-small}},{\texttt{transformer-medium}},{\texttt{transformer-medium-hand}}},
+  ytick style={draw=none},
+  y axis line style={draw=none},
+  xmajorgrids,
+  xlabel={Gain in RMSE over the reference (right of the line is better)},
+  xmin=-0.00269708, xmax=0.00188036,
+]
+\draw[labAxis, line width=0.6pt] (axis cs:0,-0.6) -- (axis cs:0,3.6);
+\node[anchor=south, font=\sffamily\scriptsize, text=labSecondary, inner sep=1.5pt] at (axis cs:0,-0.6) {\run{gbm-hand}};
+\draw[labMagenta, line width=1pt, line cap=round] (axis cs:-0.00115054,0) -- (axis cs:0.00141107,0);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labMagenta, mark options={draw=white, line width=0.6pt}] coordinates {(0.000161591,0)};
+\draw[labYellow, line width=1pt, line cap=round] (axis cs:-0.00119864,1) -- (axis cs:0.00156467,1);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labYellow, mark options={draw=white, line width=0.6pt}] coordinates {(0.000157432,1)};
+\draw[labAqua, line width=1pt, line cap=round] (axis cs:-0.00205578,2) -- (axis cs:0.000580445,2);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(-0.000741258,2)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-0.0023814,3) -- (axis cs:7.05219e-06,3);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-0.00122004,3)};
+\end{axis}
+\end{tikzpicture}

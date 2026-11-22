@@ -1,0 +1,22 @@
+% Written by `lab paper practical-chances`; do not edit by hand.
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.66\textwidth,
+  height=5.2cm,
+  ymajorgrids,
+  xlabel={Seconds on the opponent's clock},
+  ylabel={The mover's result},
+  legend columns=-1,
+  xtick={0,1,2,3,4,5},
+  xticklabels={{\textless{}30},{30-60},{60-120},{120-300},{300-480},{480+}},
+  xmin=-0.5, xmax=5.5,
+]
+\addplot[color=labInk, mark=o, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labInk}] coordinates {(0,0.666466) (1,0.600933) (2,0.551215) (3,0.494767) (4,0.498241) (5,0.497253)};
+\addlegendentry{what happened}
+\addplot[color=labSecondary, mark=diamond*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labSecondary}] coordinates {(0,0.585745) (1,0.529718) (2,0.516366) (3,0.512661) (4,0.529056) (5,0.523933)};
+\addlegendentry{\texttt{engine-curve}}
+\addplot[color=labOrange, mark=square*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labOrange}] coordinates {(0,0.680355) (1,0.585904) (2,0.536086) (3,0.493551) (4,0.496825) (5,0.498423)};
+\addlegendentry{\texttt{gbm-hand}}
+\end{axis}
+\end{tikzpicture}

@@ -1,0 +1,754 @@
+% Think time: the paper. What is typed here says what the numbers mean.
+% Every number, table, figure and board is written by `lab paper think-time`
+% into generated/, from the model's committed results, and read back with
+% \V{key} and \block{name}.
+\documentclass[11pt]{article}
+\input{../../../papers/preamble}
+\input{generated/values}
+
+\begin{document}
+
+\labtitle{Think time}
+  {How long do players at a level think in this position, on this clock?}
+  {Results of \V{results.date}\quad\textperiodcentered\quad dataset \V{data.name},
+   build \V{data.fingerprint}\quad\textperiodcentered\quad code \V{code.commit}}
+
+\begin{summary}
+``You moved too fast here'' needs a yardstick: two seconds mean one thing
+where a player's peers also take two, and another where they take twenty.
+This paper trains models of the time players take over a move, from the
+position, both ratings and both clocks, with no engine. The data is
+\V{data.rows} positions from \V{recipe.games} rated rapid games on Lichess,
+split by game. The label is the logarithm of the seconds spent, and the score
+is the mean absolute error of that logarithm, so an error is a factor. The
+best of \V{runs.count} runs, a square-token transformer that also reads
+\V{task.hand.count} hand-made counts, is off by a factor of
+\V{best.mae.factor} on a typical move (MAE \V{best.score}, 95\% interval
+\V{best.score.low} to \V{best.score.high}), against \V{reference.mae.factor}
+for gradient-boosted trees on the counts and \V{floor.mae.factor} for one
+time said for every move. Beyond the noise, \V{networks.ahead.of} beat the
+trees. Most of what can be predicted is the clock: trees that never see the
+board make \V{context.lift.share}\% of the reference's step from the floor.
+And most of a move's time cannot be predicted from the position at all: the
+best run explains a share of \V{best.r2} of the variance. The model says what
+is usual. One move far from it is weak evidence, and a pattern over many
+moves is what to read.
+\end{summary}
+
+\section{The question}
+
+An engine has no view of the clock, and a clock alone has no view of the
+board. A player's use of time sits between the two. The same eight seconds
+are a rush in a position with three captures to weigh, and a dawdle on a
+forced recapture.
+
+The coaching app this lab works for coaches thinking in rapid games, and the
+commonest thing it has to say is about pace: this move was played too fast,
+this one took longer than the position deserved. Said against a fixed number
+of seconds, that advice knows nothing of the position or the clock. Said
+against what players of the same rating take in the same position with the
+same time left, it is a comparison a player can use. A model of the typical think time is that
+yardstick.
+
+The time a move takes has been modelled as part of playing like a person:
+Allie predicts how long a player ponders along with the move
+itself~\cite{allie}, reading the game as a sequence. This paper asks a
+narrower question with the lab's common tools: from one position and its
+clocks, with no history and no engine, how much of the time can be told?
+The answer sets what the yardstick is worth before anything is built on it.
+
+\begin{table}[htbp]\centering\small
+\begin{tabularx}{\textwidth}{lL}
+\toprule
+Reads & The position, the opponent's last move, both ratings, both clocks,
+the time control and the move number. No engine: the question is what the
+player can see. \\
+Predicts & The seconds spent on the move, as $\log(1 + \text{seconds})$. \\
+Data & Rated Lichess rapid games of \V{data.month} (\V{data.licence}) with
+clocks: up to \V{recipe.per-game} positions a game. \\
+Split & By game: \V{data.share.train}\% train, \V{data.share.valid}\% valid,
+\V{data.share.test}\% test. \\
+Score & Mean absolute error of the logarithm on the test positions. Lower is
+better, and an error of 0.69 is a factor of two. \\
+\bottomrule
+\end{tabularx}
+\caption{The model in brief.}
+\label{tab:brief}
+\end{table}
+
+\section{The data}
+
+The positions are the ones the lab's blunder model reads. The source is the
+Lichess database of rated games for \V{data.month}~\cite{lichessdb}. The
+builder reads the month as a stream from its start and stops once
+\V{recipe.games} games have given rows, so the sample is the first games of
+the month and not a draw from all of it. A game gives rows when it is rated,
+played at rapid speed between two rated humans, ended over the board or on
+time, and carries Lichess's engine analysis and both clocks.
+
+From each such game up to \V{recipe.per-game} positions are kept, chosen by a
+hash of the game and the ply. None comes before ply \V{recipe.min-ply}, each
+side's sixth move, while players are still playing their openings from
+memory. That gives \V{data.rows} positions (Table~\ref{tab:data}). The split
+is a hash of the game, so no game has positions on both sides of it.
+
+\paragraph{The seconds a move took.}
+Lichess records each player's clock after every move. The time spent on a
+move is the mover's clock before it, less the clock after it, plus the
+increment the time control adds. Clocks are kept in whole seconds, so a move
+made at once reads as nought or one.
+
+\begin{table}[htbp]\centering\small
+\block{data}
+\caption{The dataset's rows by split.}
+\label{tab:data}
+\end{table}
+
+\iflook
+The builder read \V{manifest.games-read} games of the month to find the
+\V{manifest.games-kept} that gave rows. Half of all moves take
+\V{describe.spent.q50} seconds or less and a quarter take
+\V{describe.spent.q25} or less, while one in twenty takes more than
+\V{describe.spent.q95} and one in a hundred more than \V{describe.spent.q99}
+(Figure~\ref{fig:label}, Table~\ref{tab:describe}). A long tail like that is
+why the label is a logarithm. On the plain scale a model would be scored
+mostly on a few very long thinks. On the logarithm, a second matters as much
+between two seconds and four as between twenty and forty, which is how a
+player feels it.
+
+\begin{figure}[htbp]\centering
+\block{label}
+\caption{The seconds a move took over every row of the dataset, on the scale
+of the label.}
+\label{fig:label}
+\end{figure}
+
+\begin{table}[htbp]\centering\small
+\block{describe}
+\caption{The spread of a few columns over every row of the dataset: the mean,
+five quantiles, and the least and the most. Clocks and times are in seconds.}
+\label{tab:describe}
+\end{table}
+\fi
+
+\section{What a model reads}
+\label{sec:reads}
+
+\input{../../../papers/reading}
+
+\paragraph{This model reads the position before the move, and no engine.}
+The marks carry only the squares of the opponent's last move. The context
+numbers are both ratings, both clocks and the time control's starting time as
+logarithms, the increment, and the ply. The engine's evaluation is left out
+on purpose, though the dataset has it. A player does not know the
+evaluation, and the yardstick is meant to say what players do with what they
+can see.
+
+\section{The learners}
+\label{sec:learners}
+
+\input{../../../papers/learners}
+
+\section{How a result is scored}
+\label{sec:scoring}
+
+The model's card named its score before the first full run: the mean
+absolute error of $\log(1 + \text{seconds})$ on the test positions, where
+lower is better. An error on a logarithm is a factor: an error of 0.69 means
+the stated time was half or twice the time taken. This paper gives the
+factor beside the score, and gives times in seconds. A time said or averaged
+here is turned back from the logarithm, so it is a typical time, the kind a
+median is, and sits below the plain average, which the long thinks pull up.
+
+Three more scores are reported: the root mean squared error of the
+logarithm, R\textsuperscript{2}, the share of its variance a run explains,
+and Spearman's rank correlation, which asks only whether moves come out in
+the right order from fastest to slowest. A run beats the reference when its
+paired gain in MAE has a 95\% interval above zero. Results are also given by
+the mover's rating in \V{bands.count} bands.
+
+\input{../../../papers/scoring}
+
+\section{Results}
+\label{sec:results}
+
+\subsection{The leaderboard}
+
+Read from the bottom up, Table~\ref{tab:leaderboard} is a ladder. The floor
+says \V{floor.constant} seconds for every move, the median of the train
+rows, and is off by a factor of \V{floor.mae.factor}. Trees on the context
+numbers alone, \V{run.gbm-context.name}, bring that to
+\V{run.gbm-context.mae.factor} without ever seeing a board. That one step is
+\V{context.lift.share}\% of what the reference takes off the floor: most of
+what can be told about a move's time is the clock, the time control and the
+move number. The reference, which also reads the hand features of the
+position, reaches \V{reference.mae.factor}, and the best run
+\V{best.mae.factor} (Figure~\ref{fig:scores}).
+
+\begin{table}[htbp]\centering\small
+\block{leaderboard}
+\caption{The runs on the \V{data.rows.test} test positions, from
+\V{data.games.test} games, best first. The gain is paired with
+\V{task.reference} on the same resampled games, positive when the run is
+better, and bold when its interval leaves zero out.}
+\label{tab:leaderboard}
+\end{table}
+
+\begin{figure}[htbp]\centering
+\block{scores}
+\caption{Every run's MAE with its 95\% interval. The vertical line is the
+reference's score.}
+\label{fig:scores}
+\end{figure}
+
+\subsection{What a network adds}
+
+Little. Beyond the noise, \V{ladder.ahead.of} beat the trees,
+\V{ladder.behind.of} fell short of them, and the other \V{ladder.level} are
+level with them (Figure~\ref{fig:gains}). The one ahead is the medium
+transformer that also reads the hand features, with a paired gain of
+\V{run.transformer-medium-hand.gain}
+(\V{run.transformer-medium-hand.gain.low} to
+\V{run.transformer-medium-hand.gain.high}). The same transformer on the
+board alone is the one behind, at \V{run.transformer-medium.gain}, and the
+two small networks sit between.
+
+\begin{figure}[htbp]\centering
+\block{gains}
+\caption{Each network's paired gain in MAE over the reference, with its 95\%
+interval. Right of the line a network is ahead of the trees, left of it
+behind.}
+\label{fig:gains}
+\end{figure}
+
+The whole spread of the networks is narrow. The best run's gain is
+\V{best.gain.percent}\% of the reference's error, and \V{best.gain.of-lift}\%
+as large as the step from the floor to the reference. Handed the counts, the
+medium transformer scores \V{run.transformer-medium-hand.over-twin} better
+than its twin without them.
+\ifpairs
+Set against each other on the same resampled games, the one that reads them
+is \V{pair.transformer-medium-hand.transformer-medium.verdict}
+(Table~\ref{tab:pairs}).
+\fi
+So for this question the squares hold little that the clocks and a few
+counts do not, or little that a network of this size found in
+\V{recipe.games} games.
+
+\subsection{Most of a move's time stays unexplained}
+
+The best run explains a share of \V{best.r2} of the variance of the
+logarithm, and its rank correlation with the time taken is
+\V{best.spearman} (Table~\ref{tab:metrics}). Most of what makes one move
+slower than another is not in anything these learners read.
+
+\begin{table}[htbp]\centering\small
+\block{metrics}
+\caption{Every score of every run on the test positions. MAE and RMSE are of
+the logarithm, and lower is better; for R\textsuperscript{2} and Spearman's
+rank correlation higher is better. The floor says one number, so it has no
+rank correlation.}
+\label{tab:metrics}
+\end{table}
+
+That is not a surprise, and it is the main thing this paper has to say. A
+move is quick because it was planned two moves ago, because it is a
+recapture, because the opponent took long and the player used that time. It
+is slow because the player's plan has just been refuted. None of that is on
+the board. What is left for a model of one position is the usual pace of a
+kind of position on a kind of clock, and Section~\ref{sec:closer} shows the
+model has that pace right.
+
+\subsection{By the mover's rating}
+
+Every run's error rises with the mover's rating (Table~\ref{tab:bands}), and
+the floor's rises the same way, from \V{band.1.floor} for movers rated
+\V{band.1.name} to \V{band.5.floor} for those rated \V{band.5.name}. The
+floor's error in a band is the spread of that band's own times, so stronger
+players are not harder to model so much as more varied. A likely picture is
+a player who plays what is known at once and stops for a long time where it
+matters, though the table shows only the spread. A band's column is read
+from the top down, run against run, and never across.
+
+\begin{table}[htbp]\centering\small
+\block{bands-table}
+\caption{MAE by the mover's rating band. Read a column from the top down:
+the spread of the times differs from band to band, and every run's error
+with it.}
+\label{tab:bands}
+\end{table}
+
+Read that way, the best run leads the reference in \V{bands.best-ahead.of},
+by almost the same margin in each: between \V{bands.lead.narrowest} and
+\V{bands.lead.widest} (Figure~\ref{fig:bands}).
+\iflook
+Paired inside each band, the lead is beyond the noise in
+\V{slice.band.ahead.of} (Table~\ref{tab:slice-band} in the appendix). The
+typical time itself falls a little as the rating rises, from
+\V{slice.band.-1100.happened} seconds for movers under 1100 to
+\V{slice.band.2000+.happened} for those at 2000 and over.
+\fi
+
+\begin{figure}[htbp]\centering
+\block{bands}
+\caption{Each network's lead over the reference in MAE, band by band: the
+differences of the scores in Table~\ref{tab:bands}, without intervals. Above
+the dashed line a network is ahead of the trees.}
+\label{fig:bands}
+\end{figure}
+
+\subsection{How the networks learned}
+
+Figure~\ref{fig:curves} follows each network of the ladder on the valid
+positions after every epoch. By that score, \V{ladder.at-last-epoch.of}
+peaked at the last epoch given, so training stopped while they were still
+improving.
+\ifvariants
+Section~\ref{sec:changes} gives the medium transformers twice the epochs and
+says what that bought.
+\else
+A run with twice the epochs says how much was left, and it is the cheapest
+run to add.
+\fi
+
+\begin{figure}[htbp]\centering
+\block{curves}
+\caption{Each ladder network's MAE on the valid positions after every epoch.
+The dashed line is the reference's score on the same rows.}
+\label{fig:curves}
+\end{figure}
+
+\subsection{What the trees lean on}
+
+The reference grew \V{reference.trees} trees over \V{reference.features}
+features (Figure~\ref{fig:leans}). The three it leans on most are:
+\V{reference.leans.1.feature} (\V{reference.leans.1.share}\% of the gain),
+\V{reference.leans.2.feature} (\V{reference.leans.2.share}\%) and
+\V{reference.leans.3.feature} (\V{reference.leans.3.share}\%). The clock
+comes first, and the first thing the board contributes is how many moves
+there are to choose from. A share of gain says what the trees used. It does
+not say what makes a player think.
+
+\begin{figure}[htbp]\centering
+\block{leans}
+\caption{The ten features the reference's trees gained most from: each
+feature's share of the total gain of the splits made on it.}
+\label{fig:leans}
+\end{figure}
+
+\ifchanges
+\section{One change at a time}
+\label{sec:changes}
+
+\input{../../../papers/changes}
+\fi
+
+\section{A closer look}
+\label{sec:closer}
+
+\input{../../../papers/closer}
+
+\iflook
+\subsection{How close a prediction lands}
+
+An average error hides how the misses are spread. The best run's median miss
+is a factor of \V{best.close.median}, and nine in ten of its predictions
+fall within a factor of \V{best.close.p90}. It is within a factor of one and
+a half of the time taken for \V{best.close.within.1.5}\% of the test
+positions, within a factor of two for \V{best.close.within.2}\%, and within
+a factor of three for \V{best.close.within.3}\%
+(Table~\ref{tab:closeness}).
+
+\begin{table}[htbp]\centering\small
+\block{closeness}
+\caption{How close each run's predictions land on the test positions: the
+median miss and the miss nine in ten predictions fall within, as factors,
+and the share within a factor of one and a half, two and three of the time
+taken.}
+\label{tab:closeness}
+\end{table}
+
+The last of those shares sets what the yardstick may be used for. The moves
+outside it land more than a factor of three from the stated time, one way or
+the other, and there are too many of them to call each one a mistake of
+pace. Every run in the table is loose in the same way, because the looseness
+is in the moves and not in the model.
+
+\subsection{What a stated time is worth}
+
+Figure~\ref{fig:reliability} asks whether a stated time means what it says.
+The test positions are put in \V{best.reliability.groups} equal groups by
+what the best run said. For the group it calls fastest it says
+\V{best.reliability.lowest.said} seconds, and the typical time taken there
+was \V{best.reliability.lowest.happened}. For the group it calls slowest it
+says \V{best.reliability.highest.said}, against
+\V{best.reliability.highest.happened}. No group is further than about
+\V{best.reliability.widest-gap} second from what it was called. As a
+statement of the usual pace, the number can be trusted across its whole
+range.
+
+\begin{figure}[htbp]\centering
+\block{reliability}
+\caption{What a run said against the time taken, in seconds. The test
+positions are put in equal groups by what the run said; each point is one
+group's stated time against its typical time taken. The wash is the middle
+four fifths of the times taken in each group of the first run. On the
+diagonal a run is right about the usual pace at that level.}
+\label{fig:reliability}
+\end{figure}
+
+The wash is the other half of the answer. In the middle group, the middle
+four fifths of the times taken span about \V{best.reliability.spread}
+seconds around one stated time. And the range of what the model says is
+short: its slowest twentieth is called \V{best.reliability.highest.said}
+seconds, while one move in twenty takes more than \V{describe.spent.q95}.
+The model never says a long think is coming.
+
+Table~\ref{tab:seconds} shows the same thing from the other side, by
+grouping the moves by the time they took. This cut is by the truth, so it
+punishes any model for the times it could not foresee, and it is here to
+show how large that part is. Moves made in under two seconds are called
+\V{slice.seconds.-2.challenger.said} seconds by \V{challenger.name}. Moves
+that took eighty seconds or more, \V{slice.seconds.80+.happened} typically,
+are called \V{slice.seconds.80+.challenger.said}
+(Figure~\ref{fig:seconds-bias}).
+
+\begin{table}[htbp]\centering\footnotesize
+\block{slice-seconds}
+\caption{The test positions by the seconds the move took. For each group:
+its test rows, the typical time taken, what each of the two runs said on
+average and its MAE there, and the first run's paired gain over the second.}
+\label{tab:seconds}
+\end{table}
+
+\begin{figure}[htbp]\centering
+\block{slice-seconds-bias}
+\caption{What the two runs said on average, less the typical time taken, by
+the seconds the move took. Above the line a run calls a group's moves slower
+than they were, and below it faster.}
+\label{fig:seconds-bias}
+\end{figure}
+
+The table also shows where the network differs from the trees. It is ahead
+beyond the noise at both ends (\V{slice.seconds.ahead.groups}) and behind in
+the middle (\V{slice.seconds.behind.groups}). It reaches a little further
+from the usual time than the trees do, is closer for the fastest and the
+slowest moves, and pays a little for it on the ordinary ones.
+
+\subsection{By the clock}
+
+The clock is what the trees lean on most, and Table~\ref{tab:clock} shows
+why. With eight minutes or more left, the typical move takes
+\V{slice.clock.480+.happened} seconds, and between five and eight minutes
+\V{slice.clock.300-480.happened}. From there it shortens with the clock:
+\V{slice.clock.60-120.happened} with one to two minutes left,
+\V{slice.clock.30-60.happened} with half a minute to a minute, and
+\V{slice.clock.-30.happened} in the last half minute. The first group is
+lower than the second most likely because it holds the moves just out of the
+opening, which are played quickly (Table~\ref{tab:slice-ply}).
+
+\begin{table}[htbp]\centering\footnotesize
+\block{slice-clock}
+\caption{The test positions by the seconds on the mover's clock.}
+\label{tab:clock}
+\end{table}
+
+Both runs follow that pace group by group (Figure~\ref{fig:clock}): at its
+furthest \V{challenger.name} is \V{slice.clock.challenger.widest-off}
+seconds from the typical time taken. The network's lead over the trees is
+beyond the noise in \V{slice.clock.ahead.of}
+(\V{slice.clock.ahead.groups}). Under two minutes the two are level, and
+there are few positions there to tell them apart: a rapid game is mostly
+played with time in hand.
+
+\begin{figure}[htbp]\centering
+\block{slice-clock-said}
+\caption{The typical time a move took by the seconds on the mover's clock,
+beside what the two runs said on average.}
+\label{fig:clock}
+\end{figure}
+
+\subsection{By the stage of the game}
+
+A game has a pace of its own. The typical move takes
+\V{slice.ply.-20.happened} seconds before ply 20, rises to
+\V{slice.ply.30-40.happened} between ply 30 and 40, and falls to
+\V{slice.ply.80+.happened} from ply 80 on (Table~\ref{tab:slice-ply}). The
+material tells the same story: \V{slice.pieces.9-12.happened} seconds with
+nine to twelve knights, bishops, rooks and queens on the board, and
+\V{slice.pieces.-3.happened} with fewer than three
+(Table~\ref{tab:slice-pieces}). Players spend their time in the middlegame.
+Late moves are fast for two reasons that the cut does not hold apart: there
+is less on the board to weigh, and less on the clock to weigh it with.
+
+The network leads the trees beyond the noise through most of the game
+(\V{slice.ply.ahead.groups}). From ply 80 on the two are level, as they are
+with fewer than three pieces left.
+
+\subsection{By how much there is to choose from}
+
+What the board adds to the clock is mostly choice. The typical time is
+\V{slice.moves.-5.happened} seconds with fewer than five legal moves and
+\V{slice.moves.5-15.happened} with five to fifteen, and from there it rises
+at every step, to \V{slice.moves.45+.happened} with 45 or more
+(Table~\ref{tab:slice-moves}). By the captures on offer it rises at every
+step, from \V{slice.captures.0.happened} with none to
+\V{slice.captures.4+.happened} with four or more
+(Table~\ref{tab:captures}). A mover in check takes
+\V{slice.check.yes.happened} seconds, against \V{slice.check.no.happened}
+for one who is not (Table~\ref{tab:slice-check}): a check leaves little to
+choose from.
+
+\begin{table}[htbp]\centering\footnotesize
+\block{slice-captures}
+\caption{The test positions by how many of the mover's legal moves take
+something.}
+\label{tab:captures}
+\end{table}
+
+The mover's own pieces that can be taken move the time much less, from
+\V{slice.hanging.0.happened} seconds with none to
+\V{slice.hanging.3+.happened} with three or more
+(Table~\ref{tab:slice-hanging}). On these tables a threat to answer costs a
+player less time than a choice to make. The network's lead grows with the choice: its gain is
+\V{slice.captures.0.gain} with no capture on offer and
+\V{slice.captures.4+.gain} with four or more, and it is largest in the group
+with the most legal moves (\V{slice.moves.gain.most}). Where there is much
+to weigh, the squares add something to the counts.
+
+\subsection{By how the mover stands}
+
+No learner here reads an evaluation, so this cut asks what a model that
+does not know the score still gets right about it
+(Table~\ref{tab:slice-win}). Players think longest when the game is
+tilting: the typical time is \V{slice.win.60-80.happened} seconds with
+winning chances of 60 to 80\% and \V{slice.win.20-40.happened} at 20 to
+40\%. It is shortest at the two ends, \V{slice.win.-10.happened} under 10\%
+and \V{slice.win.90+.happened} at 90\% and over, where the game is decided.
+
+The model's own miss leans the way one would guess. In lost positions it
+says a time \V{slice.win.-10.challenger.off} seconds from the one taken, and
+in won ones \V{slice.win.90+.challenger.off}: players who are losing take a
+little longer than the board suggests, and players who are winning a little
+less. The miss is under a second either way. For a yardstick that is meant
+to know only what the player sees, that is the right size for it to be.
+
+\subsection{Two things at once}
+
+Figure~\ref{fig:grid} crosses the mover's rating with the clock. The upper
+grid is the typical time taken and the lower one what the run said. If the
+lower grid looks like the upper one, the run has the joint pattern and not
+only each margin.
+
+\begin{figure}[htbp]\centering
+\block{grid-rating-clock}
+
+\medskip
+\block{grid-rating-clock-said}
+\caption{The typical seconds a move took, by the mover's rating and the
+seconds on the mover's clock. Above: what happened. Below: what the best run
+that is not the reference said. Both grids share one scale of colour, and a
+cell with too few test positions is left empty.}
+\label{fig:grid}
+\end{figure}
+
+The two grids agree, and the joint pattern is worth saying: the stronger the
+player, the harder the squeeze when time is short. With five minutes or more
+left, movers under 1100 typically take
+\V{grid.rating-clock.-1100.300+.happened} seconds and movers at 2000 and
+over \V{grid.rating-clock.2000+.300+.happened}. In the last half minute the
+first take \V{grid.rating-clock.-1100.-30.happened} and the second
+\V{grid.rating-clock.2000+.-30.happened}. The short-clock cells hold few
+positions each (\V{grid.rating-clock.-1100.-30.rows} and
+\V{grid.rating-clock.2000+.-30.rows} in those two), so the last figures are
+rough.
+
+\subsection{Beside the reference}
+
+Table~\ref{tab:beside} sets each run's predictions beside the reference's on
+the same test positions. The best run's correlation with the reference is
+\V{best.beside.correlation}, and it is the closer of the two to the time
+taken on \V{best.beside.closer}\% of the positions. The two say nearly the
+same thing, and the network's gain is a small edge on a small majority of
+moves.
+
+\begin{table}[htbp]\centering\small
+\block{beside}
+\caption{Each run's predictions beside the reference's on the same test
+positions: their correlation, and how often the run is the closer of the two
+to the time taken.}
+\label{tab:beside}
+\end{table}
+
+\section{Positions}
+\label{sec:positions}
+
+The positions below were chosen by rule from the test games. Each board is
+seen from the side to move. The grey arrow is the opponent's last move and
+the blue arrow is the move that was played. Beside each board are the move,
+the time it took, what the best run and the reference said, and what the
+position came with. The games are public Lichess games; no game is named.
+
+The misses are the instructive ones, because neither kind is a failure to
+read the board. The moves the model called far slower than they were
+(Figure~\ref{fig:over}) took no time at all: on Lichess a move can be
+entered while the opponent is still thinking, and it is then played at once.
+The moves it called far faster than they were (Figure~\ref{fig:under}) each
+took minutes over an early move with most of the clock still left, which is
+a player away from the board as likely as a player thinking. Nothing in a
+position says either is about to happen, and a yardstick of the usual pace
+is better for not chasing them. The positions the model calls slowest and
+fastest are in the appendix (Figures~\ref{fig:highest}
+and~\ref{fig:lowest}): the slowest are middlegames in the longer time
+controls with most of the clock left, and the fastest are the last seconds
+of a game.
+
+\examples{examples-typical}{Ordinary positions: the first \V{examples.count}
+test positions in the order of a hash of their key, so nothing about them
+picked them.}{fig:typical}
+
+\examples{examples-over}{The best run's largest misses upward: the test
+positions where it said the longest time against the time
+taken.}{fig:over}
+
+\examples{examples-under}{The best run's largest misses downward: the test
+positions where it said the shortest time against the time
+taken.}{fig:under}
+\fi
+
+\section{What the app can use today}
+\label{sec:use}
+
+\begin{itemize}
+\item \textbf{The usual pace, stated in seconds.} What the model says for a
+position, a rating and a clock is right about the usual pace across its
+whole range. The app can show it beside the time the player took.
+\item \textbf{A pattern, never one move.} The typical miss is a factor of
+\V{best.mae.factor}. One move far from the yardstick is ordinary. What a
+review can stand on is a count over a game or a month: how often the player
+moved at less than a third of the usual time, and in what kind of position.
+\item \textbf{The clock first.} Trees that read only the ratings, the clocks
+and the move number make \V{context.lift.share}\% of the step from the floor
+to the reference. A yardstick from those numbers alone already says most of
+what any of these models says.
+\item \textbf{The trees are nearly all of it.} \V{task.reference} is off by a
+factor of \V{reference.mae.factor} against the best run's
+\V{best.mae.factor}, and it is a file of trees that needs no GPU.
+\item \textbf{Not a warning of a long think.} The model does not see the
+moves that take a minute coming, so it cannot tell a player where to slow
+down. That is the blunder model's job, from the same positions.
+\end{itemize}
+
+\section{What the model does not say yet}
+\label{sec:limits}
+
+\begin{itemize}
+\item \textbf{Much of a move's time is not on the board.} A premove, a
+recapture, how long the opponent just thought, a plan made two moves ago.
+None of it is in one position and its clocks.
+\item \textbf{One number, no spread.} The model gives the usual time and not
+how far players stray from it. ``Faster than nine in ten players of your
+level here'' needs the spread, which a head that predicts quantiles would
+give.
+\item \textbf{Whole seconds.} The clocks are recorded in whole seconds, so
+the fastest moves are known only roughly.
+\item \textbf{Short clocks are scarce.} A rapid game is mostly played with
+time in hand, and the groups under a minute are small.
+\item \textbf{Lichess rapid players.} The times are theirs. A player's own
+pace on another site is a separate fit, kept private.
+\item \textbf{No engine, on purpose.} The model does not know which
+positions are critical, so it measures the pace players keep, not the pace
+a position deserves.
+\end{itemize}
+
+\section{Cost and how to draw this again}
+\label{sec:cost}
+
+The \V{runs.count} runs took \V{cost.seconds} in all: \V{cost.seconds.networks}
+for the networks, which trained on a rented GPU (\V{best.device}), and
+\V{cost.seconds.others} for the floor and the trees. The best run has
+\V{best.parameters} parameters and trained for \V{best.epochs.run} epochs in
+\V{best.seconds}, at about \V{best.rows-a-second} positions a second.
+Table~\ref{tab:runs} has every run's time and Table~\ref{tab:settings} the
+ladder networks' settings.
+
+Everything is drawn from committed files. The dataset is built by
+\texttt{lab data game-positions} from the recipe, the runs are trained by
+\texttt{lab all think-time}, each run writes its record under the model's
+\texttt{results/} folder, and \texttt{lab paper think-time} writes every
+number, table and figure of this paper from those records and compiles it. A
+record names the build of the data it read (\V{data.fingerprint}) and the
+commit of the code that trained it (\V{code.commit}). Weights and test
+predictions are not committed. They are kept on the owner's machine, and the
+model's card says where and gives the hash of the best run's weights.
+
+\section{What comes next}
+
+\begin{itemize}
+\item \textbf{The spread, not only the middle.} A head that predicts a low,
+a middle and a high quantile of the time, so the app can say how unusual a
+move's time was.
+\item \textbf{The game as a sequence.} The moves and the clock use that led
+to a position hold what one position cannot: whether the move was a
+recapture, how long the opponent just took. That is how Allie reads a
+game~\cite{allie}.
+\item \textbf{One body for the think and the blunder.} The lab's blunder
+model, on the same positions, understates the danger of the moves that took
+longest. A body trained on both labels asks whether a long think can be read
+off the board after all.
+\ifvariants\else
+\item \textbf{A longer schedule.} Most of the networks were still improving
+when training stopped.
+\fi
+\ifgames\else
+\item \textbf{More games, or fewer.} A run on half and on a quarter of the
+training games says what a larger build would buy.
+\fi
+\item \textbf{The player's own pace.} A fit of the player's times against
+the yardstick, kept private, before the app states either.
+\end{itemize}
+
+\bibliographystyle{unsrt}
+\bibliography{../../../papers/references}
+
+\clearpage
+\appendix
+
+\section{Sizes, schedules and features}
+
+\begin{table}[htbp]\centering\footnotesize
+\block{settings}
+\caption{The ladder networks' sizes and schedules, from their run configs.
+\emph{Rate} is the peak learning rate. A setting they all share is in the
+line under the table.}
+\label{tab:settings}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\block{hand}
+\caption{The hand features: what \V{task.reference} reads beside the context
+numbers, and a network when its run asks for them.}
+\label{tab:hand}
+\end{table}
+
+\iflook
+\section{The extremes of what the model says}
+
+\examples{examples-highest}{The test positions for which the best run said
+the longest time.}{fig:highest}
+
+\examples{examples-lowest}{The test positions for which the best run said
+the shortest time.}{fig:lowest}
+
+\section{Every cut of the test positions}
+
+Each table below groups the test positions by one column. The columns are the
+group, its test rows, the typical time taken in seconds, then for each of the
+two runs the time it said on average and its MAE, and the paired gain of the
+first run over the second with its 95\% interval, bold when the interval
+leaves zero out.
+
+\block{slices}
+\fi
+
+\end{document}

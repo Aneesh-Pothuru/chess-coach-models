@@ -1,0 +1,34 @@
+% Written by `lab paper think-time`; do not edit by hand.
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.6\textwidth,
+  height=5.20cm,
+  y dir=reverse,
+  ymin=-0.6, ymax=6.6,
+  ytick={0,1,2,3,4,5,6},
+  yticklabels={{\texttt{transformer-medium-hand}},{\texttt{transformer-small}},{\texttt{conv-small}},{\texttt{gbm-hand}},{\texttt{transformer-medium}},{\texttt{gbm-context}},{\texttt{constant}}},
+  ytick style={draw=none},
+  y axis line style={draw=none},
+  xmajorgrids,
+  xlabel={MAE on the test rows (lower is better)},
+  xmin=0.601625, xmax=0.791984,
+]
+\draw[labAxis, line width=0.6pt] (axis cs:0.630582,-0.6) -- (axis cs:0.630582,6.6);
+\node[anchor=south, font=\sffamily\scriptsize, text=labSecondary, inner sep=1.5pt] at (axis cs:0.630582,-0.6) {\run{gbm-hand}};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:0.614753,0) -- (axis cs:0.624554,0);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.61995,0)};
+\draw[labYellow, line width=1pt, line cap=round] (axis cs:0.623336,1) -- (axis cs:0.63341,1);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labYellow, mark options={draw=white, line width=0.6pt}] coordinates {(0.628651,1)};
+\draw[labMagenta, line width=1pt, line cap=round] (axis cs:0.623632,2) -- (axis cs:0.63444,2);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labMagenta, mark options={draw=white, line width=0.6pt}] coordinates {(0.629185,2)};
+\draw[labOrange, line width=1pt, line cap=round] (axis cs:0.625479,3) -- (axis cs:0.635218,3);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labOrange, mark options={draw=white, line width=0.6pt}] coordinates {(0.630582,3)};
+\draw[labAqua, line width=1pt, line cap=round] (axis cs:0.627674,4) -- (axis cs:0.637375,4);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(0.632709,4)};
+\draw[labGreen, line width=1pt, line cap=round] (axis cs:0.673662,5) -- (axis cs:0.684643,5);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labGreen, mark options={draw=white, line width=0.6pt}] coordinates {(0.67943,5)};
+\draw[labGray, line width=1pt, line cap=round] (axis cs:0.766076,6) -- (axis cs:0.778856,6);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labGray, mark options={draw=white, line width=0.6pt}] coordinates {(0.772368,6)};
+\end{axis}
+\end{tikzpicture}

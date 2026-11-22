@@ -13,6 +13,12 @@ typical think time is that yardstick.
 | **Data** | The same positions as [blunder-hazard](../blunder-hazard/): rated Lichess rapid games of October 2026 (CC0) with clocks, up to 24 positions a game from each side's sixth move on. The seconds spent are the mover's clock before the move, less the clock after it, plus the increment. Recipe: [`datasets/game-positions.yaml`](../../datasets/game-positions.yaml). |
 | **Split** | By game: 85% train, 5% valid, 10% test. |
 
+**The paper.** [`paper/paper.pdf`](paper/paper.pdf) reads these results at
+length: every run, the figures, the cuts of the closer look, and positions
+as boards (ordinary ones, the ones the best run was surest of and the ones
+it got most wrong). `lab paper think-time` builds it from the results
+committed here ([`docs/design.md`](../../docs/design.md), "The paper").
+
 ## The rule
 
 Written before the first full run.

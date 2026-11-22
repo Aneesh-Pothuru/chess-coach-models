@@ -1,0 +1,24 @@
+% Written by `lab paper blunder-hazard`; do not edit by hand.
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.66\textwidth,
+  height=5.2cm,
+  ymajorgrids,
+  xlabel={Epoch},
+  ylabel={PR-AUC on the valid rows},
+  legend columns=2,
+  xtick distance=1,
+  xmin=0.5, xmax=12.5,
+]
+\draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:1,0.233336) -- (axis cs:12,0.233336) node[anchor=west, font=\sffamily\scriptsize, text=labSecondary, inner sep=2pt] {\run{gbm-hand}};
+\addplot[color=labBlue, mark=*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labBlue}] coordinates {(1,0.20899) (2,0.22617) (3,0.23038) (4,0.23571) (5,0.23298) (6,0.24173) (7,0.24494) (8,0.24529) (9,0.24893) (10,0.24703) (11,0.24764) (12,0.2476)};
+\addlegendentry{\texttt{transformer-medium-hand}}
+\addplot[color=labAqua, mark=triangle*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labAqua}] coordinates {(1,0.19467) (2,0.19817) (3,0.20818) (4,0.20841) (5,0.21087) (6,0.21394) (7,0.21678) (8,0.21804) (9,0.2213) (10,0.22002) (11,0.22268) (12,0.2231)};
+\addlegendentry{\texttt{transformer-medium}}
+\addplot[color=labMagenta, mark=pentagon*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labMagenta}] coordinates {(1,0.19647) (2,0.21141) (3,0.21754) (4,0.21721) (5,0.21786) (6,0.22517) (7,0.22599) (8,0.22406)};
+\addlegendentry{\texttt{conv-small}}
+\addplot[color=labYellow, mark=diamond*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labYellow}] coordinates {(1,0.20039) (2,0.2025) (3,0.21437) (4,0.21499) (5,0.22114) (6,0.22257) (7,0.22441) (8,0.22395)};
+\addlegendentry{\texttt{transformer-small}}
+\end{axis}
+\end{tikzpicture}

@@ -1,0 +1,926 @@
+% Practical chances: the paper. What is typed here says what the numbers mean.
+% Every number, table, figure and board is written by `lab paper
+% practical-chances` into generated/, from the model's committed results, and
+% read back with \V{key} and \block{name}.
+\documentclass[11pt]{article}
+\input{../../../papers/preamble}
+\input{generated/values}
+
+\begin{document}
+
+\labtitle{Practical chances}
+  {Between two people at these ratings, with these clocks, who wins from here?}
+  {Results of \V{results.date}\quad\textperiodcentered\quad dataset \V{data.name},
+   build \V{data.fingerprint}\quad\textperiodcentered\quad code \V{code.commit}}
+
+\begin{summary}
+An engine's evaluation says what a position is worth with best play. A review
+turns it into a chance of winning and shows it beside the position, and a
+player reads that number as a forecast of the game. This paper measures the
+forecast against the results of \V{recipe.games} rated rapid games on
+Lichess, \V{data.rows} positions split by game, and trains models that read
+the same evaluation together with both ratings, both clocks and the board.
+The score is the root mean squared error of the expected score. The engine's
+number as it stands reaches \V{run.engine-curve.score}. Trees that read it
+beside the ratings, the clocks and the move number, and never see the board,
+reach \V{run.gbm-context.score}, better by
+\V{pair.gbm-context.engine-curve.gain} on the same resampled games
+(\V{pair.gbm-context.engine-curve.gain.low} to
+\V{pair.gbm-context.engine-curve.gain.high}). The reference, trees that also
+read \V{task.hand.count} hand-made counts of the position, reaches
+\V{reference.score}, and \V{ladder.ahead.of} beat it beyond the noise.
+\iflook
+The engine's number is too sure at both ends. Where it gives the mover 80 to
+90\%, movers score \V{slice.win.80-90.happened}, and where it gives 10 to
+20\% they score \V{slice.win.10-20.happened}. It is furthest off for weaker
+players: from positions it rates at 80\% or more, movers under 1100 score
+\V{grid.rating-win.-1100.80+.happened} and movers at 2000 and over
+\V{grid.rating-win.2000+.80+.happened}. And it does not see the clock: with
+under thirty seconds left a mover scores \V{slice.clock.-30.happened} where
+the engine says \V{slice.clock.-30.engine-curve.said}.
+\fi
+The model to carry to the app is the trees, which train in seconds. What they
+change in a review is the number beside a position: the result two players at
+these ratings and clocks get from it, in place of the result best play gets.
+\end{summary}
+
+\section{The question}
+
+A review of a game shows a number beside every position: the engine's
+evaluation, turned by a fixed curve into the mover's chance of
+winning~\cite{lichessaccuracy}. The engine's side of that number is exact in
+its own terms. It is what the position is worth if both sides find the best
+moves from here on. The reader's side is not exact. A player sees 85\% and
+reads ``I should have won this'', and a coach who repeats the number repeats
+that reading.
+
+Whether the reading is fair depends on who is playing. A winning position
+still has to be won, and a lost one is often saved, more often the weaker the
+players and the shorter the clocks. The curve was not drawn for club players
+either. Its one multiplier was fitted to positions from rapid games between
+players rated 2300 and over, with the games lost on time left
+out~\cite{lilawinchances}. So this paper asks the practical question. Between
+two people at these ratings, with these clocks, what result does the mover
+get from here on average, and how far is that from the number the review
+shows?
+
+The answer serves a coach in both directions. Where the two numbers agree,
+the engine's verdict can be said as it stands. Where they part, the
+difference is itself the lesson: the level positions that players at a
+rating do not hold, the lost ones that were still a game, and the won ones
+that a short clock turns into a coin toss.
+
+The lab's blunder model asks a neighbouring question of the same positions:
+how likely is the next move to throw away a large part of the engine's
+number? This model asks for the game's result, which adds up every move
+still to come from both players.
+
+\begin{table}[htbp]\centering\small
+\begin{tabularx}{\textwidth}{lL}
+\toprule
+Reads & The position, the opponent's last move, both ratings, both clocks,
+the time control, the move number, and the mover's chance of winning by the
+engine before the move. \\
+Predicts & The mover's expected score in the game: a win 1, a draw a half, a
+loss 0. \\
+Data & Rated Lichess rapid games of \V{data.month} (\V{data.licence}) with
+engine analysis and clocks: up to \V{recipe.per-game} positions a game, each
+with its game's result. \\
+Split & By game: \V{data.share.train}\% train, \V{data.share.valid}\% valid,
+\V{data.share.test}\% test. \\
+Score & Root mean squared error of the expected score against the result on
+the test positions. Lower is better. \\
+\bottomrule
+\end{tabularx}
+\caption{The model in brief.}
+\label{tab:brief}
+\end{table}
+
+\section{The data}
+
+The positions are the ones the lab's blunder model and its think-time model
+read. The source is the Lichess database of rated games for
+\V{data.month}~\cite{lichessdb}. The builder reads the month as a stream from
+its start and stops once \V{recipe.games} games have given rows, so the
+sample is the first games of the month and not a draw from all of it. A game
+gives rows when it is rated, played at rapid speed between two rated humans,
+ended over the board or on time, and carries Lichess's engine analysis and
+both clocks.
+
+From each such game up to \V{recipe.per-game} positions are kept, chosen by a
+hash of the game and the ply. None comes before ply \V{recipe.min-ply}, each
+side's sixth move. That gives \V{data.rows} positions (Table~\ref{tab:data}).
+The split is a hash of the game, so no game has positions on both sides of
+it.
+
+\begin{table}[htbp]\centering\small
+\block{data}
+\caption{The dataset's rows by split.}
+\label{tab:data}
+\end{table}
+
+\paragraph{The label is the game's result.}
+Each position carries how its game ended for the player to move: 1 for a
+win, a half for a draw, 0 for a loss. A game lost on time is a loss, as it is
+for the player. The label says nothing about the position by itself. It is
+one outcome of everything both players did afterwards, and every position of
+a game carries the same one. So a single row teaches little. The average over
+many rows of a kind is the expected score this paper is after, and the test
+set is only as large as its games: \V{data.games.test} of them, for
+\V{data.rows.test} rows. Every interval below resamples whole games for that
+reason.
+
+\paragraph{The engine's number.}
+Lichess's analysis gives each position an evaluation, and the curve Lichess
+publishes turns it into the mover's chance of
+winning~\cite{lichessaccuracy}. The app uses the same curve, and a parity
+check in this repository holds the lab's curve to the app's. The number a row
+carries is taken from the evaluation of the position before the mover's
+move, so it is the engine's verdict with the mover still to play.
+
+\iflook
+The builder read \V{manifest.games-read} games of the month to find the
+\V{manifest.games-kept} that gave rows. Wins and losses are near equal, as
+they have to be when both players' moves give rows, and draws are few
+(Figure~\ref{fig:label}). The engine's number averages
+\V{describe.win-before.mean}\% over the rows and not 50, and
+Section~\ref{sec:half} says why. Half of the positions come with
+\V{describe.clock.q50} seconds or more on the mover's clock and one in twenty
+with under \V{describe.clock.q5}, so short clocks are scarce here
+(Table~\ref{tab:describe}).
+
+\begin{figure}[htbp]\centering
+\block{label}
+\caption{The label over every row of the dataset: a loss, a draw or a win
+for the player to move.}
+\label{fig:label}
+\end{figure}
+
+\begin{table}[htbp]\centering\small
+\block{describe}
+\caption{The spread of a few columns over every row of the dataset: the mean,
+five quantiles, and the least and the most. Clocks are in seconds and the
+winning chances in percent.}
+\label{tab:describe}
+\end{table}
+\fi
+
+\section{What a model reads}
+\label{sec:reads}
+
+\input{../../../papers/reading}
+
+\paragraph{This model reads the engine's verdict, and what the engine cannot
+see.}
+The marks carry only the squares of the opponent's last move. The context
+numbers are both ratings, both clocks and the time control's starting time
+as logarithms, the increment, the ply, and the mover's chance of winning by
+the engine before the move. That last number is the engine's whole verdict
+on the position. The question is what the rest adds to it: who is playing,
+how much time each has, and what the board looks like to a person.
+
+\section{The learners}
+\label{sec:learners}
+
+\input{../../../papers/learners}
+
+\paragraph{Two runs that fit nothing.}
+This model has two runs beside the ladder that train on no rows.
+\run{engine-curve} reads the engine's number as the expected score, as it
+stands: the mover's chance of winning, as a share. It is what a review shows
+today, and the first thing a model here has to beat. \run{elo-gap} is the
+rating formula on the two ratings, the expected score a rating system
+promises a game between them, with no view of the position.
+
+\section{How a result is scored}
+\label{sec:scoring}
+
+The model's card named its score before the first full run: the root mean
+squared error of the expected score against the game's result on the test
+positions, where lower is better. The choice matters more here than in the
+lab's other models, because the label has three values. The squared error is
+lowest for the true expected score and for nothing else. A run that says
+0.7 for positions whose movers score 0.7 on average cannot be beaten on them.
+
+The mean absolute error is reported beside it and must not be read as a
+ranking. On a result that is nearly always 0 or 1, the absolute error is
+lowest for a run that says 1 whenever the mover is the likelier winner and 0
+otherwise, so it rewards a run for being sure, right or wrong. The engine's
+curve shows it: its mean absolute error, \V{run.engine-curve.mae}, is lower
+than the reference's \V{reference.mae}, while its squared error is the worse
+of the two. The curve is the surer of the two runs and the less true, and
+Section~\ref{sec:closer} shows where.
+
+R\textsuperscript{2}, the share of the variance of the result a run
+explains, and Spearman's rank correlation are also reported. A run beats the
+reference when its paired gain in RMSE has a 95\% interval above zero.
+Results are also given by the mover's rating in \V{bands.count} bands.
+
+\input{../../../papers/scoring}
+
+\section{Results}
+\label{sec:results}
+
+\subsection{The leaderboard}
+
+Read from the bottom up, Table~\ref{tab:leaderboard} is a ladder with one
+surprise on its lowest rung. The rating formula, \run{elo-gap}, scores
+\V{run.elo-gap.score}, worse than the floor's \V{floor.score}, and the floor
+says one number for every position. Games are paired by rating, so the gap
+between two players is small, and Section~\ref{sec:formula} shows that where
+the gap is large the formula is far too sure of it.
+
+The engine's number as it stands, \run{engine-curve}, scores
+\V{run.engine-curve.score}. That is \V{run.engine-curve.lift.share}\% of the
+step the reference takes from the floor, with nothing fitted: the engine's
+verdict is most of what can be said about a result from one position. Trees
+on the context numbers, \V{run.gbm-context.name}, read that verdict beside
+the ratings, the clocks and the move number and reach
+\V{run.gbm-context.score}. The reference, which also reads the hand features
+of the position, reaches \V{reference.score}, and the best run
+\V{best.score} (Figure~\ref{fig:scores}).
+
+\begin{table}[htbp]\centering\small
+\block{leaderboard}
+\caption{The runs on the \V{data.rows.test} test positions, from
+\V{data.games.test} games, best first. The gain is paired with
+\V{task.reference} on the same resampled games, positive when the run is
+better, and bold when its interval leaves zero out.}
+\label{tab:leaderboard}
+\end{table}
+
+\begin{figure}[htbp]\centering
+\block{scores}
+\caption{Every run's RMSE with its 95\% interval. The vertical line is the
+reference's score.}
+\label{fig:scores}
+\end{figure}
+
+\subsection{A fitted model against the engine's number}
+
+This comparison is the model's reason to exist, so the card named it before
+the runs.
+\ifpairs
+Set against the curve on the same resampled test games, the trees that never
+see the board are \V{pair.gbm-context.engine-curve.verdict}: a gain of
+\V{pair.gbm-context.engine-curve.gain}
+(\V{pair.gbm-context.engine-curve.gain.low} to
+\V{pair.gbm-context.engine-curve.gain.high}), which is
+\V{pair.gbm-context.engine-curve.gain.percent}\% of the curve's error. The
+largest network against the curve is
+\V{pair.transformer-medium-hand.engine-curve.verdict}, at
+\V{pair.transformer-medium-hand.engine-curve.gain}
+(Table~\ref{tab:pairs}). The hand features add a little on top of the
+context numbers: \V{pair.gbm-hand.gbm-context.gain}
+(\V{pair.gbm-hand.gbm-context.gain.low} to
+\V{pair.gbm-hand.gbm-context.gain.high}),
+\V{pair.gbm-hand.gbm-context.verdict}.
+\fi
+In the leaderboard's own terms the curve stands \V{run.engine-curve.gain}
+from the reference, with an interval that leaves zero far out
+(\V{run.engine-curve.gain.low} to \V{run.engine-curve.gain.high}).
+
+The gain is small beside the error it is taken from, and it could not be
+large. From one position most of a result is still to be decided, and no run
+here explains more than a share of \V{best.r2} of its variance
+(Table~\ref{tab:metrics}). What the fitted runs gain is not a sharper guess
+at single games. It is a truer average: Section~\ref{sec:closer} shows the
+curve is off by a wide margin in particular kinds of position, and that a
+fitted run is not.
+
+\begin{table}[htbp]\centering\small
+\block{metrics}
+\caption{Every score of every run on the test positions. For RMSE lower is
+better and it is the score the runs are ranked by; MAE is printed for
+completeness and rewards a run for being sure
+(Section~\ref{sec:scoring}). For R\textsuperscript{2} and Spearman's rank
+correlation higher is better. The floor says one number, so it has no rank
+correlation.}
+\label{tab:metrics}
+\end{table}
+
+\subsection{What a network adds}
+
+Nothing that the intervals can see. Beyond the noise, \V{ladder.ahead.of}
+beat the trees and \V{ladder.behind.of} fell short of them
+(Figure~\ref{fig:gains}). Handed the hand features, the medium transformer
+does no better than without them: \V{run.transformer-medium-hand.over-twin}
+against its twin.
+\ifpairs
+Set against each other on the same resampled games, the one that reads them
+is \V{pair.transformer-medium-hand.transformer-medium.verdict}.
+\fi
+The network furthest from the trees, \run{transformer-medium-hand}, stands
+\V{run.transformer-medium-hand.gain} from them
+(\V{run.transformer-medium-hand.gain.low} to
+\V{run.transformer-medium-hand.gain.high}), which is
+\V{run.transformer-medium-hand.gain.percent}\% of the reference's error.
+
+\begin{figure}[htbp]\centering
+\block{gains}
+\caption{Each network's paired gain in RMSE over the reference, with its
+95\% interval. Right of the line a network is ahead of the trees, left of it
+behind.}
+\label{fig:gains}
+\end{figure}
+
+That is the expected answer for this label, not a failure of the networks.
+What a board holds beyond the engine's verdict is how hard the position is
+to play, and a game's result is a noisy witness to that: it arrives once a
+game, after dozens of further moves by both players. The trees find most of
+what there is in the verdict, the ratings and the clocks
+(Figure~\ref{fig:leans}), and \V{data.games.test} test games cannot tell
+apart the runs that find a little more.
+
+\subsection{By the mover's rating}
+
+Every run scores best in the top band (Table~\ref{tab:bands}), where
+results follow the engine's verdict most closely
+(Section~\ref{sec:closer}). The floor's error in a band is the spread of
+that band's own results, so a column is read from the top down, run against
+run, and never across.
+\iflook
+Read that way, the reference leads the curve in every band, by most for
+movers rated \V{slice.band.engine-curve.behind.most.group}
+(\V{slice.band.engine-curve.behind.most}) and by least for those rated
+\V{slice.band.engine-curve.behind.least.group}
+(\V{slice.band.engine-curve.behind.least}). These are differences of the two
+scores on the same rows, with no interval of their own.
+\fi
+
+\begin{table}[htbp]\centering\small
+\block{bands-table}
+\caption{RMSE by the mover's rating band. Read a column from the top down:
+the spread of the results differs from band to band, and every run's error
+with it.}
+\label{tab:bands}
+\end{table}
+
+\subsection{How the networks learned}
+
+Figure~\ref{fig:curves} follows each network of the ladder on the valid
+positions after every epoch. By that score, \V{ladder.at-last-epoch.of}
+peaked at the last epoch given: each found its best weights earlier and was
+stopped once \V{networks.patience} epochs passed without better ones. So a
+longer schedule is not the run to add here.
+
+\begin{figure}[htbp]\centering
+\block{curves}
+\caption{Each ladder network's RMSE on the valid positions after every
+epoch. The dashed line is the reference's score on the same rows.}
+\label{fig:curves}
+\end{figure}
+
+\subsection{What the trees lean on}
+
+The reference grew \V{reference.trees} trees over \V{reference.features}
+features (Figure~\ref{fig:leans}). The engine's number comes first by a wide
+margin: \V{reference.leans.1.feature}, with \V{reference.leans.1.share}\% of
+the gain. After it come \V{reference.leans.2.feature}
+(\V{reference.leans.2.share}\%), \V{reference.leans.3.feature}
+(\V{reference.leans.3.share}\%), \V{reference.leans.4.feature}
+(\V{reference.leans.4.share}\%), \V{reference.leans.5.feature}
+(\V{reference.leans.5.share}\%) and \V{reference.leans.6.feature}
+(\V{reference.leans.6.share}\%). A share of gain says what the trees used. It
+does not say what decides a game.
+
+\begin{figure}[htbp]\centering
+\block{leans}
+\caption{The ten features the reference's trees gained most from: each
+feature's share of the total gain of the splits made on it.}
+\label{fig:leans}
+\end{figure}
+
+\ifchanges
+\section{One change at a time}
+\label{sec:changes}
+
+\input{../../../papers/changes}
+\fi
+
+\section{A closer look}
+\label{sec:closer}
+
+\input{../../../papers/closer}
+
+\iflook
+\paragraph{A third run in every cut.}
+This paper's question is about a run that fits nothing, so the cuts below
+set \run{engine-curve} beside the reference: what the engine's number said
+on average in each group, what happened there, and what the reference said.
+Where a table gives the reference's lead over the curve in a group, it is
+the difference of the two scores on that group's rows. Only the gain of
+\V{challenger.name} over the reference was resampled group by group, so a
+lead over the curve has no interval, and a small group's lead is a
+direction, not a finding. The interval for the whole test set is in
+Section~\ref{sec:results}.
+
+\subsection{What the engine's number is worth as a forecast}
+
+Figure~\ref{fig:reliability} sorts the test positions by what a run said and
+cuts them into \V{reference.reliability.groups} groups of equal size. A
+forecast that can be taken at its word lies on the diagonal. The reference
+does: the widest gap between what it said in a group and what happened there
+is \V{reference.reliability.widest-gap}. The engine's curve bends away from
+the diagonal at both ends. Where it says
+\V{run.engine-curve.reliability.lowest.said}, movers score
+\V{run.engine-curve.reliability.lowest.happened}, and where it says
+\V{run.engine-curve.reliability.highest.said} they score
+\V{run.engine-curve.reliability.highest.happened}. Its widest gap is
+\V{run.engine-curve.reliability.widest-gap}, in a group it gives
+\V{run.engine-curve.reliability.widest-gap.said} whose movers score
+\V{run.engine-curve.reliability.widest-gap.happened}.
+
+\begin{figure}[htbp]\centering
+\block{reliability-engine-curve}
+\caption{What a run said against what happened, in
+\V{reference.reliability.groups} groups of equal size by what the run said.
+On the diagonal a stated score is the score movers got.}
+\label{fig:reliability}
+\end{figure}
+
+Table~\ref{tab:win} cuts the same way by the engine's number itself, in
+tenths, and Figure~\ref{fig:win-bias} draws how far each run is from what
+happened. Where the engine gives the mover under 10\%, movers score
+\V{slice.win.-10.happened} and the curve says
+\V{slice.win.-10.engine-curve.said}. At 10 to 20\% they score
+\V{slice.win.10-20.happened} against \V{slice.win.10-20.engine-curve.said}.
+On the winning side the curve errs the other way: at 80 to 90\% movers score
+\V{slice.win.80-90.happened} where it says
+\V{slice.win.80-90.engine-curve.said}, and at 90\% and over
+\V{slice.win.90+.happened} against \V{slice.win.90+.engine-curve.said}. The
+widest gap of the table, \V{slice.win.engine-curve.widest-off}, is in the
+group \V{slice.win.engine-curve.widest-off.group}. The reference's widest is
+\V{slice.win.reference.widest-off}, in the group
+\V{slice.win.reference.widest-off.group}.
+
+\begin{table}[htbp]\centering\footnotesize
+\block{slice-win-engine-curve}
+\caption{The test positions by the mover's chance of winning by the engine,
+in percent. \emph{Happened} is the movers' mean result; \emph{said} is a
+run's mean prediction. The last column is the reference's lead over the
+curve in RMSE on the group's rows, which has no interval.}
+\label{tab:win}
+\end{table}
+
+\begin{figure}[htbp]\centering
+\block{slice-win-bias-engine-curve}
+\caption{What each run said on average less what happened, by the mover's
+chance of winning by the engine. Above the dashed line a run promises the
+mover more than movers got.}
+\label{fig:win-bias}
+\end{figure}
+
+So a position the engine calls nearly lost is lost less often than it says,
+and one it calls nearly won is won less often. That is what a person would
+guess, and the size of it is the news. A position the engine rates between
+80\% and 90\% is worth less to its mover in these games than the curve says
+of one it rates between 70\% and 80\%
+(\V{slice.win.70-80.engine-curve.said}).
+
+\subsection{Half a move}
+\label{sec:half}
+
+The two ends are not mirror images: the curve's gaps are wider on the
+winning side. The reason is a shift that sits under the whole table. Over
+all the test positions the curve gives the mover
+\V{overall.engine-curve.said} on average, and the mover scores
+\V{overall.happened}. The second number has to be near a half, since both
+players' moves give rows and one player's win is the other's loss. The first
+would be a half as well if the engine's number were read at a random moment.
+It is read just before the mover moves. The opponent has just moved, and a
+move by a person gives something away on average. The mover's own move will
+give something away too, and it has not been played yet.
+
+The arithmetic is short. If a move costs $d$ points of winning chances on
+average, the number before a move stands half of $d$ above an even split. So
+the gap of \V{overall.engine-curve.off} is not the engine misjudging
+anything. It is what a mean loss of about twice that on every move looks
+like from the mover's chair, and it is in any review that shows the number
+before a move: on average it flatters whoever is to move. It widens the
+curve's gap on the winning side and narrows it on the losing side. The
+fitted runs have no such shift: the reference is off by
+\V{overall.gbm-hand.off} over all the test positions.
+
+One cut fits this reading. A mover in check has few moves to choose from and
+often one, so less to give away. There the curve says
+\V{slice.check.yes.engine-curve.said} and movers score
+\V{slice.check.yes.happened}, while out of check it says
+\V{slice.check.no.engine-curve.said} against \V{slice.check.no.happened}.
+
+\subsection{By the mover's rating}
+
+Figure~\ref{fig:grid-rating} crosses the mover's rating with the engine's
+number. Each cell is what a run said on average less what happened there,
+for the curve above and the reference below, on one scale of colour.
+
+\begin{figure}[htbp]\centering
+\block{grid-rating-win-off-engine-curve}
+\caption{What a run said on average less the movers' mean result, by the
+mover's rating and the mover's chance of winning by the engine. Above: the
+engine's curve. Below: the reference. Orange is a run that promises the mover
+more than movers got, blue one that promises less, and both grids share one
+scale. A cell with fewer than \V{grid.smallest-cell} test positions is left
+empty.}
+\label{fig:grid-rating}
+\end{figure}
+
+The curve's grid is coloured most strongly along its top row. From positions
+the engine rates at 80\% or more, movers under 1100 score
+\V{grid.rating-win.-1100.80+.happened}, where the curve says
+\V{grid.rating-win.-1100.80+.engine-curve.said}. Movers at 2000 and over
+score \V{grid.rating-win.2000+.80+.happened} against
+\V{grid.rating-win.2000+.80+.engine-curve.said}. At the other end, a mover
+under 1100 whom the engine gives under 20\% scores
+\V{grid.rating-win.-1100.-20.happened} where the curve says
+\V{grid.rating-win.-1100.-20.engine-curve.said}; at 2000 and over the two
+numbers are \V{grid.rating-win.2000+.-20.happened} and
+\V{grid.rating-win.2000+.-20.engine-curve.said}. The column of clear edges
+that are not yet decisive, 60 to 80\%, puts it in a coach's terms: under 1100
+such a position is worth \V{grid.rating-win.-1100.60-80.happened} to the
+mover, and at 2000 and over \V{grid.rating-win.2000+.60-80.happened}.
+
+The rows in between fall in order, and the order is the one the curve's own
+making predicts. It was fitted to games between players rated 2300 and over,
+and the note beside the fit says a lower multiplier suits lower-rated
+games~\cite{lilawinchances}. The bottom row of the grid is the nearest this
+dataset comes to those players, and there the curve stays close in every
+column. The reference's grid is pale throughout: it reads the ratings, and it
+has learned what the verdict is worth at each.
+
+A weak mover's lost positions are saved more often for the same reason a
+weak mover's won positions are lost: games are paired by rating, so the
+opponent is about as weak. The grid is a statement about a pairing, not
+about one player.
+
+\subsection{By the clock}
+
+The engine has no view of the clock, and the clock decides games. With under
+thirty seconds left the mover scores \V{slice.clock.-30.happened}, and with
+thirty to sixty \V{slice.clock.30-60.happened} (Table~\ref{tab:clock},
+Figure~\ref{fig:clock}). The engine's number in those two groups averages
+\V{slice.clock.-30.engine-curve.said} and
+\V{slice.clock.30-60.engine-curve.said}: on the board these movers stand
+about level. From two minutes up the clock makes little difference to the
+result, which is \V{slice.clock.120-300.happened} with two to five minutes
+left and \V{slice.clock.480+.happened} with eight or more.
+
+\begin{table}[htbp]\centering\footnotesize
+\block{slice-clock-engine-curve}
+\caption{The test positions by the seconds on the mover's clock. The last
+column is the reference's lead over the curve in RMSE on the group's rows,
+which has no interval.}
+\label{tab:clock}
+\end{table}
+
+\begin{figure}[htbp]\centering
+\block{slice-clock-said-engine-curve}
+\caption{The movers' mean result by the seconds on the mover's clock, beside
+what the engine's curve and the reference said on average.}
+\label{fig:clock}
+\end{figure}
+
+The same holds from the other chair (Figure~\ref{fig:opponent-clock}). A
+mover whose opponent has under thirty seconds scores
+\V{slice.opponent-clock.-30.happened}, where the curve says
+\V{slice.opponent-clock.-30.engine-curve.said}. The reference reads both
+clocks and follows both lines: it says \V{slice.clock.-30.reference.said}
+for a mover under thirty seconds and
+\V{slice.opponent-clock.-30.reference.said} for a mover whose opponent is.
+
+\begin{figure}[htbp]\centering
+\block{slice-opponent-clock-said-engine-curve}
+\caption{The movers' mean result by the seconds on the opponent's clock,
+beside what the engine's curve and the reference said on average.}
+\label{fig:opponent-clock}
+\end{figure}
+
+The reference's lead over the curve is widest in the group
+\V{slice.clock.engine-curve.behind.most.group}
+(\V{slice.clock.engine-curve.behind.most}) and narrowest in
+\V{slice.clock.engine-curve.behind.least.group}
+(\V{slice.clock.engine-curve.behind.least}). The short-clock groups are
+small, \V{slice.clock.-30.rows} and \V{slice.clock.30-60.rows} positions of
+\V{look.test-rows}, so those leads are a direction. The direction is the
+same in each of the three groups under two minutes, on the mover's clock and
+on the opponent's (Table~\ref{tab:slice-opponent-clock-engine-curve} in the
+appendix).
+
+Figure~\ref{fig:grid-clock} crosses the clock with the engine's number. With
+under thirty seconds, positions the engine calls level, 40 to 60\%, are worth
+\V{grid.clock-win.-30.40-60.happened} to the mover
+(\V{grid.clock-win.-30.40-60.rows} positions), and positions it rates at
+80\% or more are worth \V{grid.clock-win.-30.80+.happened}, where the curve
+says \V{grid.clock-win.-30.80+.engine-curve.said}. The widest gap of the
+curve's grid, \V{grid.clock-win.engine-curve.widest-off}, is in the row
+\V{grid.clock-win.engine-curve.widest-off.row} and the column
+\V{grid.clock-win.engine-curve.widest-off.column}, a cell of few positions.
+And time in hand does not close the gap: with five minutes or more, a
+position rated 80\% or more is worth \V{grid.clock-win.300+.80+.happened},
+against the curve's \V{grid.clock-win.300+.80+.engine-curve.said}.
+
+\begin{figure}[htbp]\centering
+\block{grid-clock-win-off-engine-curve}
+\caption{What a run said on average less the movers' mean result, by the
+seconds on the mover's clock and the mover's chance of winning by the
+engine. Above: the engine's curve. Below: the reference. Colours as in
+Figure~\ref{fig:grid-rating}.}
+\label{fig:grid-clock}
+\end{figure}
+
+\subsection{By the stage of the game}
+
+Every run's error falls as the game goes on (Table~\ref{tab:ply}). Before ply
+20 the reference scores \V{slice.ply.-20.reference}, and one number for
+every position \V{slice.ply.-20.constant}: early in a game the result is
+open, and no reading of the position narrows it much. From ply 80 on the
+reference scores \V{slice.ply.80+.reference} against the floor's
+\V{slice.ply.80+.constant}. The later the position, the more of the result
+is already on the board.
+
+\begin{table}[htbp]\centering\footnotesize
+\block{slice-ply-engine-curve}
+\caption{The test positions by the ply of the game. The last column is the
+reference's lead over the curve in RMSE on the group's rows, which has no
+interval.}
+\label{tab:ply}
+\end{table}
+
+The reference's lead over the curve is narrowest in the group
+\V{slice.ply.engine-curve.behind.least.group}
+(\V{slice.ply.engine-curve.behind.least}) and widest in
+\V{slice.ply.engine-curve.behind.most.group}
+(\V{slice.ply.engine-curve.behind.most}). Late positions are where clocks
+have run down and verdicts have become extreme, the two places the curve is
+furthest off, so this table most likely repeats the last two subsections
+more than it adds to them. The cut by the pieces left on the board says the
+same (Table~\ref{tab:slice-pieces-engine-curve} in the appendix).
+
+\subsection{What the board adds}
+
+The hand features count what can be taken. A mover with none of their own
+pieces hanging scores \V{slice.hanging.0.happened} and one with two hanging
+\V{slice.hanging.2.happened}; a mover whose opponent has two pieces hanging
+scores \V{slice.opponent-hanging.2.happened}
+(Tables~\ref{tab:slice-hanging-engine-curve}
+and~\ref{tab:slice-opponent-hanging-engine-curve} in the appendix). The
+engine's number moves with these counts as well, since a piece that can be
+taken is already in its verdict, and in every group but the smallest the
+curve stays about as far above what happened as it does over all the test
+positions. So the counts tell the trees little that the verdict has not
+told them, which is why they add so little to the score.
+
+\subsection{The rating formula}
+\label{sec:formula}
+
+Figure~\ref{fig:formula} is the picture behind the leaderboard's lowest
+rung. The formula's groups lie on a line much flatter than the diagonal.
+Where it gives the mover \V{run.elo-gap.reliability.lowest.said}, the
+lowest twentieth of what it says, movers score
+\V{run.elo-gap.reliability.lowest.happened}. Where it gives
+\V{run.elo-gap.reliability.highest.said}, they score
+\V{run.elo-gap.reliability.highest.happened}.
+
+\begin{figure}[htbp]\centering
+\block{reliability-elo-gap}
+\caption{What the rating formula said against what happened, in
+\V{reference.reliability.groups} groups of equal size by what it said, with
+the reference beside it.}
+\label{fig:formula}
+\end{figure}
+
+That the position says more than the ratings from the sixth move on does
+not explain a line this flat. The formula was made for whole games, and a
+position's result is its game's, so on these rows it should hold as well as
+it does on the games. Why it does not is not something this dataset can say
+yet, and two readings are open. One is the pairing. Most games here are
+between players close in rating, so a large gap is unusual, and an unusual
+pairing may more often involve a rating that is not settled, such as a new
+account's, which says less than the formula assumes. The other is the
+sample: only analysed games give rows, players choose which games to
+analyse, and an upset may be chosen more often. The games' headers carry
+each player's rating change, which is large for an unsettled rating, and a
+column of it would test the first reading. Until then the plain finding
+stands: in these games the rating gap alone forecasts a result worse than
+one number does.
+
+\subsection{Beside the reference}
+
+Table~\ref{tab:beside} sets each run's predictions beside the reference's,
+row by row. The engine's curve is closer to the result than the reference on
+\V{run.engine-curve.beside.closer}\% of the test positions and has the worse
+score all the same. That is the mean absolute error's lesson again
+(Section~\ref{sec:scoring}): the curve is surer, so it is a little closer
+whenever the likelier result comes in and far off whenever it does not.
+
+\begin{table}[htbp]\centering\small
+\block{beside}
+\caption{Each run beside the reference on the test positions: the
+correlation of the two runs' predictions, and the share of positions on
+which the run's prediction lies closer to the result than the reference's.}
+\label{tab:beside}
+\end{table}
+
+\section{Positions}
+\label{sec:positions}
+
+The positions below were chosen by rule from the test games. Each board is
+seen from the side to move. The grey arrow is the opponent's last move and
+the blue arrow is the move that was played. Beside each board are the move,
+the game's result for the mover, what the best run and the reference said,
+and what the position came with, the engine's number among it. The games are
+public Lichess games; no game is named.
+
+A miss means something else here than in the lab's other papers. The label
+is one game's result, so a run that says 0.9 is wrong on a tenth of such
+positions by its own account, and its largest misses are those games. In
+this build the largest misses upward (Figure~\ref{fig:over}) are positions
+the best run called won, in games the mover lost: two are a few moves apart
+in one game, with the mover ahead on the board and the opponent down to a
+few seconds, and the third is an ending that went on for many moves more and
+was lost. The largest misses downward (Figure~\ref{fig:under}) are three
+positions of one game, at the engine's lowest number, which the mover won.
+Neither set shows a fault of the model. They show what the average is made
+of. The positions the best run is surest of are in the appendix
+(Figures~\ref{fig:highest} and~\ref{fig:lowest}): the highest are winning
+positions against an opponent with seconds left, and the lowest are lost
+positions with the mover's own clock nearly gone or against an opponent
+rated far higher.
+
+\examples{examples-typical}{Ordinary positions: the first \V{examples.count}
+test positions in the order of a hash of their key, so nothing about them
+picked them.}{fig:typical}
+
+\examples{examples-over}{The best run's largest misses upward: the test
+positions where it said the highest score for a mover who
+lost.}{fig:over}
+
+\examples{examples-under}{The best run's largest misses downward: the test
+positions where it said the lowest score for a mover who
+won.}{fig:under}
+\fi
+
+\section{What the app can use today}
+\label{sec:use}
+
+\begin{itemize}
+\item \textbf{A second number beside the engine's.} The engine says what the
+position is worth. The trees say what players at these ratings and clocks
+score from it. A review can show both, and the second is right on average
+across its whole range.
+\item \textbf{The difference is the lesson.} Where the two numbers part, the
+position is harder for the mover than the engine's verdict says, or easier:
+a won game that is routinely not won at the player's level, a lost one that
+is routinely saved. Those are the positions a coach would stop at.
+\item \textbf{A table is nearly enough.} Trees that read only the engine's
+number, the ratings, the clocks and the move number make
+\V{context.lift.share}\% of the reference's step from the floor, and the
+engine's number alone \V{run.engine-curve.lift.share}\%. A table by rating
+and engine's number, with a term for a short clock, needs no model in the
+app at all, and the refitted curve named in the last section measures how
+much of the correction it carries.
+\item \textbf{The number before a move flatters the mover.} Read before the
+mover's own move, the engine's chance stands above the result by half a
+typical move's loss. A review that compares the number before and after a
+move is not touched by this. One that says ``you stood at 60\% here'' is.
+\item \textbf{The trees are the model.} \V{task.reference} trains in
+\V{reference.seconds} on a CPU, and \V{ladder.ahead.of} beat it.
+\item \textbf{Never a verdict on one game.} No run explains more than a
+share of \V{best.r2} of the variance of a result. The number is an average
+over many games of a kind, and one game says nothing against it.
+\end{itemize}
+
+\section{What the model does not say yet}
+\label{sec:limits}
+
+\begin{itemize}
+\item \textbf{One result a game.} Every position of a game carries the same
+result, so the test set is as large as its games. The intervals resample
+whole games for that reason, and more games is the first thing to add.
+\item \textbf{No intervals for the curve, group by group.} The reference's
+lead over the engine's curve is resampled over all the test positions. In
+the cuts it is a difference of two scores.
+\item \textbf{A lost position won on the clock is a win.} The label counts
+it as the player does. The data does not yet say which results were flags.
+\item \textbf{A pairing, not a player.} Games are paired by rating, so what
+a weak mover saves is also what a weak opponent lets slip.
+\item \textbf{Only analysed games.} Only games with Lichess's engine
+analysis give a row, and players choose which games to analyse.
+\item \textbf{The evaluation is as deep as Lichess's server analysis.} A
+deeper search would move some verdicts.
+\item \textbf{Lichess rapid players.} The ratings are Lichess's, and another
+site's need mapping first.
+\item \textbf{A score that can leave the scale.} A fitted run is not held
+between 0 and 1, and at the ends it says a little less than 0 or more than
+1. The app would clip it.
+\item \textbf{What happens, not what would.} The model says what players at
+a level score from a kind of position. It does not say what this player
+would have scored by playing differently.
+\end{itemize}
+
+\section{Cost and how to draw this again}
+\label{sec:cost}
+
+The \V{runs.count} runs took \V{cost.seconds} in all: \V{cost.seconds.networks}
+for the networks, which trained on a rented GPU (\V{best.device}), and
+\V{cost.seconds.others} for the floor, the two runs that fit nothing and the
+trees. The best run has \V{best.parameters} parameters and trained for
+\V{best.epochs.run} epochs in \V{best.seconds}, at about
+\V{best.rows-a-second} positions a second. Table~\ref{tab:runs} has every
+run's time and Table~\ref{tab:settings} the ladder networks' settings.
+
+Everything is drawn from committed files. The dataset is built by
+\texttt{lab data game-positions} from the recipe, the runs are trained by
+\texttt{lab all practical-chances}, each run writes its record under the
+model's \texttt{results/} folder, and \texttt{lab paper practical-chances}
+writes every number, table and figure of this paper from those records and
+compiles it. A record names the build of the data it read
+(\V{data.fingerprint}) and the commit of the code that trained it
+(\V{code.commit}). Weights and test predictions are not committed. They are
+kept on the owner's machine, and the model's card says where and gives the
+hash of the reference's trees.
+
+\section{What comes next}
+
+\begin{itemize}
+\ifgames\else
+\item \textbf{More games, or fewer.} A run on half and on a quarter of the
+training games says what a larger build would buy, and for a label that
+arrives once a game it may buy a good deal.
+\fi
+\item \textbf{The curve, refitted.} One multiplier for each rating band and
+a term for the clock, fitted to these games. It is the smallest thing that
+could be carried to the app, and where it lands between \run{engine-curve}
+and \run{gbm-context} says how much of the trees' lead is a curve away.
+\item \textbf{Intervals for the curve in every cut.} The closer look
+resamples one pair of runs group by group. Resampling the reference against
+the curve the same way would turn this paper's directions into findings.
+\item \textbf{Three chances, not one score.} A head that gives a win, a
+draw and a loss says how often a level position is drawn at a rating, which
+one expected score hides.
+\item \textbf{The flag apart from the board.} A column for how the game
+ended would say how much of the clock's effect is the flag itself.
+\item \textbf{The unsettled rating.} A column for each player's rating
+change, to say what the rating formula is worth once new accounts are set
+aside.
+\item \textbf{The player's own scale.} A check, kept private, of whether
+the fitted number forecasts the player's own results better than the
+engine's does, after the ratings are mapped.
+\end{itemize}
+
+\bibliographystyle{unsrt}
+\bibliography{../../../papers/references}
+
+\clearpage
+\appendix
+
+\section{Sizes, schedules and features}
+
+\begin{table}[htbp]\centering\footnotesize
+\block{settings}
+\caption{The ladder networks' sizes and schedules, from their run configs.
+\emph{Rate} is the peak learning rate. A setting they all share is in the
+line under the table.}
+\label{tab:settings}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\block{hand}
+\caption{The hand features: what \V{task.reference} reads beside the context
+numbers, and a network when its run asks for them.}
+\label{tab:hand}
+\end{table}
+
+\iflook
+\section{The extremes of what the model says}
+
+\examples{examples-highest}{The test positions for which the best run said
+the highest score.}{fig:highest}
+
+\examples{examples-lowest}{The test positions for which the best run said
+the lowest score.}{fig:lowest}
+
+\section{Every cut of the test positions, for the engine's curve}
+
+Each table below groups the test positions by one column. The columns are the
+group, its test rows, the movers' mean result, then for the engine's curve
+and for the reference what the run said on average and its RMSE, and the
+reference's lead over the curve in RMSE on the group's rows, which has no
+interval.
+
+\block{slices-engine-curve}
+
+\section{Every cut of the test positions, for the best network}
+
+The same cuts for the pair of runs whose gain was resampled group by group:
+\V{challenger.name}, the best run that is not the reference, and the
+reference. The last two columns are the paired gain of the first over the
+second with its 95\% interval, bold when the interval leaves zero out. Of
+the \V{slices.compared} groups compared across the \V{slices.count} cuts,
+the first run is ahead beyond the noise in \V{slices.ahead} and behind in
+\V{slices.behind}.
+
+\block{slices}
+\fi
+
+\end{document}

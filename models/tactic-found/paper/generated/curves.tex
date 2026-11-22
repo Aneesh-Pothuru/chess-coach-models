@@ -1,0 +1,24 @@
+% Written by `lab paper tactic-found`; do not edit by hand.
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.66\textwidth,
+  height=5.2cm,
+  ymajorgrids,
+  xlabel={Epoch},
+  ylabel={Log loss on the valid rows},
+  legend columns=2,
+  xtick distance=1,
+  xmin=0.5, xmax=12.5,
+]
+\draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:1,0.541484) -- (axis cs:12,0.541484) node[anchor=west, font=\sffamily\scriptsize, text=labSecondary, inner sep=2pt] {\run{gbm-hand}};
+\addplot[color=labBlue, mark=*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labBlue}] coordinates {(1,0.55718) (2,0.55323) (3,0.54976) (4,0.54513) (5,0.54372) (6,0.54428) (7,0.54238) (8,0.54027) (9,0.53973) (10,0.53935) (11,0.53935) (12,0.53942)};
+\addlegendentry{\texttt{transformer-medium-hand}}
+\addplot[color=labMagenta, mark=pentagon*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labMagenta}] coordinates {(1,0.5815) (2,0.56525) (3,0.55676) (4,0.55409) (5,0.55117) (6,0.55273) (7,0.55724) (8,0.55978)};
+\addlegendentry{\texttt{conv-small}}
+\addplot[color=labAqua, mark=triangle*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labAqua}] coordinates {(1,0.57714) (2,0.57099) (3,0.56235) (4,0.55815) (5,0.5568) (6,0.55862) (7,0.55553) (8,0.55328) (9,0.55206) (10,0.55159) (11,0.55082) (12,0.55067)};
+\addlegendentry{\texttt{transformer-medium}}
+\addplot[color=labYellow, mark=diamond*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labYellow}] coordinates {(1,0.57248) (2,0.56267) (3,0.56026) (4,0.55693) (5,0.55649) (6,0.55377) (7,0.55338) (8,0.5528)};
+\addlegendentry{\texttt{transformer-small}}
+\end{axis}
+\end{tikzpicture}

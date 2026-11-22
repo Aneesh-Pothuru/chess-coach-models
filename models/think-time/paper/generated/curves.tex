@@ -1,0 +1,24 @@
+% Written by `lab paper think-time`; do not edit by hand.
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.66\textwidth,
+  height=5.2cm,
+  ymajorgrids,
+  xlabel={Epoch},
+  ylabel={MAE on the valid rows},
+  legend columns=2,
+  xtick distance=1,
+  xmin=0.5, xmax=12.5,
+]
+\draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:1,0.640571) -- (axis cs:12,0.640571) node[anchor=west, font=\sffamily\scriptsize, text=labSecondary, inner sep=2pt] {\run{gbm-hand}};
+\addplot[color=labBlue, mark=*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labBlue}] coordinates {(1,0.66206) (2,0.64502) (3,0.64358) (4,0.6416) (5,0.63687) (6,0.63691) (7,0.63633) (8,0.63416) (9,0.63125) (10,0.63066) (11,0.63018) (12,0.63021)};
+\addlegendentry{\texttt{transformer-medium-hand}}
+\addplot[color=labYellow, mark=diamond*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labYellow}] coordinates {(1,0.67393) (2,0.66567) (3,0.66121) (4,0.6496) (5,0.64444) (6,0.64355) (7,0.64127) (8,0.64025)};
+\addlegendentry{\texttt{transformer-small}}
+\addplot[color=labMagenta, mark=pentagon*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labMagenta}] coordinates {(1,0.67569) (2,0.66778) (3,0.66096) (4,0.65152) (5,0.64696) (6,0.64315) (7,0.64211) (8,0.64162)};
+\addlegendentry{\texttt{conv-small}}
+\addplot[color=labAqua, mark=triangle*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labAqua}] coordinates {(1,0.68557) (2,0.66784) (3,0.65958) (4,0.65643) (5,0.65394) (6,0.65215) (7,0.65193) (8,0.65025) (9,0.64766) (10,0.64569) (11,0.64492) (12,0.64483)};
+\addlegendentry{\texttt{transformer-medium}}
+\end{axis}
+\end{tikzpicture}

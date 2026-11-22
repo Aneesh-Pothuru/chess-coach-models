@@ -1,0 +1,80 @@
+% Written by `lab paper tactic-found`; do not edit by hand.
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.6\textwidth,
+  height=14.90cm,
+  y dir=reverse,
+  ymin=-0.6, ymax=29.6,
+  ytick={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29},
+  yticklabels={{short},{middlegame},{crushing},{endgame},{advantage},{long},{mate},{fork},{mateIn2},{master},{sacrifice},{kingsideAttack},{veryLong},{pin},{oneMove},{discoveredAttack},{opening},{advancedPawn},{mateIn1},{defensiveMove},{deflection},{attraction},{rookEndgame},{hangingPiece},{mateIn3},{quietMove},{backRankMate},{exposedKing},{pawnEndgame},{skewer}},
+  ytick style={draw=none},
+  y axis line style={draw=none},
+  xmajorgrids,
+  xlabel={Gain in log loss of \run{transformer-medium-hand} over the reference},
+  xmin=-0.0142425, xmax=0.0146722,
+]
+\draw[labAxis, line width=0.6pt] (axis cs:0,-0.6) -- (axis cs:0,29.6);
+\node[anchor=south, font=\sffamily\scriptsize, text=labSecondary, inner sep=1.5pt] at (axis cs:0,-0.6) {\run{gbm-hand}};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:0.00188543,0) -- (axis cs:0.00479436,0);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.00318979,0)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:0.00460812,1) -- (axis cs:0.00764074,1);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.00604422,1)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:0.00237883,2) -- (axis cs:0.00636415,2);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.00429549,2)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:0.000511206,3) -- (axis cs:0.00408101,3);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.00231958,3)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:0.00437055,4) -- (axis cs:0.00853951,4);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.00640839,4)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:0.00634376,5) -- (axis cs:0.0114467,5);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.00871609,5)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-0.000616258,6) -- (axis cs:0.0039748,6);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.00165135,6)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:0.0024512,7) -- (axis cs:0.0077816,7);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.00501512,7)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-0.00199333,8) -- (axis cs:0.00500234,8);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.00153592,8)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-0.00098271,9) -- (axis cs:0.00556347,9);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.00251608,9)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:0.002151,10) -- (axis cs:0.0116737,10);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.00693155,10)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:0.00137266,11) -- (axis cs:0.0103296,11);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.00577936,11)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-0.00266765,12) -- (axis cs:0.00620534,12);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.00201282,12)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-0.00120767,13) -- (axis cs:0.0080766,13);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.00320258,13)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-0.00145345,14) -- (axis cs:0.00593004,14);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.0021397,14)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-0.00061217,15) -- (axis cs:0.0093509,15);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.00417902,15)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:0.00139857,16) -- (axis cs:0.011279,16);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.00662871,16)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-0.003268,17) -- (axis cs:0.00635621,17);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.001997,17)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-0.00317156,18) -- (axis cs:0.00486956,18);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.000576265,18)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-0.004383,19) -- (axis cs:0.00585904,19);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.000984101,19)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-0.00293888,20) -- (axis cs:0.00861559,20);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.0028986,20)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-0.0122484,21) -- (axis cs:0.00189535,21);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-0.00423155,21)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-0.00405599,22) -- (axis cs:0.0101383,22);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.00326069,22)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-0.00351833,23) -- (axis cs:0.00617853,23);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.00138523,23)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-0.00384488,24) -- (axis cs:0.00845741,24);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.00260558,24)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-0.00767427,25) -- (axis cs:0.00750289,25);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-0.000517568,25)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-0.00652501,26) -- (axis cs:0.00524694,26);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-0.000623948,26)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-0.00364305,27) -- (axis cs:0.0126781,27);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.00468292,27)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-0.0116691,28) -- (axis cs:0.00503655,28);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-0.00377231,28)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-0.0023071,29) -- (axis cs:0.0114312,29);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.00472263,29)};
+\end{axis}
+\end{tikzpicture}

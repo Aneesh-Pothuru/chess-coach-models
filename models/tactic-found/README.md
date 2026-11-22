@@ -14,6 +14,12 @@ usually miss is not, and today it cannot tell the two apart.
 | **Data** | [`Lichess/chess-puzzles-with-games`](https://huggingface.co/datasets/Lichess/chess-puzzles-with-games) (CC0): the Lichess puzzles of September 2022, each joined to the rated game it was cut from. A puzzle begins with the opponent's mistake, so the game's next move says whether the player at the board found the answer. Blitz, rapid and classical games, puzzles whose own rating has settled, a random half of the source. Recipe: [`datasets/tactics.yaml`](../../datasets/tactics.yaml). |
 | **Split** | By game: 85% train, 5% valid, 10% test. |
 
+**The paper.** [`paper/paper.pdf`](paper/paper.pdf) reads these results at
+length: every run, the figures, the cuts of the closer look, and positions
+as boards (ordinary ones, the ones the best run was surest of and the ones
+it got most wrong). `lab paper tactic-found` builds it from the results
+committed here ([`docs/design.md`](../../docs/design.md), "The paper").
+
 ## The rule
 
 Written before the first full run.
