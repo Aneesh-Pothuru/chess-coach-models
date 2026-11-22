@@ -22,6 +22,7 @@ than today's text?
 | [`review-writer/`](review-writer/) | The writer's plumbing: a game's facts through the app's own code (`facts.mjs`), prompts, the script that runs an open-weight writer (`write.py`), the fine-tune (`finetune.py`), the truth check (`truth.mjs`) and the blind judge (`judge.mjs`). Its README tells the first rounds, when the model wrote a whole explanation. |
 | [`coach-eval/`](coach-eval/) | The coaching task: the rule a text is held to, the facts of a set-up line, the narration prompts, the filter that builds the training set (`narrate_sft.py`), the checks and the claim audit. [`coach-eval/results/coaching.md`](coach-eval/results/coaching.md) is the report. |
 | [`colab/`](colab/) | `open_prompts.py` copies a version's prompts for the upload, keeping only the set-ups from open data. `retrain.sh` is the whole training run on a Colab A100, from the uploaded prompts to a zip of the adapter. |
+| [`weights/`](weights/) | `pack.py` holds a retrain to the publishing rule below, writes its record and its release notes here, and packs the adapter for a release with the Llama 3.2 licence (`LICENSE.txt`) and its notice (`Notice.txt`). |
 
 The scripts run on the app's own code through the bridge, so they need read
 access to the app. Their per-moment files live under `private/review-writer/`
@@ -66,14 +67,16 @@ narrations pass, the bar of the coaching rule's first point
 narration counts as a failure. Below the bar the weights stay unpublished and
 this card says what failed. The claim audit and the blind judge call a model
 and wait for an agreed budget, so a published retrain has passed the code's
-check and nothing more until they run. This card then gives its name, its
-hash, its scores and where to download it.
+check and nothing more until they run. [`weights/pack.py`](weights/pack.py)
+applies the rule: it writes the retrain's record and release notes under
+[`weights/`](weights/), with the weights' hash and the check's counts, and
+packs the archive only when the rule is met.
 
 ## Training it
 
 On the owner's machine, the narration prompts of a version are built from the
-facts (`coach-eval/coach-prompts.mjs`), and the ones from open data are copied
-for the upload:
+facts (`coach-eval/coach-rewrite.mjs --task narrate`), and the ones from open
+data are copied for the upload:
 
 ```bash
 python models/coach-narrator/colab/open_prompts.py n6 --out private/coach-narrator/upload-n6
@@ -92,9 +95,14 @@ schedule, seed 0), writes the student's narrations of the held-out set-ups and
 zips the adapter with its logs. The last run took about 25 minutes.
 
 Back on the owner's machine, `coach-eval/coach-check.mjs` runs the truth check
-on the held-out narrations, `coach-eval/coach-rubric.mjs` the claim audit and
-`review-writer/judge.mjs` the blind judge. The audit and the judge call a
-model, so they are run on a budget agreed first.
+on the held-out narrations, and `weights/pack.py` reads its rows:
+
+```bash
+python models/coach-narrator/weights/pack.py n6 --check private/coach-eval/coach-check-<name>.jsonl
+```
+
+`coach-eval/coach-rubric.mjs` is the claim audit and `review-writer/judge.mjs`
+the blind judge. They call a model, so they are run on a budget agreed first.
 
 ## Licence
 

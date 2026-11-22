@@ -4,7 +4,7 @@
 #
 # Before running, in /content: this repository cloned, vllm, trl, peft and
 # datasets installed, and the narration prompts of one version uploaded. The
-# prompts are built on the owner's machine (coach-eval/coach-prompts.mjs), and
+# prompts are built on the owner's machine (coach-eval/coach-rewrite.mjs), and
 # open_prompts.py, beside this script, copies them for the upload with every
 # set-up from a course puzzle left out, so only open data leaves that machine:
 # the three training files and the two held-out files named below.
