@@ -44,18 +44,37 @@ moments above all, and that run has not been made.
 
 ## The weights
 
-The adapter that produced those results was not kept. It was trained on a
-rented GPU whose disk was deleted before the adapter was copied off, so the
-weights behind `coach-eval/results/coaching.md` no longer exist. What survives
-is everything needed to make them again: the prompts, the filter, the
-fine-tune and its settings, and that run's 81 held-out narrations with their
-checks.
+**Published:** the release
+[`Llama-3.2-3B-coach-narrator-n6`](https://github.com/Aneesh-Pothuru/chess-coach-models/releases/tag/Llama-3.2-3B-coach-narrator-n6)
+of this repository. Its one file, `Llama-3.2-3B-coach-narrator-n6.zip`
+(sha256 `51b593a3e188c7042020eb6dac78d5bdb47eb2db471e9468a2583f5804b09349`),
+holds the adapter (`adapter_model.safetensors`, sha256
+`079e7924b50a54e8263f6122f10a62b348c749ee10b78846eb1e245576d558fa`), its
+config, the Llama 3.2 licence and its notice.
+[`weights/Llama-3.2-3B-coach-narrator-n6.json`](weights/Llama-3.2-3B-coach-narrator-n6.json)
+is its record and
+[`weights/Llama-3.2-3B-coach-narrator-n6.md`](weights/Llama-3.2-3B-coach-narrator-n6.md)
+the release's notes, with how to load it. `weights/pack.py` wrote both, and a
+test holds the two hashes on this card to the record.
+
+**It is a retrain, not the adapter behind the results above.** That adapter
+was not kept: it was trained on a rented GPU whose disk was deleted before the
+adapter was copied off, so the weights behind `coach-eval/results/coaching.md`
+no longer exist. What survived was everything needed to make them again: the
+prompts, the filter, the fine-tune and its settings, and that run's 81
+held-out narrations with their checks.
 
 A retrain is a new model, since the teacher's narrations are generated again,
 and it is trained on open data only: `colab/open_prompts.py` leaves every
 set-up that comes from a course puzzle on the owner's machine, and
 `narrate_sft.py --open-only` drops any that reach the filter, so the published
 weights have seen Lichess positions and nothing else.
+
+**What the published retrain has passed** is the rule below and nothing more:
+the truth check on the held-out set-ups from open data, with the counts in its
+record. The claim audit and the blind judge have not read its narrations, so
+"What it has shown" above is shown for the lost adapter and is still to be
+shown for this one.
 
 **The rule for publishing a retrain, written before its narrations were
 read.** The retrained narrator writes the development set-ups that come from
@@ -92,7 +111,7 @@ The script has the teacher narrate the training set-ups, builds the training
 set from the narrations that pass, fine-tunes
 (2 epochs, learning rate 2e-4, batch 8 with 2 accumulation steps, cosine
 schedule, seed 0), writes the student's narrations of the held-out set-ups and
-zips the adapter with its logs. The last run took about 25 minutes.
+zips the adapter with its logs. A run takes about 20 minutes of an A100.
 
 Back on the owner's machine, `coach-eval/coach-check.mjs` runs the truth check
 on the held-out narrations, and `weights/pack.py` reads its rows:

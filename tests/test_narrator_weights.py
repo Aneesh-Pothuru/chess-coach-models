@@ -3,6 +3,7 @@
 import hashlib
 import importlib.util
 import json
+import re
 import zipfile
 from pathlib import Path
 
@@ -14,6 +15,7 @@ pack_weights = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(pack_weights)
 
 NAME = "Llama-3.2-3B-coach-narrator-n9"
+CARD = SCRIPT.parents[1] / "README.md"
 
 
 def check_row(moment: str, *, passed: bool = True, words: int = 30, misses: tuple[str, ...] = ()) -> dict:
@@ -160,3 +162,14 @@ def test_an_adapter_on_another_base_is_refused(tmp_path):
 )
 def test_a_miss_is_counted_by_its_kind_without_its_move(miss, kind):
     assert pack_weights.kind_of(miss) == kind
+
+
+def test_the_card_names_each_published_retrain_by_its_records_hashes():
+    card = CARD.read_text(encoding="utf-8")
+    records = [json.loads(path.read_text(encoding="utf-8")) for path in sorted(SCRIPT.parent.glob("*.json"))]
+    published = [record for record in records if record["archive"]]
+    assert all(record["meets_rule"] for record in published)
+    for record in published:
+        assert f"releases/tag/{record['name']})" in card
+    in_records = {record[part]["sha256"] for record in published for part in ("weights", "archive")}
+    assert set(re.findall(r"\b[0-9a-f]{64}\b", card)) == in_records

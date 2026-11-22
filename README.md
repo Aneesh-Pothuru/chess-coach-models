@@ -18,7 +18,7 @@ the results its runs wrote.
 
 | Model | Reads | Predicts | State |
 |---|---|---|---|
-| [coach-narrator](models/coach-narrator/) | Checked facts about a line of play | Two plain sentences that tell the line | A fine-tuned Llama 3.2 3B. Code, recipe and development results are here; its weights were not kept (see its card) |
+| [coach-narrator](models/coach-narrator/) | Checked facts about a line of play | Two plain sentences that tell the line | A fine-tuned Llama 3.2 3B. Code, recipe and development results are here; a retrain on open data is published as [a release](https://github.com/Aneesh-Pothuru/chess-coach-models/releases/tag/Llama-3.2-3B-coach-narrator-n6) (see its card) |
 | [puzzle-difficulty](models/puzzle-difficulty/) | A position and its solution line | The puzzle's Lichess rating | On the shared harness |
 | [blunder-hazard](models/blunder-hazard/) | A position, both ratings, both clocks, the evaluation | The chance the mover blunders | On the shared harness; a first version from 2019 data is in [`reports/`](reports/) |
 | [think-time](models/think-time/) | A position, both ratings, both clocks | The seconds a player spends on the move | On the shared harness |
@@ -149,5 +149,6 @@ because it is waiting on data. It leaves when it reports.
   [`Lichess/chess-puzzles-with-games`](https://huggingface.co/datasets/Lichess/chess-puzzles-with-games).
 - [`maia2`](https://pypi.org/project/maia2/) is MIT-licensed; its weights download on first use.
 - The coach narrator is built with Llama: its base model, Llama 3.2 3B, is under the
-  [Llama 3.2 Community License](https://www.llama.com/llama3_2/license/).
+  [Llama 3.2 Community License](https://www.llama.com/llama3_2/license/), and so is the adapter
+  this repository releases, which carries the licence's text and notice.
 - This repository's code is MIT-licensed ([`LICENSE`](LICENSE)).
