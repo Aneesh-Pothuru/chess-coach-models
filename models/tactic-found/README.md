@@ -66,7 +66,45 @@ Written before the first full run.
 ## Results
 
 [`results/leaderboard.md`](results/leaderboard.md), written by
-`lab eval tactic-found`.
+`lab eval tactic-found`. What the first full runs say (commit `7cd074c`; the
+numbers are in the leaderboard):
+
+- **One network beats the trees: the medium transformer that also reads the
+  hand features.** Its paired gain is beyond the noise, and small beside what
+  the trees already take off the floor. By band it is ahead of the reference
+  in every band but one, where the two are level.
+- **Without the hand features, no network matches the trees.** The
+  convolutional tower and both transformers land together, below the
+  reference beyond the noise, whatever their size. They are shown the line as
+  marked squares and have to work out for themselves what the hand features
+  count: what the first move gives up, what the line wins, how long it is.
+  Both of those transformers were still improving on valid at their last
+  epoch, so more epochs is the run to add before saying the squares are not
+  enough.
+- **The crowd's rating says less than a look at the board.** `puzzle-rating`
+  lands beside the trees that see no board, and far below the reference,
+  which never reads a puzzle's rating. The reference leans most on the two
+  evaluations and on whether the tactic's first move gives up material
+  (`leans_on` in [its record](results/gbm-hand.json)). So what the line does
+  on the board says more about finding a tactic in a game than thousands of
+  puzzle attempts summed into one number.
+- **A game is far from a puzzle.** The slope fitted for `puzzle-rating` is
+  about a fifth of the rating formula's
+  (`calibration` in [its record](results/puzzle-rating.json)): a gap between
+  the player's rating and the puzzle's that would decide a puzzle moves the
+  chance in a game much less.
+- **The stated chance can be read as a frequency.** After the rescaling on
+  valid, each of the best run's ten groups is within about a point of what
+  happened, from a chance near a third to one above nine in ten.
+- **Every run does best in the same band.** Log loss is lowest for movers
+  rated 2100 to 2299 and higher on both sides, for the floor as well, so
+  compare runs within a band, not one band with another.
+
+**Weights.** Every run's weights and test predictions are on the owner's
+machine, under `artifacts/runs/tactic-found/<run>/`, as the GPU session
+packed them; none is published. Each record names its run's files by size
+and sha256. The best run's `model.pt` is 26,294,815 bytes, sha256
+`37235b297e5fe07e4a7b1221e7a370c8fc52f3004b2023f17893fe4937c440f6`.
 
 ## What it does not say yet
 
