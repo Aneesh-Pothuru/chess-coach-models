@@ -21,6 +21,21 @@ model"). The order below is the order they are worth building in.
 
 ## Next
 
+### More from the starters
+
+What the first full runs ([the leaderboards](../README.md#leaderboards)) leave to try. Each is a
+run or a recipe, not a new model:
+
+- **A longer schedule.** Seven of the twelve network runs had their best valid epoch at the last
+  one.
+- **More games.** `game-positions` keeps 30,000 games of a month's, and on the board alone no
+  network matched the trees on `blunder-hazard`.
+- **One group of hand features left out at a time**, to say which of them a network still needs
+  beside the board. The network that reads them is the best run of every starter.
+- **Blunder hazard on the positions that can still be blundered**, its own task, as its card says.
+- **Puzzle difficulty from the position alone**, with no solution marked: how hard a tactic is to
+  notice.
+
 ### Practical chances
 
 Between two people at these ratings, with these clocks, who wins from here?

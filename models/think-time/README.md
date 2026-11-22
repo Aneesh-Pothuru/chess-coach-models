@@ -43,7 +43,30 @@ Written before the first full run.
 ## Results
 
 [`results/leaderboard.md`](results/leaderboard.md), written by
-`lab eval think-time`.
+`lab eval think-time`. What the first full runs say (commit `f9827db`; the
+numbers are in the leaderboard):
+
+- **Most of what can be predicted is the clock.** The largest step is from the
+  floor to the trees that never see the board. The hand features add about
+  half as much again, and the best network a small step more.
+- **One network beats the trees beyond the noise: the medium transformer that
+  also reads the hand features.** The small transformer and the convolutional
+  tower are level with the trees (the intervals of their gains hold zero), and
+  the medium transformer on the board alone is just behind them.
+- **Most of a move's time stays unexplained.** The best run explains under a
+  third of the variance in log seconds, and its typical miss is a little under
+  a factor of two. As a yardstick for "you moved too fast here" it can say what
+  is usual for a position and a clock; one move far from it is weak evidence
+  on its own, and a pattern over many moves is what to read.
+- **Stronger players are harder to predict.** The error grows with the mover's
+  rating band in every run.
+
+**Weights.** Every run's weights and test predictions are on the owner's
+machine, under `artifacts/runs/think-time/<run>/`, as the GPU session
+packed them; none is published. The best run's `model.pt` is 26,258,975
+bytes, sha256 `4e82080046f9aea0c6ec20458cbccd6f072b6ce7c8f157f3fb1ae764e292e496`,
+read off the file there: these records were written before a record named its
+weights, which every later one does.
 
 ## What it does not say yet
 

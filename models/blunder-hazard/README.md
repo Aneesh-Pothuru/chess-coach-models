@@ -45,7 +45,31 @@ Written before the first full run.
 ## Results
 
 [`results/leaderboard.md`](results/leaderboard.md), written by
-`lab eval blunder-hazard`.
+`lab eval blunder-hazard`. What the first full runs say (commit `f9827db`; the
+numbers are in the leaderboard):
+
+- **One network beats the trees: the medium transformer that also reads the
+  hand features.** Its paired gain is beyond the noise, while its own interval
+  and the trees' overlap: with a test set of about three thousand games, only
+  the paired comparison separates them.
+- **From the board alone, no network matches the trees.** The convolutional
+  tower and both transformers land together, below the reference beyond the
+  noise, whatever their size. From this many games a network does not learn
+  off the squares what the hand features count: a hanging piece, the checks
+  and captures on offer. More games is the run to add, since the recipe keeps
+  30,000 of a month's.
+- **The stated chance can be read as a frequency.** After the rescaling on
+  valid, the calibration table stays near the diagonal up to its top group.
+- **Ranking is harder the stronger the mover.** Every run's PR-AUC falls as
+  the rating band rises, and so does the base rate (the floor's row), so
+  compare runs within a band, not one band with another.
+
+**Weights.** Every run's weights and test predictions are on the owner's
+machine, under `artifacts/runs/blunder-hazard/<run>/`, as the GPU session
+packed them; none is published. The best run's `model.pt` is 26,259,999
+bytes, sha256 `ed6d08bfee84b60de82fff5a7bb3527f0748fe4735d26f5aad53d11d289f48f2`,
+read off the file there: these records were written before a record named its
+weights, which every later one does.
 
 ## Version 0
 

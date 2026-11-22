@@ -47,7 +47,37 @@ Written before the first full run.
 ## Results
 
 [`results/leaderboard.md`](results/leaderboard.md), written by
-`lab eval puzzle-difficulty`.
+`lab eval puzzle-difficulty`. What the first full runs say (commit `f9827db`;
+the numbers are in the leaderboard):
+
+- **Every network beats the trees, beyond the noise.** The order follows what
+  a network reads and how large it is: the medium transformer that also reads
+  the hand features, the same transformer on the board alone, the
+  convolutional tower, the small transformer.
+- **The hand features still pay under a network.** The medium transformer with
+  the features is well ahead of the same transformer without them (the
+  intervals of their gains do not touch), so eight layers did not learn from
+  the board everything the features count. Which features carry that is a run
+  to make: one group left out at a time.
+- **Good at ranking, loose on the rating.** The best run orders puzzles well
+  (its rank correlation) and its typical miss is still more than a rating
+  class. It can sort the tactics of a game into easier and harder ones, and it
+  cannot yet give one a rating worth stating.
+- **A band rewards hedging.** Bands are cut by the true rating, so the floor,
+  which says the average for every puzzle, has the smallest error of all in
+  the middle band and the largest at both ends. Read a band's column from the
+  top down, not across the bands. The best network's lead over the trees is at
+  the two ends, the easiest and the hardest puzzles, and in the middle band
+  the trees are level with it.
+- **No network had finished learning.** Three of the four had their best valid
+  epoch at the last one, so a longer schedule is the cheapest run to add.
+
+**Weights.** Every run's weights and test predictions are on the owner's
+machine, under `artifacts/runs/puzzle-difficulty/<run>/`, as the GPU session
+packed them; none is published. The best run's `model.pt` is 26,285,279
+bytes, sha256 `346b597547beb8884841dd188f8832a132a4d85a54fa7ea3234ac5b5e7e98eab`,
+read off the file there: these records were written before a record named its
+weights, which every later one does.
 
 ## What it does not say yet
 
@@ -60,4 +90,4 @@ Written before the first full run.
 Others have asked the same question: the FedCSIS 2025 data-mining challenge
 "Predicting Chess Puzzle Difficulty" scored models on this label, and its
 strongest entries started from a human-move model rather than from the raw
-board. A Maia-2 body under this head is the next run to add.
+board. A Maia-2 body under this head is the next body to try.
