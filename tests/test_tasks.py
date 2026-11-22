@@ -4,6 +4,7 @@ import pytest
 import yaml
 
 from chess_coach_models import paths, tasks
+from chess_coach_models.encode.hand import GROUPS
 from chess_coach_models.evals import analysis
 from chess_coach_models.evals.metrics import METRICS
 
@@ -63,6 +64,26 @@ def test_a_task_is_ranked_by_a_metric_of_its_kind(temp_lab):
     write_task(temp_lab.root, "mixed", {**TASK, "primary": "log_loss"})
     with pytest.raises(ValueError, match="ranked by one of"):
         tasks.get("mixed")
+
+
+def test_a_task_can_keep_marks_and_hand_features_from_its_learners(temp_lab):
+    write_task(temp_lab.root, "open", TASK)
+    assert (tasks.get("open").marks, tasks.get("open").hand) == (None, None)
+    write_task(temp_lab.root, "hidden", {**TASK, "marks": ["en_passant"], "hand": ["material", "kings"]})
+    assert (tasks.get("hidden").marks, tasks.get("hidden").hand) == (("en_passant",), ("material", "kings"))
+    write_task(temp_lab.root, "odd", {**TASK, "hand": ["material", "weather"]})
+    with pytest.raises(ValueError, match="not weather"):
+        tasks.get("odd")
+
+
+def test_a_run_that_changes_another_names_a_run_the_model_has():
+    for name in tasks.names():
+        configs = {path.stem: yaml.safe_load(path.read_text(encoding="utf-8")) for path in paths.configs(name).glob("*.yaml")}
+        for run, config in configs.items():
+            assert "study" not in config or "base" in config, (name, run)
+            assert config.get("base", run) in configs, (name, run)
+            assert set(config.get("learner", {}).get("without", [])) <= set(GROUPS), (name, run)
+            assert 0 < config.get("data", {}).get("train_share", 0.5) < 1, (name, run)
 
 
 def test_every_analysis_plan_asks_for_things_the_analysis_knows():

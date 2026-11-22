@@ -9,6 +9,7 @@ run names it, so the floor, a column and the formula need neither LightGBM nor T
 from __future__ import annotations
 
 from importlib import import_module
+from pathlib import Path
 from typing import Any
 
 from .base import Fitted, Prepared, features, prepare
@@ -24,12 +25,20 @@ LEARNERS = {
 }
 
 
-def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None = None) -> Fitted:
-    """Trains the learner a run's config names."""
+def fit(
+    prepared: Prepared, config: dict[str, Any], *, log, device: str | None = None, start: Path | None = None
+) -> Fitted:
+    """Trains the learner a run's config names. ``start`` is the saved network a run begins from
+    (``learner.init`` in its config), which only a network can."""
     kind = config["learner"]["kind"]
     if kind not in LEARNERS:
         raise ValueError(f"no learner named {kind!r}: the lab has {', '.join(sorted(LEARNERS))}")
-    return import_module(f".{LEARNERS[kind]}", __name__).fit(prepared, config, log=log, device=device)
+    learner = import_module(f".{LEARNERS[kind]}", __name__)
+    if start is None:
+        return learner.fit(prepared, config, log=log, device=device)
+    if kind != "net":
+        raise ValueError("only a network starts from another run's weights")
+    return learner.fit(prepared, config, log=log, device=device, start=start)
 
 
 __all__ = ["LEARNERS", "Fitted", "Prepared", "features", "fit", "prepare"]

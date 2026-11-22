@@ -11,6 +11,19 @@ fingerprint, and it carries the run's gain over the model's reference run,
 measured on the same resampled test games against the reference trained on the
 same machine. A leaderboard is then written from the records alone, on any
 machine, from runs made on several.
+
+A run that changes one thing in another names that run as its ``base`` and
+writes only the change:
+
+    base: transformer-medium-hand      the run it changes
+    study: games                       what the change is there to find out
+    data: {train_share: 0.5}           the change: half of the training games
+
+Its config is the base's with its own blocks laid over it. A network can also
+begin from the body another run trained, on this machine, named by
+``learner: {init: {model: position-evaluation, run: transformer-medium}}``. A run with a
+``study`` is not a candidate: a leaderboard lists it apart, under its study,
+and the closer look sets it against its base (``evals/analysis.py``).
 """
 
 from __future__ import annotations
@@ -33,19 +46,51 @@ from . import learners
 from .record import machine, saved_weights, software
 
 
+def _laid_over(under: dict[str, Any], over: dict[str, Any]) -> dict[str, Any]:
+    """One config laid over another, block by block: a block of ``over`` adds to the same block of ``under``."""
+    merged = dict(under)
+    for key, value in over.items():
+        merged[key] = {**merged[key], **value} if isinstance(value, dict) and isinstance(merged.get(key), dict) else value
+    return merged
+
+
+def _written(model: str, run: str, above: tuple[str, ...] = ()) -> dict[str, Any]:
+    """A run's config as its file and its bases' files give it, before any smoke override."""
+    path = paths.configs(model) / f"{run}.yaml"
+    if not path.exists():
+        raise FileNotFoundError(f"{model} has no run named {run!r}: {path} is not there")
+    with path.open("r", encoding="utf-8") as handle:
+        own = yaml.safe_load(handle)
+    if "base" not in own:
+        return own
+    if own["base"] == run or own["base"] in above:
+        raise ValueError(f"{model}/{run}: its base runs lead back to itself")
+    base = _written(model, own["base"], above + (run,))
+    # What a base was there to find out is its own business: a run on top of it says its own.
+    base.pop("study", None)
+    return _laid_over(base, own)
+
+
 def run_config(model: str, run: str, *, smoke: bool = False) -> dict[str, Any]:
-    """A run's config; a smoke run takes its ``smoke`` overrides, block by block."""
-    with (paths.configs(model) / f"{run}.yaml").open("r", encoding="utf-8") as handle:
-        config = yaml.safe_load(handle)
+    """A run's config: its base's, when it names one, with its own blocks laid over it. A smoke run then takes
+    the ``smoke`` overrides the same way."""
+    config = _written(model, run)
     overrides = config.pop("smoke", {})
     if smoke:
-        for block, values in overrides.items():
-            config.setdefault(block, {}).update(values)
+        config = _laid_over(config, overrides)
     return config
 
 
-def run_names(model: str) -> list[str]:
-    return sorted(path.stem for path in paths.configs(model).glob("*.yaml"))
+def run_names(model: str, *, study: str | None = None) -> list[str]:
+    """A model's runs by name: the leaderboard's own, or with ``study`` the runs of that study."""
+    names = sorted(path.stem for path in paths.configs(model).glob("*.yaml"))
+    return [name for name in names if _written(model, name).get("study") == study]
+
+
+def studies(model: str) -> list[str]:
+    """The studies a model's configs name."""
+    names = (path.stem for path in paths.configs(model).glob("*.yaml"))
+    return sorted({study for study in (_written(model, name).get("study") for name in names) if study})
 
 
 def gain_over_reference(
@@ -102,13 +147,22 @@ def run(
             f"{dataset.name} was built before datasets carried a fingerprint: "
             f"build it again with `lab data {task.dataset} --rebuild`"
         )
-    prepared = learners.prepare(task, dataset)
+    prepared = learners.prepare(task, dataset, train_share=float(config.get("data", {}).get("train_share", 1.0)))
     log(
         f"{model}/{name}: {len(prepared.train):,} train, {len(prepared.valid):,} valid, "
         f"{len(prepared.test):,} test rows of {dataset.name}"
     )
+    start = None
+    init = config.get("learner", {}).get("init")
+    if init is not None:
+        start = paths.run_files(init["model"], init["run"], smoke=smoke) / "model.pt"
+        if not start.exists():
+            raise FileNotFoundError(
+                f"{model}/{name} starts from the weights of {init['model']}/{init['run']}, which are not on this "
+                f"machine: train that run here first ({start})"
+            )
     started = time.time()
-    fitted = learners.fit(prepared, config, log=log, device=device)
+    fitted = learners.fit(prepared, config, log=log, device=device, start=start)
     valid_p, test_p = fitted.valid, fitted.test
     y_valid, y_test = prepared.y[prepared.valid], prepared.y[prepared.test]
     calibration = None
@@ -118,8 +172,8 @@ def run(
         calibration = {"platt_slope": slope, "platt_intercept": intercept, "fitted_on": "valid"}
 
     rows = dataset.rows
-    group = dataset.manifest["group"]
-    groups_test = rows[group].to_numpy()[prepared.test]
+    groups = rows[dataset.manifest["group"]].to_numpy()
+    groups_test = groups[prepared.test]
     bands_test = rows[task.band].to_numpy()[prepared.test]
     by_band = {}
     for band in sorted(set(bands_test.tolist())):
@@ -135,6 +189,8 @@ def run(
             "primary": task.primary,
             "lower_is_better": task.lower_is_better,
             "context": list(task.context),
+            # Only a task that keeps something from its learners says what they may read.
+            **({} if task.marks is None and task.hand is None else {"marks": prepared.mark_names, "hand": prepared.hand_names}),
         },
         "dataset": {
             key: dataset.manifest[key]
@@ -148,6 +204,8 @@ def run(
         "code": code_commit(),
         "trained": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "seconds": round(time.time() - started, 1),
+        "train_rows": int(len(prepared.train)),
+        "train_groups": int(len(set(groups[prepared.train].tolist()))),
         "valid": score(task.kind, y_valid, valid_p),
         "test": intervals(
             task.kind, y_test, test_p, groups_test, resamples=SMOKE_RESAMPLES if smoke else RESAMPLES
@@ -171,8 +229,11 @@ def run(
         }
     )
     frame.write_parquet(predictions)
-    fitted.save(predictions.parent)
-    record["weights"] = saved_weights(predictions.parent, predictions)
+    # A study run is there to be measured and is never used: it keeps its predictions and no weights.
+    kept = "study" not in config
+    if kept:
+        fitted.save(predictions.parent)
+    record["weights"] = saved_weights(predictions.parent, predictions) if kept else []
     record["gain"] = gain_over_reference(
         model, name, frame, dataset.manifest["fingerprint"], smoke=smoke, resamples=SMOKE_RESAMPLES if smoke else RESAMPLES
     )

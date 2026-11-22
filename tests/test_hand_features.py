@@ -3,8 +3,10 @@ import chess
 from chess_coach_models.data.puzzles import MARKS, example, line_marks, puzzle_band, source_game
 from chess_coach_models.encode.board import square
 from chess_coach_models.encode.hand import (
+    GROUPS,
     LINE_FEATURES,
     POSITION_FEATURES,
+    group_of,
     line_features,
     position_features,
 )
@@ -83,3 +85,10 @@ def test_puzzle_bands_and_game_ids():
     assert puzzle_band(999) == "<1000" and puzzle_band(1000) == "1000-1399" and puzzle_band(2600) == "2200+"
     assert source_game("https://lichess.org/787zsVup/black#48") == "787zsVup"
     assert source_game("https://lichess.org/787zsVup#12") == "787zsVup"
+
+
+def test_every_hand_feature_is_in_one_group():
+    grouped = [name for names in GROUPS.values() for name in names]
+    assert sorted(grouped) == sorted(POSITION_FEATURES + LINE_FEATURES)
+    assert group_of("hanging_own") == "hanging" and group_of("first_check") == "first-move"
+    assert {group_of(name) for name in POSITION_FEATURES} == {"material", "mobility", "hanging", "pawns", "kings"}

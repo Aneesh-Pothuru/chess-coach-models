@@ -45,6 +45,21 @@ Written before the first full run.
 | `transformer-medium-hand` | The same, reading the hand features beside the board |
 | `transformer-medium-long` | `transformer-medium` with twice the epochs |
 | `transformer-medium-hand-long` | `transformer-medium-hand` with twice the epochs |
+| `transformer-medium-pretrained` | `transformer-medium` started from the body of [position evaluation](../position-evaluation/) |
+| `transformer-medium-hand-pretrained` | `transformer-medium-hand` started from the same body |
+
+### Studies
+
+Runs that change one thing in a run above, to say what that thing is worth
+([`docs/design.md`](../../docs/design.md), "A run that changes another"). They
+are listed apart on the leaderboard, and each is read against the run it
+changes: the paired difference on the same resampled test games (the closer
+look's `pairs`), which says something only when its interval leaves zero out.
+
+| Study | Runs | What each changes |
+|---|---|---|
+| `games` | `gbm-hand-half`, `gbm-hand-quarter`, `transformer-medium-hand-half`, `transformer-medium-hand-quarter` | Half and a quarter of the training games, chosen by a hash of the game. The network goes through them often enough to take as many steps as the run it changes, so only the number of games differs. |
+| `features` | `gbm-hand-no-<group>` for each of material, mobility, hanging, pawns, kings, setup, first-move, line | One group of hand features left out |
 
 ## Results
 
@@ -86,7 +101,8 @@ weights, which every later one does.
 - The rating is on Lichess's puzzle scale. Reading it on the player's own
   scale needs a mapping this model does not make.
 - The model is shown the solution. How hard a tactic is to notice, with no
-  line given, is a different question with the same data (a position-only run).
+  line given, is a different question with the same data:
+  [puzzle difficulty, unsolved](../puzzle-difficulty-unsolved/) asks it.
 - A puzzle's rating also depends on who is served it, which this ignores.
 
 Others have asked the same question: the FedCSIS 2025 data-mining challenge

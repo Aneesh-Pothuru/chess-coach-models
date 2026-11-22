@@ -1,0 +1,17 @@
+# Positions with an engine's evaluation, from the open Lichess evaluations file (data/evaluations.py):
+# what a body is trained on before it learns about people.
+name: evaluations-v1
+builder: evaluations
+source: https://database.lichess.org/lichess_db_eval.jsonl.zst
+# The file keeps every depth a position was analysed at. A row takes the deepest, and needs this much.
+min_depth: 20
+# One position in eight, by a hash of the position, until this many rows: the sample is then spread
+# over a stretch of the file eight times its size, and a build downloads no more than that.
+sample: 0.125
+positions: 6000000
+split:
+  salt: evaluations-v1
+  valid: 0.01
+  test: 0.02
+smoke:
+  positions: 20000

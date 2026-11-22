@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import math
 import time
 from pathlib import Path
@@ -13,8 +14,62 @@ from ...evals.metrics import LOWER_IS_BETTER, METRICS
 from .base import Fitted, Prepared, features
 
 
-def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None = None) -> Fitted:
-    """A board network trained with AdamW on a warm-up then cosine schedule, keeping the epoch that scores best on valid."""
+SAME_BODY = ("body", "dim", "depth", "heads")
+
+
+def start_from(model, saved: dict[str, Any], *, learner: dict[str, Any], marks: list[str], numbers: list[str]) -> dict[str, Any]:
+    """Gives a new network the body of a trained one, and says what carried over.
+
+    The two must be the same body at the same size. Then the piece and square embeddings, every block and
+    the last norm carry over. A mark on squares both tasks know keeps its weights (the en passant square is
+    one for every dataset) and a mark only the new task has starts new. The layers that read the numbers
+    beside the board carry over only when both tasks read the same numbers. The head never does: it is the
+    task's own.
+    """
+    from ...encode.board import TOKENS
+
+    theirs = saved["learner"]
+    differs = [key for key in SAME_BODY if theirs.get(key) != learner.get(key)]
+    if differs:
+        raise ValueError(
+            "a run starts from a network of its own body and size, and these differ in "
+            + ", ".join(f"{key} ({learner.get(key)} here, {theirs.get(key)} there)" for key in differs)
+        )
+    own, state = model.state_dict(), saved["state"]
+    same_numbers = list(saved["context"]) == list(numbers)
+    shared = [(marks.index(name), saved["marks"].index(name)) for name in marks if name in saved["marks"]]
+    # The two tensors that read the marks, and where their mark channels start.
+    mark_tensors = {"body.mark.weight": 0, "body.stem.weight": TOKENS}
+    taken, fresh = [], []
+    for name, tensor in own.items():
+        source = state.get(name)
+        if source is None or not name.startswith("body.") or (name.startswith("body.context.") and not same_numbers):
+            fresh.append(name)
+        elif name in mark_tensors:
+            first = mark_tensors[name]
+            tensor[:, :first] = source[:, :first]
+            for ours, their in shared:
+                tensor[:, first + ours] = source[:, first + their]
+            taken.append(name)
+        elif source.shape == tensor.shape:
+            own[name] = source.clone()
+            taken.append(name)
+        else:
+            fresh.append(name)
+    model.load_state_dict(own)
+    return {
+        "tensors_taken": len(taken),
+        "marks_taken": [marks[ours] for ours, _ in shared],
+        "new": sorted({".".join(name.split(".")[:2]) if name.startswith("body.") else name.split(".")[0] for name in fresh}),
+    }
+
+
+def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None = None, start: Path | None = None) -> Fitted:
+    """A board network trained with AdamW on a warm-up then cosine schedule, keeping the epoch that scores best on valid.
+
+    With ``start`` the network begins from the body of the network saved there (``start_from``), and its
+    record says what it took.
+    """
     import torch
     import torch.nn.functional as F
 
@@ -26,9 +81,9 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
     torch.manual_seed(seed)
     device = device or ("cuda" if torch.cuda.is_available() else "cpu")
     on_gpu = device.startswith("cuda")
-    mark_names = prepared.dataset.manifest["marks"]
+    mark_names = prepared.mark_names
 
-    numbers, number_names = features(prepared, learner.get("features", "context"))
+    numbers, number_names = features(prepared, learner.get("features", "context"), learner.get("without", ()))
     mean = numbers[prepared.train].mean(axis=0)
     spread = numbers[prepared.train].std(axis=0)
     spread[spread == 0] = 1.0
@@ -40,13 +95,23 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
     marks = torch.from_numpy(prepared.dataset.marks.astype(np.int16)).to(device)
     context = torch.from_numpy((numbers - mean) / spread).to(device)
     target = torch.from_numpy(((prepared.y - y_mean) / y_spread).astype(np.float32)).to(device)
-    shifts = torch.arange(len(mark_names), device=device)
+    shifts = torch.tensor(prepared.mark_channels, device=device)
 
     def batch_of(rows: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         planes = ((marks[rows].long()[..., None] >> shifts) & 1).float()
         return tokens[rows].long(), planes, context[rows]
 
-    model = build_net(learner, marks=len(mark_names), context=context.shape[1]).to(device)
+    model = build_net(learner, marks=len(mark_names), context=context.shape[1])
+    started = None
+    if start is not None:
+        saved = torch.load(start, map_location="cpu", weights_only=False)
+        started = {
+            **learner["init"],
+            "sha256": hashlib.sha256(start.read_bytes()).hexdigest(),
+            **start_from(model, saved, learner=learner, marks=mark_names, numbers=number_names),
+        }
+        log(f"net: started from {learner['init']['model']}/{learner['init']['run']}, {started['tensors_taken']} tensors taken")
+    model = model.to(device)
     parameters = parameter_count(model)
     batch = int(schedule["batch"])
     epochs = int(schedule["epochs"])
@@ -86,7 +151,7 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
     best = (math.inf, None, 0)
     history = []
     patience = int(schedule.get("patience", 3))
-    started = time.time()
+    began = time.time()
     log(f"net: {learner['body']} with {parameters:,} parameters on {device}, {steps:,} steps")
     for epoch in range(1, epochs + 1):
         model.train()
@@ -146,11 +211,13 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
         valid=predict(prepared.valid),
         test=predict(prepared.test),
         details={
+            "features": len(number_names),
             "parameters": parameters,
             "device": torch.cuda.get_device_name(0) if on_gpu else "cpu",
             "best_epoch": best[2],
-            "fit_seconds": round(time.time() - started, 1),
+            "fit_seconds": round(time.time() - began, 1),
             "history": history,
+            **({} if started is None else {"started_from": started}),
         },
         save=save,
     )

@@ -12,6 +12,12 @@ its results, so a model is one folder and adding one touches no code:
     context: [solver_moves]       the numbers every learner reads beside the board
     band: band                    the column its results are also given by
     scale: log1p                  how its label reads: as it is (linear), or as log(1 + x)
+    marks: [en_passant, setup_to] the only marks on squares its learners may read
+    hand: [material, mobility]    the only groups of hand features its learners may read
+
+A task that names no ``marks`` or no ``hand`` lets its learners read all the
+dataset has. One that names them asks its question with something hidden: a
+puzzle's difficulty with its solution never shown, say.
 
 How a model's paper looks at its results is beside it, in ``analysis.yaml``
 (``evals/analysis.py``): changing that changes no run.
@@ -24,11 +30,12 @@ from dataclasses import dataclass
 import yaml
 
 from . import paths
+from .encode.hand import GROUPS
 from .evals.metrics import LOWER_IS_BETTER, METRICS
 
 
 REQUIRED = ("dataset", "kind", "label", "unit", "primary", "reference", "context")
-OPTIONAL = ("band", "scale")
+OPTIONAL = ("band", "scale", "marks", "hand")
 SCALES = ("linear", "log1p")
 
 
@@ -42,7 +49,9 @@ class Task:
     compared against, pair by pair on the same test rows. ``scale`` says how a
     quantity's label reads: with ``log1p`` a label of 2.4 is 10 of something
     and an error of 0.69 is a factor of two, which a paper needs to know to
-    say either in plain units.
+    say either in plain units. ``marks`` and ``hand`` are the marks on squares
+    and the groups of hand features (``encode/hand.py``) a learner may read,
+    or ``None`` for all the dataset has.
     """
 
     name: str
@@ -55,6 +64,8 @@ class Task:
     reference: str
     band: str = "band"
     scale: str = "linear"
+    marks: tuple[str, ...] | None = None
+    hand: tuple[str, ...] | None = None
 
     @property
     def lower_is_better(self) -> bool:
@@ -98,6 +109,11 @@ def get(name: str) -> Task:
         raise ValueError(f"{path}: a label's scale is one of {', '.join(SCALES)}, not {loaded['scale']!r}")
     if loaded.get("scale", "linear") != "linear" and loaded["kind"] != "regression":
         raise ValueError(f"{path}: only a quantity has a scale, and this task predicts a chance")
+    strangers = [group for group in loaded.get("hand") or [] if group not in GROUPS]
+    if strangers:
+        raise ValueError(
+            f"{path}: the hand features come in the groups {', '.join(GROUPS)}, not {', '.join(strangers)}"
+        )
     return Task(
         name=name,
         dataset=loaded["dataset"],
@@ -109,4 +125,6 @@ def get(name: str) -> Task:
         reference=loaded["reference"],
         band=loaded.get("band", "band"),
         scale=loaded.get("scale", "linear"),
+        marks=None if loaded.get("marks") is None else tuple(loaded["marks"]),
+        hand=None if loaded.get("hand") is None else tuple(loaded["hand"]),
     )

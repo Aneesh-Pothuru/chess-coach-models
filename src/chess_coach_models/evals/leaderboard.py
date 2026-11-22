@@ -9,6 +9,10 @@ long as they read the same build of the data and were compared with the same
 reference. ``lab eval <model>`` writes ``results/leaderboard.json`` and
 ``results/leaderboard.md``; ``lab report`` writes the README's table from the
 leaderboards. Nothing here is typed by hand.
+
+A run whose config names a ``study`` changes one thing in another run to say
+what that thing is worth. It is no candidate, so it is not ranked: the
+leaderboard lists it under its study, beside the run it changes.
 """
 
 from __future__ import annotations
@@ -59,11 +63,43 @@ def learner_words(record: dict[str, Any]) -> str:
         return f"the column `{learner['column']}`" + ("" if scale == 1.0 else f", times {scale:g}")
     if learner["kind"] == "rating-formula":
         return f"the rating formula on `{learner['player']}` against `{learner['against']}`"
+    without = f", without the {' and '.join(learner['without'])} group" if learner.get("without") else ""
     if learner["kind"] == "gbm":
         reads = "context and hand features" if learner["features"] == "hand" else "context numbers only"
-        return f"LightGBM, {reads}"
+        return f"LightGBM, {reads}{without}"
     reads = ", with hand features" if learner.get("features") == "hand" else ""
-    return f"{learner['body']}, {learner['depth']} layers of width {learner['dim']}{reads}"
+    start = f", started from `{learner['init']['model']}/{learner['init']['run']}`" if learner.get("init") else ""
+    return f"{learner['body']}, {learner['depth']} layers of width {learner['dim']}{reads}{without}{start}"
+
+
+# What a config holds that is no setting of the run: which run it changes, why, and where it can train.
+NOT_SETTINGS = ("base", "study", "needs")
+
+
+def _setting(value: Any) -> str:
+    if isinstance(value, dict):
+        return "/".join(str(item) for item in value.values())
+    return ", ".join(str(item) for item in value) if isinstance(value, list) else str(value)
+
+
+def changes(config: dict[str, Any], base: dict[str, Any]) -> list[str]:
+    """What a run's config changes in its base's, a setting at a time, with the base's value where it has one."""
+    found = []
+    for block in sorted(set(config) | set(base)):
+        if block in NOT_SETTINGS:
+            continue
+        ours, theirs = config.get(block), base.get(block)
+        if not isinstance(ours, dict) and not isinstance(theirs, dict):
+            ours, theirs, prefix = {block: ours}, {block: theirs}, ""
+        else:
+            ours, theirs, prefix = ours or {}, theirs or {}, f"{block}."
+        for key in sorted(set(ours) | set(theirs)):
+            new, old = ours.get(key), theirs.get(key)
+            if new == old:
+                continue
+            said = "not set" if new is None else _setting(new)
+            found.append(f"`{prefix}{key}` {said}" + ("" if old is None else f" (the base has {_setting(old)})"))
+    return found
 
 
 def _commit(code: str) -> str:
@@ -104,8 +140,9 @@ def build(model: str, *, smoke: bool = False) -> dict[str, Any]:
             "Train the stale ones again so every row of the leaderboard reads the same test rows"
         )
     runs = ranked(task, runs)
-    reference = next((run for run in runs if run["run"] == task.reference), None)
-    entries = []
+    by_name = {run["run"]: run for run in runs}
+    reference = by_name.get(task.reference)
+    entries, studied = [], {}
     for run in runs:
         gain = run.get("gain")
         if gain is not None and reference is not None:
@@ -116,33 +153,50 @@ def build(model: str, *, smoke: bool = False) -> dict[str, Any]:
                     f"{gain['reference_value']:.6g}, and the one recorded here scores {recorded:.6g}: "
                     f"train {task.reference} and then {run['run']} again on one machine"
                 )
-        entries.append(
+        entry = {
+            "run": run["run"],
+            "learner": learner_words(run),
+            "test": run["test"],
+            "test_by_band": run["test_by_band"],
+            "parameters": run["learner"].get("parameters"),
+            "device": run["learner"].get("device", "cpu"),
+            "processor": run["machine"]["processor"],
+            "seconds": run["seconds"],
+            "code": run["code"],
+            "trained": run["trained"],
+            "gain": gain,
+        }
+        study = run["config"].get("study")
+        if study is None:
+            entries.append(entry)
+            continue
+        base = by_name.get(run["config"].get("base"))
+        studied.setdefault(study, []).append(
             {
-                "run": run["run"],
-                "learner": learner_words(run),
-                "test": run["test"],
-                "test_by_band": run["test_by_band"],
-                "parameters": run["learner"].get("parameters"),
-                "device": run["learner"].get("device", "cpu"),
-                "processor": run["machine"]["processor"],
-                "seconds": run["seconds"],
-                "code": run["code"],
-                "trained": run["trained"],
-                "gain": gain,
+                **entry,
+                "base": run["config"].get("base"),
+                "base_test": None if base is None else base["test"][task.primary],
+                "changes": None if base is None else changes(run["config"], base["config"]),
+                "train_rows": run.get("train_rows"),
             }
         )
+    if not entries:
+        raise FileNotFoundError(f"{model} has records of study runs only: train a run of its own first")
+    main = [run for run in runs if run["config"].get("study") is None]
     board = {
         "model": model,
-        "task": runs[0]["task"],
-        "dataset": runs[0]["dataset"],
-        "test_rows": runs[0]["test_rows"],
-        "test_groups": runs[0]["test_groups"],
+        "task": main[0]["task"],
+        "dataset": main[0]["dataset"],
+        "test_rows": main[0]["test_rows"],
+        "test_groups": main[0]["test_groups"],
         "reference": task.reference,
         "runs": entries,
     }
-    best = runs[0]
+    best = main[0]
     if "test_calibration" in best:
         board["calibration"] = {"run": best["run"], "bins": best["test_calibration"]}
+    if studied:
+        board["studies"] = {study: studied[study] for study in sorted(studied)}
     directory = paths.results(model, smoke=smoke)
     (directory / "leaderboard.json").write_text(json.dumps(board, indent=2) + "\n", encoding="utf-8")
     (directory / "leaderboard.md").write_text(markdown(board), encoding="utf-8")
@@ -161,6 +215,17 @@ def markdown(board: dict[str, Any]) -> str:
         f"Written by `lab eval {board['model']}` from the run records in this folder.",
         "",
         f"- **Predicts:** {task['unit']}.",
+        *(
+            [
+                "- **A learner may read**, of what the dataset has: the marks on squares "
+                + ", ".join(f"`{name}`" for name in task.get("marks", []))
+                + "; the hand features "
+                + ", ".join(f"`{name}`" for name in task.get("hand", []))
+                + ". The task hides the rest."
+            ]
+            if "marks" in task and "hand" in task
+            else []
+        ),
         f"- **Data:** `{data['dataset']}`, {data['rows']:,} rows ({splits}) from {data['source']} "
         f"({data['licence']}), built {data['built']} at lab commit `{_commit(data['code'])}`.",
         f"- **Test set:** {board['test_rows']:,} rows from {board['test_groups']:,} games, never seen in training "
@@ -175,20 +240,12 @@ def markdown(board: dict[str, Any]) -> str:
         "|---|---|---|" + "---|" * len(others) + "---|---|---|---|",
     ]
     for run in board["runs"]:
-        gain = run["gain"]
-        if run["run"] == board["reference"]:
-            shown = "reference"
-        elif gain is None:
-            shown = "not compared"
-        else:
-            text = f"{gain['gain']:+.4g} ({gain['low']:+.4g} to {gain['high']:+.4g})"
-            shown = f"**{text}**" if gain["beyond_noise"] else text
         device = run["device"] if run["device"] != "cpu" else run["processor"]
         parameters = f"{run['parameters']:,}" if run["parameters"] else ""
         lines.append(
             f"| `{run['run']}` | {run['learner']} | {_span(run['test'][primary])} | "
             + " | ".join(_number(run["test"][name]["value"]) for name in others)
-            + f" | {shown} | {parameters} | {device} | {_duration(run['seconds'])} |"
+            + f" | {_gain(run, board['reference'])} | {parameters} | {device} | {_duration(run['seconds'])} |"
         )
     names = sorted({band for run in board["runs"] for band in run["test_by_band"]}, key=bands.order)
     lines += [
@@ -218,7 +275,44 @@ def markdown(board: dict[str, Any]) -> str:
         ]
         for row in board["calibration"]["bins"]:
             lines.append(f"| {row['predicted']:.1%} | {row['observed']:.1%} | {row['n']:,} |")
+    if "studies" in board:
+        lines += [
+            "",
+            "## Studies",
+            "",
+            "A run here changes one thing in a run above, to say what that thing is worth. It is no candidate, so "
+            "it is not ranked with the runs above. Its paired difference from the run it changes, on the same "
+            "resampled test games, is in the closer look (`analysis.json`, under `pairs`).",
+        ]
+        for study, runs in board["studies"].items():
+            lines += [
+                "",
+                f"### `{study}`",
+                "",
+                f"| Run | The run it changes | What it changes | Trained on | {NAMES[primary]} | "
+                f"That run's {NAMES[primary]} | Gain over `{board['reference']}` | Time |",
+                "|---|---|---|---|---|---|---|---|",
+            ]
+            for run in runs:
+                changed = "its base has no record here" if run["changes"] is None else "; ".join(run["changes"])
+                rows = f"{run['train_rows']:,} rows" if run["train_rows"] else ""
+                base = "" if run["base_test"] is None else _number(run["base_test"]["value"])
+                lines.append(
+                    f"| `{run['run']}` | `{run['base']}` | {changed} | {rows} | {_span(run['test'][primary])} | "
+                    f"{base} | {_gain(run, board['reference'])} | {_duration(run['seconds'])} |"
+                )
     return "\n".join(lines) + "\n"
+
+
+def _gain(run: dict[str, Any], reference: str) -> str:
+    """A run's gain over the reference as a leaderboard shows it: bold when its interval leaves zero out."""
+    gain = run["gain"]
+    if run["run"] == reference:
+        return "reference"
+    if gain is None:
+        return "not compared"
+    text = f"{gain['gain']:+.4g} ({gain['low']:+.4g} to {gain['high']:+.4g})"
+    return f"**{text}**" if gain["beyond_noise"] else text
 
 
 def readme_table() -> str:

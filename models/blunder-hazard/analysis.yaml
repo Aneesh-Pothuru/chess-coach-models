@@ -5,6 +5,8 @@ slices:
   - {key: clock, column: clock, title: Seconds on the mover's clock, edges: [30, 60, 120, 300, 480]}
   - {key: seconds, column: spent, title: Seconds the move took, edges: [2, 5, 10, 20, 40]}
   - {key: win, column: win_before, title: The mover's winning chances before the move (percent), edges: [10, 20, 40, 60, 80, 90]}
+  # Below 20 no move loses 20 more points: the group 20+ is every position that can still be blundered.
+  - {key: open, column: win_before, title: "The mover's winning chances before the move (percent): from 20 up, a blunder is possible", edges: [20]}
   - {key: ply, column: ply, title: Ply of the game, edges: [20, 30, 40, 60, 80]}
   - {key: hanging, column: hanging_own, title: The mover's pieces that can be taken, values: [0, 1, 2], rest: 3+}
   - {key: opponent-hanging, column: hanging_opponent, title: The opponent's pieces that can be taken, values: [0, 1, 2], rest: 3+}

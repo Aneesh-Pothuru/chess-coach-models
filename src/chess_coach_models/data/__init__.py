@@ -18,7 +18,7 @@ from .. import paths
 
 
 # A recipe's ``builder`` and the module here that builds it.
-BUILDERS = {"puzzles": "puzzles", "game_positions": "positions", "tactics": "tactics"}
+BUILDERS = {"puzzles": "puzzles", "game_positions": "positions", "tactics": "tactics", "evaluations": "evaluations"}
 
 
 def recipe(dataset: str, *, smoke: bool = False) -> dict[str, Any]:

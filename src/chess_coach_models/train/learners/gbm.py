@@ -21,7 +21,7 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device=None) -> Fitt
 
     learner = config["learner"]
     task = prepared.task
-    x, names = features(prepared, learner["features"])
+    x, names = features(prepared, learner["features"], learner.get("without", ()))
     if task.kind == "binary":
         objective, metric = "binary", "binary_logloss"
     elif task.primary == "mae":

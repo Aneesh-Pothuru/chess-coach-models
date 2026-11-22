@@ -61,6 +61,50 @@ LINE_FEATURES = (
 )
 
 
+# The hand features by what each is about. A run can leave a group out (``learner.without``), and a
+# task can keep a group from every learner (``hand`` in its task.yaml).
+GROUPS = {
+    "material": ("material_count", "material_imbalance", "phase_piece_count"),
+    "mobility": ("in_check", "legal_moves", "legal_captures", "legal_checks"),
+    "hanging": ("hanging_own", "hanging_opponent"),
+    "pawns": ("passed_pawns_own", "passed_pawns_opponent"),
+    "kings": ("attackers_near_own_king", "attackers_near_opponent_king"),
+    "setup": ("setup_capture",),
+    "first-move": (
+        "first_piece",
+        "first_capture",
+        "first_captured_value",
+        "first_check",
+        "first_promotion",
+        "first_distance",
+        "first_backward",
+        "first_to_attacked",
+        "first_sacrifice",
+    ),
+    "line": (
+        "solver_moves",
+        "line_checks",
+        "line_captures",
+        "line_quiet",
+        "line_promotions",
+        "line_pieces_moved",
+        "line_sacrifices",
+        "line_max_distance",
+        "ends_in_mate",
+        "reply_captures",
+        "final_material_gain",
+    ),
+}
+_GROUP_OF = {name: group for group, names in GROUPS.items() for name in names}
+
+
+def group_of(name: str) -> str:
+    """The group a hand feature belongs to."""
+    if name not in _GROUP_OF:
+        raise KeyError(f"no group holds a hand feature named {name!r}")
+    return _GROUP_OF[name]
+
+
 def _material(board: chess.Board, color: chess.Color) -> float:
     return sum(len(board.pieces(piece_type, color)) * value for piece_type, value in PIECE_VALUES.items())
 

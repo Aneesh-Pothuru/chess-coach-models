@@ -19,13 +19,15 @@ results its runs wrote.
 | Model | Reads | Predicts |
 |---|---|---|
 | [puzzle-difficulty](models/puzzle-difficulty/) | A position and its solution line | The puzzle's Lichess rating |
+| [puzzle-difficulty-unsolved](models/puzzle-difficulty-unsolved/) | The same position with the solution hidden | The puzzle's Lichess rating |
 | [blunder-hazard](models/blunder-hazard/) | A position, both ratings, both clocks, the evaluation | The chance the mover blunders |
 | [think-time](models/think-time/) | A position, both ratings, both clocks | The seconds a player spends on the move |
 | [tactic-found](models/tactic-found/) | A position after the opponent's mistake, the tactic's line, both ratings, both clocks | The chance the player finds the tactic in the game |
 | [practical-chances](models/practical-chances/) | A position, both ratings, both clocks, the evaluation | The mover's expected score in the game |
+| [position-evaluation](models/position-evaluation/) | A position | An engine's evaluation of it: the body the others can start from |
 | [coach-narrator](models/coach-narrator/) | Checked facts about a line of play | Two plain sentences that tell the line |
 
-The first five share one harness. The coach narrator is a fine-tuned language model (Llama 3.2
+The first seven share one harness. The coach narrator is a fine-tuned language model (Llama 3.2
 3B) with its own scripts; a retrain on open data is published as
 [a release](https://github.com/Aneesh-Pothuru/chess-coach-models/releases/tag/Llama-3.2-3B-coach-narrator-n6)
 (see its card).
@@ -59,15 +61,16 @@ is what is left: a folder of small files, with no code of its own.
 models/<model>/
   README.md              the card: the question, the data, the rule, what the results say
   task.yaml              what is asked: the dataset, the label, what a learner may read, the metric
-  configs/<run>.yaml     one learner each: the floor, the tree baselines, the networks
+  configs/<run>.yaml     one learner each: the floor, the tree baselines, the networks, and the
+                         study runs that change one thing in one of them
   results/               written by the runs: <run>.json, the leaderboard, the closer look
   analysis.yaml          how the closer look cuts the results: by rating, clock, theme
 datasets/<name>.yaml     a recipe: an open source, filters, a fixed sample, a split by game
 src/chess_coach_models/  the harness
   paths.py               where everything above is kept
   tasks.py               a model's task, read from its folder
-  data/                  Lichess sources (puzzles, a month of games, puzzles joined to their games),
-                         samples and splits by hash, the dataset format
+  data/                  Lichess sources (puzzles, a month of games, puzzles joined to their games,
+                         engine evaluations), samples and splits by hash, the dataset format
   encode/                a board as 64 tokens from the mover's side, marks, hand features
   nets/                  bodies (a square-token transformer, a convolutional tower) and the head
   train/                 the learners, one file each, and the run that writes a record

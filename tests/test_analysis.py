@@ -202,6 +202,17 @@ def test_a_pair_sets_one_run_against_the_run_it_changed():
     assert third == {"run": "net", "over": "absent", "gain": None}
 
 
+def test_a_study_run_is_read_only_to_be_set_against_the_run_it_changes():
+    look = a_look("regression")
+    worse = look.predictions["net"] + np.random.default_rng(2).normal(0, 80, size=len(look.test))
+    (pair,) = analysis.pair_table(look, [["net-half", "net"]], studied={"net-half": worse}, studies={"net-half": "games"}, resamples=50)
+    assert (pair["run"], pair["over"], pair["study"]) == ("net-half", "net", "games")
+    assert pair["gain"] < 0 and pair["beyond_noise"]
+    assert "net-half" not in look.predictions and look.best == "net"
+    (unread,) = analysis.pair_table(look, [["net-quarter", "net"]], studied={}, studies={"net-quarter": "games"}, resamples=50)
+    assert unread == {"run": "net-quarter", "over": "net", "gain": None, "study": "games"}
+
+
 def test_numbers_are_written_at_six_digits_and_a_missing_one_as_null():
     assert analysis.rounded({"a": [np.float64(1 / 3), float("nan"), np.int64(3)], "b": "text", "c": None}) == {
         "a": [0.333333, None, 3],

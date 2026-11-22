@@ -20,6 +20,10 @@ PUZZLE: Floors = ((2200, "2200+"), (1800, "1800-2199"), (1400, "1400-1799"), (10
 PUZZLE_PLAYER: Floors = ((2300, "2300+"), (2100, "2100-2299"), (1900, "1900-2099"), (1700, "1700-1899"), (0, "<1700"))
 
 
+# The men on the board, kings and pawns among them: from a full board down to a bare ending.
+MEN: Floors = ((25, "25-32"), (17, "17-24"), (9, "9-16"), (0, "<9"))
+
+
 def band(value: float, floors: Floors) -> str:
     return next(name for floor, name in floors if value >= floor)
 
@@ -27,6 +31,11 @@ def band(value: float, floors: Floors) -> str:
 def rating_band(elo: int | float) -> str:
     """The band of a player's rating."""
     return band(int(elo), PLAYER)
+
+
+def men_band(men: int) -> str:
+    """The band of a position by how many men are on the board."""
+    return band(int(men), MEN)
 
 
 def order(name: str) -> tuple[int, int]:

@@ -1,0 +1,16 @@
+# A residual tower of 3x3 convolutions, sized to train on a CPU.
+learner:
+  kind: net
+  body: conv
+  dim: 96
+  depth: 6
+  dropout: 0.1
+train:
+  epochs: 8
+  batch: 512
+  lr: 0.002
+  weight_decay: 0.05
+  warmup: 0.05
+  patience: 3
+smoke:
+  train: {epochs: 1}

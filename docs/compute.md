@@ -64,8 +64,10 @@ of the data, and names the runs it left out and why.
 ## On Colab
 
 [`colab/lab.ipynb`](../colab/lab.ipynb) clones this repository, installs it, and runs the same
-commands on the notebook's GPU. Its first cell names the models and the runs. Its last cell packs
-two zips and prints their hashes: `lab-results.zip`, the run records and leaderboards under
+commands on the notebook's GPU. Its first cell names the models and the runs, or a plan kept in
+[`colab/plans/`](../colab/plans/): `all` is every model's own runs, `studies` the study runs of
+the models that have results, `pretrain` the body trained on engine evaluations and the runs that
+start from it. Its last cell packs two zips and prints their hashes: `lab-results.zip`, the run records and leaderboards under
 `models/*/results/`, and `lab-runs.zip`, every run's trained weights and test predictions.
 
 1. Open the notebook in Colab and choose a GPU runtime.

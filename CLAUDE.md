@@ -64,6 +64,14 @@ a move) is a new body or head in `nets/`, with a test, and a line in
   better. Change one thing a run, and keep it only when it beats the run it
   changed on valid and on test beyond the noise (the paired gain's interval
   leaves zero out).
+- A run that changes one thing in another names that run as its `base` and
+  writes only the change. One that is there to measure something, not to be
+  kept (fewer training games, a group of hand features left out), also names
+  its `study`: it stays off the ranking and out of the README's table, and
+  `lab analyse` sets it against its base.
+- A network that starts from another run's body (`learner.init`) is trained
+  on the machine that trained that run, after it: the weights are read from
+  `artifacts/runs/`, and `lab all` skips the run until they are there.
 - Every model keeps its `constant` and `gbm-hand` runs, and every other run is
   compared with `gbm-hand` on the same test rows. The comparison is made when
   a run is trained and written into its record, so `gbm-hand` is trained

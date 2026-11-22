@@ -1,0 +1,11 @@
+# A body trained on engine evaluations first (position-evaluation), then the two runs of each model
+# that start from it. position-evaluation comes first: the other runs read its weights from this
+# runtime. Each model's gbm-hand is trained again, since every run is compared with the one trained
+# on its own machine. About three hours on an A100.
+position-evaluation: ""
+puzzle-difficulty-unsolved: gbm-hand,transformer-medium-pretrained,transformer-medium-hand-pretrained
+blunder-hazard: gbm-hand,transformer-medium-pretrained,transformer-medium-hand-pretrained
+practical-chances: gbm-hand,transformer-medium-pretrained,transformer-medium-hand-pretrained
+think-time: gbm-hand,transformer-medium-pretrained,transformer-medium-hand-pretrained
+puzzle-difficulty: gbm-hand,transformer-medium-pretrained,transformer-medium-hand-pretrained
+tactic-found: gbm-hand,transformer-medium-pretrained,transformer-medium-hand-pretrained

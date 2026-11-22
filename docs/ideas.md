@@ -11,9 +11,11 @@ model"). The order below is the order they are worth building in.
 |---|---|---|---|
 | [coach-narrator](../models/coach-narrator/) | Checked facts about a line | Two plain sentences | The line behind a mistake, said out loud |
 | [puzzle-difficulty](../models/puzzle-difficulty/) | A position and its solution | The puzzle's rating | A rating for any tactic in the player's games |
+| [puzzle-difficulty-unsolved](../models/puzzle-difficulty-unsolved/) | The same position with its solution hidden | The puzzle's rating | How much of a tactic's difficulty shows before anyone knows the line |
 | [blunder-hazard](../models/blunder-hazard/) | A position, ratings, clocks, the evaluation | The chance the mover blunders | The positions where players at a level go wrong |
 | [think-time](../models/think-time/) | A position, ratings, clocks | The seconds spent on the move | Where a player moved too fast or too slow |
 | [tactic-found](../models/tactic-found/) | A position after the opponent's mistake, the tactic's line, ratings, clocks | The chance the player finds the tactic in the game | Which missed tactics were within reach at the player's level |
+| [position-evaluation](../models/position-evaluation/) | A position | An engine's evaluation, as the mover's chance of winning | Nothing by itself: a body the other models start from |
 | [practical-chances](../models/practical-chances/) | A position, ratings, clocks, the evaluation | The mover's expected score in the game | Which "equal" positions are hard to hold at the player's level, and which "lost" ones are still worth playing on |
 
 ## Next
@@ -23,24 +25,31 @@ model"). The order below is the order they are worth building in.
 What the first full runs ([the leaderboards](../README.md#leaderboards)) leave to try. Each is a
 run or a recipe, not a new model. Nine of the sixteen network runs had their best valid epoch at
 the last one, so each model has two runs with twice the epochs (`transformer-medium-long`,
-`transformer-medium-hand-long`); what is left:
+`transformer-medium-hand-long`). Two studies are written as runs on every model
+([`design.md`](design.md), "A run that changes another"):
 
-- **More games.** `game-positions` keeps 30,000 games of a month's, and without the hand features
-  no network matched the trees on `blunder-hazard`.
-- **One group of hand features left out at a time**, to say which of them a network still needs
-  beside the board. The network that reads them is the best run of every model.
-- **Blunder hazard on the positions that can still be blundered**, its own task, as its card says.
-- **Puzzle difficulty from the position alone**, with no solution marked: how hard a tactic is to
-  notice.
+- **`games`: fewer training games.** The reference trees and the best network on half and on a
+  quarter of the games. Where a score is still climbing at all the games a model has, a larger
+  build of its dataset is the run to add, and each has more to take: `game-positions` keeps 30,000
+  games of a month's, `puzzles` a quarter of the puzzles that pass, `tactics` half of them.
+- **`features`: one group of hand features left out at a time**, from the reference trees and, on
+  `blunder-hazard`, from the best network too, to say which of them a network still needs beside
+  the board. The network that reads them is the best run of every model.
+
+What is left:
+
 - **Tactic found, with the whole line as the label**: the player found the tactic only if the game
   followed it to the end, which a game answers while the opponent follows the puzzle's replies.
 
-### Pre-training on engine evaluations
+### More from the body that learned an engine's evaluation
 
-Not a model but a run: train a body to predict Stockfish's evaluation on the open
-[Lichess evaluations](https://database.lichess.org/#evals) (CC0, hundreds of millions of
-positions), then start every task from it. It is worth keeping only where it beats the same body
-trained from scratch on a task's own leaderboard.
+[`position-evaluation`](../models/position-evaluation/) trains the medium transformer on six
+million positions of the open [Lichess evaluations](https://database.lichess.org/#evals) (CC0,
+some two hundred million positions), and each model has two runs that start from that body
+(`transformer-medium-pretrained`, `transformer-medium-hand-pretrained`). A start is kept on a
+model only where it beats the same run started from nothing there. What is left to try once
+those say whether it pays: more of the file, more epochs, a larger body, and a lower learning rate
+for the run that starts from it.
 
 ### A published body under the lab's head
 

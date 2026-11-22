@@ -25,6 +25,11 @@ What it looks at is ``models/<model>/analysis.yaml``:
 
 The task's own bands are always its first slice. Every number is rounded to
 six significant digits, so two machines write the same file.
+
+A study run (one whose config names a ``study``) is no candidate, so the
+tables above leave it out. It is read for one thing: every run that names a
+``base`` is set against that run among the ``pairs``, whether the plan asks or
+not.
 """
 
 from __future__ import annotations
@@ -421,21 +426,32 @@ def against_reference(look: Look) -> dict[str, dict[str, float]]:
     return table
 
 
-def pair_table(look: Look, asked: list[list[str]], *, resamples: int = RESAMPLES) -> list[dict[str, Any]]:
+def pair_table(
+    look: Look,
+    asked: list[list[str]],
+    *,
+    studied: dict[str, np.ndarray] | None = None,
+    studies: dict[str, str] | None = None,
+    resamples: int = RESAMPLES,
+) -> list[dict[str, Any]]:
     """Runs set against the run each changed: the first's paired gain over the second on the same resampled test
     games, measured as a leaderboard measures a gain over the reference. A pair with a run that was not read
-    has no gain."""
+    has no gain. ``studied`` holds the study runs' predictions, which no other table reads, and ``studies``
+    the study each of them belongs to, which its pair then names."""
+    said = {**look.predictions, **(studied or {})}
     table = []
     for run, changed in asked:
         entry: dict[str, Any] = {"run": run, "over": changed, "gain": None}
-        if run in look.predictions and changed in look.predictions:
+        if studies and run in studies:
+            entry["study"] = studies[run]
+        if run in said and changed in said:
             entry.update(
                 paired(
                     look.task.kind,
                     look.task.primary,
                     look.truth,
-                    look.predictions[run],
-                    look.predictions[changed],
+                    said[run],
+                    said[changed],
                     look.games,
                     resamples=resamples,
                 )
@@ -487,7 +503,16 @@ def analyse(model: str, *, smoke: bool = False) -> dict[str, Any]:
     dataset = read_dataset(recipe(task.dataset, smoke=smoke)["name"])
     y = dataset.rows[task.label].to_numpy().astype(np.float64)
     test = dataset.split("test")
+    study_runs = [run for run in runs if run["config"].get("study") is not None]
+    runs = [run for run in runs if run["config"].get("study") is None]
     predictions, skipped = read_predictions(model, task, runs, dataset, y, test, smoke=smoke)
+    studied, study_skipped = read_predictions(model, task, study_runs, dataset, y, test, smoke=smoke)
+    skipped.update(study_skipped)
+    pairs = [list(pair) for pair in asked.get("pairs", [])]
+    for run in sorted(study_runs + runs, key=lambda run: run["run"]):
+        pair = [run["run"], run["config"].get("base")]
+        if pair[1] is not None and pair not in pairs:
+            pairs.append(pair)
     if not predictions:
         raise FileNotFoundError(
             f"no run of {model} has its test predictions on this machine for this build of the data: "
@@ -521,8 +546,16 @@ def analyse(model: str, *, smoke: bool = False) -> dict[str, Any]:
         "slices": [band_slice(look, asked.get("band", {}))] + [slice_table(look, one) for one in asked.get("slices", [])],
         "grids": [grid_table(look, one) for one in asked.get("grids", [])],
         "examples": examples(look, asked.get("examples", {})),
-        "pairs": pair_table(look, asked.get("pairs", []), resamples=SMOKE_RESAMPLES if smoke else RESAMPLES),
+        "pairs": pair_table(
+            look,
+            pairs,
+            studied=studied,
+            studies={run["run"]: run["config"]["study"] for run in study_runs},
+            resamples=SMOKE_RESAMPLES if smoke else RESAMPLES,
+        ),
     }
+    if study_runs:
+        result["studies"] = sorted(studied)
     if task.kind == "binary":
         result["ranking"] = {run: ranking(look.truth, p) for run, p in predictions.items()}
     else:

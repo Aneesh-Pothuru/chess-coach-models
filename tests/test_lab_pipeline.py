@@ -14,6 +14,7 @@ import polars as pl  # noqa: E402
 
 from chess_coach_models import cli, paths, tasks  # noqa: E402
 from chess_coach_models.data import store  # noqa: E402
+from chess_coach_models.encode.hand import GROUPS  # noqa: E402
 from chess_coach_models.evals import analysis, calibration, leaderboard  # noqa: E402
 from chess_coach_models.train import run as runs  # noqa: E402
 
@@ -43,6 +44,13 @@ CONFIGS = {
 
 
 SAVED = {"gbm": ["model.txt"], "net": ["model.pt"]}
+# Runs that change one thing in a run above: fewer training games, and a group of hand features left out.
+STUDIES = {
+    "gbm-hand-no-line": {"base": "gbm-hand", "study": "features", "learner": {"without": ["line", "first-move"]}},
+    "conv-hand-no-line": {"base": "conv-hand", "study": "features", "learner": {"without": ["line"]}},
+    "transformer-small-half": {"base": "transformer-small", "study": "games", "data": {"train_share": 0.5}, "train": {"epochs": 3}},
+}
+POSITION_GROUPS = ("material", "mobility", "hanging", "pawns", "kings", "setup")
 
 
 @pytest.fixture()
@@ -181,6 +189,129 @@ def test_the_closer_look_leaves_out_a_run_whose_predictions_are_gone(lab):
     paths.predictions("puzzle-difficulty", "gbm-hand", smoke=True).unlink()
     with pytest.raises(FileNotFoundError, match="no run of puzzle-difficulty"):
         analysis.analyse("puzzle-difficulty", smoke=True)
+
+
+def test_study_runs_train_on_what_their_config_changes_and_are_listed_apart(lab, temp_lab):
+    temp_lab.model("puzzle-difficulty", {**CONFIGS, **STUDIES})
+    records = {name: runs.run("puzzle-difficulty", name, smoke=True, log=lambda _: None) for name in [*CONFIGS, *STUDIES]}
+    whole, fewer = records["gbm-hand"]["learner"]["features"], records["gbm-hand-no-line"]["learner"]["features"]
+    assert whole - fewer == len(GROUPS["line"]) + len(GROUPS["first-move"]) - 1
+    # The line's length is a number the task gives every learner, so it stays when the line group is left out.
+    assert "solver_moves" in tasks.get("puzzle-difficulty").context
+    assert records["conv-hand"]["learner"]["features"] - records["conv-hand-no-line"]["learner"]["features"] == len(GROUPS["line"]) - 1
+    # A study run keeps its predictions for the closer look and no weights; the run it changes keeps both.
+    for name in STUDIES:
+        assert records[name]["weights"] == []
+        assert [path.name for path in paths.run_files("puzzle-difficulty", name, smoke=True).iterdir()] == ["predictions.parquet"]
+    assert [entry["file"] for entry in records["conv-hand"]["weights"]] == ["model.pt"]
+    half = records["transformer-small-half"]
+    assert 0 < half["train_rows"] < records["transformer-small"]["train_rows"]
+    assert len(half["learner"]["history"]) <= 3 and half["config"]["train"] == {"epochs": 3, "batch": 32, "lr": 0.01}
+    board = leaderboard.build("puzzle-difficulty", smoke=True)
+    assert {entry["run"] for entry in board["runs"]} == set(CONFIGS)
+    assert {study: [entry["run"] for entry in entries] for study, entries in board["studies"].items()} == {
+        "features": sorted(["gbm-hand-no-line", "conv-hand-no-line"], key=lambda name: records[name]["test"]["rmse"]["value"]),
+        "games": ["transformer-small-half"],
+    }
+    text = (paths.results("puzzle-difficulty", smoke=True) / "leaderboard.md").read_text()
+    assert "| `learner.without` line, first-move |" in text and "`train.epochs` 3 (the base has 2)" in text
+    assert board["studies"]["features"][0]["learner"].endswith("group")
+    assert "LightGBM, context and hand features, without the line and first-move group" in {
+        entry["learner"] for entry in board["studies"]["features"]
+    }
+    look = analysis.analyse("puzzle-difficulty", smoke=True)
+    assert set(look["runs"]) == set(CONFIGS) and look["studies"] == sorted(STUDIES)
+    pairs = {(pair["run"], pair["over"]): pair for pair in look["pairs"]}
+    assert set(pairs) >= {(name, config["base"]) for name, config in STUDIES.items()}
+    assert all(pairs[name, config["base"]]["gain"] is not None for name, config in STUDIES.items())
+    assert pairs["gbm-hand-no-line", "gbm-hand"]["study"] == "features"
+
+
+def test_a_task_that_hides_the_solution_gives_no_learner_a_way_to_read_it(lab, temp_lab):
+    import torch
+
+    model = "puzzle-difficulty-unsolved"
+    temp_lab.model(model, {name: CONFIGS[name] for name in ("gbm-hand", "constant", "transformer-small", "conv-hand")})
+    task = tasks.get(model)
+    assert task.marks == ("en_passant", "setup_from", "setup_to") and task.hand == POSITION_GROUPS
+    assert not set(task.context) & {name for group in ("line", "first-move") for name in GROUPS[group]}
+    position = [name for group in POSITION_GROUPS for name in GROUPS[group]]
+    records = {name: runs.run(model, name, smoke=True, log=lambda _: None) for name in ("gbm-hand", "constant", "transformer-small", "conv-hand")}
+    for record in records.values():
+        assert record["task"]["marks"] == list(task.marks) and sorted(record["task"]["hand"]) == sorted(position)
+    assert records["gbm-hand"]["learner"]["features"] == len(task.context) + len(position)
+    assert {entry["feature"] for entry in records["gbm-hand"]["learner"]["leans_on"]} <= set(task.context) | set(position)
+    for name, numbers in (("transformer-small", list(task.context)), ("conv-hand", list(task.context) + position)):
+        saved = torch.load(paths.run_files(model, name, smoke=True) / "model.pt", weights_only=False)
+        assert saved["marks"] == list(task.marks) and sorted(saved["context"]) == sorted(numbers)
+    state = torch.load(paths.run_files(model, "transformer-small", smoke=True) / "model.pt", weights_only=False)["state"]
+    assert state["body.mark.weight"].shape[1] == 3
+    shown = runs.run("puzzle-difficulty", "gbm-hand", smoke=True, log=lambda _: None)
+    assert "marks" not in shown["task"] and shown["learner"]["features"] > records["gbm-hand"]["learner"]["features"]
+    assert shown["test_rows"] == records["gbm-hand"]["test_rows"]
+    board = leaderboard.build(model, smoke=True)
+    assert board["task"]["marks"] == list(task.marks)
+
+
+def test_a_network_starts_from_the_body_another_run_trained(lab, temp_lab):
+    import torch
+
+    small = CONFIGS["transformer-small"]
+    init = {"model": "puzzle-difficulty", "run": "transformer-small"}
+    started = {**small, "learner": {**small["learner"], "init": init}}
+    temp_lab.model(
+        "puzzle-difficulty-unsolved",
+        {
+            "gbm-hand": CONFIGS["gbm-hand"],
+            "transformer-small": small,
+            "transformer-small-pretrained": {"base": "transformer-small", "learner": {"init": init}},
+            "transformer-wide-pretrained": {**started, "learner": {**started["learner"], "dim": 32}},
+            "gbm-pretrained": {"learner": {**CONFIGS["gbm-hand"]["learner"], "init": init}},
+        },
+    )
+    model = "puzzle-difficulty-unsolved"
+    assert cli.waits_for(model, "transformer-small-pretrained", smoke=True).startswith("starts from puzzle-difficulty/transformer-small")
+    assert cli.waits_for(model, "transformer-small", smoke=True) is None
+    with pytest.raises(FileNotFoundError, match="train that run here first"):
+        runs.run(model, "transformer-small-pretrained", smoke=True, log=lambda _: None)
+
+    runs.run("puzzle-difficulty", "transformer-small", smoke=True, log=lambda _: None)
+    assert cli.waits_for(model, "transformer-small-pretrained", smoke=True) is None
+    weights = paths.run_files("puzzle-difficulty", "transformer-small", smoke=True) / "model.pt"
+    record = runs.run(model, "transformer-small-pretrained", smoke=True, log=lambda _: None)
+    taken = record["learner"]["started_from"]
+    assert (taken["model"], taken["run"]) == ("puzzle-difficulty", "transformer-small")
+    assert taken["sha256"] == hashlib.sha256(weights.read_bytes()).hexdigest()
+    assert taken["marks_taken"] == ["en_passant", "setup_from", "setup_to"]
+    assert taken["new"] == ["body.context", "head"] and taken["tensors_taken"] > 10
+    assert record["config"]["base"] == "transformer-small"
+    board = leaderboard.build(model, smoke=True)
+    words = {entry["run"]: entry["learner"] for entry in board["runs"]}
+    assert words["transformer-small-pretrained"].endswith("started from `puzzle-difficulty/transformer-small`")
+
+    from chess_coach_models.nets.model import build_net
+    from chess_coach_models.train.learners.net import start_from
+
+    saved = torch.load(weights, weights_only=False)
+    fresh = build_net(small["learner"], marks=3, context=4)
+    before = {name: tensor.clone() for name, tensor in fresh.state_dict().items()}
+    start_from(fresh, saved, learner=small["learner"], marks=["en_passant", "setup_from", "setup_to"], numbers=["a", "b", "c", "d"])
+    after = fresh.state_dict()
+    assert torch.equal(after["body.piece.weight"], saved["state"]["body.piece.weight"])
+    assert torch.equal(after["body.blocks.0.qkv.weight"], saved["state"]["body.blocks.0.qkv.weight"])
+    assert torch.equal(after["body.mark.weight"], saved["state"]["body.mark.weight"][:, :3])
+    assert torch.equal(after["head.0.weight"], before["head.0.weight"])
+    assert torch.equal(after["body.context.0.weight"], before["body.context.0.weight"])
+    reordered = build_net(small["learner"], marks=2, context=len(saved["context"]))
+    told = start_from(reordered, saved, learner=small["learner"], marks=["setup_to", "brand_new"], numbers=saved["context"])
+    assert told["marks_taken"] == ["setup_to"] and "body.context" not in told["new"]
+    assert torch.equal(reordered.state_dict()["body.mark.weight"][:, 0], saved["state"]["body.mark.weight"][:, 2])
+    assert torch.equal(reordered.state_dict()["body.context.0.weight"], saved["state"]["body.context.0.weight"])
+
+    with pytest.raises(ValueError, match="differ in dim"):
+        runs.run(model, "transformer-wide-pretrained", smoke=True, log=lambda _: None)
+    with pytest.raises(ValueError, match="only a network starts"):
+        runs.run(model, "gbm-pretrained", smoke=True, log=lambda _: None)
 
 
 def test_platt_scaling_recovers_a_known_distortion():

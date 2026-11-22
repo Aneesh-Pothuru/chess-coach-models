@@ -43,6 +43,21 @@ Written before the first full run.
 | `transformer-medium-hand` | The same, reading the hand features beside the board |
 | `transformer-medium-long` | `transformer-medium` with twice the epochs |
 | `transformer-medium-hand-long` | `transformer-medium-hand` with twice the epochs |
+| `transformer-medium-pretrained` | `transformer-medium` started from the body of [position evaluation](../position-evaluation/) |
+| `transformer-medium-hand-pretrained` | `transformer-medium-hand` started from the same body |
+
+### Studies
+
+Runs that change one thing in a run above, to say what that thing is worth
+([`docs/design.md`](../../docs/design.md), "A run that changes another"). They
+are listed apart on the leaderboard, and each is read against the run it
+changes: the paired difference on the same resampled test games (the closer
+look's `pairs`), which says something only when its interval leaves zero out.
+
+| Study | Runs | What each changes |
+|---|---|---|
+| `games` | `gbm-hand-half`, `gbm-hand-quarter`, `transformer-medium-hand-half`, `transformer-medium-hand-quarter` | Half and a quarter of the training games, chosen by a hash of the game. The network goes through them often enough to take as many steps as the run it changes, so only the number of games differs. |
+| `features` | `gbm-hand-no-<group>` for each of material, mobility, hanging, pawns, kings, and `transformer-medium-hand-no-<group>` for the same groups | One group of hand features left out |
 
 ## Results
 
@@ -93,9 +108,9 @@ hanging-piece feature is a proxy for a full exchange search
   of 20 or less, no move loses 20 more points. Every learner that reads the
   evaluation gets those rows right for free, and the calibration table shows
   them as its lowest groups. That lifts ROC-AUC for every run alike, so PR-AUC
-  and the paired gains are what to read. A run on the positions that can
-  still be blundered is the fairer picture of each learner, and would be its
-  own task.
+  and the paired gains are what to read. The fairer picture of each learner
+  is its score on the positions that can still be blundered: the closer look
+  gives it, as the group `20+` of its `open` slice.
 - Only analysed games give a label, and players choose which games to analyse.
 - The label is as deep as Lichess's server analysis.
 - The model sees one position. The moves and clock use that led to it are a

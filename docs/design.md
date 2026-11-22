@@ -21,8 +21,8 @@ comparable. So they are written once for all of them, and a model is what is lef
 | What a model brings | Where in its folder |
 |---|---|
 | The question, the rule for what counts as better, what the results say | `README.md`, its card |
-| Its dataset, its label, the numbers it may read beside the board, its metric, its reference run | `task.yaml` |
-| Its learners | `configs/<run>.yaml` |
+| Its dataset, its label, what a learner may read, its metric, its reference run | `task.yaml` |
+| Its learners, and the runs that change one thing in one of them | `configs/<run>.yaml` |
 | What its runs wrote | `results/` |
 | How its results are cut for a closer look | `analysis.yaml` |
 
@@ -35,6 +35,14 @@ kept, so a test can stand a whole lab up in a temporary folder.
 The input is a position as a FEN, with what the task knows about it: the moves that led to it or
 follow from it, both ratings, both clocks, the time control. The output today is one number, a
 quantity or a chance. What changes from idea to idea is the label and what the model may read.
+
+A task names the context numbers its learners read, and can keep part of a dataset from them:
+`marks` lists the only marks on squares they may read, and `hand` the only groups of hand
+features. So one dataset answers two questions. `puzzle-difficulty` reads a puzzle with its
+solution marked, and `puzzle-difficulty-unsolved` reads the same rows with the solution hidden,
+its squares, its length and what its moves do. What a task hides, no learner of that model can
+reach: the limit is applied where the arrays are prepared (`train/learners/base.py`), before any
+learner sees them.
 
 ## Datasets
 
@@ -51,7 +59,9 @@ Three choices hold for every dataset.
 
 **Streams, never copies.** A month of Lichess games is tens of gigabytes. The builders read it as
 a stream (`data/lichess.py`) and keep only the rows the recipe asks for, so a dataset builds on a
-laptop or a free notebook. A source that comes as files that cannot be streamed (the puzzles
+laptop or a free notebook. The evaluations file, twenty gigabytes of positions with an engine's
+verdict, is read the same way: most lines are turned away on a hash of their position before they
+are parsed, and the build stops downloading at its count (`data/evaluations.py`). A source that comes as files that cannot be streamed (the puzzles
 joined to their games, fourteen Parquet files) is fetched one file at a time, and each file is let
 go once its rows are read (`data/tactics.py`). A download that stops early is an error, never the
 end of the data, and so is anything that stops the rows on their way to the worker pool
@@ -86,7 +96,8 @@ The tree baseline cannot read 64 tokens, so `encode/hand.py` computes what a per
 material, mobility, checks and captures on offer, hanging pieces, passed pawns, attackers near each
 king, and for a puzzle the shape of its solution (how many moves, how many quiet ones, whether it
 starts with a sacrifice, how far the first piece travels). These are the features a network has to
-do better than.
+do better than. They come in named groups (`GROUPS`: material, mobility, hanging, pawns, kings,
+setup, first-move, line), so a task can hide a group and a run can leave one out.
 
 ## Bodies and a head
 
@@ -140,6 +151,27 @@ rating band, and for a chance its calibration table. Its predictions on the test
 weights go under `artifacts/runs/`, which git ignores, and the record names the weights by their
 hash, so a card can say which file a score belongs to.
 
+**Starting from another run.** A network's config can name a run whose body it begins from:
+`learner: {init: {model: position-evaluation, run: transformer-medium}}`. The two must be the same
+body at the same size. The piece and square embeddings, every block and the last norm carry over;
+a mark on squares both tasks know keeps its weights and one only the new task has starts new; the
+layers that read the numbers beside the board carry over only when both tasks read the same
+numbers; the head never does (`start_from` in `train/learners/net.py`). The weights are read from
+this machine's `artifacts/runs/`, so the run they come from is trained first, and `lab all` skips
+a run whose start is not there yet. The record names the file it started from by its hash and
+says what was taken. [`position-evaluation`](../models/position-evaluation/) exists to be started
+from: its label is an engine's evaluation, which says nothing about people, and its body is the
+one every other model's `transformer-medium` has.
+
+**A run that changes another.** A run that changes one thing in another names that run as its
+`base` and writes only the change; its config is the base's with its own blocks laid over it
+(`run_config` in `train/run.py`). Two changes need no code: `data: {train_share: 0.5}` trains on
+half of the training games, chosen by a hash of the game so a quarter is inside a half and the
+valid and test rows are never touched, and `learner: {without: [kings]}` leaves a group of hand
+features out. A run that also names a `study` is there to say what one thing is worth, not to be
+a candidate. `lab all <model>` trains a model's own runs, and `--runs study:games` asks for a
+study by name.
+
 A record is complete in itself. When a run finishes it is compared, row by row, with the
 reference run trained on the same machine, and the gain is written into the record. A leaderboard
 is then written from the records alone, so the trees can be trained on a desktop and the
@@ -168,6 +200,12 @@ chosen on valid rows.
 `lab eval` writes `results/leaderboard.md` and `results/leaderboard.json`; `lab report` writes
 the README's table from every model's leaderboard. No result in this repository is typed.
 
+**A study is listed apart.** A study run is not ranked with a model's own runs, and it is never a
+model's best run. Its leaderboard lists it under its study, with the run it changes, what it
+changes setting by setting (read off the two records' configs), how many rows it trained on, and
+both scores. It keeps its predictions on the test rows, which the closer look reads, and no
+weights: nobody will run it.
+
 ## The closer look
 
 A leaderboard says which run is best. It does not say where a model is right and wrong, and a
@@ -195,7 +233,9 @@ them, and writes `results/analysis.json`: small tables, committed, that any mach
 - **Pairs.** Two runs the plan names, the first set against the second on the same resampled test
   games: a run beside the run it changed (twice the epochs, the hand features added), or beside
   the number it has to beat. A leaderboard gives every run's gain over the reference; a pair is how
-  one thing changed in a run is judged.
+  one thing changed in a run is judged. Every run that names a `base` is paired with it whether
+  the plan asks or not, and that pair is all a study run is read for: the tables above are of a
+  model's own runs.
 
 A run's predictions are read only when its record names the build of the data on the machine,
 they are of that build's test rows in order, and they score what the record says. Every number is
@@ -227,7 +267,6 @@ new body or head in `nets/` with a test and a paragraph here:
 | A move as output: a score for each legal move | Human-move prediction, the chance a given move is found |
 | A label per square | Where a player should look, which piece is in danger |
 | A whole game as a sequence of positions | A rating from one game, tilt, time trouble |
-| Pre-training on engine evaluations | A body that knows chess before it learns about people, from the open Lichess evaluations |
 | A published body under a new head | Maia's board understanding, fine-tuned for a coaching question |
 
 The order they are built in follows [`ideas.md`](ideas.md).

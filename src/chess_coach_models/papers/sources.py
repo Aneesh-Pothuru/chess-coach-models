@@ -15,6 +15,7 @@ from importlib import import_module
 from typing import Any
 
 from .. import data, paths, tasks
+from ..encode.hand import group_of
 from ..evals import analysis, leaderboard
 from ..evals.metrics import METRICS
 from . import tex
@@ -37,6 +38,7 @@ class Sources:
     smoke: bool
     task: tasks.Task
     runs: list[dict[str, Any]]
+    studies: list[dict[str, Any]]
     recipe: dict[str, Any]
     plan: dict[str, Any]
     look: dict[str, Any] | None
@@ -129,9 +131,12 @@ def run_head(name: str, span: int, width: str) -> str:
 
 
 def read(model: str, *, smoke: bool = False) -> Sources:
-    """A model's files as a paper reads them. The records are ranked best first, as on its leaderboard."""
+    """A model's files as a paper reads them. The records are ranked best first, as on its leaderboard, and
+    the study runs, which no leaderboard ranks, are kept apart. The marks and hand features are the ones the
+    task lets a learner read."""
     task = tasks.get(model)
-    runs = leaderboard.ranked(task, leaderboard.records(model, smoke=smoke))
+    ranked = leaderboard.ranked(task, leaderboard.records(model, smoke=smoke))
+    runs = [run for run in ranked if run["config"].get("study") is None]
     if not runs:
         raise FileNotFoundError(f"{model} has no run records yet: a paper is drawn from them")
     recipe = data.recipe(task.dataset, smoke=smoke)
@@ -156,9 +161,10 @@ def read(model: str, *, smoke: bool = False) -> Sources:
         smoke=smoke,
         task=task,
         runs=runs,
+        studies=[run for run in ranked if run["config"].get("study") is not None],
         recipe=recipe,
         plan=analysis.plan(model),
         look=look,
-        marks=tuple(builder.MARKS),
-        hand=tuple(builder.HAND),
+        marks=tuple(name for name in builder.MARKS if task.marks is None or name in task.marks),
+        hand=tuple(name for name in builder.HAND if task.hand is None or group_of(name) in task.hand),
     )

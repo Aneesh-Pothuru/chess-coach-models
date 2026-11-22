@@ -18,9 +18,9 @@ import argparse
 import sys
 import time
 
-from . import data, tasks
+from . import data, paths, tasks
 from .data.store import dataset_dir, write_dataset
-from .train.run import run, run_config, run_names
+from .train.run import run, run_config, run_names, studies
 
 
 def log(message: str) -> None:
@@ -41,13 +41,35 @@ def build_data(dataset: str, *, smoke: bool, source: str | None, workers: int | 
     log(f"{plan['name']}: {len(rows):,} rows written to {directory}")
 
 
-def can_train(model: str, name: str, *, smoke: bool) -> bool:
-    """Whether this machine should train a run: one marked ``needs: cuda`` waits for a GPU."""
-    if run_config(model, name, smoke=smoke).get("needs") != "cuda":
-        return True
+def waits_for(model: str, name: str, *, smoke: bool) -> str | None:
+    """What a run waits for on this machine, or nothing when it can be trained now: one that starts from
+    another run's weights waits for that run, and one marked ``needs: cuda`` for a GPU."""
+    config = run_config(model, name, smoke=smoke)
+    init = config.get("learner", {}).get("init")
+    if init and not (paths.run_files(init["model"], init["run"], smoke=smoke) / "model.pt").exists():
+        return f"starts from {init['model']}/{init['run']}, which has not been trained on this machine"
+    if config.get("needs") != "cuda":
+        return None
     import torch
 
-    return torch.cuda.is_available()
+    return None if torch.cuda.is_available() else "needs a GPU"
+
+
+def planned(model: str, asked: str | None) -> list[str]:
+    """The runs ``lab all`` trains: the leaderboard's own, or the ones asked for by name, where
+    ``study:<name>`` stands for every run of that study."""
+    if not asked:
+        return run_names(model)
+    names: list[str] = []
+    for token in asked.split(","):
+        if not token.startswith("study:"):
+            names.append(token)
+            continue
+        found = run_names(model, study=token.removeprefix("study:"))
+        if not found:
+            raise SystemExit(f"{model} has no study named {token.removeprefix('study:')!r}: it has {', '.join(studies(model)) or 'none'}")
+        names += found
+    return list(dict.fromkeys(names))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -71,7 +93,11 @@ def main(argv: list[str] | None = None) -> int:
 
     everything = commands.add_parser("all", help="a model's data, its runs and its leaderboard")
     everything.add_argument("model", choices=models)
-    everything.add_argument("--runs", help="comma-separated run names; default every config this machine can train")
+    everything.add_argument(
+        "--runs",
+        help="comma-separated run names, with study:<name> for every run of a study; "
+        "default every run of the leaderboard this machine can train",
+    )
     everything.add_argument("--source")
     everything.add_argument("--workers", type=int)
     everything.add_argument("--device")
@@ -104,13 +130,14 @@ def main(argv: list[str] | None = None) -> int:
         from .evals.leaderboard import build as leaderboard
 
         build_data(tasks.get(args.model).dataset, smoke=args.smoke, source=args.source, workers=args.workers, rebuild=False)
-        names = args.runs.split(",") if args.runs else run_names(args.model)
+        names = planned(args.model, args.runs)
         reference = tasks.get(args.model).reference
         for name in sorted(names, key=lambda name: name != reference):
-            if can_train(args.model, name, smoke=args.smoke):
+            waiting = waits_for(args.model, name, smoke=args.smoke)
+            if waiting is None:
                 run(args.model, name, smoke=args.smoke, device=args.device, log=log)
             else:
-                log(f"{args.model}/{name}: needs a GPU, skipped on this machine")
+                log(f"{args.model}/{name}: {waiting}, skipped on this machine")
         leaderboard(args.model, smoke=args.smoke)
         log(f"{args.model}: leaderboard written")
     elif args.command == "analyse":
@@ -118,6 +145,8 @@ def main(argv: list[str] | None = None) -> int:
 
         look = analyse(args.model, smoke=args.smoke)
         log(f"{args.model}: analysis of {len(look['runs'])} runs written, best {look['best']}")
+        if look.get("studies"):
+            log(f"{args.model}: {len(look['studies'])} study runs set against the runs they change")
         for name, reason in look["skipped"].items():
             log(f"{args.model}/{name}: left out, {reason}")
     elif args.command == "paper":

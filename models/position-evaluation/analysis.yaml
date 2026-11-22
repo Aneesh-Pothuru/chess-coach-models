@@ -1,0 +1,13 @@
+# How position-evaluation's results are cut for a closer look (src/chess_coach_models/evals/analysis.py).
+band: {title: Men on the board}
+describe: [win, depth, men, legal_moves]
+label: {low: 0, high: 100, bins: 20}
+within: {"5": 5, "10": 10, "20": 20}
+slices:
+  - {key: check, column: in_check, title: The mover is in check, values: [0, 1], labels: ["no", "yes"]}
+  - {key: depth, column: depth, title: Depth of the evaluation, edges: [30, 40, 60]}
+  - {key: pieces, column: phase_piece_count, title: "Knights, bishops, rooks and queens on the board", edges: [3, 6, 9, 12]}
+examples:
+  count: 3
+  truth: The engine's evaluation
+  show: [depth, cp, mate, men]

@@ -64,6 +64,21 @@ Written before the first full run.
 | `transformer-medium-hand` | The same, reading the hand features beside the board |
 | `transformer-medium-long` | `transformer-medium` with twice the epochs |
 | `transformer-medium-hand-long` | `transformer-medium-hand` with twice the epochs |
+| `transformer-medium-pretrained` | `transformer-medium` started from the body of [position evaluation](../position-evaluation/) |
+| `transformer-medium-hand-pretrained` | `transformer-medium-hand` started from the same body |
+
+### Studies
+
+Runs that change one thing in a run above, to say what that thing is worth
+([`docs/design.md`](../../docs/design.md), "A run that changes another"). They
+are listed apart on the leaderboard, and each is read against the run it
+changes: the paired difference on the same resampled test games (the closer
+look's `pairs`), which says something only when its interval leaves zero out.
+
+| Study | Runs | What each changes |
+|---|---|---|
+| `games` | `gbm-hand-half`, `gbm-hand-quarter`, `transformer-medium-hand-half`, `transformer-medium-hand-quarter` | Half and a quarter of the training games, chosen by a hash of the game. The network goes through them often enough to take as many steps as the run it changes, so only the number of games differs. |
+| `features` | `gbm-hand-no-<group>` for each of material, mobility, hanging, pawns, kings, setup, first-move, line | One group of hand features left out |
 
 ## Results
 

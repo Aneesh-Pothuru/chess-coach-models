@@ -1,4 +1,5 @@
-"""The learners that fit nothing: a column of the dataset read as the prediction, and the rating formula."""
+"""What a learner is given, and the learners that fit nothing: a column of the dataset read as the prediction, and
+the rating formula."""
 
 import numpy as np
 import polars as pl
@@ -7,7 +8,7 @@ import pytest
 from chess_coach_models import tasks
 from chess_coach_models.data import store
 from chess_coach_models.train import learners
-from chess_coach_models.train.learners import column, rating_formula
+from chess_coach_models.train.learners import base, column, rating_formula
 
 
 ROWS = 600
@@ -79,3 +80,65 @@ def test_a_run_names_a_learner_the_lab_has():
     prepared = learners.prepare(a_task("mover_score"), a_dataset())
     with pytest.raises(ValueError, match="no learner named"):
         learners.fit(prepared, {"learner": {"kind": "oracle"}}, log=lambda _: None)
+
+
+def a_puzzle_dataset() -> store.Dataset:
+    """A dataset with hand features of four groups and three marks on its squares."""
+    dataset = a_dataset()
+    rng = np.random.default_rng(1)
+    hand = ["material_count", "legal_moves", "hanging_own", "solver_moves", "line_checks", "first_check"]
+    rows = dataset.rows.with_columns(pl.Series(name, rng.integers(0, 9, size=ROWS).astype(np.float64)) for name in hand)
+    manifest = {"group": "game_id", "hand": hand, "marks": ["en_passant", "setup_to", "solver1_to"]}
+    return store.Dataset(name="tiny", rows=rows, tokens=dataset.tokens, marks=dataset.marks, manifest=manifest)
+
+
+def test_a_task_that_names_nothing_reads_all_the_dataset_has():
+    prepared = learners.prepare(a_task("mover_score"), a_puzzle_dataset())
+    assert prepared.hand_names == ["material_count", "legal_moves", "hanging_own", "solver_moves", "line_checks", "first_check"]
+    assert (prepared.mark_names, prepared.mark_channels) == (["en_passant", "setup_to", "solver1_to"], [0, 1, 2])
+    numbers, names = learners.features(prepared, "hand")
+    assert names == ["mover_elo"] + prepared.hand_names and numbers.shape == (ROWS, 7)
+
+
+def test_a_task_keeps_marks_and_hand_groups_from_its_learners():
+    hidden = tasks.Task(**{**a_task("mover_score").__dict__, "marks": ("en_passant", "solver1_to"), "hand": ("material", "mobility")})
+    prepared = learners.prepare(hidden, a_puzzle_dataset())
+    assert prepared.hand_names == ["material_count", "legal_moves"] and prepared.hand.shape == (ROWS, 2)
+    assert (prepared.mark_names, prepared.mark_channels) == (["en_passant", "solver1_to"], [0, 2])
+    assert learners.features(prepared, "hand")[1] == ["mover_elo", "material_count", "legal_moves"]
+    absent = tasks.Task(**{**hidden.__dict__, "marks": ("en_passant", "last_to")})
+    with pytest.raises(ValueError, match="asks for last_to"):
+        learners.prepare(absent, a_puzzle_dataset())
+
+
+def test_a_run_leaves_groups_of_hand_features_out_and_never_the_context():
+    in_context = tasks.Task(**{**a_task("mover_score").__dict__, "context": ("mover_elo", "solver_moves")})
+    prepared = learners.prepare(in_context, a_puzzle_dataset())
+    numbers, names = learners.features(prepared, "hand", ["line", "hanging"])
+    assert names == ["mover_elo", "solver_moves", "material_count", "legal_moves", "first_check"]
+    whole, all_names = learners.features(prepared, "hand")
+    assert np.array_equal(numbers, whole[:, [all_names.index(name) for name in names]])
+    with pytest.raises(ValueError, match="not weather"):
+        learners.features(prepared, "hand", ["weather"])
+    with pytest.raises(ValueError, match="no hand feature of the group pawns"):
+        learners.features(prepared, "hand", ["pawns"])
+    with pytest.raises(ValueError, match="only a run that reads the hand features"):
+        learners.features(prepared, "context", ["line"])
+
+
+def test_a_share_of_the_training_games_keeps_whole_games_and_sits_inside_a_larger_share():
+    dataset = a_dataset()
+    whole = learners.prepare(a_task("mover_score"), dataset)
+    half = learners.prepare(a_task("mover_score"), dataset, train_share=0.5)
+    quarter = learners.prepare(a_task("mover_score"), dataset, train_share=0.25)
+    assert set(quarter.train) < set(half.train) < set(whole.train)
+    assert 0.35 < len(half.train) / len(whole.train) < 0.65 and 0.15 < len(quarter.train) / len(whole.train) < 0.4
+    assert np.array_equal(half.test, whole.test) and np.array_equal(half.valid, whole.valid)
+    games = dataset.rows["game_id"].to_numpy()
+    kept, dropped = set(games[half.train]), set(games[whole.train]) - set(games[half.train])
+    assert kept and dropped and not kept & dropped
+    assert np.array_equal(half.train, learners.prepare(a_task("mover_score"), dataset, train_share=0.5).train)
+    assert base.share_of(np.array(["a", "a", "b"]), 1.0).all()
+    for share in (0.0, 1.5, -0.1):
+        with pytest.raises(ValueError, match="a share of the games"):
+            learners.prepare(a_task("mover_score"), dataset, train_share=share)
