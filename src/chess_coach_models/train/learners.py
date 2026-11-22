@@ -1,4 +1,4 @@
-"""The learners a run can name: a constant, gradient-boosted trees, a network.
+"""The learners a run can name: a constant, the rating formula, gradient-boosted trees, a network.
 
 Each takes the prepared arrays of a task and returns its predictions on the
 valid and test rows in the label's own unit (a rating, a log of seconds, a
@@ -78,6 +78,29 @@ def fit_constant(prepared: Prepared, config: dict[str, Any], *, log, device=None
         valid=np.full(len(prepared.valid), value),
         test=np.full(len(prepared.test), value),
         details={"constant": value},
+    )
+
+
+def fit_rating_formula(prepared: Prepared, config: dict[str, Any], *, log, device=None) -> Fitted:
+    """The rating formula's expected score of a player against something rated, from the two columns the run names.
+
+    Nothing is fitted: this is what two ratings alone say. The two may sit on different scales (a game rating and
+    a puzzle rating do). The formula's log-odds are the rating gap times a constant, so the slope and the
+    intercept a run fits on valid rows before it is scored are exactly the stretch and the shift between them.
+    """
+    if prepared.task.kind != "binary":
+        raise ValueError("the rating formula gives a chance, so its task needs a yes-or-no label")
+    learner = config["learner"]
+    rows = prepared.dataset.rows
+    gap = (
+        rows[learner["player"]].to_numpy().astype(np.float64)
+        - rows[learner["against"]].to_numpy().astype(np.float64)
+    )
+    expected = 1.0 / (1.0 + 10.0 ** (-gap / 400.0))
+    return Fitted(
+        valid=expected[prepared.valid],
+        test=expected[prepared.test],
+        details={"player": learner["player"], "against": learner["against"], "scale": 400},
     )
 
 
@@ -281,4 +304,4 @@ def fit_net(prepared: Prepared, config: dict[str, Any], *, log, device: str | No
     )
 
 
-LEARNERS = {"constant": fit_constant, "gbm": fit_gbm, "net": fit_net}
+LEARNERS = {"constant": fit_constant, "rating-formula": fit_rating_formula, "gbm": fit_gbm, "net": fit_net}

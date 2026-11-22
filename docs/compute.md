@@ -40,6 +40,7 @@ make setup                       # once
 lab all puzzle-difficulty        # its data, then every run this machine can train
 lab all blunder-hazard
 lab all think-time
+lab all tactic-found
 lab report                       # the README's table
 ```
 

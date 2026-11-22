@@ -36,6 +36,8 @@ def build_data(dataset: str, *, smoke: bool, source: str | None, workers: int | 
         from .data.puzzles import build
     elif plan["builder"] == "game_positions":
         from .data.positions import build
+    elif plan["builder"] == "tactics":
+        from .data.tactics import build
     else:
         raise ValueError(f"no builder named {plan['builder']!r}")
     started = time.time()

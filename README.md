@@ -22,6 +22,7 @@ the results its runs wrote.
 | [puzzle-difficulty](models/puzzle-difficulty/) | A position and its solution line | The puzzle's Lichess rating | On the shared harness |
 | [blunder-hazard](models/blunder-hazard/) | A position, both ratings, both clocks, the evaluation | The chance the mover blunders | On the shared harness; a first version from 2019 data is in [`reports/`](reports/) |
 | [think-time](models/think-time/) | A position, both ratings, both clocks | The seconds a player spends on the move | On the shared harness |
+| [tactic-found](models/tactic-found/) | A position after the opponent's mistake, the tactic's line, both ratings, both clocks | The chance the player finds the tactic in the game | On the shared harness |
 | [human-moves](models/human-moves/) | A position and a rating | The move a player at that rating plays | Maia-2 as published, benchmarked here |
 | [concept-tagger](models/concept-tagger/) | A position | Its tactical themes | First pipeline |
 | [graded-opponent](models/graded-opponent/) | A game | Each mistake, and the chance its punishment is found at a rating | First pipeline |
@@ -52,7 +53,8 @@ A model that reads a position does the same five things, so they are written onc
 ```
 datasets/<name>.yaml            a recipe: an open source, filters, a fixed sample, a split by game
 src/chess_coach_models/
-  data/                         Lichess streams (puzzles, a month of games), splits, the dataset format
+  data/                         Lichess sources (puzzles, a month of games, puzzles joined to their games),
+                                splits, the dataset format
   encode/                       a board as 64 tokens from the mover's side, marks, hand features
   nets/                         bodies (a square-token transformer, a convolutional tower) and the head
   train/                        the tree baseline, the network loop, the run record
@@ -97,7 +99,7 @@ Python 3.11 to 3.13.
 ```bash
 make setup        # .venv with Torch, LightGBM and the rest
 make test         # every test; CI runs the ones that need no Torch or data
-make smoke        # all three starter models end to end on a small sample
+make smoke        # every starter model end to end on a small sample
 make starters     # the full datasets, every run this machine can train, the leaderboards
 ```
 
@@ -143,7 +145,8 @@ because it is waiting on data. It leaves when it reports.
 
 ## Licences
 
-- The [Lichess Open Database](https://database.lichess.org/) exports are CC0.
+- The [Lichess Open Database](https://database.lichess.org/) exports are CC0, and so is
+  [`Lichess/chess-puzzles-with-games`](https://huggingface.co/datasets/Lichess/chess-puzzles-with-games).
 - [`maia2`](https://pypi.org/project/maia2/) is MIT-licensed; its weights download on first use.
 - The coach narrator is built with Llama: its base model, Llama 3.2 3B, is under the
   [Llama 3.2 Community License](https://www.llama.com/llama3_2/license/).

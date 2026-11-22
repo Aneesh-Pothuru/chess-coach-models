@@ -53,6 +53,8 @@ def _learner(record: dict[str, Any]) -> str:
     learner = record["config"]["learner"]
     if learner["kind"] == "constant":
         return "one number for every row"
+    if learner["kind"] == "rating-formula":
+        return f"the rating formula on `{learner['player']}` against `{learner['against']}`"
     if learner["kind"] == "gbm":
         reads = "context and hand features" if learner["features"] == "hand" else "context numbers only"
         return f"LightGBM, {reads}"

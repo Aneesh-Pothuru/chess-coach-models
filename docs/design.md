@@ -42,7 +42,9 @@ Three choices hold for every dataset.
 
 **Streams, never copies.** A month of Lichess games is tens of gigabytes. The builders read it as
 a stream (`data/lichess.py`) and keep only the rows the recipe asks for, so a dataset builds on a
-laptop or a free notebook.
+laptop or a free notebook. A source that comes as files that cannot be streamed (the puzzles
+joined to their games, fourteen Parquet files) is fetched one file at a time, and each file is let
+go once its rows are read (`data/tactics.py`).
 
 **A sample is a hash.** Whether a puzzle or a game is in the sample is decided by a hash of its
 id (`data/splits.py`), so the same recipe builds the same rows on any machine, and a bigger sample
@@ -97,9 +99,12 @@ Sizes are settings of a run (`dim`, `depth`, `heads`), not code.
 
 ## Learners and the run record
 
-A run is one config file and names one of three learners (`train/learners.py`):
+A run is one config file and names one of four learners (`train/learners.py`):
 
 - `constant`: one number for every row. The floor: a model that does not beat it learned nothing.
+- `rating-formula`: the rating formula's expected score of a player against something rated,
+  from two columns the run names. Nothing is fitted. It is the comparison for a task where a
+  rating already claims to answer the question, as a puzzle's rating does for a tactic.
 - `gbm`: gradient-boosted trees on the context numbers (`gbm-context`), or on those and the hand
   features (`gbm-hand`). `gbm-hand` is the reference every other run is compared with.
 - `net`: a body and the head, trained by one loop for every task: AdamW, a warm-up then a cosine
@@ -108,7 +113,8 @@ A run is one config file and names one of three learners (`train/learners.py`):
 
 A chance is calibrated before it is scored: a slope and an intercept are fitted on the valid rows
 and applied to the test rows, so a model is not marked down for being sure of itself in a way one
-line can fix.
+line can fix. For the rating formula the same two numbers are the shift and the stretch between
+two rating scales.
 
 `lab train <model> <run>` writes `models/<model>/results/<run>.json`: the config, what the learner
 did (trees grown, epochs, the features the trees leaned on), the processor it ran on, the commit,

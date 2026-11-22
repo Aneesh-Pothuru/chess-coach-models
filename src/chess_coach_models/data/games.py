@@ -33,6 +33,11 @@ class Ply:
     clock: float | None
 
 
+def _seconds(clock: re.Match[str]) -> float:
+    """A ``[%clk h:mm:ss]`` match as seconds."""
+    return int(clock.group(1)) * 3600 + int(clock.group(2)) * 60 + float(clock.group(3))
+
+
 def parse_movetext(movetext: str) -> list[Ply]:
     plies = []
     for match in MOVE_RE.finditer(movetext):
@@ -43,16 +48,46 @@ def parse_movetext(movetext: str) -> list[Ply]:
             Ply(
                 san=match.group(1).rstrip("?!"),
                 eval_cp_white=eval_to_cp(found_eval.group(1)) if found_eval else None,
-                clock=(
-                    int(found_clock.group(1)) * 3600
-                    + int(found_clock.group(2)) * 60
-                    + float(found_clock.group(3))
-                    if found_clock
-                    else None
-                ),
+                clock=_seconds(found_clock) if found_clock else None,
             )
         )
     return plies
+
+
+EXPORT_RE = re.compile(r"\{([^}]*)\}|([()])|([A-Za-z][^\s{}()]*)")
+
+
+def parse_export(movetext: str) -> list[Ply]:
+    """The plies of a game as Lichess's game export writes it.
+
+    The export says more than a month of the database does: a judgment in a
+    comment of its own before the one with the evaluation and the clock, the
+    opening's name in another, and the engine's better line in brackets after
+    a mistake. Only the game's own moves count, and a move takes its
+    evaluation and its clock from whichever of its comments carries them.
+    """
+    sans: list[str] = []
+    evals: list[float | None] = []
+    clocks: list[float | None] = []
+    depth = 0
+    for match in EXPORT_RE.finditer(movetext):
+        comment, bracket, word = match.groups()
+        if bracket:
+            depth += 1 if bracket == "(" else -1
+        elif depth:
+            continue
+        elif word:
+            sans.append(word.rstrip("?!"))
+            evals.append(None)
+            clocks.append(None)
+        elif comment and sans:
+            found_eval = EVAL_RE.search(comment)
+            found_clock = CLOCK_RE.search(comment)
+            if found_eval:
+                evals[-1] = eval_to_cp(found_eval.group(1))
+            if found_clock:
+                clocks[-1] = _seconds(found_clock)
+    return [Ply(san=san, eval_cp_white=value, clock=clock) for san, value, clock in zip(sans, evals, clocks)]
 
 
 def time_control(value: str) -> tuple[int, int] | None:

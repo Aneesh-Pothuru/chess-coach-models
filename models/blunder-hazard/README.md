@@ -63,6 +63,13 @@ hanging-piece feature is a proxy for a full exchange search
 
 ## What it does not say yet
 
+- A position that is already lost cannot be blundered: with a win probability
+  of 20 or less, no move loses 20 more points. Every learner that reads the
+  evaluation gets those rows right for free, and the calibration table shows
+  them as its lowest groups. That lifts ROC-AUC for every run alike, so PR-AUC
+  and the paired gains are what to read. A run on the positions that can
+  still be blundered is the fairer picture of each learner, and would be its
+  own task.
 - Only analysed games give a label, and players choose which games to analyse.
 - The label is as deep as Lichess's server analysis.
 - The model sees one position. The moves and clock use that led to it are a

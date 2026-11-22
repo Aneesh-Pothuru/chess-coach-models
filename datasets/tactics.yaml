@@ -1,0 +1,23 @@
+# Lichess puzzles joined to the games they were cut from, with what the player did next (data/tactics.py).
+name: tactics-v1
+builder: tactics
+source: https://huggingface.co/datasets/Lichess/chess-puzzles-with-games
+# Its card says the dataset may still change, so a build names the commit it reads.
+revision: 3510a01f320eaaab7b7775ebc73afcfe0b33b4c2
+# The first seven of its fourteen files. The files are ordered by the first two characters of the puzzle id,
+# which are random, so these are a random half of the puzzles.
+files: 7
+filters:
+  # The puzzle's own rating has settled, as in puzzles.yaml, so what that rating predicts is compared fairly.
+  max_rating_deviation: 100
+  min_plays: 100
+  # Bullet is left out: too many of its moves are made before the opponent's move is seen.
+  speeds: [blitz, rapid, classical]
+sample: 1.0
+split:
+  salt: tactics-v1
+  valid: 0.05
+  test: 0.10
+smoke:
+  files: 1
+  source_rows: 30000

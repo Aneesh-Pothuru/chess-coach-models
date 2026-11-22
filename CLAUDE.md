@@ -140,7 +140,7 @@ win probability behind the blunder label to the app's.
 |---|---|
 | `make setup` | The environment in `.venv` (Torch, LightGBM, the `lab` command) |
 | `make test` | Every test; CI runs only those that need no Torch or data |
-| `make smoke` | The three starter models end to end on a small sample |
+| `make smoke` | Every starter model end to end on a small sample |
 | `make starters` | The full datasets, every run this machine can train, the leaderboards, the README table |
 | `lab data|train|eval|all|report` | One step of the harness (`lab --help`) |
 | `make chess` | Fetches the pinned app and the research records (`bridge/checkout.sh`) |

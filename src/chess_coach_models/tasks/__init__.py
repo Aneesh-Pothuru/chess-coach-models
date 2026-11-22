@@ -44,7 +44,19 @@ THINK_TIME = Task(
     reference="gbm-hand",
 )
 
-TASKS = {task.name: task for task in (PUZZLE_DIFFICULTY, BLUNDER_HAZARD, THINK_TIME)}
+TACTIC_FOUND = Task(
+    name="tactic-found",
+    dataset="tactics",
+    kind="binary",
+    label="found",
+    unit="chance the move played is the first move of the tactic",
+    context=(*_CLOCKS, "win_prior", "win_before", "solver_moves", *CASTLING),
+    primary="log_loss",
+    lower_is_better=True,
+    reference="gbm-hand",
+)
+
+TASKS = {task.name: task for task in (PUZZLE_DIFFICULTY, BLUNDER_HAZARD, THINK_TIME, TACTIC_FOUND)}
 
 
 def get(name: str) -> Task:

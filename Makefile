@@ -5,7 +5,7 @@ CONFIG ?= configs/config.yaml
 PYTHON_BOOTSTRAP ?= $(shell command -v python3.12 2>/dev/null || command -v python3)
 
 # The models on the shared harness (src/chess_coach_models, docs/design.md).
-STARTERS := puzzle-difficulty blunder-hazard think-time
+STARTERS := puzzle-difficulty blunder-hazard think-time tactic-found
 
 .PHONY: setup test smoke starters report chess parity papers data train eval benchmark concepts reports
 
