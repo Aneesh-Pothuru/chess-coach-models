@@ -230,7 +230,12 @@ Beyond the noise, \V{networks.ahead.of} are ahead of the reference
 transformer with the position's hand features beside the board
 \V{run.transformer-medium-hand.gain}. The two small networks gain
 \V{run.conv-small.gain} (the convolutional tower) and
-\V{run.transformer-small.gain} (the small transformer).
+\V{run.transformer-small.gain} (the small transformer). Those four are the
+ladder, each trained from nothing. The two medium transformers were also
+started from a body that was trained on engine evaluations first, and from
+it they gain \V{run.transformer-medium-pretrained.gain} and
+\V{run.transformer-medium-hand-pretrained.gain}: Section~\ref{sec:changes}
+says what that start is.
 
 \begin{figure}[htbp]\centering
 \block{gains}
@@ -253,14 +258,17 @@ hidden the counts of the position are all the trees have, while a network
 still has the whole board to read. A network matters most where the least is
 handed over.
 
-The order of the networks is not puzzle difficulty's either. There the medium
-transformers lead and the best run is \V{shown.best.there.name}. Here the
-first is \V{best.name}, a network of \V{best.parameters.millions} million
-parameters that trains in \V{best.seconds}, ahead of a transformer of
-\V{run.transformer-medium-hand.parameters.millions} million. Each was
-trained once, and the two have not been set against each other on resampled
-games, so the order of the first two is a reading of
-Table~\ref{tab:leaderboard} and not yet a finding.
+On the ladder the order of the networks is not puzzle difficulty's either.
+There the medium transformers lead the small networks. Here the
+convolutional tower, a network of \V{run.conv-small.parameters.millions}
+million parameters that trains in \V{run.conv-small.seconds}, scores
+\V{run.conv-small.score}, ahead of the medium transformer of
+\V{run.transformer-medium-hand.parameters.millions} million that reads the
+hand features, at \V{run.transformer-medium-hand.score}. The intervals of
+their gains over the reference do not touch (Figure~\ref{fig:gains}). The
+start from engine evaluations puts the transformers back in front: the best
+run here is \V{best.name}, and the best run of puzzle difficulty is
+\V{shown.best.there.name}.
 \fi
 
 \subsection{Ranking and the rating}
@@ -428,14 +436,19 @@ find. That run reaches
 leaderboards' scores, with no interval.
 
 \paragraph{What the share kept says.}
-A reading of Table~\ref{tab:shown}. Every learner here gets most of what it
-knows about a puzzle's difficulty from the solution: no run keeps half of its
-shown run's step. The trees keep the least, since the counts of the line were
-nearly all they had. A network keeps more, since a board is left to read when
-the line is gone. What the share does not say is how much of a tactic's
-difficulty is in the position. It is what these learners read off a
-position, and a better reader of positions would raise it
-(Section~\ref{sec:limits}).
+A reading of Table~\ref{tab:shown}. The trees keep the least, since the
+counts of the line were nearly all they had. A network keeps more, since a
+board is left to read when the line is gone, and a network trained from
+nothing still gets most of what it knows about a puzzle's difficulty from
+the solution: none of the ladder's keeps half of its shown run's step. The
+two runs that start from a body trained on engine evaluations keep about
+half, \V{shown.transformer-medium-pretrained.kept.percent}\% on the board
+alone and \V{shown.transformer-medium-hand-pretrained.kept.percent}\% with
+the hand features, where the same two runs from nothing keep
+\V{shown.transformer-medium.kept.percent}\% and
+\V{shown.transformer-medium-hand.kept.percent}\%. So the share is not a
+fact about puzzles. It is what these learners read off a position, and a
+better reader of positions raises it (Section~\ref{sec:limits}).
 
 \ifshownpaired
 \subsection{Where the solution is worth most}
@@ -512,6 +525,61 @@ offer, loose pieces, passed pawns, the attackers near each king. In puzzle
 difficulty the same pair of runs also differs in the counts of what the
 solution's moves do, which is why that paper's pair measures something
 else.
+
+\paragraph{What a start from engine evaluations was worth here.}
+The lab's position-evaluation model trains the same medium transformer on
+positions from the open Lichess evaluations file, to say the mover's winning
+chances as an engine sees them. That label says nothing about people. The
+model is there for its body: a run of this model can start from it. The
+embeddings and the blocks are copied in, the head starts new, and the run
+then trains on this model's puzzles on the ladder's schedule, with nothing
+else changed.
+
+On the board alone, \V{run.transformer-medium-pretrained.name} is
+\V{pair.transformer-medium-pretrained.transformer-medium.valid.verdict} than
+the run it changed on the valid puzzles and
+\V{pair.transformer-medium-pretrained.transformer-medium.verdict} on the
+test puzzles, by \V{pair.transformer-medium-pretrained.transformer-medium.gain}
+points: it is \V{pair.transformer-medium-pretrained.transformer-medium.kept}.
+With the position's hand features,
+\V{run.transformer-medium-hand-pretrained.name} is
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.valid.verdict}
+than the run it changed on the valid puzzles and
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.verdict}
+on the test puzzles, by
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain}: it
+is \V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.kept}.
+Both pass the convolutional tower, and the intervals of their gains over the
+reference do not touch the tower's (Table~\ref{tab:leaderboard}). The
+model's best run is \V{best.name}.
+
+\ifshown
+The start is worth more here than where the solution is shown. In puzzle
+difficulty it took the transformer on the board alone from
+\V{shown.transformer-medium.there} to
+\V{shown.transformer-medium-pretrained.there} and the one with the features
+from \V{shown.transformer-medium-hand.there} to
+\V{shown.transformer-medium-hand-pretrained.there}. Here it took them from
+\V{shown.transformer-medium.here} to
+\V{shown.transformer-medium-pretrained.here} and from
+\V{shown.transformer-medium-hand.here} to
+\V{shown.transformer-medium-hand-pretrained.here}, more than twice as far
+each time. So the solution is worth less to a run that starts from the
+body: \V{shown.transformer-medium-hand-pretrained.worth} points with the
+features, against \V{shown.transformer-medium-hand.worth} for the same run
+from nothing (Table~\ref{tab:shown}). A reading: with the line hidden, what
+is left to do is read the position, and reading positions is what the body
+was trained for.
+\fi
+
+The position's counts still pay from the body. The run that reads them
+scores \V{run.transformer-medium-hand-pretrained.over-twin} points better
+than the one that does not, and the intervals of the two runs' gains over
+the reference do not touch. Their best valid epochs were
+\V{run.transformer-medium-pretrained.best-epoch} and
+\V{run.transformer-medium-hand-pretrained.best-epoch} of
+\V{run.transformer-medium-hand-pretrained.epochs}
+(Figure~\ref{fig:variants}).
 \fi
 
 \input{../../../papers/studies}
@@ -752,14 +820,16 @@ With the line shown, the best run of puzzle difficulty is off by
 is off by \V{best.score}.
 \fi
 Wherever both models could be asked, the one that reads the line should be.
-\item \textbf{Look to the line for why a tactic was hard.}
+\item \textbf{Look to the line as well as the position for why a tactic was
+hard.}
 \ifshown
 These learners read \V{shown.best.kept.percent}\% of the shown model's step
 off the position, and take the rest from the line.
 \fi
-A reading for the coach's words: when a missed tactic is explained, what the
-line asks for (how long it is, a quiet move in it, a piece given up) is the
-better place to look for its difficulty than how the position looked.
+A reading for the coach's words: when a missed tactic is explained, how the
+position looked is one part of its difficulty and what the line asks for
+(how long it is, a quiet move in it, a piece given up) is the other, and the
+app has both.
 \item \textbf{A sorter, where no line is known.} A batch of positions that
 are known to hold a tactic, with no line computed yet, can be put in order
 from easy to hard: the rank correlation with the true rating is
@@ -777,8 +847,9 @@ one is (Section~\ref{sec:limits}).
 \begin{itemize}
 \item \textbf{The share kept is a floor, not a ceiling.} It is what these
 learners read off a position, not all that a position holds. A stronger
-reader of positions would keep more, and the gap to the model that is shown
-the solution would narrow by as much.
+reader of positions keeps more, and the start from engine evaluations is
+the first to show it (Section~\ref{sec:changes}). Nothing here says where
+the share stops rising.
 \item \textbf{One run each.} A hidden run and its shown run were each
 trained once. The comparison holds their configs to be the same and scores
 them on the same test puzzles, and it does not yet say how much two
@@ -824,15 +895,16 @@ are kept on the owner's machine.
 run against its shown run on the same resampled test games, overall and
 inside each cut, once both models' predictions are on one machine.
 \fi
-\item \textbf{A start from engine evaluations.} A body that has first
-learned to read a position's evaluation may read more of a tactic off the
-position. The two runs that start from one are in this model's configs.
+\item \textbf{A stronger body to start from.} The body was trained once, at
+one size, on a part of the evaluations file. The start from it was worth
+more here than anything else tried, so one trained for longer, on more of
+the file or at a larger size is the first run to add.
 \item \textbf{A body told what each piece attacks.} If the gap to the shown
 model is partly a network failing to see the tactic that is there, attention
 that is handed the attack relations should narrow it.
 \item \textbf{A second seed.} Training each hidden run and its shown run
 again says how much of a difference between them is the solution and how
-much is chance. It also settles the order of the first two runs here.
+much is chance.
 \item \textbf{More epochs and more puzzles.} By the valid puzzles,
 \V{ladder.at-last-epoch.of} were still at their best in the last epoch they
 were given. In puzzle difficulty twice the epochs made the medium

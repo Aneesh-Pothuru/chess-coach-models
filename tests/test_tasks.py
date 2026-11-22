@@ -57,6 +57,26 @@ def test_a_task_names_everything_and_nothing_else(temp_lab):
         tasks.get("absent")
 
 
+def test_a_model_is_in_the_lab_for_its_answer_unless_its_task_says_its_body(temp_lab):
+    write_task(temp_lab.root, "asked", TASK)
+    write_task(temp_lab.root, "lender", {**TASK, "purpose": "body"})
+    assert (tasks.get("asked").purpose, tasks.get("lender").purpose) == ("answer", "body")
+    write_task(temp_lab.root, "odd", {**TASK, "purpose": "fun"})
+    with pytest.raises(ValueError, match="for its answer or its body, not 'fun'"):
+        tasks.get("odd")
+
+
+def test_a_model_the_lab_has_for_its_body_is_one_some_other_model_s_run_starts_from():
+    lenders = {name for name in tasks.names() if tasks.get(name).purpose == "body"}
+    started = set()
+    for name in tasks.names():
+        for path in paths.configs(name).glob("*.yaml"):
+            init = ((yaml.safe_load(path.read_text(encoding="utf-8")) or {}).get("learner") or {}).get("init")
+            if init and init["model"] != name:
+                started.add(init["model"])
+    assert lenders <= started
+
+
 def test_a_task_is_ranked_by_a_metric_of_its_kind(temp_lab):
     write_task(temp_lab.root, "odd", {**TASK, "kind": "ranking"})
     with pytest.raises(ValueError, match="kind is one of"):

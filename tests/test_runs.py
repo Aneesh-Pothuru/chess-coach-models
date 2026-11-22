@@ -226,7 +226,7 @@ def test_a_paper_is_not_drawn_from_a_closer_look_of_runs_as_they_were_filed_befo
     # Its pair stands with the pairs a paper lists, under the name of the study it is filed under.
     (pair,) = changes.pairs(src)
     assert (pair["run"], pair["over"], pair["study"]) == ("engine-curve-scaled", "engine-curve", "scale")
-    assert "engine-\\allowbreak curve-\\allowbreak scaled" in changes.pairs_table(src)
+    assert "\\run{engine-curve-scaled} &" in changes.pairs_table(src)
 
 
 def test_a_record_is_filed_only_as_what_it_was_trained_with(lab):

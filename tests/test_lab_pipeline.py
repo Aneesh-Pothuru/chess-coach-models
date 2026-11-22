@@ -19,7 +19,7 @@ from chess_coach_models.encode.hand import GROUPS  # noqa: E402
 from chess_coach_models.evals import analysis, calibration, leaderboard  # noqa: E402
 from chess_coach_models.papers import build as papers  # noqa: E402
 from chess_coach_models.papers import changes, overview, tex  # noqa: E402
-from chess_coach_models.papers.sources import run_cell  # noqa: E402
+from chess_coach_models.papers.sources import run_tex  # noqa: E402
 from chess_coach_models.train import run as runs  # noqa: E402
 
 
@@ -269,7 +269,7 @@ def test_the_lab_s_paper_reads_every_model_under_its_name_and_lists_one_that_wai
     assert list(whole.models) == [model] and list(whole.waiting) == [waiting]
     assert overview.switches(whole) == {
         "waiting": True, "changehand": True, "changeepochs": False, "changestart": False, "games": False, "features": False,
-        "studies": False, "more": False,
+        "studies": False, "more": False, "splitapart": False, "bodies": False,
     }  # fmt: skip
     # Everything a model's own paper can read is there under the model's name.
     _, own = papers.generate(model, smoke=True)
@@ -319,6 +319,34 @@ def test_the_lab_s_paper_reads_every_model_under_its_name_and_lists_one_that_wai
     assert overview.write(smoke=True) == paths.lab_paper(smoke=True)
     assert (paths.lab_paper(smoke=True) / "paper.tex").read_text(encoding="utf-8") == prose.read_text(encoding="utf-8")
     assert "lab.models.count" in overview.listing() and "blocks: " in overview.listing()
+
+
+def test_the_lab_s_paper_lists_a_model_it_has_for_its_body_apart_from_the_ones_it_compares(lab, temp_lab):
+    model, lender = "puzzle-difficulty", "evaluation"
+    names = ("gbm-hand", "constant", "transformer-small")
+    # The lender is asked the same of the same rows here: only its task's purpose sets it apart.
+    temp_lab.model(lender, {name: CONFIGS[name] for name in names})
+    asked = (paths.model(model) / "task.yaml").read_text(encoding="utf-8")
+    (paths.model(lender) / "task.yaml").write_text(asked + "purpose: body\n", encoding="utf-8")
+    assert tasks.get(lender).purpose == "body" and tasks.get(model).purpose == "answer"
+    for name in names:
+        for one in (model, lender):
+            runs.run(one, name, smoke=True, log=lambda _: None)
+    whole, out = overview.generate(smoke=True)
+    assert list(whole.models) == [model] and list(whole.bodies) == [lender] and list(whole.every) == [model, lender]
+    assert overview.switches(whole)["bodies"] and not overview.switches(whole)["waiting"]
+    assert out.values["lab.models.count"] == "two" and out.values["lab.models.names"] == "puzzle difficulty and evaluation"
+    assert out.values["lab.side.count"] == "one" and out.values["lab.side.names"] == "puzzle difficulty"
+    assert out.values["lab.bodies.count"] == "one" and out.values["lab.bodies.names"] == "evaluation"
+    # It is listed and costed with the rest, and its values and blocks are there under its name.
+    assert out.values["lab.runs.count"] == "6" and out.values["lab.networks.count"] == "2"
+    assert all(run_tex(lender) in out.files[block] for block in ("lab-models", "lab-cost"))
+    assert f"{lender}.best.score" in out.values and f"{lender}-leaderboard" in out.files
+    # No statement of how the models compare counts it: one model, one network of the ladder.
+    assert not any(run_tex(lender) in out.files[block] for block in ("lab-scores", "lab-changes") if block in out.files)
+    assert lender not in out.files["lab-shares"] and lender not in out.files["lab-networks"]
+    assert out.values["lab.ladder.count"] == "1" and out.values["lab.whole.count"] == "one"
+    assert all(out.values[f"lab.network.{word}.of"].endswith("the one model") for word in ("ahead", "level", "behind"))
 
 
 def test_study_runs_train_on_what_their_config_changes_and_are_listed_apart(lab, temp_lab):
@@ -431,10 +459,10 @@ def test_a_run_trains_on_a_larger_build_and_is_scored_on_the_rows_every_run_is(l
     (twice, some, half), (other,) = ([share for share, _ in found[base]] for base in ("gbm-hand", "transformer-small"))
     assert twice == changes.multiple(known["gbm-hand-double"], known["gbm-hand"]) > some > 1 > half == 0.5 and other > 1
     table = out.files["study-games"]
-    order = [table.index(f"{run_cell(name)} &") for name in ("gbm-hand-double", "gbm-hand-more", "gbm-hand", "gbm-hand-half")]
+    order = [table.index(f"{run_tex(name)} &") for name in ("gbm-hand-double", "gbm-hand-more", "gbm-hand", "gbm-hand-half")]
     # A run whose base has no run on fewer games has no curve to stand on: it is among the pairs only.
     assert order == sorted(order) and f"& {changes.share_words(twice)} &" in table
-    assert run_cell("transformer-small-double") not in table
+    assert run_tex("transformer-small-double") not in table
     assert out.values["study.games.gbm-hand.runs"] == "one"
     assert out.values["more.gbm-hand.runs"] == "two" and out.values["more.transformer-small.runs"] == "one"
     assert "gbm-hand-double" in out.values["more.gbm-hand.most.run"] and out.values["more.gbm-hand.most"] == changes.share_words(twice)

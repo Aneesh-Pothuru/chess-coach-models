@@ -21,7 +21,8 @@ player's own missed ones included, can be placed on the scale puzzle ratings
 live on. The data is \V{data.rows} puzzles whose ratings have settled, split
 by the game each was cut from. The best of \V{runs.count} runs is a
 square-token transformer that reads the board and also a few dozen hand-made
-counts. On \V{data.rows.test} held-out puzzles its root mean squared error is
+counts, and that starts from a body trained on engine evaluations first. On
+\V{data.rows.test} held-out puzzles its root mean squared error is
 \V{best.score} rating points (95\% interval \V{best.score.low} to
 \V{best.score.high}), against \V{reference.score} for gradient-boosted trees
 on the hand-made counts and \V{floor.score} for one number said for every
@@ -370,8 +371,7 @@ than the run it changed on the valid puzzles and
 \V{pair.transformer-medium-hand-long.transformer-medium-hand.verdict} on the
 test puzzles, by
 \V{pair.transformer-medium-hand-long.transformer-medium-hand.gain}: it is
-\V{pair.transformer-medium-hand-long.transformer-medium-hand.kept}, and it
-is now the model's best run.
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.kept}.
 
 Two things follow. The first is that the epochs were worth more than the
 hand features. The longer schedule gave the transformer on the board alone
@@ -383,9 +383,11 @@ gain over the reference of \V{run.transformer-medium-long.gain} against
 \V{run.transformer-medium-hand.gain}.
 
 The second is that under the longer schedule the features add little.
-\V{best.name} scores \V{best.over-twin} points better than
-\V{best.twin.name}, where on the ladder the same difference was
-\V{run.transformer-medium-hand.over-twin}. The two long runs order puzzles
+\V{run.transformer-medium-hand-long.name} scores
+\V{run.transformer-medium-hand-long.over-twin} points better than
+\V{run.transformer-medium-long.name}, where on the ladder the same
+difference was \V{run.transformer-medium-hand.over-twin}. The two long runs
+order puzzles
 equally well, with rank correlations of
 \V{run.transformer-medium-hand-long.spearman} and
 \V{run.transformer-medium-long.spearman}, and their mean absolute errors,
@@ -395,10 +397,10 @@ intervals. By band the run with the features is ahead on the puzzles rated
 1800 and over and behind on those under 1400 (Table~\ref{tab:bands}, which
 draws no interval). A reading: given the steps, eight layers learn from the
 squares most of what the counts hold, and the counts still help where a
-puzzle is hard. Set against each other on the same resampled games,
-\V{best.name} is
+puzzle is hard. Set against each other on the same resampled games, the long
+run with the features is
 \V{pair.transformer-medium-hand-long.transformer-medium-long.valid.verdict}
-than \V{best.twin.name} on the valid puzzles and
+than the one without on the valid puzzles and
 \V{pair.transformer-medium-hand-long.transformer-medium-long.verdict} on
 the test puzzles, by
 \V{pair.transformer-medium-hand-long.transformer-medium-long.gain} points
@@ -414,9 +416,67 @@ had its best valid epoch at \V{run.transformer-medium-long.best-epoch} of
 \V{networks.patience} epochs later, as the trainer stops any run whose valid
 score has not improved for that long (Figure~\ref{fig:variants}). Their
 training loss was still falling: from there a network is fitting the
-training puzzles. So a still longer schedule is not the next run. More
-puzzles or a better start may be, and the games study below says what
-puzzles are worth.
+training puzzles. So a still longer schedule from nothing is not the next
+run. A better start was, and the next paragraph has it. The games study
+below says what more puzzles are worth.
+
+\paragraph{What a start from engine evaluations was worth here.}
+The lab's position-evaluation model trains the same medium transformer on
+positions from the open Lichess evaluations file, to say the mover's winning
+chances as an engine sees them. That label says nothing about people. The
+model is there for its body: a run of this model can start from it. The
+embeddings and the blocks are copied in, the head starts new, and the run
+then trains on this model's puzzles on the ladder's schedule, with nothing
+else changed.
+
+On the board alone, \V{run.transformer-medium-pretrained.name} is
+\V{pair.transformer-medium-pretrained.transformer-medium.valid.verdict} than
+the run it changed on the valid puzzles and
+\V{pair.transformer-medium-pretrained.transformer-medium.verdict} on the
+test puzzles, by \V{pair.transformer-medium-pretrained.transformer-medium.gain}
+points: it is \V{pair.transformer-medium-pretrained.transformer-medium.kept}.
+With the hand features, \V{run.transformer-medium-hand-pretrained.name} is
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.valid.verdict}
+than the run it changed on the valid puzzles and
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.verdict}
+on the test puzzles, by
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain}: it
+is \V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.kept}.
+The model's best run is \V{best.name}.
+
+Three things follow. The first is that the start was worth more than twice
+the epochs, in half of them. Each run gained more from the body than the
+same run had gained from the longer schedule:
+\V{pair.transformer-medium-pretrained.transformer-medium.gain} points
+against \V{pair.transformer-medium-long.transformer-medium.gain} on the
+board alone, and
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain}
+against \V{pair.transformer-medium-hand-long.transformer-medium-hand.gain}
+with the features, and in Table~\ref{tab:pairs} the two intervals do not
+touch for either. On the ladder's schedule, the transformer that starts from
+the body and reads the board alone scores
+\V{run.transformer-medium-pretrained.score}, level with the run that reads
+the features for twice as long
+(\V{run.transformer-medium-hand-long.score}).
+
+The second is that the features pay again. Under the longer schedule they
+added little. From the body, the run that reads them scores
+\V{run.transformer-medium-hand-pretrained.over-twin} points better than the
+one that does not, where the ladder's difference was
+\V{run.transformer-medium-hand.over-twin} and the longer schedule's
+\V{run.transformer-medium-hand-long.over-twin}, and the intervals of the two
+runs' gains over the reference do not touch
+(Table~\ref{tab:leaderboard}). A reading: the body arrives knowing who
+stands better, which is not what makes a tactic hard to find, and the counts
+of what the line's moves do say that directly.
+
+The third is that the run with the features had not finished learning. Its
+best valid epoch was \V{run.transformer-medium-hand-pretrained.best-epoch}
+of \V{run.transformer-medium-hand-pretrained.epochs}, where the run on the
+board alone had its best at
+\V{run.transformer-medium-pretrained.best-epoch}
+(Figure~\ref{fig:variants}). A longer schedule from the same start is the
+cheapest run to add.
 \fi
 
 \input{../../../papers/studies}
@@ -604,8 +664,8 @@ network's gain comes from: it is ahead of the reference beyond the noise in
 Its gain is largest for the theme
 \texttt{\V{slice.themes.gain.most.group}}, at \V{slice.themes.gain.most}
 points, and smallest for \texttt{\V{slice.themes.gain.least.group}}, at
-\V{slice.themes.gain.least}. The themes near the top of the figure have
-something in common: pawn endings, quiet moves, pins and defensive moves are
+\V{slice.themes.gain.least}. The themes at the top of the figure have
+something in common: pawn endings, pins and quiet moves are
 hard for reasons no list of counts states. A quiet move has to be thought of
 with nothing to prompt it, and a pawn ending turns on a tempo. At the bottom
 are mates in one and promotions, where a count or two says most of what
@@ -638,10 +698,12 @@ averages \V{slice.mate.yes.happened} against \V{slice.mate.no.happened} for a
 line that wins material. Checks narrow the search for the solver, as they do
 for an engine.
 
-In both tables the network leads the trees on either side, and by more where
-the line is less forcing: \V{slice.quiet.2.gain} points with two quiet moves
-against \V{slice.quiet.0.gain} with none, and \V{slice.mate.no.gain} without
-a mate at the end against \V{slice.mate.yes.gain} with one.
+In both tables the network leads the trees on either side. With two quiet
+moves in the line its lead is \V{slice.quiet.2.gain} points, against
+\V{slice.quiet.0.gain} with none, and the two intervals do not touch
+(Table~\ref{tab:quiet}). Without a mate at the end it is
+\V{slice.mate.no.gain} and with one \V{slice.mate.yes.gain}, which is too
+close to call.
 
 \begin{table}[htbp]\centering\footnotesize
 \block{slice-quiet}
@@ -698,8 +760,9 @@ least settled, a deviation of 90 and over
 (Table~\ref{tab:slice-plays}).
 
 So the network's lead is smallest on the puzzles whose ratings are measured
-best, about a tenth of what it is on the least settled, and it grows as a
-rating is less settled and a puzzle less played. The tables do not say why.
+best, a small part of what it is on the least settled, and it grows as a
+rating is less settled. It is also smallest on the puzzles tried most. The
+tables do not say why.
 The most settled ratings average \V{slice.deviation.-75.happened} and the
 least settled \V{slice.deviation.90+.happened}, so the two groups are
 different puzzles and not only differently measured ones, and the lead by
@@ -803,8 +866,9 @@ trees are the place to start and the network is what a server would add.
 player's own scale, or on another site's, needs a mapping this model does not
 make.
 \item \textbf{The model is shown the solution.} How hard a tactic is to
-notice with no line given is a different question that the same data can
-answer, with a run that reads the position alone.
+notice with no line given is a different question. The lab's model that
+hides the solution asks it of the same puzzles, and its paper sets the two
+side by side.
 \item \textbf{A puzzle's rating depends on who is served it.} Lichess serves
 puzzles near a solver's level, so a hard puzzle is rated mostly by strong
 solvers and an easy one mostly by weaker ones. The model takes the rating as
@@ -856,8 +920,14 @@ puzzles say what a larger sample would be worth.
 \item \textbf{Which hand features a network is missing.} Leaving out one
 group of features at a time says which counts a learner cannot do without.
 \fi
-\item \textbf{A position-only run.} The same data with no line shown asks how
-hard a tactic is to notice, which is closer to what a player faces in a game.
+\item \textbf{A longer schedule from the start.}
+\V{run.transformer-medium-hand-pretrained.name} had its best valid epoch at
+\V{run.transformer-medium-hand-pretrained.best-epoch} of
+\V{run.transformer-medium-hand-pretrained.epochs}, so it was stopped by its
+schedule and not by its score.
+\item \textbf{A stronger body to start from.} The body was trained once, at
+one size, on a part of the evaluations file. One trained for longer, on more
+of the file or at a larger size has not been tried.
 \item \textbf{A body that already knows how people play.} The competitions'
 strongest entries started from a human-move model. Maia-2's body under this
 head is the next body to try.

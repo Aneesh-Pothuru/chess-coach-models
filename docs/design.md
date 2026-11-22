@@ -204,7 +204,9 @@ this machine's `artifacts/runs/`, so the run they come from is trained first, an
 a run whose start is not there yet. The record names the file it started from by its hash and
 says what was taken. [`position-evaluation`](../models/position-evaluation/) exists to be started
 from: its label is an engine's evaluation, which says nothing about people, and its body is the
-one every other model's `transformer-medium` has.
+one every other model's `transformer-medium` has. Its task says so with `purpose: body`. Such a
+model is built, trained, scored and ranked like any other, and the lab's paper lists it apart
+from the models it sets side by side.
 
 **A run that changes another.** A run that changes one thing in another names that run as its
 `base` and writes only the change; its config is the base's with its own blocks laid over it
@@ -550,15 +552,30 @@ read.
   reference (`lab.features.<group>.said`, and for a model the group whose loss costs it most,
   `lab.features.in.<model>.most.group`). A features study made on another run is read in that
   model's own paper.
+- **A model the lab has for its body.** A model whose task says `purpose: body` is in the table
+  of models, in the table of costs and in the appendix with its leaderboard, and its values and
+  blocks are under its name like any model's. No count of how the models compare holds it (in
+  how many a network beats the trees, the ends of a scale, the ladder's networks), and it has no
+  strip or row in the figures and tables that set the models side by side. `lab.models.count`
+  counts every model with a full run, `lab.side.count` the ones set side by side, and
+  `lab.bodies.names` names the rest. What the prose says of such a model stands inside
+  `\ifbodies`.
 - **Its switches.** What waits on runs stands inside a switch that turns on by itself when a
   model has them: `\ifwaiting` for a model with a task and no full run (it is listed with the
   question its card opens with), `\ifchangehand`, `\ifchangeepochs` and `\ifchangestart` for a
-  kind of change some model has measured, `\ifgames` and `\iffeatures` for the two studies, and
-  `\ifstudies` for any study run at all. What the prose says while a kind is unmeasured stands
-  on the switch's other side.
-- **Said of every model, or not said.** A value the lab states for all its models at once, such
-  as the share of games kept for the test, is set only where every model has the same one.
-  Where they differ the build stops at the sentence that says it.
+  kind of change some model has measured, `\ifgames` and `\iffeatures` for the two studies,
+  `\ifmore` for a run on more games than the run it changes, and `\ifstudies` for any study run
+  at all. What the prose says while a kind is unmeasured stands on the switch's other side.
+- **Kept or not, by both halves of the rule.** For each kind of change the prose reads how many
+  pairs are better on the test rows beyond the noise (`lab.change.<kind>.net.better.of`) and how
+  many also pass on the valid rows, which is the lab's rule for keeping a change
+  (`lab.change.<kind>.net.kept.of`, and `.kept.whole.models` for the models where every pair of
+  the kind is kept).
+- **Said of every model, or said apart.** A value the lab states for its models at once, such as
+  the share of games kept for the test, is the one most datasets have. A model whose dataset
+  keeps other shares is named apart with its own (`\ifsplitapart`, `lab.split.apart.names`), and
+  where the models apart differ among themselves no value is set, so the build stops at the
+  sentence that says it of all of them.
 
 ## Smoke runs
 

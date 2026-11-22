@@ -22,7 +22,8 @@ games they were cut from, so the game's next move says whether the tactic
 was found, split by game. It was found \V{floor.constant} of the time. The
 score is the log loss of a calibrated chance. The best of \V{runs.count}
 runs, a square-token transformer that reads the board, the line and
-\V{task.hand.count} hand-made counts, scores \V{best.score} (95\% interval
+\V{task.hand.count} hand-made counts, and that starts from a body trained on
+engine evaluations first, scores \V{best.score} (95\% interval
 \V{best.score.low} to \V{best.score.high}), against \V{reference.score} for
 gradient-boosted trees on the counts and \V{floor.score} for the base rate.
 Beyond the noise, \V{networks.ahead.of} beat the trees. The puzzle's own
@@ -223,9 +224,9 @@ ahead is the medium transformer that also reads the hand features, with a
 paired gain of \V{run.transformer-medium-hand.gain}
 (\V{run.transformer-medium-hand.gain.low} to
 \V{run.transformer-medium-hand.gain.high}). That gain is
-\V{best.gain.percent}\% of the reference's own loss, and
-\V{best.gain.of-lift}\% as large as the step from the floor to the
-reference.
+\V{run.transformer-medium-hand.gain.percent}\% of the reference's own loss,
+and \V{run.transformer-medium-hand.gain.of-lift}\% as large as the step from
+the floor to the reference.
 
 \begin{figure}[htbp]\centering
 \block{gains}
@@ -252,6 +253,14 @@ counts is \V{pair.transformer-medium-hand.transformer-medium.verdict}
 This is the same result as in the lab's blunder model, on other data: at
 this size and with this many games, a network uses the facts when it is
 given them and does not find them unaided.
+\ifvariants
+As there, a network that starts from a body trained on engine evaluations
+first does pass the trees without the counts, and with them it is the
+model's best run (Section~\ref{sec:changes}): its gain is
+\V{best.gain.percent}\% of the reference's own loss, and
+\V{best.gain.of-lift}\% as large as the step from the floor to the
+reference.
+\fi
 
 \subsection{The crowd's rating says less than the board}
 
@@ -311,9 +320,9 @@ below zero means the trees are ahead (Figure~\ref{fig:bands}).
 \iflook
 Paired inside each band, \V{challenger.name} is ahead beyond the noise in
 \V{slice.band.ahead.of}, the movers rated \V{slice.band.ahead.groups}, and
-behind in \V{slice.band.behind} (Table~\ref{tab:slice-band} in the
-appendix). The network's lead is in the lower bands, which are the ones
-nearest the players a coaching app is for.
+behind in \V{slice.band.behind.of} (Table~\ref{tab:slice-band} in the
+appendix). Its lead is widest in the lowest band, which is the one nearest
+the players a coaching app is for.
 \fi
 
 \begin{figure}[htbp]\centering
@@ -435,7 +444,7 @@ test rows (\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain},
 \V{pair.transformer-medium-hand-long.transformer-medium-hand.gain.low} to
 \V{pair.transformer-medium-hand-long.transformer-medium-hand.gain.high}): it
 is \V{pair.transformer-medium-hand-long.transformer-medium-hand.kept}, and
-\V{best.name} stays the model's best run. A run that is not kept leaves the
+the run it changed stays ahead of it. A run that is not kept leaves the
 leaderboard when it is filed. Its row stays in Table~\ref{tab:pairs}, as the
 measurement of what the epochs were worth to a network that reads the
 counts: nothing that these test rows can show.
@@ -446,6 +455,59 @@ Neither run used its whole schedule. Their best valid epochs were
 \V{run.transformer-medium-long.epochs}, and each was stopped
 \V{networks.patience} epochs later, as the trainer stops any run whose valid
 score has not improved for that long (Figure~\ref{fig:variants}).
+
+\paragraph{What a start from engine evaluations was worth here.}
+The lab's position-evaluation model trains the same medium transformer on
+positions from the open Lichess evaluations file, to say the mover's winning
+chances as an engine sees them. That label says nothing about people. The
+model is there for its body: a run of this model can start from it. The
+embeddings and the blocks are copied in, the head starts new, the marks of
+the line start new with it, and the run then trains on this model's rows on
+the ladder's schedule, with nothing else changed.
+
+Without the hand features, \V{run.transformer-medium-pretrained.name} is
+\V{pair.transformer-medium-pretrained.transformer-medium.valid.verdict} than
+the run it changed on the valid rows and
+\V{pair.transformer-medium-pretrained.transformer-medium.verdict} on the
+test rows, by \V{pair.transformer-medium-pretrained.transformer-medium.gain}
+(\V{pair.transformer-medium-pretrained.transformer-medium.gain.low} to
+\V{pair.transformer-medium-pretrained.transformer-medium.gain.high}): it is
+\V{pair.transformer-medium-pretrained.transformer-medium.kept}. With them,
+\V{run.transformer-medium-hand-pretrained.name} is
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.valid.verdict}
+than the run it changed on the valid rows and
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.verdict}
+on the test rows, by
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain}
+(\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.low}
+to
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.high}):
+it is
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.kept}.
+The model's best run is \V{best.name}.
+
+Two things follow. The first is that the start did what twice the epochs
+had not. Without the counts the transformer now passes the trees, with a
+gain over the reference of \V{run.transformer-medium-pretrained.gain}
+(\V{run.transformer-medium-pretrained.gain.low} to
+\V{run.transformer-medium-pretrained.gain.high}), where the same network
+from nothing has one of \V{run.transformer-medium.gain} and, after the
+longer schedule, of \V{run.transformer-medium-long.gain}. So the claim of
+Section~\ref{sec:results} holds for a network that starts from nothing and
+not for one that has read many positions first: from the body, the marked
+squares are enough to pass the trees.
+
+The second is that the counts still pay from the body, by less.
+\V{run.transformer-medium-hand-pretrained.name} scores
+\V{run.transformer-medium-hand-pretrained.over-twin} better than
+\V{run.transformer-medium-pretrained.name}, where on the ladder the same
+difference was \V{run.transformer-medium-hand.over-twin}, and the intervals
+of the two runs' gains over the reference do not touch
+(Table~\ref{tab:leaderboard}). Both runs had their best valid epoch at
+\V{run.transformer-medium-hand-pretrained.best-epoch} of
+\V{run.transformer-medium-hand-pretrained.epochs} and were stopped
+\V{networks.patience} epochs later, so a longer schedule from the same
+start is not the next run.
 \fi
 
 \input{../../../papers/studies}
@@ -458,8 +520,8 @@ run trained on every training game, \V{run.transformer-medium-hand.name} has a p
 quarter. The trees' gains are \V{pair.gbm-hand-half.gbm-hand.gain} and
 \V{pair.gbm-hand-quarter.gbm-hand.gain}. On a quarter of the games the trees
 are ahead of the network, on half the two are level, and only on all of
-them does the network lead (Table~\ref{tab:games}). So the network's
-place at the top of this leaderboard comes with the data, and twice the
+them does the network lead (Table~\ref{tab:games}). So this network's
+lead over the trees comes with the data, and twice the
 epochs gave the same network nothing
 (\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain}). A reading: more games are the next thing to try
 for this model.
@@ -889,6 +951,10 @@ model's card says where and gives the hash of the best run's weights.
 knows what these learners miss at the hard end. A body trained first on the
 lab's puzzle model, which predicts that rating with no crowd, is the run to
 make.
+\item \textbf{A stronger body to start from.} The body the best run starts
+from was trained once, at one size, on a part of the evaluations file. One
+trained for longer, on more of the file or at a larger size has not been
+tried.
 \item \textbf{The whole line.} A stricter label: the player played the first
 move and went on to play the rest.
 \item \textbf{The time taken, for reviews.} A second model that reads how

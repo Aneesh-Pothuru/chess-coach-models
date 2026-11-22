@@ -22,7 +22,8 @@ position, both ratings and both clocks, with no engine. The data is
 split by game. The label is the logarithm of the seconds spent, and the score
 is the mean absolute error of that logarithm, so an error is a factor. The
 best of \V{runs.count} runs, a square-token transformer that also reads
-\V{task.hand.count} hand-made counts, is off by a factor of
+\V{task.hand.count} hand-made counts and starts from a body trained on
+engine evaluations first, is off by a factor of
 \V{best.mae.factor} on a typical move (MAE \V{best.score}, 95\% interval
 \V{best.score.low} to \V{best.score.high}), against \V{reference.mae.factor}
 for gradient-boosted trees on the counts and \V{floor.mae.factor} for one
@@ -234,6 +235,10 @@ is \V{pair.transformer-medium-hand.transformer-medium.verdict}
 So for this question the squares hold little that the clocks and a few
 counts do not, or little that a network of this size found in
 \V{recipe.games} games.
+\ifvariants
+Section~\ref{sec:changes} says it is partly the second: a network that
+starts from a body trained on other positions first finds more.
+\fi
 
 \subsection{Most of a move's time stays unexplained}
 
@@ -363,8 +368,7 @@ test positions, by
 \V{pair.transformer-medium-hand-long.transformer-medium-hand.gain}
 (\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain.low} to
 \V{pair.transformer-medium-hand-long.transformer-medium-hand.gain.high}): it
-is \V{pair.transformer-medium-hand-long.transformer-medium-hand.kept}, and
-it is now the model's best run.
+is \V{pair.transformer-medium-hand-long.transformer-medium-hand.kept}.
 
 Both gains are small. Each is a fraction of what the hand features are worth
 to the same transformer
@@ -384,6 +388,67 @@ Both runs used the whole schedule. Their best valid epochs were
 \V{run.transformer-medium-long.epochs}, and their curves are flat over the
 last few (Figure~\ref{fig:variants}). A still longer schedule is not the
 next run.
+
+\paragraph{What a start from engine evaluations was worth here.}
+The lab's position-evaluation model trains the same medium transformer on
+positions from the open Lichess evaluations file, to say the mover's winning
+chances as an engine sees them. That label says nothing about people, and
+no learner of this model reads an evaluation. The model is there for its
+body: a run of this model can start from it. The embeddings and the blocks
+are copied in, the head starts new, and the run then trains on this model's
+games on the ladder's schedule, with nothing else changed. What comes with
+the body is how to read a board, not what an engine thinks of this one.
+
+On the board alone, \V{run.transformer-medium-pretrained.name} is
+\V{pair.transformer-medium-pretrained.transformer-medium.valid.verdict} than
+the run it changed on the valid positions and
+\V{pair.transformer-medium-pretrained.transformer-medium.verdict} on the
+test positions, by \V{pair.transformer-medium-pretrained.transformer-medium.gain}
+(\V{pair.transformer-medium-pretrained.transformer-medium.gain.low} to
+\V{pair.transformer-medium-pretrained.transformer-medium.gain.high}): it is
+\V{pair.transformer-medium-pretrained.transformer-medium.kept}. With the
+hand features, \V{run.transformer-medium-hand-pretrained.name} is
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.valid.verdict}
+than the run it changed on the valid positions and
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.verdict}
+on the test positions, by
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain}
+(\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.low}
+to
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.high}):
+it is
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.kept}.
+The model's best run is \V{best.name}.
+
+Three things follow. The first is that the start was worth several times
+what twice the epochs were, on half the epochs: each run's gain from the
+body is far above the same run's gain from the longer schedule, and in
+Table~\ref{tab:pairs} the two intervals do not touch for either. Both runs
+that start from the body are ahead of the longer run that reads the
+features, and the intervals of their gains over the reference do not touch
+its own (Table~\ref{tab:leaderboard}).
+
+The second is that from the body the board alone is enough.
+\V{run.transformer-medium-hand-pretrained.name} scores
+\V{run.transformer-medium-hand-pretrained.over-twin} better than
+\V{run.transformer-medium-pretrained.name}, where on the ladder the counts
+were worth \V{run.transformer-medium-hand.over-twin}, and the two runs'
+gains over the reference lie inside each other's intervals. The two were not
+set against each other on resampled games, so that difference is a reading
+of the leaderboard.
+
+The third is the second footnote to Section~\ref{sec:results}. From the
+body, the transformer on the board alone gains
+\V{run.transformer-medium-pretrained.gain} over the trees, where the
+ladder's transformer needed the counts to gain
+\V{run.transformer-medium-hand.gain}, and those two intervals do not touch
+either. So the squares hold more for this question than the ladder found. It
+is still little: the best run's gain is \V{best.gain.of-lift}\% as large as
+the step from the floor to the reference, most of which is the clock.
+Neither run was at its best in its last epoch
+(\V{run.transformer-medium-pretrained.best-epoch} and
+\V{run.transformer-medium-hand-pretrained.best-epoch} of
+\V{run.transformer-medium-hand-pretrained.epochs}).
 \fi
 
 \input{../../../papers/studies}
@@ -549,9 +614,9 @@ Both runs follow that pace group by group (Figure~\ref{fig:clock}): at its
 furthest \V{challenger.name} is \V{slice.clock.challenger.widest-off}
 seconds from the typical time taken. The network's lead over the trees is
 beyond the noise in \V{slice.clock.ahead.of}
-(\V{slice.clock.ahead.groups}). Under two minutes the two are level, and
-there are few positions there to tell them apart: a rapid game is mostly
-played with time in hand.
+(\V{slice.clock.ahead.groups}). From half a minute to two minutes the
+intervals hold zero, and there are few positions there to tell the two
+apart: a rapid game is mostly played with time in hand.
 \end{sloppypar}
 
 \begin{figure}[htbp]\centering
@@ -574,9 +639,10 @@ nine to twelve knights, bishops, rooks and queens on the board, and
 Late moves are fast for two reasons that the cut does not hold apart: there
 is less on the board to weigh, and less on the clock to weigh it with.
 
-The network leads the trees beyond the noise through most of the game
-(\V{slice.ply.ahead.groups}). From ply 80 on the two are level, as they are
-with fewer than three pieces left.
+The network leads the trees beyond the noise in \V{slice.ply.ahead.of} by
+the ply and in \V{slice.pieces.ahead.of} by the material. Its lead is
+smallest where a game is nearly over: \V{slice.ply.80+.gain} from ply 80 on
+and \V{slice.pieces.-3.gain} with fewer than three pieces left.
 
 \subsection{By how much there is to choose from}
 
@@ -603,11 +669,14 @@ The mover's own pieces that can be taken move the time much less, from
 \V{slice.hanging.0.happened} seconds with none to
 \V{slice.hanging.3+.happened} with three or more
 (Table~\ref{tab:slice-hanging}). On these tables a threat to answer costs a
-player less time than a choice to make. The network's lead grows with the choice: its gain is
-\V{slice.captures.0.gain} with no capture on offer and
-\V{slice.captures.4+.gain} with four or more, and it is largest in the group
-with the most legal moves (\V{slice.moves.gain.most}). Where there is much
-to weigh, the squares add something to the counts.
+player less time than a choice to make. The network's lead grows with the
+captures on offer: its gain is \V{slice.captures.0.gain} with none and
+\V{slice.captures.4+.gain} with four or more, and it rises at every step
+between. By the legal moves it is smallest in the group of
+\V{slice.moves.gain.least.group}, at \V{slice.moves.gain.least}, and from
+fifteen moves up it is about the same in every group
+(Table~\ref{tab:slice-moves}). Where there is much to weigh, the squares add
+something to the counts.
 
 \subsection{By how the mover stands}
 
@@ -694,7 +763,7 @@ is better for not chasing them. The positions the model calls slowest and
 fastest are in the appendix (Figures~\ref{fig:highest}
 and~\ref{fig:lowest}): the slowest are middlegames in the longer time
 controls with much of the clock left, and the fastest are the last seconds
-of a game.
+of a game and a recapture that nobody stops over.
 
 \examples{examples-typical}{Ordinary positions: the first \V{examples.count}
 test positions in the order of a hash of their key, so nothing about them
@@ -797,6 +866,9 @@ when training stopped.
 \item \textbf{More games, or fewer.} A run on half and on a quarter of the
 training games says what a larger build would buy.
 \fi
+\item \textbf{A stronger body to start from.} The body was trained once, at
+one size, on a part of the evaluations file. One trained for longer, on more
+of the file or at a larger size has not been tried.
 \item \textbf{The player's own pace.} A fit of the player's times against
 the yardstick, kept private, before the app states either.
 \end{itemize}

@@ -61,19 +61,22 @@ Written before the first full run.
 `ceae3ec`; the numbers are in the leaderboard, and the table that sets the
 two models side by side is in [the paper](paper/paper.pdf)):
 
-- **A position alone says some of a tactic's difficulty, and less than
-  half.** Every network beats the trees beyond the noise, and the trees beat
-  the floor. Measured from the floor, the best run here makes a bit over a
-  third of the step that the best run of puzzle difficulty makes on the same
-  test puzzles. No run keeps half of what the run of the same name makes
-  when it is shown the solution, and the trees keep the least, about a fifth.
+- **A position alone says some of a tactic's difficulty, and in these runs
+  less than half.** Every network beats the trees beyond the noise, and the
+  trees beat the floor. Measured from the floor, the best of these runs makes
+  a bit over a third of the step that the best run of puzzle difficulty made
+  then on the same test puzzles. None of these runs keeps half of what the
+  run of the same name makes when it is shown the solution, and the trees
+  keep the least, about a fifth. The runs from the engine-evaluation body,
+  below, keep about half.
 - **A network matters most here.** With the line's counts gone the trees have
   only the counts of the position, and each network leads them by more than
   the same network leads the trees of puzzle difficulty.
-- **The convolutional tower is first.** In puzzle difficulty the medium
-  transformers lead. Here the small tower is ahead of them. Each was trained
-  once and the two have not been set against each other on resampled games,
-  so the order of the first two is a reading and not yet a finding.
+- **The convolutional tower was first among these runs.** In puzzle
+  difficulty the medium transformers led. Here the small tower was ahead of
+  them. Each was trained once and the two were not set against each other on
+  resampled games, so the order of the first two was a reading and not a
+  finding. The runs from the body, below, turn it round.
 - **The position's counts still pay under a network.** The medium transformer
   that reads them is better than the same transformer on the board alone, on
   the valid rows and beyond the noise on the test rows (`pairs` in
@@ -91,18 +94,51 @@ two models side by side is in [the paper](paper/paper.pdf)):
   is far closer. Nothing here is a model to port. The finding is where the
   difficulty is.
 
-Still to come: the two `-pretrained` runs, which are trained after position
-evaluation, and the intervals of the comparison. The paper's table is drawn
-from the two leaderboards. The paired gain of each shown run over its hidden
-run, overall and by slice, is measured by the next closer look on the machine
-that holds both models' predictions.
+What a start from engine evaluations says (commit `3810bca`:
+`transformer-medium-pretrained` and `transformer-medium-hand-pretrained`, the
+twelve-epoch transformers started from the body that
+[position evaluation](../position-evaluation/) trained, each set against the
+run it changed among the `pairs` of
+[`results/analysis.json`](results/analysis.json)):
+
+- **Both are kept, and the transformers are back in front.** Each is better
+  than the same run started from nothing on the valid rows, and on the test
+  rows beyond the noise. Both are far ahead of the convolutional tower, which
+  was first before them (the intervals of their gains over the reference do
+  not touch), and `transformer-medium-hand-pretrained` is the model's best
+  run. So the order of the first full runs came from where a network
+  started, not from its shape.
+- **The start is worth more here than in any other model.** Each transformer
+  gains more than twice the rating points from the start that the same
+  transformer gains in puzzle difficulty, on the same test puzzles. A
+  reading: with the line hidden, what makes a puzzle hard has to be found on
+  the board, and a body that already knows what the pieces do finds more of
+  it.
+- **About half of a tactic's difficulty shows in the position.** Measured
+  from the floor, each run from the body makes about half of the step its
+  shown run makes, where the same transformers started from nothing made a
+  bit over a third (`shown` in
+  [`results/analysis.json`](results/analysis.json), and the table in
+  [the paper](paper/paper.pdf)). So the share a position keeps is a fact
+  about the learner as well as about puzzles. What is measured is a floor.
+- **The comparison has its intervals now.** The closer look sets each run
+  here against the run of the same name in puzzle difficulty on the same
+  resampled test games. The solution is worth something to every learner
+  beyond the noise: least to the two runs from the body and the convolutional
+  tower, which stand close together, and most to the trees.
+- **The position's counts still pay from the body.** The run that reads them
+  is ahead of the one that does not (the intervals of their gains over the
+  reference do not touch).
+- **Neither run was at its best in its last epoch.** Both had their best
+  valid epoch one before the end, so a longer schedule from the body is not
+  the first run to add here. A stronger body may be.
 
 **Weights.** Every run's weights and test predictions are on the owner's
 machine, under `artifacts/runs/puzzle-difficulty-unsolved/<run>/`, as the GPU
 session packed them; none is published. The best run's `model.pt` is
-4,153,095 bytes, sha256
-`a96b36b33c6c727f5700371985965b91222a19e95645658eb099748829ea2497`
-(`weights` in [its record](results/conv-small.json)).
+26,252,703 bytes, sha256
+`9ed4cc2f38c4d0c8cba292a7268223bd0bb6f168a50ce7b5667ee4b828c970cb`
+(`weights` in [its record](results/transformer-medium-hand-pretrained.json)).
 
 ## What it does not say yet
 

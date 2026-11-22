@@ -18,10 +18,18 @@ its results, so a model is one folder and adding one touches no code:
     hand: [material, mobility]    the only groups of hand features its learners may read
     steps: [ply, log_clock]       for a dataset whose rows are sequences, the only numbers of each
                                   position its networks may read
+    purpose: body                 what the lab has the model for, when that is not its answer: a
+                                  body the other models start from
 
 A task that names no ``marks``, no ``hand`` or no ``steps`` lets its learners
 read all the dataset has. One that names them asks its question with
 something hidden: a puzzle's difficulty with its solution never shown, say.
+
+A model is in the lab for its answer, which says something about people. One
+whose task says ``purpose: body`` is there to be started from
+(``learner.init``): its answer is something an engine computes. It is trained,
+scored and ranked like any model, and the lab's paper lists it apart from the
+models it sets side by side.
 
 A task whose answer is a set says where the set is:
 
@@ -58,8 +66,9 @@ from .evals.metrics import LOWER_IS_BETTER, METRICS
 
 
 REQUIRED = ("dataset", "kind", "label", "unit", "primary", "reference", "context")
-OPTIONAL = ("band", "scale", "marks", "hand", "tags", "steps")
+OPTIONAL = ("band", "scale", "marks", "hand", "tags", "steps", "purpose")
 SCALES = ("linear", "log1p")
+PURPOSES = ("answer", "body")
 SQUARES = tuple(f"{file}{rank}" for rank in "12345678" for file in "abcdefgh")
 
 
@@ -80,7 +89,9 @@ class Task:
     predicts moves the column of the move played; ``tags`` are the
     words a task that predicts tags gives a chance each. ``steps`` are the
     numbers of each position a network may read where a row is a sequence of
-    positions, or ``None`` for all of them.
+    positions, or ``None`` for all of them. ``purpose`` is what the lab has
+    the model for: its ``answer``, or its ``body`` for other models to start
+    from.
     """
 
     name: str
@@ -97,6 +108,7 @@ class Task:
     hand: tuple[str, ...] | None = None
     tags: tuple[str, ...] | None = None
     steps: tuple[str, ...] | None = None
+    purpose: str = "answer"
 
     @property
     def lower_is_better(self) -> bool:
@@ -147,6 +159,8 @@ def get(name: str) -> Task:
         raise ValueError(f"{path}: a label's scale is one of {', '.join(SCALES)}, not {loaded['scale']!r}")
     if loaded.get("scale", "linear") != "linear" and loaded["kind"] != "regression":
         raise ValueError(f"{path}: only a quantity has a scale, and this task predicts a chance")
+    if loaded.get("purpose", "answer") not in PURPOSES:
+        raise ValueError(f"{path}: a model is in the lab for its {' or its '.join(PURPOSES)}, not {loaded['purpose']!r}")
     strangers = [group for group in loaded.get("hand") or [] if group not in GROUPS]
     if strangers:
         raise ValueError(
@@ -184,4 +198,5 @@ def get(name: str) -> Task:
         hand=None if loaded.get("hand") is None else tuple(loaded["hand"]),
         tags=None if tags is None else tuple(tags),
         steps=None if loaded.get("steps") is None else tuple(loaded["steps"]),
+        purpose=loaded.get("purpose", "answer"),
     )

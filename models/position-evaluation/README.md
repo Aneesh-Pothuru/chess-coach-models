@@ -28,9 +28,10 @@ Written before the first full run.
 - **What counts as better here** is the usual paired gain over the reference.
   It is not what this model is for.
 - **What it is for.** `transformer-medium` here is the same body, at the same
-  size, as `transformer-medium` everywhere else. Each other model has two runs
-  that start from it, `transformer-medium-pretrained` and
-  `transformer-medium-hand-pretrained`, with nothing else changed. A start
+  size, as `transformer-medium` everywhere else. Each of the six models that
+  had full runs before it has two runs that start from it,
+  `transformer-medium-pretrained` and `transformer-medium-hand-pretrained`,
+  with nothing else changed. A start
   from this body is kept on a model only where that run beats the same run
   started from nothing, on that model's own test games, beyond the noise.
 - **Bands.** Results are also given by the number of men on the board.
@@ -45,8 +46,46 @@ Written before the first full run.
 
 ## Results
 
-No full run has been recorded yet. `results/leaderboard.md` is written by
-`lab eval position-evaluation` once the runs are in.
+[`results/leaderboard.md`](results/leaderboard.md), written by
+`lab eval position-evaluation`. What the first full runs say (commit
+`3810bca`; the numbers are in the leaderboard):
+
+- **The transformer reads far more of the engine's verdict than counting
+  does.** It is ahead of the trees beyond the noise, and the trees are ahead
+  of the floor by more than twice that. It also puts positions in order
+  better than the trees do (the rank correlation).
+- **Every run is closest while the board is full.** By the number of men
+  left, each run's error is smallest with 25 men or more, and the two
+  learners' is largest between nine and sixteen. The floor's error by band
+  says why the ends differ: with few men left the engine's verdicts stand
+  far from even, and one number for every position misses them most there.
+- **It was still learning when it stopped.** Its best valid epoch was the
+  last of its six, and each epoch gained less than the one before (`history`
+  under `learner` in [its record](results/transformer-medium.json)). A
+  reading: a longer run would gain a little, and a body trained on more of
+  the file or at a larger size is the larger thing not tried.
+- **Its body is what it is for, and the body pays.** Six models trained
+  their two twelve-epoch transformers again from this body, with nothing else
+  changed. In five of them (blunder hazard, puzzle difficulty, puzzle
+  difficulty unsolved, tactic found and think time) both runs are kept by
+  the rule above, and the one that also reads the hand features is the
+  model's best run. In practical chances both are worse than the same runs
+  started from nothing, beyond the noise: every learner there already reads
+  the engine's chance of winning beside the board. Each model's card says
+  what the start was worth to it, and
+  [the lab's paper](../../papers/lab/paper.pdf) sets the six side by side
+  ("What a start from an engine's evaluations is worth").
+- **No closer look and no paper of its own.** `analysis.yaml` says how its
+  results would be cut, and `lab analyse` has not been run on it. The lab's
+  paper lists it apart from the models it sets side by side and counts it in
+  none of their comparisons (`purpose: body` in its task).
+
+**Weights.** Each run's weights and test predictions are on the owner's
+machine, under `artifacts/runs/position-evaluation/<run>/`, as the GPU session
+packed them; none is published. The transformer's `model.pt`, the body the
+other models start from, is 26,235,679 bytes, sha256
+`e74b67486516834822284bd0ff23bd93b12da4acc5a14d559c8f13436a4ee65e` (`weights`
+in [its record](results/transformer-medium.json)).
 
 ## What it does not say yet
 
@@ -57,3 +96,5 @@ No full run has been recorded yet. `results/leaderboard.md` is written by
   differently.
 - A body trained for longer, on more of the file, or at a larger size is not
   tried.
+- Its score here is not what a start from it is worth. That is measured on
+  each model that starts from it, and one body is all that has been tried.

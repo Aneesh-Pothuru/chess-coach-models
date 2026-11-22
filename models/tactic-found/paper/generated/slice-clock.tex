@@ -2,16 +2,16 @@
 \fit{%
 \begin{tabular}{lrrrrrrrr}
 \toprule
- &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily transformer-\allowbreak medium-\allowbreak hand}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering\ttfamily gbm-\allowbreak hand}} &  &  \\
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
 Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 95\% interval \\
 \midrule
-\textless{}10 & 2{,}005 & 58.0 & 59.3 & 0.6002 & 59.0 & 0.5943 & $-$0.00597 & $-$0.01419 to +0.00281 \\
-10-30 & 5{,}348 & 65.1 & 65.0 & 0.5632 & 64.8 & 0.5690 & \textbf{+0.00588} & +0.00125 to +0.01046 \\
-30-60 & 6{,}370 & 68.9 & 68.9 & 0.5381 & 69.0 & 0.5409 & +0.002860 & $-$0.001213 to +0.007609 \\
-60-180 & 20{,}421 & 68.7 & 68.9 & 0.5365 & 68.9 & 0.5400 & \textbf{+0.003597} & +0.001009 to +0.006525 \\
-180-600 & 37{,}234 & 69.1 & 69.3 & 0.5365 & 69.1 & 0.5413 & \textbf{+0.004857} & +0.003128 to +0.006658 \\
-600+ & 9{,}757 & 72.4 & 72.1 & 0.5115 & 72.1 & 0.5185 & \textbf{+0.00702} & +0.00307 to +0.01093 \\
+\textless{}10 & 2{,}005 & 58.0 & 62.6 & 0.5947 & 59.0 & 0.5943 & $-$0.00040 & $-$0.01257 to +0.01017 \\
+10-30 & 5{,}348 & 65.1 & 67.8 & 0.5573 & 64.8 & 0.5690 & \textbf{+0.01173} & +0.00500 to +0.01868 \\
+30-60 & 6{,}370 & 68.9 & 70.2 & 0.5281 & 69.0 & 0.5409 & \textbf{+0.01282} & +0.00778 to +0.01875 \\
+60-180 & 20{,}421 & 68.7 & 69.2 & 0.5276 & 68.9 & 0.5400 & \textbf{+0.01242} & +0.00915 to +0.01551 \\
+180-600 & 37{,}234 & 69.1 & 68.6 & 0.5275 & 69.1 & 0.5413 & \textbf{+0.01380} & +0.01156 to +0.01582 \\
+600+ & 9{,}757 & 72.4 & 70.9 & 0.5068 & 72.1 & 0.5185 & \textbf{+0.01167} & +0.00687 to +0.01626 \\
 \bottomrule
 \end{tabular}%
 }

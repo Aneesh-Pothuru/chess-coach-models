@@ -156,11 +156,35 @@ the leaderboard and set against the run it changed among the `pairs` of
   from these games the sums over the whole board: how much is left, who is
   ahead, how far the game has gone.
 
+What a start from engine evaluations says (commit `3810bca`:
+`transformer-medium-pretrained` and `transformer-medium-hand-pretrained`, the
+twelve-epoch runs started from the body that
+[position evaluation](../position-evaluation/) trained, each set against the
+run it changed among the `pairs` of
+[`results/analysis.json`](results/analysis.json)):
+
+- **Both are kept, and the one with the features is the model's best run.**
+  Each is better than the same run started from nothing on the valid rows, and
+  on the test rows beyond the noise.
+- **A network on the board alone is ahead of the trees for the first time.**
+  Every network that read only the board was below `gbm-hand` here, in twelve
+  epochs and in twenty-four. Started from the body, the same transformer is
+  ahead of it beyond the noise.
+- **Under the start the features add little.** The run that reads them and
+  the run that does not have gains over the reference that lie inside each
+  other's intervals. A reading: the features count what hangs and who is
+  ahead, and a body trained to say who is winning has learned to see most of
+  that.
+- **The gain with the features is the less sure of the two.** Its interval
+  leaves zero out by little, and each run was trained once. A second seed is
+  the cheap run to add before this one is leaned on.
+
 **Weights.** Every run's weights and test predictions are on the owner's
 machine, under `artifacts/runs/blunder-hazard/<run>/`, as the GPU session
-packed them; none is published. The best run's `model.pt` is 26,259,999
-bytes, sha256 `ed6d08bfee84b60de82fff5a7bb3527f0748fe4735d26f5aad53d11d289f48f2`,
-read off the file there: these records were written before a record named its
+packed them; none is published. The best run's `model.pt` is 26,260,127
+bytes, sha256 `aa6347c502fe165b9dfd3ba3ba200b16a696928227e1fa2b030263a4f1f47854`
+(`weights` in [its record](results/transformer-medium-hand-pretrained.json)).
+The records of the first full runs were written before a record named its
 weights, which every later one does.
 
 ## Version 0

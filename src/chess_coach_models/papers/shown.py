@@ -21,7 +21,7 @@ from typing import Any
 from .. import tasks
 from ..evals import leaderboard
 from . import charts, tex
-from .sources import METRIC_NAMES, METRIC_WORDS, Sources, run_cell, run_tex
+from .sources import METRIC_NAMES, METRIC_WORDS, Sources, run_tex
 
 
 def other(src: Sources) -> list[dict[str, Any]]:
@@ -199,7 +199,7 @@ def table(src: Sources) -> str | None:
     lines = []
     for here, there in both:
         entry = paired.get((here["run"], there["run"]))
-        cells = [run_cell(here["run"]), tex.score(here["test"][primary]["value"]), tex.score(there["test"][primary]["value"])]
+        cells = [run_tex(here["run"]), tex.score(here["test"][primary]["value"]), tex.score(there["test"][primary]["value"])]
         if here is src.floor:
             lines.append([*cells, *[""] * (3 if paired else 2)])
             continue

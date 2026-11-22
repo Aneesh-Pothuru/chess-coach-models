@@ -310,7 +310,8 @@ against its twin.
 Set against each other on the same resampled games, the one that reads them
 is \V{pair.transformer-medium-hand.transformer-medium.verdict}.
 \fi
-The network furthest from the trees, \run{transformer-medium-hand}, stands
+The network of the ladder furthest from the trees,
+\run{transformer-medium-hand}, stands
 \V{run.transformer-medium-hand.gain} from them
 (\V{run.transformer-medium-hand.gain.low} to
 \V{run.transformer-medium-hand.gain.high}), which is
@@ -396,6 +397,52 @@ feature's share of the total gain of the splits made on it.}
 \label{sec:changes}
 
 \input{../../../papers/changes}
+
+\ifpairs
+\paragraph{What a start from engine evaluations was worth here.}
+The lab's position-evaluation model trains the same medium transformer on
+positions from the open Lichess evaluations file, to say the mover's winning
+chances as an engine sees them. The model is there for its body: a run of
+this model can start from it. The embeddings and the blocks are copied in,
+the head starts new, and the run then trains on this model's games on the
+ladder's schedule, with nothing else changed.
+
+Here the start did not help. On the board alone,
+\V{run.transformer-medium-pretrained.name} is
+\V{pair.transformer-medium-pretrained.transformer-medium.valid.verdict} than
+the run it changed on the valid positions and
+\V{pair.transformer-medium-pretrained.transformer-medium.verdict} on the
+test positions (\V{pair.transformer-medium-pretrained.transformer-medium.gain},
+\V{pair.transformer-medium-pretrained.transformer-medium.gain.low} to
+\V{pair.transformer-medium-pretrained.transformer-medium.gain.high}): it is
+\V{pair.transformer-medium-pretrained.transformer-medium.kept}. With the
+hand features, \V{run.transformer-medium-hand-pretrained.name} is
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.valid.verdict}
+than the run it changed on the valid positions and
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.verdict}
+on the test positions
+(\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain},
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.low}
+to
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.high}):
+it is
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.kept}
+either. Both peaked sooner than the runs they changed, at epoch
+\V{run.transformer-medium-pretrained.best-epoch} and
+\V{run.transformer-medium-hand-pretrained.best-epoch} against
+\V{run.transformer-medium.best-epoch} and
+\V{run.transformer-medium-hand.best-epoch}, and the trainer stopped each
+\V{networks.patience} epochs after its best.
+
+A reading: what the body learned first is the engine's verdict on a
+position, and every learner of this model is handed that verdict as a
+number. The start brings nothing this model lacks, and a body that arrives
+fitted to one reading of the board goes on to fit the training games
+sooner. A run that is not kept leaves the leaderboard when it is filed, and
+its row stays in Table~\ref{tab:pairs} as the measurement of what the start
+is worth here. The lab's own paper sets this beside the other models, where
+the same start is kept.
+\fi
 
 \input{../../../papers/studies}
 

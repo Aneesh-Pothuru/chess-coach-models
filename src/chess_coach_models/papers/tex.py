@@ -127,7 +127,7 @@ def duration(seconds: float) -> str:
 def code(markdown: str) -> str:
     """A line with Markdown's backticks, as the leaderboards write a learner, with its code set as code."""
     parts = markdown.split("`")
-    return "".join(esc(part) if index % 2 == 0 else f"\\texttt{{{esc(part)}}}" for index, part in enumerate(parts))
+    return "".join(esc(part) if index % 2 == 0 else f"\\code{{{esc(part)}}}" for index, part in enumerate(parts))
 
 
 def bold(text: str, on: bool = True) -> str:

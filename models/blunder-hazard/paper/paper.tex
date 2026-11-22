@@ -28,7 +28,10 @@ scores
 against \V{reference.score} for gradient-boosted trees on the hand-made counts
 and \V{floor.score} for the base rate. Beyond the noise,
 \V{networks.ahead.of} beat the trees. From the board alone no network of the
-ladder matches them, whatever its size. After calibration the stated chance
+ladder matches them, whatever its size. Started from a body that was first
+trained on engine evaluations, the same transformer passes them from the
+board alone, and the best run starts from that body too. After calibration
+the stated chance
 can be read as a frequency: none of the best run's
 \V{best.calibration.groups} groups is further than
 \V{best.calibration.widest-gap} points from what happened.
@@ -227,6 +230,11 @@ each is behind the reference beyond the noise. Size does not change it: a
 network of \V{run.transformer-small.parameters.millions} million parameters
 and one of \V{run.transformer-medium.parameters.millions} million land in
 the same place, and so does a body of another kind.
+\ifvariants
+Section~\ref{sec:changes} has the board-alone network that does pass the
+trees: the same medium transformer, started from a body that was trained on
+engine evaluations first.
+\fi
 
 The plain reading is that \V{recipe.games} games are too few for a network to
 learn off the squares what the hand features count: a piece that can be
@@ -327,9 +335,10 @@ Table~\ref{tab:calibration} puts the test positions in
 what the run said beside what happened. The groups run from
 \V{best.calibration.lowest}\% to \V{best.calibration.highest}\%, and none is
 further than \V{best.calibration.widest-gap} points from the rate that
-happened (Figure~\ref{fig:calibration}). The slope fitted on the valid rows
-was \V{best.platt.slope}, close to one, so the network was nearly calibrated
-before the correction.
+happened (Figure~\ref{fig:calibration}). The correction fitted on the valid
+rows has a slope of \V{best.platt.slope}. A slope of one is a network that
+needed none, and one below it a network that stated its chances too far
+apart.
 
 \begin{table}[htbp]\centering\small
 \block{calibration-table}
@@ -426,9 +435,9 @@ test positions
 \V{pair.transformer-medium-hand-long.transformer-medium-hand.gain.low} to
 \V{pair.transformer-medium-hand-long.transformer-medium-hand.gain.high}): it
 is \V{pair.transformer-medium-hand-long.transformer-medium-hand.kept}
-either. So \V{best.name} stays the model's best run. A run that is not kept leaves
-the leaderboard when it is filed, and its row stays in
-Table~\ref{tab:pairs} as the measurement of what the epochs were worth.
+either. So neither longer run takes the place of the run it changed. A run
+that is not kept leaves the leaderboard when it is filed, and its row stays
+in Table~\ref{tab:pairs} as the measurement of what the epochs were worth.
 
 Neither run used its whole schedule. Both had their best valid epoch at
 \V{run.transformer-medium-long.best-epoch} of
@@ -444,6 +453,60 @@ the board alone was still improving when the ladder's schedule ran out, and
 more of the same games did not carry it further. That fits the plain reading
 of Section~\ref{sec:results}, that \V{recipe.games} games are too few for
 a network to learn off the squares what the hand features count.
+
+\paragraph{What a start from engine evaluations was worth here.}
+The lab's position-evaluation model trains the same medium transformer on
+positions from the open Lichess evaluations file, to say the mover's winning
+chances as an engine sees them. That label says nothing about people. The
+model is there for its body: a run of this model can start from it. The
+embeddings and the blocks are copied in, the head starts new, and the run
+then trains on this model's games on the ladder's schedule, with nothing
+else changed.
+
+On the board alone, \V{run.transformer-medium-pretrained.name} is
+\V{pair.transformer-medium-pretrained.transformer-medium.valid.verdict} than
+the run it changed on the valid positions and
+\V{pair.transformer-medium-pretrained.transformer-medium.verdict} on the
+test positions (\V{pair.transformer-medium-pretrained.transformer-medium.gain},
+\V{pair.transformer-medium-pretrained.transformer-medium.gain.low} to
+\V{pair.transformer-medium-pretrained.transformer-medium.gain.high}): it is
+\V{pair.transformer-medium-pretrained.transformer-medium.kept}. With the
+hand features, \V{run.transformer-medium-hand-pretrained.name} is
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.valid.verdict}
+than the run it changed on the valid positions and
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.verdict}
+on the test positions
+(\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain},
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.low}
+to
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.high}):
+it is
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.kept}.
+The model's best run is \V{best.name}.
+
+Two things follow. The first is that the start did what neither size nor
+steps had done. From the board alone the transformer now passes the trees,
+with a gain over the reference of \V{run.transformer-medium-pretrained.gain}
+(\V{run.transformer-medium-pretrained.gain.low} to
+\V{run.transformer-medium-pretrained.gain.high}), where the same network
+started from nothing has one of \V{run.transformer-medium.gain}. The second
+is that the counts add little once the body has been trained first.
+\V{run.transformer-medium-hand-pretrained.name} scores
+\V{run.transformer-medium-hand-pretrained.over-twin} above
+\V{run.transformer-medium-pretrained.name}, where on the ladder the same
+difference was \V{run.transformer-medium-hand.over-twin}, and the two runs'
+gains over the reference lie inside each other's intervals
+(Table~\ref{tab:leaderboard}). The two were not set against each other on
+resampled games, so that difference is a reading of the leaderboard.
+
+A reading: this is the shortage of games again, met from another side. A
+body that has read a great many positions for another label arrives able to
+read a board, and most of what the hand features count comes with it.
+Neither run was at its best in its last epoch: the best valid epochs were
+\V{run.transformer-medium-pretrained.best-epoch} and
+\V{run.transformer-medium-hand-pretrained.best-epoch} of
+\V{run.transformer-medium-hand-pretrained.epochs}, so a longer schedule from
+the same start is not the next run.
 \fi
 
 \input{../../../papers/studies}
@@ -705,8 +768,8 @@ check blunders \V{slice.check.yes.happened} of the time, against
 (Table~\ref{tab:slice-check}): a check leaves few legal moves. By the count
 of legal moves the rate climbs from \V{slice.moves.-5.happened} with fewer
 than five to \V{slice.moves.45+.happened} with 45 or more
-(Table~\ref{tab:slice-moves}), and it is in the two groups with the most
-moves that the network leads the trees beyond the noise
+(Table~\ref{tab:slice-moves}), and it is in the groups with the most moves
+that the network leads the trees beyond the noise
 (\V{slice.moves.ahead.groups}). Many legal moves go with a full board and a
 middlegame, so this cut does not hold choice apart from the stage of the
 game either.
@@ -719,22 +782,24 @@ queens left on the board (Table~\ref{tab:slice-pieces}). The rate of
 blunders is highest between ply 30 and 40, at \V{slice.ply.30-40.happened},
 and lowest from ply 80 on, at \V{slice.ply.80+.happened}.
 
-The network and the trees change places along the way. \V{challenger.name}
-is ahead beyond the noise in \V{slice.ply.ahead.of}
+The network's lead is proven early in a game and not late.
+\V{challenger.name} is ahead beyond the noise in \V{slice.ply.ahead.of}
 (\V{slice.ply.ahead.groups}) and behind beyond the noise in
-\V{slice.ply.behind} (\V{slice.ply.behind.groups}), where its gain is
-\V{slice.ply.80+.gain}. The cut by material agrees as far as it can: with
-fewer than six pieces left the network's gain is below zero in both groups
-(\V{slice.pieces.-3.gain} and \V{slice.pieces.3-6.gain}), inside the noise,
-and it is ahead beyond the noise with nine or more
-(\V{slice.pieces.ahead.groups}).
+\V{slice.ply.behind.of}. From ply 60 to 80 its gain is
+\V{slice.ply.60-80.gain} and from ply 80 on \V{slice.ply.80+.gain}, where a
+gain below zero puts the trees ahead, and both intervals hold zero. The cut
+by material agrees as far as it can: with fewer than nine pieces left the
+network's gain is inside the noise in all three groups
+(\V{slice.pieces.-3.gain}, \V{slice.pieces.3-6.gain} and
+\V{slice.pieces.6-9.gain}), and it is ahead beyond the noise with nine or
+more (\V{slice.pieces.ahead.groups}).
 
-So the network earns its lead in the opening and the middlegame and gives
-some of it back in long endings. The tables do not say why. Positions from
-ply 80 on are \V{slice.ply.80+.share}\% of the test positions and as small
-a share of the ones a network trains on, which may be all there is to it.
-For the app the consequence does not wait on the reason: late in a game the
-trees are the better of the two.
+So the network earns its lead in the opening and the middlegame, and in
+long endings the test games do not tell the two learners apart. Positions
+from ply 80 on are \V{slice.ply.80+.share}\% of the test positions and as
+small a share of the ones a network trains on, so a difference there would
+have to be large to show. For the app that leaves the trees as the safe
+choice late in a game: nothing here proves the network better there.
 
 \subsection{Two things at once}
 
@@ -763,8 +828,9 @@ the grid. Movers at 2000 and over in the same spot blunder
 \V{grid.rating-win.2000+.60-80.happened} of the time. The run said
 \V{grid.rating-win.-1100.60-80.said} and
 \V{grid.rating-win.2000+.60-80.said}. An advantage is several times as
-dangerous in a weaker player's hands, which neither margin states by itself,
-and the model has it.
+dangerous in a weaker player's hands, which neither margin states by itself.
+The model has the pattern: it puts the first far above the second, as the
+truth does.
 
 \begin{figure}[htbp]\centering
 \block{grid-rating-clock}
@@ -794,8 +860,8 @@ on the same test positions. The best run's correlation with the reference is
 \V{best.beside.correlation}, and it is the closer of the two to what happened
 on \V{best.beside.closer}\% of the positions. Two runs that score alike and
 still disagree position by position would do better averaged than either
-does alone, and the stage of the game says where each is the one to trust.
-A blend of the two is a run nobody has made yet.
+does alone, and the stage of the game says where the network's lead is
+proven. A blend of the two is a run nobody has made yet.
 
 \begin{table}[htbp]\centering\small
 \block{beside}
@@ -854,13 +920,13 @@ stated before it says which it was. At a chance near the base rate the
 player slipped where few do. At several times the base rate the position
 trips most players of that level, and the review can say so.
 \item \textbf{Most for the weaker player.} The network's lead over the trees
-is proven for the movers rated \V{slice.band.ahead.groups}, and those are
-the players who blunder most.
+is proven for the movers rated \V{slice.band.ahead.groups}. The two weakest
+bands are among them, and those are the players who blunder most.
 \item \textbf{The trees first, and late in a game.} \V{task.reference}
 reaches \V{reference.score} against the best run's \V{best.score}. It is a
-file of trees that needs no GPU, and from ply 80 on it is the better of the
-two. Where the app has to run the model itself, the trees are the place to
-start.
+file of trees that needs no GPU, and from ply 60 on the test games do not
+prove the network better. Where the app has to run the model itself, the
+trees are the place to start.
 \item \textbf{Not yet a model of time trouble.} Too few of these positions
 have a short clock for the tables to say what one does.
 \else
@@ -953,8 +1019,12 @@ one, so the app can say which kind of mistake a position invites.
 takes know something about a position that these learners do not. A body
 trained on both labels is the run that asks whether it can be read off the
 board.
-\item \textbf{A blend.} The network leads early in a game and the trees
-late. An average of the two, or one that knows the stage, may beat both.
+\item \textbf{A blend.} The network's lead is proven early in a game and
+not late. An average of the two, or one that knows the stage, may beat
+both.
+\item \textbf{A stronger body to start from.} The body was trained once, at
+one size, on a part of the evaluations file. One trained for longer, on more
+of the file or at a larger size has not been tried.
 \item \textbf{The game as a sequence.} The moves and the clock use that led
 to a position say whether a player is drifting or in time trouble.
 \item \textbf{The player's own scale.} A check of the stated chance on the

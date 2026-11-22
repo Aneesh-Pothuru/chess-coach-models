@@ -5,9 +5,11 @@
 \cmidrule(lr){4-6}
 Run & Set against & What the run changes & Valid rows & Test rows & 95\% interval \\
 \midrule
-{\ttfamily transformer-\allowbreak medium-\allowbreak long} & {\ttfamily transformer-\allowbreak medium} & 24 epochs for 12 & +18.4 & \textbf{+19.57} & +18.58 to +20.49 \\
-{\ttfamily transformer-\allowbreak medium-\allowbreak hand-\allowbreak long} & {\ttfamily transformer-\allowbreak medium-\allowbreak hand} & 24 epochs for 12 & +8.95 & \textbf{+8.297} & +7.576 to +9.072 \\
-{\ttfamily transformer-\allowbreak medium-\allowbreak hand} & {\ttfamily transformer-\allowbreak medium} & reads the hand features & +12.5 & \textbf{+13.77} & +12.69 to +14.79 \\
-{\ttfamily transformer-\allowbreak medium-\allowbreak hand-\allowbreak long} & {\ttfamily transformer-\allowbreak medium-\allowbreak long} & reads the hand features & +3.08 & \textbf{+2.497} & +1.234 to +3.678 \\
+\run{transformer-medium-long} & \run{transformer-medium} & 24 epochs for 12 & +18.4 & \textbf{+19.57} & +18.58 to +20.49 \\
+\run{transformer-medium-hand-long} & \run{transformer-medium-hand} & 24 epochs for 12 & +8.95 & \textbf{+8.297} & +7.576 to +9.072 \\
+\run{transformer-medium-hand} & \run{transformer-medium} & reads the hand features & +12.5 & \textbf{+13.77} & +12.69 to +14.79 \\
+\run{transformer-medium-hand-long} & \run{transformer-medium-long} & reads the hand features & +3.08 & \textbf{+2.497} & +1.234 to +3.678 \\
+\run{transformer-medium-hand-pretrained} & \run{transformer-medium-hand} & starts from the body of \run{position-evaluation/transformer-medium} & +19.7 & \textbf{+18.54} & +17.50 to +19.49 \\
+\run{transformer-medium-pretrained} & \run{transformer-medium} & starts from the body of \run{position-evaluation/transformer-medium} & +21.6 & \textbf{+22.00} & +21.02 to +22.95 \\
 \bottomrule
 \end{tabularx}

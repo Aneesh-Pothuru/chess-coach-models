@@ -185,6 +185,26 @@ the leaderboard and set against the run it changed among the `pairs` of
   nothing these test rows can show, and every one of these costs is small
   beside what the trees add to the engine's curve.
 
+What a start from engine evaluations says (commit `3810bca`:
+`transformer-medium-pretrained` and `transformer-medium-hand-pretrained`, the
+twelve-epoch runs started from the body that
+[position evaluation](../position-evaluation/) trained, each set against the
+run it changed among the `pairs` of
+[`results/analysis.json`](results/analysis.json)):
+
+- **Neither is kept.** Each is worse than the same run started from nothing,
+  on the valid rows and on the test rows beyond the noise, and both are behind
+  the trees beyond the noise. The model's best run is unchanged.
+- **They learned what there was early.** Their best valid epochs were the
+  third and the fourth of twelve.
+- **A reading of why.** Every run here already reads the engine's chance for
+  the mover before the move (`win_before`), so a body that learned to estimate
+  it brings nothing the runs lacked, and the result of a game turns on the
+  players and the clock more than on the board.
+- **They stay as runs that were tried.** Filing them under a `start` study,
+  with the longer runs of two other models that were not kept, waits for the
+  next closer look on the machine that holds the predictions.
+
 **Weights.** Every run's weights and test predictions are on the owner's
 machine, under `artifacts/runs/practical-chances/<run>/`, as the GPU session
 packed them; none is published. Each record names its run's files by size

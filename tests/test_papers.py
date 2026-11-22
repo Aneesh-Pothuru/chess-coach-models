@@ -53,7 +53,7 @@ def test_text_from_a_file_is_escaped_and_a_key_is_made_plain():
     assert tex.esc("<1100 & 50%_x") == r"\textless{}1100 \& 50\%\_x"
     assert tex.key("slice", "clock", "<30", "engine-curve", "said") == "slice.clock.-30.engine-curve.said"
     assert tex.key("grid", "rating-win", "2000+", "80+") == "grid.rating-win.2000+.80+"
-    assert tex.code("the column `win_before`, times 0.01") == r"the column \texttt{win\_before}, times 0.01"
+    assert tex.code("the column `win_before`, times 0.01") == r"the column \code{win\_before}, times 0.01"
 
 
 def test_a_value_is_set_once_and_a_block_once():
@@ -284,7 +284,14 @@ def test_the_one_scale_reads_a_score_where_higher_is_better_the_same_way():
     # A gain whose interval holds zero is level with the reference, however large it is.
     assert overview._verdicts(lab, lambda one: one.networks[0]) == ([], ["blunder-hazard"], [])
     assert overview.pairs(src) == [] and not any(overview.switches(lab).values())
-    assert set(overview.switches(lab)) == {"waiting", "changehand", "changeepochs", "changestart", "games", "features", "studies", "more"}
+    assert set(overview.switches(lab)) == {
+        "waiting", "changehand", "changeepochs", "changestart", "games", "features", "studies", "more", "splitapart", "bodies",
+    }  # fmt: skip
+    # A model the lab has for its body stands with every model and in no comparison of them.
+    lender = _sources("puzzle-difficulty", [_record("gbm-hand", {"kind": "gbm", "features": "hand"}, 1.0, "rmse")])
+    both = overview.Lab({"blunder-hazard": src}, {}, {}, {"puzzle-difficulty": lender})
+    assert list(both.every) == ["blunder-hazard", "puzzle-difficulty"] and overview.switches(both)["bodies"]
+    assert overview._verdicts(both, lambda one: one.networks[0]) == ([], ["blunder-hazard"], [])
 
 
 def _longer(model, gain):
@@ -333,7 +340,7 @@ def test_a_run_that_was_filed_keeps_its_pair_and_its_place_beside_the_run_it_cha
     assert tried.variants(base) == [longer] and tried.filed == []
     table, written = changes.pairs_table(tried), tex.Generated("a test")
     changes.values(tried, written)
-    assert "transformer-\\allowbreak medium-\\allowbreak long" in table and written.values["pairs.count"] == "one"
+    assert "\\run{transformer-medium-long} &" in table and written.values["pairs.count"] == "one"
 
     # Filed: its record names the run it changed and its study, no leaderboard ranks it, and its pair names the study.
     primary = tried.task.primary
@@ -451,11 +458,11 @@ def test_a_run_on_a_larger_build_is_read_by_how_many_of_the_games_it_was_given()
 
     # The table has the runs on more games above the run on all of them, and the runs on fewer below it.
     table = changes.games_table(src)
-    order = [table.index(f"{sources.run_cell(name)} &") for name in ("gbm-hand-quadruple", "gbm-hand-triple", "gbm-hand-double", "gbm-hand", "gbm-hand-half")]
+    order = [table.index(f"{sources.run_tex(name)} &") for name in ("gbm-hand-quadruple", "gbm-hand-triple", "gbm-hand-double", "gbm-hand", "gbm-hand-half")]
     assert order == sorted(order) and "& four times &" in table and "& 3.3 times &" in table and "& half &" in table
     # A run changed only by runs on more games has no curve to stand on, so it is among the pairs.
-    assert sources.run_cell("transformer-medium-double") not in table
-    assert sources.run_cell("transformer-medium-double") in changes.pairs_table(src)
+    assert sources.run_tex("transformer-medium-double") not in table
+    assert sources.run_tex("transformer-medium-double") in changes.pairs_table(src)
     # A run on a larger build has a longer epoch than the run it changes, so the two share no epoch axis.
     assert src.variants(known["transformer-medium"]) == []
 

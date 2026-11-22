@@ -4,6 +4,8 @@
 \toprule
 Run & Learner & Kept & Trained on & Time \\
 \midrule
+\run{transformer-medium-hand-pretrained} & transformer, 8 layers of width 256, with hand features, started from \code{position-evaluation/transformer-medium} & epoch 8 of 12 & NVIDIA A100-SXM4-40GB & 9 min \\
+\run{transformer-medium-pretrained} & transformer, 8 layers of width 256, started from \code{position-evaluation/transformer-medium} & epoch 8 of 12 & NVIDIA A100-SXM4-40GB & 9 min \\
 \run{transformer-medium-hand} & transformer, 8 layers of width 256, with hand features & epoch 10 of 12 & NVIDIA A100-SXM4-40GB & 10 min \\
 \run{transformer-medium-hand-long} & transformer, 8 layers of width 256, with hand features & epoch 13 of 24 & NVIDIA A100-SXM4-80GB & 12 min \\
 \run{gbm-hand} & LightGBM, context and hand features & 787 trees & Intel Xeon CPU @ 2.20GHz & 31 s \\
@@ -11,7 +13,7 @@ Run & Learner & Kept & Trained on & Time \\
 \run{conv-small} & conv, 6 layers of width 96 & epoch 5 of 8 & NVIDIA A100-SXM4-40GB & 2 min \\
 \run{transformer-medium} & transformer, 8 layers of width 256 & epoch 12 of 12 & NVIDIA A100-SXM4-40GB & 10 min \\
 \run{transformer-small} & transformer, 4 layers of width 128 & epoch 8 of 8 & NVIDIA A100-SXM4-40GB & 3 min \\
-\run{puzzle-rating} & the rating formula on \texttt{mover\_elo} against \texttt{rating} &  & Intel Xeon CPU @ 2.20GHz & 0 s \\
+\run{puzzle-rating} & the rating formula on \code{mover\_elo} against \code{rating} &  & Intel Xeon CPU @ 2.20GHz & 0 s \\
 \run{gbm-context} & LightGBM, context numbers only & 165 trees & Intel Xeon CPU @ 2.20GHz & 6 s \\
 \run{constant} & one number for every row &  & Intel Xeon CPU @ 2.20GHz & 1 s \\
 \bottomrule

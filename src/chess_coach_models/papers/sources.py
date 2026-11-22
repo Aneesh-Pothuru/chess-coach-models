@@ -160,18 +160,14 @@ class Sources:
 
 
 def run_tex(name: str) -> str:
+    """A run's name, set as code. The papers' preamble lets a line end after one of its hyphens or slashes, so the
+    same text serves a sentence, a table's cell and a column's head."""
     return f"\\run{{{tex.esc(name)}}}"
 
 
-def run_cell(name: str) -> str:
-    """A run's name in a table cell that may break it: set as code, with a break allowed after each hyphen."""
-    return f"{{\\ttfamily {tex.esc(name).replace('-', '-\\allowbreak ')}}}"
-
-
 def run_head(name: str, span: int, width: str) -> str:
-    """A run's name over the columns that are its own: centred, and broken at a hyphen when it is wider than they are."""
-    broken = tex.esc(name).replace("-", "-\\allowbreak ")
-    return f"\\multicolumn{{{span}}}{{c}}{{\\parbox[b]{{{width}}}{{\\centering\\ttfamily {broken}}}}}"
+    """A run's name over the columns that are its own: centred, and broken where it is wider than they are."""
+    return f"\\multicolumn{{{span}}}{{c}}{{\\parbox[b]{{{width}}}{{\\centering {run_tex(name)}}}}}"
 
 
 def read(model: str, *, smoke: bool = False) -> Sources:

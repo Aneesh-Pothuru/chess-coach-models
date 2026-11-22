@@ -141,12 +141,33 @@ the leaderboard and set against the run it changed among the `pairs` of
   player's time, beyond the clock, is how far the game has gone, whether
   something can be taken, and how much there is to choose from.
 
+What a start from engine evaluations says (commit `3810bca`:
+`transformer-medium-pretrained` and `transformer-medium-hand-pretrained`, the
+twelve-epoch runs started from the body that
+[position evaluation](../position-evaluation/) trained, each set against the
+run it changed among the `pairs` of
+[`results/analysis.json`](results/analysis.json)):
+
+- **Both are kept, and both are ahead of every run before them.** Each is
+  better than the same run started from nothing on the valid rows and on the
+  test rows beyond the noise, and both are ahead of
+  `transformer-medium-hand-long`, the best run before (the intervals of their
+  gains over the reference do not touch).
+- **The start was worth more than the features, and more than the epochs.**
+  The transformer on the board alone gained more from the start than the hand
+  features had added to it, and several times what twice the epochs had (the
+  intervals of the three paired gains do not touch).
+- **Under the start the features add nothing that can be measured.** The run
+  that reads them and the run that does not have gains over the reference
+  that lie inside each other's intervals. From nothing, twelve epochs had
+  left the transformer on the board alone behind the trees.
+
 **Weights.** Every run's weights and test predictions are on the owner's
 machine, under `artifacts/runs/think-time/<run>/`, as the GPU session
 packed them; none is published. The best run's `model.pt` is
-26,258,975 bytes, sha256
-`71ba8b151cdc2b572c4ee4c2b18bb7d87eabc357a84f0cb44f7c1e6b2ddb95ef`
-(`weights` in [its record](results/transformer-medium-hand-long.json)). The
+26,259,039 bytes, sha256
+`1e5e3d83056a91ed650168fb0d41586f5059e045fdf546497b0809eef498abe1`
+(`weights` in [its record](results/transformer-medium-hand-pretrained.json)). The
 records of the first full runs were written before a record named its
 weights: `transformer-medium-hand`'s `model.pt` is 26,258,975 bytes, sha256
 `4e82080046f9aea0c6ec20458cbccd6f072b6ce7c8f157f3fb1ae764e292e496`, read off

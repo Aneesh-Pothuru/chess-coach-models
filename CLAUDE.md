@@ -85,7 +85,9 @@ answer that is a set" and "An answer that is a move"). Its card says so.
   (`puzzle-difficulty.best.score`) and the lab's own under `lab`, and it sets
   models side by side on one scale: a run's share of the reference's step from
   the floor. When any model's runs change, rebuild it and read its prose again
-  too.
+  too. A model the lab has for its body and not for its answer (`purpose:
+  body` in its task: `position-evaluation`) is listed there apart, and
+  counted in no statement of how the models compare.
 - Before a run, the card names the metric, the split and what counts as
   better. Change one thing a run, and keep it only when it beats the run it
   changed on valid and on test beyond the noise (the paired gain's interval

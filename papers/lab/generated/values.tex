@@ -2,15 +2,18 @@
 \waitingtrue
 \changehandtrue
 \changeepochstrue
-\changestartfalse
+\changestarttrue
 \gamestrue
 \featurestrue
 \studiestrue
+\morefalse
+\splitaparttrue
+\bodiestrue
 \setvalue{blunder-hazard.best.calibration.groups}{ten}
-\setvalue{blunder-hazard.best.calibration.widest-gap}{0.8}
-\setvalue{blunder-hazard.best.score}{0.2666}
+\setvalue{blunder-hazard.best.calibration.widest-gap}{0.9}
+\setvalue{blunder-hazard.best.score}{0.2776}
 \setvalue{blunder-hazard.best.top.1.lift}{7.1}
-\setvalue{blunder-hazard.best.top.1.rate}{48.4}
+\setvalue{blunder-hazard.best.top.1.rate}{48.8}
 \setvalue{blunder-hazard.context.lift.share}{65}
 \setvalue{blunder-hazard.data.games.test}{2{,}944}
 \setvalue{blunder-hazard.data.month}{October 2026}
@@ -20,13 +23,15 @@
 \setvalue{blunder-hazard.recipe.games}{30{,}000}
 \setvalue{blunder-hazard.recipe.speeds}{rapid}
 \setvalue{blunder-hazard.reference.score}{0.2533}
-\setvalue{lab.board.ahead.names}{puzzle difficulty, puzzle difficulty unsolved and think time}
-\setvalue{lab.board.ahead.of}{three of the six models}
-\setvalue{lab.board.behind.names}{blunder hazard and tactic found}
-\setvalue{lab.board.behind.of}{two of the six models}
+\setvalue{lab.board.ahead.names}{blunder hazard, puzzle difficulty, puzzle difficulty unsolved, tactic found and think time}
+\setvalue{lab.board.ahead.of}{five of the six models}
+\setvalue{lab.board.ahead.runs}{\run{transformer-medium-pretrained}}
+\setvalue{lab.board.behind.of}{none of the six models}
 \setvalue{lab.board.level.names}{practical chances}
 \setvalue{lab.board.level.of}{one of the six models}
-\setvalue{lab.change.epochs.net.better.of}{five of the eight pairs}
+\setvalue{lab.bodies.names}{position evaluation}
+\setvalue{lab.change.epochs.net.kept.of}{five of the eight pairs}
+\setvalue{lab.change.epochs.net.kept.whole.models}{puzzle difficulty and think time}
 \setvalue{lab.change.epochs.net.level}{three}
 \setvalue{lab.change.epochs.over.transformer-medium-hand.gain.most}{+4.0}
 \setvalue{lab.change.epochs.over.transformer-medium-hand.said}{better beyond the noise in two of the four models (puzzle difficulty and think time) and inside the noise in two of the four models (blunder hazard and tactic found)}
@@ -34,14 +39,22 @@
 \setvalue{lab.change.epochs.over.transformer-medium.gain.most}{+9.4}
 \setvalue{lab.change.epochs.over.transformer-medium.said}{better beyond the noise in three of the four models (puzzle difficulty, tactic found and think time) and inside the noise in one of the four models (blunder hazard)}
 \setvalue{lab.change.hand.over.gbm-context.said}{better beyond the noise in all five models (blunder hazard, practical chances, puzzle difficulty, tactic found and think time)}
+\setvalue{lab.change.hand.over.transformer-medium-long.models}{puzzle difficulty and think time}
+\setvalue{lab.change.hand.over.transformer-medium-long.said}{better beyond the noise in both models (puzzle difficulty and think time)}
 \setvalue{lab.change.hand.over.transformer-medium.models}{blunder hazard, practical chances, puzzle difficulty, puzzle difficulty unsolved, tactic found and think time}
 \setvalue{lab.change.hand.over.transformer-medium.said}{better beyond the noise in five of the six models (blunder hazard, puzzle difficulty, puzzle difficulty unsolved, tactic found and think time) and inside the noise in one of the six models (practical chances)}
+\setvalue{lab.change.start.net.better.of}{ten of the twelve pairs}
+\setvalue{lab.change.start.net.kept.of}{ten of the twelve pairs}
+\setvalue{lab.change.start.net.kept.whole.models}{blunder hazard, puzzle difficulty, puzzle difficulty unsolved, tactic found and think time}
+\setvalue{lab.change.start.net.worse.of}{two of the twelve pairs}
+\setvalue{lab.change.start.over.transformer-medium-hand.said}{better beyond the noise in five of the six models (blunder hazard, puzzle difficulty, puzzle difficulty unsolved, tactic found and think time) and worse beyond the noise in one of the six models (practical chances)}
+\setvalue{lab.change.start.over.transformer-medium.said}{better beyond the noise in five of the six models (blunder hazard, puzzle difficulty, puzzle difficulty unsolved, tactic found and think time) and worse beyond the noise in one of the six models (practical chances)}
 \setvalue{lab.context.share.least}{35}
 \setvalue{lab.context.share.least.model}{tactic found}
 \setvalue{lab.context.share.most}{97}
 \setvalue{lab.context.share.most.model}{practical chances}
-\setvalue{lab.cost.seconds.networks}{4.6 h}
-\setvalue{lab.cost.seconds.others}{4 min}
+\setvalue{lab.cost.seconds.networks}{7.2 h}
+\setvalue{lab.cost.seconds.others}{6 min}
 \setvalue{lab.cost.seconds.studies}{2.1 h}
 \setvalue{lab.features.in.blunder-hazard.most.gain}{$-$18.7}
 \setvalue{lab.features.in.blunder-hazard.most.group}{material}
@@ -63,28 +76,48 @@
 \setvalue{lab.games.transformer-medium-hand.quarter.said}{worse beyond the noise in all five models (blunder hazard, practical chances, puzzle difficulty, tactic found and think time)}
 \setvalue{lab.hidden.names}{puzzle difficulty unsolved}
 \setvalue{lab.ladder.at-last-epoch.of}{twelve of the 24 networks}
-\setvalue{lab.models.count}{six}
+\setvalue{lab.ladder.board.ahead.names}{puzzle difficulty and puzzle difficulty unsolved}
+\setvalue{lab.ladder.board.ahead.of}{two of the six models}
+\setvalue{lab.ladder.board.behind.names}{blunder hazard, tactic found and think time}
+\setvalue{lab.ladder.board.behind.of}{three of the six models}
+\setvalue{lab.ladder.board.level.names}{practical chances}
+\setvalue{lab.ladder.board.level.of}{one of the six models}
+\setvalue{lab.models.count}{seven}
 \setvalue{lab.network.ahead.names}{blunder hazard, puzzle difficulty, puzzle difficulty unsolved, tactic found and think time}
 \setvalue{lab.network.ahead.of}{five of the six models}
-\setvalue{lab.network.ahead.runs}{\run{transformer-medium-hand}, \run{transformer-medium-hand-long} and \run{conv-small}}
+\setvalue{lab.network.ahead.runs}{\run{transformer-medium-hand-pretrained}}
 \setvalue{lab.network.behind.of}{none of the six models}
-\setvalue{lab.network.gain.whole.most}{16}
+\setvalue{lab.network.gain.whole.most}{21}
 \setvalue{lab.network.gain.whole.most.model}{puzzle difficulty}
 \setvalue{lab.network.level.names}{practical chances}
 \setvalue{lab.network.level.of}{one of the six models}
-\setvalue{lab.networks.count}{32}
+\setvalue{lab.networks.count}{45}
 \setvalue{lab.results.date}{22 November 2026}
-\setvalue{lab.runs.count}{52}
+\setvalue{lab.runs.count}{67}
+\setvalue{lab.side.count}{six}
 \setvalue{lab.small.ahead.of}{two of the six models}
 \setvalue{lab.small.behind.of}{two of the six models}
 \setvalue{lab.small.level.of}{two of the six models}
+\setvalue{lab.split.apart.names}{position evaluation}
+\setvalue{lab.split.apart.test.percent}{2}
+\setvalue{lab.split.apart.valid.percent}{1}
 \setvalue{lab.split.test.percent}{10}
 \setvalue{lab.split.valid.percent}{5}
 \setvalue{lab.studies.count}{56}
-\setvalue{lab.waiting.names}{position evaluation}
+\setvalue{lab.waiting.names}{game rating, human move, puzzle themes and where to look}
 \setvalue{lab.whole.count}{five}
 \setvalue{method.blunder-bar}{20}
 \setvalue{method.resamples}{1{,}000}
+\setvalue{position-evaluation.best.best-epoch}{6}
+\setvalue{position-evaluation.best.epochs}{6}
+\setvalue{position-evaluation.best.score}{12.963}
+\setvalue{position-evaluation.best.seconds}{42 min}
+\setvalue{position-evaluation.data.rows.test}{120{,}035}
+\setvalue{position-evaluation.data.rows.train}{5{,}819{,}934}
+\setvalue{position-evaluation.floor.score}{25.765}
+\setvalue{position-evaluation.recipe.min-depth}{20}
+\setvalue{position-evaluation.reference.leans.1.feature}{material balance}
+\setvalue{position-evaluation.reference.score}{16.449}
 \setvalue{practical-chances.context.lift.share}{97}
 \setvalue{practical-chances.grid.rating-win.-1100.80+.happened}{0.760}
 \setvalue{practical-chances.grid.rating-win.2000+.80+.happened}{0.901}
@@ -96,23 +129,33 @@
 \setvalue{practical-chances.run.engine-curve.lift.share}{80}
 \setvalue{practical-chances.run.engine-curve.score}{0.4373}
 \setvalue{practical-chances.run.gbm-context.score}{0.4260}
+\setvalue{practical-chances.run.transformer-medium-hand-pretrained.best-epoch}{4}
+\setvalue{practical-chances.run.transformer-medium-pretrained.best-epoch}{3}
+\setvalue{practical-chances.run.transformer-medium-pretrained.epochs}{12}
 \setvalue{practical-chances.slice.clock.-30.engine-curve.said}{0.480}
 \setvalue{practical-chances.slice.clock.-30.happened}{0.383}
 \setvalue{practical-chances.slice.win.80-90.happened}{0.699}
-\setvalue{puzzle-difficulty-unsolved.best.gain}{+45.01}
-\setvalue{puzzle-difficulty-unsolved.best.score}{411.8}
+\setvalue{puzzle-difficulty-unsolved.best.gain}{+83.03}
+\setvalue{puzzle-difficulty-unsolved.best.score}{373.8}
 \setvalue{puzzle-difficulty-unsolved.data.rows.test}{112{,}450}
 \setvalue{puzzle-difficulty-unsolved.floor.score}{502.9}
 \setvalue{puzzle-difficulty-unsolved.ladder.ahead.of}{all four networks}
-\setvalue{puzzle-difficulty-unsolved.network.gain.of-lift}{98}
+\setvalue{puzzle-difficulty-unsolved.network.gain.of-lift}{180}
+\setvalue{puzzle-difficulty-unsolved.pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain}{+42.33}
+\setvalue{puzzle-difficulty-unsolved.pair.transformer-medium-pretrained.transformer-medium.gain}{+47.55}
 \setvalue{puzzle-difficulty-unsolved.reference.score}{456.8}
-\setvalue{puzzle-difficulty-unsolved.shown.best.kept.percent}{38}
-\setvalue{puzzle-difficulty-unsolved.shown.best.worth}{150}
-\setvalue{puzzle-difficulty.best.gain}{+32.98}
-\setvalue{puzzle-difficulty.best.mae}{196.8}
+\setvalue{puzzle-difficulty-unsolved.shown.best.kept.percent}{51}
+\setvalue{puzzle-difficulty-unsolved.shown.best.worth}{122}
+\setvalue{puzzle-difficulty-unsolved.shown.transformer-medium-hand-pretrained.kept.percent}{51}
+\setvalue{puzzle-difficulty-unsolved.shown.transformer-medium-hand.kept.percent}{37}
+\setvalue{puzzle-difficulty-unsolved.shown.transformer-medium-pretrained.kept.percent}{52}
+\setvalue{puzzle-difficulty-unsolved.shown.transformer-medium.kept.percent}{35}
+\setvalue{puzzle-difficulty.best.gain}{+43.22}
+\setvalue{puzzle-difficulty.best.mae}{187.3}
 \setvalue{puzzle-difficulty.best.reliability.widest-gap}{61.3}
-\setvalue{puzzle-difficulty.best.score}{261.9}
-\setvalue{puzzle-difficulty.best.spearman}{0.8601}
+\setvalue{puzzle-difficulty.best.score}{251.7}
+\setvalue{puzzle-difficulty.best.spearman}{0.8733}
+\setvalue{puzzle-difficulty.best.weights.megabytes}{26.3}
 \setvalue{puzzle-difficulty.context.lift.share}{36}
 \setvalue{puzzle-difficulty.data.rows}{1{,}127{,}915}
 \setvalue{puzzle-difficulty.data.rows.test}{112{,}450}
@@ -120,6 +163,8 @@
 \setvalue{puzzle-difficulty.floor.score}{502.9}
 \setvalue{puzzle-difficulty.ladder.ahead.of}{all four networks}
 \setvalue{puzzle-difficulty.ladder.count}{four}
+\setvalue{puzzle-difficulty.pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain}{+18.54}
+\setvalue{puzzle-difficulty.pair.transformer-medium-pretrained.transformer-medium.gain}{+22.00}
 \setvalue{puzzle-difficulty.recipe.sample.percent}{25}
 \setvalue{puzzle-difficulty.reference.score}{294.9}
 \setvalue{puzzle-difficulty.run.conv-small.parameters.millions}{1.0}
@@ -128,10 +173,10 @@
 \setvalue{puzzle-difficulty.run.transformer-medium.parameters.millions}{6.6}
 \setvalue{puzzle-difficulty.run.transformer-small.parameters.millions}{0.9}
 \setvalue{puzzle-difficulty.task.metric}{RMSE}
-\setvalue{tactic-found.best.bottom.10.rate}{67.2}
-\setvalue{tactic-found.best.calibration.widest-gap}{1.1}
-\setvalue{tactic-found.best.score}{0.5369}
-\setvalue{tactic-found.best.top.10.rate}{95.6}
+\setvalue{tactic-found.best.bottom.10.rate}{69.2}
+\setvalue{tactic-found.best.calibration.widest-gap}{1.3}
+\setvalue{tactic-found.best.score}{0.5287}
+\setvalue{tactic-found.best.top.10.rate}{95.9}
 \setvalue{tactic-found.context.lift.share}{35}
 \setvalue{tactic-found.data.rows}{810{,}140}
 \setvalue{tactic-found.floor.constant}{69.0\%}
@@ -140,8 +185,8 @@
 \setvalue{tactic-found.run.puzzle-rating.lift.share}{40}
 \setvalue{tactic-found.slice.sacrifice.no.happened}{72.0\%}
 \setvalue{tactic-found.slice.sacrifice.yes.happened}{51.0\%}
-\setvalue{think-time.best.mae.factor}{1.86}
-\setvalue{think-time.best.r2}{0.3144}
+\setvalue{think-time.best.mae.factor}{1.84}
+\setvalue{think-time.best.r2}{0.3323}
 \setvalue{think-time.context.lift.share}{66}
 \setvalue{think-time.floor.mae.factor}{2.16}
 \setvalue{think-time.reference.mae.factor}{1.88}

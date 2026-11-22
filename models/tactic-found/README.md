@@ -185,11 +185,32 @@ the leaderboard and set against the run it changed among the `pairs` of
   last move and material. The attackers near the kings and passed pawns cost
   nothing these test rows can show.
 
+What a start from engine evaluations says (commit `3810bca`:
+`transformer-medium-pretrained` and `transformer-medium-hand-pretrained`, the
+twelve-epoch runs started from the body that
+[position evaluation](../position-evaluation/) trained, each set against the
+run it changed among the `pairs` of
+[`results/analysis.json`](results/analysis.json)):
+
+- **Both are kept, and the one with the features is the model's best run.**
+  Each is better than the same run started from nothing on the valid rows, and
+  on the test rows beyond the noise.
+- **A network on the board alone is ahead of the trees for the first time.**
+  It is also ahead of the best run before it, which read the features (the
+  intervals of their gains over the reference do not touch).
+- **The features still pay under the start.** The run that reads them is
+  ahead of the run that does not: the intervals of their gains over the
+  reference do not touch.
+- **Both stopped early.** Each had its best valid epoch at the eighth of
+  twelve, and the trainer stopped it three epochs later. More epochs from this
+  start would not help. More positions from it may: the `games` study above
+  says positions are what this model lacks.
+
 **Weights.** Every run's weights and test predictions are on the owner's
 machine, under `artifacts/runs/tactic-found/<run>/`, as the GPU session
 packed them; none is published. Each record names its run's files by size
-and sha256. The best run's `model.pt` is 26,294,815 bytes, sha256
-`37235b297e5fe07e4a7b1221e7a370c8fc52f3004b2023f17893fe4937c440f6`.
+and sha256. The best run's `model.pt` is 26,294,879 bytes, sha256
+`8c03dd1520494c30e78a359a6747b102fee7596fb59e269d0c47d32cf08bf68d`.
 
 ## What it does not say yet
 

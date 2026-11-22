@@ -26,7 +26,7 @@ from __future__ import annotations
 from typing import Any
 
 from . import charts, glossary, tex
-from .sources import METRIC_NAMES, METRIC_WORDS, STUDIES, Sources, run_cell, run_tex
+from .sources import METRIC_NAMES, METRIC_WORDS, STUDIES, Sources, run_tex
 
 
 # How many of the training games a run was given, beside the run it changes, as an axis and a table say it:
@@ -174,7 +174,7 @@ def _change(block: str, key: str, new: Any, old: Any) -> str:
     if (block, key) == ("learner", "features"):
         return "reads the hand features" if new == "hand" else "does not read the hand features"
     if (block, key) == ("learner", "init"):
-        return "does not start from another run" if new is None else f"starts from the body of {run_cell(new['model'] + '/' + new['run'])}"
+        return "does not start from another run" if new is None else f"starts from the body of {run_tex(new['model'] + '/' + new['run'])}"
     if (block, key) == ("learner", "without"):
         groups = " and ".join(glossary.group(name) for name in new or [])
         return f"does not read the hand features of {groups}"
@@ -340,7 +340,7 @@ def pairs_table(src: Sources) -> str | None:
             continue
         ahead = valid_gain(src, known[run], known[over])
         on_valid = "" if ahead is None else tex.sig(ahead, 3, sign=True)
-        rows.append([run_cell(run), run_cell(over), differs(known[run], known[over]), on_valid, *_gain_cells(measured.get((run, over)))])
+        rows.append([run_tex(run), run_tex(over), differs(known[run], known[over]), on_valid, *_gain_cells(measured.get((run, over)))])
     if not rows:
         return None
     name = ">{\\raggedright\\arraybackslash}p{2.45cm}"
@@ -391,9 +391,9 @@ def games_table(src: Sources) -> str | None:
     for base, runs in games_runs(src).items():
         if not any(share < 1 for share, _ in runs):
             continue
-        whole = [run_cell(base), "all", _train_rows(known[base]), _score(src, known[base]), "", ""]
+        whole = [run_tex(base), "all", _train_rows(known[base]), _score(src, known[base]), "", ""]
         cells = [
-            (share, [run_cell(run["run"]), share_words(share), _train_rows(run), _score(src, run), *_gain_cells(pair(src, run["run"], base))])
+            (share, [run_tex(run["run"]), share_words(share), _train_rows(run), _score(src, run), *_gain_cells(pair(src, run["run"], base))])
             for share, run in runs
         ]
         rows += [row for share, row in cells if share > 1] + [whole] + [row for share, row in cells if share < 1]
@@ -444,13 +444,13 @@ def features_table(src: Sources) -> str | None:
     for base, runs in _study(src, "features").items():
         if base not in known:
             continue
-        rows.append([run_cell(base), "nothing", "", _score(src, known[base]), "", ""])
+        rows.append([run_tex(base), "nothing", "", _score(src, known[base]), "", ""])
         measured = [(run, pair(src, run["run"], base)) for run in runs]
         for run, entry in sorted(measured, key=lambda item: (item[1] is None, item[1]["gain"] if item[1] else 0.0)):
             groups = _left_out(run)
             count = sum(len(glossary.GROUP_FEATURES[name]) for name in groups)
             rows.append(
-                [run_cell(run["run"]), " and ".join(glossary.group(name) for name in groups), str(count), _score(src, run), *_gain_cells(entry)]
+                [run_tex(run["run"]), " and ".join(glossary.group(name) for name in groups), str(count), _score(src, run), *_gain_cells(entry)]
             )
     if not rows:
         return None

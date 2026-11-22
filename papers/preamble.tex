@@ -66,13 +66,17 @@
 % The lab's own paper asks its own: whether a model has a task and no run
 % yet (\ifwaiting), and whether a kind of change has a pair measured in some
 % model: the hand features (\ifchangehand), more epochs (\ifchangeepochs), a
-% start from another run's body (\ifchangestart), and whether any model has
-% a study run (\ifstudies).
+% start from another run's body (\ifchangestart), whether any model has
+% a study run (\ifstudies), whether some model's dataset is split by
+% other shares than most (\ifsplitapart), and whether a model with full
+% runs is one the lab has for its body, not for its answer (\ifbodies).
 \newif\ifwaiting
 \newif\ifchangehand
 \newif\ifchangeepochs
 \newif\ifchangestart
 \newif\ifstudies
+\newif\ifsplitapart
+\newif\ifbodies
 \makeatletter
 \newcommand{\setvalue}[2]{\expandafter\gdef\csname labvalue@#1\endcsname{#2}}
 \DeclareRobustCommand{\V}[1]{\@ifundefined{labvalue@#1}%
@@ -82,6 +86,17 @@
 \newcommand{\block}[1]{\IfFileExists{generated/#1.tex}{\input{generated/#1}}%
   {\iflablenient\fbox{\footnotesize\texttt{#1}: not in a smoke build}\else
     \PackageError{lab}{No generated block named '#1'}{Run `lab paper` for this model again.}\fi}}
+% Code in running text or in a table's cell: a run's name, a dataset's, a path. A line may end after
+% one of its hyphens or slashes, with nothing added: a name such as transformer-medium-hand-pretrained
+% is wider than many a column and has no other place to break. A value read with \V inside it is
+% broken the same way, so \V is read here as its text.
+\newcommand{\labvalueof}[1]{\csname labvalue@#1\endcsname}
+\def\labcodeslash#1/#2\labcodeend{#1\if\relax\detokenize{#2}\relax\else/\allowbreak\labcodeslash#2\labcodeend\fi}
+\def\labcodesplit#1-#2\labcodeend{\labcodeslash#1/\labcodeend\if\relax\detokenize{#2}\relax\else-\allowbreak\labcodesplit#2\labcodeend\fi}
+\DeclareRobustCommand{\code}[1]{{\ttfamily\let\V\labvalueof
+  \protected@edef\labcodetext{#1}\expandafter\labcodesplit\labcodetext-\labcodeend}}
+\DeclareRobustCommand{\run}[1]{\code{#1}}
+\pdfstringdefDisableCommands{\def\code#1{#1}\def\run#1{#1}}
 \makeatother
 
 % A table or a picture wider than the text is drawn smaller, at the text's
@@ -144,7 +159,6 @@
 % A move or line in UCI, a position in FEN (breakable at a slash), and a run's name.
 \newcommand{\uci}[1]{\texttt{#1}}
 \newcommand{\fen}[1]{{\footnotesize\path{#1}}}
-\newcommand{\run}[1]{\texttt{#1}}
 \newcolumntype{L}{>{\raggedright\arraybackslash}X}
 \newcolumntype{R}{>{\raggedleft\arraybackslash}X}
 
@@ -170,6 +184,11 @@
 
 \setlength{\parskip}{0.4em}
 \setlength{\parindent}{0pt}
+% A paragraph TeX cannot break within its tolerance (a run's long name where a
+% line would end) is tried once more with this much give in every line, so the
+% line is set loose and no word runs past the margin. A paragraph that already
+% fits is never tried again, so it stays exactly as it was.
+\emergencystretch=2em
 \captionsetup{font=small, labelfont=bf}
 \setlist{itemsep=0.15em, topsep=0.2em}
 

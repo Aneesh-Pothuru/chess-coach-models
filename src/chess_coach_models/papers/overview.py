@@ -18,6 +18,13 @@ The step is a measured number too and its own noise is left out, so the
 scale is for setting models side by side, and each model's paper has the
 gain in the model's own units.
 
+A model the lab has for its body (``purpose: body`` in its task) is trained
+to be started from, and its answer is an engine's, not a statement about
+people. It is listed, costed and given its leaderboard with the rest, and it
+is counted in no statement of how the models compare: those are made of the
+models set side by side. What the prose says of such a model stands inside
+``\\ifbodies``.
+
 A model with a task and no run yet is listed as waiting, and what the prose
 says of waiting models stands inside ``\\ifwaiting``. What it says of one kind
 of change stands inside that kind's switch (``\\ifchangeepochs``,
@@ -30,7 +37,7 @@ from __future__ import annotations
 
 import re
 import shutil
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -39,7 +46,7 @@ from ..evals import leaderboard
 from ..encode.hand import GROUPS as GROUP_FEATURES
 from . import build, changes, charts, glossary, tex
 from .results import day, method_values, trained_on
-from .sources import METRIC_NAMES, STUDIES, Sources, run_cell, run_head, run_tex
+from .sources import METRIC_NAMES, STUDIES, Sources, run_head, run_tex
 
 
 # One change measured in model after model, by the one setting it changes: its name in a key, and in words.
@@ -58,25 +65,36 @@ LADDER = ("constant", "gbm-context", "gbm-hand", "conv-small", "transformer-smal
 
 @dataclass
 class Lab:
-    """Every model with a run: its sources and what its own paper can read. And the tasks still waiting for one."""
+    """Every model with a run: its sources and what its own paper can read. And the tasks still waiting for one.
+
+    ``models`` are the ones the paper sets side by side: the lab has them for their answer. ``bodies`` are the
+    ones it has for their body, which other models start from."""
 
     models: dict[str, Sources]
     made: dict[str, tex.Generated]
     waiting: dict[str, tasks.Task]
+    bodies: dict[str, Sources] = field(default_factory=dict)
+
+    @property
+    def every(self) -> dict[str, Sources]:
+        """Every model with a run: the ones set side by side, then the ones the lab has for their body."""
+        return {**self.models, **self.bodies}
 
 
 def read(*, smoke: bool = False) -> Lab:
     models: dict[str, Sources] = {}
+    bodies: dict[str, Sources] = {}
     made: dict[str, tex.Generated] = {}
     waiting: dict[str, tasks.Task] = {}
     for name in tasks.names():
+        task = tasks.get(name)
         if not any(run["config"].get("study") is None for run in leaderboard.records(name, smoke=smoke)):
-            waiting[name] = tasks.get(name)
+            waiting[name] = task
             continue
-        models[name], made[name] = build.generate(name, smoke=smoke)
+        (models if task.purpose == "answer" else bodies)[name], made[name] = build.generate(name, smoke=smoke)
     if not models:
         raise FileNotFoundError("no model has a run record yet: the lab's paper is drawn from them")
-    return Lab(models, made, waiting)
+    return Lab(models, made, waiting, bodies)
 
 
 def said(model: str) -> str:
@@ -143,6 +161,20 @@ def context_run(src: Sources) -> dict[str, Any] | None:
     """The trees that read the context numbers and no hand feature."""
     learners = ((run, run["config"]["learner"]) for run in src.runs)
     return next((run for run, learner in learners if learner["kind"] == "gbm" and learner.get("features") == "context"), None)
+
+
+def _largest_board(src: Sources) -> dict[str, Any] | None:
+    """The largest network of a model's ladder that reads the board and no hand feature."""
+    plain = [run for run in src.ladder if run["config"]["learner"].get("features") != "hand"]
+    return max(plain, key=lambda run: run["learner"]["parameters"], default=None)
+
+
+def _kept(src: Sources, entry: dict[str, Any]) -> bool:
+    """Whether a pair's first run is kept by the lab's rule for a change: better than the run it changed on the
+    valid rows, and on the test rows beyond the noise."""
+    known = changes.records(src)
+    ahead = changes.valid_gain(src, known[entry["run"]], known[entry["over"]])
+    return ahead is not None and changes.kept(entry, ahead)
 
 
 def _verdicts(lab: Lab, pick) -> tuple[list[str], list[str], list[str]]:
@@ -241,6 +273,20 @@ def features(lab: Lab) -> dict[str, dict[str, dict[str, Any]]]:
     return {group: found[group] for group in sorted(found, key=lambda group: (order.index(group) if group in order else len(order), group))}
 
 
+SIDES = ("test", "valid")
+
+
+def split_apart(lab: Lab) -> tuple[tuple[Any, ...], dict[str, tuple[Any, ...]]]:
+    """The shares of games that most models' datasets keep for the test and the valid side, and each model
+    whose dataset keeps other shares, with its own."""
+    splits = {name: tuple(made.values.get(f"recipe.split.{side}.percent") for side in SIDES) for name, made in lab.made.items()}
+    counted: dict[tuple[Any, ...], int] = {}
+    for split in splits.values():
+        counted[split] = counted.get(split, 0) + 1
+    usual = max(counted, key=lambda split: counted[split]) if counted else (None, None)
+    return usual, {name: split for name, split in splits.items() if split != usual}
+
+
 def _tally(better: list[str], level: list[str], worse: list[str]) -> str:
     """Where a change is better, inside the noise and worse, as one clause: each part with its models by
     name, and a part with no model left out."""
@@ -260,11 +306,17 @@ def _kind_title(key: str, learner: str) -> str:
 
 def values(lab: Lab, out: tex.Generated) -> None:
     """What the lab as a whole says: how many models, and in how many of them a kind of run beats the trees."""
-    every = list(lab.models.values())
-    count = len(every)
-    out.set("lab.models.count", tex.word(count))
-    out.set("lab.models.names", _listed([said(name) for name in lab.models]))
-    out.set("lab.tasks.count", tex.word(count + len(lab.waiting)))
+    every = list(lab.every.values())
+    out.set("lab.models.count", tex.word(len(every)))
+    out.set("lab.models.names", _listed([said(name) for name in lab.every]))
+    # The models set side by side, which every count of how the models compare is made of, and the ones the
+    # lab has for their body, which no such count holds.
+    count = len(lab.models)
+    out.set("lab.side.count", tex.word(count))
+    out.set("lab.side.names", _listed([said(name) for name in lab.models]))
+    out.set("lab.bodies.count", tex.word(len(lab.bodies)))
+    out.set("lab.bodies.names", _listed([said(name) for name in lab.bodies]))
+    out.set("lab.tasks.count", tex.word(len(every) + len(lab.waiting)))
     out.set("lab.waiting.count", tex.word(len(lab.waiting)))
     out.set("lab.waiting.names", _listed([said(name) for name in lab.waiting]))
     out.set("lab.runs.count", tex.count(sum(len(src.runs) for src in every)))
@@ -281,17 +333,29 @@ def values(lab: Lab, out: tex.Generated) -> None:
     out.set("lab.results.first", day(trained[0]))
     out.set("lab.results.date", day(trained[-1]))
     method_values(out)
-    # A share of the split is said once for the lab only where every model's dataset has it. Where they
-    # differ no value is set, and the build stops at the sentence that says it of all of them.
-    for side in ("test", "valid"):
-        shares = {made.values.get(f"recipe.split.{side}.percent") for made in lab.made.values()}
-        if len(shares) == 1 and None not in shares:
-            out.set(f"lab.split.{side}.percent", shares.pop())
+    # A share of the split is said once for the lab, where the datasets agree. A model whose dataset is split
+    # otherwise is named apart, and the lab's shares are those of the others. The shares of the models apart
+    # are said once too where they agree among themselves. Where they do not, no value is set, and the build
+    # stops at the sentence that says it of all of them.
+    usual, apart = split_apart(lab)
+    for side, percent in zip(SIDES, usual, strict=True):
+        if percent is not None:
+            out.set(f"lab.split.{side}.percent", percent)
+    if apart:
+        out.set("lab.split.apart.names", _listed([said(name) for name in apart]))
+        theirs = {split for split in apart.values()}
+        if len(theirs) == 1:
+            for side, percent in zip(SIDES, theirs.pop(), strict=True):
+                if percent is not None:
+                    out.set(f"lab.split.apart.{side}.percent", percent)
 
     picks = {
         "network": lambda src: next(iter(src.networks), None),
         "board": lambda src: src.board_only,
         "small": lambda src: next((run for run in src.networks if run["config"].get("needs") != "cuda"), None),
+        # The ladder's largest network that reads no hand feature: where the board alone stood before any
+        # run changed a thing in it, so prose can say what a change to that network turned round.
+        "ladder.board": _largest_board,
     }
     for part, pick in picks.items():
         ahead, level, behind = _verdicts(lab, pick)
@@ -303,7 +367,7 @@ def values(lab: Lab, out: tex.Generated) -> None:
             # Which runs they are, so prose can say what kind of network is ahead without naming one.
             runs = list(dict.fromkeys(pick(lab.models[name])["run"] for name in group))
             out.set(f"lab.{part}.{word}.runs", _listed([run_tex(run) for run in runs]))
-    ladder = [run for src in every for run in src.ladder]
+    ladder = [run for src in lab.models.values() for run in src.ladder]
     last = [run for run in ladder if run["learner"]["best_epoch"] == run["config"]["train"]["epochs"]]
     out.set("lab.ladder.count", tex.count(len(ladder)))
     out.set("lab.ladder.at-last-epoch", tex.word(len(last)))
@@ -350,6 +414,14 @@ def values(lab: Lab, out: tex.Generated) -> None:
         out.set(f"{prefix}.level", tex.word(len(found) - len(better) - len(worse)))
         out.set(f"{prefix}.better.models", _listed(list(dict.fromkeys(said(name) for name in better))))
         out.set(f"{prefix}.worse.models", _listed(list(dict.fromkeys(said(name) for name in worse))))
+        # Better on the test rows is half of the rule for a change. How many pairs pass both halves, and in
+        # which models every pair of the kind does: those changed runs are runs of their models now.
+        passed = [name for name, entry in found if _kept(lab.models[name], entry)]
+        whole = [name for name in dict.fromkeys(passed) if passed.count(name) == sum(1 for other, _ in found if other == name)]
+        out.set(f"{prefix}.kept", tex.word(len(passed)))
+        out.set(f"{prefix}.kept.of", _of(len(passed), len(found), "pair"))
+        out.set(f"{prefix}.kept.models", _listed(list(dict.fromkeys(said(name) for name in passed))))
+        out.set(f"{prefix}.kept.whole.models", _listed([said(name) for name in whole]))
     # The same by the run the change was made in, where a model has one pair: a clause prose can read whole.
     for key, bases in by_base(lab).items():
         for run, entries in bases.items():
@@ -398,14 +470,14 @@ def _across(lab: Lab, out: tex.Generated, prefix: str, entries: dict[str, dict[s
 
 
 def models_table(lab: Lab) -> str:
-    """The models side by side: what each predicts, from how many rows, and what its runs are ranked by."""
+    """Every model with a run: what each predicts, from how many rows, and what its runs are ranked by."""
     rows = []
-    for name, src in lab.models.items():
+    for name, src in lab.every.items():
         data = src.best["dataset"]
         unit = tex.esc(src.task.unit)
         rows.append(
             [
-                run_cell(name),
+                run_tex(name),
                 unit[:1].upper() + unit[1:],
                 tex.count(data["rows"]),
                 tex.count(data["splits"]["test"]),
@@ -428,12 +500,12 @@ def scores_table(lab: Lab) -> str:
         amounts = on_step(src, gain)
         rows.append(
             [
-                run_cell(name),
+                run_tex(name),
                 METRIC_NAMES[src.primary],
                 tex.score(_score(src, src.floor)) if src.floor is not None else "",
                 tex.score(_score(src, blind)) if blind is not None else "",
                 tex.score(_score(src, src.reference)) if src.reference is not None else "",
-                run_cell(network["run"]) if network is not None else "",
+                run_tex(network["run"]) if network is not None else "",
                 tex.score(_score(src, network)) if network is not None else "",
                 tex.bold(tex.sig(gain["gain"], 4, sign=True), gain["beyond_noise"]) if gain else "",
                 tex.fixed(amounts[0], 1, sign=True) if amounts is not None else "",
@@ -538,7 +610,7 @@ def changes_table(lab: Lab) -> str | None:
                     tex.bold(tex.fixed(amounts[0], 1, sign=True), entry["beyond_noise"]),
                     f"{tex.fixed(amounts[1], 1, sign=True)} to {tex.fixed(amounts[2], 1, sign=True)}",
                 ]
-            rows.append([run_cell(name), *cells, *[""] * (2 * (widest - len(bases)))])
+            rows.append([run_tex(name), *cells, *[""] * (2 * (widest - len(bases)))])
     head = ["Model", *["Gain", "95\\% interval"] * widest]
     table = tex.tabular(f">{{\\raggedright\\arraybackslash}}p{{3.4cm}}{'rr' * widest}", head, rows)
     return table.replace("\\addlinespace \\\\", "\\addlinespace")
@@ -559,7 +631,7 @@ def games_table(lab: Lab) -> str | None:
         return None
     columns = [(base, part) for base, parts in found.items() for part in parts]
     rows = [
-        [run_cell(name), *[_cell(lab, name, found[base][part].get(name)) for base, part in columns]]
+        [run_tex(name), *[_cell(lab, name, found[base][part].get(name)) for base, part in columns]]
         for name in lab.models
         if any(name in found[base][part] for base, part in columns)
     ]
@@ -621,16 +693,16 @@ def cost_table(lab: Lab) -> str:
     """What the runs cost to train, by kind: how many and how long for the floor, the baselines and the trees,
     for the networks with what they were trained on, and for the study runs once a model has some, which no
     leaderboard ranks."""
-    studied = any(src.studies for src in lab.models.values())
+    studied = any(src.studies for src in lab.every.values())
 
     def cost(runs: list[dict[str, Any]]) -> list[str]:
         return [tex.count(len(runs)), tex.duration(sum(run["seconds"] for run in runs)) if runs else ""]
 
     rows = []
-    for name, src in lab.models.items():
+    for name, src in lab.every.items():
         networks = src.networks
         devices = sorted({trained_on(run) for run in networks})
-        row = [run_cell(name), *cost([run for run in src.runs if run not in networks]), *cost(networks), tex.esc(", ".join(devices))]
+        row = [run_tex(name), *cost([run for run in src.runs if run not in networks]), *cost(networks), tex.esc(", ".join(devices))]
         rows.append([*row, *(cost(src.studies) if studied else [])])
     # The first title on two lines: on one it is wider than its two columns need, and takes room from the last.
     groups = ["\\parbox[b]{2.4cm}{\\centering Floor, baselines and trees}", "Networks", *(["Study runs"] if studied else [])]
@@ -649,7 +721,7 @@ def waiting_table(lab: Lab) -> str | None:
     rows = []
     for name, task in lab.waiting.items():
         unit = tex.esc(task.unit)
-        rows.append([run_cell(name), tex.esc(question(name)), unit[:1].upper() + unit[1:], METRIC_NAMES[task.primary]])
+        rows.append([run_tex(name), tex.esc(question(name)), unit[:1].upper() + unit[1:], METRIC_NAMES[task.primary]])
     head = ["Model", "The question on its card", "Predicts", "Ranked by"]
     return tex.tabular(">{\\raggedright\\arraybackslash}p{3.2cm}LLl", head, rows, width="\\textwidth")
 
@@ -691,16 +763,19 @@ def generate(*, smoke: bool = False) -> tuple[Lab, tex.Generated]:
 def switches(lab: Lab) -> dict[str, bool]:
     """What the lab's prose may ask before it reads: whether a model is still waiting for its runs, whether
     a kind of change has a pair measured in some model, whether a model has runs of the games or the features
-    study, whether any has a study run at all, and whether any has a run on more games than the run it
-    changes (``more``)."""
+    study, whether any has a study run at all, whether any has a run on more games than the run it changes
+    (``more``), whether some model's dataset is split by other shares than most (``splitapart``), and whether
+    a model with a run is one the lab has for its body (``bodies``)."""
     measured = {key for key, _ in kinds(lab)}
-    studied = {run["config"]["study"] for src in lab.models.values() for run in src.studies}
+    studied = {run["config"]["study"] for src in lab.every.values() for run in src.studies}
     return {
         "waiting": bool(lab.waiting),
         **{f"change{short}": short in measured for short, _ in KINDS.values()},
         **{study: study in studied for study in STUDIES},
         "studies": bool(studied),
         "more": any(changes.more(src) for src in lab.models.values()),
+        "splitapart": bool(split_apart(lab)[1]),
+        "bodies": bool(lab.bodies),
     }
 
 

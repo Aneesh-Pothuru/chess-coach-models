@@ -172,12 +172,37 @@ the leaderboard and set against the run it changed among the `pairs` of
   [Puzzle difficulty, unsolved](../puzzle-difficulty-unsolved/) measures the
   same from the other side: what is left when the whole solution is hidden.
 
+What a start from engine evaluations says (commit `3810bca`:
+`transformer-medium-pretrained` and `transformer-medium-hand-pretrained`, the
+twelve-epoch runs started from the body that
+[position evaluation](../position-evaluation/) trained, each set against the
+run it changed among the `pairs` of
+[`results/analysis.json`](results/analysis.json)):
+
+- **Both are kept, and the one with the features is the model's best run.**
+  Each is better than the same run started from nothing on the valid rows, and
+  on the test rows beyond the noise. `transformer-medium-hand-pretrained` is
+  ahead of `transformer-medium-hand-long`, the best run before it: the
+  intervals of their gains over the reference do not touch.
+- **The start was worth more than twice the epochs, in half of them.** In
+  twelve epochs from the body, the transformer on the board alone is level
+  with the twenty-four-epoch run that reads the features, and each run gained
+  more from the start than the same run had gained from the longer schedule.
+- **The features pay again.** Under twice the epochs they added little. From
+  the body, the run that reads them is well ahead of the one that does not
+  (the intervals of their gains over the reference do not touch). A reading:
+  the body arrives knowing who is better, which is not what makes a tactic
+  hard to find, and the line's counts say that directly.
+- **The run with the features had not finished learning.** Its best valid
+  epoch was its last. A longer schedule from the body is the cheapest run to
+  add, and more puzzles from the same start the next after it.
+
 **Weights.** Every run's weights and test predictions are on the owner's
 machine, under `artifacts/runs/puzzle-difficulty/<run>/`, as the GPU session
 packed them; none is published. The best run's `model.pt` is
-26,285,279 bytes, sha256
-`5b3d0e624fd6658d58881700839970866a8114559dea7e67414d8132c96c097d`
-(`weights` in [its record](results/transformer-medium-hand-long.json)). The
+26,285,407 bytes, sha256
+`b0061c913548421d1dd15944f994dda8832e2a6e64c7c675a88cbc08381e19be`
+(`weights` in [its record](results/transformer-medium-hand-pretrained.json)). The
 records of the first full runs were written before a record named its
 weights: `transformer-medium-hand`'s `model.pt` is 26,285,279 bytes, sha256
 `346b597547beb8884841dd188f8832a132a4d85a54fa7ea3234ac5b5e7e98eab`, read off

@@ -7,7 +7,7 @@
   width=0.49\textwidth,
   height=5.4cm,
   ymajorgrids,
-  ymin=257.379, ymax=359.588,
+  ymin=246.028, ymax=360.231,
   xlabel={Epoch},
   ylabel={RMSE on the valid rows},
 ]
@@ -15,12 +15,16 @@
 \draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:0.5,295.047) -- (axis cs:20.5,295.047);
 \addplot[color=labBlue, mark=*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labBlue}] coordinates {(1,315.846) (2,298.824) (3,294.291) (4,288.347) (5,285.505) (6,281.175) (7,279.346) (8,276.233) (9,273.625) (10,272.576) (11,272.047) (12,271.807)};
 \addlegendentry{\texttt{transformer-medium-hand}}
+\addplot[color=labBlue, dash pattern=on 1pt off 2pt, mark=*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labBlue}] coordinates {(1,296.468) (2,281.816) (3,275.817) (4,268.513) (5,264.339) (6,258.799) (7,258.266) (8,254.902) (9,253.162) (10,252.784) (11,252.311) (12,252.146)};
+\addlegendentry{\texttt{transformer-medium-hand-pretrained}}
 \addplot[color=labBlue, dash pattern=on 5pt off 2pt, mark=*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labBlue}] coordinates {(1,316.885) (2,300.544) (3,299.641) (4,291.012) (5,286.757) (6,282.868) (7,281.682) (8,277.147) (9,276.305) (10,274.354) (11,271.54) (12,268.694) (13,269.104) (14,267.701) (15,264.646) (16,263.671) (17,262.854) (18,264.156) (19,264.291) (20,263.547)};
 \addlegendentry{\texttt{transformer-medium-hand-long}}
 \nextgroupplot[xmin=0.5, xmax=21.5, xtick distance=4, legend columns=1]
 \draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:0.5,295.047) -- (axis cs:21.5,295.047) node[anchor=west, font=\sffamily\scriptsize, text=labSecondary, inner sep=2pt] {\run{gbm-hand}};
 \addplot[color=labAqua, mark=triangle*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labAqua}] coordinates {(1,345.557) (2,327.694) (3,319.651) (4,311.097) (5,306.661) (6,299.445) (7,295.557) (8,292.316) (9,287.058) (10,286.952) (11,284.766) (12,284.29)};
 \addlegendentry{\texttt{transformer-medium}}
+\addplot[color=labAqua, dash pattern=on 1pt off 2pt, mark=triangle*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labAqua}] coordinates {(1,315.189) (2,303.864) (3,287.984) (4,282.258) (5,276.028) (6,269.788) (7,269.61) (8,269.316) (9,262.733) (10,265.017) (11,263.506) (12,262.867)};
+\addlegendentry{\texttt{transformer-medium-pretrained}}
 \addplot[color=labAqua, dash pattern=on 5pt off 2pt, mark=triangle*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labAqua}] coordinates {(1,354.113) (2,331.681) (3,321.399) (4,312.567) (5,308.411) (6,301.852) (7,296.488) (8,295.645) (9,283.774) (10,281.279) (11,278.287) (12,275.413) (13,273.351) (14,269.771) (15,269.796) (16,269.355) (17,266.795) (18,265.929) (19,267.166) (20,266.656) (21,266.93)};
 \addlegendentry{\texttt{transformer-medium-long}}
 \end{groupplot}
