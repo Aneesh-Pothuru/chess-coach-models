@@ -269,8 +269,9 @@ def games_table(src: Sources) -> str | None:
             rows.append([run_cell(run["run"]), share, _train_rows(run), _score(src, run), *_gain_cells(pair(src, run["run"], base))])
     if not rows:
         return None
-    head = ["Run", "Training games", "Train rows", METRIC_NAMES[src.primary], "Gain over all the games", "95\\% interval"]
-    return tex.tabular(">{\\raggedright\\arraybackslash}p{4.6cm}lrrrr", head, rows)
+    # The run's name takes what the numbers leave of the page: a gain of six digits with its interval is wide.
+    head = ["Run", "Training games", "Train rows", METRIC_NAMES[src.primary], "Gain", "95\\% interval"]
+    return tex.tabular("Llrrrr", head, rows, width="\\textwidth")
 
 
 def games_figure(src: Sources) -> str | None:
@@ -322,8 +323,8 @@ def features_table(src: Sources) -> str | None:
             )
     if not rows:
         return None
-    head = ["Run", "Left out", "Features", METRIC_NAMES[src.primary], "Gain over reading all", "95\\% interval"]
-    return tex.tabular(">{\\raggedright\\arraybackslash}p{4.6cm}>{\\raggedright\\arraybackslash}p{3.4cm}rrrr", head, rows)
+    head = ["Run", "Left out", "Features", METRIC_NAMES[src.primary], "Gain", "95\\% interval"]
+    return tex.tabular(">{\\raggedright\\arraybackslash}p{3.7cm}Lrrrr", head, rows, width="\\textwidth")
 
 
 def features_figure(src: Sources, base: str) -> str | None:

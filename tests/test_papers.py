@@ -146,6 +146,23 @@ def test_rows_in_groups_stand_under_their_group_s_name_on_one_axis():
     assert "(axis cs:0,-0.6) -- (axis cs:0,4.6)" in drawn and "{reference}" in drawn
 
 
+def test_a_block_that_is_one_table_or_one_picture_is_drawn_no_wider_than_the_text():
+    table = tex.tabular("lr", ["Run", "Score"], [["a", "1"]])
+    fitted = tex.fit(table)
+    assert fitted.startswith("\\fit{%\n\\begin{tabular}") and fitted.endswith("\\end{tabular}%\n}")
+    assert tex.fit(fitted) == fitted
+    # A table that already has the text's width, a block of several things and plain words are left as they are.
+    wide = tex.tabular("Lr", ["Run", "Score"], [["a", "1"]], width="\\textwidth")
+    several = table + "\n\n" + table
+    assert tex.fit(wide) == wide and tex.fit(several) == several and tex.fit("words alone") == "words alone"
+    # Every block a paper is given goes through it, and the preamble has the command it is wrapped in.
+    out = tex.Generated("a test")
+    out.block("one", table)
+    out.block("several", several)
+    assert out.files == {"one": fitted, "several": several}
+    assert "\\newcommand{\\fit}[1]" in (paths.ROOT / "papers" / "preamble.tex").read_text(encoding="utf-8")
+
+
 def test_a_level_far_from_every_series_is_inside_the_axis():
     # pgfplots takes an axis's limits from its plots, and a level is drawn. Two runs that end one epoch a
     # fraction of a point apart, forty points from the level, once put the level metres off the page.

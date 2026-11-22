@@ -276,6 +276,9 @@ the model's committed files, on any machine, and compiles `models/<model>/paper/
   every value and block there is.
 - **A build is strict.** A value or a block the prose reads and the files cannot give stops the
   build before LaTeX runs, so a paper cannot print a hole, or a claim about a run that is gone.
+- **A block fits the page.** How wide a table comes out is known only once its numbers are, so a
+  block that is one table or one picture is wrapped in `\fit` (`tex.fit`, `papers/preamble.tex`):
+  wider than the text it is drawn smaller, at the text's width, and one that fits is left as it is.
 - **Switches.** What depends on files a model may not have yet stands inside a switch: `\iflook`
   for the closer look, `\ifpairs`, `\ifvariants`, `\ifgames` and `\iffeatures` for pairs, runs
   that change a network, and the two studies, `\ifchanges` for any of those four, and `\ifchance`

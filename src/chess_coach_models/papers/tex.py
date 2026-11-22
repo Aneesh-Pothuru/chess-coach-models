@@ -169,6 +169,23 @@ def grouped(table: str, top: Sequence[str], spans: Sequence[tuple[int, int]]) ->
     return table.replace("\\toprule\n", "\\toprule\n" + " & ".join(top) + " \\\\\n" + rules + "\n", 1)
 
 
+_DRAWN_RE = re.compile(r"\\begin\{(tabular|tikzpicture)\}")
+
+
+def fit(latex: str) -> str:
+    """``latex`` drawn no wider than the text. A block that is one table or one picture is wrapped in ``\\fit``
+    (``papers/preamble.tex``), which scales it down to the text's width where it is wider and leaves it as it
+    is where it fits: how wide a table of numbers comes out is only known once the numbers are.
+
+    A ``tabularx`` already has the text's width, and a block of several things with space between them is set
+    as paragraphs, which a box cannot hold: those are returned as they are."""
+    if latex.startswith("\\fit{") or len(_DRAWN_RE.findall(latex)) != 1 or "\n\n" in latex.strip("\n"):
+        return latex
+    if "\\begin{tabularx}" in latex or "\\begin{table}" in latex or "\\begin{figure}" in latex:
+        return latex
+    return "\\fit{%\n" + latex.strip("\n") + "%\n}"
+
+
 class Generated:
     """What one paper's generator writes: its values, and a file a block."""
 
@@ -191,7 +208,7 @@ class Generated:
             raise ValueError(f"not a plain file name: {name!r}")
         if name in self.files:
             raise ValueError(f"the block {name!r} is written twice")
-        self.files[name] = latex
+        self.files[name] = fit(latex)
 
     def write(
         self,

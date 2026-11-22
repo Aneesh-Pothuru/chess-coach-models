@@ -873,7 +873,7 @@ def appendix(src: Sources, named: str | None = None) -> str:
         label = f"tab:slice-{one['key']}" + (f"-{named}" if named else "")
         parts.append(
             "\\begin{table}[htbp]\\centering\\footnotesize\n"
-            + slice_table(src, one, named)
+            + tex.fit(slice_table(src, one, named))
             + f"\n\\caption{{The test rows by: {tex.esc(one['title'][:1].lower() + one['title'][1:])}.}}\n"
             + f"\\label{{{label}}}\n\\end{{table}}"
         )

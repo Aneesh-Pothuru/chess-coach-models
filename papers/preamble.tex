@@ -81,6 +81,18 @@
     \PackageError{lab}{No generated block named '#1'}{Run `lab paper` for this model again.}\fi}}
 \makeatother
 
+% A table or a picture wider than the text is drawn smaller, at the text's
+% width, so a row of long numbers never runs into the margin. One that fits
+% is left exactly as it is. `lab paper` wraps every block that is one table
+% or one picture in it.
+\newsavebox{\labfitbox}
+\newcommand{\fit}[1]{\sbox{\labfitbox}{#1}%
+  \ifdim\wd\labfitbox>\linewidth
+    \resizebox{\linewidth}{!}{\usebox{\labfitbox}}%
+  \else
+    \usebox{\labfitbox}%
+  \fi}
+
 % Chart colours. A run keeps its colour in every figure of every paper.
 \definecolor{labBlue}{HTML}{2A78D6}
 \definecolor{labOrange}{HTML}{EB6834}
