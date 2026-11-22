@@ -1162,6 +1162,18 @@ def test_a_model_whose_rows_are_sequences_runs_scores_and_ranks(players_lab):
     assert set(example["moves"]) == {"last_move", "worst_move"} and "id" not in example
     assert set(example["show"]) == {"opponent_elo", "steps", "base", "increment", "player_score", "loss_mean", "loss_worst", "spent_mean"}
 
+    # A paper says what a network reads of each position, and which layers read the positions in order.
+    src, out = papers.generate(model, smoke=True)
+    assert src.sequence and src.steps == task.steps and papers.switches(src, out)["sequence"] is True
+    assert out.values["task.steps.count"] == tex.word(len(task.steps))
+    assert out.values["data.positions"] == tex.count(len(steps.tokens))
+    assert all(f"\\texttt{{{tex.esc(name)}}}" in out.files["steps"] for name in task.steps)
+    assert "Layers over" in out.files["settings"] and "Heads over" in out.files["settings"]
+    text = (paths.results(model, smoke=True) / "leaderboard.md").read_text()
+    assert "for each position, then 1 transformer layer over the positions in order" in text
+    # A row is shown by the position before the player's costliest move, with that move on the board.
+    assert "The player's costliest move:" in out.files["examples-typical"] and "encoding" in out.files
+
 
 def test_a_network_over_a_game_scores_a_row_the_same_whatever_it_is_scored_with(players_lab):
     """The rows of a batch are filled out to its longest, and a row's score must not depend on its batch."""

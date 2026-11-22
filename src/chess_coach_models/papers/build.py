@@ -68,6 +68,7 @@ def switches(src: Sources, out: tex.Generated) -> dict[str, bool]:
     return {
         "look": src.closer,
         "chance": src.task.kind == "binary",
+        "sequence": src.sequence,
         **found,
         "changes": any(found.values()),
         "more": bool(changes.more(src)),

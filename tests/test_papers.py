@@ -15,8 +15,8 @@ from chess_coach_models import data, paths, tasks
 from chess_coach_models.encode.hand import GROUPS, group_of
 from chess_coach_models.encode.moves import MOVE_HAND, MOVE_PLAIN
 from chess_coach_models.encode.squares import SQUARE_HAND, SQUARE_PLAIN
-from chess_coach_models.evals import analysis
-from chess_coach_models.papers import boards, build, changes, charts, closer, glossary, overview, sources, tex
+from chess_coach_models.evals import analysis, leaderboard
+from chess_coach_models.papers import boards, build, changes, charts, closer, glossary, overview, results, sources, tex
 
 
 MODELS = sorted(path.parent.name for path in paths.models().glob("*/task.yaml"))
@@ -483,6 +483,36 @@ def test_an_example_s_board_shows_the_move_its_row_is_about():
     assert closer._arrows(game) == [("b2b4", grey), ("f5f4", blue)]
     assert closer._subject(game) == ("The player's costliest move", "f5f4")
     assert set(closer.READ_MOVES) <= set(closer.SUBJECT_MOVES)
+
+
+def test_a_paper_of_a_row_that_is_a_sequence_names_each_position_s_numbers_and_the_layers_over_them():
+    from dataclasses import replace
+
+    # A row of one position has its context numbers and no others, so its paper has no table of them.
+    one = sources.read("think-time")
+    assert not one.sequence and results.steps_table(one) is None
+    assert build.switches(one, tex.Generated("a test"))["sequence"] is False
+    # A row that is a sequence: the numbers its task lets a network read of each position, in a table of their own.
+    game = replace(one, steps=("ply", "log_spent"))
+    assert game.sequence and build.switches(game, tex.Generated("a test"))["sequence"] is True
+    table = results.steps_table(game)
+    assert "\\texttt{ply}" in table and "\\texttt{log\\_spent}" in table and glossary.says("log_spent") in table
+    # A network over a game names the layers that read its positions in order, as its config does, and a
+    # network of one position names none.
+    tower = {"kind": "net", "body": "conv", "dim": 96, "depth": 6}
+    over = {"run": "over", "config": {"learner": {**tower, "over": {"depth": 2, "heads": 4}}}, "task": {"kind": "regression"}}
+    plain = {"run": "plain", "config": {"learner": tower}, "task": {"kind": "regression"}}
+    assert (results._over(over, "depth"), results._over(over, "heads")) == ("2", "4")
+    assert results._over(plain, "depth") == "" == results._over(plain, "heads")
+    words = leaderboard.learner_words(plain)
+    assert leaderboard.learner_words(over) == f"{words} for each position, then 2 transformer layers over the positions in order"
+    one_layer = {**over, "config": {"learner": {**tower, "over": {"depth": 1}}}}
+    assert leaderboard.learner_words(one_layer).endswith("then 1 transformer layer over the positions in order")
+
+
+def test_a_described_number_below_zero_has_a_real_minus_sign():
+    assert closer._plain_number(-41.0) == "$-$41" and closer._plain_number(457.0) == "457" and closer._plain_number(0.0) == "0"
+    assert closer._plain_number(-0.5) == "$-$0.500" and closer._plain_number(12345.0) == "12{,}345"
 
 
 def test_panels_fill_rows_when_they_are_given_columns():

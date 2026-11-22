@@ -171,6 +171,8 @@ def values(src: Sources, out: tex.Generated) -> None:
     out.set("task.context.count", tex.word(len(task.context)))
     out.set("task.hand.count", tex.count(len(src.hand)))
     out.set("task.marks.count", tex.word(len(src.marks)))
+    if src.sequence:
+        out.set("task.steps.count", tex.word(len(src.steps)))
     data = src.best["dataset"]
     out.set("data.name", f"\\texttt{{{tex.esc(data['dataset'])}}}")
     out.set("data.rows", tex.count(data["rows"]))
@@ -179,6 +181,10 @@ def values(src: Sources, out: tex.Generated) -> None:
         out.set(f"data.share.{split}", tex.percent(rows / data["rows"], 0))
     out.set("data.rows.test.thousands", tex.count(round(data["splits"]["test"] / 1000)))
     out.set("data.games.test", tex.count(src.best["test_groups"]))
+    if "positions" in data:
+        # Where a row is a sequence: the positions of every row, and how many a row holds on average.
+        out.set("data.positions", tex.count(data["positions"]))
+        out.set("data.positions.a-row", tex.fixed(data["positions"] / data["rows"], 1))
     out.set("data.fingerprint", f"\\texttt{{{data['fingerprint'][:12]}}}")
     out.set("data.built", data["built"][:10])
     out.set("data.source", f"\\url{{{data['source']}}}")
@@ -354,6 +360,12 @@ def runs_table(src: Sources) -> str:
     return tex.tabular("l>{\\raggedright\\arraybackslash}p{5.1cm}l>{\\raggedright\\arraybackslash}p{3.9cm}r", head, rows)
 
 
+def _over(run: dict[str, Any], setting: str) -> str:
+    """A setting of the layers that read a row's positions in order, as the run's config names it: nothing
+    for a network of one position."""
+    return str(run["config"]["learner"].get("over", {}).get(setting, ""))
+
+
 # A network's settings as the settings table heads them, and how each is read from a run's config.
 SETTINGS = (
     ("Body", "l", lambda run: tex.esc(run["config"]["learner"]["body"])),
@@ -361,6 +373,9 @@ SETTINGS = (
     ("Layers", "r", lambda run: str(run["config"]["learner"]["depth"])),
     ("Heads", "r", lambda run: str(run["config"]["learner"].get("heads", ""))),
     ("Dropout", "r", lambda run: tex.plain(float(run["config"]["learner"].get("dropout", 0.0)))),
+    # Of a network that reads a row's positions in order: the layers that do, over the body that reads a board.
+    ("Layers over", "r", lambda run: _over(run, "depth")),
+    ("Heads over", "r", lambda run: _over(run, "heads")),
     ("Epochs", "r", lambda run: str(run["config"]["train"]["epochs"])),
     ("Batch", "r", lambda run: tex.count(run["config"]["train"]["batch"])),
     ("Rate", "r", lambda run: tex.plain(float(run["config"]["train"]["lr"]))),
@@ -585,6 +600,14 @@ def reads_table(src: Sources) -> str:
     return tex.tabular("lL", ["Number", "What it is"], rows, width="\\textwidth")
 
 
+def steps_table(src: Sources) -> str | None:
+    """The numbers of each position of a row, where a row is a sequence: what a network reads beside each board."""
+    if not src.sequence:
+        return None
+    rows = [[f"\\texttt{{{tex.esc(name)}}}", glossary.says(name)] for name in src.steps]
+    return tex.tabular("lL", ["Number", "What it is"], rows, width="\\textwidth")
+
+
 def hand_table(src: Sources) -> str:
     """The hand features the tree baseline reads, and a network when its run asks for them."""
     extra = [name for name in src.hand if name not in src.task.context]
@@ -615,6 +638,7 @@ def blocks(src: Sources, out: tex.Generated) -> None:
         "calibration-table": calibration_table(src),
         "calibration": calibration_figure(src),
         "reads": reads_table(src),
+        "steps": steps_table(src),
         "hand": hand_table(src),
         "marks": marks_table(src),
     }

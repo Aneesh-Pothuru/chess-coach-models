@@ -44,6 +44,10 @@
 % \ifchance is true when the model gives a chance, false when it gives a
 % quantity: the shared sections say what differs between the two.
 \newif\ifchance
+% \ifsequence is true when a row is a sequence of positions (a player's moves
+% through a game) and not one position: the shared sections say what a
+% learner reads of such a row, and what a network over it is.
+\newif\ifsequence
 % What a model may not have yet: runs set against the run each changed
 % (\ifpairs), a run of the ladder trained longer or started elsewhere
 % (\ifvariants), a run of another shape than the network of the ladder it

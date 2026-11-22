@@ -47,9 +47,14 @@ doubles the games.}
 
 \iffeatures
 \paragraph{A group of hand features left out.}
+\ifsequence
+The hand features come in groups: what the player's moves lost, how the clock
+was used, and what there was to choose from. The features
+\else
 The hand features come in groups: material, the moves on offer, pieces that
 can be taken, passed pawns and attacks near the kings, and for a model that
 reads a line of moves, its first move and the line as a whole. The features
+\fi
 study trains a run again without one group at a time
 (Table~\ref{tab:features}, Figure~\ref{fig:features}). A run that is worse
 without a group was using it, and nothing else the run reads holds the same.

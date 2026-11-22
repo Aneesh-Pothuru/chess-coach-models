@@ -21,6 +21,14 @@ grids:
   - key: loss-pace
     rows: {column: loss_mean, title: Points lost a move, edges: [2, 4, 6, 8]}
     columns: {column: spent_mean, title: Seconds a move, edges: [5, 10, 15, 20]}
+  # The gap slice cannot tell a run that reads the level of the game from one that pulls every
+  # reading toward the middle: a player far above the opponent is more often a strong player.
+  # Here a row is one band of the player's own rating, and along it only the opponent changes. A
+  # run that reads the player says the same along a row. One that reads the level of the game
+  # says less from left to right, as the opponent gets weaker.
+  - key: rating-gap
+    rows: {column: player_elo, title: The player's rating, edges: [1100, 1400, 1700, 2000]}
+    columns: {column: elo_gap, title: The player's rating less the opponent's, edges: [-200, -100, 0, 100, 200]}
 examples:
   count: 3
   truth: The player's rating

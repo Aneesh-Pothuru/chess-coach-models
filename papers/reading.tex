@@ -20,6 +20,52 @@ is always the square a pawn may be taken on in passing. The others name the
 squares a move leaves and reaches, which is how a network is shown a move
 without being told what the move does.
 
+\ifsequence
+\paragraph{A row is a player's moves, in order.}
+A row of this model is not one position. It is a player's moves through a
+game, and each move is a position read as above: the board before the move,
+with the opponent's last move and the move itself as marks. What a row of one
+position knows about its game it holds as numbers beside its board, and a row
+of many positions has two kinds of them.
+
+\paragraph{The numbers of a move.}
+Each position has numbers of its own, \V{task.steps.count} of them
+(Table~\ref{tab:steps}): the four castling rights, the mover's first, and what
+the task knows about that move. A network reads them beside the position they
+belong to, where a model of one position reads its context numbers.
+
+\begin{table}[htbp]\centering\small
+\block{steps}
+\caption{The numbers of a move: what a network reads beside each position of
+a row.}
+\label{tab:steps}
+\end{table}
+
+\paragraph{Context numbers.}
+What is about the whole game and not about one move is a context number. This
+model has \V{task.context.count} (Table~\ref{tab:reads}). Every learner reads
+them, the trees that see no board included. A network reads both kinds of
+number standardised by the mean and spread of the train rows.
+
+\begin{table}[htbp]\centering\small
+\block{reads}
+\caption{The context numbers: what every learner reads of the game itself.}
+\label{tab:reads}
+\end{table}
+
+\paragraph{Hand features.}
+Gradient-boosted trees cannot read a sequence of boards, so the lab also
+counts over the player's moves what a person would: how much of the winning
+chances the moves lost, on average, at worst and how often more than a bar,
+how the clock was used, and how much there was to choose from.
+Table~\ref{tab:hand} in the appendix lists all \V{task.hand.count}. They
+serve twice. They are what the reference run reads, which makes them the bar
+for a network: a network that reads every position and every move's numbers
+should find at least what a few counts already hold. And a run can hand them
+to a network beside the game, where they join the context numbers, which
+tests whether the network had found them on its own.
+
+\else
 \paragraph{Context numbers.}
 Whatever is not about a square is a number beside the board: the four castling
 rights, the mover's first, and what the task knows about the game. This model
@@ -43,6 +89,7 @@ context numbers, which tests whether the network had found them on its own.
 \caption{The context numbers: what every learner reads beside the board.}
 \label{tab:reads}
 \end{table}
+\fi
 
 \begin{table}[htbp]\centering\small
 \block{marks}
@@ -54,12 +101,22 @@ is always given as the mover sees it, after the board is turned.}
 \iflook
 \begin{figure}[htbp]\centering
 \block{encoding}
+\ifsequence
+\caption{One position of one row of the dataset twice: the position before
+the player's costliest move of the game. Left: as it was played, with an
+arrow for the opponent's move that led to it (grey) and for the player's move
+(blue). Right: as a network reads it, turned so that the mover plays up the
+board, with a wash on every square a mark is set on: grey for the opponent's
+move and blue for the player's own. A network reads every position of the
+row this way.}
+\else
 \caption{One position of the dataset twice. Left: as it was played, with an
 arrow for the opponent's move that led to it (grey) and for the move the row
 is about (blue). Right: as a network reads it, turned so that the mover plays
 up the board, with a wash on every square a mark is set on: grey for the
 opponent's move and, where the task marks a line of moves, blue for the
 mover's and orange for the replies.}
+\fi
 \label{fig:encoding}
 \end{figure}
 \fi

@@ -115,6 +115,11 @@ def _learner_words(record: dict[str, Any]) -> str:
         shape += "" if learner.get("geometry", True) else ", without the offsets between squares"
     elif learner.get("squeeze"):
         shape += ", each block weighing its channels by the whole board"
+    over = learner.get("over")
+    if over:
+        # A row that is a sequence: the body reads each of its positions, and these layers the positions in order.
+        layers = "transformer layers" if "depth" not in over else f"{over['depth']} transformer layer{'' if int(over['depth']) == 1 else 's'}"
+        shape += f" for each position, then {layers} over the positions in order"
     return f"{shape}{reads}{without}{start}"
 
 

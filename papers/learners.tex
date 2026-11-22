@@ -45,11 +45,32 @@ squares. It sees further only as it gets deeper. It is cheap and trains on a
 CPU, and it is here as the honest alternative: where it matches the
 transformer, the cheaper model wins.
 
+\ifsequence
+\paragraph{A network over a game.}
+A row of this model is a sequence of positions, so a network has two parts
+under its head. One of the two bodies above reads every position of the row,
+with that position's own numbers where a row of one position has its context
+numbers, and gives each a vector. A short transformer then reads those
+vectors in the order the moves were played: each is a token, with a learned
+vector for its place in the sequence, and the game's context numbers are one
+more token. The head reads that token beside the mean of the positions'
+tokens. Rows differ in length, so a batch is as long as its longest row and
+a shorter row is filled out. Nothing reads or attends to what fills it, so
+what a network says of a row does not depend on the rows it is scored with.
+
+Sizes are settings of a run, not code. \run{conv-small} is sized to train on
+a CPU. A row is tens of boards, so \run{transformer-small} and
+\run{transformer-medium} are sized for a GPU, and
+\run{transformer-medium-hand} is the same network as the second reading the
+hand features beside the game. Table~\ref{tab:settings} in the appendix has
+every size and schedule.
+\else
 Sizes are settings of a run, not code. \run{conv-small} and
 \run{transformer-small} are sized to train on a CPU. \run{transformer-medium}
 is sized for a GPU, and \run{transformer-medium-hand} is the same network
 reading the hand features beside the board. Table~\ref{tab:settings} in the
 appendix has every size and schedule.
+\fi
 
 \paragraph{One training loop.}
 Every network is trained the same way: AdamW~\cite{adamw}, a learning rate

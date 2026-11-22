@@ -52,6 +52,8 @@ class Sources:
     look: dict[str, Any] | None
     marks: tuple[str, ...]
     hand: tuple[str, ...]
+    # The numbers of each position of a row, where a row is a sequence of positions: none where it is one.
+    steps: tuple[str, ...] = ()
 
     @property
     def primary(self) -> str:
@@ -62,6 +64,11 @@ class Sources:
         """Whether the closer look has what a paper's closer sections are drawn from: its cuts, its examples,
         how sure a run is. The look of a model whose answer is a set or a move holds its pairs alone."""
         return self.look is not None and "slices" in self.look
+
+    @property
+    def sequence(self) -> bool:
+        """Whether a row is a sequence of positions, each with numbers of its own, and not one position."""
+        return bool(self.steps)
 
     @property
     def metrics(self) -> list[str]:
@@ -178,8 +185,8 @@ def run_head(name: str, span: int, width: str) -> str:
 
 def read(model: str, *, smoke: bool = False) -> Sources:
     """A model's files as a paper reads them. The records are ranked best first, as on its leaderboard, and
-    the study runs, which no leaderboard ranks, are kept apart. The marks and hand features are the ones the
-    task lets a learner read."""
+    the study runs, which no leaderboard ranks, are kept apart. The marks, the hand features and, where a row
+    is a sequence of positions, the numbers of each position are the ones the task lets a learner read."""
     task = tasks.get(model)
     ranked = leaderboard.ranked(task, leaderboard.records(model, smoke=smoke))
     runs = [run for run in ranked if run["config"].get("study") is None]
@@ -220,4 +227,5 @@ def read(model: str, *, smoke: bool = False) -> Sources:
         look=look,
         marks=tuple(name for name in builder.MARKS if task.marks is None or name in task.marks),
         hand=tuple(name for name in builder.HAND if task.hand is None or group_of(name) in task.hand),
+        steps=tuple(name for name in getattr(builder, "STEPS", ()) if task.steps is None or name in task.steps),
     )

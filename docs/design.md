@@ -424,6 +424,14 @@ shorter row is filled out: the board body reads the real positions alone and not
 the rest, so a row's score does not depend on the rows it is scored with, which a test holds it
 to. A row is tens of boards, so a batch is tens of rows where another model's is hundreds.
 
+**A paper says what a row is.** The shared sections are typed for a row of one position, and
+`\ifsequence` gives them their other side: what a learner reads of a player's moves, with the
+numbers of each position in a table of their own (the block `steps`, `task.steps.count`), what a
+network over a game is, and the groups its counts come in. A run's layers over the positions are
+in its words on the leaderboard and in the paper's table of settings, and the dataset's positions
+are a value (`data.positions`, `data.positions.a-row`). An example is one board, the position
+before the player's costliest move, with that move drawn on it.
+
 What a sequence does not have yet: a network over one does not start from another run's body
 (`learner.init` is refused for it), and a row has one label for the whole game, none for a part
 of it.
@@ -493,8 +501,9 @@ the model's committed files, on any machine, and compiles `models/<model>/paper/
 - **Switches.** What depends on files a model may not have yet stands inside a switch: `\iflook`
   for the closer look, `\ifpairs`, `\ifvariants`, `\ifshapes`, `\ifgames` and `\iffeatures` for
   pairs, runs that change how a network is trained, runs of another shape, and the two studies,
-  `\ifchanges` for any of those five, and `\ifchance`
-  for a model that predicts a chance. `\ifshown` is on where the model is read against one that
+  `\ifchanges` for any of those five, `\ifchance`
+  for a model that predicts a chance, and `\ifsequence` for a model whose row is a sequence of
+  positions. `\ifshown` is on where the model is read against one that
   is shown more and that one has runs (the table of the two leaderboards side by side,
   `papers/shown.py`), and `\ifshownpaired` where a closer look has measured the pairs. `\ifmore`
   is on where a run on more games than the run it changes, from a larger build of the dataset, has

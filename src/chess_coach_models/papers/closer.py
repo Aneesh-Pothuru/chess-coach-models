@@ -41,7 +41,7 @@ def _plain_number(value: float | None) -> str:
         return "n/a"
     if abs(value) >= 10000:
         return tex.count(value)
-    return str(int(value)) if float(value).is_integer() else tex.sig(value, 3)
+    return tex.fixed(value, 0) if float(value).is_integer() else tex.sig(value, 3)
 
 
 def _pair(src: Sources) -> list[dict[str, Any]]:
