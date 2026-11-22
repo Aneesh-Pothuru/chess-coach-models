@@ -288,7 +288,10 @@ puzzle's difficulty lies in the shape of its line, which the marks on the
 squares show a network directly, while a blunder or a missed tactic in a
 game also turns on counts a network has to work out for itself: what is
 hanging, how many moves each side has.
-\ifgames\else
+\ifgames
+Section~\ref{sec:games} trains the reference and a network on half and on a
+quarter of each model's training games, which bears on the first reading.
+\else
 Runs on half and on a quarter of each model's training games, named in
 Section~\ref{sec:next}, say how much of a network's standing is the amount
 of data, which bears on the first reading.
@@ -337,6 +340,36 @@ overlap are not a paired gain, and the pairs are measured with the runs
 named in Section~\ref{sec:next}.
 \fi
 
+\iffeatures
+Which counts carry the step? They come in groups, and the reference was
+trained again without one group at a time (Table~\ref{tab:features}). Trees
+that are worse without a group were using it, and nothing else they read
+holds the same. Trees that are no worse either made no use of the group or
+find the same elsewhere, so a group can matter on a board and still cost
+nothing here. The group whose loss costs the trees most is
+\V{lab.features.in.puzzle-difficulty.most.group} in puzzle difficulty
+(\V{lab.features.in.puzzle-difficulty.most.gain} hundredths of the step),
+\V{lab.features.in.tactic-found.most.group} in tactic found
+(\V{lab.features.in.tactic-found.most.gain}),
+\V{lab.features.in.blunder-hazard.most.group} in blunder hazard
+(\V{lab.features.in.blunder-hazard.most.gain}),
+\V{lab.features.in.think-time.most.group} in think time
+(\V{lab.features.in.think-time.most.gain}) and
+\V{lab.features.in.practical-chances.most.group} in practical chances
+(\V{lab.features.in.practical-chances.most.gain}).
+
+\begin{table}[htbp]\centering\small
+\block{lab-features}
+\caption{The reference trained again without one group of hand-made counts
+at a time. A row is a group and how many counts it holds. A cell is the
+paired gain of the trees without the group over the trees with it, in
+hundredths of the reference's step: below zero the trees are worse without
+the group, and bold when the 95\% interval leaves zero out. An empty cell
+is a group the model's counts do not have.}
+\label{tab:features}
+\end{table}
+\fi
+
 \ifchangeepochs
 \subsection{What a longer schedule is worth}
 
@@ -362,18 +395,65 @@ that reads the hand-made counts as well is
 \V{lab.change.start.over.transformer-medium-hand.said}.
 \fi
 
+\ifgames
+\subsection{What more games would be worth}
+\label{sec:games}
+
+The reference and the larger transformer that reads the hand-made counts
+were trained again on half and on a quarter of each model's training games,
+and scored on the same test rows (Table~\ref{tab:games},
+Figure~\ref{fig:games}). The games are chosen by a hash, so the quarter
+lies inside the half. The transformer is given twice the epochs on half the
+games and four times on a quarter, so it takes as many steps each time and
+loses only the games. The study is read forward: where halving the games
+costs little, doubling them would buy little.
+
+On half of the games the trees are \V{lab.games.gbm-hand.half.said}, and on
+a quarter they are \V{lab.games.gbm-hand.quarter.said}. The transformer on
+half of the games is \V{lab.games.transformer-medium-hand.half.said}, and
+on a quarter it is \V{lab.games.transformer-medium-hand.quarter.said}. The
+lowest of these gains on half of the games is
+\V{lab.games.gbm-hand.half.gain.least} hundredths of the step for the
+trees, in \V{lab.games.gbm-hand.half.gain.least.model}, and
+\V{lab.games.transformer-medium-hand.half.gain.least} for the transformer,
+in \V{lab.games.transformer-medium-hand.half.gain.least.model}.
+
+\begin{table}[htbp]\centering\small
+\block{lab-games}
+\caption{Fewer training games, model by model. A cell is the paired gain of
+a run trained on half or on a quarter of the training games over the same
+run trained on all of them, in hundredths of the reference's step: below
+zero the run is worse on fewer games, and bold when the 95\% interval leaves
+zero out.}
+\label{tab:games}
+\end{table}
+
+\begin{figure}[htbp]\centering
+\block{lab-games-figure}
+\caption{The pairs of Table~\ref{tab:games}, each with its 95\% interval.}
+\label{fig:games}
+\end{figure}
+\fi
+
 \subsection{What the runs cost}
 
 \begin{table}[htbp]\centering\small
 \block{lab-cost}
 \caption{What the runs took to train. The floor, the baselines that fit
-nothing and the trees ran on a processor, and the networks on a rented GPU.}
+nothing and the trees ran on a processor, and the networks on a rented GPU.
+\ifstudies A study run changes one thing in another run to measure what it
+is worth, and no leaderboard ranks it.\fi}
 \label{tab:cost}
 \end{table}
 
 The floors, baselines and trees of all \V{lab.models.count} models trained
 in \V{lab.cost.seconds.others}, and the \V{lab.networks.count} networks in
-\V{lab.cost.seconds.networks} (Table~\ref{tab:cost}). The trees are a file
+\V{lab.cost.seconds.networks} (Table~\ref{tab:cost}).
+\ifstudies
+The \V{lab.studies.count} study runs took \V{lab.cost.seconds.studies}
+more.
+\fi
+The trees are a file
 that runs anywhere. A network needs its weights and something to run them
 on. With gains of \V{lab.network.gain.most} hundredths of the step at most,
 that is the trade a port to the app has to weigh.

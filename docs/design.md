@@ -321,11 +321,18 @@ read.
   row, and the prose reads a count of the models where the change is better beyond the noise,
   inside it, or worse (`lab.change.<kind>.over.<run>.said`). A study's run counts when the one
   thing it changes is one of these.
+- **The two studies, model by model.** The games study is a table with a model a row and a
+  column for each share of the games under each run it was made on (`lab.games.<run>.half.said`),
+  and the features study one with a group of hand features a row and a model a column, under the
+  reference (`lab.features.<group>.said`, and for a model the group whose loss costs it most,
+  `lab.features.in.<model>.most.group`). A features study made on another run is read in that
+  model's own paper.
 - **Its switches.** What waits on runs stands inside a switch that turns on by itself when a
   model has them: `\ifwaiting` for a model with a task and no full run (it is listed with the
   question its card opens with), `\ifchangehand`, `\ifchangeepochs` and `\ifchangestart` for a
-  kind of change some model has measured, and `\ifgames` and `\iffeatures` for the two studies.
-  What the prose says while a kind is unmeasured stands on the switch's other side.
+  kind of change some model has measured, `\ifgames` and `\iffeatures` for the two studies, and
+  `\ifstudies` for any study run at all. What the prose says while a kind is unmeasured stands
+  on the switch's other side.
 - **Said of every model, or not said.** A value the lab states for all its models at once, such
   as the share of games kept for the test, is set only where every model has the same one.
   Where they differ the build stops at the sentence that says it.

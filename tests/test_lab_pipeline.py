@@ -267,8 +267,9 @@ def test_the_lab_s_paper_reads_every_model_under_its_name_and_lists_one_that_wai
     whole, out = overview.generate(smoke=True)
     assert list(whole.models) == [model] and list(whole.waiting) == [waiting]
     assert overview.switches(whole) == {
-        "waiting": True, "changehand": True, "changeepochs": False, "changestart": False, "games": False, "features": False
-    }
+        "waiting": True, "changehand": True, "changeepochs": False, "changestart": False, "games": False, "features": False,
+        "studies": False,
+    }  # fmt: skip
     # Everything a model's own paper can read is there under the model's name.
     _, own = papers.generate(model, smoke=True)
     assert all(out.values[f"{model}.{key}"] == value for key, value in own.values.items())
@@ -353,6 +354,31 @@ def test_study_runs_train_on_what_their_config_changes_and_are_listed_apart(lab,
     assert set(pairs) >= {(name, config["base"]) for name, config in STUDIES.items()}
     assert all(pairs[name, config["base"]]["gain"] is not None for name, config in STUDIES.items())
     assert pairs["gbm-hand-no-line", "gbm-hand"]["study"] == "features"
+
+
+def test_the_lab_s_paper_reads_the_two_studies_across_its_models(lab, temp_lab):
+    model = "puzzle-difficulty"
+    across = {
+        "gbm-hand-half": {"base": "gbm-hand", "study": "games", "data": {"train_share": 0.5}},
+        "gbm-hand-no-kings": {"base": "gbm-hand", "study": "features", "learner": {"without": ["kings"]}},
+    }
+    temp_lab.model(model, {**CONFIGS, **STUDIES, **across})
+    for name in ("gbm-hand", "constant", "gbm-hand-half", "gbm-hand-no-kings", "gbm-hand-no-line"):
+        runs.run(model, name, smoke=True, log=lambda _: None)
+    analysis.analyse(model, smoke=True)
+    whole, out = overview.generate(smoke=True)
+    switches = overview.switches(whole)
+    assert switches["games"] and switches["features"] and switches["studies"]
+    assert out.values["lab.studies.count"] == "3" and "Study runs" in out.files["lab-cost"]
+    assert {base: list(parts) for base, parts in overview.games(whole).items()} == {"gbm-hand": [0.5]}
+    # A run that leaves two groups out measures neither of them: the lab's table has a group a row.
+    assert list(overview.features(whole)) == ["kings"]
+    assert out.values["lab.games.gbm-hand.half.models"] == "puzzle difficulty" and out.values["lab.features.kings.count"] == "one"
+    assert out.values["lab.features.in.puzzle-difficulty.groups"] == "one"
+    assert out.values["lab.features.in.puzzle-difficulty.most.group"] == "attacks near the kings"
+    assert {"lab-games", "lab-games-figure", "lab-features"} <= set(out.files)
+    assert "\\run{gbm-hand} on" in out.files["lab-games"] and "& Half \\\\" in out.files["lab-games"]
+    assert "Attacks near the kings & 2 &" in out.files["lab-features"]
 
 
 def test_a_task_that_hides_the_solution_gives_no_learner_a_way_to_read_it(lab, temp_lab):

@@ -227,7 +227,7 @@ def test_the_one_scale_reads_a_score_where_higher_is_better_the_same_way():
     # A gain whose interval holds zero is level with the reference, however large it is.
     assert overview._verdicts(lab, lambda one: one.networks[0]) == ([], ["blunder-hazard"], [])
     assert overview.pairs(src) == [] and not any(overview.switches(lab).values())
-    assert set(overview.switches(lab)) == {"waiting", "changehand", "changeepochs", "changestart", "games", "features"}
+    assert set(overview.switches(lab)) == {"waiting", "changehand", "changeepochs", "changestart", "games", "features", "studies"}
 
 
 def _longer(model, gain):

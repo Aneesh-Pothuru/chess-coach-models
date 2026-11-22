@@ -57,11 +57,13 @@
 % The lab's own paper asks its own: whether a model has a task and no run
 % yet (\ifwaiting), and whether a kind of change has a pair measured in some
 % model: the hand features (\ifchangehand), more epochs (\ifchangeepochs), a
-% start from another run's body (\ifchangestart).
+% start from another run's body (\ifchangestart), and whether any model has
+% a study run (\ifstudies).
 \newif\ifwaiting
 \newif\ifchangehand
 \newif\ifchangeepochs
 \newif\ifchangestart
+\newif\ifstudies
 \makeatletter
 \newcommand{\setvalue}[2]{\expandafter\gdef\csname labvalue@#1\endcsname{#2}}
 \DeclareRobustCommand{\V}[1]{\@ifundefined{labvalue@#1}%

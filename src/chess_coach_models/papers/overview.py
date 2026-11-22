@@ -36,9 +36,10 @@ from typing import Any
 
 from .. import paths, tasks
 from ..evals import leaderboard
-from . import build, changes, charts, tex
+from ..encode.hand import GROUPS as GROUP_FEATURES
+from . import build, changes, charts, glossary, tex
 from .results import day, method_values, trained_on
-from .sources import METRIC_NAMES, STUDIES, Sources, run_cell, run_tex
+from .sources import METRIC_NAMES, STUDIES, Sources, run_cell, run_head, run_tex
 
 
 # One change measured in model after model, by the one setting it changes: its name in a key, and in words.
@@ -49,6 +50,8 @@ KINDS = {
 }
 # What a learner is called where a change is said to be made under it.
 UNDER = {"gbm": "under the trees", "net": "under a network"}
+# A share of the training games in a key.
+SHARE_KEYS = {0.5: "half", 0.25: "quarter"}
 # The ladder from its floor up: the order a table names the runs a change was made in.
 LADDER = ("constant", "gbm-context", "gbm-hand", "conv-small", "transformer-small", "transformer-medium", "transformer-medium-hand")
 
@@ -198,8 +201,45 @@ def by_base(lab: Lab) -> dict[str, dict[str, dict[str, dict[str, Any]]]]:
     for (key, _), entries in kinds(lab).items():
         for name, entry in entries:
             found.setdefault(key, {}).setdefault(entry["over"], {})[name] = entry
-    place = lambda run: (LADDER.index(run) if run in LADDER else len(LADDER), run)  # noqa: E731
-    return {key: {run: bases[run] for run in sorted(bases, key=place)} for key, bases in found.items()}
+    return {key: {run: bases[run] for run in sorted(bases, key=_rung)} for key, bases in found.items()}
+
+
+def _rung(run: str) -> tuple[int, str]:
+    """A run's place on the ladder, for an order that reads from the trees to the largest network."""
+    return (LADDER.index(run) if run in LADDER else len(LADDER), run)
+
+
+def games(lab: Lab) -> dict[str, dict[float, dict[str, dict[str, Any]]]]:
+    """The games study across the models: the run a share of the games was taken from, then the share, then
+    the model, to the pair of the run on fewer games over the run on all of them. The larger share first."""
+    found: dict[str, dict[float, dict[str, dict[str, Any]]]] = {}
+    for name, src in lab.models.items():
+        for run in src.studies:
+            config = run["config"]
+            if config["study"] != "games" or config.get("base") is None:
+                continue
+            entry = changes.pair(src, run["run"], config["base"])
+            if entry is not None:
+                found.setdefault(config["base"], {}).setdefault(float(config["data"]["train_share"]), {})[name] = entry
+    return {base: {part: found[base][part] for part in sorted(found[base], reverse=True)} for base in sorted(found, key=_rung)}
+
+
+def features(lab: Lab) -> dict[str, dict[str, dict[str, Any]]]:
+    """The features study across the models, under each model's reference: a group of hand features, then
+    the model, to the pair of the run without the group over the run that reads them all. The groups come
+    in the order the hand features list them. A study on another run is read in its model's own paper."""
+    found: dict[str, dict[str, dict[str, Any]]] = {}
+    for name, src in lab.models.items():
+        for run in src.studies:
+            config = run["config"]
+            left_out = config["learner"].get("without") or []
+            if config["study"] != "features" or config.get("base") != src.task.reference or len(left_out) != 1:
+                continue
+            entry = changes.pair(src, run["run"], config["base"])
+            if entry is not None:
+                found.setdefault(left_out[0], {})[name] = entry
+    order = list(GROUP_FEATURES)
+    return {group: found[group] for group in sorted(found, key=lambda group: (order.index(group) if group in order else len(order), group))}
 
 
 def _tally(better: list[str], level: list[str], worse: list[str]) -> str:
@@ -237,6 +277,7 @@ def values(lab: Lab, out: tex.Generated) -> None:
         "lab.cost.seconds.others",
         tex.duration(sum(run["seconds"] for src in every for run in src.runs if run not in src.networks)),
     )
+    out.set("lab.cost.seconds.studies", tex.duration(sum(run["seconds"] for src in every for run in src.studies)))
     trained = sorted(run["trained"] for src in every for run in src.runs)
     out.set("lab.results.first", day(trained[0]))
     out.set("lab.results.date", day(trained[-1]))
@@ -304,22 +345,48 @@ def values(lab: Lab, out: tex.Generated) -> None:
     # The same by the run the change was made in, where a model has one pair: a clause prose can read whole.
     for key, bases in by_base(lab).items():
         for run, entries in bases.items():
-            prefix = tex.key("lab", "change", key, "over", run)
-            better = [name for name, entry in entries.items() if entry["beyond_noise"] and entry["gain"] > 0]
-            worse = [name for name, entry in entries.items() if entry["beyond_noise"] and entry["gain"] < 0]
-            level = [name for name in entries if name not in better and name not in worse]
-            out.set(f"{prefix}.count", tex.word(len(entries)))
-            out.set(f"{prefix}.models", _listed([said(name) for name in entries]))
-            out.set(f"{prefix}.said", _tally(better, level, worse))
-            for word, group in (("better", better), ("level", level), ("worse", worse)):
-                out.set(f"{prefix}.{word}.of", _of(len(group), len(entries), "model"))
-                out.set(f"{prefix}.{word}.models", _listed([said(name) for name in group]))
-            amounts = {name: on_step(lab.models[name], entry) for name, entry in entries.items()}
-            amounts = {name: amount[0] for name, amount in amounts.items() if amount is not None}
-            if amounts:
-                for end, name in (("most", max(amounts, key=amounts.get)), ("least", min(amounts, key=amounts.get))):
-                    out.set(f"{prefix}.gain.{end}", tex.fixed(amounts[name], 1, sign=True))
-                    out.set(f"{prefix}.gain.{end}.model", said(name))
+            _across(lab, out, tex.key("lab", "change", key, "over", run), entries)
+    # The two studies the same way: a share of the games under each run it was taken from, and a group of
+    # hand features left out of the reference.
+    for base, parts in games(lab).items():
+        for part, entries in parts.items():
+            _across(lab, out, tex.key("lab", "games", base, SHARE_KEYS.get(part, f"share-{round(100 * part)}")), entries)
+    left_out = features(lab)
+    for group, entries in left_out.items():
+        _across(lab, out, tex.key("lab", "features", group), entries)
+    for name, src in lab.models.items():
+        mine = {group: entries[name] for group, entries in left_out.items() if name in entries}
+        if not mine:
+            continue
+        prefix = tex.key("lab", "features", "in", name)
+        costly = [group for group, entry in mine.items() if entry["beyond_noise"] and entry["gain"] < 0]
+        out.set(f"{prefix}.groups", tex.word(len(mine)))
+        out.set(f"{prefix}.worse.of", _of(len(costly), len(mine), "group"))
+        most = min(mine, key=lambda group: mine[group]["gain"])
+        out.set(f"{prefix}.most.group", glossary.group(most))
+        amounts = on_step(src, mine[most])
+        if amounts is not None:
+            out.set(f"{prefix}.most.gain", tex.fixed(amounts[0], 1, sign=True))
+
+
+def _across(lab: Lab, out: tex.Generated, prefix: str, entries: dict[str, dict[str, Any]]) -> None:
+    """One pair measured in several models, under ``prefix``: in which of them the first run is better beyond
+    the noise, inside it or worse, as a clause prose can read whole, and the two ends on the one scale."""
+    better = [name for name, entry in entries.items() if entry["beyond_noise"] and entry["gain"] > 0]
+    worse = [name for name, entry in entries.items() if entry["beyond_noise"] and entry["gain"] < 0]
+    level = [name for name in entries if name not in better and name not in worse]
+    out.set(f"{prefix}.count", tex.word(len(entries)))
+    out.set(f"{prefix}.models", _listed([said(name) for name in entries]))
+    out.set(f"{prefix}.said", _tally(better, level, worse))
+    for word, group in (("better", better), ("level", level), ("worse", worse)):
+        out.set(f"{prefix}.{word}.of", _of(len(group), len(entries), "model"))
+        out.set(f"{prefix}.{word}.models", _listed([said(name) for name in group]))
+    amounts = {name: on_step(lab.models[name], entry) for name, entry in entries.items()}
+    amounts = {name: amount[0] for name, amount in amounts.items() if amount is not None}
+    if amounts:
+        for end, name in (("most", max(amounts, key=amounts.get)), ("least", min(amounts, key=amounts.get))):
+            out.set(f"{prefix}.gain.{end}", tex.fixed(amounts[name], 1, sign=True))
+            out.set(f"{prefix}.gain.{end}.model", said(name))
 
 
 def models_table(lab: Lab) -> str:
@@ -468,25 +535,96 @@ def changes_table(lab: Lab) -> str | None:
     return table.replace("\\addlinespace \\\\", "\\addlinespace")
 
 
+def _cell(lab: Lab, name: str, entry: dict[str, Any] | None) -> str:
+    """A pair's gain on the one scale in a table's cell, bold when its interval leaves zero out, or nothing."""
+    amounts = on_step(lab.models[name], entry) if entry is not None else None
+    return "" if amounts is None else tex.bold(tex.fixed(amounts[0], 1, sign=True), entry["beyond_noise"])
+
+
+def games_table(lab: Lab) -> str | None:
+    """The games study across the models: a model a row, and for each run the study was made on, the gain of
+    the run on a share of the training games over the run on all of them, on the one scale."""
+    found = games(lab)
+    if not found:
+        return None
+    columns = [(base, part) for base, parts in found.items() for part in parts]
+    rows = [
+        [run_cell(name), *[_cell(lab, name, found[base][part].get(name)) for base, part in columns]]
+        for name in lab.models
+        if any(name in found[base][part] for base, part in columns)
+    ]
+    head = ["Model", *[changes.share_words(part).capitalize() for _, part in columns]]
+    table = tex.tabular(f">{{\\raggedright\\arraybackslash}}p{{3.4cm}}{'r' * len(columns)}", head, rows)
+    top, spans, first = [""], [], 2
+    for base, parts in found.items():
+        top.append(f"\\multicolumn{{{len(parts)}}}{{c}}{{{run_tex(base)} on}}")
+        spans.append((first, first + len(parts) - 1))
+        first += len(parts)
+    return tex.grouped(table, top, spans)
+
+
+def games_figure(lab: Lab) -> str | None:
+    """The same pairs with their intervals: a group a run and a share of its training games, a row a model."""
+    groups = []
+    for base, parts in games(lab).items():
+        for part, entries in parts.items():
+            rows = [
+                (said(name), *amounts, charts.run_colour(base))
+                for name, entry in entries.items()
+                if (amounts := on_step(lab.models[name], entry)) is not None
+            ]
+            if rows:
+                groups.append((f"{base} on {changes.share_words(part)} of the games", rows))
+    if not groups:
+        return None
+    return charts.grouped_intervals(
+        groups,
+        xlabel="Gain over the run on all the games, in hundredths of the reference's step (left of the line is worse)",
+        reference=0.0,
+        code=False,
+        width="0.5\\textwidth",
+    )
+
+
+def features_table(lab: Lab) -> str | None:
+    """The features study across the models: a group of hand features a row, a model a column, and in a cell
+    the gain of the reference without the group over the reference with it, on the one scale. A model whose
+    hand features have no such group leaves its cell empty."""
+    found = features(lab)
+    if not found:
+        return None
+    models = [name for name in lab.models if any(name in entries for entries in found.values())]
+    rows = []
+    for group, entries in found.items():
+        words = glossary.group(group)
+        rows.append([words[:1].upper() + words[1:], str(len(GROUP_FEATURES[group])), *[_cell(lab, name, entries.get(name)) for name in models]])
+    head = ["Left out", "Features", *[run_head(name, 1, "1.9cm") for name in models]]
+    return tex.tabular(f">{{\\raggedright\\arraybackslash}}p{{4.3cm}}r{'r' * len(models)}", head, rows)
+
+
 def cost_table(lab: Lab) -> str:
-    """What the runs cost to train: how many, how long, and on what."""
+    """What the runs cost to train, by kind: how many and how long for the floor, the baselines and the trees,
+    for the networks with what they were trained on, and for the study runs once a model has some, which no
+    leaderboard ranks."""
+    studied = any(src.studies for src in lab.models.values())
+
+    def cost(runs: list[dict[str, Any]]) -> list[str]:
+        return [tex.count(len(runs)), tex.duration(sum(run["seconds"] for run in runs)) if runs else ""]
+
     rows = []
     for name, src in lab.models.items():
         networks = src.networks
-        others = [run for run in src.runs if run not in networks]
         devices = sorted({trained_on(run) for run in networks})
-        rows.append(
-            [
-                run_cell(name),
-                tex.count(len(src.runs)),
-                tex.duration(sum(run["seconds"] for run in others)),
-                tex.count(len(networks)),
-                tex.duration(sum(run["seconds"] for run in networks)) if networks else "",
-                tex.esc(", ".join(devices)),
-            ]
-        )
-    head = ["Model", "Runs", "Trees and baselines", "Networks", "Their training", "On"]
-    return tex.tabular(">{\\raggedright\\arraybackslash}p{2.6cm}rrrrl", head, rows)
+        row = [run_cell(name), *cost([run for run in src.runs if run not in networks]), *cost(networks), tex.esc(", ".join(devices))]
+        rows.append([*row, *(cost(src.studies) if studied else [])])
+    # The first title on two lines: on one it is wider than its two columns need, and takes room from the last.
+    groups = ["\\parbox[b]{2.4cm}{\\centering Floor, baselines and trees}", "Networks", *(["Study runs"] if studied else [])]
+    head = ["Model", "Runs", "Training", "Runs", "Training", "On", *(["Runs", "Training"] if studied else [])]
+    spec = f">{{\\raggedright\\arraybackslash}}p{{2.6cm}}rrrrL{'rr' if studied else ''}"
+    table = tex.tabular(spec, head, rows, width="\\textwidth")
+    spans = [(2, 3), (4, 6), *([(7, 8)] if studied else [])]
+    top = ["", *[f"\\multicolumn{{{last - first + 1}}}{{c}}{{{title}}}" for title, (first, last) in zip(groups, spans)]]
+    return tex.grouped(table, top, spans)
 
 
 def waiting_table(lab: Lab) -> str | None:
@@ -509,6 +647,9 @@ def blocks(lab: Lab, out: tex.Generated) -> None:
         "lab-networks": networks_figure(lab),
         "lab-changes": changes_table(lab),
         "lab-changes-figure": changes_figure(lab),
+        "lab-games": games_table(lab),
+        "lab-games-figure": games_figure(lab),
+        "lab-features": features_table(lab),
         "lab-cost": cost_table(lab),
         "lab-waiting": waiting_table(lab),
     }
@@ -532,14 +673,16 @@ def generate(*, smoke: bool = False) -> tuple[Lab, tex.Generated]:
 
 
 def switches(lab: Lab) -> dict[str, bool]:
-    """What the lab's prose may ask before it reads: whether a model is still waiting for its runs, and
-    whether a kind of change has a pair measured in some model."""
+    """What the lab's prose may ask before it reads: whether a model is still waiting for its runs, whether
+    a kind of change has a pair measured in some model, whether a model has runs of the games or the features
+    study, and whether any has a study run at all."""
     measured = {key for key, _ in kinds(lab)}
     studied = {run["config"]["study"] for src in lab.models.values() for run in src.studies}
     return {
         "waiting": bool(lab.waiting),
         **{f"change{short}": short in measured for short, _ in KINDS.values()},
         **{study: study in studied for study in STUDIES},
+        "studies": bool(studied),
     }
 
 
