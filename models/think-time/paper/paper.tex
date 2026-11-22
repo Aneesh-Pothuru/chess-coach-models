@@ -451,6 +451,71 @@ Neither run was at its best in its last epoch
 \V{run.transformer-medium-hand-pretrained.epochs}).
 \fi
 
+\ifshapes
+\paragraph{What another shape of network was worth here.}
+The architecture test keeps a medium transformer's rows, its head and its
+epochs, and changes its shape. Each run below started from nothing, as the
+network it changes did. Each is set against that network in
+Table~\ref{tab:pairs} and followed epoch by epoch in
+Figure~\ref{fig:shapes}.
+\begin{itemize}
+\item \emph{A convolutional tower}, \V{run.conv-medium-hand.name}: residual
+blocks of convolutions, each also weighing its channels by a mean over the
+whole board, with \V{run.conv-medium-hand.parameters.millions} million
+parameters for the transformer's
+\V{run.transformer-medium-hand.parameters.millions} million. It is trained at a
+tower's peak learning rate, \V{run.conv-medium-hand.lr} for
+\V{run.transformer-medium-hand.lr}, and changes nothing else. It is
+\V{pair.conv-medium-hand.transformer-medium-hand.valid.verdict} than
+\V{run.transformer-medium-hand.name} on the valid positions and
+\V{pair.conv-medium-hand.transformer-medium-hand.verdict} on the test
+positions (\V{pair.conv-medium-hand.transformer-medium-hand.gain},
+\V{pair.conv-medium-hand.transformer-medium-hand.gain.low} to
+\V{pair.conv-medium-hand.transformer-medium-hand.gain.high}): it is
+\V{pair.conv-medium-hand.transformer-medium-hand.kept}.
+\item \emph{A hybrid}, \V{run.hybrid-medium-hand.name}: a few residual blocks
+of convolutions first, then layers of the transformer over the squares
+they give, \V{run.hybrid-medium-hand.parameters.millions} million parameters
+in all. It is
+\V{pair.hybrid-medium-hand.transformer-medium-hand.valid.verdict} than
+\V{run.transformer-medium-hand.name} on the valid positions and
+\V{pair.hybrid-medium-hand.transformer-medium-hand.verdict} on the test
+positions (\V{pair.hybrid-medium-hand.transformer-medium-hand.gain},
+\V{pair.hybrid-medium-hand.transformer-medium-hand.gain.low} to
+\V{pair.hybrid-medium-hand.transformer-medium-hand.gain.high}): it is
+\V{pair.hybrid-medium-hand.transformer-medium-hand.kept}.
+\item \emph{Attention told what each piece attacks.} The offsets say that
+two squares share a diagonal, and not whether anything stands between
+them. Here each head also learns a bias for a pair of squares when the
+piece on one attacks the other on this board, worked out from the tokens
+with no search. With the hand features, \V{run.transformer-medium-hand-attacks.name} is
+\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.valid.verdict} than
+\V{run.transformer-medium-hand.name} on the valid positions and
+\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.verdict} on the test
+positions (\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.gain},
+\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.gain.low} to
+\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.gain.high}): it is
+\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.kept}. On the
+board alone, \V{run.transformer-medium-attacks.name} is
+\V{pair.transformer-medium-attacks.transformer-medium.valid.verdict} than
+\V{run.transformer-medium.name} on the valid positions and
+\V{pair.transformer-medium-attacks.transformer-medium.verdict} on the test
+positions (\V{pair.transformer-medium-attacks.transformer-medium.gain},
+\V{pair.transformer-medium-attacks.transformer-medium.gain.low} to
+\V{pair.transformer-medium-attacks.transformer-medium.gain.high}): it is
+\V{pair.transformer-medium-attacks.transformer-medium.kept}.
+\item \emph{Attention without the offsets},
+\V{run.transformer-medium-hand-no-geometry.name}: a study, there to measure what
+the offsets are worth and never a candidate. Without them the transformer
+is \V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.valid.verdict}
+on the valid positions than with them, and
+\V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.verdict} on the
+test positions (\V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain},
+\V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain.low} to
+\V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain.high}).
+\end{itemize}
+\fi
+
 \input{../../../papers/studies}
 
 \ifgames
