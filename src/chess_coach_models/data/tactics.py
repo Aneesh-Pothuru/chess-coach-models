@@ -26,6 +26,7 @@ import chess
 import numpy as np
 import polars as pl
 
+from .. import bands
 from ..encode.board import CASTLING, encode_positions, white_to_move
 from ..encode.hand import line_features, position_features
 from ..winprob import mover_win_percent
@@ -57,7 +58,6 @@ COLUMNS = (
     "movetext",
 )
 DROPPED = ("unreadable", "no reply", "no clock", "no evaluation")
-BANDS = ((2300, "2300+"), (2100, "2100-2299"), (1900, "1900-2099"), (1700, "1700-1899"), (0, "<1700"))
 
 Item = tuple[str, str, str, int, int, int, str, str, int, int, int, int, str, str]
 
@@ -71,8 +71,8 @@ def file_url(source: str, revision: str, index: int) -> str:
 
 
 def mover_band(elo: int) -> str:
-    """The band of the player to move. Lichess cuts its puzzles from games between players rated about 1500 and up, so these bands start higher than the lab's usual ones."""
-    return next(name for floor, name in BANDS if elo >= floor)
+    """The band of the player to move, on the higher scale of the games puzzles are cut from."""
+    return bands.band(elo, bands.PUZZLE_PLAYER)
 
 
 def game_and_ply(value: str) -> tuple[str, int] | None:

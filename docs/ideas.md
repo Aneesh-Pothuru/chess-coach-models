@@ -5,7 +5,7 @@ about people that an engine and board code cannot compute. An idea becomes a mod
 card with its rule, a task, and runs on the leaderboard ([`CLAUDE.md`](../CLAUDE.md), "Adding a
 model"). The order below is the order they are worth building in.
 
-## Built or measured
+## Built
 
 | Model | Reads | Predicts | What the app gets |
 |---|---|---|---|
@@ -14,27 +14,25 @@ model"). The order below is the order they are worth building in.
 | [blunder-hazard](../models/blunder-hazard/) | A position, ratings, clocks, the evaluation | The chance the mover blunders | The positions where players at a level go wrong |
 | [think-time](../models/think-time/) | A position, ratings, clocks | The seconds spent on the move | Where a player moved too fast or too slow |
 | [tactic-found](../models/tactic-found/) | A position after the opponent's mistake, the tactic's line, ratings, clocks | The chance the player finds the tactic in the game | Which missed tactics were within reach at the player's level |
-| [human-moves](../models/human-moves/) | A position and a rating | The move that level plays | Maia-2, as the app runs it |
-| [concept-tagger](../models/concept-tagger/) | A position | Its tactical themes | A name for what a position is about |
-| [graded-opponent](../models/graded-opponent/) | A game | Each mistake and the chance it is punished | A mistake priced by the player's level |
-| [opening-repertoire](../models/opening-repertoire/) | Opening lines at a rating band | How each line scores for people | Lines that work at the player's level |
 
 ## Next
 
-### More from the starters
+### More from the four models
 
 What the first full runs ([the leaderboards](../README.md#leaderboards)) leave to try. Each is a
 run or a recipe, not a new model:
 
-- **A longer schedule.** Seven of the twelve network runs had their best valid epoch at the last
-  one.
-- **More games.** `game-positions` keeps 30,000 games of a month's, and on the board alone no
-  network matched the trees on `blunder-hazard`.
+- **A longer schedule.** Nine of the sixteen network runs had their best valid epoch at the last
+  one, among them every transformer that reads no hand features.
+- **More games.** `game-positions` keeps 30,000 games of a month's, and without the hand features
+  no network matched the trees on `blunder-hazard`.
 - **One group of hand features left out at a time**, to say which of them a network still needs
-  beside the board. The network that reads them is the best run of every starter.
+  beside the board. The network that reads them is the best run of every model.
 - **Blunder hazard on the positions that can still be blundered**, its own task, as its card says.
 - **Puzzle difficulty from the position alone**, with no solution marked: how hard a tactic is to
   notice.
+- **Tactic found, with the whole line as the label**: the player found the tactic only if the game
+  followed it to the end, which a game answers while the opponent follows the puzzle's replies.
 
 ### Practical chances
 
@@ -68,9 +66,13 @@ here.
 |---|---|---|---|
 | Where to look | A position | The squares that matter (a tactic's squares, from the puzzle solutions) | A label per square |
 | Game rating | A whole game with clocks | The rating the play looks like, by phase | A body over a sequence of positions |
-| Human moves, trained here | A position and a rating | A chance for every legal move | A move head. Maia-3 is the model to benchmark against first |
-| Concept tagger on the harness | A position | Its themes | A head with one output per theme |
+| Human moves, trained here | A position and a rating | A chance for every legal move | A move head. Maia-2 is what the app runs, and Maia-3 is the model to benchmark against first |
+| Concept tagger | A position and its line | A chance for each puzzle theme | A head with one output a theme, and its metrics |
+| Lines that work at a level | Opening lines at a rating band | How each line scores for people there, whatever the engine thinks | Nothing trained: a counted opening tree with intervals |
 | A player over time | One player's games in order | Whether a weakness is closing | Games grouped by player, from the Lichess API |
+
+The lab's first experiments tried three of these in another form (a Maia-2 benchmark, a theme
+tagger on Maia-2's activations, an opening tree): [`history.md`](history.md) says what they found.
 
 ## Checks on the player's own scale
 

@@ -28,7 +28,8 @@ jobs:
           pip install --no-deps -e .
       - name: Tests that need no Torch or data
         run: >
-          python -m pytest tests/test_bridge.py tests/test_winprob.py tests/test_features.py
+          python -m pytest tests/test_bridge.py tests/test_winprob.py tests/test_tasks.py
           tests/test_encode.py tests/test_games_data.py tests/test_metrics.py tests/test_hand_features.py
           tests/test_open_prompts.py tests/test_tactics_data.py tests/test_narrator_weights.py
           tests/test_docs_links.py tests/test_code_commit.py tests/test_streams.py
+          tests/test_analysis.py tests/test_parity_report.py

@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 
 from chess_coach_models.bridge import chess_commit, chess_dir, load_pin, run_eval
-from chess_coach_models.config import load_config
+from chess_coach_models.data.games import BLUNDER_LOSS
 from chess_coach_models.winprob import eval_to_cp, win_percent
 
 
@@ -135,7 +135,6 @@ def render(report: dict) -> str:
         for r in report["ranges"]
     ]
     past = report["ranges"][1]
-    thresholds = load_config()["thresholds"]
     clamp = f"±{report['grid']['lab_clamp']} cp"
     verdict = (
         f"Within {clamp} the lab and the app compute the same curve."
@@ -155,13 +154,11 @@ def render(report: dict) -> str:
             "",
             f"{verdict} Past it the lab holds every evaluation, mates included, at "
             f"{past['lab']:.2f}% (or its mirror) while the app goes on towards 100%. "
-            "The lab's blunder and candidate labels (a loss over "
-            f"{thresholds['blunder_loss_win_pct']:g} and over {thresholds['candidate_loss_win_pct']:g} "
-            "points) are computed on the clamped curve, so a move whose evaluation "
-            f"passes {clamp} can lose up to {past['max_gap_pp']:.2f} points less in "
-            "the lab than in the app (twice that if it crosses from one side to the "
-            "other), enough to flip a label near either threshold. Which clamp a "
-            "ported model should use is a decision for its port; this report only "
+            f"The lab's blunder label (a loss over {BLUNDER_LOSS:g} points) is computed on the "
+            f"clamped curve, so a move whose evaluation passes {clamp} can lose up to "
+            f"{past['max_gap_pp']:.2f} points less in the lab than in the app (twice that if it "
+            "crosses from one side to the other), enough to flip a label near the threshold. "
+            "Which clamp a ported model should use is a decision for its port; this report only "
             "says where the two part.",
             "",
         ]

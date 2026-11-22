@@ -7,21 +7,30 @@ Each model here answers one such question from a position or a game, is trained 
 has to beat a plain baseline on games it never saw.
 
 This page says how the lab is built and why. [`CLAUDE.md`](../CLAUDE.md) has the rules for working
-in it, and [`ideas.md`](ideas.md) the models that could come next.
+in it, [`ideas.md`](ideas.md) the models that could come next, and [`history.md`](history.md) what
+the lab was before.
 
 ## One shape for every model
 
 A model that reads a position is always the same five steps: get labelled positions from open
 data, turn a board into numbers, fit a learner, score it on held-out games, and compare it with a
 baseline. Written once for each model, those steps drift apart, and two models stop being
-comparable. So they are written once for all of them, and a model is what is left:
+comparable. So they are written once for all of them, and a model is what is left: one folder,
+`models/<model>/`, of small files.
 
-| What a model brings | Where |
+| What a model brings | Where in its folder |
 |---|---|
-| The question, the rule for what counts as better | `models/<model>/README.md`, its card |
-| Its label, the numbers it may read beside the board, its metric | a `Task` in `src/chess_coach_models/tasks/` |
-| Its learners | `models/<model>/configs/<run>.yaml` |
-| Its rows, when no dataset has them yet | a builder in `data/` and a recipe in `datasets/` |
+| The question, the rule for what counts as better, what the results say | `README.md`, its card |
+| Its dataset, its label, the numbers it may read beside the board, its metric, its reference run | `task.yaml` |
+| Its learners | `configs/<run>.yaml` |
+| What its runs wrote | `results/` |
+| How its results are cut for a closer look | `analysis.yaml` |
+
+A model has no code of its own. Adding one touches the harness only when no dataset has its rows
+yet (a builder in `data/` and a recipe in `datasets/`) or when it needs a new kind of input or
+output (a body or a head in `nets/`). `tasks.py` reads a task from its folder and checks it, and
+`paths.py` is the one place that knows where a model's files, a dataset and a run's weights are
+kept, so a test can stand a whole lab up in a temporary folder.
 
 The input is a position as a FEN, with what the task knows about it: the moves that led to it or
 follow from it, both ratings, both clocks, the time control. The output today is one number, a
@@ -101,7 +110,8 @@ Sizes are settings of a run (`dim`, `depth`, `heads`), not code.
 
 ## Learners and the run record
 
-A run is one config file and names one of four learners (`train/learners.py`):
+A run is one config file and names one of four learners, each a file under `train/learners/` with
+one function, `fit`:
 
 - `constant`: one number for every row. The floor: a model that does not beat it learned nothing.
 - `rating-formula`: the rating formula's expected score of a player against something rated,
@@ -155,6 +165,35 @@ chosen on valid rows.
 `lab eval` writes `results/leaderboard.md` and `results/leaderboard.json`; `lab report` writes
 the README's table from every model's leaderboard. No result in this repository is typed.
 
+## The closer look
+
+A leaderboard says which run is best. It does not say where a model is right and wrong, and a
+score alone is a poor guide to whether the app can use it. `lab analyse <model>`
+(`evals/analysis.py`) reads the dataset and every run's test predictions, on the machine that has
+them, and writes `results/analysis.json`: small tables, committed, that any machine can draw from.
+
+- **Slices.** The test rows by one column at a time: the task's own bands first, then whatever the
+  model's `analysis.yaml` names (the clock, the number of moves in a line, a puzzle's themes). For
+  each group: how many rows, what happened there, what each run said on average and how it scored,
+  and the paired gain over the reference of the best run that is not the reference, with its
+  interval over resampled games. A slice is where a claim such as "the network helps most on long
+  lines" is checked.
+- **Grids.** What happened and what each run said by two columns at once, such as the mover's
+  rating against the clock.
+- **Reliability.** Test rows in equal groups by what a run said, against what happened: for a
+  chance the calibration curve, for a quantity the average truth with its spread.
+- **Ranking and closeness.** For a chance, what its top and bottom shares are worth as a flag: how
+  many of the rows it ranks highest were hits. For a quantity, how close a prediction lands: the
+  middle and the tail of the error, and the share inside a named distance.
+- **Beside the reference.** How alike each run's predictions are to the reference's, row by row,
+  and how often the run is the closer of the two.
+- **Examples.** Positions chosen by rule, never by eye: ordinary rows picked by a hash of their
+  key, the rows the best run is surest of, and its largest misses each way.
+
+A run's predictions are read only when its record names the build of the data on the machine,
+they are of that build's test rows in order, and they score what the record says. Every number is
+rounded to six significant digits, so two machines write the same file.
+
 ## Smoke runs
 
 `--smoke` on any command builds a small sample and trains for a moment. It proves the code runs
@@ -166,9 +205,8 @@ so a smoke score can never be mistaken for a result.
 - **The coach narrator** is a language model, with its own scripts under
   [`models/coach-narrator/`](../models/coach-narrator/): facts from the app's code, a teacher, a
   truth check, a blind judge. It shares the lab's rules, not this harness.
-- **The first pipeline** (`scripts/`, `configs/config.yaml`, `reports/`) is kept as it ran. Its
-  models move onto the harness one at a time, each as its own change with its old score beside
-  the new one.
+- **The study under `projects/`** measures the app's own code and is waiting on data. It leaves
+  when it reports, and no new study starts there.
 - **The bridge** (`bridge/`) runs a script on the app's own code. A model never re-implements an
   instrument the app has; it imports it, or is held to it by a parity check.
 

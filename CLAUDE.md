@@ -13,18 +13,20 @@ engine, a human-move model, board code or data.
 
 ## What lives here
 
-- `models/<model>/`: one model each. `README.md` is its card (the question, the
-  data, the rule, what the results say), `configs/<run>.yaml` its runs, and
-  `results/` what the runs wrote. [`README.md`](README.md) lists the models.
-- `src/chess_coach_models/`: the shared harness (`data/`, `encode/`, `nets/`,
-  `train/`, `evals/`, `tasks/`, the `lab` command in `cli.py`), beside the first
-  pipeline's modules. [`docs/design.md`](docs/design.md) explains it.
+- `models/<model>/`: one model each, and everything about it. `README.md` is
+  its card (the question, the data, the rule, what the results say),
+  `task.yaml` what it is asked, `configs/<run>.yaml` its runs, `results/` what
+  the runs wrote, and `analysis.yaml` how its results are cut for a closer
+  look. A model has no code of its own. [`README.md`](README.md) lists the
+  models.
+- `src/chess_coach_models/`: the harness every model shares (`data/`,
+  `encode/`, `nets/`, `train/`, `evals/`, `tasks.py`, `paths.py`, the `lab`
+  command in `cli.py`). [`docs/design.md`](docs/design.md) explains it.
 - `datasets/<name>.yaml`: recipes for datasets built from open sources.
-- `docs/`: the design, the idea list ([`docs/ideas.md`](docs/ideas.md)) and
-  where runs go ([`docs/compute.md`](docs/compute.md)).
+- `docs/`: the design, the idea list ([`docs/ideas.md`](docs/ideas.md)), where
+  runs go ([`docs/compute.md`](docs/compute.md)) and what the lab was before
+  ([`docs/history.md`](docs/history.md)).
 - `bridge/`: the way to the app's own code, for scripts that need it.
-- `scripts/`, `configs/config.yaml`, `reports/`: the first pipeline (the 2019
-  models), kept as it ran.
 - `projects/learner-solve-chance/`: the one study of the app's code still
   waiting on data. It leaves when it reports; start no new study there.
 
@@ -33,15 +35,18 @@ engine, a human-move model, board code or data.
 1. Write its card first: the question, what it reads, what it predicts, the
    open data, the metric, the split, and what counts as better. Take the idea
    from `docs/ideas.md`, or add it there.
-2. Add a `Task` in `src/chess_coach_models/tasks/__init__.py`: its dataset, its
-   label, the context numbers a learner may read, its primary metric, its
-   reference run.
+2. Write `models/<model>/task.yaml`: its dataset, its label, the context
+   numbers a learner may read, its primary metric, its reference run
+   (`src/chess_coach_models/tasks.py` says what each line means).
 3. If no dataset has its rows, add a builder under `data/` and a recipe under
    `datasets/`. A dataset splits by game and writes a manifest.
 4. Copy the run configs from another model: the floor (`constant`), the tree
    baselines (`gbm-context`, `gbm-hand`) and the networks.
 5. `lab all <model> --smoke` until it runs, then the full run where
    `docs/compute.md` says, then commit the results the run wrote.
+6. Write `analysis.yaml`, run `lab analyse <model>` where the dataset and the
+   predictions are, commit `results/analysis.json`, and say on the card what
+   the results mean.
 
 A new kind of input or output (a whole game as a sequence, a label per square,
 a move) is a new body or head in `nets/`, with a test, and a line in
@@ -51,9 +56,10 @@ a move) is a new body or head in `nets/`, with a test, and a line in
 
 - A report is written by its script, never typed. A run writes
   `results/<run>.json`; `lab eval <model>` writes the leaderboard from the
-  records; `lab report` writes the README's table from the leaderboards. A
-  card's prose may say what the numbers mean, with the numbers left in the
-  generated files it links.
+  records; `lab analyse <model>` writes the closer look from the dataset and
+  the test predictions; `lab report` writes the README's table from the
+  leaderboards. A card's prose may say what the numbers mean, with the numbers
+  left in the generated files it links.
 - Before a run, the card names the metric, the split and what counts as
   better. Change one thing a run, and keep it only when it beats the run it
   changed on valid and on test beyond the noise (the paired gain's interval
@@ -140,10 +146,9 @@ win probability behind the blunder label to the app's.
 |---|---|
 | `make setup` | The environment in `.venv` (Torch, LightGBM, the `lab` command) |
 | `make test` | Every test; CI runs only those that need no Torch or data |
-| `make smoke` | Every starter model end to end on a small sample |
-| `make starters` | The full datasets, every run this machine can train, the leaderboards, the README table |
-| `lab data|train|eval|all|report` | One step of the harness (`lab --help`) |
+| `make smoke` | Every model on the harness end to end on a small sample |
+| `make models` | The full datasets, every run this machine can train, the leaderboards, the README table |
+| `lab data|train|eval|all|analyse|report` | One step of the harness (`lab --help`) |
 | `make chess` | Fetches the pinned app and the research records (`bridge/checkout.sh`) |
 | `make parity` | The win% parity check against the app (`bridge/winprob-parity/results/`) |
-| `make reports` | The first pipeline's reports, from its committed metrics |
 | `python scripts/check_private.py` | The data rule's check |

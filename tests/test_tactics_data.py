@@ -10,6 +10,7 @@ import chess
 import polars as pl
 import pytest
 
+from chess_coach_models import bands
 from chess_coach_models.data import store, tactics
 from chess_coach_models.data.games import parse_export, parse_movetext
 from chess_coach_models.encode.board import square
@@ -141,8 +142,7 @@ def test_real_rows_match_their_games():
     assert 0.5 < sum(row["found"] for row in rows) / len(rows) < 0.8
 
 
-def test_a_dataset_is_built_from_the_file(tmp_path, monkeypatch):
-    monkeypatch.setattr(store, "PROCESSED", tmp_path / "processed")
+def test_a_dataset_is_built_from_the_file(temp_lab):
     rows, tokens, marks, manifest = tactics.build(RECIPE, source=str(FIXTURE), workers=2, log=lambda _: None)
     store.write_dataset(RECIPE["name"], rows, tokens, marks, manifest)
     dataset = store.read_dataset("tactics-test")
@@ -154,7 +154,7 @@ def test_a_dataset_is_built_from_the_file(tmp_path, monkeypatch):
     assert dataset.manifest["fingerprint"] == store.fingerprint(dataset.rows, dataset.tokens, dataset.marks)
     assert set(dataset.rows["split"].unique()) == {"train", "valid", "test"}
     assert dataset.rows.group_by("game_id").agg(pl.col("split").n_unique())["split"].max() == 1
-    assert set(dataset.rows["band"].unique()) <= {name for _, name in tactics.BANDS}
+    assert set(dataset.rows["band"].unique()) <= {name for _, name in bands.PUZZLE_PLAYER}
     assert dataset.rows.null_count().sum_horizontal().item() == 0
     row = dataset.rows.row(by_predicate=pl.col("key") == "00K8j", named=True)
     position = dataset.rows["key"].to_list().index("00K8j")

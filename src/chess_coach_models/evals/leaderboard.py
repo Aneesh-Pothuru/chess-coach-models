@@ -17,15 +17,15 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .. import tasks
-from ..data.store import ROOT
-from ..train.run import MODELS, results_dir
+from .. import bands, paths, tasks
 from .metrics import LOWER_IS_BETTER, METRICS
 
 
 START = "<!-- LEADERBOARDS_START -->"
 END = "<!-- LEADERBOARDS_END -->"
 REFERENCE_TOLERANCE = 0.01
+# What sits among a model's results without being a run's record.
+NOT_RECORDS = ("leaderboard.json", "analysis.json")
 NAMES = {
     "rmse": "RMSE",
     "mae": "MAE",
@@ -62,12 +62,6 @@ def _learner(record: dict[str, Any]) -> str:
     return f"{learner['body']}, {learner['depth']} layers of width {learner['dim']}{reads}"
 
 
-def _band_order(band: str) -> tuple[int, int]:
-    """Bands by their first number, an open lower band such as ``<1000`` first."""
-    digits = "".join(char if char.isdigit() else " " for char in band).split()
-    return (int(digits[0]) if digits else 0, 0 if band.startswith("<") else 1)
-
-
 def _commit(code: str) -> str:
     """A commit as its first seven characters, still marked when the tree had changes."""
     return code[:7] + ("+changes" if code.endswith("+changes") else "")
@@ -78,12 +72,19 @@ def _duration(seconds: float) -> str:
 
 
 def records(model: str, *, smoke: bool = False) -> list[dict[str, Any]]:
-    directory = results_dir(model, smoke=smoke)
-    found = []
-    for path in sorted(directory.glob("*.json")):
-        if path.name != "leaderboard.json":
-            found.append(json.loads(path.read_text(encoding="utf-8")))
-    return found
+    """Every run record of a model, by run name."""
+    directory = paths.results(model, smoke=smoke)
+    return [
+        json.loads(path.read_text(encoding="utf-8"))
+        for path in sorted(directory.glob("*.json"))
+        if path.name not in NOT_RECORDS
+    ]
+
+
+def ranked(task: tasks.Task, runs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Records with the best first on the task's primary metric."""
+    sign = 1.0 if task.lower_is_better else -1.0
+    return sorted(runs, key=lambda run: sign * run["test"][task.primary]["value"])
 
 
 def build(model: str, *, smoke: bool = False) -> dict[str, Any]:
@@ -98,8 +99,7 @@ def build(model: str, *, smoke: bool = False) -> dict[str, Any]:
             f"{model}'s runs read different builds of the data: {', '.join(stale)}. "
             "Train the stale ones again so every row of the leaderboard reads the same test rows"
         )
-    sign = 1.0 if task.lower_is_better else -1.0
-    runs.sort(key=lambda run: sign * run["test"][task.primary]["value"])
+    runs = ranked(task, runs)
     reference = next((run for run in runs if run["run"] == task.reference), None)
     entries = []
     for run in runs:
@@ -139,7 +139,7 @@ def build(model: str, *, smoke: bool = False) -> dict[str, Any]:
     best = runs[0]
     if "test_calibration" in best:
         board["calibration"] = {"run": best["run"], "bins": best["test_calibration"]}
-    directory = results_dir(model, smoke=smoke)
+    directory = paths.results(model, smoke=smoke)
     (directory / "leaderboard.json").write_text(json.dumps(board, indent=2) + "\n", encoding="utf-8")
     (directory / "leaderboard.md").write_text(markdown(board), encoding="utf-8")
     return board
@@ -186,22 +186,22 @@ def markdown(board: dict[str, Any]) -> str:
             + " | ".join(_number(run["test"][name]["value"]) for name in others)
             + f" | {shown} | {parameters} | {device} | {_duration(run['seconds'])} |"
         )
-    bands = sorted({band for run in board["runs"] for band in run["test_by_band"]}, key=_band_order)
+    names = sorted({band for run in board["runs"] for band in run["test_by_band"]}, key=bands.order)
     lines += [
         "",
         f"## {NAMES[primary]} by band",
         "",
-        "| Run | " + " | ".join(bands) + " |",
-        "|---|" + "---|" * len(bands),
+        "| Run | " + " | ".join(names) + " |",
+        "|---|" + "---|" * len(names),
     ]
     for run in board["runs"]:
         cells = [
             _number(run["test_by_band"][band][primary]) if band in run["test_by_band"] else "n/a"
-            for band in bands
+            for band in names
         ]
         lines.append(f"| `{run['run']}` | " + " | ".join(cells) + " |")
     first = board["runs"][0]["test_by_band"]
-    lines.append("| rows | " + " | ".join(f"{first[band]['rows']:,}" if band in first else "0" for band in bands) + " |")
+    lines.append("| rows | " + " | ".join(f"{first[band]['rows']:,}" if band in first else "0" for band in names) + " |")
     if "calibration" in board:
         lines += [
             "",
@@ -223,8 +223,8 @@ def readme_table() -> str:
         "| Model | Predicts | Best run | Score | Reference | Its score | Gain | Test rows |",
         "|---|---|---|---|---|---|---|---|",
     ]
-    for model in sorted(tasks.TASKS):
-        path = MODELS / model / "results" / "leaderboard.json"
+    for model in tasks.names():
+        path = paths.results(model) / "leaderboard.json"
         if not path.exists():
             continue
         board = json.loads(path.read_text(encoding="utf-8"))
@@ -249,7 +249,8 @@ def readme_table() -> str:
     return "\n".join(lines)
 
 
-def write_readme(path: Path = ROOT / "README.md") -> None:
+def write_readme(path: Path | None = None) -> None:
+    path = path or paths.ROOT / "README.md"
     text = path.read_text(encoding="utf-8")
     if START not in text or END not in text:
         raise ValueError(f"{path} has no {START} ... {END} block to write the leaderboards into")

@@ -1,8 +1,3 @@
-"""Models for chess danger, difficulty, and punishment."""
+"""The model lab of a chess coaching app: one harness that builds datasets from open games, trains a model's runs, scores them and looks closer at where each is right and wrong."""
 
-from .bands import rating_band
-from .winprob import eval_to_cp, mover_win_percent, win_percent
-
-__all__ = ["eval_to_cp", "mover_win_percent", "rating_band", "win_percent"]
-__version__ = "0.1.0"
-
+__version__ = "0.2.0"

@@ -1,0 +1,14 @@
+# What puzzle-difficulty is asked (src/chess_coach_models/tasks.py); its card says why.
+dataset: puzzles
+kind: regression
+label: rating
+unit: Lichess puzzle rating points
+primary: rmse
+reference: gbm-hand
+# The numbers every learner reads beside the board.
+context:
+  - solver_moves
+  - castle_own_king
+  - castle_own_queen
+  - castle_opp_king
+  - castle_opp_queen

@@ -73,14 +73,14 @@ weights, which every later one does.
 
 ## Version 0
 
-The lab's first hazard model is a LightGBM over 16 board features, trained on
-rated games of April 2019 with its own scripts
-([report](../../reports/blunder_hazard.md)). It showed that the size of the
-evaluation alone ranks blunders no better than chance and that a few board
-features do. Its data, features and split differ from the harness's, so its
-scores are not comparable with the leaderboard here. Its open questions carry
-over: ratings are Lichess's, so the chance needs calibrating for another
-site's ratings before the app can state it
+The lab's first hazard model was a LightGBM over sixteen board features,
+trained on rated games of April 2019 with its own scripts. It showed that the
+size of the evaluation alone ranks blunders no better than chance and that a
+few board features do. Its data, features and split differ from the harness's,
+so its scores are not comparable with the leaderboard here
+([`docs/history.md`](../../docs/history.md) has its report). Its open
+questions carry over: ratings are Lichess's, so the chance needs calibrating
+for another site's ratings before the app can state it
 ([#2](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/2)), and the
 hanging-piece feature is a proxy for a full exchange search
 ([#5](https://github.com/Aneesh-Pothuru/chess-coach-models/issues/5)).

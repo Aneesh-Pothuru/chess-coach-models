@@ -1,9 +1,10 @@
-"""The lab's command line: build a dataset, train a run, score a model.
+"""The lab's command line: build a dataset, train a run, score a model, look closer.
 
     lab data puzzles                         build datasets/puzzles.yaml
     lab train puzzle-difficulty gbm-hand     one run of one model
     lab eval puzzle-difficulty               the model's leaderboard
     lab all puzzle-difficulty                its data, every run this machine can train, its leaderboard
+    lab analyse puzzle-difficulty            the closer look, from its dataset and test predictions
     lab report                               the README's table, from the leaderboards
 
 ``--smoke`` everywhere uses the small dataset and writes under
@@ -13,13 +14,12 @@
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 import time
 
-from . import tasks
+from . import data, tasks
 from .data.store import dataset_dir, write_dataset
-from .train.run import recipe, run, run_config, run_names
+from .train.run import run, run_config, run_names
 
 
 def log(message: str) -> None:
@@ -27,19 +27,12 @@ def log(message: str) -> None:
 
 
 def build_data(dataset: str, *, smoke: bool, source: str | None, workers: int | None, rebuild: bool) -> None:
-    plan = recipe(dataset, smoke=smoke)
+    plan = data.recipe(dataset, smoke=smoke)
     manifest_path = dataset_dir(plan["name"]) / "manifest.json"
     if manifest_path.exists() and not rebuild:
         log(f"{plan['name']} is already built ({manifest_path}); --rebuild builds it again")
         return
-    if plan["builder"] == "puzzles":
-        from .data.puzzles import build
-    elif plan["builder"] == "game_positions":
-        from .data.positions import build
-    elif plan["builder"] == "tactics":
-        from .data.tactics import build
-    else:
-        raise ValueError(f"no builder named {plan['builder']!r}")
+    build = data.builder(plan["builder"])
     started = time.time()
     rows, tokens, marks, manifest = build(plan, source=source, workers=workers, log=log)
     manifest["build_seconds"] = round(time.time() - started, 1)
@@ -59,30 +52,36 @@ def can_train(model: str, name: str, *, smoke: bool) -> bool:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="lab", description=__doc__.splitlines()[0])
     commands = parser.add_subparsers(dest="command", required=True)
+    models = tasks.names()
 
-    data = commands.add_parser("data", help="build a dataset from its recipe in datasets/")
-    data.add_argument("dataset")
-    data.add_argument("--source", help="a local copy of the source file, instead of its URL")
-    data.add_argument("--workers", type=int)
-    data.add_argument("--rebuild", action="store_true")
+    build = commands.add_parser("data", help="build a dataset from its recipe in datasets/")
+    build.add_argument("dataset")
+    build.add_argument("--source", help="a local copy of the source file, instead of its URL")
+    build.add_argument("--workers", type=int)
+    build.add_argument("--rebuild", action="store_true")
 
     train = commands.add_parser("train", help="train and score one run")
-    train.add_argument("model", choices=sorted(tasks.TASKS))
+    train.add_argument("model", choices=models)
     train.add_argument("run")
     train.add_argument("--device")
 
     evaluate = commands.add_parser("eval", help="write a model's leaderboard from its runs")
-    evaluate.add_argument("model", choices=sorted(tasks.TASKS))
+    evaluate.add_argument("model", choices=models)
 
     everything = commands.add_parser("all", help="a model's data, its runs and its leaderboard")
-    everything.add_argument("model", choices=sorted(tasks.TASKS))
+    everything.add_argument("model", choices=models)
     everything.add_argument("--runs", help="comma-separated run names; default every config this machine can train")
     everything.add_argument("--source")
     everything.add_argument("--workers", type=int)
     everything.add_argument("--device")
 
+    closer = commands.add_parser(
+        "analyse", help="write a model's closer look from its dataset and test predictions, where both are"
+    )
+    closer.add_argument("model", choices=models)
+
     commands.add_parser("report", help="write the README's leaderboard table")
-    for command in (data, train, evaluate, everything):
+    for command in (build, train, evaluate, everything, closer):
         command.add_argument("--smoke", action="store_true")
 
     args = parser.parse_args(argv)
@@ -91,12 +90,12 @@ def main(argv: list[str] | None = None) -> int:
     elif args.command == "train":
         run(args.model, args.run, smoke=args.smoke, device=args.device, log=log)
     elif args.command == "eval":
-        from .evals.leaderboard import build
+        from .evals.leaderboard import build as leaderboard
 
-        board = build(args.model, smoke=args.smoke)
+        board = leaderboard(args.model, smoke=args.smoke)
         log(f"{args.model}: leaderboard of {len(board['runs'])} runs written")
     elif args.command == "all":
-        from .evals.leaderboard import build
+        from .evals.leaderboard import build as leaderboard
 
         build_data(tasks.get(args.model).dataset, smoke=args.smoke, source=args.source, workers=args.workers, rebuild=False)
         names = args.runs.split(",") if args.runs else run_names(args.model)
@@ -106,8 +105,15 @@ def main(argv: list[str] | None = None) -> int:
                 run(args.model, name, smoke=args.smoke, device=args.device, log=log)
             else:
                 log(f"{args.model}/{name}: needs a GPU, skipped on this machine")
-        build(args.model, smoke=args.smoke)
+        leaderboard(args.model, smoke=args.smoke)
         log(f"{args.model}: leaderboard written")
+    elif args.command == "analyse":
+        from .evals.analysis import analyse
+
+        look = analyse(args.model, smoke=args.smoke)
+        log(f"{args.model}: analysis of {len(look['runs'])} runs written, best {look['best']}")
+        for name, reason in look["skipped"].items():
+            log(f"{args.model}/{name}: left out, {reason}")
     elif args.command == "report":
         from .evals.leaderboard import write_readme
 

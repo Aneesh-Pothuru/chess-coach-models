@@ -1,0 +1,20 @@
+# What think-time is asked (src/chess_coach_models/tasks.py); its card says why.
+dataset: game-positions
+kind: regression
+label: log_spent
+unit: log(1 + seconds spent on the move)
+primary: mae
+reference: gbm-hand
+# The numbers every learner reads beside the board.
+context:
+  - mover_elo
+  - opponent_elo
+  - log_clock
+  - log_opponent_clock
+  - log_base
+  - increment
+  - ply
+  - castle_own_king
+  - castle_own_queen
+  - castle_opp_king
+  - castle_opp_queen

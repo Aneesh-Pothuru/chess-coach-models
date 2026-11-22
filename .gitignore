@@ -5,24 +5,15 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 .ruff_cache/
-.coverage
-htmlcov/
 
-data/raw/*
+# Built datasets (data/processed/<name>/) and local copies of a source (data/raw/). A recipe
+# builds the same rows on any machine.
+data/raw/
 data/processed/*
-!data/raw/.gitkeep
 !data/processed/.gitkeep
 
-artifacts/models/*
-!artifacts/models/.gitkeep
-artifacts/maia2/
 # What the harness writes beside a run's record: predictions, weights, logs, and every smoke run.
-artifacts/runs/
-artifacts/smoke/
-artifacts/smoke-runs/
-artifacts/logs/
-*.joblib
-*.bin
+artifacts/
 *.pt
 *.pth
 
@@ -30,10 +21,10 @@ artifacts/logs/
 .cache/
 private/
 
-# LaTeX's working files. A paper's paper.pdf and generated.tex are committed.
-projects/*/paper/*.aux
-projects/*/paper/*.fdb_latexmk
-projects/*/paper/*.fls
-projects/*/paper/*.log
-projects/*/paper/*.out
-projects/*/paper/*.synctex.gz
+# LaTeX's working files. A paper's paper.pdf and what its generator wrote are committed.
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz

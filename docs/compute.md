@@ -6,7 +6,7 @@ what it costs, and how long it takes.
 | Place | What it is | What runs there |
 |---|---|---|
 | Any machine, or a cloud session | A few CPU cores | Writing code, the tests, `--smoke` runs, and bridge scripts where the app's repository can be read |
-| The owner's desktop | A 16-thread CPU, no GPU worth using | Dataset builds, the constant and tree runs, CPU-sized networks, and a model's checks on the player's own games |
+| The owner's desktop | A 16-thread CPU, no GPU worth using | Dataset builds, the constant and tree runs, CPU-sized networks, the closer look at a model's results, and a model's checks on the player's own games |
 | Google Colab, opened from the desktop's browser | A rented GPU, paid in compute units | Transformer runs, runs marked `needs: cuda`, the coach narrator's teacher and fine-tune |
 
 ## The rules behind the table
@@ -50,6 +50,16 @@ lab report                       # the README's table
 
 `lab all` skips the runs marked `needs: cuda`. `--runs constant,gbm-context,gbm-hand,conv-small`
 keeps a first pass to the runs a CPU finishes quickly.
+
+The closer look runs here too, once a model's GPU runs are unzipped (below), because it needs the
+dataset and every run's test predictions on one machine:
+
+```bash
+lab analyse tactic-found         # writes models/tactic-found/results/analysis.json; commit it
+```
+
+It reads a run's predictions only when they are the ones its record scored on this machine's build
+of the data, and names the runs it left out and why.
 
 ## On Colab
 

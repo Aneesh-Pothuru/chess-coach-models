@@ -1,0 +1,84 @@
+"""A model's task and its analysis plan, read from its folder."""
+
+import pytest
+import yaml
+
+from chess_coach_models import paths, tasks
+from chess_coach_models.evals import analysis
+from chess_coach_models.evals.metrics import METRICS
+
+
+TASK = {
+    "dataset": "puzzles",
+    "kind": "regression",
+    "label": "rating",
+    "unit": "rating points",
+    "primary": "rmse",
+    "reference": "gbm-hand",
+    "context": ["solver_moves"],
+}
+
+
+def write_task(root, name, task):
+    folder = root / "models" / name
+    folder.mkdir(parents=True)
+    (folder / "task.yaml").write_text(yaml.safe_dump(task), encoding="utf-8")
+
+
+def test_every_model_with_a_task_has_the_runs_a_leaderboard_needs():
+    assert tasks.names() == sorted(path.parent.name for path in paths.models().glob("*/task.yaml"))
+    assert tasks.names()
+    for name in tasks.names():
+        task = tasks.get(name)
+        assert task.name == name and task.primary in METRICS[task.kind]
+        assert (paths.recipes() / f"{task.dataset}.yaml").exists()
+        runs = {path.stem for path in paths.configs(name).glob("*.yaml")}
+        assert {"constant", task.reference} <= runs
+        assert (paths.model(name) / "README.md").exists()
+
+
+def test_a_task_is_read_from_its_folder(temp_lab):
+    write_task(temp_lab.root, "tiny", {**TASK, "band": "level"})
+    task = tasks.get("tiny")
+    assert tasks.names() == ["tiny"]
+    assert (task.dataset, task.label, task.context, task.band) == ("puzzles", "rating", ("solver_moves",), "level")
+    assert task.lower_is_better and task.better(1.0, 2.0)
+
+
+def test_a_task_names_everything_and_nothing_else(temp_lab):
+    write_task(temp_lab.root, "short", {key: value for key, value in TASK.items() if key != "label"})
+    with pytest.raises(ValueError, match="it lacks label"):
+        tasks.get("short")
+    write_task(temp_lab.root, "long", {**TASK, "colour": "blue"})
+    with pytest.raises(ValueError, match="it has colour"):
+        tasks.get("long")
+    with pytest.raises(KeyError, match="no task named"):
+        tasks.get("absent")
+
+
+def test_a_task_is_ranked_by_a_metric_of_its_kind(temp_lab):
+    write_task(temp_lab.root, "odd", {**TASK, "kind": "ranking"})
+    with pytest.raises(ValueError, match="kind is one of"):
+        tasks.get("odd")
+    write_task(temp_lab.root, "mixed", {**TASK, "primary": "log_loss"})
+    with pytest.raises(ValueError, match="ranked by one of"):
+        tasks.get("mixed")
+
+
+def test_every_analysis_plan_asks_for_things_the_analysis_knows():
+    for name in tasks.names():
+        plan = analysis.plan(name)
+        assert set(plan) <= {"band", "describe", "label", "within", "slices", "grids", "examples"}, name
+        cuts = plan.get("slices", []) + [side for grid in plan.get("grids", []) for side in (grid["rows"], grid["columns"])]
+        for cut in cuts:
+            assert sum(kind in cut for kind in ("values", "edges", "tags")) == 1, (name, cut)
+            assert len(cut.get("labels", cut.get("values", []))) == len(cut.get("values", [])), (name, cut)
+        keys = ["band"] + [cut["key"] for cut in plan.get("slices", [])]
+        assert len(keys) == len(set(keys)), name
+        grids = [grid["key"] for grid in plan.get("grids", [])]
+        assert len(grids) == len(set(grids)), name
+
+
+def test_a_model_without_a_plan_is_asked_nothing_more(temp_lab):
+    write_task(temp_lab.root, "tiny", TASK)
+    assert analysis.plan("tiny") == {}
