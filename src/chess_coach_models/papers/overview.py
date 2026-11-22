@@ -50,8 +50,8 @@ KINDS = {
 }
 # What a learner is called where a change is said to be made under it.
 UNDER = {"gbm": "under the trees", "net": "under a network"}
-# A share of the training games in a key.
-SHARE_KEYS = {0.5: "half", 0.25: "quarter"}
+# A share of the training games in a key, or a multiple of them for a run on a larger build of the dataset.
+SHARE_KEYS = {4.0: "quadruple", 2.0: "double", 0.5: "half", 0.25: "quarter"}
 # The ladder from its floor up: the order a table names the runs a change was made in.
 LADDER = ("constant", "gbm-context", "gbm-hand", "conv-small", "transformer-small", "transformer-medium", "transformer-medium-hand")
 
@@ -210,17 +210,16 @@ def _rung(run: str) -> tuple[int, str]:
 
 
 def games(lab: Lab) -> dict[str, dict[float, dict[str, dict[str, Any]]]]:
-    """The games study across the models: the run a share of the games was taken from, then the share, then
-    the model, to the pair of the run on fewer games over the run on all of them. The larger share first."""
+    """The games study across the models: the run whose games were changed, then how many of them a run was
+    given (a share, or a multiple from a larger build of the dataset), then the model, to the pair of that
+    run over the run on all the games. The most games first."""
     found: dict[str, dict[float, dict[str, dict[str, Any]]]] = {}
     for name, src in lab.models.items():
-        for run in src.studies:
-            config = run["config"]
-            if config["study"] != "games" or config.get("base") is None:
-                continue
-            entry = changes.pair(src, run["run"], config["base"])
-            if entry is not None:
-                found.setdefault(config["base"], {}).setdefault(float(config["data"]["train_share"]), {})[name] = entry
+        for base, runs in changes.games_runs(src).items():
+            for share, run in runs:
+                entry = changes.pair(src, run["run"], base)
+                if entry is not None:
+                    found.setdefault(base, {}).setdefault(share, {})[name] = entry
     return {base: {part: found[base][part] for part in sorted(found[base], reverse=True)} for base in sorted(found, key=_rung)}
 
 
@@ -553,7 +552,8 @@ def _cell(lab: Lab, name: str, entry: dict[str, Any] | None) -> str:
 
 def games_table(lab: Lab) -> str | None:
     """The games study across the models: a model a row, and for each run the study was made on, the gain of
-    the run on a share of the training games over the run on all of them, on the one scale."""
+    the run on a share of the training games, or on a multiple of them, over the run on all of them, on the
+    one scale."""
     found = games(lab)
     if not found:
         return None
@@ -573,23 +573,28 @@ def games_table(lab: Lab) -> str | None:
     return tex.grouped(table, top, spans)
 
 
-def games_figure(lab: Lab) -> str | None:
-    """The same pairs with their intervals: a group a run and a share of its training games, a row a model."""
+def games_figure(lab: Lab, *, more: bool = False) -> str | None:
+    """The same pairs with their intervals: a group a run and a share of its training games, a row a model.
+    The runs on fewer games than the run they change are one figure and the runs on more (``more``) another,
+    since the two together are taller than a page."""
     groups = []
     for base, parts in games(lab).items():
         for part, entries in parts.items():
+            if (part > 1) != more:
+                continue
             rows = [
                 (said(name), *amounts, charts.run_colour(base))
                 for name, entry in entries.items()
                 if (amounts := on_step(lab.models[name], entry)) is not None
             ]
             if rows:
-                groups.append((f"{base} on {changes.share_words(part)} of the games", rows))
+                groups.append((f"{base} on {changes.games_words(part, 'the games')}", rows))
     if not groups:
         return None
     return charts.grouped_intervals(
         groups,
-        xlabel="Gain over the run on all the games, in hundredths of the reference's step (left of the line is worse)",
+        xlabel="Gain over the run on all the games, in hundredths of the reference's step "
+        + ("(right of the line is better)" if more else "(left of the line is worse)"),
         reference=0.0,
         code=False,
         width="0.5\\textwidth",
@@ -659,6 +664,7 @@ def blocks(lab: Lab, out: tex.Generated) -> None:
         "lab-changes-figure": changes_figure(lab),
         "lab-games": games_table(lab),
         "lab-games-figure": games_figure(lab),
+        "lab-games-more-figure": games_figure(lab, more=True),
         "lab-features": features_table(lab),
         "lab-cost": cost_table(lab),
         "lab-waiting": waiting_table(lab),
@@ -685,7 +691,8 @@ def generate(*, smoke: bool = False) -> tuple[Lab, tex.Generated]:
 def switches(lab: Lab) -> dict[str, bool]:
     """What the lab's prose may ask before it reads: whether a model is still waiting for its runs, whether
     a kind of change has a pair measured in some model, whether a model has runs of the games or the features
-    study, and whether any has a study run at all."""
+    study, whether any has a study run at all, and whether any has a run on more games than the run it
+    changes (``more``)."""
     measured = {key for key, _ in kinds(lab)}
     studied = {run["config"]["study"] for src in lab.models.values() for run in src.studies}
     return {
@@ -693,6 +700,7 @@ def switches(lab: Lab) -> dict[str, bool]:
         **{f"change{short}": short in measured for short, _ in KINDS.values()},
         **{study: study in studied for study in STUDIES},
         "studies": bool(studied),
+        "more": any(changes.more(src) for src in lab.models.values()),
     }
 
 

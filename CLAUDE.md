@@ -101,6 +101,12 @@ answer that is a set" and "An answer that is a move"). Its card says so.
   kept (fewer training games, a group of hand features left out), also names
   its `study`: it stays off the ranking and out of the README's table, and
   `lab analyse` sets it against its base.
+- A run can train on a larger build of its task's dataset
+  (`data: {train_on: puzzles-all}`, a recipe that is `of` the task's own and
+  keeps more of the same source). It is scored on the task's own valid and
+  test rows, so it is a candidate like any other, and a network on it is given
+  fewer epochs so that it takes as many steps as the run it changes. One that
+  is not kept is filed under the `games` study.
 - A network that starts from another run's body (`learner.init`) is trained
   on the machine that trained that run, after it: the weights are read from
   `artifacts/runs/`, and `lab all` skips the run until they are there.

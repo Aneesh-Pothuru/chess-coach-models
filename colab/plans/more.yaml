@@ -1,0 +1,14 @@
+# The games study turned round: each model's reference trees and its medium transformer with hand
+# features on twice and on four times the training games, from a larger build of its dataset, each
+# scored on the valid and test rows the model has now. `lab all` builds the three larger builds
+# before the runs that train on them: every puzzle that passes (`puzzles-all`), 120,000 games of the
+# month (`game-positions-120k`) and all fourteen files of the puzzles joined to their games
+# (`tactics-all`). A network goes through a larger build less often, so it takes as many steps as
+# the run it changes. Tactic found has the doubling only: its own build already reads half of its
+# source. Each model's gbm-hand is trained again first, since every run is compared with the one
+# trained on its own machine. About two and a half hours on an A100.
+puzzle-difficulty: gbm-hand,gbm-hand-double,gbm-hand-quadruple,transformer-medium-hand-double,transformer-medium-hand-quadruple
+blunder-hazard: gbm-hand,gbm-hand-double,gbm-hand-quadruple,transformer-medium-hand-double,transformer-medium-hand-quadruple
+think-time: gbm-hand,gbm-hand-double,gbm-hand-quadruple,transformer-medium-hand-double,transformer-medium-hand-quadruple
+practical-chances: gbm-hand,gbm-hand-double,gbm-hand-quadruple,transformer-medium-hand-double,transformer-medium-hand-quadruple
+tactic-found: gbm-hand,gbm-hand-double,transformer-medium-hand-double

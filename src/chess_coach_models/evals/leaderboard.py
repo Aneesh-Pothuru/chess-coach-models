@@ -59,7 +59,15 @@ def _span(entry: dict[str, float]) -> str:
 
 
 def learner_words(record: dict[str, Any]) -> str:
-    """A run's learner in a few words, from its record's config."""
+    """A run's learner in a few words, from its record's config, and the larger build it trained on where it
+    did not train on the dataset's own rows."""
+    more = record.get("train_dataset")
+    if more is None:
+        return _learner_words(record)
+    return f"{_learner_words(record)}; trained on {record['train_rows']:,} rows of the larger build `{more['dataset']}`"
+
+
+def _learner_words(record: dict[str, Any]) -> str:
     learner = record["config"]["learner"]
     if learner["kind"] == "constant":
         if record["task"]["kind"] in SETS:

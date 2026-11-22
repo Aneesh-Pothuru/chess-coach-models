@@ -18,7 +18,8 @@ from chess_coach_models.data import store  # noqa: E402
 from chess_coach_models.encode.hand import GROUPS  # noqa: E402
 from chess_coach_models.evals import analysis, calibration, leaderboard  # noqa: E402
 from chess_coach_models.papers import build as papers  # noqa: E402
-from chess_coach_models.papers import overview, tex  # noqa: E402
+from chess_coach_models.papers import changes, overview, tex  # noqa: E402
+from chess_coach_models.papers.sources import run_cell  # noqa: E402
 from chess_coach_models.train import run as runs  # noqa: E402
 
 
@@ -268,7 +269,7 @@ def test_the_lab_s_paper_reads_every_model_under_its_name_and_lists_one_that_wai
     assert list(whole.models) == [model] and list(whole.waiting) == [waiting]
     assert overview.switches(whole) == {
         "waiting": True, "changehand": True, "changeepochs": False, "changestart": False, "games": False, "features": False,
-        "studies": False,
+        "studies": False, "more": False,
     }  # fmt: skip
     # Everything a model's own paper can read is there under the model's name.
     _, own = papers.generate(model, smoke=True)
@@ -354,6 +355,162 @@ def test_study_runs_train_on_what_their_config_changes_and_are_listed_apart(lab,
     assert set(pairs) >= {(name, config["base"]) for name, config in STUDIES.items()}
     assert all(pairs[name, config["base"]]["gain"] is not None for name, config in STUDIES.items())
     assert pairs["gbm-hand-no-line", "gbm-hand"]["study"] == "features"
+
+
+# A larger build of the test recipe: the same source, filters and split, and every puzzle where the other keeps half.
+LARGER = {**RECIPE, "name": "puzzles-all-test", "of": "puzzles"}
+# Runs that train on it: the trees on all of its training games and on three quarters of them, and a network.
+MORE = {
+    "gbm-hand-double": {"base": "gbm-hand", "data": {"train_on": "puzzles-all"}},
+    "gbm-hand-more": {"base": "gbm-hand", "data": {"train_on": "puzzles-all", "train_share": 0.75}},
+    "transformer-small-double": {"base": "transformer-small", "data": {"train_on": "puzzles-all"}, "train": {"epochs": 1}},
+}
+# And a run of the games study beside them, on half of the dataset's own training games.
+FEWER = {"gbm-hand-half": {"base": "gbm-hand", "study": "games", "data": {"train_share": 0.5}}}
+
+
+@pytest.fixture()
+def larger_lab(temp_lab, tmp_path):
+    """A lab whose puzzles dataset keeps half of the fixture and has a larger build that keeps all of it. It
+    gives the compressed source both are built from."""
+    compressed = tmp_path / "puzzles.csv.zst"
+    compressed.write_bytes(zstandard.ZstdCompressor().compress(FIXTURE.read_bytes()))
+    temp_lab.recipe("puzzles", {**RECIPE, "sample": 0.5})
+    temp_lab.recipe("puzzles-all", LARGER)
+    temp_lab.model("puzzle-difficulty", {**CONFIGS, **MORE, **FEWER})
+    return compressed
+
+
+def test_a_run_trains_on_a_larger_build_and_is_scored_on_the_rows_every_run_is(larger_lab):
+    model = "puzzle-difficulty"
+    names = ["gbm-hand", "constant", "transformer-small", *MORE, *FEWER]
+    # `lab all` builds the larger build its runs name, from the same source, before any run.
+    assert cli.main(["all", model, "--smoke", "--runs", ",".join(names), "--source", str(larger_lab), "--workers", "2"]) == 0
+    own, larger = store.read_dataset("puzzles-test-smoke"), store.read_dataset("puzzles-all-test-smoke")
+    assert len(larger.rows) > len(own.rows) and set(own.rows["key"]) < set(larger.rows["key"])
+    records = {name: json.loads((paths.results(model, smoke=True) / f"{name}.json").read_text()) for name in names}
+    base, more, some = records["gbm-hand"], records["gbm-hand-double"], records["gbm-hand-more"]
+    # The build a run is scored on is its task's own, and the record names the one it trained on beside it.
+    assert more["dataset"] == base["dataset"] and "train_dataset" not in base
+    assert more["train_dataset"]["dataset"] == "puzzles-all-test-smoke"
+    assert more["train_dataset"]["fingerprint"] == larger.manifest["fingerprint"] != own.manifest["fingerprint"]
+    assert more["train_rows"] == len(larger.split("train")) > base["train_rows"] == len(own.split("train"))
+    assert base["train_rows"] < some["train_rows"] < more["train_rows"]
+    assert (more["test_rows"], more["test_groups"]) == (base["test_rows"], base["test_groups"])
+    # Its predictions line up row for row with every other run's, so it is compared with the reference.
+    said = {name: pl.read_parquet(paths.predictions(model, name, smoke=True)) for name in names}
+    for name in MORE:
+        assert said[name]["key"].to_list() == said["gbm-hand"]["key"].to_list() == own.rows["key"][own.split("test")].to_list()
+        assert said[name]["y"].to_list() == said["gbm-hand"]["y"].to_list()
+        assert records[name]["gain"]["reference"] == "gbm-hand"
+    # No game it trained on is a game the model is scored on.
+    games = larger.manifest["group"]
+    scored = set(own.rows[games].gather(own.split("valid")).to_list()) | set(own.rows[games].gather(own.split("test")).to_list())
+    assert scored and not scored & set(larger.rows[games].gather(larger.split("train")).to_list())
+    # A run on more games may be the one to keep, so it is a run of the model's own: ranked, with its weights.
+    assert [entry["file"] for entry in more["weights"]] == ["model.txt"]
+    assert [entry["file"] for entry in records["transformer-small-double"]["weights"]] == ["model.pt"]
+    board = leaderboard.build(model, smoke=True)
+    assert {entry["run"] for entry in board["runs"]} == set(names) - set(FEWER) and list(board["studies"]) == ["games"]
+    words = {entry["run"]: entry["learner"] for entry in board["runs"]}
+    assert words["gbm-hand-double"] == (
+        f"LightGBM, context and hand features; trained on {more['train_rows']:,} rows of the larger build `puzzles-all-test-smoke`"
+    )
+    assert "larger build" not in words["gbm-hand"]
+    # The closer look reads it like any run and sets it against the run it changes.
+    look = analysis.analyse(model, smoke=True)
+    assert set(look["runs"]) == set(names) - set(FEWER) and not look["skipped"]
+    pairs = {(pair["run"], pair["over"]): pair for pair in look["pairs"]}
+    assert all(pairs[name, config["base"]]["gain"] is not None for name, config in MORE.items())
+
+    # A paper sets it in the games study: above the run on all the games, by how many games it was given.
+    src, out = papers.generate(model, smoke=True)
+    known, found = changes.records(src), changes.games_runs(src)
+    assert [run["run"] for _, run in found["gbm-hand"]] == ["gbm-hand-double", "gbm-hand-more", "gbm-hand-half"]
+    assert [run["run"] for _, run in found["transformer-small"]] == ["transformer-small-double"]
+    (twice, some, half), (other,) = ([share for share, _ in found[base]] for base in ("gbm-hand", "transformer-small"))
+    assert twice == changes.multiple(known["gbm-hand-double"], known["gbm-hand"]) > some > 1 > half == 0.5 and other > 1
+    table = out.files["study-games"]
+    order = [table.index(f"{run_cell(name)} &") for name in ("gbm-hand-double", "gbm-hand-more", "gbm-hand", "gbm-hand-half")]
+    # A run whose base has no run on fewer games has no curve to stand on: it is among the pairs only.
+    assert order == sorted(order) and f"& {changes.share_words(twice)} &" in table
+    assert run_cell("transformer-small-double") not in table
+    assert out.values["study.games.gbm-hand.runs"] == "one"
+    assert out.values["more.gbm-hand.runs"] == "two" and out.values["more.transformer-small.runs"] == "one"
+    assert "gbm-hand-double" in out.values["more.gbm-hand.most.run"] and out.values["more.gbm-hand.most"] == changes.share_words(twice)
+    assert out.values["more.gbm-hand.most.rows"] == tex.count(more["train_rows"])
+    assert out.values["more.gbm-hand.most.kept"] == out.values["pair.gbm-hand-double.gbm-hand.kept"]
+    assert out.values["pair.gbm-hand-double.gbm-hand.differs"] == (
+        f"trains on {changes.games_words(twice)}, from the larger build \\texttt{{puzzles-all}}"
+    )
+    assert out.values["pair.transformer-small-double.transformer-small.differs"].endswith("; 1 epochs for 2")
+    switches = papers.switches(src, out)
+    assert switches["more"] and switches["games"] and switches["pairs"]
+    # And the lab's paper sets it beside the other models' in the same study.
+    whole, lab_out = overview.generate(smoke=True)
+    assert overview.switches(whole)["more"]
+    assert {base: list(parts) for base, parts in overview.games(whole).items()} == {"gbm-hand": [twice, some, 0.5], "transformer-small": [other]}
+    assert f"& {changes.share_words(twice).capitalize()} &" in lab_out.files["lab-games"]
+    assert "times the games" in lab_out.files["lab-games-more-figure"] and "times the games" not in lab_out.files["lab-games-figure"]
+
+
+def test_a_larger_build_has_to_hold_the_rows_a_run_is_scored_on_as_they_are(larger_lab, temp_lab):
+    from chess_coach_models import data
+    from chess_coach_models.train.learners import prepare
+
+    model = "puzzle-difficulty"
+    task = tasks.get(model)
+    for dataset in ("puzzles", "puzzles-all"):
+        cli.build_data(dataset, smoke=True, source=str(larger_lab), workers=2, rebuild=False)
+    own, larger = store.read_dataset("puzzles-test-smoke"), store.read_dataset("puzzles-all-test-smoke")
+    prepared = prepare(task, larger, scored=own)
+    for split, held in (("valid", prepared.valid), ("test", prepared.test)):
+        assert larger.rows["key"].gather(held).to_list() == own.rows["key"].gather(own.split(split)).to_list()
+    assert prepared.train.tolist() == larger.split("train").tolist()
+    assert len(prepare(task, larger, scored=own, train_share=0.5).train) < len(prepared.train)
+
+    def changed(rows: pl.DataFrame, keep=None) -> store.Dataset:
+        """The larger build with other rows, or with some of its rows left out."""
+        keep = list(range(len(rows))) if keep is None else keep
+        return store.Dataset("changed", rows[keep], larger.tokens[keep], larger.marks[keep], larger.manifest)
+
+    rows, key = larger.rows, own.rows["key"]
+    a_test, a_train = key[int(own.split("test")[0])], key[int(own.split("train")[0])]
+    place = {name: index for index, name in enumerate(rows["key"].to_list())}
+    without = lambda name: [index for index in range(len(rows)) if index != place[name]]  # noqa: E731
+    with pytest.raises(ValueError, match="it lacks 1 of its .* test rows"):
+        prepare(task, changed(rows, without(a_test)), scored=own)
+    with pytest.raises(ValueError, match="it lacks 1 of its .* training rows"):
+        prepare(task, changed(rows, without(a_train)), scored=own)
+    moved = rows.with_columns(pl.when(pl.col("key") == a_test).then(pl.lit("train")).otherwise(pl.col("split")).alias("split"))
+    with pytest.raises(ValueError, match="do not hold the same boards, marks and games in the same split"):
+        prepare(task, changed(moved), scored=own)
+    game = rows["game_id"][place[a_test]]
+    shared = rows.with_columns(pl.when(pl.col("key") == a_train).then(pl.lit(game)).otherwise(pl.col("game_id")).alias("game_id"))
+    with pytest.raises(ValueError, match="trains on a game that puzzles-test-smoke keeps for its valid or test rows"):
+        prepare(task, changed(shared), scored=own)
+    relabelled = rows.with_columns(pl.when(pl.col("key") == a_test).then(pl.col("rating") + 1).otherwise(pl.col("rating")).alias("rating"))
+    with pytest.raises(ValueError, match="do not agree on the label, the context numbers or the hand features"):
+        prepare(task, changed(relabelled), scored=own)
+    # A hand feature is read by the trees on those rows, so it is held to the same.
+    feature = next(name for name in larger.manifest["hand"] if name not in task.context)
+    recounted = rows.with_columns(pl.when(pl.col("key") == a_test).then(pl.col(feature) + 1).otherwise(pl.col(feature)).alias(feature))
+    with pytest.raises(ValueError, match="do not agree on the label, the context numbers or the hand features"):
+        prepare(task, changed(recounted), scored=own)
+
+    # A recipe is a larger build only when it changes nothing but how much of the source it keeps.
+    assert data.larger_of("puzzles-all", smoke=True) == "puzzles" and data.larger_of("puzzles", smoke=True) is None
+    temp_lab.recipe("puzzles-other", {**LARGER, "split": {**RECIPE["split"], "salt": "another"}})
+    with pytest.raises(ValueError, match="differs from it in split"):
+        data.larger_of("puzzles-other")
+    temp_lab.recipe("puzzles-further", {**LARGER, "of": "puzzles-all"})
+    with pytest.raises(ValueError, match="which is itself a larger build of puzzles"):
+        data.larger_of("puzzles-further")
+    # And a run trains only on a larger build of its own task's dataset.
+    temp_lab.model(model, {**CONFIGS, "gbm-hand-other": {"base": "gbm-hand", "data": {"train_on": "puzzles"}}})
+    runs.run(model, "gbm-hand", smoke=True, log=lambda _: None)
+    with pytest.raises(ValueError, match="trains on puzzles, which is not a larger build of puzzles"):
+        runs.run(model, "gbm-hand-other", smoke=True, log=lambda _: None)
 
 
 def test_the_lab_s_paper_reads_the_two_studies_across_its_models(lab, temp_lab):

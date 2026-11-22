@@ -3,7 +3,7 @@
 import pytest
 import yaml
 
-from chess_coach_models import paths, tasks
+from chess_coach_models import data, paths, tasks
 from chess_coach_models.encode.hand import GROUPS
 from chess_coach_models.evals import analysis
 from chess_coach_models.evals.metrics import METRICS
@@ -138,6 +138,48 @@ def test_a_run_that_changes_another_names_a_run_the_model_has():
             assert config.get("base", run) in configs, (name, run)
             assert set(config.get("learner", {}).get("without", [])) <= set(GROUPS), (name, run)
             assert 0 < config.get("data", {}).get("train_share", 0.5) < 1, (name, run)
+            # A run that trains on a larger build names one of its own task's dataset.
+            more = config.get("data", {}).get("train_on")
+            assert more is None or data.larger_of(more) == tasks.get(name).dataset, (name, run)
+
+
+def test_every_colab_plan_names_models_and_runs_the_lab_has():
+    plans = sorted((paths.ROOT / "colab" / "plans").glob("*.yaml"))
+    assert plans
+    for plan in plans:
+        for name, asked in yaml.safe_load(plan.read_text(encoding="utf-8")).items():
+            assert name in tasks.names(), (plan.name, name)
+            if not asked:
+                continue
+            configs = {path.stem: yaml.safe_load(path.read_text(encoding="utf-8")) for path in paths.configs(name).glob("*.yaml")}
+            studies = {config.get("study") for config in configs.values()} - {None}
+            runs = asked.split(",")
+            for run in runs:
+                known = run.removeprefix("study:") in studies if run.startswith("study:") else run in configs
+                assert known, (plan.name, name, run)
+            # Every other run is compared with the reference trained on the same machine, so it comes first.
+            assert runs[0] == tasks.get(name).reference and len(set(runs)) == len(runs), (plan.name, name)
+
+
+def test_a_larger_build_of_a_dataset_changes_only_how_much_of_the_source_it_keeps():
+    larger = {path.stem: data.larger_of(path.stem) for path in paths.recipes().glob("*.yaml")}
+    assert {name: other for name, other in larger.items() if other} == {
+        "puzzles-all": "puzzles",
+        "game-positions-120k": "game-positions",
+        "tactics-all": "tactics",
+    }
+    for name, other in larger.items():
+        if other is None:
+            continue
+        # The small sample a check runs on is a larger build of the other's small sample too.
+        assert data.larger_of(name, smoke=True) == other
+        ours, theirs = data.recipe(name), data.recipe(other)
+        assert ours["name"] != theirs["name"] and ours["split"] == theirs["split"]
+        assert any(ours[size] > theirs[size] for size in data.SIZES if size in ours and size in theirs), name
+        assert all(ours[size] >= theirs[size] for size in data.SIZES if size in ours and size in theirs), name
+        small_ours, small_theirs = data.recipe(name, smoke=True), data.recipe(other, smoke=True)
+        assert all(small_ours[size] >= small_theirs[size] for size in data.SIZES if size in small_ours and size in small_theirs), name
+        assert any(small_ours[size] > small_theirs[size] for size in data.SIZES if size in small_ours and size in small_theirs), name
 
 
 def test_every_analysis_plan_asks_for_things_the_analysis_knows():

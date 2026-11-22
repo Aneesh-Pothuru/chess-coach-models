@@ -51,6 +51,10 @@ Written before the first full run.
 | `transformer-medium-hand-long` | `transformer-medium-hand` with twice the epochs |
 | `transformer-medium-pretrained` | `transformer-medium` started from the body of [position evaluation](../position-evaluation/) |
 | `transformer-medium-hand-pretrained` | `transformer-medium-hand` started from the same body |
+| `gbm-hand-double` | `gbm-hand` on twice the training games, from the larger build `game-positions-120k` of the dataset |
+| `gbm-hand-quadruple` | `gbm-hand` on four times the training games, from the same build |
+| `transformer-medium-hand-double` | `transformer-medium-hand` on twice the training games, with half the epochs so that it takes as many steps |
+| `transformer-medium-hand-quadruple` | `transformer-medium-hand` on four times the training games, with a quarter of the epochs |
 | `conv-medium-hand` | `transformer-medium-hand` with its body changed to a convolutional tower of about its size, each block weighing its channels by the whole board |
 | `hybrid-medium-hand` | `transformer-medium-hand` with its body changed to two blocks of the tower under five transformer layers |
 | `transformer-medium-attacks` | `transformer-medium` with its attention told what each piece attacks and what it stands behind |
@@ -61,6 +65,15 @@ The last four change only the body of the run they name
 [`docs/ideas.md`](../../docs/ideas.md) says what was expected of them before
 they ran. Each is kept only if it beats the run it changes on valid and on
 test beyond the noise.
+
+The four runs on more games (`-double`, `-quadruple`) take their training rows
+from [`game-positions-120k`](../../datasets/game-positions-120k.yaml), a larger
+build of the dataset, and are scored on the valid and test rows every run here
+is scored on ([`docs/design.md`](../../docs/design.md), "A run on more games").
+They are the `games` study below turned round, and
+[`docs/ideas.md`](../../docs/ideas.md) says what was expected of them before
+they ran. Each is kept only if it beats the run it changes on valid and on test
+beyond the noise.
 
 ### Studies
 

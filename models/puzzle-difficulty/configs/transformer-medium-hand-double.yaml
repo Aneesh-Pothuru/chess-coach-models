@@ -1,0 +1,11 @@
+# The medium transformer with hand features on twice the training games: half of the training games
+# of the larger build `puzzles-all`. It goes through them half as often, so it takes as many steps as
+# the run it changes and only the number of games differs. Patience is as near the same in steps as
+# whole epochs allow.
+base: transformer-medium-hand
+data:
+  train_on: puzzles-all
+  train_share: 0.5
+train:
+  epochs: 6
+  patience: 2

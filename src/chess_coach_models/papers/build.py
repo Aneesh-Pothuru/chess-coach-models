@@ -12,7 +12,8 @@ What stands inside a switch that is off waits: ``\\iflook ... \\fi`` for the
 closer look, so a paper can be drawn before ``lab analyse`` has run where the
 predictions are, and ``\\ifpairs``, ``\\ifvariants``, ``\\ifgames`` and
 ``\\iffeatures`` for runs a model may not have yet, with ``\\ifchanges`` for
-any of the four, and ``\\ifshown`` and ``\\ifshownpaired`` for a model read
+any of the four, ``\\ifmore`` for a run on more games than the run it changes,
+and ``\\ifshown`` and ``\\ifshownpaired`` for a model read
 against the one that is shown more (``switches``). And a smoke
 build (``--smoke``) draws the same prose from the small check's records under
 ``artifacts/smoke-papers/``, printing a mark where the check has no such run:
@@ -63,7 +64,14 @@ def switches(src: Sources, out: tex.Generated) -> dict[str, bool]:
         "features": "study-features" in out.files,
     }
     beside = {"shown": "shown" in out.files, "shownpaired": bool(shown.measured(src))}
-    return {"look": src.look is not None, "chance": src.task.kind == "binary", **found, "changes": any(found.values()), **beside}
+    return {
+        "look": src.look is not None,
+        "chance": src.task.kind == "binary",
+        **found,
+        "changes": any(found.values()),
+        "more": bool(changes.more(src)),
+        **beside,
+    }
 
 
 def firm(text: str, flags: dict[str, bool]) -> str:

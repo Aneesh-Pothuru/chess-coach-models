@@ -98,8 +98,14 @@ class Sources:
 
     def variants(self, run: dict[str, Any]) -> list[dict[str, Any]]:
         """The networks that change one thing in a run (more epochs, another start): the ones on the
-        leaderboard, then the ones that were filed."""
-        ranked = [other for other in self.networks if other is not run and charts.family(other["run"]) == run["run"]]
+        leaderboard, then the ones that were filed. A run that trained on a larger build of the dataset is
+        not one of them: its epoch is longer than the run's, so the two share no epoch to be read by, and it
+        stands in the games study."""
+        ranked = [
+            other
+            for other in self.networks
+            if other is not run and charts.family(other["run"]) == run["run"] and "train_dataset" not in other
+        ]
         filed = [other for other in self.filed if other["config"].get("base") == run["run"] and other["config"]["learner"]["kind"] == "net"]
         return ranked + filed
 

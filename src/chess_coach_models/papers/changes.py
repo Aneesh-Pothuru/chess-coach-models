@@ -29,8 +29,12 @@ from . import charts, glossary, tex
 from .sources import METRIC_NAMES, METRIC_WORDS, STUDIES, Sources, run_cell, run_tex
 
 
-# A share of the training games as prose and an axis say it.
-SHARES = {1.0: "all", 0.5: "half", 0.25: "a quarter"}
+# How many of the training games a run was given, beside the run it changes, as an axis and a table say it:
+# a share of them, or a multiple for a run that trains on a larger build of the dataset.
+SHARES = {4.0: "four times", 2.0: "twice", 1.0: "all", 0.5: "half", 0.25: "a quarter"}
+# What a run may change and still be one that changes only how many games it trains on: where its training
+# rows come from, and how often it goes through them, which a study changes to keep the steps the same.
+GAMES_SETTINGS = {("data", "train_on"), ("data", "train_share"), ("train", "epochs"), ("train", "patience")}
 
 
 def records(src: Sources) -> dict[str, dict[str, Any]]:
@@ -96,7 +100,73 @@ def kept(entry: dict[str, Any], ahead: float) -> bool:
 
 
 def share_words(share: float) -> str:
-    return SHARES.get(share, f"{tex.plain(round(100.0 * share, 4))}\\%")
+    """A share or a multiple of the training games by itself, as a table's cell or an axis says it."""
+    if share in SHARES:
+        return SHARES[share]
+    return f"{tex.plain(round(share, 2))} times" if share > 1 else f"{tex.plain(round(100.0 * share, 4))}\\%"
+
+
+def games_words(share: float, games: str = "the training games") -> str:
+    """The same with what it is a share of: ``half of the training games``, ``twice the training games``."""
+    if share == 1.0:
+        return f"all {games}"
+    return f"{share_words(share)} {games}" if share > 1 else f"{share_words(share)} of {games}"
+
+
+def multiple(run: dict[str, Any], base: dict[str, Any]) -> float | None:
+    """How many times the training rows of the run it changes a run on a larger build trained on, taken to
+    the nearest multiple an axis names when it is within a twentieth of one. Nothing for a run that trained
+    on the dataset's own rows."""
+    if run.get("train_dataset") is None or not run.get("train_rows"):
+        return None
+    ratio = run["train_rows"] / (base.get("train_rows") or base["dataset"]["splits"]["train"])
+    return next((share for share in SHARES if abs(ratio / share - 1.0) < 0.05), round(ratio, 2))
+
+
+def games_share(src: Sources, run: dict[str, Any]) -> float | None:
+    """How many of the training games of the run it changes a run was given: the share its config names, or
+    for a run on a larger build of the dataset the multiple its record gives."""
+    base = records(src).get(run["config"].get("base"))
+    if base is None:
+        return None
+    if run.get("train_dataset") is not None:
+        return multiple(run, base)
+    share = (run["config"].get("data") or {}).get("train_share")
+    return None if share is None else float(share)
+
+
+def games_runs(src: Sources) -> dict[str, list[tuple[float, dict[str, Any]]]]:
+    """The runs that change only how many games a run trains on, by the run each changes and from the most
+    games to the fewest: the games study's runs on a share of the training games, and any run that trains
+    on a larger build of the dataset, whether it is ranked or has been filed under the study. The
+    reference's come first."""
+    known = records(src)
+    found: dict[str, list[tuple[float, dict[str, Any]]]] = {}
+    for run in known.values():
+        base = known.get(run["config"].get("base"))
+        if base is None or run["config"].get("study") not in (None, "games"):
+            continue
+        settings = changed(run, base)
+        if not settings or not set(settings) <= GAMES_SETTINGS or not any(block == "data" for block, _ in settings):
+            continue
+        share = games_share(src, run)
+        if share is not None and share != 1.0:
+            found.setdefault(base["run"], []).append((share, run))
+    return {
+        base: sorted(runs, key=lambda item: -item[0])
+        for base, runs in sorted(found.items(), key=lambda item: (item[0] != src.task.reference, item[0]))
+    }
+
+
+def more(src: Sources) -> list[tuple[str, float, dict[str, Any], dict[str, Any]]]:
+    """The runs on more games than the run they change, with a measured pair: the run changed, the multiple,
+    the run and its pair."""
+    return [
+        (base, share, run, entry)
+        for base, runs in games_runs(src).items()
+        for share, run in runs
+        if share > 1 and (entry := pair(src, run["run"], base)) is not None
+    ]
 
 
 def _change(block: str, key: str, new: Any, old: Any) -> str:
@@ -113,7 +183,9 @@ def _change(block: str, key: str, new: Any, old: Any) -> str:
     if (block, key) == ("learner", "geometry"):
         return "its attention is not told the offsets between squares" if new is False else "its attention is told the offsets between squares"
     if (block, key) == ("data", "train_share"):
-        return f"trains on {share_words(float(new))} of the training games" if new is not None else "trains on all the training games"
+        return f"trains on {games_words(float(new))}" if new is not None else "trains on all the training games"
+    if (block, key) == ("data", "train_on"):
+        return "trains on the dataset's own rows" if new is None else f"trains on the larger build \\texttt{{{tex.esc(new)}}}"
     name = {"epochs": "epochs", "patience": "epochs of patience", "lr": "peak learning rate", "batch": "rows a batch"}.get(key)
     if block == "train" and name is not None and new is not None:
         number = tex.plain(new) if isinstance(new, (int, float)) else tex.esc(new)
@@ -153,7 +225,14 @@ def differs(run: dict[str, Any], other: dict[str, Any]) -> str:
             return f"its body is {BODIES.get(ours['body'], tex.esc(ours['body']))} for {BODIES.get(theirs['body'], tex.esc(theirs['body']))}"
         return f"{tex.plain(ours['depth'])} layers of width {tex.plain(ours['dim'])} for {tex.plain(theirs['depth'])} of width {tex.plain(theirs['dim'])}"
     ours, theirs = run["config"], other["config"]
-    said = [_change(block, key, (ours.get(block) or {}).get(key), (theirs.get(block) or {}).get(key)) for block, key in settings]
+    said = []
+    times = multiple(run, other) if ("data", "train_on") in settings else None
+    if times is not None:
+        # A larger build and the share of it a run takes are one change: how many games it trains on.
+        build = tex.esc(ours["data"]["train_on"])
+        said.append(f"trains on {games_words(times)}, from the larger build \\texttt{{{build}}}")
+        settings = [(block, key) for block, key in settings if (block, key) not in (("data", "train_on"), ("data", "train_share"))]
+    said += [_change(block, key, (ours.get(block) or {}).get(key), (theirs.get(block) or {}).get(key)) for block, key in settings]
     return "; ".join(said) if said else "nothing its config names"
 
 
@@ -185,7 +264,9 @@ def values(src: Sources, out: tex.Generated) -> None:
             if ahead is not None:
                 out.set(f"{prefix}.valid.gain", tex.sig(ahead, 3, sign=True))
                 out.set(f"{prefix}.valid.verdict", "better" if ahead > 0 else "no better")
-                if not tabled(entry):
+                # A study run is there to measure, not to be kept. A run on more games was tried as a run of
+                # the model's own, so the rule was read off it even where it has been filed under the study.
+                if not tabled(entry) or (games_share(src, known[entry["run"]]) or 0.0) > 1.0:
                     out.set(f"{prefix}.kept", "kept" if kept(entry, ahead) else "not kept")
     plain = [entry for entry in pairs(src) if not tabled(entry)]
     out.set("pairs.count", tex.word(len(plain)))
@@ -196,6 +277,10 @@ def values(src: Sources, out: tex.Generated) -> None:
         for base in sorted({run["config"].get("base") for run in runs} - {None}):
             measured = [(run, pair(src, run["run"], base)) for run in runs if run["config"].get("base") == base]
             measured = [(run, entry) for run, entry in measured if entry is not None]
+            if study == "games":
+                # The study's own question is what fewer games cost. A run on more games that was filed under
+                # it is counted with the runs on more games below.
+                measured = [(run, entry) for run, entry in measured if (games_share(src, run) or 0.0) < 1.0]
             inner = tex.key(prefix, base)
             out.set(f"{inner}.runs", tex.word(len(measured)))
             worse = [entry for _, entry in measured if entry["beyond_noise"] and entry["gain"] < 0]
@@ -211,6 +296,34 @@ def values(src: Sources, out: tex.Generated) -> None:
                     out.set(f"{inner}.{end}.run", run_tex(run["run"]))
                     out.set(f"{inner}.{end}.gain", tex.trio(entry["gain"], entry["low"], entry["high"])[0])
                     out.set(f"{inner}.{end}.verdict", verdict(entry))
+    more_values(src, out)
+
+
+def more_values(src: Sources, out: tex.Generated) -> None:
+    """What the runs on more games than the run they change give, under ``more.<run changed>``: how many
+    there are and how they came out, and the one on the most games by itself."""
+    known = records(src)
+    by_base: dict[str, list[tuple[float, dict[str, Any], dict[str, Any]]]] = {}
+    for base, share, run, entry in more(src):
+        by_base.setdefault(base, []).append((share, run, entry))
+    for base, found in by_base.items():
+        prefix = tex.key("more", base)
+        better = [entry for _, _, entry in found if entry["beyond_noise"] and entry["gain"] > 0]
+        worse = [entry for _, _, entry in found if entry["beyond_noise"] and entry["gain"] < 0]
+        out.set(f"{prefix}.runs", tex.word(len(found)))
+        out.set(f"{prefix}.better", tex.word(len(better)))
+        out.set(f"{prefix}.better.of", tex.of(len(better), len(found), "runs"))
+        out.set(f"{prefix}.worse", tex.word(len(worse)))
+        out.set(f"{prefix}.level", tex.word(len(found) - len(better) - len(worse)))
+        share, run, entry = max(found, key=lambda item: item[0])
+        out.set(f"{prefix}.most", share_words(share))
+        out.set(f"{prefix}.most.run", run_tex(run["run"]))
+        out.set(f"{prefix}.most.rows", tex.count(run["train_rows"]))
+        out.set(f"{prefix}.most.gain", tex.trio(entry["gain"], entry["low"], entry["high"])[0])
+        out.set(f"{prefix}.most.verdict", verdict(entry))
+        ahead = valid_gain(src, run, known[base])
+        if ahead is not None:
+            out.set(f"{prefix}.most.kept", "kept" if kept(entry, ahead) else "not kept")
 
 
 def pairs_table(src: Sources) -> str | None:
@@ -270,16 +383,20 @@ def _train_rows(run: dict[str, Any]) -> str:
 
 
 def games_table(src: Sources) -> str | None:
-    """The games study: each run trained on a share of the training games, under the run on all of them."""
+    """The games study: each run trained on a share of the training games, under the run on all of them, and
+    above that run any run trained on more of them, from a larger build of the dataset. A model has the
+    table once it has a run on fewer games."""
     known = records(src)
     rows = []
-    for base, runs in _study(src, "games").items():
-        if base not in known:
+    for base, runs in games_runs(src).items():
+        if not any(share < 1 for share, _ in runs):
             continue
-        rows.append([run_cell(base), "all", _train_rows(known[base]), _score(src, known[base]), "", ""])
-        for run in sorted(runs, key=lambda run: -float(run["config"]["data"]["train_share"])):
-            share = share_words(float(run["config"]["data"]["train_share"]))
-            rows.append([run_cell(run["run"]), share, _train_rows(run), _score(src, run), *_gain_cells(pair(src, run["run"], base))])
+        whole = [run_cell(base), "all", _train_rows(known[base]), _score(src, known[base]), "", ""]
+        cells = [
+            (share, [run_cell(run["run"]), share_words(share), _train_rows(run), _score(src, run), *_gain_cells(pair(src, run["run"], base))])
+            for share, run in runs
+        ]
+        rows += [row for share, row in cells if share > 1] + [whole] + [row for share, row in cells if share < 1]
     if not rows:
         return None
     # The run's name takes what the numbers leave of the page: a gain of six digits with its interval is wide.
@@ -288,14 +405,15 @@ def games_table(src: Sources) -> str | None:
 
 
 def games_figure(src: Sources) -> str | None:
-    """The games study as a learning curve: each run's score by the share of the training games it was given."""
+    """The games study as a learning curve: each run's score by how many of the training games it was given,
+    a share of them or, from a larger build, a multiple."""
     known = records(src)
-    series, shares = [], sorted(SHARES)
-    for base, runs in _study(src, "games").items():
-        if base not in known:
+    series, shares = [], sorted(share for share in SHARES if share <= 1)
+    for base, runs in games_runs(src).items():
+        if not any(share < 1 for share, _ in runs):
             continue
         points = {1.0: known[base]["test"][src.primary]["value"]}
-        points.update({float(run["config"]["data"]["train_share"]): run["test"][src.primary]["value"] for run in runs})
+        points.update({share: run["test"][src.primary]["value"] for share, run in runs})
         shares = sorted(set(shares) | set(points))
         series.append((base, points))
     if not series:
@@ -307,7 +425,7 @@ def games_figure(src: Sources) -> str | None:
     better = "lower" if src.task.lower_is_better else "higher"
     return charts.lines(
         drawn,
-        xlabel="Share of the training games",
+        xlabel="Training games, beside all the games of the dataset",
         ylabel=f"{METRIC_NAMES[src.primary]} on the test rows ({better} is better)",
         tick_labels=[share_words(share) for share in shares],
         width="0.5\\textwidth",

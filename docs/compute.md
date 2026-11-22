@@ -49,7 +49,10 @@ lab report                       # the README's table
 ```
 
 `lab all` skips the runs marked `needs: cuda`. `--runs constant,gbm-context,gbm-hand,conv-small`
-keeps a first pass to the runs a CPU finishes quickly.
+keeps a first pass to the runs a CPU finishes quickly. A run that trains on a larger build of the
+dataset (`gbm-hand-quadruple`) needs that build, which is several times the dataset's own, and
+`lab all` makes it before any run. The plan `more` does this on Colab, where the networks that
+train on the same build run.
 
 The closer look runs here too, once a model's GPU runs are unzipped (below), because it needs the
 dataset and every run's test predictions on one machine:
@@ -71,7 +74,8 @@ commands on the notebook's GPU. Its first cell names the models and the runs, or
 the models that have results, `pretrain` the body trained on engine evaluations and the runs that
 start from it, `sets` the two models whose answer is a set, `games` the first pass of game rating,
 `moves` the first pass of human moves beside Maia-2, `bodies-first` and `bodies-rest` the
-architecture test in two passes. Its last cell packs two zips and prints their hashes:
+architecture test in two passes, `more` the runs on twice and four times the training games, which
+build a larger build of each dataset first. Its last cell packs two zips and prints their hashes:
 `lab-results.zip`, the run records and leaderboards under `models/*/results/`, and `lab-runs.zip`,
 every run's trained weights and test predictions.
 

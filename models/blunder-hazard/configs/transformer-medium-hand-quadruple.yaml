@@ -1,0 +1,10 @@
+# The medium transformer with hand features on four times the training games: the training rows of
+# the larger build `game-positions-120k`. It goes through them a quarter as often, so it takes as many steps as
+# the run it changes and only the number of games differs. Patience is as near the same in steps as
+# whole epochs allow.
+base: transformer-medium-hand
+data:
+  train_on: game-positions-120k
+train:
+  epochs: 3
+  patience: 1

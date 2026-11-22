@@ -83,6 +83,14 @@ contains the smaller one.
 sides of it. Puzzles are grouped by the game they were cut from. The same grouping is used when a
 score's noise is measured.
 
+Those two hashes are what let a dataset grow. A recipe can be a **larger build** of another:
+`datasets/puzzles-all.yaml` is `of: puzzles`, and keeps every puzzle that passes where `puzzles`
+keeps a quarter. The two may differ only in how much of the source they keep (a sample, a count
+of games, a count of files), and `larger_of` in `data/__init__.py` refuses a recipe that changes
+anything else. Since the sample and the split are hashes and a stream is read in order, every row
+of the smaller build is in the larger one, in the same split. A larger build is there to train
+on: no task names one as its dataset, and no run is scored on one ("A run on more games", below).
+
 Datasets are not committed. A recipe builds the same rows on any machine, and the manifest
 carries a fingerprint that proves it: a hash of the boards and of every exact column. A run record
 names the fingerprint of the data it read, and the leaderboard refuses to rank runs that read
@@ -207,11 +215,28 @@ features out. A run that also names a `study` is there to say what one thing is 
 a candidate. `lab all <model>` trains a model's own runs, and `--runs study:games` asks for a
 study by name.
 
+**A run on more games.** A run can take its training rows from a larger build of its task's
+dataset: `data: {train_on: puzzles-all}`. Its valid and test rows are still the task's own, read
+from the larger build where it holds them, so the run is scored on the rows every other run of
+the model is scored on, compared with the reference row by row, and ranked on the same
+leaderboard. Before it trains, the larger build is held to the task's own, and the run stops on
+the first thing that fails (`prepare` in `train/learners/base.py`): every valid and test row is
+in it with the same board, marks, game and split; no game among its training rows is the game of
+a valid or a test row; every training row of the task's own build is among its training rows;
+and the label, the context numbers and the hand features agree on the rows a run is scored on.
+The record's `dataset` is the build the run is scored on, and `train_dataset` names the larger
+one by its fingerprint. `train_share` takes its share of the larger build's training games, so
+half of a build four times the size is twice the games. A network on more games is given fewer
+epochs, so that it takes as many steps as the run it changes and only the games differ. Such a
+run names the run it changes as its `base` and is a candidate, kept by the rule below. `lab all`
+builds the larger build its runs name before the first of them.
+
 **A run that was tried and not kept.** A candidate is kept as a run of the model's own only when
 it beats the run it changed on valid and on test beyond the noise. One that does not is still a
 measurement of what its change is worth, so it is filed, not deleted: its config names the run it
 changed as its `base` and what it measured as its `study` (`epochs` for a longer schedule, `start`
-for a body begun from another run's), and `lab file <model> <run>` writes the same two names into
+for a body begun from another run's, `games` for more training games), and
+`lab file <model> <run>` writes the same two names into
 its record and writes the leaderboard again (`train/filing.py`). A record is filed only as what
 it was trained with: a config with another setting is refused. The closer look is then of runs as
 they were filed before, so `lab analyse` is run again where the predictions are, and until it is
@@ -462,9 +487,12 @@ the model's committed files, on any machine, and compiles `models/<model>/paper/
   that change a network, and the two studies, `\ifchanges` for any of those four, and `\ifchance`
   for a model that predicts a chance. `\ifshown` is on where the model is read against one that
   is shown more and that one has runs (the table of the two leaderboards side by side,
-  `papers/shown.py`), and `\ifshownpaired` where a closer look has measured the pairs. A switch
-  that is off takes its side of the prose out, so one text serves before and after a batch of runs
-  lands.
+  `papers/shown.py`), and `\ifshownpaired` where a closer look has measured the pairs. `\ifmore`
+  is on where a run on more games than the run it changes, from a larger build of the dataset, has
+  been set against that run: the games study's table then has those runs above the run on all the
+  games, its curve runs on to their right, and their values are under `more.<the run changed>`. A
+  switch that is off takes its side of the prose out, so one text serves before and after a batch
+  of runs lands.
 - **Shared sections.** What is the same for every model is typed once under `papers/`: how a board
   is read, the learners, how a result is scored, what a closer look is, how one change at a time
   is read (`changes.tex`), how the two studies are read (`studies.tex`), the preamble and the

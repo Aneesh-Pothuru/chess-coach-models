@@ -24,6 +24,13 @@ begin from the body another run trained, on this machine, named by
 ``learner: {init: {model: position-evaluation, run: transformer-medium}}``. A run with a
 ``study`` is not a candidate: a leaderboard lists it apart, under its study,
 and the closer look sets it against its base (``evals/analysis.py``).
+
+A run can train on a larger build of its task's dataset, named by
+``data: {train_on: puzzles-all}`` (a recipe that is ``of`` the task's own,
+``data/__init__.py``). It takes its training rows from the larger build and
+its valid and test rows from the task's own, so it is scored on the rows every
+other run of the model is scored on. Its record's ``dataset`` is still the
+task's own build, and ``train_dataset`` names the larger one.
 """
 
 from __future__ import annotations
@@ -38,7 +45,7 @@ import polars as pl
 import yaml
 
 from .. import paths, tasks
-from ..data import recipe
+from ..data import larger_of, recipe
 from ..data.store import code_commit, read_dataset
 from ..evals.bootstrap import RESAMPLES, SMOKE_RESAMPLES, intervals, intervals_of_rows, paired, paired_of_rows
 from ..evals.calibration import apply_platt, platt, temper, temperature
@@ -178,16 +185,27 @@ def run(
 ) -> dict[str, Any]:
     task = tasks.get(model)
     config = run_config(model, name, smoke=smoke)
-    dataset = read_dataset(recipe(task.dataset, smoke=smoke)["name"])
-    if "fingerprint" not in dataset.manifest:
+    own = read_dataset(recipe(task.dataset, smoke=smoke)["name"])
+    if "fingerprint" not in own.manifest:
         raise ValueError(
-            f"{dataset.name} was built before datasets carried a fingerprint: "
+            f"{own.name} was built before datasets carried a fingerprint: "
             f"build it again with `lab data {task.dataset} --rebuild`"
         )
-    prepared = learners.prepare(task, dataset, train_share=float(config.get("data", {}).get("train_share", 1.0)))
+    # The dataset a run reads its rows from: the task's own, or a larger build of it for the training rows.
+    dataset, larger = own, config.get("data", {}).get("train_on")
+    if larger is not None:
+        if larger_of(larger, smoke=smoke) != task.dataset:
+            raise ValueError(f"{model}/{name} trains on {larger}, which is not a larger build of {task.dataset}")
+        dataset = read_dataset(recipe(larger, smoke=smoke)["name"])
+    prepared = learners.prepare(
+        task,
+        dataset,
+        train_share=float(config.get("data", {}).get("train_share", 1.0)),
+        scored=None if dataset is own else own,
+    )
     log(
-        f"{model}/{name}: {len(prepared.train):,} train, {len(prepared.valid):,} valid, "
-        f"{len(prepared.test):,} test rows of {dataset.name}"
+        f"{model}/{name}: {len(prepared.train):,} train rows of {dataset.name}, {len(prepared.valid):,} valid and "
+        f"{len(prepared.test):,} test rows of {own.name}"
     )
     start = None
     init = config.get("learner", {}).get("init")
@@ -260,13 +278,19 @@ def run(
             # Where a row is a sequence of positions, the numbers of each position a network read.
             **({} if dataset.steps is None else {"steps": prepared.step_names}),
         },
+        # The build a run is scored on, which is its task's own whatever it trained on.
         "dataset": {
             **{
-                key: dataset.manifest[key]
+                key: own.manifest[key]
                 for key in ("dataset", "source", "licence", "rows", "splits", "fingerprint", "built", "code")
             },
-            **({} if dataset.steps is None else {"positions": dataset.manifest["positions"]}),
+            **({} if own.steps is None else {"positions": own.manifest["positions"]}),
         },
+        **(
+            {}
+            if dataset is own
+            else {"train_dataset": {key: dataset.manifest[key] for key in ("dataset", "rows", "splits", "fingerprint", "built", "code")}}
+        ),
         "config": config,
         "learner": fitted.details,
         "calibration": calibration,
@@ -316,7 +340,7 @@ def run(
     if kept:
         fitted.save(predictions.parent)
     record["weights"] = saved_weights(predictions.parent, predictions) if kept else []
-    record["gain"] = gain_over_reference(model, name, frame, dataset.manifest["fingerprint"], smoke=smoke, resamples=resamples)
+    record["gain"] = gain_over_reference(model, name, frame, own.manifest["fingerprint"], smoke=smoke, resamples=resamples)
     out = paths.results(model, smoke=smoke)
     out.mkdir(parents=True, exist_ok=True)
     (out / f"{name}.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")

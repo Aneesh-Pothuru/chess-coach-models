@@ -1,0 +1,20 @@
+# Every puzzle that passes the filters of puzzles.yaml, which keeps a quarter of them: four times its
+# rows. It is a larger build of puzzles.yaml (data/__init__.py) and is there for training only: a run
+# names it with `data: {train_on: puzzles-all}` and is still scored on the valid and test puzzles of
+# puzzles.yaml.
+name: puzzles-all-v1
+of: puzzles
+builder: puzzles
+source: https://database.lichess.org/lichess_db_puzzle.csv.zst
+filters:
+  max_rating_deviation: 100
+  min_plays: 100
+# Every puzzle that passes. The hash that keeps a quarter of them in puzzles.yaml keeps those here too.
+sample: 1.0
+# The split of puzzles.yaml, so a game lands where it lands there.
+split:
+  salt: puzzles-v1
+  valid: 0.05
+  test: 0.10
+smoke:
+  sample: 0.04

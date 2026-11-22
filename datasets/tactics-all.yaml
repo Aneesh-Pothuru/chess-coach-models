@@ -1,0 +1,23 @@
+# Every file of the source, where tactics.yaml reads the first seven of its fourteen: twice its rows.
+# It is a larger build of tactics.yaml (data/__init__.py) and is there for training only: a run names
+# it with `data: {train_on: tactics-all}` and is still scored on the valid and test rows of
+# tactics.yaml.
+name: tactics-all-v1
+of: tactics
+builder: tactics
+source: https://huggingface.co/datasets/Lichess/chess-puzzles-with-games
+revision: 3510a01f320eaaab7b7775ebc73afcfe0b33b4c2
+files: 14
+filters:
+  max_rating_deviation: 100
+  min_plays: 100
+  speeds: [blitz, rapid, classical]
+sample: 1.0
+# The split of tactics.yaml, so a game lands where it lands there.
+split:
+  salt: tactics-v1
+  valid: 0.05
+  test: 0.10
+smoke:
+  files: 1
+  source_rows: 60000

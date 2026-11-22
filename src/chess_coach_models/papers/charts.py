@@ -61,6 +61,8 @@ VARIANT_DASHES = {
     "tower": "on 9pt off 3pt",
     "hybrid": "on 9pt off 2pt on 1pt off 2pt",
     "large": "on 2.5pt off 2.5pt",
+    "double": "on 7pt off 2pt on 3pt off 2pt",
+    "quadruple": "on 3pt off 1.5pt",
 }
 # A run that changes the body of another, or its size, is named for what it is and not for the run it
 # changes. It is drawn as that run all the same: the run it changes, and the word for its change.

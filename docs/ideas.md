@@ -70,9 +70,19 @@ What is left:
 - **Larger builds of the datasets.** The games study says each doubling still pays, and pays a
   network most, and each dataset has more to take: `game-positions` keeps 30,000 games of a
   month's, `puzzles` a quarter of the puzzles that pass, `tactics` half of them. The measurement
-  to make first is the games study turned round: the best network and the trees on twice and on
-  four times the training games, scored on the test rows the model has now, so the gain is paired
-  with the run on today's games.
+  to make first is written and waits for its runs (the plan `more`): the games study turned
+  round. Each of the five models with a games study gets its reference trees and its medium
+  transformer with hand features on twice and on four times the training games, from a larger
+  build of its dataset (`puzzles-all`, `game-positions-120k`, `tactics-all`, which holds twice
+  the games and no more). Each is scored on the test rows the model has now, so its gain is paired
+  with the run on today's games, and a network is given fewer epochs so that it takes as many
+  steps ([`design.md`](design.md), "A run on more games"). What is expected, written before any
+  of them ran: the networks gain more than the trees in every model, as the study read forward
+  says; the most from tactic found, where half of the games cost the most, and the least from
+  practical chances, where fewer games cost the trees nothing the test rows could show. A run is
+  kept only when it is better on valid and on test beyond the noise, like any change. If
+  the runs on four times the games are kept, the next builds are larger still, and the
+  architecture test above is made on the larger build.
 - **Tactic found, with the whole line as the label**: the player found the tactic only if the game
   followed it to the end, which a game answers while the opponent follows the puzzle's replies.
 - **Game rating, asked for the opponent's rating**: the same learners on the same rows with the

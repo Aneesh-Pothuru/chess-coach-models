@@ -93,9 +93,50 @@ def share_of(groups: np.ndarray, share: float) -> np.ndarray:
     return kept[row_game]
 
 
-def prepare(task: Task, dataset: Dataset, *, train_share: float = 1.0) -> Prepared:
+def rows_held(dataset: Dataset, scored: Dataset, split: str) -> np.ndarray:
+    """Where a larger build of a dataset holds one split of the build a task is scored on: the larger build's
+    row for each of that split's rows, in that split's order.
+
+    A larger build is there to give a run more training rows and nothing else, so every row a run is scored
+    on must be in it as it is in the task's own build: the same board, the same marks, the same game and
+    the same split. Anything else is refused: a run would be scored on other rows than the runs beside it.
+    """
+    own = scored.split(split)
+    places = (
+        scored.rows.select("key")[own]
+        .join(dataset.rows.select("key").with_row_index("row"), on="key", how="left", maintain_order="left")["row"]
+    )
+    if len(places) != len(own) or places.null_count():
+        raise ValueError(
+            f"{dataset.name} is not a larger build of {scored.name}: it lacks "
+            f"{places.null_count() or abs(len(places) - len(own)):,} of its {len(own):,} {split} rows"
+        )
+    held = places.to_numpy().astype(np.int64)
+    group = scored.manifest["group"]
+    same = (
+        np.array_equal(dataset.tokens[held], scored.tokens[own])
+        and np.array_equal(dataset.marks[held], scored.marks[own])
+        and bool((dataset.rows[group][held] == scored.rows[group][own]).all())
+        and bool((dataset.rows["split"][held] == split).all())
+    )
+    if not same:
+        raise ValueError(
+            f"{dataset.name} is not a larger build of {scored.name}: its {split} rows do not hold the same "
+            f"boards, marks and games in the same split"
+        )
+    return held
+
+
+def prepare(task: Task, dataset: Dataset, *, train_share: float = 1.0, scored: Dataset | None = None) -> Prepared:
     """A task's arrays over a dataset. ``train_share`` trains on that share of the training games only;
-    the valid and test rows are never touched by it."""
+    the valid and test rows are never touched by it.
+
+    ``scored`` is the task's own build when ``dataset`` is a larger build of it (``data/__init__.py``): the
+    run trains on the larger build's training rows and is scored on the own build's valid and test rows, as
+    the larger build holds them, so its predictions line up row for row with every other run's. No game of
+    those rows may be among the training games, and every training row of the own build must be among
+    the larger build's.
+    """
     rows, manifest = dataset.rows, dataset.manifest
     hand_names = [name for name in manifest["hand"] if task.hand is None or group_of(name) in task.hand]
     mark_names = list(manifest["marks"]) if task.marks is None else list(task.marks)
@@ -119,6 +160,41 @@ def prepare(task: Task, dataset: Dataset, *, train_share: float = 1.0) -> Prepar
             raise ValueError(f"{task.name} predicts the move played, and {dataset.name} does not hold one position a row")
         moves = moves_of(dataset)
     train = dataset.split("train")
+    valid, test = dataset.split("valid"), dataset.split("test")
+    y = labels(task, dataset, moves)
+    context = rows.select(list(task.context)).to_numpy().astype(np.float32)
+    if scored is not None:
+        if dataset.steps is not None or scored.steps is not None:
+            raise ValueError(f"{task.name}: a larger build of a dataset whose rows are sequences is not read yet")
+        valid, test = rows_held(dataset, scored, "valid"), rows_held(dataset, scored, "test")
+        games = rows[manifest["group"]]
+        if games[train].is_in(games[np.concatenate([valid, test])].unique().implode()).any():
+            raise ValueError(f"{dataset.name} trains on a game that {scored.name} keeps for its valid or test rows")
+        own_train = scored.rows.select("key")[scored.split("train")]
+        lacking = len(own_train) - len(own_train.join(rows.select("key")[train], on="key", how="semi"))
+        if lacking:
+            raise ValueError(
+                f"{dataset.name} is not a larger build of {scored.name}: it lacks {lacking:,} of its {len(own_train):,} training rows"
+            )
+        # What a run is scored against, and what it reads there, has to be what the own build says: the label,
+        # the context numbers and the hand features. The move played is compared as it is written, since which
+        # candidate it is follows from the board.
+        mine = np.concatenate([scored.split("valid"), scored.split("test")])
+        theirs = np.concatenate([valid, test])
+        read = [*task.context, *(name for name in hand_names if name not in task.context)]
+        if [name for name in read if name not in scored.rows.columns]:
+            raise ValueError(f"{dataset.name} is not a larger build of {scored.name}: the two do not hold the same hand features")
+        own_read = scored.rows.select(read)[mine].to_numpy().astype(np.float32)
+        if task.kind == "moves":
+            same_label = bool((rows[task.label][theirs] == scored.rows[task.label][mine]).all())
+        else:
+            wanted = np.asarray(labels(task, scored)[mine], dtype=np.float64)
+            same_label = np.allclose(np.asarray(y[theirs], dtype=np.float64), wanted, equal_nan=True)
+        if not (same_label and np.allclose(rows.select(read)[theirs].to_numpy().astype(np.float32), own_read, equal_nan=True)):
+            raise ValueError(
+                f"{dataset.name} and {scored.name} do not agree on the label, the context numbers or the hand "
+                f"features of the rows a run is scored on"
+            )
     if train_share != 1.0:
         if not 0.0 < train_share < 1.0:
             raise ValueError(f"a run trains on a share of the games above 0 and up to 1, not {train_share}")
@@ -126,15 +202,15 @@ def prepare(task: Task, dataset: Dataset, *, train_share: float = 1.0) -> Prepar
     return Prepared(
         task=task,
         dataset=dataset,
-        y=labels(task, dataset, moves),
-        context=rows.select(list(task.context)).to_numpy().astype(np.float32),
+        y=y,
+        context=context,
         hand=rows.select(hand_names).to_numpy().astype(np.float32),
         hand_names=hand_names,
         mark_names=mark_names,
         mark_channels=[manifest["marks"].index(name) for name in mark_names],
         train=train,
-        valid=dataset.split("valid"),
-        test=dataset.split("test"),
+        valid=valid,
+        test=test,
         step_names=step_names,
         step_columns=[known.index(name) for name in step_names],
         moves=moves,

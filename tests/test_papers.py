@@ -284,7 +284,7 @@ def test_the_one_scale_reads_a_score_where_higher_is_better_the_same_way():
     # A gain whose interval holds zero is level with the reference, however large it is.
     assert overview._verdicts(lab, lambda one: one.networks[0]) == ([], ["blunder-hazard"], [])
     assert overview.pairs(src) == [] and not any(overview.switches(lab).values())
-    assert set(overview.switches(lab)) == {"waiting", "changehand", "changeepochs", "changestart", "games", "features", "studies"}
+    assert set(overview.switches(lab)) == {"waiting", "changehand", "changeepochs", "changestart", "games", "features", "studies", "more"}
 
 
 def _longer(model, gain):
@@ -354,6 +354,119 @@ def test_a_run_that_was_filed_keeps_its_pair_and_its_place_beside_the_run_it_cha
     # And the lab still reads it as what more epochs are worth in this model.
     (measured,) = [one for one in overview.pairs(filed) if one["kind"] == ("epochs", "More epochs")]
     assert (measured["run"], measured["over"], measured["gain"]) == ("transformer-medium-long", "transformer-medium", 0.1)
+
+
+def test_a_run_on_a_larger_build_is_read_by_how_many_of_the_games_it_was_given():
+    # A share of the training games, or a multiple of them, as a table and a sentence say it.
+    assert [changes.share_words(share) for share in (4.0, 2.0, 0.5, 0.25)] == ["four times", "twice", "half", "a quarter"]
+    assert changes.share_words(3.0) == "3 times" and changes.share_words(0.1) == "10\\%"
+    assert changes.games_words(0.25) == "a quarter of the training games" and changes.games_words(2.0) == "twice the training games"
+    assert changes.games_words(1.0, "the games") == "all the games" and changes.games_words(1.93) == "1.93 times the training games"
+
+    primary = tasks.get("puzzle-difficulty").primary
+    trees, body = {"kind": "gbm", "features": "hand"}, {"kind": "net", "body": "transformer", "dim": 256, "depth": 8}
+    schedule, larger = {"epochs": 12, "patience": 3}, {"train_on": "puzzles-all"}
+
+    def trained(name, rows, learner=trees, build=None, valid=None, score=300.0, **config):
+        record = {**_record(name, learner, score, primary, **config), "train_rows": rows}
+        if build is not None:
+            record["train_dataset"] = {"dataset": build}
+        if valid is not None:
+            record["valid"] = {primary: valid}
+        return record
+
+    on = "puzzles-all-v1"
+    runs = [
+        trained("gbm-hand-quadruple", 4030, build=on, valid=7.0, base="gbm-hand", data=larger),
+        trained("gbm-hand-double", 1960, build=on, base="gbm-hand", data={**larger, "train_share": 0.5}),
+        trained("gbm-hand", 1000, valid=8.0),
+        # A network on the larger build goes through it less often, which is part of the same change.
+        trained("transformer-medium-double", 2010, body, on, base="transformer-medium", data=larger, train={"epochs": 6, "patience": 2}),
+        # One that also changes its body changes two things, and is no run of the games study.
+        trained("transformer-medium-wide", 2010, {**body, "dim": 384}, on, base="transformer-medium", data=larger, train=schedule),
+        trained("transformer-medium", 1000, body, train=schedule),
+        trained("constant", 1000, {"kind": "constant"}, score=500.0),
+    ]
+    studies = [
+        trained("gbm-hand-half", 500, valid=9.0, base="gbm-hand", study="games", data={"train_share": 0.5}),
+        # A run on more games that was tried and filed under the study stays where it stood.
+        trained("gbm-hand-triple", 3300, build=on, valid=9.0, base="gbm-hand", study="games", data={**larger, "train_share": 0.8}),
+    ]
+    known = {run["run"]: run for run in [*runs, *studies]}
+    # The multiple is read from the rows the two runs trained on, and taken to a round one within a twentieth.
+    assert changes.multiple(known["gbm-hand-quadruple"], known["gbm-hand"]) == 4.0
+    assert changes.multiple(known["gbm-hand-double"], known["gbm-hand"]) == 2.0
+    assert changes.multiple(known["gbm-hand-triple"], known["gbm-hand"]) == 3.3
+    assert changes.multiple(known["gbm-hand-half"], known["gbm-hand"]) is None
+
+    def pair(run, over, gain, low, high, **more):
+        return {"run": run, "over": over, "gain": gain, "low": low, "high": high, "beyond_noise": low > 0 or high < 0, **more}
+
+    look = {
+        "pairs": [
+            pair("gbm-hand-quadruple", "gbm-hand", 0.4, 0.2, 0.6),
+            pair("gbm-hand-double", "gbm-hand", 0.1, -0.1, 0.3),
+            pair("gbm-hand-triple", "gbm-hand", -0.3, -0.5, -0.1, study="games"),
+            pair("gbm-hand-half", "gbm-hand", -0.5, -0.6, -0.4, study="games"),
+            pair("transformer-medium-double", "transformer-medium", 0.2, 0.1, 0.3),
+        ]
+    }
+    src = sources.Sources("puzzle-difficulty", False, tasks.get("puzzle-difficulty"), runs, studies, {}, {}, look, (), ())
+    found = {base: [(share, run["run"]) for share, run in found] for base, found in changes.games_runs(src).items()}
+    # The reference's runs first, each from the most games to the fewest.
+    assert list(found) == ["gbm-hand", "transformer-medium"]
+    assert found["gbm-hand"] == [(4.0, "gbm-hand-quadruple"), (3.3, "gbm-hand-triple"), (2.0, "gbm-hand-double"), (0.5, "gbm-hand-half")]
+    assert found["transformer-medium"] == [(2.0, "transformer-medium-double")]
+    assert [(base, share, run["run"]) for base, share, run, _ in changes.more(src)] == [
+        ("gbm-hand", 4.0, "gbm-hand-quadruple"),
+        ("gbm-hand", 3.3, "gbm-hand-triple"),
+        ("gbm-hand", 2.0, "gbm-hand-double"),
+        ("transformer-medium", 2.0, "transformer-medium-double"),
+    ]
+    assert changes.differs(known["gbm-hand-double"], known["gbm-hand"]) == (
+        "trains on twice the training games, from the larger build \\texttt{puzzles-all}"
+    )
+    assert changes.differs(known["transformer-medium-double"], known["transformer-medium"]) == (
+        "trains on twice the training games, from the larger build \\texttt{puzzles-all}; 6 epochs for 12; 2 epochs of patience for 3"
+    )
+
+    written = tex.Generated("a test")
+    changes.values(src, written)
+    said = written.values
+    # The study's own count is of the runs on fewer games; the runs on more are counted apart.
+    assert said["study.games.gbm-hand.runs"] == "one"
+    assert (said["more.gbm-hand.runs"], said["more.gbm-hand.better"], said["more.gbm-hand.worse"], said["more.gbm-hand.level"]) == (
+        "three",
+        "one",
+        "one",
+        "one",
+    )
+    assert said["more.gbm-hand.most"] == "four times" and "quadruple" in said["more.gbm-hand.most.run"]
+    assert said["more.gbm-hand.most.rows"] == tex.count(4030) and said["more.gbm-hand.most.verdict"] == "better beyond the noise"
+    # Puzzle difficulty is an error, so the lower valid score is the better one, and both halves of the rule hold.
+    assert said["more.gbm-hand.most.kept"] == said["pair.gbm-hand-quadruple.gbm-hand.kept"] == "kept"
+    # A run on more games was a candidate even after it is filed; a run on fewer never was.
+    assert said["pair.gbm-hand-triple.gbm-hand.kept"] == "not kept" and "pair.gbm-hand-half.gbm-hand.kept" not in said
+    assert said["more.transformer-medium.runs"] == "one" and "more.transformer-medium.most.kept" not in said
+
+    # The table has the runs on more games above the run on all of them, and the runs on fewer below it.
+    table = changes.games_table(src)
+    order = [table.index(f"{sources.run_cell(name)} &") for name in ("gbm-hand-quadruple", "gbm-hand-triple", "gbm-hand-double", "gbm-hand", "gbm-hand-half")]
+    assert order == sorted(order) and "& four times &" in table and "& 3.3 times &" in table and "& half &" in table
+    # A run changed only by runs on more games has no curve to stand on, so it is among the pairs.
+    assert sources.run_cell("transformer-medium-double") not in table
+    assert sources.run_cell("transformer-medium-double") in changes.pairs_table(src)
+    # A run on a larger build has a longer epoch than the run it changes, so the two share no epoch axis.
+    assert src.variants(known["transformer-medium"]) == []
+
+    lab = overview.Lab({"puzzle-difficulty": src}, {}, {})
+    assert {base: list(parts) for base, parts in overview.games(lab).items()} == {"gbm-hand": [4.0, 3.3, 2.0, 0.5], "transformer-medium": [2.0]}
+    assert overview.switches(lab)["more"]
+    # The lab draws the pairs on fewer games and the pairs on more as two figures: together they outgrow a page.
+    fewer, more = overview.games_figure(lab), overview.games_figure(lab, more=True)
+    assert "gbm-hand on half of the games" in fewer and "times the games" not in fewer and "twice the games" not in fewer
+    assert "gbm-hand on four times the games" in more and "transformer-medium on twice the games" in more and "half of the games" not in more
+    assert "left of the line is worse" in fewer and "right of the line is better" in more
 
 
 def test_a_change_is_kept_only_when_both_halves_of_the_rule_hold():

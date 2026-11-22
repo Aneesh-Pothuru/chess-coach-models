@@ -13,20 +13,33 @@ four times on a quarter, so it takes as many steps each time and loses only
 the games. The study is read forward: where halving the games costs little,
 doubling them would buy little, so the curve says what a larger dataset is
 worth before anyone builds one.
+\ifmore
+Then it is checked by building one. A larger build of the dataset keeps more
+of the same source, split the same way, so every row a run is scored on is
+in it unchanged and no game of those rows is among its training games. A run
+takes its training rows from the larger build and is scored on the same test
+rows, and a network goes through the larger build less often, so that it
+takes as many steps as the run it changes. Those runs stand above the run on
+all the games in the table, and to its right in the figure. Unlike a run on
+fewer games, a run on more could be the one to keep, so it is held to the
+lab's rule for a change: better than the run it changes on the valid rows,
+and on the test rows beyond the noise.
+\fi
 
 \begin{table}[htbp]\centering\footnotesize
 \block{study-games}
 \caption{The games study. Each run is trained on a share of the training
-games and scored on all the test rows. Its gain is paired with the run that
-was trained on all the games: below zero the run is worse, and bold when the
-95\% interval leaves zero out.}
+games\ifmore, or on a multiple of them from a larger build of the
+dataset,\fi{} and scored on all the test rows. Its gain is paired with the
+run that was trained on all the games: below zero the run is worse, and bold
+when the 95\% interval leaves zero out.}
 \label{tab:games}
 \end{table}
 
 \begin{figure}[htbp]\centering
 \block{study-games-figure}
 \caption{The games study as a learning curve: the score on the test rows by
-the share of the training games a run was given. Each step to the right
+how many of the training games a run was given. Each step to the right
 doubles the games.}
 \label{fig:games}
 \end{figure}

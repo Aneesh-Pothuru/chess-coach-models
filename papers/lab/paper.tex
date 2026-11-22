@@ -483,6 +483,15 @@ lies inside the half. The transformer is given twice the epochs on half the
 games and four times on a quarter, so it takes as many steps each time and
 loses only the games. The study is read forward: where halving the games
 costs little, doubling them would buy little.
+\ifmore
+Then the forward reading is checked. Each dataset has a larger build that
+keeps more of the same source, split the same way, so every test row is in
+it unchanged and no game of a test row is among its training games. The
+same two runs were trained on twice and on four times the training games,
+going through them less often so that the steps stay the same, and scored
+on the same test rows (Figure~\ref{fig:games-more}). Tactic found has the
+doubling only: its build already reads half of the files its source has.
+\fi
 
 On half of the games the trees are \V{lab.games.gbm-hand.half.said}, and on
 a quarter they are \V{lab.games.gbm-hand.quarter.said}. The transformer on
@@ -493,6 +502,13 @@ lowest of these gains on half of the games is
 trees, in \V{lab.games.gbm-hand.half.gain.least.model}, and
 \V{lab.games.transformer-medium-hand.half.gain.least} for the transformer,
 in \V{lab.games.transformer-medium-hand.half.gain.least.model}.
+\ifmore
+On twice the games the trees are \V{lab.games.gbm-hand.double.said}, and on
+four times they are \V{lab.games.gbm-hand.quadruple.said}. The transformer
+on twice the games is \V{lab.games.transformer-medium-hand.double.said},
+and on four times it is
+\V{lab.games.transformer-medium-hand.quadruple.said}.
+\fi
 
 A reading of Table~\ref{tab:games}. On the same share of the games the
 transformer loses more than the trees in every model, so each doubling of
@@ -509,19 +525,29 @@ network\ifchangeepochs, ahead of a longer schedule
 
 \begin{table}[htbp]\centering\small
 \block{lab-games}
-\caption{Fewer training games, model by model. A cell is the paired gain of
-a run trained on half or on a quarter of the training games over the same
-run trained on all of them, in hundredths of the reference's step: below
-zero the run is worse on fewer games, and bold when the 95\% interval leaves
-zero out.}
+\caption{Fewer training games\ifmore{} and more\fi, model by model. A cell
+is the paired gain of a run trained on half or on a quarter of the training
+games\ifmore, or on twice or four times as many from a larger build of the
+dataset,\fi{} over the same run trained on all of them, in hundredths of the
+reference's step: below zero the run is worse than the run on all the games,
+and bold when the 95\% interval leaves zero out.}
 \label{tab:games}
 \end{table}
 
 \begin{figure}[htbp]\centering
 \block{lab-games-figure}
-\caption{The pairs of Table~\ref{tab:games}, each with its 95\% interval.}
+\caption{The pairs of Table~\ref{tab:games}\ifmore{} on fewer games\fi, each
+with its 95\% interval.}
 \label{fig:games}
 \end{figure}
+\ifmore
+\begin{figure}[htbp]\centering
+\block{lab-games-more-figure}
+\caption{The pairs of Table~\ref{tab:games} on more games, each with its
+95\% interval.}
+\label{fig:games-more}
+\end{figure}
+\fi
 \fi
 
 \subsection{What the runs cost}

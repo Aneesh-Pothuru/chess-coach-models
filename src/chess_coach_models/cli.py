@@ -147,9 +147,15 @@ def main(argv: list[str] | None = None) -> int:
 
         build_data(tasks.get(args.model).dataset, smoke=args.smoke, source=args.source, workers=args.workers, rebuild=False)
         names = planned(args.model, args.runs)
+        waits = {name: waits_for(args.model, name, smoke=args.smoke) for name in names}
+        # A larger build of the dataset that a run trains on is built before any run, so a build that fails
+        # stops here. It reads the same source.
+        larger = (run_config(args.model, name, smoke=args.smoke).get("data", {}).get("train_on") for name in names if waits[name] is None)
+        for dataset in dict.fromkeys(name for name in larger if name):
+            build_data(dataset, smoke=args.smoke, source=args.source, workers=args.workers, rebuild=False)
         reference = tasks.get(args.model).reference
         for name in sorted(names, key=lambda name: name != reference):
-            waiting = waits_for(args.model, name, smoke=args.smoke)
+            waiting = waits[name]
             if waiting is None:
                 run(args.model, name, smoke=args.smoke, device=args.device, log=log)
             else:
