@@ -53,7 +53,7 @@ from ..data import recipe
 from ..data.store import Dataset, code_commit, read_dataset
 from .bootstrap import RESAMPLES, SMOKE_RESAMPLES, paired
 from .leaderboard import ranked, records
-from .metrics import METRICS
+from .metrics import METRICS, SETS
 
 
 SHARES = (0.01, 0.02, 0.05, 0.10, 0.20, 0.50)
@@ -569,6 +569,11 @@ def read_predictions(
 
 def analyse(model: str, *, smoke: bool = False) -> dict[str, Any]:
     task = tasks.get(model)
+    if task.kind in SETS:
+        raise ValueError(
+            f"{model} predicts {task.kind}, a set a row, and the closer look reads one number a row: "
+            "its leaderboard and its records are what there is of it for now"
+        )
     asked = plan(model)
     runs = records(model, smoke=smoke)
     if not runs:

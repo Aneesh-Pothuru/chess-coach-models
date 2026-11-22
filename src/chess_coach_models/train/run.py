@@ -33,15 +33,16 @@ import time
 from datetime import datetime, timezone
 from typing import Any
 
+import numpy as np
 import polars as pl
 import yaml
 
 from .. import paths, tasks
 from ..data import recipe
 from ..data.store import code_commit, read_dataset
-from ..evals.bootstrap import RESAMPLES, SMOKE_RESAMPLES, intervals, paired
+from ..evals.bootstrap import RESAMPLES, SMOKE_RESAMPLES, intervals, intervals_of_rows, paired, paired_of_rows
 from ..evals.calibration import apply_platt, platt
-from ..evals.metrics import METRICS, calibration_table, score
+from ..evals.metrics import LOWER_IS_BETTER, METRICS, SETS, calibration_table, mean_of_rows, pr_auc, roc_auc, row_scores, score
 from . import learners
 from .record import machine, saved_weights, software
 
@@ -121,14 +122,39 @@ def gain_over_reference(
     same_rows = len(reference) == len(frame) and bool((reference["key"] == frame["key"]).all())
     if record["dataset"].get("fingerprint") != fingerprint or not same_rows:
         return None
-    y, p_reference = frame["y"].to_numpy(), reference["p"].to_numpy()
-    value = float(METRICS[task.kind][task.primary](y, p_reference))
+    sets = task.kind in SETS
+    # A set's scores are means of what each row scored, and a run's predictions keep that row by row.
+    y, p_reference = frame["y"].to_numpy(), reference[task.primary if sets else "p"].to_numpy()
+    value = float(mean_of_rows(p_reference) if sets else METRICS[task.kind][task.primary](y, p_reference))
     if abs(value - record["test"][task.primary]["value"]) > 1e-9 * max(1.0, abs(value)):
         return None
-    gain = paired(
-        task.kind, task.primary, y, frame["p"].to_numpy(), p_reference, frame["group"].to_numpy(), resamples=resamples
-    )
+    if sets:
+        gain = paired_of_rows(
+            frame[task.primary].to_numpy(),
+            p_reference,
+            frame["group"].to_numpy(),
+            lower_is_better=task.primary in LOWER_IS_BETTER,
+            resamples=resamples,
+        )
+    else:
+        gain = paired(
+            task.kind, task.primary, y, frame["p"].to_numpy(), p_reference, frame["group"].to_numpy(), resamples=resamples
+        )
     return {**gain, "reference": task.reference, "reference_trained": record["trained"], "reference_value": value}
+
+
+def by_candidate(candidates: tuple[str, ...], y: np.ndarray, p: np.ndarray) -> dict[str, dict[str, float]]:
+    """Each candidate of a set by itself, as a yes or no over the rows: how many rows it is right in, and how
+    well its chance tells those rows from the rest."""
+    return {
+        name: {
+            "rows": int(y[:, column].sum()),
+            "share": float(y[:, column].mean()),
+            "pr_auc": pr_auc(y[:, column].astype(np.float64), p[:, column]),
+            "roc_auc": roc_auc(y[:, column].astype(np.float64), p[:, column]),
+        }
+        for column, name in enumerate(candidates)
+    }
 
 
 def run(
@@ -165,9 +191,11 @@ def run(
     fitted = learners.fit(prepared, config, log=log, device=device, start=start)
     valid_p, test_p = fitted.valid, fitted.test
     y_valid, y_test = prepared.y[prepared.valid], prepared.y[prepared.test]
+    sets = task.kind in SETS
     calibration = None
-    if task.kind == "binary":
-        slope, intercept = platt(valid_p, y_valid)
+    if task.kind == "binary" or sets:
+        # For a set, one line through every candidate's chance: it moves no candidate past another in a row.
+        slope, intercept = platt(valid_p.reshape(-1), y_valid.reshape(-1))
         valid_p, test_p = apply_platt(valid_p, slope, intercept), apply_platt(test_p, slope, intercept)
         calibration = {"platt_slope": slope, "platt_intercept": intercept, "fitted_on": "valid"}
 
@@ -175,15 +203,25 @@ def run(
     groups = rows[dataset.manifest["group"]].to_numpy()
     groups_test = groups[prepared.test]
     bands_test = rows[task.band].to_numpy()[prepared.test]
+    metrics = list(METRICS[task.kind])
+    resamples = SMOKE_RESAMPLES if smoke else RESAMPLES
+    if sets:
+        scored = row_scores(task.kind, y_test, test_p)
+        valid_scores = dict(zip(metrics, mean_of_rows(row_scores(task.kind, y_valid, valid_p)).tolist()))
+        test_scores = intervals_of_rows(metrics, scored, groups_test, resamples=resamples)
+    else:
+        valid_scores = score(task.kind, y_valid, valid_p)
+        test_scores = intervals(task.kind, y_test, test_p, groups_test, resamples=resamples)
     by_band = {}
     for band in sorted(set(bands_test.tolist())):
         mask = bands_test == band
-        by_band[band] = {"rows": int(mask.sum()), **score(task.kind, y_test[mask], test_p[mask])}
+        in_band = dict(zip(metrics, mean_of_rows(scored[mask]).tolist())) if sets else score(task.kind, y_test[mask], test_p[mask])
+        by_band[band] = {"rows": int(mask.sum()), **in_band}
     record = {
         "model": model,
         "run": name,
         "task": {
-            "label": task.label,
+            "label": task.label if isinstance(task.label, str) else list(task.label),
             "kind": task.kind,
             "unit": task.unit,
             "primary": task.primary,
@@ -191,6 +229,7 @@ def run(
             "context": list(task.context),
             # Only a task that keeps something from its learners says what they may read.
             **({} if task.marks is None and task.hand is None else {"marks": prepared.mark_names, "hand": prepared.hand_names}),
+            **({"candidates": list(task.candidates)} if sets else {}),
         },
         "dataset": {
             key: dataset.manifest[key]
@@ -206,16 +245,17 @@ def run(
         "seconds": round(time.time() - started, 1),
         "train_rows": int(len(prepared.train)),
         "train_groups": int(len(set(groups[prepared.train].tolist()))),
-        "valid": score(task.kind, y_valid, valid_p),
-        "test": intervals(
-            task.kind, y_test, test_p, groups_test, resamples=SMOKE_RESAMPLES if smoke else RESAMPLES
-        ),
+        "valid": valid_scores,
+        "test": test_scores,
         "test_rows": int(len(y_test)),
         "test_groups": int(len(set(groups_test.tolist()))),
         "test_by_band": by_band,
     }
-    if task.kind == "binary":
-        record["test_calibration"] = calibration_table(y_test, test_p)
+    if task.kind == "binary" or sets:
+        # For a set, every candidate of every row as one yes or no.
+        record["test_calibration"] = calibration_table(y_test.reshape(-1).astype(np.float64), test_p.reshape(-1))
+    if task.kind == "tags":
+        record["test_by_candidate"] = by_candidate(task.candidates, y_test, test_p)
 
     predictions = paths.predictions(model, name, smoke=smoke)
     predictions.parent.mkdir(parents=True, exist_ok=True)
@@ -224,8 +264,10 @@ def run(
             "key": rows["key"].to_numpy()[prepared.test],
             "group": groups_test,
             "band": bands_test,
+            # A set's row keeps what was right and every candidate's chance, then what the row scored.
             "y": y_test,
-            "p": test_p,
+            "p": test_p.astype(np.float32) if sets else test_p,
+            **({metric: scored[:, column] for column, metric in enumerate(metrics)} if sets else {}),
         }
     )
     frame.write_parquet(predictions)
@@ -234,9 +276,7 @@ def run(
     if kept:
         fitted.save(predictions.parent)
     record["weights"] = saved_weights(predictions.parent, predictions) if kept else []
-    record["gain"] = gain_over_reference(
-        model, name, frame, dataset.manifest["fingerprint"], smoke=smoke, resamples=SMOKE_RESAMPLES if smoke else RESAMPLES
-    )
+    record["gain"] = gain_over_reference(model, name, frame, dataset.manifest["fingerprint"], smoke=smoke, resamples=resamples)
     out = paths.results(model, smoke=smoke)
     out.mkdir(parents=True, exist_ok=True)
     (out / f"{name}.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")

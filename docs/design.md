@@ -34,8 +34,10 @@ output (a body or a head in `nets/`). `tasks.py` reads a task from its folder an
 kept, so a test can stand a whole lab up in a temporary folder.
 
 The input is a position as a FEN, with what the task knows about it: the moves that led to it or
-follow from it, both ratings, both clocks, the time control. The output today is one number, a
-quantity or a chance. What changes from idea to idea is the label and what the model may read.
+follow from it, both ratings, both clocks, the time control. The output is one number, a quantity
+or a chance, or a chance for each of a fixed list of candidates: the squares of the board, or the
+tags a task names ("An answer that is a set", below). What changes from idea to idea is the label
+and what the model may read.
 
 A task names the context numbers its learners read, and can keep part of a dataset from them:
 `marks` lists the only marks on squares they may read, and `hand` the only groups of hand
@@ -103,8 +105,10 @@ setup, first-move, line), so a task can hide a group and a run can leave one out
 ## Bodies and a head
 
 A network is a body and a head (`nets/model.py`). The body turns tokens, marks and context into
-one vector. The head, two layers, turns the vector into the task's output. Two bodies ship so a
-leaderboard can say what the architecture is worth on each task.
+one vector for the board and one for each square. The head, two layers, turns the board's vector
+into the task's output: one number, or one logit for each of a task's tags. For a task that asks
+about every square it reads each square's own vector instead, and gives that square its logit. Two
+bodies ship so a leaderboard can say what the architecture is worth on each task.
 
 **The square transformer.** Each square is a token and every square attends to every other from
 the first layer, so a bishop on a1 and a king on h8 meet at once. Attention is told about the
@@ -125,7 +129,8 @@ Sizes are settings of a run (`dim`, `depth`, `heads`), not code.
 A run is one config file and names one of five learners, each a file under `train/learners/` with
 one function, `fit`:
 
-- `constant`: one number for every row. The floor: a model that does not beat it learned nothing.
+- `constant`: one number for every row, or for a set the same chances for every row. The floor: a
+  model that does not beat it learned nothing.
 - `column`: a column of the dataset, times a constant, read as the prediction. Nothing is fitted.
   It is the comparison for a task where a number already claims to answer the question, as an
   engine's win probability does for who wins.
@@ -195,7 +200,9 @@ of the reference it was measured against, which the leaderboard holds to the ref
 `evals/metrics.py` holds the metrics: for a quantity the root mean squared error, the mean
 absolute error, R squared and the rank correlation; for a chance the area under the
 precision-recall curve, the area under the ROC curve, the Brier score, the log loss and the
-calibration error. A task names one of them as primary, on its card, before its first run.
+calibration error; for a set the average precision, how often the first candidate is right, and
+the log loss, each a mean over the rows. A task names one of them as primary, on its card, before
+its first run.
 
 **Noise is measured over games.** Positions of one game are not independent, so every interval
 resamples whole games (`evals/bootstrap.py`).
@@ -218,6 +225,60 @@ both scores. It keeps its predictions on the test rows, which the closer look re
 weights: nobody will run it. A paper gives the games and the features study tables of their own;
 a run filed under any other study was tried as a candidate, and its pair stands with the other
 pairs, beside the run it changed.
+
+## An answer that is a set
+
+Two kinds of task give a row a set and not a number: which of a fixed list of candidates are
+right. For `squares` the candidates are the 64 squares of the mover's board, and the label is a
+list of marks: a square is right when it carries any of them. So a dataset's marks can be a
+model's answer, and such a task must name the marks its learners may read, none of which is one
+it predicts (`tasks.py` refuses a task that shows its answer). For `tags` the label is a column of
+words separated by spaces and the candidates are the words the task names.
+[`where-to-look`](../models/where-to-look/) is the first of one kind and
+[`puzzle-themes`](../models/puzzle-themes/) of the other. Both read the rows
+`puzzle-difficulty` reads, so neither needed a dataset.
+
+A label is then one column a candidate, 1 where it is right (`labels` in
+`train/learners/base.py`), and a prediction is a chance for every candidate. The rest of a run is
+what it was:
+
+- **The floor** gives every row the same chances: each candidate's share of the training rows.
+- **The trees** still say one chance at a time. For tags it is a booster a tag on the row's
+  numbers, each stopped on its own valid log loss, and a tag no training row carries has no
+  trees. For squares it is one booster that reads a row a square: the position's numbers, where
+  the square is, the piece on it, the marks the task shows, and with the hand features what a
+  person would count on the square (`encode/squares.py`): who attacks it and with what, whether
+  the piece on it can be taken or is pinned, how many of the mover's moves start and end there,
+  how many of those take or give check, and how far each king is. A position is 64 rows to them,
+  so such a run trains on a share of the training games (`data: {train_share: 0.1}`), and the
+  learner refuses a run that would read more than sixteen million rows.
+- **A network** is the same body under a head with a logit a candidate (above), each trained as
+  a yes or no of its own.
+- **Calibration** is one slope and one intercept through every candidate's chance, fitted on the
+  valid rows. One line moves no candidate past another inside a row, so it changes the log loss
+  and no ranking.
+
+**Every score is a mean over the rows of a score a row gets by itself** (`row_scores` in
+`evals/metrics.py`). Average precision ranks a row's candidates by their chance and takes the
+mean, over the right ones, of the share of right ones among the candidates ranked at least as
+high, with ties scored together: it is 1 when every right candidate comes before every other, and
+with one right candidate it is one over its rank. First right is whether the candidate given the
+highest chance is right. The log loss reads every chance as a yes or no of its own. A row with no
+right candidate (a puzzle that carries none of the themes) has no ranking to score: it is left
+out of the first two and counted in the third.
+
+Because a score is a mean of the rows' scores, its noise is measured by drawing the games again
+and averaging their rows' scores, without ranking anything twice
+(`intervals_of_rows` and `paired_of_rows` in `evals/bootstrap.py`). A run's predictions keep
+what was right, every candidate's chance and each row's scores, so a run is compared with the
+reference from the two files of row scores. A record of a model that predicts tags also gives
+each tag by itself, as one yes or no over the test rows: how many carry it, and how well its
+chance tells those rows from the rest. The leaderboard prints that table for the best run, since
+a mean over rows is led by the common tags.
+
+What a set does not have yet: the closer look and a model's own paper read one number a row, so
+`lab analyse` refuses a model of these kinds, and it has a leaderboard and no paper. The lab's
+paper sets its runs on the one scale with every other model's, which needs only the records.
 
 ## The closer look
 
@@ -372,13 +433,12 @@ so a smoke score can never be mistaken for a result.
 
 ## Growing it
 
-The harness has one head with one output. These are the next kinds of input and output, each a
-new body or head in `nets/` with a test and a paragraph here:
+The harness has three heads: one number, a logit a tag, and a logit a square. These are the next
+kinds of input and output, each a new body or head in `nets/` with a test and a paragraph here:
 
 | Kind | What it opens |
 |---|---|
 | A move as output: a score for each legal move | Human-move prediction, the chance a given move is found |
-| A label per square | Where a player should look, which piece is in danger |
 | A whole game as a sequence of positions | A rating from one game, tilt, time trouble |
 | A published body under a new head | Maia's board understanding, fine-tuned for a coaching question |
 

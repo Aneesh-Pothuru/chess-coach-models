@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Any
 
 from .. import bands, paths, tasks
-from .metrics import LOWER_IS_BETTER, METRICS
+from .metrics import LOWER_IS_BETTER, METRICS, SETS
 
 
 START = "<!-- LEADERBOARDS_START -->"
@@ -40,7 +40,11 @@ NAMES = {
     "brier": "Brier",
     "log_loss": "Log loss",
     "calibration_error": "Calibration error",
+    "ap": "Average precision",
+    "top1": "First right",
 }
+# What a set's candidates are called, by the kind of task.
+CANDIDATES = {"squares": "square", "tags": "tag"}
 
 
 def _number(value: float) -> str:
@@ -57,6 +61,8 @@ def learner_words(record: dict[str, Any]) -> str:
     """A run's learner in a few words, from its record's config."""
     learner = record["config"]["learner"]
     if learner["kind"] == "constant":
+        if record["task"]["kind"] in SETS:
+            return f"each {CANDIDATES[record['task']['kind']]}'s share of the training rows, for every row"
         return "one number for every row"
     if learner["kind"] == "column":
         scale = float(learner.get("scale", 1.0))
@@ -66,6 +72,11 @@ def learner_words(record: dict[str, Any]) -> str:
     without = f", without the {' and '.join(learner['without'])} group" if learner.get("without") else ""
     if learner["kind"] == "gbm":
         reads = "context and hand features" if learner["features"] == "hand" else "context numbers only"
+        if record["task"]["kind"] == "squares":
+            counted = " and what a person would count on the square" if learner["features"] == "hand" else ""
+            return f"LightGBM on a row a square: the piece on it, {reads}{counted}{without}"
+        if record["task"]["kind"] == "tags":
+            return f"a LightGBM booster a tag, {reads}{without}"
         return f"LightGBM, {reads}{without}"
     reads = ", with hand features" if learner.get("features") == "hand" else ""
     start = f", started from `{learner['init']['model']}/{learner['init']['run']}`" if learner.get("init") else ""
@@ -195,6 +206,8 @@ def build(model: str, *, smoke: bool = False) -> dict[str, Any]:
     best = main[0]
     if "test_calibration" in best:
         board["calibration"] = {"run": best["run"], "bins": best["test_calibration"]}
+    if "test_by_candidate" in best:
+        board["candidates"] = {"run": best["run"], "each": best["test_by_candidate"]}
     if studied:
         board["studies"] = {study: studied[study] for study in sorted(studied)}
     directory = paths.results(model, smoke=smoke)
@@ -231,6 +244,17 @@ def markdown(board: dict[str, Any]) -> str:
         f"- **Test set:** {board['test_rows']:,} rows from {board['test_groups']:,} games, never seen in training "
         "or in choosing an epoch.",
         f"- **Ranked by:** {NAMES[primary]} ({direction} is better), with its 95% interval over resampled games.",
+        *(
+            [
+                f"- **A row's answer is a set:** which of {len(task['candidates'])} {CANDIDATES[task['kind']]}s are right, "
+                f"and a run gives each a chance. Average precision is the mean, over a row's right "
+                f"{CANDIDATES[task['kind']]}s, of the share of right ones among those ranked at least as high; first "
+                f"right is how often the one given the highest chance is right. Both are means over the rows that "
+                f"have a right {CANDIDATES[task['kind']]}. Log loss reads every chance as a yes or no of its own."
+            ]
+            if task["kind"] in SETS
+            else []
+        ),
         f"- **Gain:** how much better than `{board['reference']}` on the same resampled test games, measured "
         "when the run was trained; **bold** when the interval leaves zero out.",
         "",
@@ -268,13 +292,36 @@ def markdown(board: dict[str, Any]) -> str:
             "",
             f"## Calibration of `{board['calibration']['run']}`",
             "",
-            "Test rows in ten equal groups by predicted chance: what the model said against what happened.",
+            (
+                f"Every {CANDIDATES[task['kind']]} of every test row, in ten equal groups by its predicted chance: "
+                "what the model said against how often it was right."
+                if task["kind"] in SETS
+                else "Test rows in ten equal groups by predicted chance: what the model said against what happened."
+            ),
             "",
             "| Predicted | Happened | Rows |",
             "|---|---|---|",
         ]
         for row in board["calibration"]["bins"]:
             lines.append(f"| {row['predicted']:.1%} | {row['observed']:.1%} | {row['n']:,} |")
+    if "candidates" in board:
+        kind = CANDIDATES[task["kind"]]
+        lines += [
+            "",
+            f"## Each {kind} by itself, for `{board['candidates']['run']}`",
+            "",
+            f"A {kind} as one yes or no over the test rows: how many rows carry it, and how well its chance tells "
+            "those rows from the rest. The most common first.",
+            "",
+            f"| {kind.capitalize()} | Rows | Share | PR-AUC | ROC-AUC |",
+            "|---|---|---|---|---|",
+        ]
+        each = board["candidates"]["each"]
+        for name in sorted(each, key=lambda name: (-each[name]["rows"], name)):
+            row = each[name]
+            lines.append(
+                f"| `{name}` | {row['rows']:,} | {row['share']:.1%} | {_number(row['pr_auc'])} | {_number(row['roc_auc'])} |"
+            )
     if "studies" in board:
         lines += [
             "",

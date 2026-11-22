@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from .metrics import LOWER_IS_BETTER, METRICS
+from .metrics import LOWER_IS_BETTER, METRICS, SETS, mean_of_rows, row_scores
 
 
 # How many times the games are drawn again for a full run's intervals, and for a smoke run's.
@@ -45,6 +45,8 @@ def intervals(
     seed: int = 0,
 ) -> dict[str, dict[str, float]]:
     """Each metric with its 95% interval over resampled groups."""
+    if kind in SETS:
+        return intervals_of_rows(list(METRICS[kind]), row_scores(kind, y, p), groups, resamples=resamples, seed=seed)
     y = np.asarray(y, dtype=np.float64)
     p = np.asarray(p, dtype=np.float64)
     resampler = Resampler(groups, seed)
@@ -58,6 +60,51 @@ def intervals(
         low, high = _span(draws[name])
         result[name] = {"value": metric(y, p), "low": low, "high": high}
     return result
+
+
+def intervals_of_rows(
+    names: list[str],
+    scores: np.ndarray,
+    groups: np.ndarray,
+    *,
+    resamples: int = RESAMPLES,
+    seed: int = 0,
+) -> dict[str, dict[str, float]]:
+    """Each metric that is a mean of the rows' scores (one column of ``scores`` a metric), with its 95%
+    interval over resampled groups. The rows are scored once and only their scores are drawn again."""
+    resampler = Resampler(groups, seed)
+    draws = np.stack([mean_of_rows(scores[resampler.draw()]) for _ in range(resamples)])
+    values = mean_of_rows(scores)
+    result = {}
+    for column, name in enumerate(names):
+        low, high = _span(draws[:, column])
+        result[name] = {"value": float(values[column]), "low": low, "high": high}
+    return result
+
+
+def paired_of_rows(
+    scores: np.ndarray,
+    reference: np.ndarray,
+    groups: np.ndarray,
+    *,
+    lower_is_better: bool,
+    resamples: int = RESAMPLES,
+    seed: int = 0,
+) -> dict[str, float | bool]:
+    """``paired`` for a metric that is a mean of the rows' scores, given each run's score row by row."""
+    sign = -1.0 if lower_is_better else 1.0
+    resampler = Resampler(groups, seed)
+    gains = []
+    for _ in range(resamples):
+        rows = resampler.draw()
+        gains.append(sign * (mean_of_rows(scores[rows]) - mean_of_rows(reference[rows])))
+    low, high = _span(gains)
+    return {
+        "gain": sign * (mean_of_rows(scores) - mean_of_rows(reference)),
+        "low": low,
+        "high": high,
+        "beyond_noise": bool(low > 0 or high < 0),
+    }
 
 
 def _span(draws: list[float]) -> tuple[float, float]:
@@ -85,6 +132,16 @@ def paired(
 
     ``beyond_noise`` is true when the 95% interval of the gain leaves zero out.
     """
+    if kind in SETS:
+        column = list(METRICS[kind]).index(metric)
+        return paired_of_rows(
+            row_scores(kind, y, p)[:, column],
+            row_scores(kind, y, p_reference)[:, column],
+            groups,
+            lower_is_better=metric in LOWER_IS_BETTER,
+            resamples=resamples,
+            seed=seed,
+        )
     y = np.asarray(y, dtype=np.float64)
     p = np.asarray(p, dtype=np.float64)
     p_reference = np.asarray(p_reference, dtype=np.float64)

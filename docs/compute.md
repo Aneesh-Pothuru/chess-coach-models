@@ -59,7 +59,9 @@ lab analyse tactic-found         # writes models/tactic-found/results/analysis.j
 ```
 
 It reads a run's predictions only when they are the ones its record scored on this machine's build
-of the data, and names the runs it left out and why.
+of the data, and names the runs it left out and why. A model whose answer is a set has no closer
+look yet ([`design.md`](design.md), "An answer that is a set"): its records and its leaderboard
+are all it commits.
 
 ## On Colab
 
@@ -67,7 +69,7 @@ of the data, and names the runs it left out and why.
 commands on the notebook's GPU. Its first cell names the models and the runs, or a plan kept in
 [`colab/plans/`](../colab/plans/): `all` is every model's own runs, `studies` the study runs of
 the models that have results, `pretrain` the body trained on engine evaluations and the runs that
-start from it. Its last cell packs two zips and prints their hashes: `lab-results.zip`, the run records and leaderboards under
+start from it, `sets` the two models whose answer is a set. Its last cell packs two zips and prints their hashes: `lab-results.zip`, the run records and leaderboards under
 `models/*/results/`, and `lab-runs.zip`, every run's trained weights and test predictions.
 
 1. Open the notebook in Colab and choose a GPU runtime.

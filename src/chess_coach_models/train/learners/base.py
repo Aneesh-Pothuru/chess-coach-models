@@ -20,7 +20,8 @@ class Prepared:
     """A task's arrays over one dataset: labels, context numbers, hand features and the three splits.
 
     ``hand_names`` and ``mark_names`` are what the task lets a learner read of the dataset's hand features and
-    marks on squares, and ``mark_channels`` where each of those marks sits among the dataset's own.
+    marks on squares, and ``mark_channels`` where each of those marks sits among the dataset's own. ``y`` is
+    one number a row, or for a task whose answer is a set one column a candidate, 1 where it is right.
     """
 
     task: Task
@@ -38,10 +39,35 @@ class Prepared:
 
 @dataclass
 class Fitted:
+    """What a learner said of the valid and the test rows, in the label's own unit: one number a row, or for
+    a task whose answer is a set one chance a candidate."""
+
     valid: np.ndarray
     test: np.ndarray
     details: dict[str, Any] = field(default_factory=dict)
     save: Callable[[Path], None] = lambda directory: None
+
+
+def labels(task: Task, dataset: Dataset) -> np.ndarray:
+    """What a task asks of every row of a dataset.
+
+    A quantity or a chance is its column. The squares that are right are the squares that carry any of the
+    marks the task names as its label. The tags that are right are those among the words of its column.
+    """
+    rows, manifest = dataset.rows, dataset.manifest
+    if task.kind == "squares":
+        strangers = [name for name in task.label if name not in manifest["marks"]]
+        if strangers:
+            raise ValueError(
+                f"{dataset.name} marks {', '.join(manifest['marks'])} on its squares, "
+                f"and {task.name} predicts {', '.join(strangers)}"
+            )
+        bits = sum(1 << manifest["marks"].index(name) for name in task.label)
+        return ((dataset.marks & np.uint16(bits)) != 0).astype(np.uint8)
+    if task.kind == "tags":
+        words = rows[task.label].fill_null("").str.split(" ")
+        return np.stack([words.list.contains(tag).to_numpy() for tag in task.tags], axis=1).astype(np.uint8)
+    return rows[task.label].to_numpy().astype(np.float64)
 
 
 def share_of(groups: np.ndarray, share: float) -> np.ndarray:
@@ -75,7 +101,7 @@ def prepare(task: Task, dataset: Dataset, *, train_share: float = 1.0) -> Prepar
     return Prepared(
         task=task,
         dataset=dataset,
-        y=rows[task.label].to_numpy().astype(np.float64),
+        y=labels(task, dataset),
         context=rows.select(list(task.context)).to_numpy().astype(np.float32),
         hand=rows.select(hand_names).to_numpy().astype(np.float32),
         hand_names=hand_names,

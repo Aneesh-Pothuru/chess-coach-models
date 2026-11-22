@@ -28,11 +28,12 @@ class TempLab:
         path.write_text(yaml.safe_dump(recipe), encoding="utf-8")
 
     def model(self, name: str, configs: dict[str, dict[str, Any]]) -> None:
-        """Gives the lab a model: the repository's own task and analysis plan for it, and these run configs."""
+        """Gives the lab a model: the repository's own task for it, its analysis plan when it has one, and these run configs."""
         folder = self.root / "models" / name
         (folder / "configs").mkdir(parents=True, exist_ok=True)
         for file in ("task.yaml", "analysis.yaml"):
-            shutil.copy(REPOSITORY / "models" / name / file, folder / file)
+            if (REPOSITORY / "models" / name / file).exists():
+                shutil.copy(REPOSITORY / "models" / name / file, folder / file)
         for run, config in configs.items():
             (folder / "configs" / f"{run}.yaml").write_text(yaml.safe_dump(config), encoding="utf-8")
 

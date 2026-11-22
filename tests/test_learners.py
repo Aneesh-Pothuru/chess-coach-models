@@ -142,3 +142,61 @@ def test_a_share_of_the_training_games_keeps_whole_games_and_sits_inside_a_large
     for share in (0.0, 1.5, -0.1):
         with pytest.raises(ValueError, match="a share of the games"):
             learners.prepare(a_task("mover_score"), dataset, train_share=share)
+
+
+def a_set_task(kind: str, **changes) -> tasks.Task:
+    return tasks.Task(**{**a_task("themes").__dict__, "kind": kind, "primary": "ap", **changes})
+
+
+def test_the_squares_that_are_right_are_the_ones_the_label_marks():
+    dataset = a_puzzle_dataset()
+    dataset.marks[0, 12] = 0b100
+    dataset.marks[0, 20] = 0b110
+    dataset.marks[0, 28] = 0b011
+    dataset.marks[1, 5] = 0b001
+    one = a_set_task("squares", label=("solver1_to",), marks=("en_passant", "setup_to"))
+    prepared = learners.prepare(one, dataset)
+    assert prepared.y.shape == (ROWS, 64) and prepared.y.dtype == np.uint8
+    assert np.flatnonzero(prepared.y[0]).tolist() == [12, 20] and not prepared.y[1:].any()
+    assert (prepared.mark_names, prepared.mark_channels) == (["en_passant", "setup_to"], [0, 1])
+    both = a_set_task("squares", label=("setup_to", "solver1_to"), marks=("en_passant",))
+    assert np.flatnonzero(base.labels(both, dataset)[0]).tolist() == [12, 20, 28]
+    absent = a_set_task("squares", label=("solver1_to", "later"), marks=("en_passant",))
+    with pytest.raises(ValueError, match="predicts later"):
+        base.labels(absent, dataset)
+
+
+def test_the_tags_that_are_right_are_the_whole_words_of_the_label():
+    dataset = a_dataset()
+    words = ["fork pin", "", None, "mateIn2 fork", "pinned"] + ["quietMove"] * (ROWS - 5)
+    tagged = store.Dataset(
+        name="tiny",
+        rows=dataset.rows.with_columns(pl.Series("themes", words)),
+        tokens=dataset.tokens,
+        marks=dataset.marks,
+        manifest=dataset.manifest,
+    )
+    prepared = learners.prepare(a_set_task("tags", tags=("fork", "pin", "skewer")), tagged)
+    assert prepared.y.shape == (ROWS, 3) and prepared.y.dtype == np.uint8
+    assert prepared.y[:5].tolist() == [[1, 1, 0], [0, 0, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0]]
+    assert not prepared.y[5:].any()
+
+
+def test_the_floor_of_a_set_gives_every_row_each_candidates_share_of_the_training_rows():
+    dataset = a_dataset()
+    rng = np.random.default_rng(2)
+    words = [" ".join(tag for tag, chance in (("fork", 0.5), ("pin", 0.1)) if rng.random() < chance) for _ in range(ROWS)]
+    tagged = store.Dataset(
+        name="tiny",
+        rows=dataset.rows.with_columns(pl.Series("themes", words)),
+        tokens=dataset.tokens,
+        marks=dataset.marks,
+        manifest=dataset.manifest,
+    )
+    prepared = learners.prepare(a_set_task("tags", tags=("fork", "pin", "skewer")), tagged)
+    fitted = learners.fit(prepared, {"learner": {"kind": "constant"}}, log=lambda _: None)
+    shares = prepared.y[prepared.train].mean(axis=0)
+    assert fitted.test.shape == (len(prepared.test), 3) and fitted.valid.shape == (len(prepared.valid), 3)
+    assert np.allclose(fitted.test, shares) and np.allclose(fitted.valid, shares)
+    assert 0.4 < shares[0] < 0.6 and 0.03 < shares[1] < 0.2 and shares[2] == 0.0
+    assert fitted.details == {"shares": {"fork": round(float(shares[0]), 6), "pin": round(float(shares[1]), 6), "skewer": 0.0}}

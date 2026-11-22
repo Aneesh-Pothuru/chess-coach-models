@@ -379,9 +379,13 @@ def test_the_glossary_has_words_for_every_name_a_paper_can_show(model):
     plan = analysis.plan(model)
     marks = [name for name in builder.MARKS if task.marks is None or name in task.marks]
     hand = [name for name in builder.HAND if task.hand is None or group_of(name) in task.hand]
-    shown = [task.label, *task.context, *hand, *plan.get("describe", []), *plan.get("examples", {}).get("show", [])]
+    # A task that predicts squares names marks as its label: the builder's own, with a mark's words.
+    predicted = [] if isinstance(task.label, str) else list(task.label)
+    columns = [] if predicted else [task.label]
+    shown = [*columns, *task.context, *hand, *plan.get("describe", []), *plan.get("examples", {}).get("show", [])]
     assert [name for name in shown if name not in glossary.COLUMNS] == []
-    assert [name for name in marks if name not in glossary.MARKS] == []
+    assert [name for name in [*marks, *predicted] if name not in glossary.MARKS] == []
+    assert [name for name in predicted if name not in builder.MARKS] == []
     for name in shown:
         label, sentence = glossary.COLUMNS[name]
         assert label and sentence.endswith(".")

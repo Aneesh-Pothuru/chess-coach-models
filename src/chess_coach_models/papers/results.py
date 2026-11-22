@@ -156,7 +156,8 @@ def values(src: Sources, out: tex.Generated) -> None:
     task = src.task
     out.set("model", tex.esc(src.model))
     out.set("task.unit", tex.esc(task.unit))
-    out.set("task.label", f"\\texttt{{{tex.esc(task.label)}}}")
+    labels = [task.label] if isinstance(task.label, str) else list(task.label)
+    out.set("task.label", ", ".join(f"\\texttt{{{tex.esc(name)}}}" for name in labels))
     out.set("task.metric", METRIC_NAMES[task.primary])
     out.set("task.better", "lower" if task.lower_is_better else "higher")
     out.set("task.reference", run_tex(task.reference))

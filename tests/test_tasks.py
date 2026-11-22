@@ -76,6 +76,40 @@ def test_a_task_can_keep_marks_and_hand_features_from_its_learners(temp_lab):
         tasks.get("odd")
 
 
+def test_a_task_whose_answer_is_a_set_says_where_the_set_is(temp_lab):
+    squares = {**TASK, "kind": "squares", "primary": "ap", "label": ["solver1_from", "solver1_to"], "marks": ["en_passant"]}
+    write_task(temp_lab.root, "squares", squares)
+    task = tasks.get("squares")
+    assert task.label == ("solver1_from", "solver1_to") and task.tags is None
+    assert len(task.candidates) == 64 and task.candidates[:2] == ("a1", "b1") and task.candidates[-1] == "h8"
+    assert not task.lower_is_better and task.better(0.6, 0.5)
+    write_task(temp_lab.root, "one-column", {**squares, "label": "rating"})
+    with pytest.raises(ValueError, match="names, as its label, the marks"):
+        tasks.get("one-column")
+    write_task(temp_lab.root, "shown", {**squares, "marks": ["en_passant", "solver1_to"]})
+    with pytest.raises(ValueError, match="solver1_to is both"):
+        tasks.get("shown")
+    write_task(temp_lab.root, "open", {key: value for key, value in squares.items() if key != "marks"})
+    with pytest.raises(ValueError, match="names the marks its learners may read"):
+        tasks.get("open")
+    tags = {**TASK, "kind": "tags", "primary": "ap", "label": "themes", "tags": ["fork", "pin"]}
+    write_task(temp_lab.root, "tags", tags)
+    assert tasks.get("tags").candidates == ("fork", "pin") and tasks.get("tags").label == "themes"
+    for name, change, message in (
+        ("untagged", {"tags": None}, "names its tags when"),
+        ("single", {"tags": ["fork"]}, "at least two, each once"),
+        ("twice", {"tags": ["fork", "fork"]}, "at least two, each once"),
+        ("listed", {"label": ["themes"]}, "label is one column"),
+    ):
+        write_task(temp_lab.root, name, {key: value for key, value in {**tags, **change}.items() if value is not None})
+        with pytest.raises(ValueError, match=message):
+            tasks.get(name)
+    write_task(temp_lab.root, "tagged", {**TASK, "tags": ["fork", "pin"]})
+    with pytest.raises(ValueError, match="names its tags when"):
+        tasks.get("tagged")
+    assert tasks.get("squares").kind in METRICS and tasks.Task(**{**tasks.get("tags").__dict__, "kind": "regression", "tags": None}).candidates == ()
+
+
 def test_a_run_that_changes_another_names_a_run_the_model_has():
     for name in tasks.names():
         configs = {path.stem: yaml.safe_load(path.read_text(encoding="utf-8")) for path in paths.configs(name).glob("*.yaml")}

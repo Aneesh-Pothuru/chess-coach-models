@@ -10,7 +10,7 @@ from typing import Any
 
 import numpy as np
 
-from ...evals.metrics import LOWER_IS_BETTER, METRICS
+from ...evals.metrics import LOWER_IS_BETTER, METRICS, SETS
 from .base import Fitted, Prepared, features
 
 
@@ -68,7 +68,8 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
     """A board network trained with AdamW on a warm-up then cosine schedule, keeping the epoch that scores best on valid.
 
     With ``start`` the network begins from the body of the network saved there (``start_from``), and its
-    record says what it took.
+    record says what it took. For a task whose answer is a set the head gives a logit a candidate (a square,
+    a tag), each trained as a yes or no of its own.
     """
     import torch
     import torch.nn.functional as F
@@ -88,20 +89,31 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
     spread = numbers[prepared.train].std(axis=0)
     spread[spread == 0] = 1.0
     regression = task.kind == "regression"
+    sets = task.kind in SETS
     y_mean = float(prepared.y[prepared.train].mean()) if regression else 0.0
     y_spread = float(prepared.y[prepared.train].std()) if regression else 1.0
 
     tokens = torch.from_numpy(prepared.dataset.tokens).to(device)
     marks = torch.from_numpy(prepared.dataset.marks.astype(np.int16)).to(device)
     context = torch.from_numpy((numbers - mean) / spread).to(device)
-    target = torch.from_numpy(((prepared.y - y_mean) / y_spread).astype(np.float32)).to(device)
+    if sets:
+        # One byte a candidate until a batch asks for it: a set over every row is large as fractions.
+        target = torch.from_numpy(prepared.y).to(device)
+    else:
+        target = torch.from_numpy(((prepared.y - y_mean) / y_spread).astype(np.float32)).to(device)
     shifts = torch.tensor(prepared.mark_channels, device=device)
 
     def batch_of(rows: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         planes = ((marks[rows].long()[..., None] >> shifts) & 1).float()
         return tokens[rows].long(), planes, context[rows]
 
-    model = build_net(learner, marks=len(mark_names), context=context.shape[1])
+    model = build_net(
+        learner,
+        marks=len(mark_names),
+        context=context.shape[1],
+        outputs=len(task.candidates) if task.kind == "tags" else 1,
+        squares=task.kind == "squares",
+    )
     started = None
     if start is not None:
         saved = torch.load(start, map_location="cpu", weights_only=False)
@@ -161,7 +173,7 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
         for start in range(0, len(order), batch):
             rows = order[start : start + batch]
             with torch.autocast(device_type="cuda" if on_gpu else "cpu", enabled=on_gpu):
-                loss = loss_of(model(*batch_of(rows)).float(), target[rows])
+                loss = loss_of(model(*batch_of(rows)).float(), target[rows].float())
             optimizer.zero_grad(set_to_none=True)
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
@@ -203,6 +215,7 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
                 "context_spread": spread,
                 "label_mean": y_mean,
                 "label_spread": y_spread,
+                **({"candidates": list(task.candidates)} if sets else {}),
             },
             directory / "model.pt",
         )

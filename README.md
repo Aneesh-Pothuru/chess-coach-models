@@ -20,6 +20,8 @@ results its runs wrote.
 |---|---|---|
 | [puzzle-difficulty](models/puzzle-difficulty/) | A position and its solution line | The puzzle's Lichess rating |
 | [puzzle-difficulty-unsolved](models/puzzle-difficulty-unsolved/) | The same position with the solution hidden | The puzzle's Lichess rating |
+| [where-to-look](models/where-to-look/) | A puzzle's position with the solution hidden | For each square, the chance that the tactic's line runs through it |
+| [puzzle-themes](models/puzzle-themes/) | A position and its solution line | For each of 30 themes (a fork, a pin, a quiet move), the chance that the puzzle carries it |
 | [blunder-hazard](models/blunder-hazard/) | A position, both ratings, both clocks, the evaluation | The chance the mover blunders |
 | [think-time](models/think-time/) | A position, both ratings, both clocks | The seconds a player spends on the move |
 | [tactic-found](models/tactic-found/) | A position after the opponent's mistake, the tactic's line, both ratings, both clocks | The chance the player finds the tactic in the game |
@@ -27,7 +29,7 @@ results its runs wrote.
 | [position-evaluation](models/position-evaluation/) | A position | An engine's evaluation of it: the body the others can start from |
 | [coach-narrator](models/coach-narrator/) | Checked facts about a line of play | Two plain sentences that tell the line |
 
-The first seven share one harness. The coach narrator is a fine-tuned language model (Llama 3.2
+The first nine share one harness. The coach narrator is a fine-tuned language model (Llama 3.2
 3B) with its own scripts; a retrain on open data is published as
 [a release](https://github.com/Aneesh-Pothuru/chess-coach-models/releases/tag/Llama-3.2-3B-coach-narrator-n6)
 (see its card).
@@ -91,8 +93,10 @@ src/chess_coach_models/  the harness
   tasks.py               a model's task, read from its folder
   data/                  Lichess sources (puzzles, a month of games, puzzles joined to their games,
                          engine evaluations), samples and splits by hash, the dataset format
-  encode/                a board as 64 tokens from the mover's side, marks, hand features
-  nets/                  bodies (a square-token transformer, a convolutional tower) and the head
+  encode/                a board as 64 tokens from the mover's side, marks, hand features of a
+                         position and of each square
+  nets/                  bodies (a square-token transformer, a convolutional tower) and the heads:
+                         one number, a chance a tag, a chance a square
   train/                 the learners, one file each, and the run that writes a record
   evals/                 metrics, intervals over resampled games, paired gains, leaderboards,
                          and the closer look
@@ -124,7 +128,8 @@ code runs, never a result.
 - **A gain is paired.** Two runs are compared on the same resampled test games, and a gain counts
   only when its 95% interval leaves zero out.
 - **A baseline stands beside every network.** Gradient-boosted trees on a few dozen hand features
-  are trained for every model, and so is the floor: one number for every row.
+  are trained for every model, and so is the floor: one number for every row, or for a model
+  whose answer is a set, the same chances for every row.
 
 ## Running it
 

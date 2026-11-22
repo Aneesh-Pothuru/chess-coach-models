@@ -1,4 +1,10 @@
-"""The scores a prediction gets, by the kind of label. Numpy only, so the light tests can check them."""
+"""The scores a prediction gets, by the kind of label. Numpy only, so the light tests can check them.
+
+A label is one number a row (a quantity, or whether something happened) or a set a row: which of a fixed
+list of candidates are right, the squares of a board or the tags a task names. For a set a prediction is
+a chance for every candidate, and each score is a mean over the rows of a score every row gets by itself
+(``row_scores``), so its noise is measured by drawing the rows' scores again and never the ranking.
+"""
 
 from __future__ import annotations
 
@@ -92,6 +98,60 @@ def calibration_table(y: np.ndarray, p: np.ndarray, bins: int = 10) -> list[dict
     ]
 
 
+def row_average_precision(y: np.ndarray, p: np.ndarray) -> np.ndarray:
+    """Row by row, the mean of the precision at each right candidate when the candidates are ranked by their
+    chance, ties scored together. With one right candidate it is one over its rank. A row with no right
+    candidate has none."""
+    order = np.argsort(-p, axis=1, kind="stable")
+    hits = np.cumsum(np.take_along_axis(y, order, axis=1), axis=1, dtype=np.float64)
+    ranked = np.take_along_axis(p, order, axis=1)
+    last = np.ones(ranked.shape, dtype=bool)
+    last[:, :-1] = ranked[:, 1:] != ranked[:, :-1]
+    at_last = np.where(last, hits, 0.0)
+    before = np.zeros_like(hits)
+    before[:, 1:] = np.maximum.accumulate(at_last, axis=1)[:, :-1]
+    total = hits[:, -1]
+    summed = np.sum(np.where(last, (hits - before) * hits / np.arange(1, y.shape[1] + 1), 0.0), axis=1)
+    return np.where(total > 0, summed / np.maximum(total, 1.0), np.nan)
+
+
+def row_first_right(y: np.ndarray, p: np.ndarray) -> np.ndarray:
+    """Row by row, whether the candidate given the highest chance is right: the share of right ones among
+    those tied for it. A row with no right candidate has none."""
+    tied = p == p.max(axis=1, keepdims=True)
+    share = np.sum(tied & (y > 0), axis=1) / np.sum(tied, axis=1)
+    return np.where(np.sum(y, axis=1) > 0, share, np.nan)
+
+
+def row_log_loss(y: np.ndarray, p: np.ndarray) -> np.ndarray:
+    """Row by row, the log loss of the chances as one yes or no a candidate, averaged over the candidates."""
+    q = np.clip(p, 1e-7, 1 - 1e-7)
+    return -np.mean(y * np.log(q) + (1 - y) * np.log(1 - q), axis=1)
+
+
+# The score every row of a set gets by itself, by the metric that is its mean over the rows.
+ROW_SCORES: dict[str, Metric] = {"ap": row_average_precision, "top1": row_first_right, "log_loss": row_log_loss}
+
+
+def _over_rows(name: str) -> Metric:
+    def metric(y: np.ndarray, p: np.ndarray) -> float:
+        return mean_of_rows(ROW_SCORES[name](np.asarray(y, dtype=np.float64), np.asarray(p, dtype=np.float64)))
+
+    return metric
+
+
+def mean_of_rows(scores: np.ndarray) -> float | np.ndarray:
+    """The mean of the rows' scores, over the rows that have one: of one column as a number, of several as
+    one number a column."""
+    known = ~np.isnan(scores)
+    counts = known.sum(axis=0)
+    means = np.where(counts > 0, np.where(known, scores, 0.0).sum(axis=0) / np.maximum(counts, 1), np.nan)
+    return float(means) if scores.ndim == 1 else means
+
+
+# The kinds whose label is a set of right candidates a row.
+SETS = ("squares", "tags")
+_SET_METRICS = {name: _over_rows(name) for name in ROW_SCORES}
 METRICS: dict[str, dict[str, Metric]] = {
     "regression": {"rmse": rmse, "mae": mae, "r2": r2, "spearman": spearman},
     "binary": {
@@ -101,8 +161,17 @@ METRICS: dict[str, dict[str, Metric]] = {
         "log_loss": log_loss,
         "calibration_error": calibration_error,
     },
+    **{kind: _SET_METRICS for kind in SETS},
 }
 LOWER_IS_BETTER = {"rmse", "mae", "brier", "log_loss", "calibration_error"}
+
+
+def row_scores(kind: str, y: np.ndarray, p: np.ndarray) -> np.ndarray:
+    """Every row's score on each metric of a kind whose label is a set, one column a metric in the order
+    ``METRICS`` names them."""
+    y = np.asarray(y, dtype=np.float64)
+    p = np.asarray(p, dtype=np.float64)
+    return np.stack([ROW_SCORES[name](y, p) for name in METRICS[kind]], axis=1)
 
 
 def score(kind: str, y: np.ndarray, p: np.ndarray) -> dict[str, float]:

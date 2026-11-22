@@ -12,6 +12,8 @@ model"). The order below is the order they are worth building in.
 | [coach-narrator](../models/coach-narrator/) | Checked facts about a line | Two plain sentences | The line behind a mistake, said out loud |
 | [puzzle-difficulty](../models/puzzle-difficulty/) | A position and its solution | The puzzle's rating | A rating for any tactic in the player's games |
 | [puzzle-difficulty-unsolved](../models/puzzle-difficulty-unsolved/) | The same position with its solution hidden | The puzzle's rating | How much of a tactic's difficulty shows before anyone knows the line |
+| [where-to-look](../models/where-to-look/) | A puzzle's position with its solution hidden | For each square, the chance that the tactic's line leaves it or lands on it | A hint for a missed tactic that is a place on the board and not yet a move |
+| [puzzle-themes](../models/puzzle-themes/) | A position and its solution | For each of 30 themes, the chance that the puzzle carries it | A name, in a coach's words, for what a tactic in the player's games was |
 | [blunder-hazard](../models/blunder-hazard/) | A position, ratings, clocks, the evaluation | The chance the mover blunders | The positions where players at a level go wrong |
 | [think-time](../models/think-time/) | A position, ratings, clocks | The seconds spent on the move | Where a player moved too fast or too slow |
 | [tactic-found](../models/tactic-found/) | A position after the opponent's mistake, the tactic's line, ratings, clocks | The chance the player finds the tactic in the game | Which missed tactics were within reach at the player's level |
@@ -75,15 +77,14 @@ here.
 
 | Idea | Reads | Predicts | Needs in the harness |
 |---|---|---|---|
-| Where to look | A position | The squares that matter (a tactic's squares, from the puzzle solutions) | A label per square |
 | Game rating | A whole game with clocks | The rating the play looks like, by phase | A body over a sequence of positions |
 | Human moves, trained here | A position and a rating | A chance for every legal move | A move head. Maia-2 is what the app runs, and Maia-3 is the model to benchmark against first |
-| Concept tagger | A position and its line | A chance for each puzzle theme | A head with one output a theme, and its metrics |
 | Lines that work at a level | Opening lines at a rating band | How each line scores for people there, whatever the engine thinks | Nothing trained: a counted opening tree with intervals |
 | A player over time | One player's games in order | Whether a weakness is closing | Games grouped by player, from the Lichess API |
 
-The lab's first experiments tried three of these in another form (a Maia-2 benchmark, a theme
-tagger on Maia-2's activations, an opening tree): [`history.md`](history.md) says what they found.
+The lab's first experiments tried two of these and the theme model in another form (a Maia-2
+benchmark, an opening tree, a theme tagger on Maia-2's activations):
+[`history.md`](history.md) says what they found.
 
 ## Checks on the player's own scale
 

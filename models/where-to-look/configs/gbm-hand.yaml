@@ -1,0 +1,14 @@
+# Trees that read a row a square: what gbm-context reads, the position's hand features, and what a
+# person would count on the square (who attacks it, whether its piece hangs or is pinned, the moves
+# that start and end there, how far each king is). The reference every network is compared with.
+# Each position is 64 rows to them, so they train on a tenth of the training games, and at twice the
+# usual learning rate.
+learner:
+  kind: gbm
+  features: hand
+  learning_rate: 0.1
+  rounds: 1000
+data:
+  train_share: 0.1
+smoke:
+  learner: {rounds: 30}

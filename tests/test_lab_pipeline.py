@@ -586,6 +586,169 @@ def test_a_network_starts_from_the_body_another_run_trained(lab, temp_lab):
         runs.run(model, "gbm-pretrained", smoke=True, log=lambda _: None)
 
 
+SET_CONFIGS = {
+    "gbm-hand": {"learner": {"kind": "gbm", "features": "hand", "rounds": 20, "min_child_samples": 5}},
+    "gbm-context": {"learner": {"kind": "gbm", "features": "context", "rounds": 20, "min_child_samples": 5}},
+    "constant": {"learner": {"kind": "constant"}},
+    "transformer-small": CONFIGS["transformer-small"],
+    "conv-small": {
+        "learner": {"kind": "net", "body": "conv", "dim": 8, "depth": 1},
+        "train": {"epochs": 2, "batch": 32, "lr": 0.01},
+    },
+}
+ROW_METRICS = ["ap", "top1", "log_loss"]
+
+
+def read_set_predictions(model: str, name: str):
+    import numpy as np
+
+    frame = pl.read_parquet(paths.predictions(model, name, smoke=True))
+    assert frame.columns == ["key", "group", "band", "y", "p", *ROW_METRICS]
+    return frame, np.stack(frame["y"].to_list()), np.stack(frame["p"].to_list())
+
+
+def test_a_model_that_predicts_squares_runs_scores_and_ranks(lab, temp_lab):
+    import numpy as np
+    import torch
+
+    from chess_coach_models.encode.squares import SQUARE_HAND, SQUARE_PLAIN
+
+    model = "where-to-look"
+    temp_lab.model(model, SET_CONFIGS)
+    task = tasks.get(model)
+    dataset = store.read_dataset(DATASET)
+    solution = [name for name in dataset.manifest["marks"] if name not in task.marks]
+    assert task.kind == "squares" and sorted(task.label) == sorted(solution) and len(task.candidates) == 64
+    position = [name for group in POSITION_GROUPS for name in GROUPS[group]]
+    records = {name: runs.run(model, name, smoke=True, log=lambda _: None) for name in SET_CONFIGS}
+    for name, record in records.items():
+        assert record["task"]["candidates"] == list(task.candidates) and record["task"]["label"] == list(task.label)
+        assert record["task"]["marks"] == list(task.marks) and list(record["test"]) == list(record["valid"]) == ROW_METRICS
+        for metric in ROW_METRICS:
+            entry = record["test"][metric]
+            assert entry["low"] <= entry["value"] <= entry["high"]
+        frame, y, p = read_set_predictions(model, name)
+        assert y.shape == p.shape == (record["test_rows"], 64) and set(np.unique(y)) == {0, 1}
+        assert (y.sum(axis=1) >= 2).all() and ((p > 0) & (p < 1)).all()
+        for metric in ROW_METRICS:
+            assert frame[metric].mean() == pytest.approx(record["test"][metric]["value"], rel=1e-9)
+        assert sum(band["rows"] for band in record["test_by_band"].values()) == record["test_rows"]
+        assert sum(row["n"] for row in record["test_calibration"]) == record["test_rows"] * 64
+        assert "test_by_candidate" not in record and record["calibration"]["fitted_on"] == "valid"
+    # What was right is every square a move of the solution leaves or lands on, and nothing a learner read.
+    frame, y, _ = read_set_predictions(model, "gbm-hand")
+    test = dataset.split("test")
+    assert frame["key"].to_list() == dataset.rows["key"].gather(test).to_list()
+    bits = sum(1 << dataset.manifest["marks"].index(name) for name in solution)
+    assert np.array_equal(y, (dataset.marks[test] & bits) != 0)
+    # The trees read a row a square: the position's numbers, the square, the marks they may see, and with
+    # the hand features what a person would count there.
+    plain = len(task.context) + len(SQUARE_PLAIN) + len(task.marks)
+    assert records["gbm-context"]["learner"]["features"] == plain
+    assert records["gbm-hand"]["learner"]["features"] == plain + len(position) + len(SQUARE_HAND)
+    allowed = {*task.context, *position, *SQUARE_PLAIN, *SQUARE_HAND, *(f"square_{name}" for name in task.marks)}
+    for name in ("gbm-context", "gbm-hand"):
+        assert {entry["feature"] for entry in records[name]["learner"]["leans_on"]} <= allowed
+    assert records["constant"]["learner"]["shares"].keys() == set(task.candidates)
+    # A network gives every square its own logit from the square's vector, and reads none of the solution.
+    for name in ("transformer-small", "conv-small"):
+        saved = torch.load(paths.run_files(model, name, smoke=True) / "model.pt", weights_only=False)
+        assert saved["marks"] == list(task.marks) and saved["candidates"] == list(task.candidates)
+        assert saved["context"] == list(task.context)
+        dim = SET_CONFIGS[name]["learner"]["dim"]
+        assert saved["state"]["head.0.weight"].shape == (dim, dim) and saved["state"]["head.2.weight"].shape == (1, dim)
+    assert torch.load(paths.run_files(model, "transformer-small", smoke=True) / "model.pt", weights_only=False)["state"][
+        "body.mark.weight"
+    ].shape[1] == len(task.marks)
+    # Where a square is and what stands on it already beats the same chances for every position.
+    scores = {name: record["test"]["ap"]["value"] for name, record in records.items()}
+    assert scores["gbm-hand"] > scores["constant"] and scores["gbm-context"] > scores["constant"]
+    board = leaderboard.build(model, smoke=True)
+    assert [entry["test"]["ap"]["value"] for entry in board["runs"]] == sorted(scores.values(), reverse=True)
+    gains = {entry["run"]: entry["gain"] for entry in board["runs"]}
+    assert gains["gbm-hand"] is None and gains["constant"]["gain"] == pytest.approx(scores["constant"] - scores["gbm-hand"])
+    assert all(gain["low"] <= gain["gain"] <= gain["high"] for gain in gains.values() if gain)
+    assert "candidates" not in board and board["calibration"]["run"] == board["runs"][0]["run"]
+    text = (paths.results(model, smoke=True) / "leaderboard.md").read_text()
+    assert "| Run | Learner | Average precision | First right | Log loss |" in text
+    assert "which of 64 squares are right" in text and "LightGBM on a row a square" in text
+    assert "each square's share of the training rows" in text and "Every square of every test row" in text
+    assert "not compared" not in text and "by itself" not in text
+    with pytest.raises(ValueError, match="the closer look reads one number a row"):
+        analysis.analyse(model, smoke=True)
+
+
+def test_trees_that_read_a_row_a_square_ask_for_a_share_of_the_games(lab, temp_lab, monkeypatch):
+    from chess_coach_models.train.learners import gbm
+
+    model = "where-to-look"
+    temp_lab.model(model, {**SET_CONFIGS, "gbm-hand-tenth": {**SET_CONFIGS["gbm-hand"], "data": {"train_share": 0.5}}})
+    monkeypatch.setattr(gbm, "MOST_SQUARE_ROWS", 100 * 64)
+    with pytest.raises(ValueError, match="Give the run a share of the training games"):
+        runs.run(model, "gbm-hand", smoke=True, log=lambda _: None)
+    record = runs.run(model, "gbm-hand-tenth", smoke=True, log=lambda _: None)
+    assert record["train_rows"] <= 100 and record["test_rows"] == store.read_dataset(DATASET).manifest["splits"]["test"]
+
+
+def test_a_model_that_predicts_tags_runs_scores_and_ranks(lab, temp_lab):
+    import numpy as np
+    import torch
+
+    model = "puzzle-themes"
+    temp_lab.model(model, SET_CONFIGS)
+    task = tasks.get(model)
+    dataset = store.read_dataset(DATASET)
+    tags = list(task.candidates)
+    assert task.kind == "tags" and task.label == "themes" and len(tags) == len(set(tags)) > 20
+    test = dataset.split("test")
+    words = [set((themes or "").split()) for themes in dataset.rows["themes"].gather(test).to_list()]
+    carried = np.array([[tag in row for tag in tags] for row in words])
+    assert carried.any() and not carried.any(axis=1).all()
+    records = {name: runs.run(model, name, smoke=True, log=lambda _: None) for name in SET_CONFIGS}
+    for name, record in records.items():
+        assert record["task"]["candidates"] == tags and record["task"]["label"] == "themes"
+        assert "marks" not in record["task"] and list(record["test"]) == ROW_METRICS
+        frame, y, p = read_set_predictions(model, name)
+        assert np.array_equal(y, carried) and p.shape == y.shape and ((p > 0) & (p < 1)).all()
+        # A puzzle with none of the themes has no ranking to score: only the log loss counts it.
+        none = ~carried.any(axis=1)
+        assert frame["ap"].is_nan().to_numpy().tolist() == none.tolist() == frame["top1"].is_nan().to_numpy().tolist()
+        assert not frame["log_loss"].is_nan().any()
+        for metric in ROW_METRICS:
+            known = frame[metric].to_numpy()
+            assert np.nanmean(known) == pytest.approx(record["test"][metric]["value"], rel=1e-9)
+            entry = record["test"][metric]
+            assert entry["low"] <= entry["value"] <= entry["high"]
+        each = record["test_by_candidate"]
+        assert list(each) == tags and [each[tag]["rows"] for tag in tags] == carried.sum(axis=0).tolist()
+        assert all((each[tag]["pr_auc"] != each[tag]["pr_auc"]) == (each[tag]["rows"] == 0) for tag in tags)
+        assert sum(row["n"] for row in record["test_calibration"]) == record["test_rows"] * len(tags)
+    # A booster a tag: a tag no training puzzle carries has no trees, and is given no chance.
+    train = dataset.split("train")
+    seen = {tag for themes in dataset.rows["themes"].gather(train).to_list() for tag in (themes or "").split()}
+    trees = records["gbm-hand"]["learner"]["trees_by_tag"]
+    assert list(trees) == tags and records["gbm-hand"]["learner"]["trees"] == sum(trees.values())
+    assert {tag for tag in tags if trees[tag] == 0} == set(tags) - seen and 0 < len(seen & set(tags)) < len(tags)
+    saved = (paths.run_files(model, "gbm-hand", smoke=True) / "model.txt").read_text(encoding="utf-8")
+    assert [line[4:] for line in saved.splitlines() if line.startswith("tag ")] == [tag for tag in tags if trees[tag]]
+    assert records["gbm-hand"]["learner"]["features"] == len(task.context) + len(dataset.manifest["hand"]) - 1
+    assert records["gbm-context"]["learner"]["features"] == len(task.context)
+    # A network's head gives the board's vector a logit a tag.
+    state = torch.load(paths.run_files(model, "transformer-small", smoke=True) / "model.pt", weights_only=False)
+    assert state["candidates"] == tags and state["state"]["head.2.weight"].shape == (len(tags), 16)
+    assert state["marks"] == dataset.manifest["marks"]
+    scores = {name: record["test"]["ap"]["value"] for name, record in records.items()}
+    board = leaderboard.build(model, smoke=True)
+    assert [entry["test"]["ap"]["value"] for entry in board["runs"]] == sorted(scores.values(), reverse=True)
+    assert board["candidates"]["run"] == board["runs"][0]["run"] and list(board["candidates"]["each"]) == tags
+    text = (paths.results(model, smoke=True) / "leaderboard.md").read_text()
+    assert f"which of {len(tags)} tags are right" in text and "a LightGBM booster a tag" in text
+    assert f"## Each tag by itself, for `{board['runs'][0]['run']}`" in text and "| Tag | Rows | Share | PR-AUC | ROC-AUC |" in text
+    assert "each tag's share of the training rows" in text and "| n/a |" in text
+    with pytest.raises(ValueError, match="the closer look reads one number a row"):
+        analysis.analyse(model, smoke=True)
+
+
 def test_platt_scaling_recovers_a_known_distortion():
     import numpy as np
 

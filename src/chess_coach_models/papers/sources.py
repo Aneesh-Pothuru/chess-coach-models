@@ -29,6 +29,8 @@ METRIC_WORDS = {
     "calibration_error": "calibration error",
     "brier": "Brier score",
     "spearman": "rank correlation",
+    "ap": "average precision",
+    "top1": "first right",
 }
 
 
