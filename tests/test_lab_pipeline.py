@@ -455,6 +455,55 @@ def test_a_model_that_hides_something_is_read_beside_the_model_that_shows_it(lab
     assert out.values["shown.runs"] == "one" and "shown.gbm-hand.worth" not in out.values
 
 
+def test_the_closer_look_measures_what_being_shown_more_is_worth(lab, temp_lab):
+    model, shown = "puzzle-difficulty-unsolved", "puzzle-difficulty"
+    names = ("gbm-hand", "constant", "conv-hand")
+    temp_lab.model(model, {name: CONFIGS[name] for name in names})
+    hidden = {name: runs.run(model, name, smoke=True, log=lambda _: None) for name in names}
+    # Before the other model has a run on this machine there is nothing to set against.
+    alone = analysis.analyse(model, smoke=True)["shown"]
+    assert alone["model"] == shown and alone["pairs"] == [] and "best" not in alone and "slices" not in alone
+
+    seen = {name: runs.run(shown, name, smoke=True, log=lambda _: None) for name in ("gbm-hand", "constant", "transformer-small")}
+    look = analysis.analyse(model, smoke=True)["shown"]
+    pairs = {pair["run"]: pair for pair in look["pairs"]}
+    # Runs of the same name are paired: conv-hand has no run there, and transformer-small none here.
+    assert set(pairs) == {"gbm-hand", "constant"} and all(pair["there"] == pair["run"] for pair in pairs.values())
+    for name, pair in pairs.items():
+        worth = hidden[name]["test"]["rmse"]["value"] - seen[name]["test"]["rmse"]["value"]
+        assert pair["gain"] == pytest.approx(worth, rel=1e-5, abs=1e-9) and pair["low"] <= pair["gain"] <= pair["high"]
+    assert pairs["constant"]["gain"] == 0 and pairs["constant"]["beyond_noise"] is False
+    best = look["best"]
+    assert best["run"] in names and best["there"] in seen and best["low"] <= best["gain"] <= best["high"]
+    cuts = {one["key"]: one for one in look["slices"]}
+    assert list(cuts)[0] == "band" and {"moves", "themes", "mate"} <= set(cuts)
+    moves = cuts["moves"]["groups"]
+    assert sum(group["rows"] for group in moves) == hidden["gbm-hand"]["test_rows"]
+    assert all(group["gain"] is None for group in moves if group["rows"] < analysis.SMALLEST_COMPARED)
+
+    src, out = papers.generate(model, smoke=True)
+    flags = papers.switches(src, out)
+    assert flags["shown"] is True and flags["shownpaired"] is True
+    assert out.values["shown.gbm-hand.verdict"] in ("better beyond the noise", "inside the noise", "worse beyond the noise")
+    assert out.values["shown.best.there.name"].startswith("\\") and "shown.best.gain.low" in out.values
+    assert "95" in out.files["shown"] and {"shown-band", "shown-moves"} <= set(out.files)
+
+    # A run of the same name trained from another config is not the same run, and the look says it left it out.
+    record = paths.results(shown, smoke=True) / "constant.json"
+    changed = json.loads(record.read_text(encoding="utf-8"))
+    changed["config"]["note"] = "another config"
+    record.write_text(json.dumps(changed), encoding="utf-8")
+    again = analysis.analyse(model, smoke=True)["shown"]
+    assert [pair["run"] for pair in again["pairs"]] == ["gbm-hand"] and "different configs" in again["skipped"]["constant"]
+
+    # Two models are set against each other only where they share their rows, their label and their metric.
+    plan = paths.model(model) / "analysis.yaml"
+    plan.write_text(plan.read_text(encoding="utf-8").replace("shown: puzzle-difficulty", "shown: blunder-hazard"), encoding="utf-8")
+    temp_lab.model("blunder-hazard", {})
+    with pytest.raises(ValueError, match="do not share their dataset, kind, label, primary"):
+        analysis.analyse(model, smoke=True)
+
+
 def test_a_network_starts_from_the_body_another_run_trained(lab, temp_lab):
     import torch
 

@@ -22,6 +22,8 @@ What it looks at is ``models/<model>/analysis.yaml``:
       - {key: ratings, rows: {column: mover_elo, edges: [...]}, columns: {column: rating, edges: [...]}}
     examples: {count: 3, id: puzzle_id, moves: [setup, line], show: [rating, themes]}
     pairs: [[transformer-long, transformer]]      runs set against the run each changed, first over second
+    shown: puzzle-difficulty                      the model that asks the same of the same rows with more
+                                                  shown: its runs against this model's runs of the same name
 
 The task's own bands are always its first slice. Every number is rounded to
 six significant digits, so two machines write the same file.
@@ -196,11 +198,16 @@ def slice_table(look: Look, spec: dict[str, Any]) -> dict[str, Any]:
     return {"key": spec["key"], "column": spec["column"], "title": spec.get("title", spec["column"]), "groups": table}
 
 
-def band_slice(look: Look, asked: dict[str, Any]) -> dict[str, Any]:
-    """The task's own bands as a slice, in their order."""
+def band_spec(look: Look, asked: dict[str, Any]) -> dict[str, Any]:
+    """The task's own bands as a slice asks for them, in their order."""
     column = look.task.band
     names = sorted(look.dataset.rows[column].unique().to_list(), key=bands.order)
-    return slice_table(look, {"key": "band", "column": column, "title": asked.get("title", "Band"), "values": names})
+    return {"key": "band", "column": column, "title": asked.get("title", "Band"), "values": names}
+
+
+def band_slice(look: Look, asked: dict[str, Any]) -> dict[str, Any]:
+    """The task's own bands as a slice."""
+    return slice_table(look, band_spec(look, asked))
 
 
 def grid_table(look: Look, spec: dict[str, Any]) -> dict[str, Any]:
@@ -460,6 +467,72 @@ def pair_table(
     return table
 
 
+# What two models must share for one to be set against the other: then they are scored on the same test
+# rows against the same truth by the same metric, and a run of one is paired with a run of the other.
+SHARED = ("dataset", "kind", "label", "primary")
+
+
+def shown_table(
+    look: Look, other: str, slices: list[dict[str, Any]], *, smoke: bool = False, resamples: int = RESAMPLES
+) -> dict[str, Any]:
+    """This model's runs against those of the model that asks the same of the same rows with more shown.
+
+    Each run here is set against the other model's run of the same name: that run's paired gain over this one
+    on the same resampled test games, positive when being shown more made it better, which is what the thing
+    shown is worth to that learner. ``best`` is the same for the best run of each model, whatever they are
+    called, and ``slices`` cuts that one pair by each slice of the plan: where the thing shown is worth most.
+    The other model's runs are read as this model's are (``read_predictions``), so a pair is measured only
+    where both runs' predictions are the ones their leaderboards rank; a study run is no candidate. A run is
+    the same run in both models only when its two records were trained from one config, so that what the
+    task shows is all that differs: a run of the same name that was not is left out, and ``skipped`` says so.
+    """
+    task, theirs_task = look.task, tasks.get(other)
+    differ = [name for name in SHARED if getattr(task, name) != getattr(theirs_task, name)]
+    if differ:
+        raise ValueError(
+            f"{task.name} is set against {other}, and the two do not share their {', '.join(differ)}: "
+            "two models are set against each other only on the same rows, label and metric"
+        )
+    runs = [run for run in records(other, smoke=smoke) if run["config"].get("study") is None]
+    theirs, skipped = read_predictions(other, theirs_task, runs, look.dataset, look.y, look.test, smoke=smoke)
+
+    def measured(here: str, there: str) -> dict[str, Any]:
+        gain = paired(task.kind, task.primary, look.truth, theirs[there], look.predictions[here], look.games, resamples=resamples)
+        return {"run": here, "there": there, **gain}
+
+    configs = {name: {run["run"]: run["config"] for run in found} for name, found in (("here", records(task.name, smoke=smoke)), ("there", runs))}
+    same = [name for name in look.predictions if name in theirs and configs["here"].get(name) == configs["there"].get(name)]
+    for name in look.predictions:
+        if name in theirs and name not in same:
+            skipped[name] = f"its record here and its record in {other} were trained from different configs"
+    table: dict[str, Any] = {"model": other, "pairs": [measured(name, name) for name in same], "skipped": skipped}
+    if not theirs:
+        return table
+    here, there = look.best, next(iter(theirs))
+    table["best"] = measured(here, there)
+
+    def cut(spec: dict[str, Any]) -> dict[str, Any]:
+        found = []
+        for label, mask in groups(look.dataset.rows, spec):
+            inside = mask[look.test]
+            truth, ours, shown = look.truth[inside], look.predictions[here][inside], theirs[there][inside]
+            entry: dict[str, Any] = {
+                "group": label,
+                "rows": int(inside.sum()),
+                "here": _metric(task.kind, task.primary, truth, ours),
+                "there": _metric(task.kind, task.primary, truth, shown),
+                "gain": None,
+            }
+            if entry["rows"] >= SMALLEST_COMPARED:
+                gain = paired(task.kind, task.primary, truth, shown, ours, look.games[inside], resamples=GROUP_RESAMPLES)
+                entry["gain"] = None if math.isnan(gain["gain"]) or math.isnan(gain["low"]) else gain
+            found.append(entry)
+        return {"key": spec["key"], "title": spec.get("title", spec["column"]), "groups": found}
+
+    table["slices"] = [cut(spec) for spec in slices]
+    return table
+
+
 def read_predictions(
     model: str, task: tasks.Task, runs: list[dict[str, Any]], dataset: Dataset, y: np.ndarray, test: np.ndarray, *, smoke: bool
 ) -> tuple[dict[str, np.ndarray], dict[str, str]]:
@@ -556,6 +629,14 @@ def analyse(model: str, *, smoke: bool = False) -> dict[str, Any]:
     }
     if study_runs:
         result["studies"] = sorted(studied)
+    if asked.get("shown"):
+        result["shown"] = shown_table(
+            look,
+            asked["shown"],
+            [band_spec(look, asked.get("band", {})), *asked.get("slices", [])],
+            smoke=smoke,
+            resamples=SMOKE_RESAMPLES if smoke else RESAMPLES,
+        )
     if task.kind == "binary":
         result["ranking"] = {run: ranking(look.truth, p) for run, p in predictions.items()}
     else:

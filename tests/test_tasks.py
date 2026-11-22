@@ -110,7 +110,7 @@ def test_a_model_read_against_one_that_is_shown_more_asks_the_same_of_the_same_r
         other = analysis.plan(name)["shown"]
         here, there = tasks.get(name), tasks.get(other)
         assert other != name
-        assert all(getattr(here, part) == getattr(there, part) for part in ("dataset", "kind", "label", "primary")), name
+        assert all(getattr(here, part) == getattr(there, part) for part in analysis.SHARED), name
         # What is hidden is hidden by the task, which names the marks or the hand features its learners may read.
         assert here.marks is not None or here.hand is not None, name
         # A run of the same name is the same run in both, so the two differ only in what the task shows.

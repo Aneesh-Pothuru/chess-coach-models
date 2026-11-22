@@ -249,6 +249,14 @@ them, and writes `results/analysis.json`: small tables, committed, that any mach
   one thing changed in a run is judged. Every run that names a `base` is paired with it whether
   the plan asks or not, and that pair is all a study run is read for: the tables above are of a
   model's own runs.
+- **Shown.** One model can ask another's question with something hidden: the same rows, the same
+  label and the same test rows, with less for a learner to read (puzzle difficulty without its
+  solution). Its plan names the other model as `shown`, and each run here is then set against the
+  run of the same name there, on the same resampled test games: how much better the run that is
+  shown more scores is what the thing shown is worth to that learner. The best run of each model
+  is one more pair, and that pair is cut by every slice of the plan, which is where the thing shown
+  is worth most and least. Two models that do not share their dataset, kind, label and metric are
+  refused.
 
 A run's predictions are read only when its record names the build of the data on the machine,
 they are of that build's test rows in order, and they score what the record says. Every number is

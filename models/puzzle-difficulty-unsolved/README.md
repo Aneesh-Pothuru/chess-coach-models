@@ -35,7 +35,10 @@ Written before the first full run.
   RMSE on the same resampled test games has a 95% interval above zero.
 - **Read beside puzzle difficulty.** Both models are scored on the same test
   puzzles, so a run here and the run of the same name there differ in one
-  thing: whether the solution is shown.
+  thing: whether the solution is shown. The closer look sets each such pair
+  on the same resampled test games (its [plan](analysis.yaml) names puzzle
+  difficulty as `shown`), so what the solution is worth to a learner has an
+  interval, overall and inside each slice.
 - **Bands.** Results are also given by the puzzle's true rating band.
 
 ## Runs
