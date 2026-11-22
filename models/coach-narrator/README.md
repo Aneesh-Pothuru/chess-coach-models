@@ -54,9 +54,20 @@ A retrain is a new model, since the teacher's narrations are generated again,
 and it is trained on open data only: `colab/open_prompts.py` leaves every
 set-up that comes from a course puzzle on the owner's machine, and
 `narrate_sft.py --open-only` drops any that reach the filter, so the published
-weights have seen Lichess positions and nothing else. It is checked on the
-held-out set-ups that come from open data before it is published, and this
-card will then give its name, its hash, its scores and where to download it.
+weights have seen Lichess positions and nothing else.
+
+**The rule for publishing a retrain, written before its narrations were
+read.** The retrained narrator writes the development set-ups that come from
+open data (75 of version 6's 81: the 10 from games and 65 of the puzzles), and
+the truth check (`coach-eval/coach-check.mjs`) holds each narration to the
+facts its prompt gave. The weights are published when at least 97% of those
+narrations pass, the bar of the coaching rule's first point
+([`coach-eval/README.md`](coach-eval/README.md)); a set-up left without a
+narration counts as a failure. Below the bar the weights stay unpublished and
+this card says what failed. The claim audit and the blind judge call a model
+and wait for an agreed budget, so a published retrain has passed the code's
+check and nothing more until they run. This card then gives its name, its
+hash, its scores and where to download it.
 
 ## Training it
 
