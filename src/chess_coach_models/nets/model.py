@@ -48,7 +48,7 @@ class Block(nn.Module):
             .view(batch, length, 3, self.heads, dim // self.heads)
             .permute(2, 0, 3, 1, 4)
         )
-        bias = x.new_zeros(self.heads, length, length)
+        bias = q.new_zeros(self.heads, length, length)
         bias[:, 1:, 1:] = self.offset_bias[:, offsets].to(bias.dtype)
         attended = F.scaled_dot_product_attention(
             q, k, v, attn_mask=bias, dropout_p=self.dropout if self.training else 0.0
