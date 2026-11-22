@@ -98,18 +98,28 @@ def _change(block: str, key: str, new: Any, old: Any) -> str:
     return f"\\texttt{{{tex.esc(block)}.{tex.esc(key)}}} {said}" + ("" if old is None else f" for {tex.esc(old)}")
 
 
+def changed(run: dict[str, Any], other: dict[str, Any]) -> list[tuple[str, str]] | None:
+    """The settings one run's config changes in another's, each as ``(block, key)``, or nothing for two
+    runs of different learners, which differ in more than a setting."""
+    ours, theirs = run["config"], other["config"]
+    if any(ours["learner"].get(key) != theirs["learner"].get(key) for key in ("kind", "body", "dim", "depth")):
+        return None
+    return [
+        (block, key)
+        for block in ("learner", "data", "train")
+        for key in sorted(set(ours.get(block) or {}) | set(theirs.get(block) or {}))
+        if (ours.get(block) or {}).get(key) != (theirs.get(block) or {}).get(key)
+    ]
+
+
 def differs(run: dict[str, Any], other: dict[str, Any]) -> str:
     """What one run's config changes in another's, in words. Two runs of different learners differ in the
     learner, and their names say how."""
-    ours, theirs = run["config"], other["config"]
-    if any(ours["learner"].get(key) != theirs["learner"].get(key) for key in ("kind", "body", "dim", "depth")):
+    settings = changed(run, other)
+    if settings is None:
         return "another learner"
-    said = []
-    for block in ("learner", "data", "train"):
-        mine, yours = ours.get(block) or {}, theirs.get(block) or {}
-        for key in sorted(set(mine) | set(yours)):
-            if mine.get(key) != yours.get(key):
-                said.append(_change(block, key, mine.get(key), yours.get(key)))
+    ours, theirs = run["config"], other["config"]
+    said = [_change(block, key, (ours.get(block) or {}).get(key), (theirs.get(block) or {}).get(key)) for block, key in settings]
     return "; ".join(said) if said else "nothing its config names"
 
 

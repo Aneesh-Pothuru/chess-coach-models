@@ -41,9 +41,11 @@ chess:
 parity:
 	$(PYTHON) bridge/winprob-parity/parity.py
 
-# Every model's paper, drawn from its committed results and compiled (needs LaTeX).
+# Every model's paper, drawn from its committed results and compiled (needs LaTeX),
+# then the lab's own, which reads all of them.
 papers:
 	for model in $(PAPERS); do $(LAB) paper $$model || exit 1; done
+	$(LAB) paper
 
 # The one study of the app's code still here: its numbers, then its PDF.
 study-paper:

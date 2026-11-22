@@ -64,3 +64,9 @@ def papers() -> Path:
 def paper(name: str, *, smoke: bool = False) -> Path:
     """A model's paper folder. A smoke check builds its paper in a copy of the tree under the artifacts, so the paper's own relative paths still hold."""
     return (artifacts() / "smoke-papers" if smoke else ROOT) / "models" / name / "paper"
+
+
+def lab_paper(*, smoke: bool = False) -> Path:
+    """The folder of the lab's own paper, which sets every model's results side by side. A smoke check builds
+    it under the artifacts, beside a copy of what every paper shares."""
+    return (artifacts() / "smoke-papers" if smoke else ROOT) / "papers" / "lab"

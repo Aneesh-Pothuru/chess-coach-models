@@ -54,6 +54,9 @@
 \newif\ifgames
 \newif\iffeatures
 \newif\ifchanges
+% The lab's own paper asks one thing more: whether a model has a task and no
+% run yet (\ifwaiting).
+\newif\ifwaiting
 \makeatletter
 \newcommand{\setvalue}[2]{\expandafter\gdef\csname labvalue@#1\endcsname{#2}}
 \DeclareRobustCommand{\V}[1]{\@ifundefined{labvalue@#1}%

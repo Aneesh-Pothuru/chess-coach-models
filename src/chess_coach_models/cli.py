@@ -6,6 +6,7 @@
     lab all puzzle-difficulty                its data, every run this machine can train, its leaderboard
     lab analyse puzzle-difficulty            the closer look, from its dataset and test predictions
     lab paper puzzle-difficulty              its paper: every number and figure, then the PDF
+    lab paper                                the lab's own paper: every model's results side by side
     lab report                               the README's table, from the leaderboards
 
 ``--smoke`` everywhere uses the small dataset and writes under
@@ -107,8 +108,10 @@ def main(argv: list[str] | None = None) -> int:
     )
     closer.add_argument("model", choices=models)
 
-    paper = commands.add_parser("paper", help="write what a model's paper shows from its results, and compile it")
-    paper.add_argument("model", choices=models)
+    paper = commands.add_parser(
+        "paper", help="write what a model's paper shows from its results, and compile it; with no model, the lab's own paper"
+    )
+    paper.add_argument("model", choices=models, nargs="?")
     paper.add_argument("--list", action="store_true", help="print every value and block the prose can read")
     paper.add_argument("--no-pdf", action="store_true", help="write the generated files and leave LaTeX out")
 
@@ -150,17 +153,18 @@ def main(argv: list[str] | None = None) -> int:
         for name, reason in look["skipped"].items():
             log(f"{args.model}/{name}: left out, {reason}")
     elif args.command == "paper":
-        from .papers import build as papers
+        from .papers import build as papers, overview
 
+        whose = args.model or "the lab"
         if args.list:
-            print(papers.listing(args.model, smoke=args.smoke))
+            print(papers.listing(args.model, smoke=args.smoke) if args.model else overview.listing(smoke=args.smoke))
             return 0
-        folder = papers.write(args.model, smoke=args.smoke)
-        log(f"{args.model}: what its paper shows written to {folder / 'generated'}")
+        folder = papers.write(args.model, smoke=args.smoke) if args.model else overview.write(smoke=args.smoke)
+        log(f"{whose}: what its paper shows written to {folder / 'generated'}")
         if not args.no_pdf:
             pdf = papers.compile_paper(folder, log=log)
             if pdf is not None:
-                log(f"{args.model}: {pdf} written")
+                log(f"{whose}: {pdf} written")
     elif args.command == "report":
         from .evals.leaderboard import write_readme
 

@@ -56,9 +56,11 @@ The best run of each model on the harness, beside the tree baseline it is compar
 Each model with full results has a paper: its data, what it reads, every run, a closer look at
 where it is right and where it is wrong, example positions, and what the app can use today.
 `lab paper <model>` draws a paper from the model's committed results, so no number in it is typed.
+One more paper sets the models side by side on one scale, and `lab paper` with no model draws it.
 
 | Paper | Its question |
 |---|---|
+| [The model lab](papers/lab/paper.pdf) | What holds across the models, and what can the app use today? |
 | [Puzzle difficulty](models/puzzle-difficulty/paper/paper.pdf) | How hard is this tactic for people? |
 | [Blunder hazard](models/blunder-hazard/paper/paper.pdf) | Before a move is played, how likely is the player to blunder here? |
 | [Think time](models/think-time/paper/paper.pdf) | How long do players at a level think in this position, on this clock? |
@@ -130,7 +132,7 @@ make setup        # .venv with Torch, LightGBM and the rest
 make test         # every test; CI runs the ones that need no Torch or data
 make smoke        # every model on the harness end to end on a small sample
 make models       # the full datasets, every run this machine can train, the leaderboards
-make papers       # every model's paper, drawn from its committed results (needs LaTeX)
+make papers       # every model's paper and the lab's own, drawn from the committed results (needs LaTeX)
 ```
 
 Runs marked `needs: cuda` wait for a GPU: [`colab/lab.ipynb`](colab/lab.ipynb) runs the same

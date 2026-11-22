@@ -18,7 +18,7 @@ from chess_coach_models.data import store  # noqa: E402
 from chess_coach_models.encode.hand import GROUPS  # noqa: E402
 from chess_coach_models.evals import analysis, calibration, leaderboard  # noqa: E402
 from chess_coach_models.papers import build as papers  # noqa: E402
-from chess_coach_models.papers import tex  # noqa: E402
+from chess_coach_models.papers import overview, tex  # noqa: E402
 from chess_coach_models.train import run as runs  # noqa: E402
 
 
@@ -254,6 +254,65 @@ def test_a_paper_stops_on_what_its_files_cannot_give(lab):
         papers.write(model)
     # The same prose is let through as a smoke build, which proves only that the paper compiles.
     assert papers.write(model, smoke=True) == paths.paper(model, smoke=True)
+
+
+def test_the_lab_s_paper_reads_every_model_under_its_name_and_lists_one_that_waits(lab, temp_lab):
+    model, waiting = "puzzle-difficulty", "puzzle-difficulty-unsolved"
+    blind = {"learner": {"kind": "gbm", "features": "context", "rounds": 20, "min_child_samples": 5}}
+    temp_lab.model(model, {**CONFIGS, "gbm-context": blind})
+    temp_lab.model(waiting, {name: CONFIGS[name] for name in ("gbm-hand", "constant")})
+    names = ("gbm-hand", "constant", "gbm-context", "transformer-small")
+    records = {name: runs.run(model, name, smoke=True, log=lambda _: None) for name in names}
+    analysis.analyse(model, smoke=True)
+    whole, out = overview.generate(smoke=True)
+    assert list(whole.models) == [model] and list(whole.waiting) == [waiting]
+    assert overview.switches(whole) == {"waiting": True}
+    # Everything a model's own paper can read is there under the model's name.
+    _, own = papers.generate(model, smoke=True)
+    assert all(out.values[f"{model}.{key}"] == value for key, value in own.values.items())
+    assert all(out.files[f"{model}-{block}"] == latex for block, latex in own.files.items())
+    assert out.values["lab.models.count"] == "one" and out.values["lab.tasks.count"] == "two"
+    assert out.values["lab.waiting.names"] == "puzzle difficulty unsolved"
+    assert out.values["lab.runs.count"] == "4" and out.values["lab.networks.count"] == "1"
+    assert out.values["lab.split.test.percent"] == own.values["recipe.split.test.percent"] == "20"
+    # The one scale: the floor makes none of the reference's step, and a run its share of it.
+    src = whole.models[model]
+    floor, reference, network = (records[name]["test"]["rmse"]["value"] for name in ("constant", "gbm-hand", "transformer-small"))
+    assert overview.step(src) == pytest.approx(floor - reference)
+    assert overview.share(src, src.run("transformer-small")) == pytest.approx(100.0 * (floor - network) / (floor - reference))
+    assert out.values[f"{model}.floor.lift.share"] == "0" and out.values[f"{model}.reference.lift.share"] == "100"
+    assert f"{model}.network.gain.of-lift" in out.values and f"{model}.run.gbm-context.lift.share" in out.values
+    # The hand features under the trees are a pair of every model, with the trees' gain turned round.
+    assert out.values["lab.change.hand.gbm.count"] == "one"
+    (pair,) = [entry for entry in overview.pairs(src) if entry["kind"] is not None]
+    assert (pair["run"], pair["over"]) == ("gbm-hand", "gbm-context") and pair["gain"] == -records["gbm-context"]["gain"]["gain"]
+    made = {"lab-models", "lab-scores", "lab-shares", "lab-networks", "lab-changes", "lab-changes-figure", "lab-cost", "lab-waiting"}
+    assert made <= set(out.files) and "unsolved" in out.files["lab-waiting"] and "\\texttt{puzzles}" in out.files["lab-waiting"]
+
+    # The paper itself is drawn from the committed results: here the small check's records stand in for them.
+    shutil.copytree(paths.results(model, smoke=True), paths.results(model))
+    folder = paths.lab_paper()
+    with pytest.raises(FileNotFoundError, match="is not written yet"):
+        overview.write()
+    folder.mkdir(parents=True)
+    prose = folder / "paper.tex"
+    prose.write_text(
+        f"\\V{{{model}.best.score}} \\V{{lab.models.count}} \\block{{lab-scores}} \\block{{{model}-leaderboard}} % \\V{{in.a.comment}}\n"
+        "\\ifwaiting \\V{lab.waiting.names} \\block{lab-waiting} \\else \\V{no.such.value} \\fi\n",
+        encoding="utf-8",
+    )
+    assert overview.write() == folder
+    written = folder / "generated"
+    assert sorted(path.name for path in written.iterdir()) == ["lab-scores.tex", "lab-waiting.tex", f"{model}-leaderboard.tex", "values.tex"]
+    values = (written / "values.tex").read_text(encoding="utf-8")
+    assert "\\waitingtrue" in values and f"\\setvalue{{{model}.best.score}}" in values and values.count("\\setvalue") == 3
+    prose.write_text("\\V{lab.no.such.value} \\block{lab-no-such-block}\n", encoding="utf-8")
+    with pytest.raises(KeyError, match="the block lab-no-such-block, the value lab.no.such.value"):
+        overview.write()
+    # The same prose is let through as a smoke build, which proves only that the paper compiles.
+    assert overview.write(smoke=True) == paths.lab_paper(smoke=True)
+    assert (paths.lab_paper(smoke=True) / "paper.tex").read_text(encoding="utf-8") == prose.read_text(encoding="utf-8")
+    assert "lab.models.count" in overview.listing() and "blocks: " in overview.listing()
 
 
 def test_study_runs_train_on_what_their_config_changes_and_are_listed_apart(lab, temp_lab):

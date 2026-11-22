@@ -25,7 +25,8 @@ engine, a human-move model, board code or data.
   command in `cli.py`). [`docs/design.md`](docs/design.md) explains it.
 - `datasets/<name>.yaml`: recipes for datasets built from open sources.
 - `papers/`: what every model's paper shares: the preamble, the sections that
-  are the same for all of them, and the references.
+  are the same for all of them, and the references. `papers/lab/` is the lab's
+  own paper, which sets the models side by side.
 - `docs/`: the design, the idea list ([`docs/ideas.md`](docs/ideas.md)), where
   runs go ([`docs/compute.md`](docs/compute.md)) and what the lab was before
   ([`docs/history.md`](docs/history.md)).
@@ -74,6 +75,12 @@ a move) is a new body or head in `nets/`, with a test, and a line in
   true, so when a model's runs change, rebuild its paper and read its prose
   again against the new tables. A claim about something no generated file
   holds (why a number is what it is) is marked as a reading.
+- `lab paper` with no model writes the lab's own paper (`papers/lab/`) the
+  same way. It reads every model's values under the model's name
+  (`puzzle-difficulty.best.score`) and the lab's own under `lab`, and it sets
+  models side by side on one scale: a run's share of the reference's step from
+  the floor. When any model's runs change, rebuild it and read its prose again
+  too.
 - Before a run, the card names the metric, the split and what counts as
   better. Change one thing a run, and keep it only when it beats the run it
   changed on valid and on test beyond the noise (the paired gain's interval
@@ -172,7 +179,8 @@ win probability behind the blunder label to the app's.
 | `make models` | The full datasets, every run this machine can train, the leaderboards, the README table |
 | `lab data|train|eval|all|analyse|report` | One step of the harness (`lab --help`) |
 | `lab paper <model>` | The model's paper from its committed results: `paper/generated/`, then `paper/paper.pdf` (`--list` prints every value and block, `--no-pdf` leaves LaTeX out) |
-| `make papers` | Every model's paper that has its prose |
+| `lab paper` | The lab's own paper from every model's committed results: `papers/lab/generated/`, then `papers/lab/paper.pdf` (the same flags) |
+| `make papers` | Every model's paper that has its prose, then the lab's own |
 | `make chess` | Fetches the pinned app and the research records (`bridge/checkout.sh`) |
 | `make parity` | The win% parity check against the app (`bridge/winprob-parity/results/`) |
 | `python scripts/check_private.py` | The data rule's check |

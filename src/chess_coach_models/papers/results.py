@@ -3,9 +3,15 @@
 Every value has a key the prose reads with ``\\V{key}``. A run's values sit
 under ``run.<name>``, and the same values under the part the run plays, so
 prose can speak of the best run or the reference without naming one:
-``best``, ``reference``, ``floor``, ``board`` (the best network that reads no
-hand feature) and ``challenger`` (the best run that is not the reference).
-``<part>.score`` is the metric the model's runs are ranked by.
+``best``, ``reference``, ``floor``, ``network`` (the best network), ``board``
+(the best network that reads no hand feature) and ``challenger`` (the best run
+that is not the reference). ``<part>.score`` is the metric the model's runs
+are ranked by.
+
+One scale holds for every model, whatever its metric: the reference's step,
+how much better the reference is than the floor. ``<part>.lift.share`` is the
+share of that step a run makes, 0 for the floor and 100 for the reference,
+and ``<part>.gain.of-lift`` its gain over the reference as a share of it.
 """
 
 from __future__ import annotations
@@ -181,6 +187,7 @@ def values(src: Sources, out: tex.Generated) -> None:
         "best": src.best,
         "reference": src.reference,
         "floor": src.floor,
+        "network": next(iter(src.networks), None),
         "board": src.board_only,
         "challenger": src.challenger,
     }
@@ -229,14 +236,17 @@ def values(src: Sources, out: tex.Generated) -> None:
             blind_lift = src.better_by(blind["test"][primary]["value"], floor["test"][primary]["value"])
             out.set("context.lift", tex.sig(blind_lift, 3))
             out.set("context.lift.share", tex.percent(blind_lift / lift, 0))
-        gain = src.best.get("gain")
-        if gain and lift:
-            out.set("best.gain.of-lift", tex.percent(gain["gain"] / lift, 0))
         # How much of the reference's step from the floor each run makes: over 100 for a run ahead of it.
+        # A run's gain over the reference is on the same scale, with its interval.
         if lift:
-            for run in src.runs:
+            named = [(tex.key("run", run["run"]), run) for run in src.runs]
+            for prefix, run in [*named, *((part, run) for part, run in parts.items() if run is not None)]:
                 step = src.better_by(run["test"][primary]["value"], floor["test"][primary]["value"])
-                out.set(tex.key("run", run["run"], "lift.share"), tex.percent(step / lift, 0))
+                out.set(f"{prefix}.lift.share", tex.percent(step / lift, 0))
+                gain = run.get("gain")
+                if gain:
+                    for part, amount in (("", gain["gain"]), (".low", gain["low"]), (".high", gain["high"])):
+                        out.set(f"{prefix}.gain.of-lift{part}", tex.percent(amount / lift, 0))
 
     names = band_names(src)
     out.set("bands.count", tex.word(len(names)))

@@ -14,7 +14,7 @@ import pytest
 from chess_coach_models import data, paths, tasks
 from chess_coach_models.encode.hand import GROUPS, group_of
 from chess_coach_models.evals import analysis
-from chess_coach_models.papers import build, charts, glossary, tex
+from chess_coach_models.papers import build, changes, charts, glossary, overview, sources, tex
 
 
 MODELS = sorted(path.parent.name for path in paths.models().glob("*/task.yaml"))
@@ -126,6 +126,113 @@ def test_a_grid_of_differences_is_two_colours_that_meet_in_grey():
     # Without a centre the grid is one colour from light to dark.
     plain = charts.grid(["row"], ["a", "b"], [[(0.0, "0"), (1.0, "1")]], row_title="Rows", column_title="Columns", low=0.0, high=1.0)
     assert "labOrange" not in plain and "labBlue!8!white" in plain and "labBlue!90!white" in plain
+
+
+def test_rows_in_groups_stand_under_their_group_s_name_on_one_axis():
+    drawn = charts.grouped_intervals(
+        [
+            ("first model", [("gbm-hand", 1.0, 0.5, 1.5, "labBlue"), ("constant", None, None, None, "labGrey")]),
+            ("second model", [("gbm-hand", -2.0, -3.0, -1.0, "labBlue")]),
+        ],
+        xlabel="Gain",
+        reference=0.0,
+        reference_label="reference",
+    )
+    # A slot for each group's name and for each row, a row with nothing measured among them.
+    assert "ytick={0,1,2,3,4}" in drawn
+    labels = drawn.split("yticklabels={")[1].splitlines()[0]
+    assert labels.index("first model") < labels.index("constant") < labels.index("second model")
+    assert drawn.count("\\addplot[only marks") == 2 and "(axis cs:-3,4) -- (axis cs:-1,4)" in drawn
+    assert "(axis cs:0,-0.6) -- (axis cs:0,4.6)" in drawn and "{reference}" in drawn
+
+
+def test_a_run_keeps_its_lane_colour_and_mark_from_strip_to_strip():
+    drawn = charts.strips(
+        [("first-model", [("gbm-context", 40.0), ("transformer-small", 101.0)]), ("second-model", [("gbm-context", 65.0)])],
+        xlabel="Share",
+        marks=[(0.0, "floor"), (100.0, "reference")],
+        order=["transformer-small", "gbm-context"],
+    )
+    small, context = [line for line in drawn.splitlines() if line.startswith("\\addplot")]
+    # Strips are 0.9 apart here, and a run sits the same way off the middle of each.
+    assert "(101,-0.1)" in small and "(40,0.1) (65,1)" in context
+    assert charts.run_colour("gbm-context") in context and f"mark={charts.run_mark('gbm-context')}" in context
+    assert charts.run_colour("transformer-small") in small and charts.run_mark("transformer-small") != charts.run_mark("gbm-context")
+    assert drawn.count("\\addlegendentry") == 2 and "{floor}" in drawn and "{reference}" in drawn
+    # Without an order a run takes its lane where it first appears.
+    plain = charts.strips([("one-model", [("gbm-context", 1.0), ("transformer-small", 2.0)])], xlabel="Share")
+    assert plain.index("{gbm-context}") < plain.index("{transformer-small}")
+
+
+def test_two_runs_differ_in_the_settings_one_changes_or_in_the_learner():
+    body = {"kind": "net", "body": "transformer", "dim": 256, "depth": 8}
+    plain = {"config": {"learner": body, "train": {"epochs": 12, "lr": 0.0006}}}
+    longer = {"config": {"learner": {**body, "features": "hand"}, "train": {"epochs": 24, "lr": 0.0006}}}
+    trees = {"config": {"learner": {"kind": "gbm", "features": "hand"}}}
+    assert changes.changed(longer, plain) == [("learner", "features"), ("train", "epochs")]
+    assert changes.changed(plain, plain) == []
+    assert changes.changed(longer, trees) is None and changes.differs(longer, trees) == "another learner"
+
+
+def _record(name, learner, score, primary, gain=None):
+    record = {"run": name, "config": {"learner": learner}, "test": {primary: {"value": score}}}
+    if gain is not None:
+        amount, low, high = gain
+        record["gain"] = {"gain": amount, "low": low, "high": high, "beyond_noise": low > 0 or high < 0}
+    return record
+
+
+def _sources(model, runs):
+    return sources.Sources(model, False, tasks.get(model), runs, [], {}, {}, None, (), ())
+
+
+def test_the_lab_s_one_scale_is_the_reference_s_step_from_the_floor():
+    # An error, where lower is better: the floor at 500, the reference at 300, so a step of 200.
+    primary = tasks.get("puzzle-difficulty").primary
+    runs = [
+        _record("transformer-small", {"kind": "net", "body": "transformer"}, 280.0, primary, gain=(20.0, 10.0, 30.0)),
+        _record("gbm-hand", {"kind": "gbm", "features": "hand"}, 300.0, primary),
+        _record("gbm-context", {"kind": "gbm", "features": "context"}, 420.0, primary, gain=(-120.0, -130.0, -110.0)),
+        _record("constant", {"kind": "constant"}, 500.0, primary),
+    ]
+    src = _sources("puzzle-difficulty", runs)
+    assert src.task.lower_is_better and overview.step(src) == 200.0
+    assert [overview.share(src, run) for run in runs] == [110.0, 100.0, 40.0, 0.0]
+    assert overview.on_step(src, runs[0]["gain"]) == (10.0, 5.0, 15.0)
+    assert overview.context_run(src) is runs[2]
+    # The reference over the trees that read no hand feature is a pair of every model: where no closer
+    # look measured it, the trees' record holds it from the other side.
+    (pair,) = overview.pairs(src)
+    assert (pair["run"], pair["over"], pair["gain"], pair["low"], pair["high"]) == ("gbm-hand", "gbm-context", 120.0, 110.0, 130.0)
+    assert pair["kind"] == ("hand", "The hand features") and pair["learner"] == "gbm" and pair["beyond_noise"]
+    # A reference that is no better than the floor is no step to measure by.
+    runs[1]["test"][primary]["value"] = 500.0
+    assert overview.step(src) is None and overview.share(src, runs[0]) is None
+    assert overview.on_step(src, runs[0]["gain"]) is None
+
+
+def test_the_one_scale_reads_a_score_where_higher_is_better_the_same_way():
+    task = tasks.get("blunder-hazard")
+    assert not task.lower_is_better
+    runs = [
+        _record("transformer-small", {"kind": "net", "body": "transformer"}, 0.30, task.primary, gain=(0.05, -0.01, 0.11)),
+        _record("gbm-hand", {"kind": "gbm", "features": "hand"}, 0.25, task.primary),
+        _record("constant", {"kind": "constant"}, 0.05, task.primary),
+    ]
+    src = _sources("blunder-hazard", runs)
+    assert overview.step(src) == pytest.approx(0.2)
+    assert overview.share(src, runs[0]) == pytest.approx(125.0)
+    assert overview.on_step(src, runs[0]["gain"]) == pytest.approx((25.0, -5.0, 55.0))
+    lab = overview.Lab({"blunder-hazard": src}, {}, {})
+    # A gain whose interval holds zero is level with the reference, however large it is.
+    assert overview._verdicts(lab, lambda one: one.networks[0]) == ([], ["blunder-hazard"], [])
+    assert overview.switches(lab) == {"waiting": False} and overview.pairs(src) == []
+
+
+def test_a_name_and_a_count_read_as_the_lab_s_prose_says_them():
+    assert overview.said("puzzle-difficulty-unsolved") == "puzzle difficulty unsolved"
+    assert overview._listed([]) == "none" and overview._listed(["one", "two", "three"]) == "one, two and three"
+    assert overview._of(1, 1, "pair") == "the one pair" and overview._of(2, 5, "model") == "two of the five models"
 
 
 @pytest.mark.parametrize("model", MODELS)

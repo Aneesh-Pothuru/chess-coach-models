@@ -83,6 +83,14 @@ def firm(text: str, flags: dict[str, bool]) -> str:
     return "".join(kept)
 
 
+def missing(printed: str, out: tex.Generated) -> list[str]:
+    """What a paper's printed prose reads and its generator did not make."""
+    return sorted(
+        [f"the value {key}" for key in tex.used_keys(printed) if key not in out.values]
+        + [f"the block {name}" for name in tex.used_blocks(printed) if name not in out.files]
+    )
+
+
 def prose(model: str) -> str:
     """A paper's typed words, without their comments: its ``paper.tex`` and the shared sections it reads from ``papers/``."""
     path = paths.paper(model) / "paper.tex"
@@ -102,14 +110,10 @@ def write(model: str, *, smoke: bool = False) -> Path:
     asked_keys, asked_blocks = tex.used_keys(text), tex.used_blocks(text)
     flags = switches(src, out)
     if not smoke:
-        printed = firm(text, flags)
-        missing = sorted(
-            [f"the value {key}" for key in tex.used_keys(printed) if key not in out.values]
-            + [f"the block {name}" for name in tex.used_blocks(printed) if name not in out.files]
-        )
-        if missing:
+        lacking = missing(firm(text, flags), out)
+        if lacking:
             raise KeyError(
-                f"{model}'s paper reads what its files do not give: {', '.join(missing)}. "
+                f"{model}'s paper reads what its files do not give: {', '.join(lacking)}. "
                 f"`lab paper {model} --list` shows what there is"
             )
     folder = paths.paper(model, smoke=smoke)

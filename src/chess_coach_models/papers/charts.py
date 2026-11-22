@@ -202,6 +202,125 @@ def intervals(
     return _picture(options, body)
 
 
+def grouped_intervals(
+    groups: Sequence[tuple[str, Sequence[tuple[str, float | None, float | None, float | None, str]]]],
+    *,
+    xlabel: str,
+    reference: float | None = None,
+    reference_label: str = "",
+    code: bool = True,
+    width: str = "0.62\\textwidth",
+    row_height: float = 0.42,
+) -> str:
+    """Named values with their intervals on one axis, in named groups, each group's name over its rows.
+
+    ``groups`` are ``(title, rows)`` and a row is ``(name, value, low, high, colour)``. For one kind of row
+    measured in several places: each network's gain in each model, one change's gain in each model.
+    ``reference`` is the line every row is read against, as in ``intervals``.
+    """
+    labels, body, shown = [], [], []
+    slot = 0
+    for title, rows in groups:
+        labels.append(f"{{\\sffamily\\bfseries\\color{{labInk}}{esc(title)}}}")
+        slot += 1
+        for name, value, low, high, colour in rows:
+            labels.append(f"{{{_name(name, code)}}}")
+            if known(low) and known(high):
+                body.append(
+                    f"\\draw[{colour}, line width=1pt, line cap=round] (axis cs:{_number(low)},{slot}) -- (axis cs:{_number(high)},{slot});"
+                )
+            if known(value):
+                body.append(
+                    f"\\addplot[only marks, mark=*, mark size=2.1pt, color={colour}, mark options={{draw=white, line width=0.6pt}}] coordinates {{({_number(value)},{slot})}};"
+                )
+            shown += [part for part in (value, low, high) if known(part)]
+            slot += 1
+    if reference is not None:
+        shown.append(reference)
+        line = f"\\draw[labAxis, line width=0.6pt] (axis cs:{_number(reference)},-0.6) -- (axis cs:{_number(reference)},{slot - 0.4});"
+        named = (
+            f"\\node[anchor=south, font=\\sffamily\\scriptsize, text=labSecondary, inner sep=1.5pt] at (axis cs:{_number(reference)},-0.6) {{{reference_label}}};"
+        )
+        body = [line, *([named] if reference_label else []), *body]
+    span = (max(shown) - min(shown)) or 1.0
+    options = [
+        f"width={width}",
+        f"height={row_height * slot + 1.7:.2f}cm",
+        "y dir=reverse",
+        f"ymin=-0.6, ymax={slot - 0.4}",
+        f"ytick={{{','.join(str(index) for index in range(slot))}}}",
+        f"yticklabels={{{','.join(labels)}}}",
+        "ytick style={draw=none}",
+        "y axis line style={draw=none}",
+        "xmajorgrids",
+        f"xlabel={{{xlabel}}}",
+        f"xmin={_number(min(shown) - 0.08 * span)}, xmax={_number(max(shown) + 0.08 * span)}",
+    ]
+    return _picture(options, body)
+
+
+def strips(
+    rows: Sequence[tuple[str, Sequence[tuple[str, float]]]],
+    *,
+    xlabel: str,
+    marks: Sequence[tuple[float, str]] = (),
+    order: Sequence[str] | None = None,
+    width: str = "0.78\\textwidth",
+    lane: float = 0.2,
+) -> str:
+    """Runs along one scale, a strip a row: where each run of each row stands, each in its own colour and mark.
+
+    ``rows`` are ``(name, points)`` and a point is ``(run, x)``. Inside a strip each run keeps a lane of its
+    own, in ``order`` or else in the order the runs first appear, so two runs at one place do not hide each
+    other, and a legend names the runs once. ``marks`` are ``(x, label)``: upright lines the strips are
+    read against.
+    """
+    order = list(order) if order is not None else list(dict.fromkeys(run for _, points in rows for run, _ in points))
+    lanes = len(order)
+    height = lanes * lane + 0.5
+    every = [x for _, points in rows for _, x in points] + [x for x, _ in marks]
+    span = (max(every) - min(every)) or 1.0
+    top = -0.5 * height
+    bottom = (len(rows) - 0.5) * height
+    body = []
+    for x, label in marks:
+        body.append(f"\\draw[labAxis, line width=0.6pt] (axis cs:{_number(x)},{_number(top)}) -- (axis cs:{_number(x)},{_number(bottom)});")
+        body.append(
+            f"\\node[anchor=south, font=\\sffamily\\scriptsize, text=labSecondary, inner sep=1.5pt] at (axis cs:{_number(x)},{_number(top)}) {{{label}}};"
+        )
+    left, right = min(every) - 0.06 * span, max(every) + 0.06 * span
+    for index in range(1, len(rows)):
+        y = (index - 0.5) * height
+        body.append(f"\\draw[labGrid, line width=0.3pt] (axis cs:{_number(left)},{_number(y)}) -- (axis cs:{_number(right)},{_number(y)});")
+    for run in order:
+        coordinates = " ".join(
+            f"({_number(x)},{_number(index * height + (order.index(run) - (lanes - 1) / 2) * lane)})"
+            for index, (_, points) in enumerate(rows)
+            for name, x in points
+            if name == run
+        )
+        body.append(
+            f"\\addplot[only marks, mark={run_mark(run)}, mark size=2.4pt, color={run_colour(run)}, mark options={{draw=white, line width=0.5pt, fill={run_colour(run)}}}] coordinates {{{coordinates}}};"
+        )
+        body.append(f"\\addlegendentry{{{_name(run, True)}}}")
+    options = [
+        f"width={width}",
+        f"height={len(rows) * height + 1.9:.2f}cm",
+        "y dir=reverse",
+        f"ymin={_number(top)}, ymax={_number(bottom)}",
+        f"ytick={{{','.join(_number(index * height) for index in range(len(rows)))}}}",
+        f"yticklabels={{{','.join(f'{{{_name(name, True)}}}' for name, _ in rows)}}}",
+        "ytick style={draw=none}",
+        "y axis line style={draw=none}",
+        "xmajorgrids",
+        f"xlabel={{{xlabel}}}",
+        f"xmin={_number(left)}, xmax={_number(right)}",
+        "legend columns=3",
+        "legend style={at={(0,1.08)}, anchor=south west}",
+    ]
+    return _picture(options, body)
+
+
 def lines(
     series: Sequence[Series],
     *,

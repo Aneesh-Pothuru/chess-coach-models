@@ -284,6 +284,31 @@ paper's prose is read again whenever its model's runs change. A claim that could
 run is written on generated words (which groups are ahead, which verdict a pair got), so that it
 turns with the run.
 
+### The lab's own paper
+
+`lab paper` with no model draws `papers/lab/paper.pdf`, which sets the models side by side
+(`papers/overview.py`): the models in one table, every run of every model on one scale, what a
+network adds to the trees model by model, one change measured in model after model, what the
+runs cost, and the part of each model's findings a coach would want first. It is built as a
+model's paper is, from `papers/lab/paper.tex`, and `lab paper --list` prints what its prose can
+read.
+
+- **Every model under its name.** The prose reads anything a model's paper can: a model's value
+  as `puzzle-difficulty.best.score`, its block as `puzzle-difficulty-leaderboard`. What only the
+  lab as a whole can say is under `lab`.
+- **One scale.** Models are scored in different units, so the lab's paper measures a run by the
+  reference's step: how much better the trees with the hand features are than the floor on the
+  model's own metric. A run's share of the step is 0 for the floor and 100 for the reference. A
+  gain is a number of hundredths of the step, and its interval is the paired gain's interval
+  divided by the step. The step is a measured number too and its noise is left out, so the scale
+  is for setting models side by side, and a claim about one model rests on the paired gain in
+  that model's own units.
+- **One switch.** A model with a task and no full run yet is listed as waiting, and what the
+  prose says of waiting models stands inside `\ifwaiting`.
+- **Said of every model, or not said.** A value the lab states for all its models at once, such
+  as the share of games kept for the test, is set only where every model has the same one.
+  Where they differ the build stops at the sentence that says it.
+
 ## Smoke runs
 
 `--smoke` on any command builds a small sample and trains for a moment. It proves the code runs
