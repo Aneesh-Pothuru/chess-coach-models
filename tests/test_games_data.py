@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+from chess_coach_models.data import positions
 from chess_coach_models.data.games import (
     game_rows,
     parse_movetext,
@@ -90,3 +91,44 @@ def test_splits_are_fixed_by_the_key():
     kept = sum(keep(f"game{index}", "salt", 0.25) for index in range(4000))
     assert 0.21 < kept / 4000 < 0.29
     assert keep("anything", "salt", 1.0)
+
+
+def stream_of(tmp_path, events: list[str]) -> str:
+    """A compressed PGN stream of the tiny game under one event name a game, each with its own id."""
+    zstandard = pytest.importorskip("zstandard")
+    games = []
+    for number, event in enumerate(events):
+        headers = {**HEADERS, "Event": event, "Site": f"https://lichess.org/tiny{number:04d}"}
+        games.append("".join(f'[{key} "{value}"]\n' for key, value in headers.items()) + f"\n{MOVETEXT}\n\n")
+    path = tmp_path / "games.pgn.zst"
+    path.write_bytes(zstandard.ZstdCompressor().compress("".join(games).encode()))
+    return str(path)
+
+
+def positions_recipe(games: int) -> dict:
+    return {
+        "month": "2026-10",
+        "speeds": ["rapid"],
+        "min_ply": 3,
+        "per_game": 10,
+        "games": games,
+        "split": {"salt": "test", "valid": 0.2, "test": 0.2},
+    }
+
+
+def test_a_build_counts_the_games_up_to_the_last_one_it_kept_however_far_the_pool_read_ahead(tmp_path):
+    source = stream_of(tmp_path, ["Casual Rapid game", "Rated Rapid game"] * 40)
+    built = [
+        positions.build(positions_recipe(3), source=source, workers=workers, log=lambda _: None)
+        for workers in (1, 3)
+    ]
+    for rows, tokens, marks, manifest in built:
+        assert manifest["games_kept"] == 3 and rows["game_id"].unique().sort().to_list() == ["tiny0001", "tiny0003", "tiny0005"]
+        assert manifest["games_read"] == 6
+        assert len(rows) == len(tokens) == len(marks) == 15
+
+
+def test_a_build_that_reads_the_stream_to_its_end_counts_every_game(tmp_path):
+    source = stream_of(tmp_path, ["Rated Rapid game", "Casual Rapid game", "Rated Rapid game", "Casual Rapid game", "Casual Rapid game"])
+    rows, _, _, manifest = positions.build(positions_recipe(10), source=source, workers=2, log=lambda _: None)
+    assert manifest["games_kept"] == 2 and manifest["games_read"] == 5

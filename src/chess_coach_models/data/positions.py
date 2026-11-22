@@ -9,6 +9,7 @@ serves every model that reads a position from a game.
 
 from __future__ import annotations
 
+from collections import deque
 from collections.abc import Callable, Iterator
 from typing import Any
 
@@ -55,13 +56,18 @@ def build(
     salt = recipe["split"]["salt"]
     speeds = tuple(recipe["speeds"])
     origin = source or games_url(recipe["month"])
-    counts = {"read": 0, "wanted": 0}
+    # The pool reads the stream ahead of the games it has given back, further on a faster machine. Each job
+    # carries the number of games read when it was made, so a build reports the count up to the last game it
+    # took, which is the same on every machine.
+    ahead = {"read": 0}
+    read_at: deque[int] = deque()
+    counts = {"read": 0}
 
     def jobs(text) -> Iterator[tuple[dict[str, str], str, int, int, str]]:
         for headers, movetext in game_blocks(text):
-            counts["read"] += 1
+            ahead["read"] += 1
             if wanted(headers, movetext, speeds=speeds):
-                counts["wanted"] += 1
+                read_at.append(ahead["read"])
                 yield headers, movetext, int(recipe["min_ply"]), int(recipe["per_game"]), salt
 
     def encode(rows: list[dict[str, Any]]) -> tuple[pl.DataFrame, np.ndarray, np.ndarray]:
@@ -88,11 +94,13 @@ def build(
     def kept_games(pool) -> Iterator[list[dict[str, Any]]]:
         games = 0
         for game in pool.imap(_rows, jobs(text), chunksize=32):
+            counts["read"] = read_at.popleft()
             if game:
                 games += 1
                 yield game
                 if games >= int(recipe["games"]):
                     return
+        counts["read"] = ahead["read"]
 
     parts = []
     games = 0
