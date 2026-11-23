@@ -369,7 +369,7 @@ def values(src: Sources, out: tex.Generated) -> None:
             worse = [entry for _, entry in measured if entry["beyond_noise"] and entry["gain"] < 0]
             better = [entry for _, entry in measured if entry["beyond_noise"] and entry["gain"] > 0]
             out.set(f"{inner}.worse", tex.word(len(worse)))
-            out.set(f"{inner}.worse.of", tex.of(len(worse), len(measured), "ablations"))
+            out.set(f"{inner}.worse.of", tex.of(len(worse), len(measured), "ablation" if len(measured) == 1 else "ablations"))
             out.set(f"{inner}.better", tex.word(len(better)))
             out.set(f"{inner}.level", tex.word(len(measured) - len(worse) - len(better)))
             if study == "features" and measured:
@@ -395,7 +395,7 @@ def more_values(src: Sources, out: tex.Generated) -> None:
         worse = [entry for _, _, entry in found if entry["beyond_noise"] and entry["gain"] < 0]
         out.set(f"{prefix}.runs", tex.word(len(found)))
         out.set(f"{prefix}.better", tex.word(len(better)))
-        out.set(f"{prefix}.better.of", tex.of(len(better), len(found), "models"))
+        out.set(f"{prefix}.better.of", tex.of(len(better), len(found), "model" if len(found) == 1 else "models"))
         out.set(f"{prefix}.worse", tex.word(len(worse)))
         out.set(f"{prefix}.level", tex.word(len(found) - len(better) - len(worse)))
         share, run, entry = max(found, key=lambda item: item[0])

@@ -221,8 +221,8 @@ def values(src: Sources, out: tex.Generated) -> None:
         out.set(f"{prefix}.compared", tex.word(len(gains)))
         out.set(f"{prefix}.ahead", tex.word(len(ahead)))
         out.set(f"{prefix}.behind", tex.word(len(behind)))
-        out.set(f"{prefix}.ahead.of", tex.of(len(ahead), len(gains), "groups"))
-        out.set(f"{prefix}.behind.of", tex.of(len(behind), len(gains), "groups"))
+        out.set(f"{prefix}.ahead.of", tex.of(len(ahead), len(gains), "group" if len(gains) == 1 else "groups"))
+        out.set(f"{prefix}.behind.of", tex.of(len(behind), len(gains), "group" if len(gains) == 1 else "groups"))
         out.set(f"{prefix}.ahead.groups", _named(ahead))
         out.set(f"{prefix}.behind.groups", _named(behind))
         for group in one["groups"]:

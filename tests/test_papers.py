@@ -954,6 +954,15 @@ def test_a_run_that_was_filed_keeps_its_pair_and_its_place_beside_the_run_it_cha
     assert (measured["run"], measured["over"], measured["gain"]) == ("transformer-medium-long", "transformer-medium", 0.1)
 
 
+def test_a_study_of_one_run_is_counted_in_the_singular():
+    written = tex.Generated("a test")
+    changes.values(sources.read("tactic-found"), written)
+    # Tactic found has one run on more games for each base, and one run with the attack-aware bias for each.
+    assert written.values["more.gbm-hand.better.of"] == "the one model"
+    assert written.values["study.attacks.transformer-medium.worse.of"] == "not the one ablation"
+    assert written.values["study.games.gbm-hand.worse.of"] == "both ablations"
+
+
 def test_a_run_on_a_larger_build_is_read_by_how_many_of_the_games_it_was_given():
     # A share of the training games, or a multiple of them, as a table and a sentence say it.
     assert [changes.share_words(share) for share in (4.0, 2.0, 0.5, 0.25)] == ["four times", "twice", "half", "a quarter"]
