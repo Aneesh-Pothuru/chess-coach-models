@@ -8,23 +8,19 @@
 \gamestrue
 \featurestrue
 \changestrue
-\morefalse
+\moretrue
 \shownfalse
 \shownpairedfalse
 \setvalue{bands.count}{five}
-\setvalue{best.device}{NVIDIA A100-SXM4-80GB}
-\setvalue{best.epochs.run}{8}
-\setvalue{best.parameters}{1{,}031{,}425}
-\setvalue{best.r2}{0.2578}
-\setvalue{best.rows-a-second}{47{,}900}
-\setvalue{best.score}{0.4235}
-\setvalue{best.seconds}{2 min}
-\setvalue{challenger.name}{\run{conv-small}}
-\setvalue{code.commit}{\texttt{3a74aa4}}
+\setvalue{best.name}{\run{gbm-hand-quadruple}}
+\setvalue{best.r2}{0.2619}
+\setvalue{best.score}{0.4223}
+\setvalue{challenger.name}{\run{gbm-hand-quadruple}}
+\setvalue{code.commit}{\texttt{173ddde}}
 \setvalue{context.lift.share}{97}
-\setvalue{cost.seconds}{25 min}
-\setvalue{cost.seconds.networks}{25 min}
-\setvalue{cost.seconds.others}{16 s}
+\setvalue{cost.seconds}{43 min}
+\setvalue{cost.seconds.networks}{41 min}
+\setvalue{cost.seconds.others}{2 min}
 \setvalue{data.fingerprint}{\texttt{340c68ed5c91}}
 \setvalue{data.games.test}{2{,}944}
 \setvalue{data.licence}{CC0 1.0}
@@ -63,7 +59,7 @@
 \setvalue{ladder.ahead.of}{none of the four networks}
 \setvalue{ladder.at-last-epoch.of}{none of the four networks}
 \setvalue{ladder.behind.of}{none of the four networks}
-\setvalue{look.date}{22 November 2026}
+\setvalue{look.date}{23 November 2026}
 \setvalue{look.resamples}{200}
 \setvalue{look.smallest-compared}{200}
 \setvalue{look.test-rows}{68{,}579}
@@ -76,6 +72,15 @@
 \setvalue{method.gbm.rounds}{4{,}000}
 \setvalue{method.gbm.rows.percent}{80}
 \setvalue{method.resamples}{1{,}000}
+\setvalue{more.gbm-hand.most}{four times}
+\setvalue{more.gbm-hand.most.kept}{kept}
+\setvalue{more.transformer-medium-hand.most.kept}{kept}
+\setvalue{network.device}{NVIDIA A100-SXM4-40GB}
+\setvalue{network.epochs.run}{3}
+\setvalue{network.name}{\run{transformer-medium-hand-quadruple}}
+\setvalue{network.parameters}{6{,}557{,}505}
+\setvalue{network.rows-a-second}{14{,}000}
+\setvalue{network.seconds}{9 min}
 \setvalue{networks.patience}{three}
 \setvalue{networks.warmup.percent}{5}
 \setvalue{overall.engine-curve.off}{+0.023}
@@ -87,16 +92,24 @@
 \setvalue{pair.gbm-context.engine-curve.gain.low}{+0.00892}
 \setvalue{pair.gbm-context.engine-curve.gain.percent}{2.6}
 \setvalue{pair.gbm-context.engine-curve.verdict}{better beyond the noise}
+\setvalue{pair.gbm-hand-double.gbm-hand.gain}{+0.000521}
+\setvalue{pair.gbm-hand-double.gbm-hand.kept}{not kept}
+\setvalue{pair.gbm-hand-double.gbm-hand.valid.verdict}{no better}
+\setvalue{pair.gbm-hand-double.gbm-hand.verdict}{inside the noise}
 \setvalue{pair.gbm-hand-half.gbm-hand.gain}{$-$0.000475}
 \setvalue{pair.gbm-hand-no-hanging.gbm-hand.verdict}{inside the noise}
 \setvalue{pair.gbm-hand-no-kings.gbm-hand.verdict}{inside the noise}
 \setvalue{pair.gbm-hand-no-mobility.gbm-hand.gain}{$-$0.000550}
 \setvalue{pair.gbm-hand-no-pawns.gbm-hand.verdict}{inside the noise}
+\setvalue{pair.gbm-hand-quadruple.gbm-hand.gain}{+0.001353}
+\setvalue{pair.gbm-hand-quadruple.gbm-hand.verdict}{better beyond the noise}
 \setvalue{pair.gbm-hand-quarter.gbm-hand.gain}{$-$0.000681}
 \setvalue{pair.gbm-hand.gbm-context.gain}{+0.002288}
 \setvalue{pair.gbm-hand.gbm-context.gain.high}{+0.003088}
 \setvalue{pair.gbm-hand.gbm-context.gain.low}{+0.001502}
 \setvalue{pair.gbm-hand.gbm-context.verdict}{better beyond the noise}
+\setvalue{pair.transformer-medium-hand-double.transformer-medium-hand.gain}{+0.001403}
+\setvalue{pair.transformer-medium-hand-double.transformer-medium-hand.kept}{kept}
 \setvalue{pair.transformer-medium-hand-half.transformer-medium-hand.gain}{$-$0.001023}
 \setvalue{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain}{$-$0.001252}
 \setvalue{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.high}{$-$0.000165}
@@ -104,6 +117,8 @@
 \setvalue{pair.transformer-medium-hand-pretrained.transformer-medium-hand.kept}{not kept}
 \setvalue{pair.transformer-medium-hand-pretrained.transformer-medium-hand.valid.verdict}{no better}
 \setvalue{pair.transformer-medium-hand-pretrained.transformer-medium-hand.verdict}{worse beyond the noise}
+\setvalue{pair.transformer-medium-hand-quadruple.transformer-medium-hand.gain}{+0.002430}
+\setvalue{pair.transformer-medium-hand-quadruple.transformer-medium-hand.verdict}{better beyond the noise}
 \setvalue{pair.transformer-medium-hand-quarter.transformer-medium-hand.gain}{$-$0.002697}
 \setvalue{pair.transformer-medium-hand.engine-curve.gain}{+0.01243}
 \setvalue{pair.transformer-medium-hand.engine-curve.verdict}{better beyond the noise}
@@ -134,9 +149,9 @@
 \setvalue{reference.reliability.groups}{20}
 \setvalue{reference.reliability.widest-gap}{0.026}
 \setvalue{reference.score}{0.4237}
-\setvalue{reference.seconds}{11 s}
+\setvalue{reference.seconds}{22 s}
 \setvalue{reference.trees}{208}
-\setvalue{results.date}{22 November 2026}
+\setvalue{results.date}{23 November 2026}
 \setvalue{run.elo-gap.reliability.highest.happened}{0.603}
 \setvalue{run.elo-gap.reliability.highest.said}{0.809}
 \setvalue{run.elo-gap.reliability.lowest.happened}{0.417}
@@ -158,9 +173,22 @@
 \setvalue{run.engine-curve.score}{0.4373}
 \setvalue{run.gbm-context.name}{\run{gbm-context}}
 \setvalue{run.gbm-context.score}{0.4260}
+\setvalue{run.gbm-hand-quadruple.score}{0.4223}
+\setvalue{run.gbm-hand-quadruple.seconds}{42 s}
+\setvalue{run.transformer-medium-hand-double.best-epoch}{3}
+\setvalue{run.transformer-medium-hand-double.epochs}{6}
+\setvalue{run.transformer-medium-hand-double.epochs.run}{5}
 \setvalue{run.transformer-medium-hand-pretrained.best-epoch}{4}
 \setvalue{run.transformer-medium-hand-pretrained.name}{\run{transformer-medium-hand-pretrained}}
+\setvalue{run.transformer-medium-hand-quadruple.best-epoch}{3}
+\setvalue{run.transformer-medium-hand-quadruple.epochs}{3}
+\setvalue{run.transformer-medium-hand-quadruple.gain}{+0.001210}
+\setvalue{run.transformer-medium-hand-quadruple.gain.high}{+0.002466}
+\setvalue{run.transformer-medium-hand-quadruple.gain.low}{$-$0.000025}
+\setvalue{run.transformer-medium-hand-quadruple.score}{0.4225}
 \setvalue{run.transformer-medium-hand.best-epoch}{5}
+\setvalue{run.transformer-medium-hand.epochs}{12}
+\setvalue{run.transformer-medium-hand.epochs.run}{8}
 \setvalue{run.transformer-medium-hand.gain}{$-$0.001220}
 \setvalue{run.transformer-medium-hand.gain.high}{+0.000007}
 \setvalue{run.transformer-medium-hand.gain.low}{$-$0.002381}
@@ -170,7 +198,7 @@
 \setvalue{run.transformer-medium-pretrained.best-epoch}{3}
 \setvalue{run.transformer-medium-pretrained.name}{\run{transformer-medium-pretrained}}
 \setvalue{run.transformer-medium.best-epoch}{5}
-\setvalue{runs.count}{eleven}
+\setvalue{runs.count}{15}
 \setvalue{slice.band.engine-curve.behind.least}{+0.00641}
 \setvalue{slice.band.engine-curve.behind.least.group}{1700-2000}
 \setvalue{slice.band.engine-curve.behind.most}{+0.0255}
@@ -219,8 +247,8 @@
 \setvalue{slice.win.engine-curve.widest-off.group}{80-90}
 \setvalue{slice.win.reference.widest-off}{0.035}
 \setvalue{slice.win.reference.widest-off.group}{10-20}
-\setvalue{slices.ahead}{one}
-\setvalue{slices.behind}{one}
+\setvalue{slices.ahead}{27}
+\setvalue{slices.behind}{zero}
 \setvalue{slices.compared}{48}
 \setvalue{slices.count}{nine}
 \setvalue{study.features.gbm-hand.most.gain}{$-$0.001706}

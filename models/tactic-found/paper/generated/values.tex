@@ -8,7 +8,7 @@
 \gamestrue
 \featurestrue
 \changestrue
-\morefalse
+\moretrue
 \shownfalse
 \shownpairedfalse
 \setvalue{band.1.floor}{0.6428}
@@ -48,9 +48,9 @@
 \setvalue{challenger.name}{\run{transformer-medium-hand-pretrained}}
 \setvalue{code.commit}{\texttt{36a0ad9}}
 \setvalue{context.lift.share}{35}
-\setvalue{cost.seconds}{110 min}
-\setvalue{cost.seconds.networks}{108 min}
-\setvalue{cost.seconds.others}{76 s}
+\setvalue{cost.seconds}{2.0 h}
+\setvalue{cost.seconds.networks}{119 min}
+\setvalue{cost.seconds.others}{3 min}
 \setvalue{data.fingerprint}{\texttt{15bd888b36b8}}
 \setvalue{data.licence}{CC0 1.0}
 \setvalue{data.name}{\texttt{tactics-v1}}
@@ -91,7 +91,10 @@
 \setvalue{method.gbm.rounds}{4{,}000}
 \setvalue{method.gbm.rows.percent}{80}
 \setvalue{method.resamples}{1{,}000}
-\setvalue{networks.ahead.of}{seven of the twelve networks}
+\setvalue{more.gbm-hand.most}{twice}
+\setvalue{more.gbm-hand.most.kept}{kept}
+\setvalue{more.transformer-medium-hand.most.kept}{kept}
+\setvalue{networks.ahead.of}{eight of the 13 networks}
 \setvalue{networks.patience}{three}
 \setvalue{networks.warmup.percent}{5}
 \setvalue{pair.conv-medium-hand.transformer-medium-hand.gain}{+0.003182}
@@ -100,6 +103,8 @@
 \setvalue{pair.conv-medium-hand.transformer-medium-hand.kept}{kept}
 \setvalue{pair.conv-medium-hand.transformer-medium-hand.valid.verdict}{better}
 \setvalue{pair.conv-medium-hand.transformer-medium-hand.verdict}{better beyond the noise}
+\setvalue{pair.gbm-hand-double.gbm-hand.gain}{+0.003246}
+\setvalue{pair.gbm-hand-double.gbm-hand.verdict}{better beyond the noise}
 \setvalue{pair.gbm-hand-half.gbm-hand.gain}{$-$0.003016}
 \setvalue{pair.gbm-hand-no-hanging.gbm-hand.gain}{$-$0.002901}
 \setvalue{pair.gbm-hand-no-kings.gbm-hand.verdict}{inside the noise}
@@ -127,6 +132,8 @@
 \setvalue{pair.transformer-medium-hand-attacks.transformer-medium-hand.kept}{not kept}
 \setvalue{pair.transformer-medium-hand-attacks.transformer-medium-hand.valid.verdict}{better}
 \setvalue{pair.transformer-medium-hand-attacks.transformer-medium-hand.verdict}{inside the noise}
+\setvalue{pair.transformer-medium-hand-double.transformer-medium-hand.gain}{+0.002131}
+\setvalue{pair.transformer-medium-hand-double.transformer-medium-hand.verdict}{better beyond the noise}
 \setvalue{pair.transformer-medium-hand-half.transformer-medium-hand.gain}{$-$0.007087}
 \setvalue{pair.transformer-medium-hand-long.transformer-medium-hand.gain}{$-$0.000357}
 \setvalue{pair.transformer-medium-hand-long.transformer-medium-hand.gain.high}{+0.000428}
@@ -179,6 +186,7 @@
 \setvalue{run.conv-medium-hand.lr}{0.002}
 \setvalue{run.conv-medium-hand.name}{\run{conv-medium-hand}}
 \setvalue{run.conv-medium-hand.parameters.millions}{7.0}
+\setvalue{run.conv-medium-hand.score}{0.5337}
 \setvalue{run.conv-medium-hand.seconds}{4 min}
 \setvalue{run.conv-small.score}{0.5513}
 \setvalue{run.gbm-context.name}{\run{gbm-context}}
@@ -194,6 +202,11 @@
 \setvalue{run.transformer-medium-attacks.gain.low}{$-$0.01211}
 \setvalue{run.transformer-medium-attacks.name}{\run{transformer-medium-attacks}}
 \setvalue{run.transformer-medium-hand-attacks.name}{\run{transformer-medium-hand-attacks}}
+\setvalue{run.transformer-medium-hand-double.best-epoch}{6}
+\setvalue{run.transformer-medium-hand-double.epochs}{6}
+\setvalue{run.transformer-medium-hand-double.score}{0.5348}
+\setvalue{run.transformer-medium-hand-half.best-epoch}{12}
+\setvalue{run.transformer-medium-hand-half.epochs}{24}
 \setvalue{run.transformer-medium-hand-long.best-epoch}{13}
 \setvalue{run.transformer-medium-hand-long.name}{\run{transformer-medium-hand-long}}
 \setvalue{run.transformer-medium-hand-no-geometry.name}{\run{transformer-medium-hand-no-geometry}}
@@ -201,6 +214,10 @@
 \setvalue{run.transformer-medium-hand-pretrained.epochs}{12}
 \setvalue{run.transformer-medium-hand-pretrained.name}{\run{transformer-medium-hand-pretrained}}
 \setvalue{run.transformer-medium-hand-pretrained.over-twin}{+0.00413}
+\setvalue{run.transformer-medium-hand-quarter.best-epoch}{8}
+\setvalue{run.transformer-medium-hand-quarter.epochs}{48}
+\setvalue{run.transformer-medium-hand.best-epoch}{10}
+\setvalue{run.transformer-medium-hand.epochs}{12}
 \setvalue{run.transformer-medium-hand.gain}{+0.004443}
 \setvalue{run.transformer-medium-hand.gain.high}{+0.005730}
 \setvalue{run.transformer-medium-hand.gain.low}{+0.003247}
@@ -227,7 +244,7 @@
 \setvalue{run.transformer-small.best-epoch}{8}
 \setvalue{run.transformer-small.epochs}{8}
 \setvalue{run.transformer-small.score}{0.5531}
-\setvalue{runs.count}{16}
+\setvalue{runs.count}{18}
 \setvalue{slice.backward.no.happened}{68.8\%}
 \setvalue{slice.backward.yes.happened}{69.1\%}
 \setvalue{slice.band.ahead.groups}{\textless{}1700, 1700-1899, 1900-2099, 2100-2299 and 2300+}

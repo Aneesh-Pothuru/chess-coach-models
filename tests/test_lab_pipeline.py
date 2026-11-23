@@ -474,9 +474,9 @@ def test_a_run_trains_on_a_larger_build_and_is_scored_on_the_rows_every_run_is(l
     assert out.values["more.gbm-hand.most.rows"] == tex.count(more["train_rows"])
     assert out.values["more.gbm-hand.most.kept"] == out.values["pair.gbm-hand-double.gbm-hand.kept"]
     assert out.values["pair.gbm-hand-double.gbm-hand.differs"] == (
-        f"trains on {changes.games_words(twice)}, from the larger build \\texttt{{puzzles-all}}"
+        f"trains on {changes.games_words(twice)}, from the larger build \\code{{puzzles-all}}"
     )
-    assert out.values["pair.transformer-small-double.transformer-small.differs"].endswith("; 1 epochs for 2")
+    assert out.values["pair.transformer-small-double.transformer-small.differs"].endswith("; 1 epoch for 2")
     switches = papers.switches(src, out)
     assert switches["more"] and switches["games"] and switches["pairs"]
     # And the lab's paper sets it beside the other models' in the same study.

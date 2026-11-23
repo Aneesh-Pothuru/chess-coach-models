@@ -145,7 +145,8 @@ the leaderboard and set against the run it changed among the `pairs` of
   lead opens as the games are added. The trees lose less: on half the games
   they are inside the noise. This is what the longer schedule suggested, now
   measured, and the dataset's games are a small part of one month of the
-  Lichess database. A larger dataset is the next thing to try.
+  Lichess database. A larger dataset is the next thing to try. It was tried
+  (what more games say, below), and it gave the trees more than the network.
 - **Material is what the hand features carry.** With one group left out at a
   time, the trees and the network both lose most without the material group,
   and for the network that loss is most of what the hand features gave it.
@@ -207,6 +208,38 @@ against the run it changed among the `pairs` of
 - **It fits what the epochs and the games said.** This model is short of
   games. Of the changes made to its transformer, the one that moved it is
   the start from a body that had read many more positions elsewhere.
+
+What more games say (commit `544cff8`: the reference trees and
+`transformer-medium-hand` on twice and on four times the training games,
+each set against the run on today's games among the `pairs` of
+[`results/analysis.json`](results/analysis.json)):
+
+- **Three of the four runs are kept.** The trees on twice and on four times
+  the games and the network on four times are better than the run they
+  changed on the valid rows, and on the test rows beyond the noise. The
+  network on twice the games is better on the valid rows and inside the
+  noise on the test rows, so it is not kept and stays on the leaderboard
+  until it is filed under the `games` study.
+  `transformer-medium-hand-pretrained` is still the model's best run, and by
+  the leaderboard's order the network on four times the games is the best
+  run that starts from nothing.
+- **The trees gained more than the network, the reverse of what was
+  expected.** The games study read forward said the network would gain most
+  ([`docs/ideas.md`](../../docs/ideas.md), written before these ran). On
+  four times the games the trees gained nearly three times what the network
+  did, though the intervals of the two paired gains overlap a little. The
+  trees on four times the games are level with the network on today's.
+- **With more games the network's valid score no longer turns, and it runs
+  out of steps.** On today's games its valid score was at its best after the
+  ninth of twelve epochs. On twice and on four times the games its best
+  epoch was the last, and on four times the score was still rising
+  (`learner.history` in the three records). The three runs take the same
+  number of steps.
+- **A reading: this model was short of games and is now short of steps as
+  well.** Twice the epochs on today's games gave the network nothing, since
+  it had gone through them often enough already, and four times the games at
+  the same steps gave it a little. More games and more steps together is the
+  one case neither study has, and it is the run to make.
 
 **Weights.** Every run's weights and test predictions are on the owner's
 machine, under `artifacts/runs/blunder-hazard/<run>/`, as the GPU session

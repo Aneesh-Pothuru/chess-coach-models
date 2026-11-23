@@ -607,10 +607,10 @@ half of them and of \V{pair.transformer-medium-hand-quarter.transformer-medium-h
 worse beyond the noise in \V{study.games.gbm-hand.worse.of}, with gains
 of \V{pair.gbm-hand-half.gbm-hand.gain} and
 \V{pair.gbm-hand-quarter.gbm-hand.gain}. On a quarter of the games the two
-learners are level, and the network's lead opens as the games are added
-(Table~\ref{tab:games}). That is the reading of the longer schedule,
-now measured: this model is short of games. \V{recipe.games} games of one
-month are a small part of what the Lichess database holds, so a larger
+learners are level, and the network's lead opens as the games are added up
+to today's (Table~\ref{tab:games}). That is the reading of the longer
+schedule, now measured: this model is short of games. \V{recipe.games} games
+of one month are a small part of what the Lichess database holds, so a larger
 dataset is the next thing to try.
 \fi
 
@@ -627,7 +627,37 @@ scored on. Against the run trained on today's games,
 \V{pair.gbm-hand-quadruple.gbm-hand.gain}, the second
 \V{pair.gbm-hand-quadruple.gbm-hand.verdict}. By the lab's rule the
 network on four times the games is \V{more.transformer-medium-hand.most.kept} and the trees
-on four times the games are \V{more.gbm-hand.most.kept}.
+on four times the games are \V{more.gbm-hand.most.kept}. On twice the games
+the trees are \V{pair.gbm-hand-double.gbm-hand.kept}, and the network is
+\V{pair.transformer-medium-hand-double.transformer-medium-hand.kept}: it is
+\V{pair.transformer-medium-hand-double.transformer-medium-hand.valid.verdict}
+on the valid rows and
+\V{pair.transformer-medium-hand-double.transformer-medium-hand.verdict} on
+the test rows.
+
+The check bore the reading out in part. More games pay, and by the
+leaderboard's order the model's best run that starts from nothing is now the
+network on four times the games. But the study read forward said the network
+would gain most, and the trees did: both of their gains are the larger ones
+(Table~\ref{tab:games}), though on four times the games the intervals of
+the two learners' gains overlap a little. The trees on four times the games
+score \V{run.gbm-hand-quadruple.score}, level with the network on today's
+(\V{run.transformer-medium-hand.score}). The best run is still
+\V{best.name}.
+
+On today's games the network had its best valid epoch at
+\V{run.transformer-medium-hand.best-epoch} of
+\V{run.transformer-medium-hand.epochs}. On twice and on four times the
+games it was the last, \V{run.transformer-medium-hand-double.best-epoch} of
+\V{run.transformer-medium-hand-double.epochs} and
+\V{run.transformer-medium-hand-quadruple.best-epoch} of
+\V{run.transformer-medium-hand-quadruple.epochs}, and the three runs take
+the same number of steps. A reading: this model was short of games, and
+with more of them the network is short of steps as well. Twice the epochs
+on today's games gave it nothing
+(\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain}), since
+it had gone through them often enough already, and four times the games at
+the same steps gave it a little. Each run was trained once.
 \fi
 
 \iffeatures
@@ -1065,12 +1095,13 @@ from this harness's, so its scores are not comparable with the ones here.
 \label{sec:cost}
 
 The \V{runs.count} runs took \V{cost.seconds} in all: \V{cost.seconds.networks}
-for the networks, which trained on a rented GPU (\V{best.device}), and
+for the networks, each trained on a rented GPU, and
 \V{cost.seconds.others} for the floor and the trees. The best run has
 \V{best.parameters} parameters and trained for \V{best.epochs.run} epochs in
-\V{best.seconds}, at about \V{best.rows-a-second} positions a second.
-Table~\ref{tab:runs} has every run's time and Table~\ref{tab:settings} the
-ladder networks' settings.
+\V{best.seconds} on an \V{best.device}, at about
+\V{best.rows-a-second} positions a second. Table~\ref{tab:runs} has every
+run's processor and time, and Table~\ref{tab:settings} the ladder networks'
+settings.
 
 Everything is drawn from committed files. The dataset is built by
 \texttt{lab data game-positions} from the recipe, the runs are trained by
@@ -1095,6 +1126,13 @@ these games says beforehand what it would buy.
 \item \textbf{Which hand features carry it.} Leaving out one group of
 features at a time says which counts the trees and the network cannot do
 without.
+\fi
+\ifmore
+\item \textbf{More games and more steps together.} On more games the
+network was still improving when its schedule ended, and on today's games a
+longer schedule gave it nothing. The run on four times the games with twice
+the steps is the one case the games study does not have, and the best run on
+four times the games is the other run to make there.
 \fi
 \item \textbf{Short clocks.} More rapid games, or blitz, until the groups
 under a minute are large enough to read.

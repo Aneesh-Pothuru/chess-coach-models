@@ -173,7 +173,8 @@ the leaderboard and set against the run it changed among the `pairs` of
   twice what the trees lose. Its lead over the trees widens with every
   doubling, and the last doubling was worth about as much to it as twice the
   epochs were. The dataset is a fixed quarter of the puzzles whose rating has
-  settled, so the next thing to try is the rest of them.
+  settled, so the next thing to try is the rest of them. They were tried
+  (what more games say, below), and the network did not gain most.
 - **The trees know a puzzle mostly by its solution.** With one group of hand
   features left out at a time, the counts of what the line's moves do cost
   the trees by far the most, though they are still told the line's length.
@@ -253,6 +254,50 @@ against the run it changed among the `pairs` of
 - **The offsets between squares are worth a little.** Without them (the
   `geometry` study) the transformer is worse beyond the noise, by less than
   the attacks are worth to it.
+
+What more games say (commit `544cff8`: the reference trees and
+`transformer-medium-hand` on twice and on four times the training puzzles,
+each set against the run on today's puzzles among the `pairs` of
+[`results/analysis.json`](results/analysis.json)):
+
+- **All four runs are kept.** Each is better than the run it changed on the
+  valid rows, and on the test rows beyond the noise. None is near the best
+  run, which is still `transformer-medium-hand-pretrained`, and the network
+  on today's puzzles is far ahead of the trees on four times as many.
+- **The trees gained more than the network, the reverse of what was
+  expected.** The games study read forward said the network would gain most
+  ([`docs/ideas.md`](../../docs/ideas.md), written before these ran). On
+  twice the puzzles the two gained about the same: the intervals of their
+  paired gains overlap. On four times the trees gained about four times what
+  the network did, and the two intervals do not touch.
+- **For the network, four times the puzzles were worth less than twice.**
+  The intervals of its two paired gains do not touch, and it is behind on the
+  valid rows as well. The two runs were not set against each other on
+  resampled games and each was trained once, so this is a reading of the
+  pairs: more puzzles past twice today's gave this network nothing at the
+  steps it was given.
+- **A reading: at these steps the network is short of steps before it is
+  short of puzzles.** The three runs take the same number of steps, and each
+  had its best valid epoch at its last (`learner.history` in the three
+  records). On four times the puzzles the network went through each one
+  three times. Twice the epochs on today's puzzles gave the same network
+  three times what twice the puzzles did (the two intervals do not touch).
+  So the games study did not say what it was read to say. On half and on a
+  quarter of the puzzles the network goes through each one two and four
+  times as often, and there its valid score turned before the schedule
+  ended while its training loss went on falling: part of what it lost on
+  fewer puzzles it lost to fitting them too closely. From today's puzzles
+  up it no longer does that, and what holds it is the number of steps.
+- **The trees were stopped by their round limit.** On four times the puzzles
+  they used every one of the rounds a run is allowed, and on twice they were
+  within a few of it, where the run on today's puzzles stopped by itself well
+  before (`learner.trees` in the three records). So what they gained from
+  four times the puzzles is what the limit let through, and a higher limit
+  is a run to make before a still larger build is read.
+- **What it points to.** The network on four times the puzzles with more
+  steps: more puzzles and more steps together is the one case neither study
+  has. And the best run, which starts from the body, on four times the
+  puzzles.
 
 **Weights.** Every run's weights and test predictions are on the owner's
 machine, under `artifacts/runs/puzzle-difficulty/<run>/`, as the GPU session

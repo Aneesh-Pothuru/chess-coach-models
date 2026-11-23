@@ -4,9 +4,13 @@
 \toprule
 Run & Learner & Kept & Trained on & Time \\
 \midrule
+\run{gbm-hand-quadruple} & LightGBM, context and hand features; trained on 2,371,230 rows of the larger build \code{game-positions-2026-10-120k} & 327 trees & Intel Xeon CPU @ 2.20GHz & 42 s \\
+\run{transformer-medium-hand-quadruple} & transformer, 8 layers of width 256, with hand features; trained on 2,371,230 rows of the larger build \code{game-positions-2026-10-120k} & epoch 3 of 3 & NVIDIA A100-SXM4-40GB & 9 min \\
+\run{gbm-hand-double} & LightGBM, context and hand features; trained on 1,189,017 rows of the larger build \code{game-positions-2026-10-120k} & 105 trees & Intel Xeon CPU @ 2.20GHz & 22 s \\
+\run{transformer-medium-hand-double} & transformer, 8 layers of width 256, with hand features; trained on 1,189,017 rows of the larger build \code{game-positions-2026-10-120k} & epoch 3 of 6 & NVIDIA A100-SXM4-40GB & 7 min \\
 \run{conv-small} & conv, 6 layers of width 96 & epoch 5 of 8 & NVIDIA A100-SXM4-80GB & 2 min \\
 \run{transformer-small} & transformer, 4 layers of width 128 & epoch 6 of 8 & NVIDIA A100-SXM4-80GB & 3 min \\
-\run{gbm-hand} & LightGBM, context and hand features & 208 trees & Intel Xeon CPU @ 2.20GHz & 11 s \\
+\run{gbm-hand} & LightGBM, context and hand features & 208 trees & Intel Xeon CPU @ 2.20GHz & 22 s \\
 \run{transformer-medium} & transformer, 8 layers of width 256 & epoch 5 of 12 & NVIDIA A100-SXM4-80GB & 5 min \\
 \run{transformer-medium-hand} & transformer, 8 layers of width 256, with hand features & epoch 5 of 12 & NVIDIA A100-SXM4-80GB & 5 min \\
 \run{gbm-context} & LightGBM, context numbers only & 183 trees & Intel Xeon CPU @ 2.20GHz & 4 s \\

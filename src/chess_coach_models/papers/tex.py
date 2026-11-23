@@ -3,9 +3,10 @@
 A paper types no number. ``lab paper <model>`` writes ``generated/values.tex``,
 whose ``\\setvalue{key}{value}`` lines the prose reads back with ``\\V{key}``
 (a key nobody set stops the build), and one file for each table, figure and
-board, which the prose places with ``\\block{<name>}``, or for a set of example
-boards with ``\\examples{<name>}{caption}{label}``. Only what the prose reads
-is written, so the generated folder is as small as the paper.
+board, which the prose places with ``\\block{<name>}``, for a set of example
+boards with ``\\examples{<name>}{caption}{label}``, or for a table that runs
+over pages with ``\\longblock{<name>}{caption}{label}``. Only what the prose
+reads is written, so the generated folder is as small as the paper.
 """
 
 from __future__ import annotations
@@ -153,20 +154,28 @@ def tabular(
     *,
     foot: Iterable[Sequence[str]] = (),
     width: str | None = None,
+    pages: bool = False,
 ) -> str:
     """A table in the lab's one style: a rule above, under the head and below, and ``foot`` rows under their own rule.
 
     With ``width`` the table is a ``tabularx`` of that width, whose ``L`` and ``R`` columns share what is left.
+    With ``pages`` as well it is an ``xltabular``, which is no float and may run over the end of a page: a table
+    with a row for everything a model tried outgrows one. Its head is set again on every page it reaches, and
+    under its last row it sets the caption the prose gave it (``\\longblock`` in ``papers/preamble.tex``).
     """
-    name = "tabularx" if width else "tabular"
+    if pages and not width:
+        raise ValueError("a table that runs over pages is given its width")
+    name = "xltabular" if pages else "tabularx" if width else "tabular"
     lines = [f"\\begin{{{name}}}" + (f"{{{width}}}" if width else "") + f"{{{spec}}}", "\\toprule"]
     lines.append(" & ".join(head) + " \\\\")
     lines.append("\\midrule")
+    if pages:
+        lines += ["\\endhead", "\\bottomrule", "\\endfoot", "\\bottomrule", "\\lablongcaption", "\\endlastfoot"]
     lines += [" & ".join(row) + " \\\\" for row in rows]
     feet = [" & ".join(row) + " \\\\" for row in foot]
     if feet:
         lines += ["\\midrule", *feet]
-    lines += ["\\bottomrule", f"\\end{{{name}}}"]
+    lines += [f"\\end{{{name}}}"] if pages else ["\\bottomrule", f"\\end{{{name}}}"]
     return "\n".join(lines)
 
 
@@ -255,5 +264,6 @@ def used_keys(latex: str) -> set[str]:
 
 
 def used_blocks(latex: str) -> set[str]:
-    """The generated blocks a paper's prose places: with ``\\block``, or as a set of example boards with ``\\examples``."""
-    return set(re.findall(r"\\(?:block|examples)\{([a-z0-9-]+)\}", latex))
+    """The generated blocks a paper's prose places: with ``\\block``, as a set of example boards with
+    ``\\examples``, or as a table that runs over pages with ``\\longblock``."""
+    return set(re.findall(r"\\(?:block|examples|longblock)\{([a-z0-9-]+)\}", latex))

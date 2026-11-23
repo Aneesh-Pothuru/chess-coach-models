@@ -9,13 +9,13 @@
   xlabel={Training games, beside all the games of the dataset},
   ylabel={MAE on the test rows (lower is better)},
   legend columns=-1,
-  xtick={0,1,2},
-  xticklabels={{a quarter},{half},{all}},
-  xmin=-0.5, xmax=2.5,
+  xtick={0,1,2,3,4},
+  xticklabels={{a quarter},{half},{all},{twice},{four times}},
+  xmin=-0.5, xmax=4.5,
 ]
-\addplot[color=labOrange, mark=square*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labOrange}] coordinates {(0,0.63515) (1,0.632148) (2,0.630582)};
+\addplot[color=labOrange, mark=square*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labOrange}] coordinates {(0,0.63515) (1,0.632148) (2,0.630582) (3,0.628285) (4,0.626952)};
 \addlegendentry{\texttt{gbm-hand}}
-\addplot[color=labBlue, mark=*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labBlue}] coordinates {(0,0.632515) (1,0.625689) (2,0.61995)};
+\addplot[color=labBlue, mark=*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labBlue}] coordinates {(0,0.632515) (1,0.625689) (2,0.61995) (3,0.6184) (4,0.617907)};
 \addlegendentry{\texttt{transformer-medium-hand}}
 \end{axis}
 \end{tikzpicture}%

@@ -282,6 +282,26 @@ def games(lab: Lab) -> dict[str, dict[float, dict[str, dict[str, Any]]]]:
     return {base: {part: found[base][part] for part in sorted(found[base], reverse=True)} for base in sorted(found, key=_rung)}
 
 
+def more_ahead(lab: Lab, base: str) -> dict[str, list[str]]:
+    """On more games, which learner gained more: a network the games study was made on, against its model's
+    reference. The models where the reference's paired gain over its run on all the games is the larger on
+    every multiple of the games both were given (``trees``), the models where the network's is
+    (``network``), and the models where the multiples disagree (``mixed``). Both gains are in the model's own
+    units, on the same test rows."""
+    found = games(lab)
+    sides: dict[str, list[str]] = {"trees": [], "network": [], "mixed": []}
+    for name, src in lab.models.items():
+        theirs, ours = found.get(src.task.reference, {}), found.get(base, {})
+        leads = [
+            theirs[part][name]["gain"] > ours[part][name]["gain"]
+            for part in ours
+            if part > 1 and name in ours[part] and name in theirs.get(part, {})
+        ]
+        if leads:
+            sides["trees" if all(leads) else "mixed" if any(leads) else "network"].append(name)
+    return sides
+
+
 def features(lab: Lab) -> dict[str, dict[str, dict[str, Any]]]:
     """The features study across the models, under each model's reference: a group of hand features, then
     the model, to the pair of the run without the group over the run that reads them all. The groups come
@@ -472,6 +492,15 @@ def values(lab: Lab, out: tex.Generated) -> None:
     for base, parts in games(lab).items():
         for part, entries in parts.items():
             _across(lab, out, tex.key("lab", "games", base, SHARE_KEYS.get(part, f"share-{round(100 * part)}")), entries)
+    # On more games, each network of the study against the trees: in which models whose gain is the larger.
+    references = {src.task.reference for src in lab.models.values()}
+    for base in games(lab):
+        sides = {} if base in references else more_ahead(lab, base)
+        compared = sum(len(names) for names in sides.values())
+        for side, names in sides.items():
+            if compared:
+                out.set(tex.key("lab", "more", base, side, "of"), _of(len(names), compared, "model"))
+                out.set(tex.key("lab", "more", base, side, "models"), tex.listed([said(name) for name in names]))
     left_out = features(lab)
     for group, entries in left_out.items():
         _across(lab, out, tex.key("lab", "features", group), entries)

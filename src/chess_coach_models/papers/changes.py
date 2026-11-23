@@ -193,10 +193,11 @@ def _change(block: str, key: str, new: Any, old: Any) -> str:
     if (block, key) == ("data", "train_share"):
         return f"trains on {games_words(float(new))}" if new is not None else "trains on all the training games"
     if (block, key) == ("data", "train_on"):
-        return "trains on the dataset's own rows" if new is None else f"trains on the larger build \\texttt{{{tex.esc(new)}}}"
+        return "trains on the dataset's own rows" if new is None else f"trains on the larger build \\code{{{tex.esc(new)}}}"
     if (block, key) == ("train", "seed"):
         return "is trained a second time, with another seed"
-    name = {"epochs": "epochs", "patience": "epochs of patience", "lr": "peak learning rate", "batch": "rows a batch"}.get(key)
+    names = {"epochs": ("epoch", "epochs"), "patience": ("epoch of patience", "epochs of patience")}
+    name = names[key][new != 1] if key in names else {"lr": "peak learning rate", "batch": "rows a batch"}.get(key)
     if block == "train" and name is not None and new is not None:
         number = tex.plain(new) if isinstance(new, (int, float)) else tex.esc(new)
         was = "" if old is None else f" for {tex.plain(old) if isinstance(old, (int, float)) else tex.esc(old)}"
@@ -296,7 +297,7 @@ def differs(run: dict[str, Any], other: dict[str, Any]) -> str:
     if times is not None:
         # A larger build and the share of it a run takes are one change: how many games it trains on.
         build = tex.esc(ours["data"]["train_on"])
-        said.append(f"trains on {games_words(times)}, from the larger build \\texttt{{{build}}}")
+        said.append(f"trains on {games_words(times)}, from the larger build \\code{{{build}}}")
         settings = [(block, key) for block, key in settings if (block, key) not in (("data", "train_on"), ("data", "train_share"))]
     said += [_change(block, key, (ours.get(block) or {}).get(key), (theirs.get(block) or {}).get(key)) for block, key in settings]
     return "; ".join(said) if said else "nothing its config names"
@@ -411,7 +412,7 @@ def pairs_table(src: Sources) -> str | None:
         return None
     name = ">{\\raggedright\\arraybackslash}p{2.45cm}"
     head = ["Run", "Set against", "What the run changes", "Valid rows", "Test rows", "95\\% interval"]
-    table = tex.tabular(f"{name}{name}Lrrr", head, rows, width="\\textwidth")
+    table = tex.tabular(f"{name}{name}Lrrr", head, rows, width="\\textwidth", pages=True)
     gain = f"\\multicolumn{{3}}{{c}}{{Gain in {METRIC_NAMES[src.primary]}}}"
     return tex.grouped(table, ["", "", "", gain], [(4, 6)])
 

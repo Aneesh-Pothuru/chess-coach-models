@@ -187,7 +187,8 @@ the leaderboard and set against the run it changed among the `pairs` of
   worse beyond the noise, and the network loses more. On a quarter of the
   games the trees are ahead of it, on half the two are level, and only on all
   of them does the network lead. Twice the epochs gave the same network
-  nothing, so more games are the next thing to try here.
+  nothing, so more games are the next thing to try here. They were tried
+  (what more games say, below).
 - **The first move says most.** With one group of hand features left out at
   a time, what the move to be found looks like costs the trees most. After it
   come the line as a whole, the moves on offer, loose pieces, the opponent's
@@ -256,6 +257,32 @@ against the run it changed among the `pairs` of
 - **The offsets between squares cannot be shown to matter here.** Without
   them (the `geometry` study) the transformer is inside the noise of the one
   that has them.
+
+What more games say (commit `544cff8`: the reference trees and
+`transformer-medium-hand` on twice the training games, each set against the
+run on today's games among the `pairs` of
+[`results/analysis.json`](results/analysis.json)):
+
+- **Both runs are kept.** Each is better than the run it changed on the
+  valid rows, and on the test rows beyond the noise.
+  `transformer-medium-hand-pretrained` is still the model's best run. On the
+  leaderboard the network on twice the games is level with the tower on
+  today's.
+- **Twice the games gave the network what twice the epochs had not.** With
+  twice the epochs on today's games it was inside the noise of itself. With
+  twice the games at the same number of steps it is better beyond the noise,
+  and its best valid epoch was the last, where on today's games it was the
+  tenth of twelve (`learner.history` in the two records).
+- **The trees gained more than the network, the reverse of what was
+  expected.** The games study read forward said the network would gain most,
+  and most of all here ([`docs/ideas.md`](../../docs/ideas.md), written
+  before these ran). Of the five models the network did gain most here, on
+  the lab's common scale, and the trees gained more still. The intervals of
+  the two paired gains overlap.
+- **This source has no more to give.** The larger build reads every file the
+  source has, which is twice the games. More rows would come only from
+  looser filters or a later revision of the source. What is left to try on
+  these is more steps: the network was still learning when its run ended.
 
 **Weights.** Every run's weights and test predictions are on the owner's
 machine, under `artifacts/runs/tactic-found/<run>/`, as the GPU session

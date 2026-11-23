@@ -18,6 +18,7 @@
 \usepackage{amsmath}
 \usepackage{booktabs}
 \usepackage{tabularx}
+\usepackage{xltabular}
 \usepackage{array}
 \usepackage{xcolor}
 \usepackage[obeyspaces,spaces]{url}
@@ -202,6 +203,35 @@
   \noindent\begin{minipage}{\textwidth}\captionsetup{type=figure}\caption{#2}\label{#3}\end{minipage}%
   \par\nobreak\smallskip
   \block{#1}\par\addvspace{\medskipamount}}
+
+% A table that may run over a page: \longblock{block}{caption}{label}. It is
+% no float either. A table with a row for every change a model tried outgrows
+% a page, so it starts where the text reaches it, runs on under its head over
+% as many pages as it needs, and sets its caption under its last row.
+\newcommand{\lablongcaption}{}
+\setlength{\LTcapwidth}{\textwidth}
+\newcommand{\longblock}[3]{%
+  \par\addvspace{\medskipamount}%
+  {\footnotesize\captionsetup{position=below}%
+   \renewcommand{\lablongcaption}{\caption{#2}\label{#3}}\block{#1}\labroomleft}%
+  \par\addvspace{\medskipamount}}
+% longtable (v4.19) takes the whole column as the room its page has left, and
+% so forgets the floats LaTeX has already promised the top or the bottom of
+% that page: a float that comes after the table on the same page is then
+% placed where there is no room for it, and the page runs past its foot. So
+% the room is counted again when the table has ended, the way LaTeX counts it
+% as it places each float.
+\makeatletter
+\newcommand{\labroomleft}{%
+  \@tempdima\@colht
+  \labroomheld\@toplist\labroomheld\@botlist
+  \global\@colroom\@tempdima}
+\newcommand{\labroomheld}[1]{%
+  \@tempswatrue
+  \def\@elt##1{\advance\@tempdima-\ht##1%
+    \advance\@tempdima-\if@tempswa\textfloatsep\else\floatsep\fi\@tempswafalse}%
+  #1}
+\makeatother
 
 % A page may be mostly floats before LaTeX gives them a page of their own, so
 % a figure stays near the words about it.

@@ -521,6 +521,9 @@ the model's committed files, on any machine, and compiles `models/<model>/paper/
 - **A block fits the page.** How wide a table comes out is known only once its numbers are, so a
   block that is one table or one picture is wrapped in `\fit` (`tex.fit`, `papers/preamble.tex`):
   wider than the text it is drawn smaller, at the text's width, and one that fits is left as it is.
+  A table with a row for everything a model tried (the pairs) outgrows a page as runs are added,
+  and a float cannot break: it is written to run over pages (`tex.tabular(..., pages=True)`), with
+  its head set again on each, and the prose places it with `\longblock{name}{caption}{label}`.
 - **Switches.** What depends on files a model may not have yet stands inside a switch: `\iflook`
   for the closer look, `\ifpairs`, `\ifvariants`, `\ifshapes`, `\ifgames` and `\iffeatures` for
   pairs, runs that change how a network is trained, runs of another shape, and the two studies,

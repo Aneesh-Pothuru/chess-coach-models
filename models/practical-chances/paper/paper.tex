@@ -29,6 +29,12 @@ reach \V{run.gbm-context.score}, better by
 \V{pair.gbm-context.engine-curve.gain.high}). The reference, trees that also
 read \V{task.hand.count} hand-made counts of the position, reaches
 \V{reference.score}, and \V{ladder.ahead.of} beat it beyond the noise.
+\ifmore
+Trained on \V{more.gbm-hand.most} the games, the same trees reach
+\V{run.gbm-hand-quadruple.score},
+\V{pair.gbm-hand-quadruple.gbm-hand.verdict} than on today's, and are the
+best run.
+\fi
 \iflook
 The engine's number is too sure at both ends. Where it gives the mover 80 to
 90\%, movers score \V{slice.win.80-90.happened}, and where it gives 10 to
@@ -237,8 +243,8 @@ verdict is most of what can be said about a result from one position. Trees
 on the context numbers, \V{run.gbm-context.name}, read that verdict beside
 the ratings, the clocks and the move number and reach
 \V{run.gbm-context.score}. The reference, which also reads the hand features
-of the position, reaches \V{reference.score}, and the best run
-\V{best.score} (Figure~\ref{fig:scores}).
+of the position, reaches \V{reference.score}, and the best run,
+\V{best.name}, \V{best.score} (Figure~\ref{fig:scores}).
 
 \begin{table}[htbp]\centering\small
 \block{leaderboard}
@@ -316,6 +322,11 @@ The network of the ladder furthest from the trees,
 (\V{run.transformer-medium-hand.gain.low} to
 \V{run.transformer-medium-hand.gain.high}), which is
 \V{run.transformer-medium-hand.gain.percent}\% of the reference's error.
+\ifmore
+The figure also holds the network's runs on more games, set there against
+the trees on today's games. Section~\ref{sec:changes} sets them beside the
+trees on as many.
+\fi
 
 \begin{figure}[htbp]\centering
 \block{gains}
@@ -364,6 +375,10 @@ positions after every epoch. By that score, \V{ladder.at-last-epoch.of}
 peaked at the last epoch given: each found its best weights earlier and was
 stopped once \V{networks.patience} epochs passed without better ones. So a
 longer schedule is not the run to add here.
+\ifmore
+On four times the games it is: there the network's best epoch was its last
+(Section~\ref{sec:changes}).
+\fi
 
 \begin{figure}[htbp]\centering
 \block{curves}
@@ -475,7 +490,39 @@ scored on. Against the run trained on today's games,
 \V{pair.gbm-hand-quadruple.gbm-hand.gain}, the second
 \V{pair.gbm-hand-quadruple.gbm-hand.verdict}. By the lab's rule the
 network on four times the games is \V{more.transformer-medium-hand.most.kept} and the trees
-on four times the games are \V{more.gbm-hand.most.kept}.
+on four times the games are \V{more.gbm-hand.most.kept}. On twice the games
+the network is
+\V{pair.transformer-medium-hand-double.transformer-medium-hand.kept}, and
+the trees are \V{pair.gbm-hand-double.gbm-hand.kept}: they are
+\V{pair.gbm-hand-double.gbm-hand.valid.verdict} on the valid positions and
+\V{pair.gbm-hand-double.gbm-hand.verdict} on the test positions.
+
+The check bore out half of the reading. The network did come level with the
+trees: on four times the games it scores
+\V{run.transformer-medium-hand-quadruple.score} to their
+\V{run.gbm-hand-quadruple.score}, and its gain over the reference is
+\V{run.transformer-medium-hand-quadruple.gain}
+(\V{run.transformer-medium-hand-quadruple.gain.low} to
+\V{run.transformer-medium-hand-quadruple.gain.high}). The other half did
+not hold. The trees were read as needing no more games, and on four times
+as many they are better beyond the noise, by a little: \V{best.name} is
+the best run, and the runs on more games lie inside each other's
+intervals (Table~\ref{tab:leaderboard}). The intervals of the two learners'
+gains on four times the games overlap.
+
+On four times the games the network was still getting better on the valid
+positions when its schedule ended. On today's games it had its best valid epoch at
+\V{run.transformer-medium-hand.best-epoch} of
+\V{run.transformer-medium-hand.epochs} and was stopped after
+\V{run.transformer-medium-hand.epochs.run}. On twice the games it still
+turned, with its best at \V{run.transformer-medium-hand-double.best-epoch}
+of \V{run.transformer-medium-hand-double.epochs} and a stop after
+\V{run.transformer-medium-hand-double.epochs.run}, and on four times its
+best was \V{run.transformer-medium-hand-quadruple.best-epoch} of
+\V{run.transformer-medium-hand-quadruple.epochs}, its last. A reading: on
+its own games the network fits them too closely within a few epochs, on four
+times as many it no longer does within these steps, and what holds it there
+is its steps. Each run was trained once.
 \fi
 
 \iffeatures
@@ -832,17 +879,20 @@ A miss means something else here than in the lab's other papers. The label
 is one game's result, so a run that says 0.9 is wrong on a tenth of such
 positions by its own account, and its largest misses are those games. In
 this build the largest misses upward (Figure~\ref{fig:over}) are positions
-the best run called won, in games the mover lost: two are a few moves apart
-in one game, with the mover ahead on the board and the opponent down to a
-few seconds, and the third is an ending that went on for many moves more and
-was lost. The largest misses downward (Figure~\ref{fig:under}) are three
-positions of one game, at the engine's lowest number, which the mover won.
-Neither set shows a fault of the model. They show what the average is made
-of. The positions the best run is surest of are in the appendix
-(Figures~\ref{fig:highest} and~\ref{fig:lowest}): the highest are winning
-positions against an opponent with seconds left, and the lowest are lost
-positions with the mover's own clock nearly gone or against an opponent
-rated far higher.
+the best run called won, in games the mover lost: an ending with a piece and
+two pawns more against an opponent with a few seconds left, which went on
+for many moves more and was lost; a position far ahead on the board in a
+game lost not long after; and an early position of a game in which the mover
+was rated far above the opponent. The largest misses downward
+(Figure~\ref{fig:under}) are the first and the last of those games seen
+from the other chair, and a third game the engine called lost, which the
+mover won. An upset is a large miss from both chairs. Neither set shows a
+fault of the model. They show what the average is made of. The positions
+the best run is surest of are in the appendix (Figures~\ref{fig:highest}
+and~\ref{fig:lowest}): the highest are won positions for the higher-rated
+player, two of them in one game against an opponent rated far lower, and the
+lowest are that game from the other chair and a lost position with the
+mover's own clock nearly gone.
 
 \examples{examples-typical}{Ordinary positions: the first \V{examples.count}
 test positions in the order of a hash of their key, so nothing about them
@@ -882,6 +932,10 @@ typical move's loss. A review that compares the number before and after a
 move is not touched by this. One that says ``you stood at 60\% here'' is.
 \item \textbf{The trees are the model.} \V{task.reference} trains in
 \V{reference.seconds} on a CPU, and \V{ladder.ahead.of} beat it.
+\ifmore
+On \V{more.gbm-hand.most} the games the same trees train in
+\V{run.gbm-hand-quadruple.seconds} and are the best run.
+\fi
 \item \textbf{Never a verdict on one game.} No run explains more than a
 share of \V{best.r2} of the variance of a result. The number is an average
 over many games of a kind, and one game says nothing against it.
@@ -893,7 +947,10 @@ over many games of a kind, and one game says nothing against it.
 \begin{itemize}
 \item \textbf{One result a game.} Every position of a game carries the same
 result, so the test set is as large as its games. The intervals resample
-whole games for that reason, and more games is the first thing to add.
+whole games for that reason\ifmore. The runs on more games added training
+games and no test games, so the intervals are as wide as they were, and a
+larger test set is what would tell the runs at the top apart\else, and more
+games is the first thing to add\fi.
 \item \textbf{No intervals for the curve, group by group.} The reference's
 lead over the engine's curve is resampled over all the test positions. In
 the cuts it is a difference of two scores.
@@ -908,8 +965,9 @@ deeper search would move some verdicts.
 \item \textbf{Lichess rapid players.} The ratings are Lichess's, and another
 site's need mapping first.
 \item \textbf{A score that can leave the scale.} A fitted run is not held
-between 0 and 1, and at the ends it says a little less than 0 or more than
-1. The app would clip it.
+between 0 and 1, and at the ends it says less than 0 or more than 1
+(Figures~\ref{fig:highest} and~\ref{fig:lowest} show by how much). The app
+would clip it.
 \item \textbf{What happens, not what would.} The model says what players at
 a level score from a kind of position. It does not say what this player
 would have scored by playing differently.
@@ -919,12 +977,15 @@ would have scored by playing differently.
 \label{sec:cost}
 
 The \V{runs.count} runs took \V{cost.seconds} in all: \V{cost.seconds.networks}
-for the networks, which trained on a rented GPU (\V{best.device}), and
+for the networks, each trained on a rented GPU, and
 \V{cost.seconds.others} for the floor, the two runs that fit nothing and the
-trees. The best run has \V{best.parameters} parameters and trained for
-\V{best.epochs.run} epochs in \V{best.seconds}, at about
-\V{best.rows-a-second} positions a second. Table~\ref{tab:runs} has every
-run's time and Table~\ref{tab:settings} the ladder networks' settings.
+trees. The best network, \V{network.name}, has \V{network.parameters}
+parameters and trained for
+\V{network.epochs.run} epochs in \V{network.seconds} on an
+\V{network.device}, at about
+\V{network.rows-a-second} positions a second. Table~\ref{tab:runs} has every
+run's processor and time, and Table~\ref{tab:settings} the ladder networks'
+settings.
 
 Everything is drawn from committed files. The dataset is built by
 \texttt{lab data game-positions} from the recipe, the runs are trained by
@@ -935,7 +996,7 @@ compiles it. A record names the build of the data it read
 (\V{data.fingerprint}) and the commit of the code that trained it
 (\V{code.commit}). Weights and test predictions are not committed. They are
 kept on the owner's machine, and the model's card says where and gives the
-hash of the reference's trees.
+hashes of the best run's trees and the reference's.
 
 \section{What comes next}
 
@@ -944,6 +1005,12 @@ hash of the reference's trees.
 \item \textbf{More games, or fewer.} A run on half and on a quarter of the
 training games says what a larger build would buy, and for a label that
 arrives once a game it may buy a good deal.
+\fi
+\ifmore
+\item \textbf{More games and more steps together.} On four times the games
+the network was still getting better when its schedule ended. The run on
+four times the games with twice the steps says whether it passes the trees
+there.
 \fi
 \item \textbf{The curve, refitted.} One multiplier for each rating band and
 a term for the clock, fitted to these games. It is the smallest thing that
@@ -1007,7 +1074,7 @@ interval.
 
 \block{slices-engine-curve}
 
-\section{Every cut of the test positions, for the best network}
+\section{Every cut of the test positions, for the best run beside the reference}
 
 The same cuts for the pair of runs whose gain was resampled group by group:
 \V{challenger.name}, the best run that is not the reference, and the

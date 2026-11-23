@@ -601,6 +601,13 @@ Section~\ref{sec:games} trains the reference and a network on half and on a
 quarter of a model's training games, and it supports the first reading:
 fewer games cost the network more than the trees in every model where both
 were trained.
+\ifmore
+The same runs on more games do not add to it: on twice and on four times
+the games the trees gain more than the network in
+\V{lab.more.transformer-medium-hand.trees.of}. That network reads the counts
+beside the board and its steps were held fixed, so this says less about
+boards to learn from than about steps (Section~\ref{sec:games}).
+\fi
 \else
 Runs on half and on a quarter of each model's training games, named in
 Section~\ref{sec:next}, say how much of a network's standing is the amount
@@ -1038,7 +1045,8 @@ are learned from a model's own rows, and where those rows teach a network
 least it learns nothing from being told more.
 \ifchangestart
 What moved both models was the start of Section~\ref{sec:start}, which
-brings a reading of the board from elsewhere.
+brings a reading of the board from elsewhere\ifmore, and by less more of
+their own games (Section~\ref{sec:games})\fi.
 \fi
 \fi
 
@@ -1049,9 +1057,13 @@ A reading: that is what the longer schedule and the games study said of
 blunder hazard from two other sides (Sections~\ref{sec:epochs}
 and~\ref{sec:games}). Its transformer is short of games, and neither a
 shape nor more steps makes up for them.
+\ifmore
+Four times the games did move it, beyond the noise, and by less than they
+moved the trees.
+\fi
 \ifchangestart
-What moved it was the start of Section~\ref{sec:start}, which brings boards
-from elsewhere.
+What moved it \ifmore further \fi was the start of
+Section~\ref{sec:start}, which brings boards from elsewhere.
 \fi
 \fi\fi
 
@@ -1166,8 +1178,10 @@ and on four times it is
 \V{lab.games.transformer-medium-hand.quadruple.said}.
 \fi
 
-A reading of Table~\ref{tab:games}. On the same share of the games the
-transformer loses more than the trees in every model that has both, so each
+A reading of Table~\ref{tab:games}\ifmore, first of the columns on fewer
+games\fi. On the same share of the games the
+transformer loses more than the trees in every model that has both, so
+\ifmore up to today's games \fi each
 doubling of the games moves the network up against the trees. In blunder
 hazard the two
 are level on a quarter of the games and in tactic found on half, and the
@@ -1175,13 +1189,57 @@ network's lead comes with the rest. In practical chances, where fewer games
 cost the trees nothing these test rows can show, the network stays behind
 them on every share. The datasets are a part of what is open: a fixed
 \V{puzzle-difficulty.recipe.sample.percent}\% of the puzzles whose rating
-has settled, and \V{blunder-hazard.recipe.games} games of one month. So in
+has settled, and \V{blunder-hazard.recipe.games} games of one month. So
+\ifmore the study read forward said that \fi in
 blunder hazard, puzzle difficulty, tactic found and think time a larger
 dataset is a next gain for a network\ifchangeepochs, ahead of a longer
 schedule (Section~\ref{sec:epochs})\fi.
 \ifanswermoves
-Human move points the same way from its own study, whose runs are not
+Human move points the same way from its own study\ifmore{} on fewer
+games\fi, whose runs are not
 paired with the run they changed yet (Section~\ref{sec:each}).
+\fi
+
+\ifmore
+The columns on more games are the check, and they bear out half of it. More
+games pay. By the lab's rule every run on four times the games is kept, and
+of the runs on twice the games all but two: the transformer in blunder
+hazard, which is inside the noise on the test rows, and the trees in
+practical chances, which are no better on the valid rows. But they do not
+pay a network most. In \V{lab.more.transformer-medium-hand.trees.models}
+the trees' gain is the larger one, on every multiple of the games the model
+has. Only in \V{lab.more.transformer-medium-hand.network.models} is the
+transformer's larger: there it draws level with the trees, and the trees on
+four times the games are that model's best run. In puzzle difficulty four
+times the puzzles gave the transformer less than twice did.
+
+A reading of why the study read forward was wrong. The study holds the steps
+fixed, so on half and on a quarter of the games the transformer goes through
+each game two and four times as often, and in every model its best valid
+epoch then came before its schedule ended. On twice and on four times the
+games its best epoch was the last in all but one run, practical chances' on
+twice the games (each model's paper gives the epochs). So part of what the
+transformer lost on fewer games it lost to fitting them too closely, which
+more games than today's cannot give back, and on more games at these steps
+it is held by its steps.
+\ifchangeepochs
+More steps on today's games are the other half of that: with twice the
+epochs the same transformer is
+\V{lab.change.epochs.over.transformer-medium-hand.said}
+(Section~\ref{sec:epochs}).
+\fi
+More games and more steps together is the one case neither study has.
+
+Two cautions. Each transformer was trained once, and its gains on four
+times the games are small, from
+\V{lab.games.transformer-medium-hand.quadruple.gain.least} to
+\V{lab.games.transformer-medium-hand.quadruple.gain.most} hundredths of the
+step. How far two trainings of one config lie apart is not measured yet, so
+these are gains by the rule and wait for a second training. And in puzzle
+difficulty the trees on four times the puzzles grew
+\V{puzzle-difficulty.run.gbm-hand-quadruple.trees} trees, every one of the
+\V{method.gbm.rounds} rounds a run is allowed, so what they gained there is
+what that limit let through.
 \fi
 \ifchangestart
 The study was made on the ladder's transformer, which starts from nothing.
@@ -1426,6 +1484,11 @@ mover's own move it flatters the mover: over all the test positions it says
 \V{practical-chances.overall.happened}. No network adds anything to the
 trees here\ifchangestart, and the start of Section~\ref{sec:start} made its
 transformers worse\fi.
+\ifmore
+On four times the training games the same trees are the model's best run,
+and the transformer on as many is level with them
+(Section~\ref{sec:games}).
+\fi
 
 \begin{figure}[htbp]\centering
 \block{practical-chances-reliability-engine-curve}
@@ -1934,7 +1997,19 @@ three times the size.
 \fi
 
 \ifgames
-\ifmore\else
+\ifmore
+\paragraph{More games and more steps together.}
+On more games a transformer was still learning when its schedule
+ended\ifchangeepochs, and on today's games a longer schedule gave the same
+transformer nothing these test rows can show in
+\V{lab.change.epochs.over.transformer-medium-hand.level.of}
+(Sections~\ref{sec:epochs} and~\ref{sec:games})\else{}
+(Section~\ref{sec:games})\fi. The run on the larger build with
+twice the steps is the one case neither study has. The other run to make
+there is the best run of each model on the larger build: where the start of
+Section~\ref{sec:start} is kept, it has been measured on today's games
+only.
+\else
 \paragraph{Larger datasets.}
 Section~\ref{sec:games} says each doubling of the games still pays, and
 pays a network most. The same runs on twice and on four times the games,

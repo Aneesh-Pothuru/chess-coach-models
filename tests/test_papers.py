@@ -77,6 +77,7 @@ def test_only_what_the_prose_reads_is_written(tmp_path):
     prose = r"The best run scores \V{best.score} (\block{leaderboard}), and \examples{examples-typical}{Three}{fig:typical}."
     assert tex.used_keys(prose) == {"best.score"}
     assert tex.used_blocks(prose) == {"leaderboard", "examples-typical"}
+    assert tex.used_blocks(r"\longblock{pairs}{Runs set against each other}{tab:pairs}") == {"pairs"}
     out = tex.Generated("a test")
     for name in ("best.score", "floor.score"):
         out.set(name, "0.5")
@@ -236,6 +237,35 @@ def test_a_block_that_is_one_table_or_one_picture_is_drawn_no_wider_than_the_tex
     out.block("several", several)
     assert out.files == {"one": fitted, "several": several}
     assert "\\newcommand{\\fit}[1]" in (paths.ROOT / "papers" / "preamble.tex").read_text(encoding="utf-8")
+
+
+def test_a_table_with_a_row_for_every_change_may_run_over_pages():
+    rows = [["a", "1"], ["b", "2"]]
+    table = tex.tabular("Lr", ["Run", "Score"], rows, width="\\textwidth", pages=True)
+    lines = table.splitlines()
+    assert lines[0] == "\\begin{xltabular}{\\textwidth}{Lr}" and lines[-1] == "\\end{xltabular}"
+    # Its head is set again on each page, a rule closes each page, and the last one closes on the caption.
+    head, body = lines[1 : lines.index("\\endlastfoot") + 1], lines[lines.index("\\endlastfoot") + 1 : -1]
+    assert head == [
+        "\\toprule",
+        "Run & Score \\\\",
+        "\\midrule",
+        "\\endhead",
+        "\\bottomrule",
+        "\\endfoot",
+        "\\bottomrule",
+        "\\lablongcaption",
+        "\\endlastfoot",
+    ]
+    assert body == ["a & 1 \\\\", "b & 2 \\\\"]
+    # A line of group names still goes over its head, and it is left at the text's width.
+    assert "\\toprule\n & Gain \\\\\n\\cmidrule(lr){2-2}\nRun & Score" in tex.grouped(table, ["", "Gain"], [(2, 2)])
+    assert tex.fit(table) == table
+    with pytest.raises(ValueError, match="given its width"):
+        tex.tabular("lr", ["Run", "Score"], rows, pages=True)
+    # The preamble has what places it, and the caption it sets under its last row.
+    preamble = (paths.ROOT / "papers" / "preamble.tex").read_text(encoding="utf-8")
+    assert "\\newcommand{\\longblock}[3]" in preamble and "\\newcommand{\\lablongcaption}{}" in preamble
 
 
 def test_a_level_far_from_every_series_is_inside_the_axis():
@@ -906,11 +936,13 @@ def test_a_run_on_a_larger_build_is_read_by_how_many_of_the_games_it_was_given()
         ("transformer-medium", 2.0, "transformer-medium-double"),
     ]
     assert changes.differs(known["gbm-hand-double"], known["gbm-hand"]) == (
-        "trains on twice the training games, from the larger build \\texttt{puzzles-all}"
+        "trains on twice the training games, from the larger build \\code{puzzles-all}"
     )
     assert changes.differs(known["transformer-medium-double"], known["transformer-medium"]) == (
-        "trains on twice the training games, from the larger build \\texttt{puzzles-all}; 6 epochs for 12; 2 epochs of patience for 3"
+        "trains on twice the training games, from the larger build \\code{puzzles-all}; 6 epochs for 12; 2 epochs of patience for 3"
     )
+    assert changes._change("train", "patience", 1, 3) == "1 epoch of patience for 3"
+    assert changes._change("train", "epochs", 3, 12) == "3 epochs for 12"
 
     written = tex.Generated("a test")
     changes.values(src, written)
@@ -944,6 +976,8 @@ def test_a_run_on_a_larger_build_is_read_by_how_many_of_the_games_it_was_given()
     lab = overview.Lab({"puzzle-difficulty": src}, {}, {})
     assert {base: list(parts) for base, parts in overview.games(lab).items()} == {"gbm-hand": [4.0, 3.3, 2.0, 0.5], "transformer-medium": [2.0]}
     assert overview.switches(lab)["more"]
+    # On twice the games the network gained more than the trees here, and no other multiple has both.
+    assert overview.more_ahead(lab, "transformer-medium") == {"trees": [], "network": ["puzzle-difficulty"], "mixed": []}
     # The lab draws the pairs on fewer games and the pairs on more as two figures: together they outgrow a page.
     fewer, more = overview.games_figure(lab), overview.games_figure(lab, more=True)
     assert "gbm-hand on half of the games" in fewer and "times the games" not in fewer and "twice the games" not in fewer

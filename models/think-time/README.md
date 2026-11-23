@@ -145,7 +145,8 @@ the leaderboard and set against the run it changed among the `pairs` of
   are both worse beyond the noise, and the network loses more. Its lead over
   the trees widens with every doubling, and the last doubling was worth more
   to it than twice the epochs were. Like blunder hazard, this model is short
-  of games before it is short of steps.
+  of games before it is short of steps. More games were tried (what more
+  games say, below), and the network did not gain most.
 - **Beside the clocks, the trees need material most.** With one group of
   hand features left out at a time, the material group costs the trees most,
   then loose pieces, the moves on offer and the attackers near the kings.
@@ -232,6 +233,34 @@ against the run it changed among the `pairs` of
   the attention that is told the attacks started from the body, on the board
   alone and with the features, and a tower as the body that learns the
   engine's evaluations ([`docs/ideas.md`](../../docs/ideas.md)).
+
+What more games say (commit `544cff8`: the reference trees and
+`transformer-medium-hand` on twice and on four times the training games,
+each set against the run on today's games among the `pairs` of
+[`results/analysis.json`](results/analysis.json)):
+
+- **All four runs are kept.** Each is better than the run it changed on the
+  valid rows, and on the test rows beyond the noise. Every gain is small
+  beside the start from the body, and `transformer-medium-hand-pretrained`
+  is still the model's best run.
+- **The trees gained more than the network, the reverse of what was
+  expected.** The games study read forward said the network would gain most
+  ([`docs/ideas.md`](../../docs/ideas.md), written before these ran). On
+  four times the games the intervals of the two paired gains do not touch.
+  On twice they overlap.
+- **For the network, four times the games were worth about what twice the
+  epochs were.** The two paired gains lie inside each other's intervals, and
+  on the leaderboard the network on four times the games, on twice, and on
+  today's games with twice the epochs cannot be told apart.
+- **The network was still learning when each run ended.** On twice and on
+  four times the games its best valid epoch was the last
+  (`learner.history`), and the three runs take the same number of steps. On
+  half and on a quarter of the games its valid score had turned well before
+  the schedule ended. A reading: part of what the network lost on fewer
+  games it lost to going through them too often, so the study overstated
+  what more games would give it, and from today's games up it is held by its
+  steps. More games and more steps together is the one case neither study
+  has.
 
 **Weights.** Every run's weights and test predictions are on the owner's
 machine, under `artifacts/runs/think-time/<run>/`, as the GPU session

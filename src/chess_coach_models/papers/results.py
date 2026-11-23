@@ -243,9 +243,10 @@ def values(src: Sources, out: tex.Generated) -> None:
         last = [run for run in group if run["learner"]["best_epoch"] == run["config"]["train"]["epochs"]]
         out.set(f"{part}.at-last-epoch", tex.word(len(last)))
         out.set(f"{part}.at-last-epoch.of", tex.of(len(last), len(group), "networks"))
-    # A setting every network shares is one value; where they differ, the settings table says so.
+    # A setting every network shares is one value; where they differ, the settings table says so. A run on a
+    # larger build of the dataset is left out: it is given fewer epochs, and a patience cut with them.
     for name, shown in (("warmup", "networks.warmup.percent"), ("patience", "networks.patience")):
-        asked = {run["config"]["train"].get(name) for run in networks}
+        asked = {run["config"]["train"].get(name) for run in networks if "train_dataset" not in run}
         if len(asked) == 1 and None not in asked:
             (value,) = asked
             out.set(shown, tex.plain(round(100.0 * value, 6)) if name == "warmup" else tex.word(int(value)))

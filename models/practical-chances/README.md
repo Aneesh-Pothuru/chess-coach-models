@@ -178,7 +178,9 @@ the leaderboard and set against the run it changed among the `pairs` of
   loses a little both times and stays behind the trees on every share of the
   games, by less as the games are added. A reading: what this model can say
   is set by what it reads, the engine's evaluation and the two ratings, and
-  not by how many games it has seen.
+  not by how many games it has seen. More games were tried (what more games
+  say, below): on four times as many the trees are a little better, beyond
+  the noise.
 - **Little beyond material.** With one group of hand features left out at a
   time, the material group costs the trees most and the moves on offer a
   little. Loose pieces, the attackers near the kings and passed pawns cost
@@ -205,18 +207,63 @@ run it changed among the `pairs` of
   with the longer runs of two other models that were not kept, waits for the
   next closer look on the machine that holds the predictions.
 
+What more games say (commit `544cff8`: the reference trees and
+`transformer-medium-hand` on twice and on four times the training games,
+each set against the run on today's games among the `pairs` of
+[`results/analysis.json`](results/analysis.json)):
+
+- **Three of the four runs are kept, and the trees on four times the games
+  are the model's best run.** The trees on four times the games and the
+  network on twice and on four times are better than the run they changed on
+  the valid rows, and on the test rows beyond the noise. The trees on twice
+  the games are worse on the valid rows and inside the noise on the test
+  rows, so that run is not kept and stays on the leaderboard until it is
+  filed under the `games` study.
+- **The lead is small, and the top of the leaderboard is level.**
+  `gbm-hand-quadruple` is ahead of the reference beyond the noise, by about
+  half of what the hand features add to the context numbers. The four runs
+  on more games lie inside each other's intervals.
+- **So the trees did gain from more games, a little.** On half and on a
+  quarter of the games they had lost nothing the test rows could show, and
+  the card read that as trees that need no more games. Twice the games still
+  showed nothing. Four times did.
+- **Here the network gained more than the trees, and has caught them up.**
+  This is the one model of the five where it did, and the one where it was
+  expected to gain least ([`docs/ideas.md`](../../docs/ideas.md), written
+  before these ran). On today's games the network was a little behind the
+  reference. On four times the games it is level with the trees on four
+  times, and its
+  paired gain over the reference holds zero by a hair. The intervals of the
+  network's and the trees' paired gains on four times the games overlap.
+- **On four times the games the network was still getting better when its
+  schedule ended.** On today's games its best valid epoch was the fifth of
+  twelve and the trainer stopped it at the eighth. On twice the games it
+  still turned: its best was the third of six, and it was stopped at the
+  fifth. On four times its best was the last (`learner.history` in the three
+  records). A reading: on its own games the network fits them too closely
+  within a few epochs, on four times as many it no longer does within these
+  steps, and what holds it there is its steps.
+- **The model to carry to the app is still the trees**, now the run on four
+  times the games: under a minute to train, no GPU, and nothing a network
+  adds to it.
+
 **Weights.** Every run's weights and test predictions are on the owner's
 machine, under `artifacts/runs/practical-chances/<run>/`, as the GPU session
 packed them; none is published. Each record names its run's files by size
-and sha256. The reference's `model.txt` is 2,437,650 bytes, sha256
-`5b3526084ab51c61a60ab182996e0cebe2b9a707e92e3771684121f93ba03969`.
+and sha256. The best run's `model.txt` is 3,916,138 bytes, sha256
+`b5565269c97e7c705e26b3d35fda9d68c8359cb23b26a4bab94d51968681e97a`
+(`weights` in [its record](results/gbm-hand-quadruple.json)), and the
+reference's is 2,437,650 bytes, sha256
+`5eff61bbc93167faf15d717bdd73491228fe6750ee04a877b4ddbcfe5219dff3`
+(`weights` in [its record](results/gbm-hand.json)).
 
 ## What it does not say yet
 
 - Every position of a game carries the same result, so one position's label
   says little, and the test set is as large as its games, not its rows. The
-  intervals resample whole games for that reason, and more games is the first
-  run to add.
+  intervals resample whole games for that reason. The runs on more games
+  added training games and no test games, so the intervals are as wide as
+  they were: a larger test set is what would tell the runs at the top apart.
 - A game here ended normally or on time. A lost position that was won on the
   clock counts as a win, as it does for the player.
 - Only analysed games give a row, and players choose which games to analyse.

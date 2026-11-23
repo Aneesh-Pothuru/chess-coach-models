@@ -82,6 +82,10 @@ quantity's label is standardised by the train rows. After each epoch the
 network is scored on the valid rows, the weights of the best epoch are the
 ones kept, and training stops early once \V{networks.patience} epochs pass
 without a better one.
+\ifmore
+A run on a larger build of the dataset goes through it in fewer epochs, and
+waits fewer of them before it stops (Section~\ref{sec:changes}).
+\fi
 
 \begin{table}[htbp]\centering\footnotesize
 \block{runs}

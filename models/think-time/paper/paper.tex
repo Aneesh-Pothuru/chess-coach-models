@@ -590,10 +590,12 @@ Both learners are worse on fewer games, and the network by more. Against the
 run trained on every training game, \V{run.transformer-medium-hand.name} has a paired gain of
 \V{pair.transformer-medium-hand-half.transformer-medium-hand.gain} on half of them and of \V{pair.transformer-medium-hand-quarter.transformer-medium-hand.gain} on a
 quarter. The trees' gains are \V{pair.gbm-hand-half.gbm-hand.gain} and
-\V{pair.gbm-hand-quarter.gbm-hand.gain}. The network's lead over the trees
+\V{pair.gbm-hand-quarter.gbm-hand.gain}. From a quarter of the games to all
+of them the network's lead over the trees
 widens with every doubling (Table~\ref{tab:games}). Twice the epochs were
-worth \V{pair.transformer-medium-hand-long.transformer-medium-hand.gain} to the same network, so the last doubling of
-the games was worth more than the longer schedule. A reading: like blunder
+worth \V{pair.transformer-medium-hand-long.transformer-medium-hand.gain} to the same network, so the last of
+those doublings was worth more than the longer schedule. A reading\ifmore,
+as it stood before the next runs\fi: like blunder
 hazard, this model is short of games before it is short of steps, and
 \V{recipe.games} games of one month leave many more to read.
 \fi
@@ -611,7 +613,37 @@ scored on. Against the run trained on today's games,
 \V{pair.gbm-hand-quadruple.gbm-hand.gain}, the second
 \V{pair.gbm-hand-quadruple.gbm-hand.verdict}. By the lab's rule the
 network on four times the games is \V{more.transformer-medium-hand.most.kept} and the trees
-on four times the games are \V{more.gbm-hand.most.kept}.
+on four times the games are \V{more.gbm-hand.most.kept}. On twice the games
+the network is
+\V{pair.transformer-medium-hand-double.transformer-medium-hand.kept} and
+the trees are \V{pair.gbm-hand-double.gbm-hand.kept}.
+
+The check did not bear the reading out. More games pay both learners, and
+they paid the trees more: on four times the games the intervals of the two
+paired gains do not touch, and on twice they overlap
+(Table~\ref{tab:games}). For the network four times the games were worth
+about what twice the epochs were: the two gains lie inside each other's
+intervals, and the run on four times the games, the run on twice and the
+run with twice the epochs score \V{run.transformer-medium-hand-quadruple.score},
+\V{run.transformer-medium-hand-double.score} and
+\V{run.transformer-medium-hand-long.score}. Every one of these gains is
+small beside the start from the body, and the best run is still
+\V{best.name}.
+
+On twice and on four times the games the network had its best valid epoch
+at its last, \V{run.transformer-medium-hand-double.best-epoch} of
+\V{run.transformer-medium-hand-double.epochs} and
+\V{run.transformer-medium-hand-quadruple.best-epoch} of
+\V{run.transformer-medium-hand-quadruple.epochs}, and the runs take the
+same number of steps as the run on today's games. On half and on a quarter
+of the games, where it goes through each game two and four times as often,
+its best epoch was \V{run.transformer-medium-hand-half.best-epoch} of
+\V{run.transformer-medium-hand-half.epochs} and
+\V{run.transformer-medium-hand-quarter.best-epoch} of
+\V{run.transformer-medium-hand-quarter.epochs}. A reading: part of what the
+network lost on fewer games it lost to going through them too often, so the
+study overstated what more games would give it, and from today's games up
+it is held by its steps. Each run was trained once.
 \fi
 
 \iffeatures
@@ -958,12 +990,13 @@ a position deserves.
 \label{sec:cost}
 
 The \V{runs.count} runs took \V{cost.seconds} in all: \V{cost.seconds.networks}
-for the networks, which trained on a rented GPU (\V{best.device}), and
+for the networks, each trained on a rented GPU, and
 \V{cost.seconds.others} for the floor and the trees. The best run has
 \V{best.parameters} parameters and trained for \V{best.epochs.run} epochs in
-\V{best.seconds}, at about \V{best.rows-a-second} positions a second.
-Table~\ref{tab:runs} has every run's time and Table~\ref{tab:settings} the
-ladder networks' settings.
+\V{best.seconds} on an \V{best.device}, at about
+\V{best.rows-a-second} positions a second. Table~\ref{tab:runs} has every
+run's processor and time, and Table~\ref{tab:settings} the ladder networks'
+settings.
 
 Everything is drawn from committed files. The dataset is built by
 \texttt{lab data game-positions} from the recipe, the runs are trained by
@@ -996,6 +1029,13 @@ when training stopped.
 \ifgames\else
 \item \textbf{More games, or fewer.} A run on half and on a quarter of the
 training games says what a larger build would buy.
+\fi
+\ifmore
+\item \textbf{More games and more steps together.} On more games the
+network was still improving when its schedule ended. The run on four times
+the games with twice the steps is the one case the games study does not
+have, and the best run on four times the games is the other run to make
+there.
 \fi
 \ifshapes
 \item \textbf{The attention that is told the attacks, from the body.}

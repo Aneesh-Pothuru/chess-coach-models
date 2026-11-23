@@ -41,6 +41,7 @@ none: its networks stopped early on the first schedule. Two studies then ran on 
   five models, and it loses more than the trees do in every one. Its lead over the trees comes
   with the data: in blunder hazard the two are level on a quarter of the games, in tactic found on
   half. Only in practical chances do fewer games cost the trees nothing the test rows can show.
+  The runs on more games came later ("More games", below), and they do not go on as this reads.
 - **`features`: one group of hand features left out at a time**, from the reference trees and, on
   `blunder-hazard`, from the best network too. Material costs the trees something in every model
   and passed pawns next to nothing in any. The two models that read a line lean on it most (the
@@ -91,24 +92,58 @@ models that answer with one number, and is well behind where the answer is a mov
 kept nowhere, and size alone never paid. In the four models that have both a start from the body
 and runs of another shape, the best run is still the transformer that starts from the body.
 
+**More games.** The games study said each doubling still paid, and paid a network most, and each
+dataset has more to take: `game-positions` keeps 30,000 games of a month's, `puzzles` a quarter of
+the puzzles that pass, `tactics` half of them. So the study was turned round (the plan `more`).
+Each of the five models with a games study got its reference trees and its medium transformer
+with hand features on twice and on four times the training games, from a larger build of its
+dataset (`puzzles-all`, `game-positions-120k`, `tactics-all`, which holds twice the games and no
+more). Each is scored on the test rows the model has now, so its gain is paired with the run on
+today's games, and a network is given fewer epochs so that it takes as many steps
+([`design.md`](design.md), "A run on more games"). What was expected, written before any of them
+ran: the networks gain more than the trees in every model, as the study read forward says; the
+most from tactic found, where half of the games cost the most, and the least from practical
+chances, where fewer games cost the trees nothing the test rows could show. A run is kept only
+when it is better on valid and on test beyond the noise, like any change. If the runs on four
+times the games are kept, the next builds are larger still, and the architecture test above is
+made on the larger build.
+
+The runs are in. More games pay: sixteen of the eighteen runs are kept, every run on four times
+the games among them (the two that are not are blunder hazard's transformer and practical
+chances' trees, each on twice the games). The expectation held in one model of the five. The
+trees gained more than the network in blunder hazard, puzzle difficulty, tactic found and think
+time. Only in practical chances did the network gain more, where the least was expected: there it
+drew level with the trees for the first time, and the trees on four times the games are that
+model's best run. Of the five, the network's gain from twice the games was largest in tactic
+found, as expected, and the trees gained more there too. In puzzle difficulty four times the
+puzzles gave the network less than twice did. Where a start from the body is kept, it is still
+the model's best run.
+
+A reading of why the study read forward was wrong. On half and on a quarter of the games a
+network is given more epochs so that it takes as many steps, and it goes through each game two
+and four times as often: in every model its valid score turned before the schedule ended. On
+twice and on four times the games its best valid epoch was the last in all but one of the nine
+runs. So part of what a network lost on fewer games it lost to fitting them too closely, which is
+not a loss that more games than today's can give back, and at twelve epochs' worth of steps a
+network on more games is held by its steps. Every network was trained once, and its gains here
+are about as large as two trainings of one config are expected to lie apart (below), so the
+`seed` study is what says how firm they are. The trees' gains do not wait on that. In puzzle
+difficulty the trees were held too: on four times the puzzles they used every round a run is
+allowed, and on twice they came within a few of it.
+
+The runs on four times the games are kept, so by what was written the next builds are larger
+still. What the runs found puts three things before that:
+
+- **More games and more steps together**, the one case neither study has: the network on the
+  larger build with twice the steps, which is as many steps as the run with twice the epochs took
+  on today's games.
+- **The best run on the larger build**: in four models that is the transformer that starts from
+  the body, which is measured on today's games only.
+- **A higher round limit for the trees** in puzzle difficulty, before a still larger build of its
+  dataset is read.
+
 What is left:
 
-- **Larger builds of the datasets.** The games study says each doubling still pays, and pays a
-  network most, and each dataset has more to take: `game-positions` keeps 30,000 games of a
-  month's, `puzzles` a quarter of the puzzles that pass, `tactics` half of them. The measurement
-  to make first is written and waits for its runs (the plan `more`): the games study turned
-  round. Each of the five models with a games study gets its reference trees and its medium
-  transformer with hand features on twice and on four times the training games, from a larger
-  build of its dataset (`puzzles-all`, `game-positions-120k`, `tactics-all`, which holds twice
-  the games and no more). Each is scored on the test rows the model has now, so its gain is paired
-  with the run on today's games, and a network is given fewer epochs so that it takes as many
-  steps ([`design.md`](design.md), "A run on more games"). What is expected, written before any
-  of them ran: the networks gain more than the trees in every model, as the study read forward
-  says; the most from tactic found, where half of the games cost the most, and the least from
-  practical chances, where fewer games cost the trees nothing the test rows could show. A run is
-  kept only when it is better on valid and on test beyond the noise, like any change. If
-  the runs on four times the games are kept, the next builds are larger still, and the
-  architecture test above is made on the larger build.
 - **Tactic found, with the whole line as the label**: the player found the tactic only if the game
   followed it to the end, which a game answers while the opponent follows the puzzle's replies.
 - **Game rating, asked for the opponent's rating**: the same learners on the same rows with the

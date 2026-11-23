@@ -6,9 +6,13 @@ Run & Learner & Kept & Trained on & Time \\
 \midrule
 \run{transformer-medium-hand-pretrained} & transformer, 8 layers of width 256, with hand features, started from \code{position-evaluation/transformer-medium} & epoch 9 of 12 & NVIDIA A100-SXM4-40GB & 9 min \\
 \run{transformer-medium-pretrained} & transformer, 8 layers of width 256, started from \code{position-evaluation/transformer-medium} & epoch 10 of 12 & NVIDIA A100-SXM4-40GB & 9 min \\
+\run{transformer-medium-hand-quadruple} & transformer, 8 layers of width 256, with hand features; trained on 2,371,230 rows of the larger build \code{game-positions-2026-10-120k} & epoch 3 of 3 & NVIDIA A100-SXM4-40GB & 9 min \\
+\run{transformer-medium-hand-double} & transformer, 8 layers of width 256, with hand features; trained on 1,189,017 rows of the larger build \code{game-positions-2026-10-120k} & epoch 6 of 6 & NVIDIA A100-SXM4-40GB & 9 min \\
 \run{transformer-medium-hand} & transformer, 8 layers of width 256, with hand features & epoch 9 of 12 & NVIDIA A100-SXM4-80GB & 8 min \\
 \run{conv-medium-hand} & conv, 10 layers of width 192, each block weighing its channels by the whole board, with hand features & epoch 9 of 12 & NVIDIA A100-SXM4-80GB & 4 min \\
+\run{gbm-hand-quadruple} & LightGBM, context and hand features; trained on 2,371,230 rows of the larger build \code{game-positions-2026-10-120k} & 503 trees & Intel Xeon CPU @ 2.20GHz & 69 s \\
 \run{transformer-medium-hand-attacks} & transformer, 8 layers of width 256, attention told what each piece attacks, with hand features & epoch 9 of 12 & NVIDIA A100-SXM4-80GB & 10 min \\
+\run{gbm-hand-double} & LightGBM, context and hand features; trained on 1,189,017 rows of the larger build \code{game-positions-2026-10-120k} & 335 trees & Intel Xeon CPU @ 2.20GHz & 46 s \\
 \run{transformer-medium-hand-long} & transformer, 8 layers of width 256, with hand features & epoch 14 of 24 & NVIDIA A100-SXM4-80GB & 11 min \\
 \run{hybrid-medium-hand} & hybrid, 2 conv blocks then 5 transformer layers of width 256, with hand features & epoch 11 of 12 & NVIDIA A100-SXM4-80GB & 7 min \\
 \run{gbm-hand} & LightGBM, context and hand features & 196 trees & Intel Xeon CPU @ 2.20GHz & 38 s \\
