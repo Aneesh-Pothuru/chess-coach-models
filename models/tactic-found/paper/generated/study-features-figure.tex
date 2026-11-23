@@ -8,12 +8,13 @@
   y dir=reverse,
   ymin=-0.6, ymax=7.6,
   ytick={0,1,2,3,4,5,6,7},
-  yticklabels={{the first move},{the line},{the moves on offer},{pieces that can be taken},{the opponent's move},{material},{attacks near the kings},{passed pawns}},
+  yticklabels={{first move},{solution line},{mobility},{hanging pieces},{opponent's last move},{material},{king safety},{passed pawns}},
   ytick style={draw=none},
   y axis line style={draw=none},
   xmajorgrids,
   xlabel={Gain in log loss without the group (left of the line: worse without it)},
   xmin=-0.0155618, xmax=0.00159431,
+  xtick distance=0.005,
 ]
 \draw[labAxis, line width=0.6pt] (axis cs:0,-0.6) -- (axis cs:0,7.6);
 \node[anchor=south, font=\sffamily\scriptsize, text=labSecondary, inner sep=1.5pt] at (axis cs:0,-0.6) {\run{gbm-hand}};

@@ -1,9 +1,9 @@
 % Written by `lab paper tactic-found`; do not edit by hand.
 \begin{xltabular}{\textwidth}{>{\raggedright\arraybackslash}p{2.45cm}>{\raggedright\arraybackslash}p{2.45cm}Lrrr}
 \toprule
- &  &  & \multicolumn{3}{c}{Gain in Log loss} \\
+ &  &  & \multicolumn{3}{c}{Gain in log loss} \\
 \cmidrule(lr){4-6}
-Run & Set against & What the run changes & Valid rows & Test rows & 95\% interval \\
+Model & Baseline & Change & Validation & Test & 95\% CI \\
 \midrule
 \endhead
 \bottomrule
@@ -11,16 +11,16 @@ Run & Set against & What the run changes & Valid rows & Test rows & 95\% interva
 \bottomrule
 \lablongcaption
 \endlastfoot
-\run{transformer-medium-long} & \run{transformer-medium} & 24 epochs for 12 & +0.00190 & \textbf{+0.001499} & +0.000711 to +0.002272 \\
-\run{transformer-medium-hand-long} & \run{transformer-medium-hand} & 24 epochs for 12 & +0.00124 & $-$0.000357 & $-$0.001175 to +0.000428 \\
-\run{transformer-medium-hand} & \run{transformer-medium} & reads the hand features & +0.0119 & \textbf{+0.01481} & +0.01332 to +0.01628 \\
-\run{conv-medium-hand} & \run{transformer-medium-hand} & its body is a convolutional tower for a transformer; 0.002 peak learning rate for 0.0006 & +0.00467 & \textbf{+0.003182} & +0.001855 to +0.004398 \\
-\run{gbm-hand-double} & \run{gbm-hand} & trains on twice the training games, from the larger build \code{tactics-all} & +0.00356 & \textbf{+0.003246} & +0.002618 to +0.003861 \\
-\run{hybrid-medium-hand} & \run{transformer-medium-hand} & its body is convolutions under a transformer for a transformer & $-$0.00148 & \textbf{$-$0.002856} & $-$0.004096 to $-$0.001651 \\
-\run{transformer-medium-attacks} & \run{transformer-medium} & its attention is told what each piece attacks & $-$0.000115 & $-$0.0001147 & $-$0.0006363 to +0.0004012 \\
-\run{transformer-medium-hand-attacks} & \run{transformer-medium-hand} & its attention is told what each piece attacks & +0.000104 & $-$0.0000462 & $-$0.0001389 to +0.0000439 \\
-\run{transformer-medium-hand-double} & \run{transformer-medium-hand} & trains on twice the training games, from the larger build \code{tactics-all}; 6 epochs for 12; 2 epochs of patience for 3 & +0.00350 & \textbf{+0.002131} & +0.001306 to +0.002926 \\
-\run{transformer-medium-hand-no-geometry} & \run{transformer-medium-hand} & its attention is not told the offsets between squares & +0.000142 & $-$0.0001291 & $-$0.0002895 to +0.0000451 \\
-\run{transformer-medium-hand-pretrained} & \run{transformer-medium-hand} & starts from the body of \run{position-evaluation/transformer-medium} & +0.00979 & \textbf{+0.008191} & +0.006677 to +0.009645 \\
-\run{transformer-medium-pretrained} & \run{transformer-medium} & starts from the body of \run{position-evaluation/transformer-medium} & +0.0198 & \textbf{+0.01887} & +0.01719 to +0.02053 \\
+\run{transformer-medium-hand} & \run{transformer-medium} & with hand-crafted features & +0.0119 & \textbf{+0.01481} & +0.01332 to +0.01628 \\
+\run{transformer-medium-long} & \run{transformer-medium} & 24 epochs in place of 12 & +0.00190 & \textbf{+0.001499} & +0.000711 to +0.002272 \\
+\run{transformer-medium-hand-long} & \run{transformer-medium-hand} & 24 epochs in place of 12 & +0.00124 & $-$0.000357 & $-$0.001175 to +0.000428 \\
+\run{transformer-medium-pretrained} & \run{transformer-medium} & encoder initialised from \run{position-evaluation/transformer-medium} & +0.0198 & \textbf{+0.01887} & +0.01719 to +0.02053 \\
+\run{transformer-medium-hand-pretrained} & \run{transformer-medium-hand} & encoder initialised from \run{position-evaluation/transformer-medium} & +0.00979 & \textbf{+0.008191} & +0.006677 to +0.009645 \\
+\run{transformer-medium-attacks} & \run{transformer-medium} & with attack-aware attention bias & $-$0.000115 & $-$0.0001147 & $-$0.0006363 to +0.0004012 \\
+\run{transformer-medium-hand-attacks} & \run{transformer-medium-hand} & with attack-aware attention bias & +0.000104 & $-$0.0000462 & $-$0.0001389 to +0.0000439 \\
+\run{transformer-medium-hand-no-geometry} & \run{transformer-medium-hand} & without relative position bias & +0.000142 & $-$0.0001291 & $-$0.0002895 to +0.0000451 \\
+\run{conv-medium-hand} & \run{transformer-medium-hand} & ResNet encoder in place of the transformer; 0.002 peak learning rate in place of 0.0006 & +0.00467 & \textbf{+0.003182} & +0.001855 to +0.004398 \\
+\run{hybrid-medium-hand} & \run{transformer-medium-hand} & CNN-transformer hybrid encoder in place of the transformer & $-$0.00148 & \textbf{$-$0.002856} & $-$0.004096 to $-$0.001651 \\
+\run{gbm-hand-double} & \run{gbm-hand} & trained on twice the training games (\code{tactics-all}) & +0.00356 & \textbf{+0.003246} & +0.002618 to +0.003861 \\
+\run{transformer-medium-hand-double} & \run{transformer-medium-hand} & trained on twice the training games (\code{tactics-all}); 6 epochs in place of 12; 2 epochs of patience in place of 3 & +0.00350 & \textbf{+0.002131} & +0.001306 to +0.002926 \\
 \end{xltabular}

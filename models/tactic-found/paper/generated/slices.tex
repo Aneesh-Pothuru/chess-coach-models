@@ -5,7 +5,7 @@
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 95\% interval \\
+Group & Test examples & Observed (\%) & Predicted & Log loss & Predicted & Log loss & Gain & 95\% CI \\
 \midrule
 \textless{}1700 & 15{,}408 & 66.0 & 65.2 & 0.5401 & 65.2 & 0.5563 & \textbf{+0.01619} & +0.01185 to +0.02003 \\
 1700-1899 & 28{,}346 & 68.1 & 68.4 & 0.5360 & 68.4 & 0.5491 & \textbf{+0.01308} & +0.01019 to +0.01549 \\
@@ -15,7 +15,7 @@ Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 9
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the mover's rating.}
+\caption{Test-set results by mover's rating.}
 \label{tab:slice-band}
 \end{table}
 
@@ -25,7 +25,7 @@ Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 9
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 95\% interval \\
+Group & Test examples & Observed (\%) & Predicted & Log loss & Predicted & Log loss & Gain & 95\% CI \\
 \midrule
 \textless{}1000 & 11{,}133 & 84.0 & 81.7 & 0.3801 & 80.5 & 0.3898 & \textbf{+0.00968} & +0.00598 to +0.01402 \\
 1000-1200 & 11{,}621 & 79.9 & 76.3 & 0.4428 & 75.6 & 0.4553 & \textbf{+0.01249} & +0.00810 to +0.01655 \\
@@ -38,7 +38,7 @@ Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 9
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the puzzle's rating.}
+\caption{Test-set results by puzzle rating.}
 \label{tab:slice-puzzle-rating}
 \end{table}
 
@@ -48,7 +48,7 @@ Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 9
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 95\% interval \\
+Group & Test examples & Observed (\%) & Predicted & Log loss & Predicted & Log loss & Gain & 95\% CI \\
 \midrule
 \textless{}10 & 2{,}005 & 58.0 & 62.6 & 0.5947 & 59.0 & 0.5943 & $-$0.00040 & $-$0.01257 to +0.01017 \\
 10-30 & 5{,}348 & 65.1 & 67.8 & 0.5573 & 64.8 & 0.5690 & \textbf{+0.01173} & +0.00500 to +0.01868 \\
@@ -59,7 +59,7 @@ Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 9
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: seconds on the mover's clock.}
+\caption{Test-set results by time remaining on the mover's clock (seconds).}
 \label{tab:slice-clock}
 \end{table}
 
@@ -69,7 +69,7 @@ Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 9
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 95\% interval \\
+Group & Test examples & Observed (\%) & Predicted & Log loss & Predicted & Log loss & Gain & 95\% CI \\
 \midrule
 \textless{}2 & 10{,}846 & 75.3 & 75.4 & 0.4384 & 73.4 & 0.4613 & \textbf{+0.02293} & +0.01870 to +0.02751 \\
 2-5 & 28{,}263 & 75.9 & 71.9 & 0.4596 & 71.2 & 0.4747 & \textbf{+0.01512} & +0.01242 to +0.01810 \\
@@ -80,7 +80,7 @@ Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 9
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: seconds the move took.}
+\caption{Test-set results by time spent on the move (seconds).}
 \label{tab:slice-seconds}
 \end{table}
 
@@ -90,7 +90,7 @@ Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 9
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 95\% interval \\
+Group & Test examples & Observed (\%) & Predicted & Log loss & Predicted & Log loss & Gain & 95\% CI \\
 \midrule
 1 & 5{,}292 & 86.7 & 86.4 & 0.3389 & 87.1 & 0.3417 & +0.002801 & $-$0.002471 to +0.008173 \\
 2 & 49{,}266 & 71.2 & 71.2 & 0.5243 & 71.4 & 0.5359 & \textbf{+0.01160} & +0.00949 to +0.01349 \\
@@ -100,7 +100,7 @@ Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 9
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: moves the tactic takes.}
+\caption{Test-set results by solution length (moves by the solver).}
 \label{tab:slice-moves}
 \end{table}
 
@@ -110,7 +110,7 @@ Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 9
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 95\% interval \\
+Group & Test examples & Observed (\%) & Predicted & Log loss & Predicted & Log loss & Gain & 95\% CI \\
 \midrule
 short & 49{,}248 & 71.2 & 71.2 & 0.5243 & 71.4 & 0.5359 & \textbf{+0.01159} & +0.00946 to +0.01353 \\
 middlegame & 40{,}335 & 68.0 & 67.3 & 0.5359 & 67.8 & 0.5502 & \textbf{+0.01427} & +0.01199 to +0.01625 \\
@@ -145,7 +145,7 @@ skewer & 1{,}861 & 65.8 & 66.3 & 0.5667 & 65.3 & 0.5685 & +0.00171 & $-$0.00976 
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: theme.}
+\caption{Test-set results by theme.}
 \label{tab:slice-themes}
 \end{table}
 
@@ -155,7 +155,7 @@ skewer & 1{,}861 & 65.8 & 66.3 & 0.5667 & 65.3 & 0.5685 & +0.00171 & $-$0.00976 
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 95\% interval \\
+Group & Test examples & Observed (\%) & Predicted & Log loss & Predicted & Log loss & Gain & 95\% CI \\
 \midrule
 blitz & 26{,}839 & 66.2 & 67.5 & 0.5404 & 66.5 & 0.5521 & \textbf{+0.01178} & +0.00861 to +0.01507 \\
 rapid & 45{,}049 & 69.4 & 69.1 & 0.5277 & 69.3 & 0.5410 & \textbf{+0.01333} & +0.01101 to +0.01536 \\
@@ -163,7 +163,7 @@ classical & 9{,}247 & 73.7 & 72.4 & 0.5001 & 73.7 & 0.5118 & \textbf{+0.01173} &
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: speed of the game.}
+\caption{Test-set results by game speed.}
 \label{tab:slice-speed}
 \end{table}
 
@@ -173,7 +173,7 @@ classical & 9{,}247 & 73.7 & 72.4 & 0.5001 & 73.7 & 0.5118 & \textbf{+0.01173} &
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 95\% interval \\
+Group & Test examples & Observed (\%) & Predicted & Log loss & Predicted & Log loss & Gain & 95\% CI \\
 \midrule
 \textless{}10 & 11{,}233 & 70.2 & 71.8 & 0.5347 & 70.9 & 0.5444 & \textbf{+0.00965} & +0.00572 to +0.01429 \\
 10-30 & 16{,}079 & 66.9 & 66.6 & 0.5530 & 66.5 & 0.5690 & \textbf{+0.01609} & +0.01180 to +0.01986 \\
@@ -184,7 +184,7 @@ Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 9
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the mover's winning chances before the opponent's mistake (percent).}
+\caption{Test-set results by mover's win probability before the opponent's mistake (percent).}
 \label{tab:slice-prior}
 \end{table}
 
@@ -194,7 +194,7 @@ Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 9
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 95\% interval \\
+Group & Test examples & Observed (\%) & Predicted & Log loss & Predicted & Log loss & Gain & 95\% CI \\
 \midrule
 pawn & 9{,}746 & 66.5 & 67.9 & 0.5408 & 67.0 & 0.5536 & \textbf{+0.01282} & +0.00674 to +0.01918 \\
 knight & 13{,}520 & 67.2 & 67.2 & 0.5526 & 67.2 & 0.5689 & \textbf{+0.01626} & +0.01284 to +0.02061 \\
@@ -205,7 +205,7 @@ king & 3{,}176 & 75.1 & 78.1 & 0.4875 & 76.7 & 0.5003 & \textbf{+0.01276} & +0.0
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the piece that makes the first move.}
+\caption{Test-set results by piece moved first.}
 \label{tab:slice-first-piece}
 \end{table}
 
@@ -215,14 +215,14 @@ king & 3{,}176 & 75.1 & 78.1 & 0.4875 & 76.7 & 0.5003 & \textbf{+0.01276} & +0.0
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 95\% interval \\
+Group & Test examples & Observed (\%) & Predicted & Log loss & Predicted & Log loss & Gain & 95\% CI \\
 \midrule
 no & 46{,}807 & 66.5 & 67.8 & 0.5574 & 66.8 & 0.5692 & \textbf{+0.01171} & +0.00958 to +0.01407 \\
 yes & 34{,}328 & 72.0 & 70.5 & 0.4896 & 71.7 & 0.5035 & \textbf{+0.01389} & +0.01160 to +0.01629 \\
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the first move takes something.}
+\caption{Test-set results by capture on the first move.}
 \label{tab:slice-capture}
 \end{table}
 
@@ -232,14 +232,14 @@ yes & 34{,}328 & 72.0 & 70.5 & 0.4896 & 71.7 & 0.5035 & \textbf{+0.01389} & +0.0
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 95\% interval \\
+Group & Test examples & Observed (\%) & Predicted & Log loss & Predicted & Log loss & Gain & 95\% CI \\
 \midrule
 no & 37{,}418 & 65.2 & 65.1 & 0.5596 & 65.1 & 0.5778 & \textbf{+0.01811} & +0.01590 to +0.02066 \\
 yes & 43{,}717 & 72.0 & 72.2 & 0.5023 & 72.1 & 0.5102 & \textbf{+0.007945} & +0.005341 to +0.009972 \\
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the first move gives check.}
+\caption{Test-set results by check on the first move.}
 \label{tab:slice-check}
 \end{table}
 
@@ -249,14 +249,14 @@ yes & 43{,}717 & 72.0 & 72.2 & 0.5023 & 72.1 & 0.5102 & \textbf{+0.007945} & +0.
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 95\% interval \\
+Group & Test examples & Observed (\%) & Predicted & Log loss & Predicted & Log loss & Gain & 95\% CI \\
 \midrule
 no & 68{,}813 & 72.0 & 72.2 & 0.5169 & 72.1 & 0.5290 & \textbf{+0.01213} & +0.01057 to +0.01405 \\
 yes & 12{,}322 & 51.0 & 50.8 & 0.5950 & 50.7 & 0.6105 & \textbf{+0.01545} & +0.01079 to +0.02011 \\
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the first move gives up material.}
+\caption{Test-set results by sacrifice on the first move.}
 \label{tab:slice-sacrifice}
 \end{table}
 
@@ -266,14 +266,14 @@ yes & 12{,}322 & 51.0 & 50.8 & 0.5950 & 50.7 & 0.6105 & \textbf{+0.01545} & +0.0
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 95\% interval \\
+Group & Test examples & Observed (\%) & Predicted & Log loss & Predicted & Log loss & Gain & 95\% CI \\
 \midrule
 no & 74{,}298 & 68.8 & 68.9 & 0.5278 & 68.9 & 0.5410 & \textbf{+0.01313} & +0.01137 to +0.01471 \\
 yes & 6{,}837 & 69.1 & 69.4 & 0.5386 & 68.3 & 0.5459 & \textbf{+0.00723} & +0.00158 to +0.01247 \\
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the first move goes backward.}
+\caption{Test-set results by retreat on the first move.}
 \label{tab:slice-backward}
 \end{table}
 
@@ -283,7 +283,7 @@ yes & 6{,}837 & 69.1 & 69.4 & 0.5386 & 68.3 & 0.5459 & \textbf{+0.00723} & +0.00
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 95\% interval \\
+Group & Test examples & Observed (\%) & Predicted & Log loss & Predicted & Log loss & Gain & 95\% CI \\
 \midrule
 0 & 52{,}924 & 72.0 & 71.6 & 0.5020 & 72.1 & 0.5126 & \textbf{+0.01062} & +0.00859 to +0.01274 \\
 1 & 20{,}100 & 63.3 & 63.9 & 0.5809 & 63.1 & 0.5951 & \textbf{+0.01428} & +0.01103 to +0.01769 \\
@@ -292,7 +292,7 @@ Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 9
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: moves of the tactic that neither take nor check.}
+\caption{Test-set results by quiet moves in the solution.}
 \label{tab:slice-quiet}
 \end{table}
 
@@ -302,13 +302,13 @@ Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 9
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 95\% interval \\
+Group & Test examples & Observed (\%) & Predicted & Log loss & Predicted & Log loss & Gain & 95\% CI \\
 \midrule
 no & 63{,}861 & 66.0 & 65.9 & 0.5586 & 65.9 & 0.5727 & \textbf{+0.01409} & +0.01238 to +0.01611 \\
 yes & 17{,}274 & 79.3 & 80.0 & 0.4182 & 80.0 & 0.4255 & \textbf{+0.00726} & +0.00417 to +0.01069 \\
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the tactic ends in mate.}
+\caption{Test-set results by mate at the end of the solution.}
 \label{tab:slice-mate}
 \end{table}

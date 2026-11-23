@@ -2,26 +2,22 @@
 \fit{%
 \begin{tabular}{l>{\raggedright\arraybackslash}p{5.1cm}l>{\raggedright\arraybackslash}p{3.9cm}r}
 \toprule
-Run & Learner & Kept & Trained on & Time \\
+Model & Description & Selected & Hardware & Time \\
 \midrule
-\run{transformer-medium-hand-pretrained} & transformer, 8 layers of width 256, with hand features, started from \code{position-evaluation/transformer-medium} & epoch 8 of 12 & NVIDIA A100-SXM4-40GB & 9 min \\
-\run{transformer-medium-pretrained} & transformer, 8 layers of width 256, started from \code{position-evaluation/transformer-medium} & epoch 8 of 12 & NVIDIA A100-SXM4-40GB & 9 min \\
-\run{conv-medium-hand} & conv, 10 layers of width 192, each block weighing its channels by the whole board, with hand features & epoch 7 of 12 & NVIDIA A100-SXM4-40GB & 4 min \\
-\run{transformer-medium-hand-double} & transformer, 8 layers of width 256, with hand features; trained on 1,377,614 rows of the larger build \code{tactics-all-v1} & epoch 6 of 6 & NVIDIA A100-SXM4-40GB & 11 min \\
-\run{transformer-medium-hand} & transformer, 8 layers of width 256, with hand features & epoch 10 of 12 & NVIDIA A100-SXM4-40GB & 10 min \\
-\run{transformer-medium-hand-attacks} & transformer, 8 layers of width 256, attention told what each piece attacks, with hand features & epoch 10 of 12 & NVIDIA A100-SXM4-40GB & 13 min \\
-\run{transformer-medium-hand-long} & transformer, 8 layers of width 256, with hand features & epoch 13 of 24 & NVIDIA A100-SXM4-80GB & 12 min \\
-\run{gbm-hand-double} & LightGBM, context and hand features; trained on 1,377,614 rows of the larger build \code{tactics-all-v1} & 1{,}202 trees & Intel Xeon CPU @ 2.20GHz & 2 min \\
-\run{hybrid-medium-hand} & hybrid, 2 conv blocks then 5 transformer layers of width 256, with hand features & epoch 9 of 12 & NVIDIA A100-SXM4-40GB & 8 min \\
-\run{gbm-hand} & LightGBM, context and hand features & 787 trees & Intel Xeon CPU @ 2.20GHz & 65 s \\
-\run{transformer-medium-long} & transformer, 8 layers of width 256 & epoch 15 of 24 & NVIDIA A100-SXM4-80GB & 14 min \\
-\run{conv-small} & conv, 6 layers of width 96 & epoch 5 of 8 & NVIDIA A100-SXM4-40GB & 2 min \\
-\run{transformer-medium} & transformer, 8 layers of width 256 & epoch 12 of 12 & NVIDIA A100-SXM4-40GB & 10 min \\
-\run{transformer-medium-attacks} & transformer, 8 layers of width 256, attention told what each piece attacks & epoch 12 of 12 & NVIDIA A100-SXM4-40GB & 13 min \\
-\run{transformer-small} & transformer, 4 layers of width 128 & epoch 8 of 8 & NVIDIA A100-SXM4-40GB & 3 min \\
-\run{puzzle-rating} & the rating formula on \code{mover\_elo} against \code{rating} &  & Intel Xeon CPU @ 2.20GHz & 0 s \\
-\run{gbm-context} & LightGBM, context numbers only & 165 trees & Intel Xeon CPU @ 2.20GHz & 6 s \\
-\run{constant} & one number for every row &  & Intel Xeon CPU @ 2.20GHz & 1 s \\
+\run{transformer-medium-hand-pretrained} & Transformer, 8 layers, width 256, hand-crafted features, initialised from \code{position-evaluation/transformer-medium} & epoch 8 of 12 & NVIDIA A100-SXM4-40GB & 9 min \\
+\run{transformer-medium-pretrained} & Transformer, 8 layers, width 256, initialised from \code{position-evaluation/transformer-medium} & epoch 8 of 12 & NVIDIA A100-SXM4-40GB & 9 min \\
+\run{conv-medium-hand} & ResNet, 10 blocks, width 192, squeeze-and-excitation, hand-crafted features & epoch 7 of 12 & NVIDIA A100-SXM4-40GB & 4 min \\
+\run{transformer-medium-hand-double} & Transformer, 8 layers, width 256, hand-crafted features; 1{,}377{,}614 training examples (\code{tactics-all-v1}) & epoch 6 of 6 & NVIDIA A100-SXM4-40GB & 11 min \\
+\run{transformer-medium-hand} & Transformer, 8 layers, width 256, hand-crafted features & epoch 10 of 12 & NVIDIA A100-SXM4-40GB & 10 min \\
+\run{gbm-hand-double} & GBDT, context and hand-crafted features; 1{,}377{,}614 training examples (\code{tactics-all-v1}) & 1{,}202 trees & Intel Xeon CPU @ 2.20GHz & 2 min \\
+\run{gbm-hand} & GBDT, context and hand-crafted features & 787 trees & Intel Xeon CPU @ 2.20GHz & 65 s \\
+\run{transformer-medium-long} & Transformer, 8 layers, width 256 & epoch 15 of 24 & NVIDIA A100-SXM4-80GB & 14 min \\
+\run{conv-small} & ResNet, 6 blocks, width 96 & epoch 5 of 8 & NVIDIA A100-SXM4-40GB & 2 min \\
+\run{transformer-medium} & Transformer, 8 layers, width 256 & epoch 12 of 12 & NVIDIA A100-SXM4-40GB & 10 min \\
+\run{transformer-small} & Transformer, 4 layers, width 128 & epoch 8 of 8 & NVIDIA A100-SXM4-40GB & 3 min \\
+\run{puzzle-rating} & Elo expected score from \code{mover\_elo} and \code{rating} &  & Intel Xeon CPU @ 2.20GHz & 0 s \\
+\run{gbm-context} & GBDT, context features & 165 trees & Intel Xeon CPU @ 2.20GHz & 6 s \\
+\run{constant} & Constant prediction &  & Intel Xeon CPU @ 2.20GHz & 1 s \\
 \bottomrule
 \end{tabular}%
 }

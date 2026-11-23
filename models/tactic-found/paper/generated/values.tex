@@ -2,12 +2,21 @@
 \looktrue
 \chancetrue
 \sequencefalse
+\contextgbdttrue
 \pairstrue
 \variantstrue
 \shapestrue
 \gamestrue
 \featurestrue
 \changestrue
+\changehandtrue
+\changeepochstrue
+\changestarttrue
+\changeattackstrue
+\changegeometrytrue
+\changeconvtrue
+\changehybridtrue
+\changelargerfalse
 \moretrue
 \shownfalse
 \shownpairedfalse
@@ -24,8 +33,11 @@
 \setvalue{best.beside.closer}{56}
 \setvalue{best.beside.correlation}{0.83}
 \setvalue{best.bottom.1.rate}{86.3}
+\setvalue{best.bottom.10.lift}{2.2}
 \setvalue{best.bottom.10.rate}{69.2}
 \setvalue{best.bottom.10.recall}{22.2}
+\setvalue{best.brier}{0.1778}
+\setvalue{best.calibration-error}{0.0047}
 \setvalue{best.calibration.groups}{ten}
 \setvalue{best.calibration.highest}{96.1}
 \setvalue{best.calibration.lowest}{30.2}
@@ -37,6 +49,7 @@
 \setvalue{best.name}{\run{transformer-medium-hand-pretrained}}
 \setvalue{best.parameters}{6{,}565{,}953}
 \setvalue{best.platt.slope}{0.92}
+\setvalue{best.pr-auc}{0.8667}
 \setvalue{best.roc-auc}{0.7513}
 \setvalue{best.rows-a-second}{14{,}000}
 \setvalue{best.score}{0.5287}
@@ -44,12 +57,13 @@
 \setvalue{best.score.low}{0.5254}
 \setvalue{best.seconds}{9 min}
 \setvalue{best.top.1.rate}{99.8}
+\setvalue{best.top.10.lift}{1.4}
 \setvalue{best.top.10.rate}{95.9}
 \setvalue{challenger.name}{\run{transformer-medium-hand-pretrained}}
 \setvalue{code.commit}{\texttt{36a0ad9}}
 \setvalue{context.lift.share}{35}
-\setvalue{cost.seconds}{2.0 h}
-\setvalue{cost.seconds.networks}{119 min}
+\setvalue{cost.seconds}{76 min}
+\setvalue{cost.seconds.networks}{73 min}
 \setvalue{cost.seconds.others}{3 min}
 \setvalue{data.fingerprint}{\texttt{15bd888b36b8}}
 \setvalue{data.licence}{CC0 1.0}
@@ -61,19 +75,34 @@
 \setvalue{data.share.valid}{5}
 \setvalue{describe.mover-elo.q5}{1611}
 \setvalue{describe.mover-elo.q50}{1876}
+\setvalue{describe.solver-moves.q50}{2}
+\setvalue{describe.solver-moves.q95}{4}
+\setvalue{describe.win-before.min}{50}
+\setvalue{describe.win-before.q50}{91.3}
+\setvalue{describe.win-prior.q50}{42.1}
 \setvalue{examples.count}{three}
+\setvalue{floor.brier}{0.2145}
 \setvalue{floor.constant}{69.0\%}
+\setvalue{floor.pr-auc}{0.6884}
 \setvalue{floor.score}{0.6203}
-\setvalue{grid.clock-rating.-30.-1000.happened}{77.1\%}
-\setvalue{grid.clock-rating.-30.2200+.happened}{43.8\%}
-\setvalue{grid.clock-rating.600+.-1000.happened}{86.0\%}
-\setvalue{grid.clock-rating.600+.2200+.happened}{51.3\%}
 \setvalue{grid.ratings.-1700.-1000.happened}{83.9\%}
 \setvalue{grid.ratings.-1700.1800-2200.happened}{49.8\%}
+\setvalue{grid.ratings.-1700.2200+.happened}{46.2\%}
+\setvalue{grid.ratings.-1700.2200+.said}{52.7\%}
 \setvalue{grid.ratings.2300+.-1000.happened}{79.9\%}
 \setvalue{grid.ratings.2300+.1800-2200.happened}{65.4\%}
+\setvalue{grid.ratings.2300+.2200+.happened}{51.5\%}
+\setvalue{grid.ratings.2300+.2200+.said}{63.2\%}
+\setvalue{grid.ratings.gbm-hand.widest-off}{12.1}
+\setvalue{grid.ratings.puzzle-rating.widest-off}{10.3}
+\setvalue{grid.ratings.transformer-medium-hand-pretrained.widest-off}{11.7}
+\setvalue{grid.ratings.transformer-medium-hand-pretrained.widest-off.column}{2200+}
+\setvalue{grid.ratings.transformer-medium-hand-pretrained.widest-off.row}{2300+}
 \setvalue{grid.smallest-cell}{30}
-\setvalue{ladder.ahead.of}{one of the four networks}
+\setvalue{label.rate}{69.0}
+\setvalue{label.rate.test}{68.8}
+\setvalue{label.rate.train}{69.0}
+\setvalue{label.rate.valid}{68.9}
 \setvalue{ladder.at-last-epoch.of}{two of the four networks}
 \setvalue{ladder.behind.of}{three of the four networks}
 \setvalue{look.date}{23 November 2026}
@@ -92,215 +121,288 @@
 \setvalue{method.gbm.rows.percent}{80}
 \setvalue{method.resamples}{1{,}000}
 \setvalue{more.gbm-hand.most}{twice}
-\setvalue{more.gbm-hand.most.kept}{kept}
-\setvalue{more.transformer-medium-hand.most.kept}{kept}
-\setvalue{networks.ahead.of}{eight of the 13 networks}
+\setvalue{networks.ahead.of}{five of the nine networks}
 \setvalue{networks.patience}{three}
 \setvalue{networks.warmup.percent}{5}
 \setvalue{pair.conv-medium-hand.transformer-medium-hand.gain}{+0.003182}
 \setvalue{pair.conv-medium-hand.transformer-medium-hand.gain.high}{+0.004398}
 \setvalue{pair.conv-medium-hand.transformer-medium-hand.gain.low}{+0.001855}
-\setvalue{pair.conv-medium-hand.transformer-medium-hand.kept}{kept}
+\setvalue{pair.conv-medium-hand.transformer-medium-hand.kept}{accepted}
 \setvalue{pair.conv-medium-hand.transformer-medium-hand.valid.verdict}{better}
-\setvalue{pair.conv-medium-hand.transformer-medium-hand.verdict}{better beyond the noise}
+\setvalue{pair.conv-medium-hand.transformer-medium-hand.verdict}{significantly better}
 \setvalue{pair.gbm-hand-double.gbm-hand.gain}{+0.003246}
-\setvalue{pair.gbm-hand-double.gbm-hand.verdict}{better beyond the noise}
+\setvalue{pair.gbm-hand-double.gbm-hand.kept}{accepted}
+\setvalue{pair.gbm-hand-double.gbm-hand.verdict}{significantly better}
 \setvalue{pair.gbm-hand-half.gbm-hand.gain}{$-$0.003016}
+\setvalue{pair.gbm-hand-half.gbm-hand.verdict}{significantly worse}
+\setvalue{pair.gbm-hand-no-first-move.gbm-hand.gain}{$-$0.01330}
 \setvalue{pair.gbm-hand-no-hanging.gbm-hand.gain}{$-$0.002901}
-\setvalue{pair.gbm-hand-no-kings.gbm-hand.verdict}{inside the noise}
+\setvalue{pair.gbm-hand-no-kings.gbm-hand.gain}{$-$0.0002682}
+\setvalue{pair.gbm-hand-no-kings.gbm-hand.verdict}{not significantly different}
 \setvalue{pair.gbm-hand-no-line.gbm-hand.gain}{$-$0.005165}
 \setvalue{pair.gbm-hand-no-material.gbm-hand.gain}{$-$0.002310}
 \setvalue{pair.gbm-hand-no-mobility.gbm-hand.gain}{$-$0.003835}
-\setvalue{pair.gbm-hand-no-pawns.gbm-hand.verdict}{inside the noise}
+\setvalue{pair.gbm-hand-no-pawns.gbm-hand.gain}{$-$0.0001288}
+\setvalue{pair.gbm-hand-no-pawns.gbm-hand.verdict}{not significantly different}
 \setvalue{pair.gbm-hand-no-setup.gbm-hand.gain}{$-$0.002627}
 \setvalue{pair.gbm-hand-quarter.gbm-hand.gain}{$-$0.007085}
+\setvalue{pair.gbm-hand-quarter.gbm-hand.verdict}{significantly worse}
 \setvalue{pair.hybrid-medium-hand.transformer-medium-hand.gain}{$-$0.002856}
 \setvalue{pair.hybrid-medium-hand.transformer-medium-hand.gain.high}{$-$0.001651}
 \setvalue{pair.hybrid-medium-hand.transformer-medium-hand.gain.low}{$-$0.004096}
-\setvalue{pair.hybrid-medium-hand.transformer-medium-hand.kept}{not kept}
-\setvalue{pair.hybrid-medium-hand.transformer-medium-hand.valid.verdict}{no better}
-\setvalue{pair.hybrid-medium-hand.transformer-medium-hand.verdict}{worse beyond the noise}
+\setvalue{pair.hybrid-medium-hand.transformer-medium-hand.kept}{not accepted}
+\setvalue{pair.hybrid-medium-hand.transformer-medium-hand.verdict}{significantly worse}
 \setvalue{pair.transformer-medium-attacks.transformer-medium.gain}{$-$0.0001147}
 \setvalue{pair.transformer-medium-attacks.transformer-medium.gain.high}{+0.0004012}
 \setvalue{pair.transformer-medium-attacks.transformer-medium.gain.low}{$-$0.0006363}
-\setvalue{pair.transformer-medium-attacks.transformer-medium.kept}{not kept}
-\setvalue{pair.transformer-medium-attacks.transformer-medium.valid.verdict}{no better}
-\setvalue{pair.transformer-medium-attacks.transformer-medium.verdict}{inside the noise}
+\setvalue{pair.transformer-medium-attacks.transformer-medium.kept}{not accepted}
+\setvalue{pair.transformer-medium-attacks.transformer-medium.verdict}{not significantly different}
 \setvalue{pair.transformer-medium-hand-attacks.transformer-medium-hand.gain}{$-$0.0000462}
 \setvalue{pair.transformer-medium-hand-attacks.transformer-medium-hand.gain.high}{+0.0000439}
 \setvalue{pair.transformer-medium-hand-attacks.transformer-medium-hand.gain.low}{$-$0.0001389}
-\setvalue{pair.transformer-medium-hand-attacks.transformer-medium-hand.kept}{not kept}
-\setvalue{pair.transformer-medium-hand-attacks.transformer-medium-hand.valid.verdict}{better}
-\setvalue{pair.transformer-medium-hand-attacks.transformer-medium-hand.verdict}{inside the noise}
+\setvalue{pair.transformer-medium-hand-attacks.transformer-medium-hand.kept}{not accepted}
+\setvalue{pair.transformer-medium-hand-attacks.transformer-medium-hand.verdict}{not significantly different}
 \setvalue{pair.transformer-medium-hand-double.transformer-medium-hand.gain}{+0.002131}
-\setvalue{pair.transformer-medium-hand-double.transformer-medium-hand.verdict}{better beyond the noise}
+\setvalue{pair.transformer-medium-hand-double.transformer-medium-hand.kept}{accepted}
+\setvalue{pair.transformer-medium-hand-double.transformer-medium-hand.verdict}{significantly better}
 \setvalue{pair.transformer-medium-hand-half.transformer-medium-hand.gain}{$-$0.007087}
 \setvalue{pair.transformer-medium-hand-long.transformer-medium-hand.gain}{$-$0.000357}
 \setvalue{pair.transformer-medium-hand-long.transformer-medium-hand.gain.high}{+0.000428}
 \setvalue{pair.transformer-medium-hand-long.transformer-medium-hand.gain.low}{$-$0.001175}
-\setvalue{pair.transformer-medium-hand-long.transformer-medium-hand.kept}{not kept}
+\setvalue{pair.transformer-medium-hand-long.transformer-medium-hand.kept}{not accepted}
 \setvalue{pair.transformer-medium-hand-long.transformer-medium-hand.valid.verdict}{better}
-\setvalue{pair.transformer-medium-hand-long.transformer-medium-hand.verdict}{inside the noise}
+\setvalue{pair.transformer-medium-hand-long.transformer-medium-hand.verdict}{not significantly different}
 \setvalue{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain}{$-$0.0001291}
 \setvalue{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain.high}{+0.0000451}
 \setvalue{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain.low}{$-$0.0002895}
-\setvalue{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.valid.verdict}{better}
-\setvalue{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.verdict}{inside the noise}
+\setvalue{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.verdict}{not significantly different}
 \setvalue{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain}{+0.008191}
 \setvalue{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.high}{+0.009645}
 \setvalue{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.low}{+0.006677}
-\setvalue{pair.transformer-medium-hand-pretrained.transformer-medium-hand.kept}{kept}
+\setvalue{pair.transformer-medium-hand-pretrained.transformer-medium-hand.kept}{accepted}
 \setvalue{pair.transformer-medium-hand-pretrained.transformer-medium-hand.valid.verdict}{better}
-\setvalue{pair.transformer-medium-hand-pretrained.transformer-medium-hand.verdict}{better beyond the noise}
+\setvalue{pair.transformer-medium-hand-pretrained.transformer-medium-hand.verdict}{significantly better}
 \setvalue{pair.transformer-medium-hand-quarter.transformer-medium-hand.gain}{$-$0.01490}
 \setvalue{pair.transformer-medium-hand.transformer-medium.gain}{+0.01481}
-\setvalue{pair.transformer-medium-hand.transformer-medium.verdict}{better beyond the noise}
+\setvalue{pair.transformer-medium-hand.transformer-medium.gain.high}{+0.01628}
+\setvalue{pair.transformer-medium-hand.transformer-medium.gain.low}{+0.01332}
+\setvalue{pair.transformer-medium-hand.transformer-medium.kept}{accepted}
+\setvalue{pair.transformer-medium-hand.transformer-medium.valid.verdict}{better}
+\setvalue{pair.transformer-medium-hand.transformer-medium.verdict}{significantly better}
 \setvalue{pair.transformer-medium-long.transformer-medium.gain}{+0.001499}
 \setvalue{pair.transformer-medium-long.transformer-medium.gain.high}{+0.002272}
 \setvalue{pair.transformer-medium-long.transformer-medium.gain.low}{+0.000711}
-\setvalue{pair.transformer-medium-long.transformer-medium.kept}{kept}
+\setvalue{pair.transformer-medium-long.transformer-medium.kept}{accepted}
 \setvalue{pair.transformer-medium-long.transformer-medium.valid.verdict}{better}
-\setvalue{pair.transformer-medium-long.transformer-medium.verdict}{better beyond the noise}
+\setvalue{pair.transformer-medium-long.transformer-medium.verdict}{significantly better}
 \setvalue{pair.transformer-medium-pretrained.transformer-medium.gain}{+0.01887}
 \setvalue{pair.transformer-medium-pretrained.transformer-medium.gain.high}{+0.02053}
 \setvalue{pair.transformer-medium-pretrained.transformer-medium.gain.low}{+0.01719}
-\setvalue{pair.transformer-medium-pretrained.transformer-medium.kept}{kept}
+\setvalue{pair.transformer-medium-pretrained.transformer-medium.kept}{accepted}
 \setvalue{pair.transformer-medium-pretrained.transformer-medium.valid.verdict}{better}
-\setvalue{pair.transformer-medium-pretrained.transformer-medium.verdict}{better beyond the noise}
+\setvalue{pair.transformer-medium-pretrained.transformer-medium.verdict}{significantly better}
 \setvalue{recipe.files}{7}
 \setvalue{recipe.filters.max-rating-deviation}{100}
 \setvalue{recipe.filters.min-plays}{100}
+\setvalue{reference.bottom.10.rate}{66.1}
+\setvalue{reference.brier}{0.1828}
+\setvalue{reference.calibration-error}{0.0043}
+\setvalue{reference.calibration.highest}{94.8}
+\setvalue{reference.calibration.lowest}{33.8}
+\setvalue{reference.calibration.widest-gap}{0.9}
 \setvalue{reference.features}{47}
-\setvalue{reference.leans.1.feature}{winning chances before the move}
+\setvalue{reference.leans.1.feature}{win probability before the move}
 \setvalue{reference.leans.1.share}{9}
-\setvalue{reference.leans.2.feature}{first move gives up material}
+\setvalue{reference.leans.2.feature}{first move is a sacrifice}
 \setvalue{reference.leans.2.share}{9}
-\setvalue{reference.leans.3.feature}{winning chances before the mistake}
+\setvalue{reference.leans.3.feature}{win probability before the opponent's mistake}
 \setvalue{reference.leans.3.share}{6}
+\setvalue{reference.leans.4.feature}{mover's rating}
+\setvalue{reference.leans.4.share}{5}
+\setvalue{reference.leans.5.feature}{mover's clock}
+\setvalue{reference.leans.5.share}{5}
+\setvalue{reference.platt.intercept}{$-$0.02}
+\setvalue{reference.platt.slope}{1.02}
+\setvalue{reference.pr-auc}{0.8560}
+\setvalue{reference.roc-auc}{0.7337}
 \setvalue{reference.score}{0.5414}
 \setvalue{reference.trees}{787}
 \setvalue{results.date}{23 November 2026}
-\setvalue{run.conv-medium-hand.best-epoch}{7}
-\setvalue{run.conv-medium-hand.epochs}{12}
-\setvalue{run.conv-medium-hand.epochs.run}{10}
 \setvalue{run.conv-medium-hand.lr}{0.002}
-\setvalue{run.conv-medium-hand.name}{\run{conv-medium-hand}}
 \setvalue{run.conv-medium-hand.parameters.millions}{7.0}
 \setvalue{run.conv-medium-hand.score}{0.5337}
-\setvalue{run.conv-medium-hand.seconds}{4 min}
+\setvalue{run.conv-small.best-epoch}{5}
+\setvalue{run.conv-small.epochs}{8}
+\setvalue{run.conv-small.gain}{$-$0.00997}
+\setvalue{run.conv-small.gain.high}{$-$0.00810}
+\setvalue{run.conv-small.gain.low}{$-$0.01184}
+\setvalue{run.conv-small.parameters.millions}{1.0}
 \setvalue{run.conv-small.score}{0.5513}
-\setvalue{run.gbm-context.name}{\run{gbm-context}}
+\setvalue{run.gbm-context.pr-auc}{0.7961}
+\setvalue{run.gbm-context.roc-auc}{0.6369}
 \setvalue{run.gbm-context.score}{0.5923}
-\setvalue{run.hybrid-medium-hand.best-epoch}{9}
-\setvalue{run.hybrid-medium-hand.name}{\run{hybrid-medium-hand}}
+\setvalue{run.gbm-hand-double.score}{0.5381}
+\setvalue{run.gbm-hand-double.trees}{1{,}202}
+\setvalue{run.gbm-hand-half.score}{0.5444}
+\setvalue{run.gbm-hand-no-first-move.score}{0.5547}
+\setvalue{run.gbm-hand-quarter.score}{0.5485}
+\setvalue{run.hybrid-medium-hand.convs}{2}
+\setvalue{run.hybrid-medium-hand.depth}{5}
+\setvalue{run.hybrid-medium-hand.gain}{+0.001587}
+\setvalue{run.hybrid-medium-hand.gain.high}{+0.002928}
+\setvalue{run.hybrid-medium-hand.gain.low}{+0.000300}
 \setvalue{run.hybrid-medium-hand.parameters.millions}{6.6}
-\setvalue{run.puzzle-rating.name}{\run{puzzle-rating}}
+\setvalue{run.puzzle-rating.calibration-error}{0.0171}
+\setvalue{run.puzzle-rating.gain}{$-$0.04753}
+\setvalue{run.puzzle-rating.gain.high}{$-$0.04484}
+\setvalue{run.puzzle-rating.gain.low}{$-$0.04996}
 \setvalue{run.puzzle-rating.platt.slope}{0.19}
+\setvalue{run.puzzle-rating.pr-auc}{0.7869}
+\setvalue{run.puzzle-rating.roc-auc}{0.6570}
 \setvalue{run.puzzle-rating.score}{0.5889}
 \setvalue{run.transformer-medium-attacks.gain}{$-$0.01048}
 \setvalue{run.transformer-medium-attacks.gain.high}{$-$0.00881}
 \setvalue{run.transformer-medium-attacks.gain.low}{$-$0.01211}
-\setvalue{run.transformer-medium-attacks.name}{\run{transformer-medium-attacks}}
-\setvalue{run.transformer-medium-hand-attacks.name}{\run{transformer-medium-hand-attacks}}
+\setvalue{run.transformer-medium-attacks.score}{0.5518}
 \setvalue{run.transformer-medium-hand-double.best-epoch}{6}
 \setvalue{run.transformer-medium-hand-double.epochs}{6}
 \setvalue{run.transformer-medium-hand-double.score}{0.5348}
-\setvalue{run.transformer-medium-hand-half.best-epoch}{12}
-\setvalue{run.transformer-medium-hand-half.epochs}{24}
+\setvalue{run.transformer-medium-hand-half.score}{0.5440}
 \setvalue{run.transformer-medium-hand-long.best-epoch}{13}
-\setvalue{run.transformer-medium-hand-long.name}{\run{transformer-medium-hand-long}}
-\setvalue{run.transformer-medium-hand-no-geometry.name}{\run{transformer-medium-hand-no-geometry}}
 \setvalue{run.transformer-medium-hand-pretrained.best-epoch}{8}
 \setvalue{run.transformer-medium-hand-pretrained.epochs}{12}
-\setvalue{run.transformer-medium-hand-pretrained.name}{\run{transformer-medium-hand-pretrained}}
 \setvalue{run.transformer-medium-hand-pretrained.over-twin}{+0.00413}
-\setvalue{run.transformer-medium-hand-quarter.best-epoch}{8}
-\setvalue{run.transformer-medium-hand-quarter.epochs}{48}
+\setvalue{run.transformer-medium-hand-pretrained.score}{0.5287}
+\setvalue{run.transformer-medium-hand-quarter.score}{0.5518}
 \setvalue{run.transformer-medium-hand.best-epoch}{10}
 \setvalue{run.transformer-medium-hand.epochs}{12}
 \setvalue{run.transformer-medium-hand.gain}{+0.004443}
 \setvalue{run.transformer-medium-hand.gain.high}{+0.005730}
 \setvalue{run.transformer-medium-hand.gain.low}{+0.003247}
-\setvalue{run.transformer-medium-hand.gain.of-lift}{6}
-\setvalue{run.transformer-medium-hand.gain.percent}{0.82}
 \setvalue{run.transformer-medium-hand.lr}{0.0006}
-\setvalue{run.transformer-medium-hand.name}{\run{transformer-medium-hand}}
-\setvalue{run.transformer-medium-hand.over-twin}{+0.0148}
 \setvalue{run.transformer-medium-hand.parameters.millions}{6.6}
-\setvalue{run.transformer-medium-hand.seconds}{10 min}
+\setvalue{run.transformer-medium-hand.platt.slope}{0.90}
+\setvalue{run.transformer-medium-hand.score}{0.5369}
 \setvalue{run.transformer-medium-long.best-epoch}{15}
 \setvalue{run.transformer-medium-long.epochs}{24}
 \setvalue{run.transformer-medium-long.gain}{$-$0.00887}
-\setvalue{run.transformer-medium-long.name}{\run{transformer-medium-long}}
+\setvalue{run.transformer-medium-long.gain.high}{$-$0.00719}
+\setvalue{run.transformer-medium-long.gain.low}{$-$0.01048}
+\setvalue{run.transformer-medium-pretrained.best-epoch}{8}
+\setvalue{run.transformer-medium-pretrained.epochs}{12}
 \setvalue{run.transformer-medium-pretrained.gain}{+0.00851}
 \setvalue{run.transformer-medium-pretrained.gain.high}{+0.01035}
 \setvalue{run.transformer-medium-pretrained.gain.low}{+0.00671}
-\setvalue{run.transformer-medium-pretrained.name}{\run{transformer-medium-pretrained}}
+\setvalue{run.transformer-medium-pretrained.score}{0.5329}
 \setvalue{run.transformer-medium.best-epoch}{12}
 \setvalue{run.transformer-medium.epochs}{12}
 \setvalue{run.transformer-medium.gain}{$-$0.01037}
-\setvalue{run.transformer-medium.name}{\run{transformer-medium}}
+\setvalue{run.transformer-medium.gain.high}{$-$0.00868}
+\setvalue{run.transformer-medium.gain.low}{$-$0.01199}
+\setvalue{run.transformer-medium.parameters.millions}{6.6}
 \setvalue{run.transformer-medium.score}{0.5517}
 \setvalue{run.transformer-small.best-epoch}{8}
 \setvalue{run.transformer-small.epochs}{8}
+\setvalue{run.transformer-small.gain}{$-$0.01175}
+\setvalue{run.transformer-small.gain.high}{$-$0.01015}
+\setvalue{run.transformer-small.gain.low}{$-$0.01340}
+\setvalue{run.transformer-small.parameters.millions}{0.9}
 \setvalue{run.transformer-small.score}{0.5531}
-\setvalue{runs.count}{18}
+\setvalue{runs.count}{14}
 \setvalue{slice.backward.no.happened}{68.8\%}
 \setvalue{slice.backward.yes.happened}{69.1\%}
-\setvalue{slice.band.ahead.groups}{\textless{}1700, 1700-1899, 1900-2099, 2100-2299 and 2300+}
+\setvalue{slice.band.-1700.happened}{66.0\%}
+\setvalue{slice.band.2100-2299.happened}{71.5\%}
 \setvalue{slice.band.ahead.of}{all five groups}
-\setvalue{slice.band.behind.of}{none of the five groups}
+\setvalue{slice.band.challenger.widest-off}{1.1}
+\setvalue{slice.band.reference.widest-off}{0.8}
 \setvalue{slice.capture.no.happened}{66.5\%}
 \setvalue{slice.capture.yes.happened}{72.0\%}
+\setvalue{slice.check.no.gain}{+0.01811}
+\setvalue{slice.check.no.gain.high}{+0.02066}
+\setvalue{slice.check.no.gain.low}{+0.01590}
 \setvalue{slice.check.no.happened}{65.2\%}
+\setvalue{slice.check.yes.gain}{+0.007945}
+\setvalue{slice.check.yes.gain.high}{+0.009972}
+\setvalue{slice.check.yes.gain.low}{+0.005341}
 \setvalue{slice.check.yes.happened}{72.0\%}
+\setvalue{slice.clock.-10.challenger.off}{+4.6}
+\setvalue{slice.clock.-10.gain}{$-$0.00040}
 \setvalue{slice.clock.-10.happened}{58.0\%}
-\setvalue{slice.clock.-10.rows}{2{,}005}
+\setvalue{slice.clock.-10.reference.off}{+1.0}
+\setvalue{slice.clock.-10.share}{2}
+\setvalue{slice.clock.10-30.challenger.off}{+2.7}
 \setvalue{slice.clock.10-30.happened}{65.1\%}
-\setvalue{slice.clock.10-30.rows}{5{,}348}
+\setvalue{slice.clock.10-30.reference.off}{$-$0.3}
+\setvalue{slice.clock.10-30.share}{7}
 \setvalue{slice.clock.180-600.happened}{69.1\%}
 \setvalue{slice.clock.30-60.happened}{68.9\%}
+\setvalue{slice.clock.60-180.happened}{68.7\%}
 \setvalue{slice.clock.600+.happened}{72.4\%}
+\setvalue{slice.clock.ahead.groups}{10-30, 30-60, 60-180, 180-600 and 600+}
+\setvalue{slice.clock.ahead.of}{five of the six groups}
 \setvalue{slice.clock.challenger.widest-off}{4.6}
+\setvalue{slice.first-piece.challenger.widest-off}{3.0}
+\setvalue{slice.first-piece.challenger.widest-off.group}{king}
+\setvalue{slice.first-piece.king.happened}{75.1\%}
+\setvalue{slice.first-piece.pawn.happened}{66.5\%}
 \setvalue{slice.mate.no.happened}{66.0\%}
 \setvalue{slice.mate.yes.happened}{79.3\%}
+\setvalue{slice.moves.1.gain}{+0.002801}
 \setvalue{slice.moves.1.happened}{86.7\%}
 \setvalue{slice.moves.2.happened}{71.2\%}
 \setvalue{slice.moves.3.happened}{61.2\%}
 \setvalue{slice.moves.5+.happened}{59.0\%}
-\setvalue{slice.prior.-10.happened}{70.2\%}
+\setvalue{slice.prior.10-30.happened}{66.9\%}
 \setvalue{slice.prior.30-50.happened}{65.3\%}
 \setvalue{slice.prior.90+.happened}{90.2\%}
+\setvalue{slice.prior.90+.share}{5}
+\setvalue{slice.prior.ahead.groups}{\textless{}10, 10-30, 30-50 and 50-70}
+\setvalue{slice.prior.ahead.of}{four of the six groups}
+\setvalue{slice.prior.challenger.widest-off}{1.6}
+\setvalue{slice.prior.reference.widest-off}{0.6}
+\setvalue{slice.puzzle-rating.-1000.challenger.off}{$-$2.3}
 \setvalue{slice.puzzle-rating.-1000.happened}{84.0\%}
-\setvalue{slice.puzzle-rating.2200+.challenger.said}{58.4\%}
+\setvalue{slice.puzzle-rating.-1000.reference.off}{$-$3.5}
+\setvalue{slice.puzzle-rating.2200+.challenger.off}{+9.7}
 \setvalue{slice.puzzle-rating.2200+.happened}{48.7\%}
+\setvalue{slice.puzzle-rating.2200+.reference.off}{+10.3}
+\setvalue{slice.puzzle-rating.ahead.of}{all eight groups}
 \setvalue{slice.puzzle-rating.challenger.widest-off}{9.7}
-\setvalue{slice.puzzle-rating.reference.widest-off}{10.3}
+\setvalue{slice.puzzle-rating.gain.most}{+0.01911}
+\setvalue{slice.puzzle-rating.gain.most.group}{2200+}
+\setvalue{slice.quiet.0.gain}{+0.01062}
 \setvalue{slice.quiet.0.happened}{72.0\%}
 \setvalue{slice.quiet.1.happened}{63.3\%}
-\setvalue{slice.quiet.2.happened}{61.5\%}
+\setvalue{slice.quiet.2.gain}{+0.02263}
 \setvalue{slice.sacrifice.no.happened}{72.0\%}
 \setvalue{slice.sacrifice.yes.happened}{51.0\%}
+\setvalue{slice.sacrifice.yes.share}{15}
 \setvalue{slice.seconds.-2.happened}{75.3\%}
+\setvalue{slice.seconds.2-5.challenger.off}{$-$4.0}
 \setvalue{slice.seconds.2-5.happened}{75.9\%}
-\setvalue{slice.seconds.40+.challenger.said}{61.7\%}
+\setvalue{slice.seconds.2-5.reference.off}{$-$4.7}
+\setvalue{slice.seconds.40+.challenger.off}{+10.3}
 \setvalue{slice.seconds.40+.happened}{51.5\%}
-\setvalue{slice.seconds.reference.widest-off}{12.7}
+\setvalue{slice.seconds.40+.reference.off}{+12.7}
+\setvalue{slice.speed.blitz.challenger.off}{+1.3}
 \setvalue{slice.speed.blitz.happened}{66.2\%}
+\setvalue{slice.speed.classical.challenger.off}{$-$1.2}
 \setvalue{slice.speed.classical.happened}{73.7\%}
 \setvalue{slice.speed.rapid.happened}{69.4\%}
-\setvalue{slice.themes.ahead}{22}
-\setvalue{slice.themes.behind}{zero}
-\setvalue{slice.themes.compared}{30}
-\setvalue{slice.themes.gain.most.group}{quietMove}
-\setvalue{slice.themes.happened.least}{48.2\%}
-\setvalue{slice.themes.happened.least.group}{sacrifice}
-\setvalue{slice.themes.happened.most}{88.5\%}
-\setvalue{slice.themes.happened.most.group}{mateIn1}
-\setvalue{study.features.gbm-hand.most.gain}{$-$0.01330}
-\setvalue{study.features.gbm-hand.most.group}{the first move}
-\setvalue{study.features.gbm-hand.worse.of}{six of the eight runs}
+\setvalue{slice.themes.ahead.of}{22 of the 30 groups}
+\setvalue{slice.themes.attraction.happened}{51.7\%}
+\setvalue{slice.themes.backRankMate.happened}{82.6\%}
+\setvalue{slice.themes.hangingPiece.happened}{80.7\%}
+\setvalue{slice.themes.mateIn1.happened}{88.5\%}
+\setvalue{slice.themes.oneMove.happened}{86.7\%}
+\setvalue{slice.themes.quietMove.gain}{+0.02710}
+\setvalue{slice.themes.reference.widest-off}{3.2}
+\setvalue{slice.themes.reference.widest-off.group}{sacrifice}
+\setvalue{slice.themes.sacrifice.happened}{48.2\%}
+\setvalue{study.features.gbm-hand.worse.of}{six of the eight ablations}
+\setvalue{study.games.transformer-medium-hand.worse.of}{both ablations}
 \setvalue{task.context.count}{14}
-\setvalue{task.hand.count}{34}
+\setvalue{task.hand.count}{33}
 \setvalue{task.marks.count}{14}
 \setvalue{task.reference}{\run{gbm-hand}}

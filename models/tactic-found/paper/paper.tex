@@ -1,1141 +1,1617 @@
-% Tactic found: the paper. What is typed here says what the numbers mean.
-% Every number, table, figure and board is written by `lab paper tactic-found`
-% into generated/, from the model's committed results, and read back with
-% \V{key} and \block{name}.
+% Tactic found: the paper. The prose follows docs/writing.md. Every number,
+% table, figure and board is written by `lab paper tactic-found` into
+% generated/, from the model's committed results, and read back with \V{key}
+% and \block{name}.
 \documentclass[11pt]{article}
 \input{../../../papers/preamble}
 \input{generated/values}
 
 \begin{document}
 
-\labtitle{Tactic found}
-  {The opponent has just gone wrong. Does the player to move find the tactic?}
-  {Results of \V{results.date}\quad\textperiodcentered\quad dataset \V{data.name},
+\papertitle{Predicting Whether Players Find Tactics in Their Own Games}
+  {Results as of \V{results.date}\quad\textperiodcentered\quad dataset \V{data.name},
    build \V{data.fingerprint}\quad\textperiodcentered\quad code \V{code.commit}}
 
-\begin{summary}
-A puzzle tells its solver that something is there. A game does not: the
-clock is running and the player has other plans. This paper trains
-models of whether the player at the board plays the tactic the opponent has
-just allowed. The data is \V{data.rows} Lichess puzzles joined to the rated
-games they were cut from, so the game's next move says whether the tactic
-was found, split by game. It was found \V{floor.constant} of the time. The
-score is the log loss of a calibrated chance. The best of \V{runs.count}
-runs, a square-token transformer that reads the board, the line and
-\V{task.hand.count} hand-made counts, and that starts from a body trained on
-engine evaluations first, scores \V{best.score} (95\% interval
-\V{best.score.low} to \V{best.score.high}), against \V{reference.score} for
-gradient-boosted trees on the counts and \V{floor.score} for the base rate.
-Beyond the noise, \V{networks.ahead.of} beat the trees. The puzzle's own
-rating, put through the rating formula with the mover's, scores
-\V{run.puzzle-rating.score}: the crowd's verdict on the puzzle says less
-about the game than a look at what the line does. The stated chance can be
-read as a frequency, with no group further than
-\V{best.calibration.widest-gap} points from what happened.
-\iflook
-What decides is what the tactic asks more than who is asked: a first move
-that gives up material was found \V{slice.sacrifice.yes.happened} of the
-time, against \V{slice.sacrifice.no.happened} for one that does not.
+\begin{abstract}
+A chess puzzle tells its solver that a tactic exists. In a game the player
+has to notice it, with the clock running. We train models that predict
+whether a player finds a tactic that the opponent's last move has made
+possible. The inputs are the position, the opponent's move, the solution of
+the tactic, both players' ratings, both clocks and the engine evaluations
+before and after the opponent's move. The dataset joins \V{data.rows} Lichess
+puzzles to the rated games from which they were generated, so that the next
+move of the game shows whether the tactic was found, and it is split by game.
+Players found the tactic in \V{label.rate}\% of the positions. We compare a
+constant baseline, gradient-boosted decision trees (GBDT) on hand-crafted
+features, a baseline that applies the Elo formula to the player's rating and
+the puzzle's rating, and convolutional and transformer networks that read the
+board as 64 square tokens. The best of \V{runs.count} models is a transformer
+that also receives the hand-crafted features and whose encoder is pretrained
+on engine evaluations. On \V{data.rows.test} test positions its log loss is
+\V{best.score} (95\% CI \V{best.score.low} to \V{best.score.high}), compared
+with \V{reference.score} for the GBDT baseline, \V{run.puzzle-rating.score}
+for the rating-based baseline and \V{floor.score} for the constant baseline.
+Trained from random initialisation without the hand-crafted features, a small
+residual network and transformers of two sizes are all significantly worse
+than the GBDT baseline. The hand-crafted features, pretraining, a residual
+convolutional encoder and more training data each improve a network
+significantly. After calibration, the predicted probabilities are within
+\V{best.calibration.widest-gap} percentage points of the observed rate in
+each of \V{best.calibration.groups} bins\iflook. For the tactics with the
+highest puzzle ratings, however, the mean prediction of the best model is
+\V{slice.puzzle-rating.challenger.widest-off} percentage points above the
+observed share\fi.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+
+When a game is reviewed with a chess engine, one situation recurs. The
+opponent made a mistake, a tactic was available, and the player did not play
+it. How much attention this deserves depends on how hard the tactic was to
+find in that game. If players of the same strength almost always find it,
+the miss was a lapse. If most of them miss it too, the tactic was beyond
+what can be expected at that level, and pointing it out teaches little.
+
+The rating of a puzzle does not answer this question. Lichess rates each of
+its puzzles with the Glicko-2 system~\cite{glicko2} from the attempts of its
+solvers, so the rating measures how often a tactic is solved by players who
+know that there is one. In a game nobody says so. The player has to notice
+that the opponent's last move changed the position, while the clock is
+running.
+
+The data needed to study the question directly are public. Lichess generates
+its puzzles from games played on the site~\cite{lichessdb}, and a public
+dataset joins each puzzle to the game it comes from~\cite{puzzlegames}. A
+puzzle begins after a move by the opponent, and its solution begins with the
+reply that exploits this move. The record of the game contains the move that
+the player actually made at this point, together with both ratings, the clock
+times and the engine evaluations. Every puzzle is therefore also a record of
+whether one player, with a known rating and a known amount of time, found the
+tactic in a game.
+
+We study the following prediction task. Given the position after the
+opponent's move, the solution of the tactic, both players' ratings, both
+clock times and the engine evaluations before and after the opponent's move,
+predict the probability that the move played is the first move of the
+solution. The model is given the tactic. It does not have to find it, which
+is the task of an engine. It has to estimate how likely a human player in
+this situation is to play it.
+
+This work supports a chess coaching application that would use the
+prediction in a game review. A missed tactic with a high predicted
+probability is a lapse, because most players of the user's strength find it.
+A missed tactic with a low predicted probability is one that most of them
+miss as well. The two cases call for different feedback.
+
+We evaluate a fixed sequence of models on \V{data.rows} positions from rated
+games on Lichess: a constant baseline, GBDT on scalar context features, GBDT
+with hand-crafted features of the position and of the solution, and neural
+networks that read the board directly, with and without the hand-crafted
+features. Because the sequence is fixed, each step measures the contribution
+of one component. Our main findings are the following.
+\begin{itemize}
+\item \textbf{The description of the tactic matters more than the context.}
+GBDT on the ratings, the clocks, the two win probabilities and the length of
+the solution, without the board, has a log loss of
+\V{run.gbm-context.score}. It achieves \V{context.lift.share}\% of the
+improvement of the GBDT baseline (\V{reference.score}) over the constant
+baseline (\V{floor.score}). The larger part comes from the hand-crafted
+features, which describe the position and the moves of the solution.
+\item \textbf{The puzzle's rating and the mover's rating predict poorly on
+their own.} The Elo formula applied to the two ratings, with a slope and an
+intercept fitted on the validation set, has a log loss of
+\V{run.puzzle-rating.score}. This is close to that of GBDT on the context
+features and significantly worse than the GBDT baseline. The fitted slope is
+\V{run.puzzle-rating.platt.slope}, where a slope of one would mean that a
+rating difference has the effect in a game that the formula assigns to it
+(Section~\ref{sec:rating-baseline}).
+\item \textbf{From random initialisation, a network needs the hand-crafted
+features.} Without them, \V{ladder.behind.of} of the fixed sequence are
+significantly worse than the GBDT baseline. With them, the medium transformer
+is significantly better (gain \V{run.transformer-medium-hand.gain}; 95\% CI
+\V{run.transformer-medium-hand.gain.low} to
+\V{run.transformer-medium-hand.gain.high}).
+\ifchangestart
+\item \textbf{Pretraining is the most effective modification.} Initialising
+the transformer's encoder from a model trained on engine evaluations gives a
+paired gain of \V{pair.transformer-medium-pretrained.transformer-medium.gain}
+in log loss without the hand-crafted features and of
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain} with
+them.\ifchangeconv{} A residual convolutional encoder in place of the
+transformer
+(\V{pair.conv-medium-hand.transformer-medium-hand.gain})\ifmore{} and twice
+the training data
+(\V{pair.transformer-medium-hand-double.transformer-medium-hand.gain})\fi{}
+are also accepted\ifchangeattacks, and an attack-aware attention bias is
+not\fi{} (Section~\ref{sec:ablations}).\fi
 \fi
-\end{summary}
+\item \textbf{The predicted probabilities are calibrated.} After calibration,
+the mean predicted probability of the best model and the observed share of
+tactics found differ by at most \V{best.calibration.widest-gap} percentage
+points in each of \V{best.calibration.groups} bins\iflook. Among the 10\% of
+test positions with the highest predictions, \V{best.top.10.rate}\% of the
+tactics were found. Among the 10\% with the lowest predictions,
+\V{best.bottom.10.rate}\% were missed, \V{best.bottom.10.lift} times the
+share missed in the whole test set\fi.
+\iflook
+\item \textbf{Sacrifices, long solutions and long thinks go with missed
+tactics.} The tactic is found in \V{slice.sacrifice.yes.happened} of the
+positions in which its first move is a sacrifice, compared with
+\V{slice.sacrifice.no.happened} of the others. The share found falls from
+\V{slice.moves.1.happened} for solutions of one move to
+\V{slice.moves.5+.happened} for solutions of five moves or more, and from
+\V{slice.seconds.-2.happened} for moves played in less than two seconds to
+\V{slice.seconds.40+.happened} for moves that took 40 seconds or more
+(Section~\ref{sec:error}).
+\item \textbf{The models overestimate how often the hardest tactics are
+found.} For puzzles rated 2200 and above, the mean prediction of the best
+model is \V{slice.puzzle-rating.challenger.widest-off} percentage points
+above the observed share. The puzzle's
+rating therefore contains information about a tactic that the models do not
+extract from the position and the solution.
+\fi
+\end{itemize}
 
-\section{The question}
+\section{Related Work}
+\label{sec:related}
 
-Every review of a game meets the same moment. The opponent made a mistake,
-there was a tactic on the board, and the player did not play it. What should
-a coach say? If players of that level nearly always find that tactic, the
-miss was a lapse and worth a drill. If they usually miss it too, the tactic
-was beyond what the game asked of the player, and a drill on it teaches
-little.
+\paragraph{Human error in chess.}
+Anderson et al.~\cite{humanerror} label errors exactly using endgame
+tablebases and find that the difficulty of the position predicts errors
+better than the player's skill or the time available. The Maia
+study~\cite{maia} includes classifiers that predict, from the position and
+from metadata about the players and the game, whether the next move will be a
+blunder. Our task is narrower. Every position contains a tactic that Lichess
+has published as a puzzle, and the question is whether the player finds it.
 
-Puzzle ratings do not settle this. A puzzle's rating says how often solvers
-find the line when they are told a line is there~\cite{glicko2}. In a game
-nobody is told. The player has to notice that the opponent's last move
-changed something, with a clock running and a plan already in mind.
+\paragraph{Puzzle difficulty.}
+Lichess rates its puzzles with Glicko-2~\cite{glicko2}. Predicting this
+rating from the position and the solution was the task of data-mining
+competitions at IEEE BigData 2024 and FedCSIS
+2025~\cite{puzzlecup,puzzlecupwinner}, and Mi{\l}osz and
+Kapusta~\cite{glickformer} predict it with a transformer over the positions
+of the solution. These studies predict how hard a tactic is for solvers of
+puzzles. We predict whether it is found in a game. We use the puzzle's rating
+only in one baseline and in the error analysis.
 
-The data to ask the question directly exists. Lichess cuts its puzzles from
-real games, at the moment one side went wrong~\cite{lichessdb}, and a public
-dataset joins each puzzle back to its game~\cite{puzzlegames}. The move the
-player made next is in the game. So every puzzle is also a record of whether
-one player, at one rating, on one clock, found it.
+\paragraph{Models of human moves.}
+Maia~\cite{maia} and Maia-2~\cite{maia2} predict the move that a player of a
+given rating plays. The probability that such a model assigns to the first
+move of the solution is a natural estimate of the quantity we study, and it
+does not require the solution as an input. We do not evaluate it here
+(Section~\ref{sec:limits}).
+
+\section{Task and Data}
+\label{sec:data}
+
+\subsection{Task}
+
+An example is one position of a rated game, reached by a move of the
+opponent that makes a tactic possible. We call the player to move the
+\emph{mover}, the opponent's preceding move the \emph{mistake}, and the
+winning line of the corresponding Lichess puzzle the \emph{solution}. The
+tables of input planes and features, which this task shares with a task on
+puzzle ratings, call the mover the \emph{solver}. The input is the position,
+the mistake, the solution, both players' ratings, both clock times, the time
+control, the ply, and the mover's win probability before and after the
+mistake. The target is binary: whether the mover found the tactic, that is
+whether the move played in the game is the first move of the solution.
+Table~\ref{tab:brief} summarises the task.
 
 \begin{table}[htbp]\centering\small
 \begin{tabularx}{\textwidth}{lL}
 \toprule
-Reads & The position after the opponent's mistake, the mistake, and the
-tactic's line, marked on the board square by square; both ratings, both
-clocks, the time control, the move number, and the mover's win probability
-before and after the mistake. \\
-Predicts & The chance that the move the player makes is the first move of
-the tactic. \\
-Data & Lichess puzzles joined to the rated games they were cut from
-(\V{data.licence}): blitz, rapid and classical games, puzzles whose own
-rating has settled. \\
-Split & By game: \V{data.share.train}\% train, \V{data.share.valid}\% valid,
-\V{data.share.test}\% test. \\
-Score & Log loss on the test rows, after the chance is calibrated on the
-valid rows. Lower is better. \\
+Input & The position after the opponent's mistake, the mistake, the solution
+of the tactic, both players' ratings, both clock times, the time control, the
+ply, the mover's win probability before and after the mistake, and the
+length of the solution. \\
+Target & Whether the move played is the first move of the solution. \\
+Data & Lichess puzzles joined to the rated games from which they were
+generated (\V{data.licence}): blitz, rapid and classical games, and puzzles
+whose rating is established. \\
+Split & By game: \V{data.share.train}\% training, \V{data.share.valid}\%
+validation, \V{data.share.test}\% test. \\
+Primary metric & Log loss on the test set (lower is better). \\
 \bottomrule
 \end{tabularx}
-\caption{The model in brief.}
+\caption{Summary of the task.}
 \label{tab:brief}
 \end{table}
 
-\section{The data}
+\paragraph{Definition of the label.}
+A tactic counts as \emph{found} when the move played in the game is the first
+move of the puzzle's solution. Lichess accepts any checkmate where the
+solution of a puzzle is a mate in one, and we follow it: when the first move
+of the solution mates, any move that mates counts as well. Only the first
+move is compared. The label does not record whether the player went on to
+play the rest of the solution.
 
-The source is a dataset Lichess publishes: its puzzles, each joined to the
-rated game it was cut from~\cite{puzzlegames}. Its files are ordered by the
-start of the puzzle's id, which is random, and the builder reads the first
-\V{recipe.files} of them, a random half. A build names the commit of the
-source it read, since the source may still change.
+Two consequences of this definition matter for the results. First, a mover
+who plays a different move is counted as having missed the tactic, even if
+that move also keeps the advantage. The dataset built for this paper does not
+contain the evaluation after the move played, so we cannot say how often this
+happens. Second, the label says nothing about why a move was played. A mover
+who plays the first move of the solution for another reason, for example as
+an obvious recapture, is counted as having found the tactic.
 
-A puzzle begins with the opponent's mistake. The position after it is the
-one the solver sees, and the game's own next move is what the player at the
-board did there. A row is kept when the puzzle's rating has settled (a
-deviation of at most \V{recipe.filters.max-rating-deviation} after at least
-\V{recipe.filters.min-plays} attempts), when the game was blitz, rapid or
-classical, and when the game went on after the mistake and kept its clocks.
-Bullet is left out: too many of its moves are entered before the opponent's
-move is seen. Of \V{manifest.source-rows-read} puzzles read,
-\V{manifest.passed-recipe} passed the filters, \V{manifest.dropped.no-clock}
-of those had no clocks and \V{manifest.dropped.no-reply} ended with the
-mistake, which leaves \V{data.rows} rows (Table~\ref{tab:data}). A game
-gives one puzzle, so a row is a game, and the split by game is a split by
-row.
+\paragraph{Win probability.}
+Engine evaluations enter as win probabilities. As in the Lichess accuracy
+metric~\cite{lichessaccuracy}, an evaluation of $c$ centipawns, limited to
+the range from $-1000$ to $1000$ with a forced mate counted as the
+corresponding limit, is mapped to a win probability in percent,
+\[
+W(c) = 50 + 50\left(\frac{2}{1 + e^{-0.00368208\,c}} - 1\right).
+\]
+The evaluations are those that Lichess attaches to the record of a game after
+computer analysis. A model receives two of them, from the mover's point of
+view: the win probability before the opponent's mistake and the win
+probability after it, which is the evaluation of the position on the board.
 
-\paragraph{What counts as found.}
-The tactic is found when the move played is the first move of the puzzle's
-solution. Lichess keeps a puzzle only when that move is clearly the best
-one, so any other move lets the tactic go. The one exception is Lichess's
-own: where the solution mates at once, any move that mates counts. By that
-rule the tactic was found in \V{floor.constant} of the train rows.
+\subsection{Dataset}
+
+The source is a dataset published by Lichess that joins each puzzle of the
+Lichess puzzle database~\cite{lichessdb} to the game from which the puzzle
+was generated~\cite{puzzlegames}. For each puzzle it gives the position, the
+solution, the puzzle's rating and theme tags, and the record of the game with
+both ratings, the time control, the engine evaluation after every move and,
+for most games, the clock time after every move. The source consists of fourteen files ordered by puzzle
+identifier. The identifiers are random strings, so the first
+\V{recipe.files} files, which we read, are in effect a random half of the
+puzzles. Because the source may still change, a build reads one fixed
+revision of it (Section~\ref{sec:cost}).
+
+A puzzle is included when its rating is established, which we take to mean a
+rating deviation of at most \V{recipe.filters.max-rating-deviation} after at
+least \V{recipe.filters.min-plays} attempts, and when its game is a game of
+standard chess at blitz, rapid or classical speed in which both players have
+a rating and neither is a bot. Bullet games are excluded, because at that
+speed many moves are entered before the opponent's move has been seen. Of
+\V{manifest.source-rows-read} puzzles read, \V{manifest.passed-recipe} meet
+these conditions. Of these, \V{manifest.dropped.no-clock} are dropped because
+the record of the game has no clock times and \V{manifest.dropped.no-reply}
+because the game ended with the opponent's mistake, which leaves
+\V{data.rows} positions (Table~\ref{tab:data}).
+
+For each puzzle, the example is the position after the opponent's mistake at
+the ply that the puzzle names, and the label compares the next move of the
+game with the solution. The mover's clock is the time remaining after the
+mover's previous move, and the opponent's clock is the time remaining after
+the mistake. The mover found the tactic in \V{label.rate}\% of the positions
+(\V{label.rate.train}\% in the training set, \V{label.rate.valid}\% in the
+validation set and \V{label.rate.test}\% in the test set).
+
+The split is determined by a hash of the game identifier, and the same
+grouping is used for the bootstrap (Section~\ref{sec:protocol}). In the
+training and test sets every game contributes exactly one position, so the
+\V{data.rows.test} test positions come from as many games. The dataset is not
+stored in the repository. Its recipe is, and a build of the dataset is
+identified by a fingerprint, a hash of its contents. All models in this paper
+were trained and evaluated on build \V{data.fingerprint}\ifmore; the models
+of Section~\ref{sec:training-size} that use more training games were trained
+on a larger build, which reads all fourteen files, and evaluated on the
+validation and test sets of this one\fi. The evaluation code refuses to rank
+models evaluated on different builds.
 
 \begin{table}[htbp]\centering\small
 \block{data}
-\caption{The dataset's rows by split.}
+\caption{Dataset statistics by split.}
 \label{tab:data}
 \end{table}
 
 \iflook
-Table~\ref{tab:describe} gives the spread of the ratings, the clocks and the
-length of the line. The movers are strong for a coaching app's purposes:
-their median rating is \V{describe.mover-elo.q50} and only one in twenty is
-rated under \V{describe.mover-elo.q5}, because Lichess cuts its puzzles from
-games between good players. Section~\ref{sec:limits} comes back to what that
-costs.
+Table~\ref{tab:describe} summarises the main variables. Three properties of
+the dataset should be kept in mind. First, the movers are strong: their
+median rating is \V{describe.mover-elo.q50}, and only 5\% of them are rated
+below \V{describe.mover-elo.q5}. Second, the positions are favourable to the
+mover by construction. The median win probability is
+\V{describe.win-prior.q50}\% before the mistake and
+\V{describe.win-before.q50}\% after it, and it is at least
+\V{describe.win-before.min}\% after it in every position. Third, most
+tactics are short: the median solution has \V{describe.solver-moves.q50}
+moves by the solver, and 95\% have at most \V{describe.solver-moves.q95}.
 
 \begin{table}[htbp]\centering\small
 \block{describe}
-\caption{The spread of a few columns over every row of the dataset: the mean,
-five quantiles, and the least and the most. Clocks and times are in seconds,
-winning chances in percent.}
+\caption{Summary statistics of selected variables over the whole dataset:
+the mean, five quantiles, the minimum and the maximum. The puzzle's rating
+and the time spent on the move are not inputs of the models of the fixed
+sequence.}
 \label{tab:describe}
 \end{table}
 \fi
 
-\section{What a model reads}
-\label{sec:reads}
+\section{Methods}
+\label{sec:methods}
 
-\input{../../../papers/reading}
+\subsection{Input representation}
+\label{sec:input}
 
-\paragraph{This model is shown the tactic.}
-The question is whether a known tactic gets played, so every learner is told
-the line. The marks carry the opponent's mistake, then the first three moves
-of the solver and the two replies between them square by square, and one
-more mark for every square a later move touches. The context numbers are
-both ratings, both clocks and the time control, the ply, how many moves the
-solver has to find, and the mover's win probability before the opponent's
-mistake and after it, which together say how much the mistake gave away. In
-the app the line would come from the engine, which follows the best defence
-as a puzzle's line does.
+\input{../../../papers/input-representation}
 
-\paragraph{No learner reads the puzzle's rating.}
-The dataset has it, and it is the best single summary there is of how hard
-the tactic is as a puzzle. A tactic in a player's own game has no crowd
-rating, so a model that leaned on one could not be used where it is needed.
-One run reads it on purpose, as a yardstick, and is described with the
-learners.
+\paragraph{Inputs of this task.}
+The task is to predict whether a known tactic is found, so every model is
+given the solution. The auxiliary planes mark the en passant square, the
+opponent's mistake, the first three moves of the solver and the two replies
+between them, each move by its origin and destination square, and one further
+plane marks every square that a later move of the solution leaves or reaches.
+A network therefore sees where the pieces move. It is not told whether a move
+is a capture, a check or a sacrifice, and has to infer this from the board.
+The hand-crafted features state these properties (Table~\ref{tab:hand}).
 
-\section{The learners}
-\label{sec:learners}
+Besides the castling rights, the scalar context features are the two
+ratings, the increment, the ply, the number of moves that the solver has to
+find, the mover's win probability before and after the mistake, and three
+times, each as the logarithm of one plus the number of seconds: the time
+remaining on the mover's clock, the time remaining on the opponent's clock
+and the initial time of the time control. The tables and figures call the
+win probability after the mistake the win probability before the move. The
+two win probabilities together tell a model how much the mistake changed the
+evaluation. The move played and the time spent on it are known only
+afterwards, and no model receives them. The puzzle's rating and its theme
+tags are not inputs of any trained model either, because a tactic that arises
+in a user's own game has neither. They appear in one baseline
+(Section~\ref{sec:models}) and in the error analysis
+(Section~\ref{sec:error}).
 
-\input{../../../papers/learners}
+\subsection{Models and training}
+\label{sec:models}
 
-\paragraph{The crowd's rating.}
-\run{puzzle-rating} is not a model of the board. It puts the mover's rating
-and the puzzle's own rating through the rating formula, which gives the
-chance that a solver of that rating solves that puzzle, and fits one slope
-and one intercept to it on the valid rows, as every run's chance is fitted.
-Where it lands says how much of finding a tactic in a game the crowd's
-rating already explains. Its slope says how much of the formula's steepness
-is left in a game: a slope of one would mean a game is a puzzle.
+\input{../../../papers/models}
 
-\section{How a result is scored}
-\label{sec:scoring}
+\paragraph{Rating-based baseline.}
+\run{puzzle-rating} is a baseline that uses only the mover's rating $r_m$ and
+the puzzle's rating $r_p$. It applies the Elo formula for the expected score
+to the two,
+\[
+p = \frac{1}{1 + 10^{-(r_m - r_p)/400}},
+\]
+and its output is calibrated like that of every other model
+(Section~\ref{sec:protocol}). The slope and the intercept of the calibration
+are its only fitted parameters. Because the log-odds of the formula are
+proportional to the rating difference, the slope rescales this difference and
+the intercept shifts it, which allows for the different scales of game
+ratings and puzzle ratings. The puzzle's rating summarises the attempts of
+many solvers and is the most direct measurement available of how hard the
+tactic is as a puzzle. The baseline shows how much of the outcome in a game
+the two ratings explain, and its slope shows how well the formula transfers
+from puzzles to games.
 
-The model's card named its score before the first full run: the log loss on
-the test rows, after the chance is calibrated on the valid rows. The app
-would show the number as a chance, so it is scored as one, and the log loss
-punishes a confident wrong answer hardest. Four more scores are reported:
-the Brier score and the calibration error, which also ask whether the chance
-means what it says, and PR-AUC and ROC-AUC, which ask only about the
-ranking. A run beats the reference when its paired gain in log loss has a
-95\% interval above zero. Results are also given by the mover's rating in
-\V{bands.count} bands, which start high because the movers do.
+\section{Evaluation Protocol}
+\label{sec:protocol}
 
-\input{../../../papers/scoring}
+\paragraph{Metrics.}
+The primary metric, fixed before the first full training run, is the log
+loss on the test set: the negative natural logarithm of the probability that
+a model assigned to the observed outcome, averaged over the test positions.
+Lower is better. We chose it because the application would display the
+prediction as a probability, and the log loss is a proper scoring rule that
+penalises a probability both for failing to separate the outcomes and for
+being miscalibrated. We report four secondary metrics: the Brier score, the
+expected calibration error, which is the absolute difference between the
+mean predicted probability and the observed share of tactics found, averaged
+over ten bins of equal size formed by the predicted probability, and the
+areas under the precision-recall curve (PR-AUC) and under the receiver
+operating characteristic curve (ROC-AUC), which measure only how well a model
+ranks the positions. We also report results separately for \V{bands.count}
+bands of the mover's rating.
+
+\input{../../../papers/evaluation}
 
 \section{Results}
 \label{sec:results}
 
-\subsection{The leaderboard}
+\subsection{Main results}
 
-Read from the bottom up, Table~\ref{tab:leaderboard} is a ladder. The floor
-says \V{floor.constant} for every row and scores \V{floor.score}. Trees on
-the context numbers alone, \V{run.gbm-context.name}, reach
-\V{run.gbm-context.score}: the ratings, the clocks, the two evaluations and
-the length of the line carry \V{context.lift.share}\% of what the reference
-takes off the floor. The rest comes with the hand features of the position
-and the line, which bring the reference to \V{reference.score}. So here,
-unlike in the lab's models of blunders and of thinking time, most of the
-answer is on the board. The best run scores \V{best.score}
-(Figure~\ref{fig:scores}).
+Table~\ref{tab:leaderboard} and Figure~\ref{fig:scores} give the main
+results. The constant baseline predicts the share of tactics found in the
+training set, \V{floor.constant}, for every position, and has a log loss of
+\V{floor.score}. GBDT on the context features alone reaches
+\V{run.gbm-context.score} and thereby achieves \V{context.lift.share}\% of
+the improvement of the GBDT baseline over the constant baseline. The GBDT
+baseline, with the hand-crafted features of the position and of the
+solution, reaches \V{reference.score}. The larger part of what is predicted
+thus comes from the description of the tactic, and not from the ratings, the
+clocks and the evaluations.
 
 \begin{table}[htbp]\centering\small
 \block{leaderboard}
-\caption{The runs on the \V{data.rows.test} test rows, best first. The gain
-is paired with \V{task.reference} on the same resampled games, positive when
-the run is better, and bold when its interval leaves zero out.}
+\caption{Main results on the \V{data.rows.test} test positions, best first.
+The gain is the paired difference in log loss from \V{task.reference} on the
+same resampled games. It is positive when the model is better, and bold when
+statistically significant.}
 \label{tab:leaderboard}
 \end{table}
 
 \begin{figure}[htbp]\centering
 \block{scores}
-\caption{Every run's log loss with its 95\% interval. The vertical line is
-the reference's score.}
+\caption{Test log loss of every model with its 95\% CI. The vertical line
+marks the GBDT baseline.}
 \label{fig:scores}
 \end{figure}
 
-\subsection{What a network adds}
-
-Beyond the noise, \V{ladder.ahead.of} beat the trees and
-\V{ladder.behind.of} fell short of them (Figure~\ref{fig:gains}). The one
-ahead is the medium transformer that also reads the hand features, with a
-paired gain of \V{run.transformer-medium-hand.gain}
-(\V{run.transformer-medium-hand.gain.low} to
-\V{run.transformer-medium-hand.gain.high}). That gain is
-\V{run.transformer-medium-hand.gain.percent}\% of the reference's own loss,
-and \V{run.transformer-medium-hand.gain.of-lift}\% as large as the step from
-the floor to the reference.
+Networks trained from random initialisation on the board, the marked squares
+of the solution and the context features do not reach the GBDT baseline.
+Compared with it, \V{ladder.behind.of} of the fixed sequence are
+significantly worse (Figure~\ref{fig:gains}): the small ResNet (gain
+\V{run.conv-small.gain}; 95\% CI \V{run.conv-small.gain.low} to
+\V{run.conv-small.gain.high}), the small transformer
+(\V{run.transformer-small.gain}; \V{run.transformer-small.gain.low} to
+\V{run.transformer-small.gain.high}) and the medium transformer
+(\V{run.transformer-medium.gain}; \V{run.transformer-medium.gain.low} to
+\V{run.transformer-medium.gain.high}). The three models have almost the same
+log loss (\V{run.conv-small.score}, \V{run.transformer-small.score} and
+\V{run.transformer-medium.score}), although the medium transformer has
+\V{run.transformer-medium.parameters.millions} million parameters and the
+small models have \V{run.conv-small.parameters.millions} and
+\V{run.transformer-small.parameters.millions} million. All three are far
+better than GBDT on the context features alone, which they also receive. From
+the board and the marked squares, a network thus learns most of what the
+hand-crafted features give GBDT, but not all of it, and neither the size of
+the network nor the choice between a convolutional and a transformer encoder
+changes this.
 
 \begin{figure}[htbp]\centering
 \block{gains}
-\caption{Each network's paired gain in log loss over the reference, with its
-95\% interval. Right of the line a network is ahead of the trees, left of it
-behind.}
+\caption{Paired gain in log loss of each network over the GBDT baseline, with
+its 95\% CI. A model whose interval lies entirely to the right of the line is
+significantly better than the baseline, and one whose interval lies entirely
+to the left is significantly worse.}
 \label{fig:gains}
 \end{figure}
 
-Without the hand features, no network of the ladder matches the trees. The
-convolutional tower and both transformers land close together, at
-\V{run.conv-small.score}, \V{run.transformer-medium.score} and
-\V{run.transformer-small.score}, each behind the reference beyond the noise
-and whatever its size. They are shown the line as marked squares and have to
-work out for themselves what the hand features count: what the first move
-gives up, what the line wins, whether it ends in mate. Handed those counts,
-the medium transformer gains \V{run.transformer-medium-hand.over-twin} over
-its twin and passes the trees.
+The hand-crafted features change this result. \run{transformer-medium-hand},
+the medium transformer with the hand-crafted features added to its context
+features, is significantly better than the GBDT baseline (gain
+\V{run.transformer-medium-hand.gain}; 95\% CI
+\V{run.transformer-medium-hand.gain.low} to
+\V{run.transformer-medium-hand.gain.high}).
 \ifpairs
-Set against each other on the same resampled games, the one that reads the
-counts is \V{pair.transformer-medium-hand.transformer-medium.verdict}
-(Table~\ref{tab:pairs}).
+Compared with \run{transformer-medium}, it is
+\V{pair.transformer-medium-hand.transformer-medium.verdict} on the test set
+(gain \V{pair.transformer-medium-hand.transformer-medium.gain}; 95\% CI
+\V{pair.transformer-medium-hand.transformer-medium.gain.low} to
+\V{pair.transformer-medium-hand.transformer-medium.gain.high}).
 \fi
-This is the same result as in the lab's blunder model, on other data: at
-this size and with this many games, a network uses the facts when it is
-given them and does not find them unaided.
-\ifvariants
-As there, a network that starts from a body trained on engine evaluations
-first does pass the trees without the counts, and with them it is the
-model's best run (Section~\ref{sec:changes}): its gain is
-\V{best.gain.percent}\% of the reference's own loss, and
-\V{best.gain.of-lift}\% as large as the step from the floor to the
-reference.
-\fi
+A network that reads the board therefore adds information to the hand-crafted
+features, but on this training set it does not learn from the board all that
+the features provide.
 
-\subsection{The crowd's rating says less than the board}
+The remaining models in Table~\ref{tab:leaderboard} are the rating-based
+baseline, which the next subsection discusses, and modifications that passed
+the acceptance criterion of Section~\ref{sec:protocol}, which
+Section~\ref{sec:ablations} describes\ifchangestart: two transformers with a
+pretrained encoder, which are the two best models\fi\ifchangeconv, a
+ResNet with hand-crafted features\fi\ifchangeepochs, a transformer with a
+longer schedule\fi\ifmore, and models trained on a larger training
+set\fi. Compared with the GBDT baseline, \V{networks.ahead.of} on the
+leaderboard are significantly better. The best model's gain is
+\V{best.gain.percent}\% of the GBDT baseline's log loss, and
+\V{best.gain.of-lift}\% of the improvement of the GBDT baseline over the
+constant baseline. GBDT on the context and the hand-crafted features
+therefore accounts for most of what is predicted, and the best network adds a
+smaller improvement.
 
-\V{run.puzzle-rating.name} scores \V{run.puzzle-rating.score}. That is
-beside the trees that see no board (\V{run.gbm-context.score}) and far
-behind the reference (\V{reference.score}), which never reads a puzzle's
-rating. Thousands of attempts summed into one number say less about whether
-a tactic gets played in a game than a few dozen counts of what its line
-does.
+\subsection{The two ratings as a predictor}
+\label{sec:rating-baseline}
 
-Its fitted slope is \V{run.puzzle-rating.platt.slope}. A gap between the
-player's rating and the puzzle's that would decide the matter in puzzle
-solving moves the chance in a game about a fifth as far. A game is far from
-a puzzle, in both directions: hard puzzles are found in games much more
-often than their ratings say, and easy ones are missed much more often.
-Section~\ref{sec:closer} shows both.
+The rating-based baseline \run{puzzle-rating} has a log loss of
+\V{run.puzzle-rating.score}. It is significantly worse than the GBDT baseline
+(gain \V{run.puzzle-rating.gain}; 95\% CI \V{run.puzzle-rating.gain.low} to
+\V{run.puzzle-rating.gain.high}), which is not given the puzzle's rating. Its
+log loss is close to that of GBDT on the context features alone
+(\V{run.gbm-context.score}), and the intervals of the two models' gains
+overlap (Table~\ref{tab:leaderboard}). The two metrics that depend only on
+the ranking of the positions do not agree on the order of the two models: the
+rating-based baseline has the lower PR-AUC (\V{run.puzzle-rating.pr-auc},
+compared with \V{run.gbm-context.pr-auc}) and the higher ROC-AUC
+(\V{run.puzzle-rating.roc-auc}, compared with \V{run.gbm-context.roc-auc};
+Table~\ref{tab:metrics}). The puzzle's rating and the mover's rating together thus predict the outcome in a
+game about as well as the context of the game does without any knowledge of
+the tactic beyond the length of its solution, and much less well than a
+description of the tactic.
 
-\subsection{Every score}
+The calibration step shows how far the Elo formula is from describing games.
+The fitted slope is \V{run.puzzle-rating.platt.slope}. A slope of one would
+mean that a difference between the two ratings has the effect that the
+formula assigns to it, up to a shift between the two rating scales. The
+fitted value means that the share of tactics found depends on the difference
+between the two ratings much less than the formula implies. Even after this
+correction the baseline is the least well calibrated of all models, with an
+expected calibration error of \V{run.puzzle-rating.calibration-error}
+(Table~\ref{tab:metrics}).\iflook{} The observed shares show the weak
+dependence directly (Figure~\ref{fig:grid-ratings} in
+Section~\ref{sec:error}). Movers rated below 1700 found
+\V{grid.ratings.-1700.2200+.happened} of the tactics whose puzzles are rated
+2200 and above. Such a mover is rated at least 500 points below the puzzle,
+for which the uncalibrated formula gives an expected score of at most 5.3\%.
+Movers rated 2300 and above found \V{grid.ratings.2300+.-1000.happened} of
+the tactics whose puzzles are rated below 1000. Such a mover is rated more
+than 1300 points above the puzzle, for which the formula gives more than
+99.9\%.\fi
+
+This result does not mean that the puzzle's rating is uninformative. The
+share of tactics found falls steadily as the puzzle's rating rises, and the
+trained models, which do not receive the rating, are miscalibrated with
+respect to it (Section~\ref{sec:error}).
+
+\subsection{Secondary metrics}
+
+Table~\ref{tab:metrics} gives all metrics for every model. The Brier score of
+the best model is \V{best.brier}, compared with \V{reference.brier} for the
+GBDT baseline and \V{floor.brier} for the constant baseline. Its PR-AUC is
+\V{best.pr-auc}, compared with \V{reference.pr-auc} and \V{floor.pr-auc}.
+The PR-AUC of a model that ranks at random equals the share of tactics found
+in the test set. Because this share is high, all models lie in a narrow
+range above it. The ROC-AUC of the best model is \V{best.roc-auc}, compared
+with \V{reference.roc-auc} for the GBDT baseline. A value this far from one
+means that the outcome of a single position remains uncertain: the models
+separate tactics that are usually found from tactics that are often missed,
+and they do not predict what an individual player does.
 
 \begin{table}[htbp]\centering\small
 \block{metrics}
-\caption{Every score of every run on the test rows. Log loss, the Brier
-score and the calibration error are lower for a better run, and are computed
-after calibration on the valid rows; PR-AUC and ROC-AUC are higher.}
+\caption{All metrics for every model on the test set. For the log loss, the
+Brier score and the calibration error lower is better. For PR-AUC and ROC-AUC
+higher is better.}
 \label{tab:metrics}
 \end{table}
 
-The other scores keep the same order (Table~\ref{tab:metrics}). The best
-run's ROC-AUC is \V{best.roc-auc}: given a tactic that was found and one
-that was missed, it ranks the found one higher about three times in four.
-That is a modest ranking, and the reason is in the label. Whether one player
-plays one move on one day has a great deal of chance in it, and no reading
-of the position removes that.
+\subsection{Calibration}
 
-\subsection{By the mover's rating}
-
-Every run does best in the same band, the floor included
-(Table~\ref{tab:bands}): its log loss is lowest for movers rated
-\V{band.4.name}, at \V{band.4.floor}, and highest for those rated
-\V{band.1.name}, at \V{band.1.floor}. The floor's loss in a band depends
-only on that band's rate of finding, so a band's column is read from the top
-down, run against run, and never across.
-
-\begin{table}[htbp]\centering\small
-\block{bands-table}
-\caption{Log loss by the mover's rating band. Read a column from the top
-down: the rate of finding differs from band to band, and every run's loss
-with it.}
-\label{tab:bands}
-\end{table}
-
-Read that way, the best run leads the reference in \V{bands.best-ahead.of}.
-Its lead is widest for movers rated \V{bands.lead.widest.name}, at
-\V{bands.lead.widest}, and narrowest for those rated
-\V{bands.lead.narrowest.name}, at \V{bands.lead.narrowest}, where a lead
-below zero means the trees are ahead (Figure~\ref{fig:bands}).
-\iflook
-Paired inside each band, \V{challenger.name} is ahead beyond the noise in
-\V{slice.band.ahead.of}, the movers rated \V{slice.band.ahead.groups}, and
-behind in \V{slice.band.behind.of} (Table~\ref{tab:slice-band} in the
-appendix). Its lead is widest in the lowest band, which is the one nearest
-the players a coaching app is for.
-\fi
-
-\begin{figure}[htbp]\centering
-\block{bands}
-\caption{Each network's lead over the reference in log loss, band by band:
-the differences of the scores in Table~\ref{tab:bands}, without intervals.
-Above the dashed line a network is ahead of the trees.}
-\label{fig:bands}
-\end{figure}
-
-\subsection{A chance that can be read as one}
-
-Table~\ref{tab:calibration} puts the test rows in
-\V{best.calibration.groups} equal groups by a run's stated chance and sets
-what the run said beside what happened. The best run's groups run from
-\V{best.calibration.lowest}\% to \V{best.calibration.highest}\%, and none is
-further than \V{best.calibration.widest-gap} points from the rate that
-happened (Figure~\ref{fig:calibration}). The slope fitted on the valid rows
-was \V{best.platt.slope}: before the correction the network was a little too
-sure of itself, and the correction took that out.
-
-\begin{table}[htbp]\centering\small
-\block{calibration-table}
-\caption{Each run's test rows in ten equal groups by its own stated chance,
-lowest first: what the run said in the group on average, and the share of
-the group in which the tactic was found.}
-\label{tab:calibration}
-\end{table}
+A predicted probability is useful as a number only if it is calibrated: among
+the positions for which a model predicts a probability of 70\%, about seven
+tactics in ten should be found. In Figure~\ref{fig:calibration} the test
+positions are divided into \V{best.calibration.groups} bins of equal size by
+a model's predicted probability. For the best model, the mean predicted
+probability is \V{best.calibration.lowest}\% in the lowest bin and
+\V{best.calibration.highest}\% in the highest, and in no bin does it differ
+from the observed share of tactics found by more than
+\V{best.calibration.widest-gap} percentage points. For the GBDT baseline the
+predictions range from \V{reference.calibration.lowest}\% to
+\V{reference.calibration.highest}\%, and the largest difference is
+\V{reference.calibration.widest-gap} points. Table~\ref{tab:calibration} in
+the appendix gives the values for every bin.
 
 \begin{figure}[htbp]\centering
 \block{calibration}
-\caption{What was said against what happened, from the ten groups of
-Table~\ref{tab:calibration}. On the diagonal a stated chance is the rate
-that happened.}
+\caption{Reliability diagram. The test positions are divided into
+\V{best.calibration.groups} bins of equal size by a model's predicted
+probability, and each point shows the observed share of tactics found in a
+bin against its mean predicted probability. Points on the diagonal are
+perfectly calibrated.}
 \label{fig:calibration}
 \end{figure}
 
-The range matters as much as the fit. A model that said the base rate for
-every tactic would be calibrated and useless. This one separates tactics
-that are found \V{best.calibration.lowest}\% of the time from tactics that
-are found \V{best.calibration.highest}\% of the time, and is right about
-both.
+The calibration step of Section~\ref{sec:protocol} changes the networks more
+than GBDT. The fitted slope is \V{best.platt.slope} for the best model and
+\V{run.transformer-medium-hand.platt.slope} for
+\run{transformer-medium-hand}. A slope below one means that the uncalibrated
+predictions were too extreme, and the calibration step makes them less so.
+For the GBDT baseline the slope is \V{reference.platt.slope} and the
+intercept \V{reference.platt.intercept}, so this model was close to
+calibrated without correction. The expected
+calibration error after calibration is \V{best.calibration-error} for the
+best model and \V{reference.calibration-error} for the GBDT baseline.
+Calibration over the whole test set does not imply calibration within every
+subgroup, and Section~\ref{sec:error} returns to this point.
 
-\subsection{How the networks learned}
+\iflook
+\subsection{The two ends of the ranking}
 
-Figure~\ref{fig:curves} follows each network of the ladder on the valid rows
-after every epoch. By that score, \V{ladder.at-last-epoch.of} peaked at the
-last epoch given. The two transformers that read the board alone are those
-two (epoch \V{run.transformer-small.best-epoch} of
-\V{run.transformer-small.epochs} and \V{run.transformer-medium.best-epoch}
-of \V{run.transformer-medium.epochs}), so the claim that the squares are not
-enough rests on runs that had not finished learning.
-\ifvariants
-Section~\ref{sec:changes} gives the medium transformers twice the epochs and
-says whether that changes it.
-\else
-A run with twice the epochs is the one to make before that claim is leaned
-on.
+The application would use the prediction at both ends of its range. A missed
+tactic with a high predicted probability is a lapse, and a missed tactic with
+a low predicted probability is one that the player could not be expected to
+find. Table~\ref{tab:ranking-top} gives the share of tactics found among the
+test positions with the highest predictions of the best model, and
+Table~\ref{tab:ranking-bottom} the share missed among those with the lowest.
+
+Among the 10\% of test positions with the highest predictions,
+\V{best.top.10.rate}\% of the tactics were found, and among the top 1\%,
+\V{best.top.1.rate}\%. Because \V{label.rate.test}\% of all tactics in the
+test set are found, the lift at the top of the ranking is necessarily small:
+it is \V{best.top.10.lift} for the top 10\%. A miss in these
+positions is nevertheless a rare event, which is what the application needs
+in order to call it a lapse.
+
+\begin{table}[htbp]\centering\small
+\block{ranking-top}
+\caption{The top of the ranking. For a share of the test positions taken from
+the highest predicted probabilities: \emph{precision} is the share of these
+positions in which the tactic was found, \emph{recall} is the share of all
+found tactics that they contain, and \emph{lift} is the precision divided by
+the share found in the whole test set.}
+\label{tab:ranking-top}
+\end{table}
+
+\begin{table}[htbp]\centering\small
+\block{ranking-bottom}
+\caption{The bottom of the ranking. For a share of the test positions taken
+from the lowest predicted probabilities: \emph{precision} is the share of
+these positions in which the tactic was missed, \emph{recall} is the share of
+all missed tactics that they contain, and \emph{lift} is the precision
+divided by the share missed in the whole test set.}
+\label{tab:ranking-bottom}
+\end{table}
+
+The bottom of the ranking is more informative. Among the 10\% of test
+positions with the lowest predictions, \V{best.bottom.10.rate}\% of the
+tactics were missed, which is \V{best.bottom.10.lift} times the share missed
+in the whole test set, and these positions contain
+\V{best.bottom.10.recall}\% of all missed tactics. Among the bottom 1\%,
+\V{best.bottom.1.rate}\% were missed. The remaining tactics in these
+positions were found, so a low prediction marks a tactic that is usually
+missed and not one that is never found. The GBDT baseline is slightly less
+accurate at this end: among its own bottom 10\%,
+\V{reference.bottom.10.rate}\% of the tactics were missed.
+\fi
+
+\subsection{Results by rating band}
+
+Table~\ref{tab:bands} gives the log loss by band of the mover's rating. The
+log loss of the constant baseline falls from \V{band.1.floor} in the band
+\V{band.1.name} to \V{band.4.floor} in the band \V{band.4.name}.\iflook{} The reason is that the share of tactics found
+rises with the rating, from \V{slice.band.-1700.happened} to
+\V{slice.band.2100-2299.happened} in these two bands, and a constant
+prediction above one half is scored better where more tactics are found.\fi{}
+The log loss of every model depends on this base rate, so scores should be
+compared between models within a band, and not between bands.
+
+\begin{table}[htbp]\centering\small
+\block{bands-table}
+\caption{Test log loss by band of the mover's rating. The share of tactics
+found differs between bands, so values are comparable within a column and
+not between columns.}
+\label{tab:bands}
+\end{table}
+
+The best model has a lower log loss than the GBDT baseline in
+\V{bands.best-ahead.of}. The difference is largest in the band
+\V{bands.lead.widest.name} (\V{bands.lead.widest}) and smallest in the band
+\V{bands.lead.narrowest.name} (\V{bands.lead.narrowest};
+Figure~\ref{fig:bands}).\iflook{} With a paired comparison within each band,
+the gain is statistically significant in \V{slice.band.ahead.of}
+(Table~\ref{tab:slice-band} in the appendix).\fi
+
+\begin{figure}[htbp]\centering
+\block{bands}
+\caption{Difference in log loss between each network and the GBDT baseline,
+by band of the mover's rating (the differences of the values in
+Table~\ref{tab:bands}, without intervals). Above the dashed line the network
+is better.}
+\label{fig:bands}
+\end{figure}
+
+\subsection{Training curves}
+
+Figure~\ref{fig:curves} shows the validation log loss of each network of the
+fixed sequence after every epoch. By this measure
+\V{ladder.at-last-epoch.of} were still improving when training ended:
+\run{transformer-small} had its best validation log loss at epoch
+\V{run.transformer-small.best-epoch} of \V{run.transformer-small.epochs} and
+\run{transformer-medium} at epoch \V{run.transformer-medium.best-epoch} of
+\V{run.transformer-medium.epochs}. The other two had passed their best epoch
+when training ended: \run{conv-small} at \V{run.conv-small.best-epoch} of
+\V{run.conv-small.epochs} and \run{transformer-medium-hand} at
+\V{run.transformer-medium-hand.best-epoch} of
+\V{run.transformer-medium-hand.epochs}.
+\ifchangeepochs
+Section~\ref{sec:ablations} shows that a longer schedule gives the medium
+transformer without hand-crafted features a small significant gain, and that
+it does not improve the one with hand-crafted features.
 \fi
 
 \begin{figure}[htbp]\centering
 \block{curves}
-\caption{Each ladder network's log loss on the valid rows after every epoch,
-before calibration. The dashed line is the reference's score on the same
-rows.}
+\caption{Validation log loss of each network of the fixed sequence after
+every epoch. The dashed line is the GBDT baseline's validation log loss.}
 \label{fig:curves}
 \end{figure}
 
-\subsection{What the trees lean on}
+\subsection{Feature importance of the GBDT baseline}
 
-The reference grew \V{reference.trees} trees over \V{reference.features}
-features (Figure~\ref{fig:leans}). The three it leans on most are:
-\V{reference.leans.1.feature} (\V{reference.leans.1.share}\% of the gain),
-\V{reference.leans.2.feature} (\V{reference.leans.2.share}\%) and
-\V{reference.leans.3.feature} (\V{reference.leans.3.share}\%). No feature
-dominates, as the evaluation does in the blunder model. The gain is spread
-over the two evaluations and many facts about the line, and the first fact
-about the line is whether its first move gives something up. A share of gain
-says what the trees used. It does not say what makes a tactic hard to see.
+The GBDT baseline consists of \V{reference.trees} trees over
+\V{reference.features} features. Figure~\ref{fig:leans} shows the ten
+features with the largest shares of the total split gain. The importance is spread over many features,
+and none has more than \V{reference.leans.1.share}\% of the gain. The two
+most important are the \V{reference.leans.1.feature}
+(\V{reference.leans.1.share}\%) and whether the \V{reference.leans.2.feature}
+(\V{reference.leans.2.share}\%), followed by the \V{reference.leans.3.feature}
+(\V{reference.leans.3.share}\%), the \V{reference.leans.4.feature}
+(\V{reference.leans.4.share}\%) and the \V{reference.leans.5.feature}
+(\V{reference.leans.5.share}\%). Split gain shows which features the model
+used. It does not identify what causes a tactic to be missed, because
+correlated features divide the credit between them arbitrarily.
 
 \begin{figure}[htbp]\centering
 \block{leans}
-\caption{The ten features the reference's trees gained most from: each
-feature's share of the total gain of the splits made on it.}
+\caption{The ten most important features of the GBDT baseline, by share of
+the total split gain.}
 \label{fig:leans}
 \end{figure}
 
 \ifchanges
-\section{One change at a time}
-\label{sec:changes}
+\section{Ablations}
+\label{sec:ablations}
 
-\input{../../../papers/changes}
+\input{../../../papers/ablations}
 
-\ifvariants
-\paragraph{What twice the epochs were worth here.}
-Each medium transformer was trained again on a schedule of
-\V{run.transformer-medium-long.epochs} epochs for the ladder's
-\V{run.transformer-medium.epochs}. On the board alone,
-\V{run.transformer-medium-long.name} is
-\V{pair.transformer-medium-long.transformer-medium.valid.verdict} than the
-run it changed on the valid rows and
-\V{pair.transformer-medium-long.transformer-medium.verdict} on the test
-rows, by \V{pair.transformer-medium-long.transformer-medium.gain}
-(\V{pair.transformer-medium-long.transformer-medium.gain.low} to
-\V{pair.transformer-medium-long.transformer-medium.gain.high}): it is
-\V{pair.transformer-medium-long.transformer-medium.kept}. The gain is a
-fraction of what the hand features are worth to the same transformer
-(\V{pair.transformer-medium-hand.transformer-medium.gain}), and the run is
-still behind the reference (\V{run.transformer-medium-long.gain}). So the
-claim of Section~\ref{sec:results} now rests on a run that was given the
-time to learn: at this size and with this many games, the marked squares are
-not enough.
+\ifchangehand
+\subsection{Hand-crafted features}
 
-With the hand features, \V{run.transformer-medium-hand-long.name} is
+Among the networks trained from random initialisation, only those that
+receive the hand-crafted features are better than the GBDT baseline. Compared
+with \run{transformer-medium}, \run{transformer-medium-hand} is
+\V{pair.transformer-medium-hand.transformer-medium.valid.verdict} than its
+base on the validation set and
+\V{pair.transformer-medium-hand.transformer-medium.verdict} on the test set
+(gain \V{pair.transformer-medium-hand.transformer-medium.gain} log loss;
+95\% CI \V{pair.transformer-medium-hand.transformer-medium.gain.low} to
+\V{pair.transformer-medium-hand.transformer-medium.gain.high}), so the
+modification is \V{pair.transformer-medium-hand.transformer-medium.kept}. The
+features move the medium transformer from significantly below the GBDT
+baseline to significantly above it: its gains over the baseline are
+\V{run.transformer-medium.gain} without them and
+\V{run.transformer-medium-hand.gain} with them.
+\iffeatures
+Section~\ref{sec:feature-groups} shows which of the features matter most to
+GBDT.
+\fi
+\fi
+
+\ifchangeepochs
+\subsection{Training schedule}
+
+Doubling the number of epochs, from \V{run.transformer-medium.epochs} to
+\V{run.transformer-medium-long.epochs}, helps the medium transformer without
+hand-crafted features and not the one with them. Without hand-crafted
+features, \run{transformer-medium-long} is
+\V{pair.transformer-medium-long.transformer-medium.valid.verdict} than its
+base on the validation set and
+\V{pair.transformer-medium-long.transformer-medium.verdict} on the test set
+(gain \V{pair.transformer-medium-long.transformer-medium.gain}; 95\% CI
+\V{pair.transformer-medium-long.transformer-medium.gain.low} to
+\V{pair.transformer-medium-long.transformer-medium.gain.high}), so the
+modification is \V{pair.transformer-medium-long.transformer-medium.kept}. The
+gain is small beside that from the hand-crafted features
+(\V{pair.transformer-medium-hand.transformer-medium.gain}), and the model
+remains significantly worse than the GBDT baseline (gain
+\V{run.transformer-medium-long.gain}; 95\% CI
+\V{run.transformer-medium-long.gain.low} to
+\V{run.transformer-medium-long.gain.high}). With hand-crafted features,
+\run{transformer-medium-hand-long} is
 \V{pair.transformer-medium-hand-long.transformer-medium-hand.valid.verdict}
-than the run it changed on the valid rows and
+than its base on the validation set and
 \V{pair.transformer-medium-hand-long.transformer-medium-hand.verdict} on the
-test rows (\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain},
+test set (gain
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain}; 95\% CI
 \V{pair.transformer-medium-hand-long.transformer-medium-hand.gain.low} to
-\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain.high}): it
-is \V{pair.transformer-medium-hand-long.transformer-medium-hand.kept}, and
-the run it changed stays ahead of it. A run that is not kept leaves the
-leaderboard when it is filed. Its row stays in Table~\ref{tab:pairs}, as the
-measurement of what the epochs were worth to a network that reads the
-counts: nothing that these test rows can show.
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain.high}),
+and the modification is
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.kept}.
 
-Neither run used its whole schedule. Their best valid epochs were
-\V{run.transformer-medium-long.best-epoch} and
-\V{run.transformer-medium-hand-long.best-epoch} of
-\V{run.transformer-medium-long.epochs}, and each was stopped
-\V{networks.patience} epochs later, as the trainer stops any run whose valid
-score has not improved for that long (Figure~\ref{fig:variants}).
+The training curves agree with this difference
+(Figure~\ref{fig:variants}). Under the standard schedule,
+\run{transformer-medium} had its best validation log loss in the final
+epoch, \V{run.transformer-medium.best-epoch} of
+\V{run.transformer-medium.epochs}, whereas \run{transformer-medium-hand} had
+it at epoch \V{run.transformer-medium-hand.best-epoch} of
+\V{run.transformer-medium-hand.epochs}. Under the longer schedule neither
+model used all its epochs: \run{transformer-medium-long} had its best
+validation log loss at epoch \V{run.transformer-medium-long.best-epoch} of
+\V{run.transformer-medium-long.epochs} and
+\run{transformer-medium-hand-long} at epoch
+\V{run.transformer-medium-hand-long.best-epoch}, and each was stopped
+\V{networks.patience} epochs later by early stopping.
+\fi
 
-\paragraph{What a start from engine evaluations was worth here.}
-The lab's position-evaluation model trains the same medium transformer on
-positions from the open Lichess evaluations file, to say the mover's winning
-chances as an engine sees them. That label says nothing about people. The
-model is there for its body: a run of this model can start from it. The
-embeddings and the blocks are copied in, the head starts new, the marks of
-the line start new with it, and the run then trains on this model's rows on
-the ladder's schedule, with nothing else changed.
+\ifchangestart
+\subsection{Pretraining}
 
-Without the hand features, \V{run.transformer-medium-pretrained.name} is
+A pretrained encoder improves both medium transformers. Without hand-crafted
+features, \run{transformer-medium-pretrained} is
 \V{pair.transformer-medium-pretrained.transformer-medium.valid.verdict} than
-the run it changed on the valid rows and
+its base on the validation set and
 \V{pair.transformer-medium-pretrained.transformer-medium.verdict} on the
-test rows, by \V{pair.transformer-medium-pretrained.transformer-medium.gain}
-(\V{pair.transformer-medium-pretrained.transformer-medium.gain.low} to
-\V{pair.transformer-medium-pretrained.transformer-medium.gain.high}): it is
-\V{pair.transformer-medium-pretrained.transformer-medium.kept}. With them,
-\V{run.transformer-medium-hand-pretrained.name} is
+test set (gain \V{pair.transformer-medium-pretrained.transformer-medium.gain}
+log loss; 95\% CI
+\V{pair.transformer-medium-pretrained.transformer-medium.gain.low} to
+\V{pair.transformer-medium-pretrained.transformer-medium.gain.high}), and
+the modification is
+\V{pair.transformer-medium-pretrained.transformer-medium.kept}. With
+hand-crafted features, \run{transformer-medium-hand-pretrained} is
 \V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.valid.verdict}
-than the run it changed on the valid rows and
+than its base on the validation set and
 \V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.verdict}
-on the test rows, by
-\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain}
-(\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.low}
+on the test set (gain
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain};
+95\% CI
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.low}
 to
-\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.high}):
-it is
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.high}),
+and the modification is
 \V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.kept}.
-The model's best run is \V{best.name}.
+The best model of this task is \V{best.name}. The paired gain without
+hand-crafted features is the largest of any modification. It exceeds the
+gain from the hand-crafted features themselves
+(\V{pair.transformer-medium-hand.transformer-medium.gain}), and the intervals
+of the two gains do not overlap. The paired gain with hand-crafted features
+is the largest among the modifications of \run{transformer-medium-hand}
+(Table~\ref{tab:pairs}).
 
-Two things follow. The first is that the start did what twice the epochs
-had not. Without the counts the transformer now passes the trees, with a
-gain over the reference of \V{run.transformer-medium-pretrained.gain}
-(\V{run.transformer-medium-pretrained.gain.low} to
-\V{run.transformer-medium-pretrained.gain.high}), where the same network
-from nothing has one of \V{run.transformer-medium.gain} and, after the
-longer schedule, of \V{run.transformer-medium-long.gain}. So the claim of
-Section~\ref{sec:results} holds for a network that starts from nothing and
-not for one that has read many positions first: from the body, the marked
-squares are enough to pass the trees.
+Pretraining changes the comparison with the GBDT baseline. Trained from
+random initialisation, the transformer without hand-crafted features is
+significantly worse than the baseline (gain
+\V{run.transformer-medium.gain}). With a pretrained encoder it is
+significantly better (gain \V{run.transformer-medium-pretrained.gain}; 95\%
+CI \V{run.transformer-medium-pretrained.gain.low} to
+\V{run.transformer-medium-pretrained.gain.high}).
+\ifchangeepochs
+Apart from the hand-crafted features, no other modification of this model
+has that effect. With the longer
+schedule its gain over the baseline is \V{run.transformer-medium-long.gain}
+(95\% CI \V{run.transformer-medium-long.gain.low} to
+\V{run.transformer-medium-long.gain.high})\ifchangeattacks, and with the
+attack-aware attention bias it is \V{run.transformer-medium-attacks.gain}
+(\V{run.transformer-medium-attacks.gain.low} to
+\V{run.transformer-medium-attacks.gain.high})\fi.
+\fi
 
-The second is that the counts still pay from the body, by less.
-\V{run.transformer-medium-hand-pretrained.name} scores
-\V{run.transformer-medium-hand-pretrained.over-twin} better than
-\V{run.transformer-medium-pretrained.name}, where on the ladder the same
-difference was \V{run.transformer-medium-hand.over-twin}, and the intervals
-of the two runs' gains over the reference do not touch
-(Table~\ref{tab:leaderboard}). Both runs had their best valid epoch at
-\V{run.transformer-medium-hand-pretrained.best-epoch} of
-\V{run.transformer-medium-hand-pretrained.epochs} and were stopped
-\V{networks.patience} epochs later, so a longer schedule from the same
-start is not the next run.
+With a pretrained encoder the hand-crafted features contribute less, but
+they still contribute. The pretrained model with hand-crafted features has a
+test log loss of \V{run.transformer-medium-hand-pretrained.score} and the
+pretrained model without them one of
+\V{run.transformer-medium-pretrained.score}, a difference of
+\V{run.transformer-medium-hand-pretrained.over-twin}, where the paired gain
+from the features is \V{pair.transformer-medium-hand.transformer-medium.gain}
+from random initialisation. The two pretrained models were not compared
+directly on resampled games, but the intervals of their gains over the GBDT
+baseline do not overlap (Table~\ref{tab:leaderboard}). A plausible
+explanation is that the pretraining task evaluates a position and involves no
+line of moves, so pretraining teaches the encoder nothing about a given
+solution, which is what many of the hand-crafted features describe.
+
+The pretrained model with hand-crafted features had its best validation log
+loss at epoch \V{run.transformer-medium-hand-pretrained.best-epoch} of
+\V{run.transformer-medium-hand-pretrained.epochs}, and the pretrained model
+without them at epoch \V{run.transformer-medium-pretrained.best-epoch} of
+\V{run.transformer-medium-pretrained.epochs} (Figure~\ref{fig:variants}).
+Both were stopped \V{networks.patience} epochs later by early stopping.
 \fi
 
 \ifshapes
-\paragraph{What another shape of network was worth here.}
-The architecture test keeps a medium transformer's rows, its head and its
-epochs, and changes its shape. Each run below started from nothing, as the
-network it changes did. Each is set against that network in
-Table~\ref{tab:pairs} and followed epoch by epoch in
-Figure~\ref{fig:shapes}.
+\subsection{Architecture}
+
+The architecture ablations keep the training data, the prediction head and
+the number of epochs of a medium transformer and change the encoder. All of
+these models are trained from random initialisation, as their bases are.
 \begin{itemize}
-\item \emph{A convolutional tower}, \V{run.conv-medium-hand.name}: residual
-blocks of convolutions, each also weighing its channels by a mean over the
-whole board, with \V{run.conv-medium-hand.parameters.millions} million
-parameters for the transformer's
-\V{run.transformer-medium-hand.parameters.millions} million. It is trained at a
-tower's peak learning rate, \V{run.conv-medium-hand.lr} for
-\V{run.transformer-medium-hand.lr}, and changes nothing else. It is
-\V{pair.conv-medium-hand.transformer-medium-hand.valid.verdict} than
-\V{run.transformer-medium-hand.name} on the valid rows and
-\V{pair.conv-medium-hand.transformer-medium-hand.verdict} on the test
-rows (\V{pair.conv-medium-hand.transformer-medium-hand.gain},
+\ifchangeconv
+\item \textbf{ResNet.} \run{conv-medium-hand} has
+\V{run.conv-medium-hand.parameters.millions} million parameters, compared
+with \V{run.transformer-medium-hand.parameters.millions} million for the
+transformer, and is trained with a peak learning rate of
+\V{run.conv-medium-hand.lr} instead of \V{run.transformer-medium-hand.lr}.
+Compared with \run{transformer-medium-hand} it is
+\V{pair.conv-medium-hand.transformer-medium-hand.valid.verdict} on the
+validation set and
+\V{pair.conv-medium-hand.transformer-medium-hand.verdict} on the test set
+(gain \V{pair.conv-medium-hand.transformer-medium-hand.gain}; 95\% CI
 \V{pair.conv-medium-hand.transformer-medium-hand.gain.low} to
-\V{pair.conv-medium-hand.transformer-medium-hand.gain.high}): it is
-\V{pair.conv-medium-hand.transformer-medium-hand.kept}.
-\item \emph{A hybrid}, \V{run.hybrid-medium-hand.name}: a few residual blocks
-of convolutions first, then layers of the transformer over the squares
-they give, \V{run.hybrid-medium-hand.parameters.millions} million parameters
-in all. It is
-\V{pair.hybrid-medium-hand.transformer-medium-hand.valid.verdict} than
-\V{run.transformer-medium-hand.name} on the valid rows and
-\V{pair.hybrid-medium-hand.transformer-medium-hand.verdict} on the test
-rows (\V{pair.hybrid-medium-hand.transformer-medium-hand.gain},
+\V{pair.conv-medium-hand.transformer-medium-hand.gain.high}), and the
+modification is \V{pair.conv-medium-hand.transformer-medium-hand.kept}.
+\fi
+\ifchangehybrid
+\item \textbf{Hybrid.} \run{hybrid-medium-hand} has
+\V{run.hybrid-medium-hand.convs} residual convolutional blocks followed by
+\V{run.hybrid-medium-hand.depth} transformer layers, for a total of
+\V{run.hybrid-medium-hand.parameters.millions} million parameters. Compared
+with \run{transformer-medium-hand} it is
+\V{pair.hybrid-medium-hand.transformer-medium-hand.verdict} on the test set
+(gain \V{pair.hybrid-medium-hand.transformer-medium-hand.gain}; 95\% CI
 \V{pair.hybrid-medium-hand.transformer-medium-hand.gain.low} to
-\V{pair.hybrid-medium-hand.transformer-medium-hand.gain.high}): it is
-\V{pair.hybrid-medium-hand.transformer-medium-hand.kept}.
-\item \emph{Attention told what each piece attacks.} The offsets say that
-two squares share a diagonal, and not whether anything stands between
-them. Here each head also learns a bias for a pair of squares when the
-piece on one attacks the other on this board, worked out from the tokens
-with no search. With the hand features, \V{run.transformer-medium-hand-attacks.name} is
-\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.valid.verdict} than
-\V{run.transformer-medium-hand.name} on the valid rows and
-\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.verdict} on the test
-rows (\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.gain},
-\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.gain.low} to
-\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.gain.high}): it is
-\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.kept}. On the
-board alone, \V{run.transformer-medium-attacks.name} is
-\V{pair.transformer-medium-attacks.transformer-medium.valid.verdict} than
-\V{run.transformer-medium.name} on the valid rows and
+\V{pair.hybrid-medium-hand.transformer-medium-hand.gain.high}), and the
+modification is \V{pair.hybrid-medium-hand.transformer-medium-hand.kept}.
+\fi
+\ifchangeattacks
+\item \textbf{Attack-aware attention bias.} Compared with
+\run{transformer-medium-hand}, \run{transformer-medium-hand-attacks} is
+\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.verdict} on
+the test set (gain
+\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.gain}; 95\%
+CI \V{pair.transformer-medium-hand-attacks.transformer-medium-hand.gain.low}
+to
+\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.gain.high}),
+and the modification is
+\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.kept}.
+Compared with \run{transformer-medium}, which has no hand-crafted features,
+\run{transformer-medium-attacks} is
 \V{pair.transformer-medium-attacks.transformer-medium.verdict} on the test
-rows (\V{pair.transformer-medium-attacks.transformer-medium.gain},
+set (gain \V{pair.transformer-medium-attacks.transformer-medium.gain}; 95\% CI
 \V{pair.transformer-medium-attacks.transformer-medium.gain.low} to
-\V{pair.transformer-medium-attacks.transformer-medium.gain.high}): it is
+\V{pair.transformer-medium-attacks.transformer-medium.gain.high}), and the
+modification is
 \V{pair.transformer-medium-attacks.transformer-medium.kept}.
-\item \emph{Attention without the offsets},
-\V{run.transformer-medium-hand-no-geometry.name}: a study, there to measure what
-the offsets are worth and never a candidate. Without them the transformer
-is \V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.valid.verdict}
-on the valid rows than with them, and
-\V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.verdict} on the
-test rows (\V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain},
-\V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain.low} to
+\fi
+\ifchangegeometry
+\item \textbf{No relative position bias.} Compared with
+\run{transformer-medium-hand},
+\run{transformer-medium-hand-no-geometry} is
+\V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.verdict}
+on the test set (gain
+\V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain};
+95\% CI
+\V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain.low}
+to
 \V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain.high}).
+\fi
 \end{itemize}
 
-Three things follow. The first is that the tower is the one shape kept
-here. \V{run.conv-medium-hand.name} gains
-\V{pair.conv-medium-hand.transformer-medium-hand.gain} over the transformer
-it changes, where twice the epochs gave that transformer nothing these test
-rows can show
-(\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain}). The
-start from the body gave it more,
-\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain},
-and in Table~\ref{tab:pairs} the tower's interval and the start's do not
-touch. The tower is the best run of this model that starts from nothing,
-and it took \V{run.conv-medium-hand.seconds} of the GPU for the
-transformer's \V{run.transformer-medium-hand.seconds}. It changes its
-learning rate with its body, so the gain is the tower's as trained and
-cannot be given to the convolutions alone. The model's best run is still
-\V{best.name}, at \V{best.score}: it starts from the body, and the interval
-of its gain over the reference stands clear of the tower's
-(Table~\ref{tab:leaderboard}).
-
-The second is how the networks with convolutions learned
-(Figure~\ref{fig:shapes}). The tower had its best valid epoch at
-\V{run.conv-medium-hand.best-epoch} of a schedule of
-\V{run.conv-medium-hand.epochs}, and the trainer stopped it after
-\V{run.conv-medium-hand.epochs.run}: its loss on the valid rows had turned
-up while its loss on its own training rows went on falling. The hybrid
-turned after epoch \V{run.hybrid-medium-hand.best-epoch} and ended
-\V{pair.hybrid-medium-hand.transformer-medium-hand.verdict} against the
-transformer on the test rows. A reading: these networks learn their rows
-sooner and fit them too closely sooner, as they did in the lab's puzzle
-model, so for the tower more positions are likelier to help than more
-epochs are.
-
-The third is that telling the attention what each piece attacks changed
-nothing here, on the board alone or with the counts. Each run is inside the
-noise of the transformer it changes, and Figure~\ref{fig:shapes} has each on
-the curve of that transformer from the first epoch to the last. On the
-board alone the run that is told the attacks is still behind the trees, at
-\V{run.transformer-medium-attacks.gain}
-(\V{run.transformer-medium-attacks.gain.low} to
-\V{run.transformer-medium-attacks.gain.high}). This was the model where the
-most was expected of the change, since its networks on the board alone are
-the ones behind the trees. The lab's blunder model found the same on other
-data, and the lab's own paper sets the models side by side. A reading: the
-weights on what the attention is told start at nothing and are learned from
-the model's own rows, and these rows teach a network little beyond the
-counts. Twice the epochs gave the transformer with the counts nothing
-either.
-\ifgames
-The games study below says its lead over the trees comes with the data.
+\ifchangeconv
+One change to the architecture is accepted, the ResNet in place of the
+transformer encoder. With a test log loss of \V{run.conv-medium-hand.score},
+\run{conv-medium-hand} is the best model trained from random
+initialisation\ifmore, including the transformer trained on twice the games
+(\V{run.transformer-medium-hand-double.score})\fi.\ifchangestart{} Its paired
+gain over the transformer is smaller than that of pretraining
+(\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain}),
+and the intervals of the two gains do not overlap (Table~\ref{tab:pairs}). A
+ResNet with a pretrained encoder has not been trained.\fi
 \fi
-What moved this model was the start from a body that had read many more
-positions elsewhere. Without its offsets the transformer is inside the
-noise of the one that has them.
+\ifchangehybrid{}
+The hybrid encoder is significantly worse than the transformer, although it
+remains significantly better than the GBDT baseline (gain
+\V{run.hybrid-medium-hand.gain}; 95\% CI \V{run.hybrid-medium-hand.gain.low}
+to \V{run.hybrid-medium-hand.gain.high}).
+\fi
+\ifchangeattacks
+The attack-aware bias has no measurable effect on this task, with or without
+the hand-crafted features\ifchangegeometry, and neither has the removal of
+the relative position bias\fi. The paired gains of these models are close to
+zero (Table~\ref{tab:pairs}). All networks of this task are trained with the
+same random seed and both biases are initialised at zero, so each of these models starts
+from the same function as its base. With the hand-crafted features, the
+validation curves of the two variants can hardly be told from that of their
+base (Figure~\ref{fig:shapes}), and the intervals of their paired gains are
+very narrow. What the biases learn on this task therefore changes the
+predictions very little. Nor does the attack-aware bias replace the hand-crafted
+features: with it, the transformer without hand-crafted features has a test
+log loss of \V{run.transformer-medium-attacks.score}, compared with
+\V{run.transformer-medium-hand.score} for the transformer with the features.
+\fi
+Each of these models was trained once.
 \fi
 
-\input{../../../papers/studies}
+\input{../../../papers/training-set-size}
 
 \ifgames
-\paragraph{What more games are worth here.}
-Both learners are worse on fewer games, and the network by more. Against the
-run trained on every training game, \V{run.transformer-medium-hand.name} has a paired gain of
-\V{pair.transformer-medium-hand-half.transformer-medium-hand.gain} on half of them and of \V{pair.transformer-medium-hand-quarter.transformer-medium-hand.gain} on a
-quarter. The trees' gains are \V{pair.gbm-hand-half.gbm-hand.gain} and
-\V{pair.gbm-hand-quarter.gbm-hand.gain}. On a quarter of the games the trees
-are ahead of the network, on half the two are level, and only on all of
-them does the network lead (Table~\ref{tab:games}). So this network's
-lead over the trees comes with the data, and twice the
-epochs gave the same network nothing
-(\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain}). A reading: more games are the next thing to try
-for this model.
+\paragraph{Smaller training sets.}
+Both model classes are less accurate with less data, and the transformer
+loses more. Relative to the same model trained on the full training set,
+\run{transformer-medium-hand} has a paired gain of
+\V{pair.transformer-medium-hand-half.transformer-medium-hand.gain} log loss
+on half of the training games and of
+\V{pair.transformer-medium-hand-quarter.transformer-medium-hand.gain} on a
+quarter, and it is significantly worse in
+\V{study.games.transformer-medium-hand.worse.of}. For GBDT the gains are
+\V{pair.gbm-hand-half.gbm-hand.gain}
+(\V{pair.gbm-hand-half.gbm-hand.verdict}) and
+\V{pair.gbm-hand-quarter.gbm-hand.gain}
+(\V{pair.gbm-hand-quarter.gbm-hand.verdict}). On a quarter of the games GBDT
+has the lower log loss (\V{run.gbm-hand-quarter.score}, compared with
+\V{run.transformer-medium-hand-quarter.score} for the transformer), and on
+half of the games the two models have almost the same log loss
+(\V{run.gbm-hand-half.score} and \V{run.transformer-medium-hand-half.score}). The transformer's advantage over
+GBDT thus appears only with the full training set (Table~\ref{tab:games},
+Figure~\ref{fig:games}).
 \fi
 
 \ifmore
-\paragraph{What more games were worth.}
-That reading was then checked on a larger build of the dataset, which reads
-every file of its source and so holds \V{more.gbm-hand.most} the training
-games, and every row these runs are scored on. Against the run trained on
-today's games, \V{run.transformer-medium-hand.name} has a paired gain of
-\V{pair.transformer-medium-hand-double.transformer-medium-hand.gain} on twice the games, which is
-\V{pair.transformer-medium-hand-double.transformer-medium-hand.verdict}, and the trees a gain of
-\V{pair.gbm-hand-double.gbm-hand.gain}, which is
-\V{pair.gbm-hand-double.gbm-hand.verdict}. By the lab's rule the network
-on twice the games is \V{more.transformer-medium-hand.most.kept} and the trees on twice the
-games are \V{more.gbm-hand.most.kept}.
+\paragraph{Larger training sets.}
+The larger sample contains \V{more.gbm-hand.most} the training games, with
+the validation and test sets unchanged. Relative to the same model on the
+standard training set, \run{transformer-medium-hand} has a paired gain of
+\V{pair.transformer-medium-hand-double.transformer-medium-hand.gain} log loss
+on twice the training games
+(\V{pair.transformer-medium-hand-double.transformer-medium-hand.verdict};
+\V{pair.transformer-medium-hand-double.transformer-medium-hand.kept}). For
+GBDT the gain is \V{pair.gbm-hand-double.gbm-hand.gain}
+(\V{pair.gbm-hand-double.gbm-hand.verdict};
+\V{pair.gbm-hand-double.gbm-hand.kept}).
 
-The check bore the reading out: more games pay, and they gave the network
-what twice the epochs had not. What did not go on is the network's lead
-coming with the data. From the doubling the trees' gain is the larger of
-the two, though the two intervals overlap (Table~\ref{tab:games}). The
-network on twice the games scores
-\V{run.transformer-medium-hand-double.score}, level with the tower on
-today's (\V{run.conv-medium-hand.score}), and the best run is still
-\V{best.name}.
-
-On twice the games the network had its best valid epoch at its last,
-\V{run.transformer-medium-hand-double.best-epoch} of
-\V{run.transformer-medium-hand-double.epochs}, where on today's games it
-was \V{run.transformer-medium-hand.best-epoch} of
-\V{run.transformer-medium-hand.epochs}, and the two runs take the same
-number of steps. On half and on a quarter of the games, where it goes
-through each game two and four times as often, its best epoch was
-\V{run.transformer-medium-hand-half.best-epoch} of
-\V{run.transformer-medium-hand-half.epochs} and
-\V{run.transformer-medium-hand-quarter.best-epoch} of
-\V{run.transformer-medium-hand-quarter.epochs}. A reading: part of what the
-network lost on fewer games it lost to going through them too often, so the
-study overstated what more games would give it, and on twice the games it
-was still learning when its schedule ended. The source has no more files to
-read, so what is left to try on these games is more steps. Each run was
-trained once.
+More data helps both model classes. The gain of GBDT is the larger of the
+two, but the intervals of the two gains overlap (Table~\ref{tab:games}), so
+this experiment does not show which model class benefits more. On twice the
+games the transformer remains the better model, with a log loss of
+\V{run.transformer-medium-hand-double.score} compared with
+\V{run.gbm-hand-double.score} for GBDT, and the intervals of the two models'
+gains over the GBDT baseline do not overlap (Table~\ref{tab:leaderboard}).
+\ifchangestart
+Doubling the training data is worth less to the transformer than pretraining
+on the standard training set: the paired gain from pretraining is
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain}, and
+the intervals of the two gains do not overlap (Table~\ref{tab:pairs}).
 \fi
+
+The two transformer models take the same number of optimisation steps. On
+the standard training set the transformer had its best validation log loss
+at epoch \V{run.transformer-medium-hand.best-epoch} of
+\V{run.transformer-medium-hand.epochs}. On twice the games it had it in the
+final epoch, \V{run.transformer-medium-hand-double.best-epoch} of
+\V{run.transformer-medium-hand-double.epochs}, so its validation log loss
+was still decreasing when its schedule ended.
+\ifchangeepochs
+On the standard training set, by contrast, doubling the number of epochs did
+not help this model
+(\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain}).
+\fi
+We hypothesise that with more data the transformer is limited by its number
+of optimisation steps, in which case its gain from the larger training set
+is a lower bound. GBDT was not limited in this way: on twice the games it
+used \V{run.gbm-hand-double.trees} of the \V{method.gbm.rounds} boosting
+rounds it was allowed.
+\fi
+
+\input{../../../papers/feature-groups}
 
 \iffeatures
-\paragraph{Which counts the trees need here.}
-In \V{study.features.gbm-hand.worse.of} the trees are worse beyond the
-noise without the group. What costs most is
-\V{study.features.gbm-hand.most.group}, at
-\V{study.features.gbm-hand.most.gain}: what the move to be found looks
-like says most about whether a player finds it. After it come the line as a
-whole (\V{pair.gbm-hand-no-line.gbm-hand.gain}), the moves on offer
-(\V{pair.gbm-hand-no-mobility.gbm-hand.gain}), loose pieces
-(\V{pair.gbm-hand-no-hanging.gbm-hand.gain}), the opponent's last move
-(\V{pair.gbm-hand-no-setup.gbm-hand.gain}) and material
-(\V{pair.gbm-hand-no-material.gbm-hand.gain}). Without the attackers near the
-kings the trees are \V{pair.gbm-hand-no-kings.gbm-hand.verdict}, and
-without the passed pawns \V{pair.gbm-hand-no-pawns.gbm-hand.verdict}.
+\paragraph{The first move of the solution is the most important group.}
+The ablation was run for the GBDT baseline, which is significantly worse in
+\V{study.features.gbm-hand.worse.of}. The largest loss follows the removal of
+the features that describe the first move of the solution: the piece that
+moves, how far it moves, what it captures, whether its destination square is
+attacked, and whether the move is a check, a promotion, a retreat or a
+sacrifice. Without this group the paired gain is
+\V{pair.gbm-hand-no-first-move.gbm-hand.gain}. The first move is the move
+that the label is about, so this is the group one would expect to matter
+most. The features that describe the solution as a whole are second
+(\V{pair.gbm-hand-no-line.gbm-hand.gain}). The length of the solution belongs
+to this group, but it is a context feature of this task and is not removed
+with it.
+
+Four further groups contribute significantly, and less: the features of the
+mover's options, which are whether the mover is in check and the numbers of
+legal moves, captures and checks
+(\V{pair.gbm-hand-no-mobility.gbm-hand.gain}), the hanging-piece features
+(\V{pair.gbm-hand-no-hanging.gbm-hand.gain}), the single feature that states
+whether the opponent's mistake was a capture
+(\V{pair.gbm-hand-no-setup.gbm-hand.gain}) and the material features
+(\V{pair.gbm-hand-no-material.gbm-hand.gain}). Without the features that
+count attacks near the kings, GBDT is
+\V{pair.gbm-hand-no-kings.gbm-hand.verdict}
+(\V{pair.gbm-hand-no-kings.gbm-hand.gain}), and without the passed-pawn
+features it is \V{pair.gbm-hand-no-pawns.gbm-hand.verdict}
+(\V{pair.gbm-hand-no-pawns.gbm-hand.gain}).
+
+Without the first-move features, GBDT has a log loss of
+\V{run.gbm-hand-no-first-move.score}. This is higher than that of the medium
+transformer without any hand-crafted features
+(\V{run.transformer-medium.score}), which suggests that a network obtains at
+least part of the information in this group from the board and the marked
+squares of the solution.
 \fi
 \fi
 
-\section{A closer look}
-\label{sec:closer}
+\section{Error Analysis}
+\label{sec:error}
 
-\input{../../../papers/closer}
+\input{../../../papers/error-analysis}
 
 \iflook
-\subsection{What the chance is worth at each end}
+\subsection{Puzzle rating}
 
-The app would use the two ends of the ranking for two different messages.
-Table~\ref{tab:ranking-top} takes a share of the test rows from the highest
-stated chances down. Of the tenth the best run calls most likely to be
-found, \V{best.top.10.rate}\% were found, and of the top hundredth
-\V{best.top.1.rate}\%. A player who misses one of those has missed what
-players nearly always play. That is a lapse, and the review can say so.
-
-\begin{table}[htbp]\centering\small
-\block{ranking-top}
-\caption{The top of each run's ranking. For a share of the test rows taken
-from the highest stated chances: the share of them in which the tactic was
-found (\emph{rate}), the share of all found tactics that fall among them
-(\emph{of all}), and the rate against the base rate (\emph{lift}).}
-\label{tab:ranking-top}
-\end{table}
-
-Table~\ref{tab:ranking-bottom} reads the ranking from the other end. Of the
-tenth the best run calls least likely to be found, \V{best.bottom.10.rate}\%
-were missed, and that tenth holds \V{best.bottom.10.recall}\% of all the
-misses. Of the bottom hundredth \V{best.bottom.1.rate}\% were missed. A
-player who misses one of those is in the company of most players of the
-same rating, and a drill on it is not the first thing a coach would set.
-
-\begin{table}[htbp]\centering\small
-\block{ranking-bottom}
-\caption{The bottom of each run's ranking. For a share of the test rows
-taken from the lowest stated chances: the share of them in which the tactic
-was missed, the share of all misses that fall among them, and that rate
-against the rate of missing over every test row.}
-\label{tab:ranking-bottom}
-\end{table}
-
-\subsection{By the puzzle's rating}
-
-No learner but the yardstick reads the puzzle's rating, so this cut asks how
-much of the crowd's verdict the others worked out from the board
-(Table~\ref{tab:puzzle-rating}). The rate of finding falls from
-\V{slice.puzzle-rating.-1000.happened} for puzzles rated under 1000 to
-\V{slice.puzzle-rating.2200+.happened} for those rated 2200 and over.
-
-That fall is the first thing to read, because it is so much shallower than
-the ratings promise. The movers here are rated \V{describe.mover-elo.q50} at
-the median. By the rating formula such a player would seldom solve a puzzle
-rated 2200 or more, and would hardly ever fail one rated under 1000. In
-their games nearly half found the first kind and about one in six missed
-the second.
-Both gaps have plain causes. The label asks for the first move only, and a
-first move is sometimes played for another reason. And in a game nobody is
-told to look, so a tactic a solver would find in seconds goes by.
+The puzzle's rating is not an input of the trained models. The results by
+puzzle rating therefore show how much of the difficulty of a tactic the
+models infer from the position and the solution. Table~\ref{tab:puzzle-rating}
+gives these results, and Figure~\ref{fig:puzzle-rating} compares the observed
+share of tactics found in each group with the mean predictions of the two
+models.
 
 \begin{table}[htbp]\centering\footnotesize
 \block{slice-puzzle-rating}
-\caption{The test rows by the puzzle's own rating, which no learner but
-\run{puzzle-rating} reads. For each group: its test rows, the share in which
-the tactic was found, what each of the two runs said on average and its log
-loss there, and the first run's paired gain over the second.}
+\caption{Test-set results by the puzzle's rating. For each group: the number
+of test positions, the observed share of tactics found, the mean predicted
+probability and log loss of each of the two models, and the paired gain of
+the first model over the second.}
 \label{tab:puzzle-rating}
 \end{table}
 
-The second thing to read is where the learners lose the thread
-(Figure~\ref{fig:puzzle-rating}). Both follow the fall most of the way and
-flatten out at the hard end: for puzzles rated 2200 and over
-\V{challenger.name} says \V{slice.puzzle-rating.2200+.challenger.said}
-against \V{slice.puzzle-rating.2200+.happened} that happened,
-\V{slice.puzzle-rating.challenger.widest-off} points off, and the reference
-is off by \V{slice.puzzle-rating.reference.widest-off}. For the easiest
-puzzles both say a few points too little. So the crowd's rating scores badly
-as a model by itself and still knows something these learners do not: which
-of the tactics that look alike on a count are the ones nobody sees. The
-lab's puzzle model predicts that rating from the position and the line with
-no crowd, and a body trained on it first is the run this table asks for.
-
 \begin{figure}[htbp]\centering
 \block{slice-puzzle-rating-said}
-\caption{The share of tactics found by the puzzle's own rating, beside what
-the two runs said on average.}
+\caption{Observed share of tactics found and mean predicted probability of
+the two models compared, by the puzzle's rating.}
 \label{fig:puzzle-rating}
 \end{figure}
 
-\subsection{By what the tactic asks}
+The share found falls with every group, from
+\V{slice.puzzle-rating.-1000.happened} for puzzles rated below 1000 to
+\V{slice.puzzle-rating.2200+.happened} for puzzles rated 2200 and above. Both
+models follow this trend and underestimate its size. For the easiest group,
+the mean predicted probability of \V{challenger.name} minus the observed
+share is \V{slice.puzzle-rating.-1000.challenger.off} percentage points, and
+for the hardest group it is \V{slice.puzzle-rating.2200+.challenger.off}
+points. For the GBDT baseline the differences are
+\V{slice.puzzle-rating.-1000.reference.off} and
+\V{slice.puzzle-rating.2200+.reference.off}. The models thus overestimate
+how often the hardest tactics are found. Among the one-way subgroups of this
+section, only those by the time spent on the move show deviations of similar
+size (Section~\ref{sec:time}).
 
-The tactic's own shape moves the rate of finding more than anything about
-the player. The numbers in this subsection depend only on the games, not on
-any model.
+\V{challenger.name} is significantly better than the GBDT baseline in
+\V{slice.puzzle-rating.ahead.of}, and its gain is largest for the group
+\V{slice.puzzle-rating.gain.most.group}
+(\V{slice.puzzle-rating.gain.most}). It does not remove the deviation,
+however. The puzzle's rating therefore carries information about the
+difficulty of a tactic that neither model extracts from the position and the
+solution. The application does not have this rating for a tactic in a user's
+game, but it could have an estimate of it: a companion task of this
+repository predicts the rating of a puzzle from its position and solution.
+Whether such an estimate reduces the deviation has not been tested.
 
+\subsection{Properties of the solution}
+
+Several properties of a solution are related to how often it is found. The
+shares below depend only on the data and not on any model.
 \begin{itemize}
-\item \textbf{Giving something up is the hard part.} A first move that
-leaves the piece to be taken was found \V{slice.sacrifice.yes.happened} of
-the time, against \V{slice.sacrifice.no.happened} for one that does not.
-No other yes-or-no fact about a tactic splits the rate as far.
-\item \textbf{Checks and captures are seen.} A first move that gives check
-was found \V{slice.check.yes.happened} of the time against
-\V{slice.check.no.happened}, and one that takes something
-\V{slice.capture.yes.happened} against \V{slice.capture.no.happened}.
-\item \textbf{A mate is found more often than a win of material.} Tactics
-that end in mate were found \V{slice.mate.yes.happened} of the time, against
-\V{slice.mate.no.happened} for the rest.
-\item \textbf{One move is easy, and after three the length stops
-mattering.} A tactic of one move was found \V{slice.moves.1.happened} of the
-time, one of two moves \V{slice.moves.2.happened}, one of three
-\V{slice.moves.3.happened}, and one of five or more
-\V{slice.moves.5+.happened}. The label is the first move, so a long line
-costs only what it costs to see that the first move works.
-\item \textbf{A quiet move costs once.} With no move that neither takes nor
-checks, the rate is \V{slice.quiet.0.happened}; with one it is
-\V{slice.quiet.1.happened}, and a second changes little
-(\V{slice.quiet.2.happened}).
-\item \textbf{Going backward costs nothing here.} A first move toward the
-mover's own side was found \V{slice.backward.yes.happened} of the time,
-against \V{slice.backward.no.happened}. In puzzle ratings a backward first
-move is a harder puzzle. In games it made no difference.
+\item \textbf{Sacrifices are missed most often.} We call a first move a
+sacrifice when the moved piece can be captured on its destination square, by
+a less valuable piece or without being defended, and has captured less than
+its own value (the feature \code{first\_sacrifice} of Table~\ref{tab:hand}).
+The tactic is found in \V{slice.sacrifice.yes.happened} of the positions with
+such a first move, compared with \V{slice.sacrifice.no.happened} of the
+others. Such first moves occur in \V{slice.sacrifice.yes.share}\% of the test
+positions.
+\item \textbf{Checks and captures are found more often.} The share found is
+\V{slice.check.yes.happened} when the first move gives check and
+\V{slice.check.no.happened} when it does not, and
+\V{slice.capture.yes.happened} when the first move is a capture, compared
+with \V{slice.capture.no.happened}.
+\item \textbf{A retreat makes almost no difference.} The share found is
+\V{slice.backward.yes.happened} when the first move goes backward and
+\V{slice.backward.no.happened} when it does not.
+\item \textbf{The piece that moves first.} Solutions that begin with a king
+move are found most often (\V{slice.first-piece.king.happened}) and those
+that begin with a pawn move least often
+(\V{slice.first-piece.pawn.happened}).
+\item \textbf{Longer solutions are found less often.} The share found is
+\V{slice.moves.1.happened} for solutions of one move,
+\V{slice.moves.2.happened} for two moves, \V{slice.moves.3.happened} for
+three and \V{slice.moves.5+.happened} for five or more. The label concerns
+only the first move. A plausible explanation of the trend is that the first
+move of a long solution is justified only by what follows, so the mover has
+to calculate further before playing it.
+\item \textbf{Quiet moves are found less often.} The share found is
+\V{slice.quiet.0.happened} when every move of the solver is a capture or a
+check, and \V{slice.quiet.1.happened} when the solution contains one quiet
+move.
+\item \textbf{Mates are found more often.} The share found is
+\V{slice.mate.yes.happened} when the solution ends in mate and
+\V{slice.mate.no.happened} when it does not.
 \end{itemize}
+The theme tags that Lichess assigns to its puzzles give the same picture
+(Table~\ref{tab:slice-themes} in the appendix). The share found is lowest for
+the themes \code{sacrifice} (\V{slice.themes.sacrifice.happened}) and
+\code{attraction} (\V{slice.themes.attraction.happened}), and highest for
+\code{mateIn1} (\V{slice.themes.mateIn1.happened}), \code{oneMove}
+(\V{slice.themes.oneMove.happened}), \code{backRankMate}
+(\V{slice.themes.backRankMate.happened}) and \code{hangingPiece}
+(\V{slice.themes.hangingPiece.happened}).
 
-Lichess's themes say the same in its own words
-(Table~\ref{tab:slice-themes}). Of the thirty commonest, the one found most
-often is \texttt{\V{slice.themes.happened.most.group}}, at
-\V{slice.themes.happened.most}, and the one found least often is
-\texttt{\V{slice.themes.happened.least.group}}, at
-\V{slice.themes.happened.least}. The network's gain over the trees by theme
-is in Figure~\ref{fig:themes}: it is ahead beyond the noise in
-\V{slice.themes.ahead} of \V{slice.themes.compared} themes and behind in
-\V{slice.themes.behind}, with its largest gain for
-\texttt{\V{slice.themes.gain.most.group}}.
+With respect to these properties and themes both models are much better
+calibrated than with respect to the puzzle's rating. Among the groups listed
+above, the largest deviation of \V{challenger.name} from the observed share
+is \V{slice.first-piece.challenger.widest-off} percentage points, for
+solutions that begin with a \V{slice.first-piece.challenger.widest-off.group}
+move, and that of the GBDT baseline is \V{slice.themes.reference.widest-off}
+points, for the theme \code{\V{slice.themes.reference.widest-off.group}} (the
+appendix has a table for each property). The properties, unlike the themes,
+are inputs of both models as hand-crafted features, so for them this is
+expected.
+
+The gain of \V{challenger.name} over the GBDT baseline is not uniform
+(Figure~\ref{fig:themes}). By theme it is significant in
+\V{slice.themes.ahead.of} and largest for the theme \code{quietMove}
+(\V{slice.themes.quietMove.gain}). By the number of quiet moves in the
+solution it rises from \V{slice.quiet.0.gain} with none to
+\V{slice.quiet.2.gain} with two. When the first move gives check the gain is
+\V{slice.check.yes.gain} (95\% CI \V{slice.check.yes.gain.low} to
+\V{slice.check.yes.gain.high}), and when it does not, the gain is
+\V{slice.check.no.gain} (\V{slice.check.no.gain.low} to
+\V{slice.check.no.gain.high}). For solutions of one move the gain is
+\V{slice.moves.1.gain} and not significant. The network's advantage is thus
+smallest for short and forcing solutions and largest for solutions with
+quiet moves. A plausible explanation is that the hand-crafted features
+describe forcing moves almost completely, whereas the value of a quiet move
+depends on the rest of the position, which only a network reads.
 
 \begin{figure}[htbp]\centering
 \block{slice-themes-gain}
-\caption{The paired gain in log loss of the best run that is not the
-reference over the reference, for the thirty most common themes. A tactic
-carries several themes and is counted under each. A theme whose interval
-crosses the line says nothing either way.}
+\caption{Paired gain in log loss of \V{challenger.name} over the GBDT
+baseline by theme, with 95\% CIs. A puzzle can have several themes.}
 \label{fig:themes}
 \end{figure}
 
-For the app this list is a syllabus drawn from games instead of from puzzle
-books. What players of this strength miss at the board is the move that
-gives something up and the quiet move, and what they do not miss is the mate
-in one and the piece left hanging.
+\subsection{Clock and time spent}
+\label{sec:time}
 
-\subsection{By the clock}
-
-This dataset has blitz games in it, so unlike the lab's rapid-only datasets
-it has positions with almost no time left: \V{slice.clock.-10.rows} test
-rows with under ten seconds and \V{slice.clock.10-30.rows} with ten to
-thirty (Table~\ref{tab:clock}). With under ten seconds the tactic was found
-\V{slice.clock.-10.happened} of the time, and with ten to thirty
-\V{slice.clock.10-30.happened}. From half a minute to ten minutes the rate
-hardly moves (\V{slice.clock.30-60.happened} to
-\V{slice.clock.180-600.happened}), and with more than ten minutes it is
-\V{slice.clock.600+.happened}.
+Table~\ref{tab:clock} gives the results by the time remaining on the mover's
+clock. With 30 seconds or more, the share of tactics found varies by a few
+percentage points: it is \V{slice.clock.30-60.happened} with 30 to 60 seconds,
+\V{slice.clock.60-180.happened} with one to three minutes,
+\V{slice.clock.180-600.happened} with three to ten minutes and
+\V{slice.clock.600+.happened} with ten minutes or more. Below 30 seconds it
+falls, to \V{slice.clock.10-30.happened} with 10 to 30 seconds and
+\V{slice.clock.-10.happened} with less than ten. In this dataset, time
+pressure thus reduces the share of tactics found only in the last half
+minute. The two groups below 30 seconds contain \V{slice.clock.-10.share}\%
+and \V{slice.clock.10-30.share}\% of the test positions. The comparison is
+not controlled for the other differences between these positions, such as the
+time control and the stage of the game. The fall below 30 seconds nevertheless appears at every
+level of the puzzle's rating (Figure~\ref{fig:grid-clock} in the appendix).
 
 \begin{table}[htbp]\centering\footnotesize
 \block{slice-clock}
-\caption{The test rows by the seconds on the mover's clock.}
+\caption{Test-set results by the time remaining on the mover's clock, in
+seconds.}
 \label{tab:clock}
 \end{table}
 
-So time trouble is real and narrow. It bites in the last half minute, and
-above that a player's clock tells little about whether the tactic is seen.
-The whole range, from the last ten seconds to more than ten minutes, is
-smaller than the gap between a first move that gives something up and one
-that does not. Both runs follow the rate group by group: at its furthest
-\V{challenger.name} is \V{slice.clock.challenger.widest-off} points from
-what happened. By the speed of the game the rate is
-\V{slice.speed.blitz.happened} in blitz, \V{slice.speed.rapid.happened} in
-rapid and \V{slice.speed.classical.happened} in classical
-(Table~\ref{tab:slice-speed}).
+The best model is less well calibrated with respect to the clock than the
+GBDT baseline. With less than ten seconds on the clock, the mean predicted
+probability of \V{challenger.name} minus the observed share is
+\V{slice.clock.-10.challenger.off} percentage points, and with 10 to 30
+seconds it is \V{slice.clock.10-30.challenger.off}. For the GBDT baseline the
+differences are \V{slice.clock.-10.reference.off} and
+\V{slice.clock.10-30.reference.off}. \V{challenger.name} is significantly
+better than the GBDT baseline in \V{slice.clock.ahead.of}
+(\V{slice.clock.ahead.groups}), and with less than ten seconds its gain is
+\V{slice.clock.-10.gain} and not significant. The results by game speed show
+the same pattern (Table~\ref{tab:slice-speed} in the appendix). The share
+found is \V{slice.speed.blitz.happened} in blitz games,
+\V{slice.speed.rapid.happened} in rapid games and
+\V{slice.speed.classical.happened} in classical games, and the deviations of
+\V{challenger.name} are \V{slice.speed.blitz.challenger.off} points for blitz
+and \V{slice.speed.classical.challenger.off} points for classical games. The
+network's predictions thus depend less on the time available than the
+observed shares do. We have not identified the cause.
 
-\subsection{By the seconds the move took}
-
-No learner reads how long the move took, since it is known only afterwards.
-Table~\ref{tab:seconds} shows what it would have told them. A tactic that is
-found is found fast: the rate is \V{slice.seconds.-2.happened} for moves
-made in under two seconds and \V{slice.seconds.2-5.happened} for two to
-five, and it falls with every step after that, to
-\V{slice.seconds.40+.happened} for moves that took forty seconds or more.
+The time spent on the move is known only after the move and is not an input.
+Table~\ref{tab:seconds} and Figure~\ref{fig:seconds} show that it is strongly
+related to the outcome. The share found is \V{slice.seconds.-2.happened} for
+moves played in less than two seconds and \V{slice.seconds.2-5.happened} for moves
+that took two to five seconds. It then falls with every group, to
+\V{slice.seconds.40+.happened} for moves that took 40 seconds or more.
+Tactics are thus found more often on moves that are played quickly, and after
+a long think the mover has more often chosen another move.
 
 \begin{table}[htbp]\centering\footnotesize
 \block{slice-seconds}
-\caption{The test rows by the seconds the move took, which no learner
-reads.}
+\caption{Test-set results by the time spent on the move, in seconds. The
+time spent is known only after the move and is not an input of any model.}
 \label{tab:seconds}
 \end{table}
 
-Both runs miss this from the same side. For the longest thinks
-\V{challenger.name} says \V{slice.seconds.40+.challenger.said} against
-\V{slice.seconds.40+.happened} that happened, and the reference is off by
-\V{slice.seconds.reference.widest-off} points in the same group. A long
-think over a position with a tactic in it is a sign that the player has not
-seen it. The lab's blunder model shows
-the same thing from its side: the moves that took longest are the ones it
-calls too safe.
+\begin{figure}[htbp]\centering
+\block{slice-seconds-said}
+\caption{Observed share of tactics found and mean predicted probability of
+the two models compared, by the time spent on the move.}
+\label{fig:seconds}
+\end{figure}
 
-In a review the time is known, and it changes what a miss means. A tactic
-missed in two seconds was not looked for. One missed after a minute was
-looked for and not found. Those are two different lessons, and a model that
-reads the time, for use after the game only, would tell them apart.
+Both models reproduce this relation only in part. For moves that took 40
+seconds or more, the mean predicted probability of \V{challenger.name} minus
+the observed share is \V{slice.seconds.40+.challenger.off} percentage points,
+and for moves that took two to five seconds it is
+\V{slice.seconds.2-5.challenger.off}. For the GBDT baseline the differences
+are \V{slice.seconds.40+.reference.off} and
+\V{slice.seconds.2-5.reference.off}. The time spent on a move is thus
+informative about the outcome beyond what either model predicts from its
+inputs. A companion task of this repository predicts
+this time from a position, and a model trained on both targets is a natural
+experiment.
 
-\subsection{By how the mover stood before the mistake}
+\subsection{Rating of the mover and of the puzzle}
 
-Table~\ref{tab:slice-prior} cuts the rows by the mover's winning chances
-before the opponent went wrong. Where the mover was already winning, the
-tactic was nearly always played: \V{slice.prior.90+.happened} of the time
-at 90\% and over. Everywhere below 70\% the rate is between
-\V{slice.prior.30-50.happened} and \V{slice.prior.-10.happened}. The tables
-do not say why the top group stands apart. A tactic that finishes a game
-already won may simply be a plainer one.
-
-\subsection{Two things at once}
-
-Figure~\ref{fig:grid-ratings} crosses the mover's rating with the puzzle's.
-The upper grid is the share of tactics found and the lower one what the run
-said.
+By band of the mover's rating, the share of tactics found rises from
+\V{slice.band.-1700.happened} for movers rated below 1700 to
+\V{slice.band.2100-2299.happened} for movers rated 2100 to 2299. The mean
+predictions of \V{challenger.name} and of the GBDT baseline are within
+\V{slice.band.challenger.widest-off} and \V{slice.band.reference.widest-off}
+percentage points of the observed share in every band
+(Table~\ref{tab:slice-band} in the appendix). The difference between the
+bands is small beside the difference between easy and hard puzzles.
+Figure~\ref{fig:grid-ratings} shows both variables together.
 
 \begin{figure}[htbp]\centering
 \block{grid-ratings}
 
 \medskip
 \block{grid-ratings-said}
-\caption{The share of tactics found, in percent, by the mover's rating and
-the puzzle's own rating. Above: what happened. Below: what the best run that
-is not the reference said. Both grids share one scale of colour, and a cell
-with too few test rows is left empty.}
+\caption{Share of tactics found in percent by the mover's rating and the
+puzzle's rating. Top: observed shares. Bottom: mean predictions of the best
+model other than the GBDT baseline. Both panels use the same colour scale.}
 \label{fig:grid-ratings}
 \end{figure}
 
-Read along a row, the grid falls steeply: the puzzle's rating matters at
-every level of player. Read down a column, it hardly moves at the easy end.
-Puzzles rated under 1000 were found \V{grid.ratings.-1700.-1000.happened} of
-the time by movers under 1700 and \V{grid.ratings.2300+.-1000.happened} by
-movers at 2300 and over. The mover's rating shows where the tactic is hard
-and not hopeless: puzzles rated 1800 to 2200 were found
-\V{grid.ratings.-1700.1800-2200.happened} of the time by the first and
-\V{grid.ratings.2300+.1800-2200.happened} by the second. The lower grid has
-that pattern, and is too flat in the last column, which is the miss of the
-previous subsection seen band by band.
+Within every band of the mover's rating, the share found falls steeply from
+the easiest to the hardest puzzles, for example from
+\V{grid.ratings.-1700.-1000.happened} to
+\V{grid.ratings.-1700.2200+.happened} for movers rated below 1700 and from
+\V{grid.ratings.2300+.-1000.happened} to
+\V{grid.ratings.2300+.2200+.happened} for movers rated 2300 and above. Within
+a column, it rises with the mover's rating by much less. For puzzles rated
+1800 to 2200 it rises from \V{grid.ratings.-1700.1800-2200.happened} to
+\V{grid.ratings.2300+.1800-2200.happened}, and for puzzles rated below 1000
+it is no higher for the strongest movers than for the weakest. The share
+found is therefore not a function of the difference between the two ratings
+alone, as the Elo formula assumes, which is one reason for the poor fit of
+the rating-based baseline (Section~\ref{sec:rating-baseline}).
 
-\begin{figure}[htbp]\centering
-\block{grid-clock-rating}
+The model reproduces the pattern and compresses it along the puzzle's
+rating. Its mean prediction is above the observed share in every cell of the
+two hardest columns, and below it in every cell of the two columns from 1000
+to 1800. For the hardest puzzles the observed share hardly rises with the
+mover's rating, from \V{grid.ratings.-1700.2200+.happened} to
+\V{grid.ratings.2300+.2200+.happened}, whereas the prediction rises from
+\V{grid.ratings.-1700.2200+.said} to \V{grid.ratings.2300+.2200+.said}. The
+largest deviation in a cell is
+\V{grid.ratings.transformer-medium-hand-pretrained.widest-off} percentage
+points, for movers rated
+\V{grid.ratings.transformer-medium-hand-pretrained.widest-off.row} and
+puzzles rated
+\V{grid.ratings.transformer-medium-hand-pretrained.widest-off.column},
+compared with \V{grid.ratings.gbm-hand.widest-off} for the GBDT baseline. The
+rating-based baseline, which receives the puzzle's rating, deviates by up to
+\V{grid.ratings.puzzle-rating.widest-off} points, in the same cell.
 
-\medskip
-\block{grid-clock-rating-said}
-\caption{The share of tactics found, in percent, by the seconds on the
-mover's clock and the puzzle's own rating. Above: what happened. Below: what
-the run said.}
-\label{fig:grid-clock}
-\end{figure}
+\subsection{Win probability before the mistake}
 
-Figure~\ref{fig:grid-clock} crosses the clock with the puzzle's rating. With
-under half a minute left the easiest puzzles were still found
-\V{grid.clock-rating.-30.-1000.happened} of the time, against
-\V{grid.clock-rating.600+.-1000.happened} with more than ten minutes. The
-hardest fell from \V{grid.clock-rating.600+.2200+.happened} to
-\V{grid.clock-rating.-30.2200+.happened}.
+The mover's win probability before the opponent's mistake is an input. The
+mean predictions of \V{challenger.name} and of the GBDT baseline are within
+\V{slice.prior.challenger.widest-off} and
+\V{slice.prior.reference.widest-off} percentage points of the observed share
+in every group (Table~\ref{tab:slice-prior} in the appendix). The share of tactics found is
+highest when the mover was already winning before the opponent's move:
+\V{slice.prior.90+.happened} at a win probability of 90\% or more, a group
+that contains \V{slice.prior.90+.share}\% of the test positions. It is lowest
+at win probabilities between 30\% and 50\% (\V{slice.prior.30-50.happened})
+and between 10\% and 30\% (\V{slice.prior.10-30.happened}).
+\V{challenger.name} is significantly better than the GBDT baseline in
+\V{slice.prior.ahead.of} (\V{slice.prior.ahead.groups}).
 
-\subsection{Beside the reference}
+\subsection{Agreement with the GBDT baseline}
 
-Table~\ref{tab:beside} sets each run's stated chances beside the reference's
-on the same test rows. The best run's correlation with the reference is
-\V{best.beside.correlation}, and it is the closer of the two to what
-happened on \V{best.beside.closer}\% of the rows. The two mostly agree, and
-where they do not there is room for a blend that nobody has trained.
+Two models with similar scores can still disagree on individual positions, in
+which case an average of their predictions may be more accurate than either.
+Table~\ref{tab:beside} gives, for each model, the correlation of its
+predicted probabilities with those of the GBDT baseline. For the best model
+the correlation is \V{best.beside.correlation}. The two models therefore
+disagree on many individual positions, which suggests that an ensemble of the
+two could improve on both. We have not trained one. The table also gives the
+share of test positions on which a model's prediction is closer to the
+outcome than the baseline's, which is \V{best.beside.closer}\% for the best
+model.
 
 \begin{table}[htbp]\centering\small
 \block{beside}
-\caption{Each run's stated chances beside the reference's on the same test
-rows: their correlation, and how often the run is the closer of the two to
-what happened.}
+\caption{Agreement with the GBDT baseline on the test set: the correlation
+between the two models' predicted probabilities, and the share of positions
+on which the model's prediction is closer to the outcome than the
+baseline's.}
 \label{tab:beside}
 \end{table}
 
-\section{Positions}
+\subsection{Example positions}
 \label{sec:positions}
 
-The positions below were chosen by rule from the test rows. Each board is
-seen from the side to move. The grey arrow is the opponent's mistake and the
-blue arrow is the first move of the tactic. Beside each board are the line,
-the move that was played, whether the tactic was found, what the best run
-and the reference said, and the puzzle's id, by which it can be opened on
-Lichess.
+The following examples were selected from the test set by the fixed rules
+described above. Each board is shown from the mover's side. The grey arrow is
+the opponent's preceding move, the blue arrow is the first move of the
+solution, and an orange arrow is the move that was played where it differs
+from the solution.
+Next to each board we give the opponent's move, the solution, the move that
+was played, whether the tactic was found, the probabilities that the best
+model and the GBDT baseline predicted, and the context of the position. The
+context includes the puzzle's rating, its themes and the time spent on the
+move, which the models of the fixed sequence do not receive. The positions
+are Lichess puzzles and are identified by their puzzle identifiers.
 
-The surprises are the instructive ones. Figure~\ref{fig:surprised-no} holds
-the tactics the model was surest would be found and that were missed, and
-Figure~\ref{fig:surprised-yes} the ones it thought least likely and that
-were found. The tactics it is surest of at each end are in the appendix
+Figure~\ref{fig:typical} shows three typical positions. The tactic was found
+in all three. The predictions of the two models lie between 62\% and 81\%,
+and in each position they differ from each other by ten percentage points or
+more, which illustrates the disagreement between the two models described
+above.
+
+The largest errors of a probabilistic model are of two kinds:
+Figure~\ref{fig:surprised-no} shows the positions with the highest predicted
+probability in which the tactic was missed, and
+Figure~\ref{fig:surprised-yes} shows those with the lowest predicted
+probability in which it was found. Neither kind is necessarily a mistake of
+the model. A predicted probability of 99\% is correct if one such tactic in a
+hundred is missed, and these examples are the misses.
+
+In the three positions of Figure~\ref{fig:surprised-no} the solution is a
+mate in one or two moves, and both models predicted a probability above
+98\%. In each of them the mover played another move in four seconds or less.
+A model of the position cannot foresee such a lapse, and predictions of this
+size are not wrong on account of it: among the 1\% of test positions with the
+highest predictions, \V{best.top.1.rate}\% of the tactics were found. In the
+three positions of Figure~\ref{fig:surprised-yes} the solution has three
+moves and begins with a sacrifice, in which the piece that moves first is
+captured at once, and the puzzles are rated between 1996 and 2604. The best
+model predicted probabilities between 5\% and 7\%, less than half of those
+of the GBDT baseline, and the tactic was found each time. The positions with
+the highest and the lowest predictions overall are shown in the appendix
 (Figures~\ref{fig:highest} and~\ref{fig:lowest}).
 
-\examples{examples-typical}{Ordinary rows: the first \V{examples.count} test
-rows in the order of a hash of their key, so nothing about them picked
-them.}{fig:typical}
+\examples{examples-typical}{Typical positions: the first \V{examples.count}
+test positions in the order of a hash of their key.}{fig:typical}
 
-\examples{examples-surprised-no}{Called likely, and missed: the test rows
-with the highest stated chance among the tactics that were not
-found.}{fig:surprised-no}
+\examples{examples-surprised-no}{High predicted probability and a missed
+tactic: the test positions with the highest predictions of the best model
+among those in which the tactic was missed.}{fig:surprised-no}
 
-\examples{examples-surprised-yes}{Called unlikely, and found: the test rows
-with the lowest stated chance among the tactics that were
-found.}{fig:surprised-yes}
+\examples{examples-surprised-yes}{Low predicted probability and a tactic
+that was found: the test positions with the lowest predictions of the best
+model among those in which the tactic was found.}{fig:surprised-yes}
 \fi
 
-\section{What the app can use today}
+\section{Practical Use}
 \label{sec:use}
 
 \begin{itemize}
-\item \textbf{A chance that means what it says, for the players it has
-seen.} After calibration no group is further than
-\V{best.calibration.widest-gap} points from the rate that happened, across a
-range from \V{best.calibration.lowest}\% to \V{best.calibration.highest}\%.
-That holds for Lichess players of the ratings in this data, which start
-near 1500.
+\item \textbf{The prediction can be shown as a probability.} After
+calibration, the mean predicted probability of the best model is within
+\V{best.calibration.widest-gap} percentage points of the observed share of
+tactics found in every bin, so for Lichess games like those of the dataset
+the number means what it says on average.\iflook{} The exception is the
+hardest tactics: for puzzles rated 2200 and above the mean prediction is
+\V{slice.puzzle-rating.challenger.widest-off} points above the observed
+share.\fi
 \iflook
-\item \textbf{A lapse or a hard one.} After a missed tactic the chance says
-which it was. In the tenth of tactics the model calls likeliest,
-\V{best.top.10.rate}\% were found, so a miss there is a lapse. In the tenth
-it calls least likely, \V{best.bottom.10.rate}\% were missed, so a miss
-there is the usual thing.
-\item \textbf{What to drill.} The misses of real games have a shape: the
-first move that gives something up, the quiet move, the long line. The
-tactics nearly everyone finds are the mate in one and the piece left
-hanging. A drill set weighted that way trains what games ask for.
-\item \textbf{Time trouble starts late.} The rate of finding holds up until
-the last half minute, so a missed tactic with a minute left is not excused
-by the clock.
+\item \textbf{Distinguishing a lapse from a tactic beyond the player's
+level.} Among the 10\% of test positions with the highest predictions,
+\V{best.top.10.rate}\% of the tactics were found, so a miss there is a
+lapse. Among the 10\% with the lowest predictions, \V{best.bottom.10.rate}\%
+were missed, so a miss there is what usually happens at that level.
+\item \textbf{Choosing what to practise.} The tactics that players miss most
+often in their games begin with a sacrifice
+(\V{slice.sacrifice.yes.happened} found), contain quiet moves or have long
+solutions. Mates in one, back-rank mates and hanging pieces are among the
+tactics found most often (\V{slice.themes.mateIn1.happened},
+\V{slice.themes.backRankMate.happened} and
+\V{slice.themes.hangingPiece.happened}).
+\item \textbf{Time pressure matters late.} The share of tactics found
+changes little down to 30 seconds on the clock and falls below that. The
+best model overestimates the share for these positions: with less than ten
+seconds its mean prediction is \V{slice.clock.challenger.widest-off} points
+above the observed share.
+\item \textbf{The puzzle's rating is not a substitute.} The Elo formula
+applied to the mover's rating and the puzzle's rating has a log loss of
+\V{run.puzzle-rating.score}, compared with \V{reference.score} for the GBDT
+baseline, which does not use the puzzle's rating.
 \fi
-\item \textbf{The trees first.} \V{task.reference} reaches
-\V{reference.score} against the best run's \V{best.score}, and it is a file
-of trees that needs no GPU.
-\item \textbf{Not the puzzle's rating.} Where a tactic does have a crowd
-rating, the rating formula is the wrong way to turn it into a chance for a
-game: it is about five times too steep.
+\item \textbf{GBDT provides most of the accuracy.} The GBDT baseline has a
+log loss of \V{reference.score}, compared with \V{best.score} for the best
+model and \V{floor.score} for the constant baseline, and needs no GPU. Where
+the application has to run the model itself, GBDT is the natural starting
+point.
 \end{itemize}
 
-\section{What the model does not say yet}
+\section{Limitations}
 \label{sec:limits}
 
 \begin{itemize}
-\item \textbf{Players under 1500.} Almost every game a puzzle was cut from
-is between players rated 1500 or more on Lichess. The model has seen nobody
-below that, so its chance for a lower-rated player is a guess past the edge
-of its data, and it needs a check on the player's own games before the app
-states it.
-\item \textbf{Only the first move.} A player who plays the first move for
-another reason counts as having found the tactic. Finding the whole line is
-a stricter label, which a game answers only while the opponent follows the
-puzzle's replies.
-\item \textbf{The hardest tactics are overrated.} For puzzles rated 2200 and
-over the stated chance is about ten points too high. The model does not yet
-tell the tactics nobody sees from the ones that merely look demanding.
-\item \textbf{Tactics that work.} Every row is a tactic that was there.
-Positions where a tempting sacrifice fails are not in this data, so the
-model says nothing about false alarms.
-\item \textbf{Analysed games.} Lichess makes puzzles from games that were
-analysed, and players choose which games to analyse.
-\item \textbf{The model is shown the line.} In the app the line comes from
-the engine. Lichess's puzzle lines follow the best defence, which the
-engine's line also does.
+\item \textbf{The solution is an input.} The models are told the tactic. In
+the application the solution would come from an engine, and a line that an
+engine finds in an arbitrary game need not resemble the solutions of
+published puzzles.
+\item \textbf{Only the first move is labelled.} A mover who plays the first
+move without having seen the rest is counted as having found the tactic, and
+a mover who plays another move that keeps the advantage is counted as having
+missed it.
+\item \textbf{Only tactics that work.} Every position of the dataset is a
+published puzzle, so its tactic works. The models say nothing about positions in which a tempting
+sacrifice fails, and such false alarms are part of what a player has to
+judge in a game.
+\item \textbf{The positions are a selected sample.} They are positions that
+Lichess published as puzzles and whose puzzles have an established rating.
+They are not a random sample of the tactics that occur in games.
+\iflook
+\item \textbf{Few weaker players.} Only 5\% of the movers are rated below
+\V{describe.mover-elo.q5}, so the results say little about weaker players.
+\item \textbf{The hardest tactics are overestimated.} For puzzles rated 2200
+and above, the mean prediction is
+\V{slice.puzzle-rating.challenger.widest-off} percentage points above the
+observed share.
+\fi
+\item \textbf{No bullet games.} Bullet games are excluded, so the models say
+nothing about the fastest games.
+\item \textbf{A single position without history.} The models do not see the
+moves before the opponent's mistake or how the players used their clocks
+before the position.
+\item \textbf{No comparison with a move-prediction model.} The probability
+that a model of human moves~\cite{maia2} assigns to the first move of the
+solution is a natural alternative that we have not evaluated.
+\item \textbf{Single training runs.} Each network was trained with one
+random seed. The confidence intervals reflect the sampling of test games and
+not the variation between training runs.
 \end{itemize}
 
-\section{Cost and how to draw this again}
+\section{Reproducibility}
 \label{sec:cost}
 
-The \V{runs.count} runs took \V{cost.seconds} in all: \V{cost.seconds.networks}
-for the networks, each trained on a rented GPU, and
-\V{cost.seconds.others} for the floor, the yardstick and the trees. The best
-run has \V{best.parameters} parameters and trained for \V{best.epochs.run}
-epochs in \V{best.seconds} on an \V{best.device}, at about
-\V{best.rows-a-second} rows a second. Table~\ref{tab:runs} has every
-run's processor and time, and Table~\ref{tab:settings} the ladder networks'
-settings.
+Training the \V{runs.count} models on the leaderboard took \V{cost.seconds}
+in total: \V{cost.seconds.networks} for the networks, each trained on a
+single cloud GPU, and \V{cost.seconds.others} for the baselines and GBDT on a
+CPU. The ablation models that are not on the leaderboard are not included in
+this total. The best model has \V{best.parameters} parameters and was trained
+for \V{best.epochs.run} epochs in \V{best.seconds} on an \V{best.device}, at
+about \V{best.rows-a-second} positions per second, not counting the
+pretraining of its encoder. Table~\ref{tab:runs} lists the hardware and
+training time of every model, and Table~\ref{tab:settings} the
+hyperparameters of the networks of the fixed sequence.
 
-Everything is drawn from committed files. The dataset is built by
-\texttt{lab data tactics} from the recipe, the runs are trained by
-\texttt{lab all tactic-found}, each run writes its record under the model's
-\texttt{results/} folder, and \texttt{lab paper tactic-found} writes every
-number, table and figure of this paper from those records and compiles it. A
-record names the build of the data it read (\V{data.fingerprint}) and the
-commit of the code that trained it (\V{code.commit}). Weights and test
-predictions are not committed. They are kept on the owner's machine, and the
-model's card says where and gives the hash of the best run's weights.
+All results are generated from committed files. The dataset is built from
+its recipe by \texttt{lab data tactics}, and the recipe names the revision of
+the source that a build reads. The models are trained by
+\texttt{lab all tactic-found}, each training run writes a record to the
+model's \texttt{results/} directory, and \texttt{lab paper tactic-found}
+generates every number, table and figure of this paper from those records
+and compiles it. A record names the build of the dataset it used
+(\V{data.fingerprint}) and the commit of the code that produced it
+(\V{code.commit}). Model weights and test predictions are not stored in the
+repository. The model's card states where they are kept and gives the hash
+of the best model's weights.
 
-\section{What comes next}
+\section{Conclusion and Future Work}
+\label{sec:conclusion}
 
+Whether a player finds a tactic in a game can be predicted with a log loss of
+\V{best.score}, compared with \V{floor.score} for a constant prediction. The
+largest part of this improvement comes from hand-crafted features of the
+position and of the solution, and a smaller part from the ratings, the clocks
+and the evaluations. A network that reads the board improves on GBDT
+only when it is given the hand-crafted features or a pretrained encoder. The
+predicted probabilities are calibrated over the whole test set. They are too
+high for the hardest tactics, for moves that took long and for positions
+with little time on the clock. The following experiments are the natural
+next steps.
 \begin{itemize}
-\item \textbf{A body that knows how hard a tactic is.} The puzzle's rating
-knows what these learners miss at the hard end. A body trained first on the
-lab's puzzle model, which predicts that rating with no crowd, is the run to
-make.
-\item \textbf{A stronger body to start from.} The body the best run starts
-from was trained once, at one size, on a part of the evaluations file. One
-trained for longer, on more of the file or at a larger size has not been
-tried.
-\ifshapes
-\item \textbf{A tower that has learned the evaluations.} The tower is the
-best run here that starts from nothing, and it cannot start from a
-transformer's body. It also fitted its training rows soonest, so a larger
-build of the dataset is the other run for it.
-\fi
-\item \textbf{The whole line.} A stricter label: the player played the first
-move and went on to play the rest.
-\item \textbf{The time taken, for reviews.} A second model that reads how
-long the move took, to tell a tactic not looked for from one looked for and
-not found.
-\item \textbf{Players under 1500.} Tactics cut by an engine from the games
-of weaker players, where no puzzle exists, so the model is trained where the
-app's players are.
-\item \textbf{False alarms.} Positions where the tempting move fails, so the
-model can say when not to look.
-\ifvariants\else
-\item \textbf{A longer schedule.} The transformers on the board alone were
-still improving when training stopped.
-\fi
-\iffeatures\else
-\item \textbf{Which hand features carry it.} Leaving out one group at a time
-says which counts a learner cannot do without.
-\fi
-\ifgames\else
-\item \textbf{More games, or fewer.} The source has twice the puzzles this
-build reads, and a run on half and a quarter of these says what the other
-half would buy.
+\item \textbf{An estimate of puzzle difficulty as an input.} The models are
+miscalibrated with respect to the puzzle's rating, which the application
+does not have. A predicted rating from the companion task, or an encoder
+pretrained on that task, may supply part of the missing information.
+\ifchangestart
+\item \textbf{A stronger pretrained encoder.} The encoder was pretrained
+once, at one size, on part of the evaluation database. Longer pretraining,
+more positions and a larger encoder have not been tried.\ifchangeconv{} A
+pretrained ResNet has not been tried either, although the ResNet is the best
+model trained from random initialisation.\fi
 \fi
 \ifmore
-\item \textbf{More games and more steps together.} On twice the games the
-network was still improving when its schedule ended, and on today's games a
-longer schedule gave it nothing. The run on twice the games with twice the
-steps is the one case the games study does not have, and the best run on
-twice the games is the other run to make there.
+\item \textbf{More data together with more optimisation steps.} On twice the
+games the transformer's validation log loss was still decreasing when its
+schedule ended. Training on the larger set with a longer schedule, and
+training the pretrained model on it, are the two missing cases.
 \fi
+\item \textbf{A label for the whole solution.} The source games show whether
+the mover went on to play the rest of the solution, and their evaluations
+show whether a different move kept the advantage. Both would make the label
+closer to what a coach means by finding a tactic.
+\item \textbf{A joint model of tactics and thinking time.} The time spent on
+a move is related to whether the tactic is found in a way that the present
+models do not capture.
+\item \textbf{Weaker players.} A dataset of tactics from the games of weaker
+players would cover the users whom the present data underrepresent.
+\item \textbf{False alarms.} Positions in which a tempting tactic fails
+would allow a model to predict errors of commission as well as omissions.
+\item \textbf{A baseline from a move-prediction model.} A human-move model
+gives a probability for the first move of the solution without being told
+that it is one.
+\item \textbf{An ensemble.} The best network and the GBDT baseline disagree
+often enough that an average of the two may be more accurate than either, at
+the cost of running both.
 \end{itemize}
 
 \bibliographystyle{unsrt}
@@ -1144,39 +1620,76 @@ twice the games is the other run to make there.
 \clearpage
 \appendix
 
-\section{Sizes, schedules and features}
+\section{Hyperparameters and Features}
 
 \begin{table}[htbp]\centering\footnotesize
 \block{settings}
-\caption{The ladder networks' sizes and schedules, from their run configs.
-\emph{Rate} is the peak learning rate. A setting they all share is in the
-line under the table.}
+\caption{Hyperparameters of the networks of the fixed sequence, from their
+configuration files. \emph{LR} is the peak learning rate. Values shared by
+all of them are given below the table.}
 \label{tab:settings}
 \end{table}
 
 \begin{table}[htbp]\centering\footnotesize
 \block{hand}
-\caption{The hand features: what \V{task.reference} reads beside the context
-numbers, and a network when its run asks for them.}
+\caption{Hand-crafted features: the inputs of \V{task.reference} in addition
+to the scalar context features, and of a network whose configuration includes
+them.}
 \label{tab:hand}
 \end{table}
 
+\section{Calibration by Bin}
+
+\begin{table}[htbp]\centering\small
+\block{calibration-table}
+\caption{Calibration by bin on the test set, for the best model and the GBDT
+baseline. The bins of each model are formed from its own predicted
+probabilities and have equal size. \emph{Predicted} is the mean predicted
+probability in a bin, and \emph{observed} is the share of tactics in the bin
+that were found.}
+\label{tab:calibration}
+\end{table}
+
 \iflook
-\section{The tactics the model is surest of}
+\section{Clock and Puzzle Rating}
 
-\examples{examples-highest}{The test rows with the highest stated chance
-that the tactic is found.}{fig:highest}
+\begin{figure}[htbp]\centering
+\block{grid-clock-rating}
 
-\examples{examples-lowest}{The test rows with the lowest stated chance that
-the tactic is found.}{fig:lowest}
+\medskip
+\block{grid-clock-rating-said}
+\caption{Share of tactics found in percent by the time remaining on the
+mover's clock, in seconds, and the puzzle's rating. Top: observed shares.
+Bottom: mean predictions of the best model other than the GBDT baseline. Both
+panels use the same colour scale.}
+\label{fig:grid-clock}
+\end{figure}
 
-\section{Every cut of the test rows}
+\section{Examples with Extreme Predictions}
 
-Each table below groups the test rows by one column. The columns are the
-group, its test rows, the share in which the tactic was found, then for each
-of the two runs the chance it stated on average and its log loss, and the
-paired gain of the first run over the second with its 95\% interval, bold
-when the interval leaves zero out.
+The three positions with the highest predictions are back-rank mates in one
+move whose puzzles are rated between 600 and 622, and all three were found
+(Figure~\ref{fig:highest}). The three positions with the lowest predictions
+have solutions of three moves and puzzle ratings above 2000. Two of them
+begin with a queen sacrifice and the third is a pawn endgame, and all three
+were missed (Figure~\ref{fig:lowest}). The best model predicted
+probabilities between 3\% and 4\% for these three positions, and the GBDT
+baseline between 8.6\% and 11.2\%.
+
+\examples{examples-highest}{The test positions with the highest predicted
+probabilities of the best model.}{fig:highest}
+
+\examples{examples-lowest}{The test positions with the lowest predicted
+probabilities of the best model.}{fig:lowest}
+
+\section{Subgroup Tables}
+
+Each table below partitions the test positions by one variable. The columns
+are the group, the number of test positions, the observed share of tactics
+found, the mean predicted probability and log loss of each of the two models
+compared, and the paired gain of the first model over the second with its
+95\% CI, in bold when statistically significant. A puzzle can have several
+themes, so the groups of the table by theme overlap.
 
 \block{slices}
 \fi

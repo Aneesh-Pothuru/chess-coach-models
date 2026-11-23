@@ -1,0 +1,24 @@
+% Written by `lab paper tactic-found`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.66\textwidth,
+  height=5.2cm,
+  ymajorgrids,
+  xlabel={Time spent on the move (seconds)},
+  ylabel={Share (percent)},
+  legend columns=-1,
+  xtick={0,1,2,3,4,5},
+  xticklabels={{\textless{}2},{2-5},{5-10},{10-20},{20-40},{40+}},
+  xmin=-0.5, xmax=5.5,
+]
+\addplot[color=labInk, mark=o, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labInk}] coordinates {(0,75.3181) (1,75.9155) (2,68.3841) (3,60.8148) (4,54.2753) (5,51.4557)};
+\addlegendentry{observed}
+\addplot[color=labBlue, dash pattern=on 1pt off 2pt, mark=*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labBlue}] coordinates {(0,75.389) (1,71.9069) (2,67.5217) (3,64.7525) (4,61.8495) (5,61.7312)};
+\addlegendentry{\texttt{transformer-medium-hand-pretrained}}
+\addplot[color=labOrange, mark=square*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labOrange}] coordinates {(0,73.4381) (1,71.2109) (2,67.6583) (3,65.662) (4,63.6064) (5,64.1071)};
+\addlegendentry{\texttt{gbm-hand}}
+\end{axis}
+\end{tikzpicture}%
+}

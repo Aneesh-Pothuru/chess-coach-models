@@ -1,28 +1,28 @@
 # How tactic-found's paper looks at its results (src/chess_coach_models/evals/analysis.py).
-band: {title: The mover's rating}
+band: {title: Mover's rating}
 describe: [mover_elo, rating, clock, spent, ply, win_prior, win_before, solver_moves]
 slices:
-  - {key: puzzle-rating, column: rating, title: The puzzle's rating, edges: [1000, 1200, 1400, 1600, 1800, 2000, 2200]}
-  - {key: clock, column: clock, title: Seconds on the mover's clock, edges: [10, 30, 60, 180, 600]}
-  - {key: seconds, column: spent, title: Seconds the move took, edges: [2, 5, 10, 20, 40]}
-  - {key: moves, column: solver_moves, title: Moves the tactic takes, values: [1, 2, 3, 4], rest: 5+}
+  - {key: puzzle-rating, column: rating, title: Puzzle rating, edges: [1000, 1200, 1400, 1600, 1800, 2000, 2200]}
+  - {key: clock, column: clock, title: Time remaining on the mover's clock (seconds), edges: [10, 30, 60, 180, 600]}
+  - {key: seconds, column: spent, title: Time spent on the move (seconds), edges: [2, 5, 10, 20, 40]}
+  - {key: moves, column: solver_moves, title: Solution length (moves by the solver), values: [1, 2, 3, 4], rest: 5+}
   - {key: themes, column: themes, title: Theme, tags: 30}
-  - {key: speed, column: speed, title: Speed of the game, values: [blitz, rapid, classical]}
-  - {key: prior, column: win_prior, title: The mover's winning chances before the opponent's mistake (percent), edges: [10, 30, 50, 70, 90]}
-  - {key: first-piece, column: first_piece, title: The piece that makes the first move, values: [1, 2, 3, 4, 5, 6], labels: [pawn, knight, bishop, rook, queen, king]}
-  - {key: capture, column: first_capture, title: The first move takes something, values: [0, 1], labels: ["no", "yes"]}
-  - {key: check, column: first_check, title: The first move gives check, values: [0, 1], labels: ["no", "yes"]}
-  - {key: sacrifice, column: first_sacrifice, title: The first move gives up material, values: [0, 1], labels: ["no", "yes"]}
-  - {key: backward, column: first_backward, title: The first move goes backward, values: [0, 1], labels: ["no", "yes"]}
-  - {key: quiet, column: line_quiet, title: Moves of the tactic that neither take nor check, values: [0, 1, 2], rest: 3+}
-  - {key: mate, column: ends_in_mate, title: The tactic ends in mate, values: [0, 1], labels: ["no", "yes"]}
+  - {key: speed, column: speed, title: Game speed, values: [blitz, rapid, classical]}
+  - {key: prior, column: win_prior, title: Mover's win probability before the opponent's mistake (percent), edges: [10, 30, 50, 70, 90]}
+  - {key: first-piece, column: first_piece, title: Piece moved first, values: [1, 2, 3, 4, 5, 6], labels: [pawn, knight, bishop, rook, queen, king]}
+  - {key: capture, column: first_capture, title: Capture on the first move, values: [0, 1], labels: ["no", "yes"]}
+  - {key: check, column: first_check, title: Check on the first move, values: [0, 1], labels: ["no", "yes"]}
+  - {key: sacrifice, column: first_sacrifice, title: Sacrifice on the first move, values: [0, 1], labels: ["no", "yes"]}
+  - {key: backward, column: first_backward, title: Retreat on the first move, values: [0, 1], labels: ["no", "yes"]}
+  - {key: quiet, column: line_quiet, title: Quiet moves in the solution, values: [0, 1, 2], rest: 3+}
+  - {key: mate, column: ends_in_mate, title: Mate at the end of the solution, values: [0, 1], labels: ["no", "yes"]}
 grids:
   - key: ratings
-    rows: {column: mover_elo, title: The mover's rating, edges: [1700, 1900, 2100, 2300]}
-    columns: {column: rating, title: The puzzle's rating, edges: [1000, 1400, 1800, 2200]}
+    rows: {column: mover_elo, title: Mover's rating, edges: [1700, 1900, 2100, 2300]}
+    columns: {column: rating, title: Puzzle rating, edges: [1000, 1400, 1800, 2200]}
   - key: clock-rating
-    rows: {column: clock, title: Seconds on the mover's clock, edges: [30, 60, 180, 600]}
-    columns: {column: rating, title: The puzzle's rating, edges: [1000, 1400, 1800, 2200]}
+    rows: {column: clock, title: Mover's clock (seconds), edges: [30, 60, 180, 600]}
+    columns: {column: rating, title: Puzzle rating, edges: [1000, 1400, 1800, 2200]}
 examples:
   count: 3
   # What a paper calls the two things that can happen, the one the model gives the chance of last.

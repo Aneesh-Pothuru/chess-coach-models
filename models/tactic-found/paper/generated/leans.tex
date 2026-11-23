@@ -8,13 +8,13 @@
   y dir=reverse,
   ymin=-0.6, ymax=9.6,
   ytick={0,1,2,3,4,5,6,7,8,9},
-  yticklabels={{Winning chances before the move},{First move gives up material},{Winning chances before the mistake},{The mover's rating},{The mover's clock},{Material the line wins},{Moves in the line},{First move takes},{The opponent's rating},{Legal moves}},
+  yticklabels={{Win probability before the move},{First move is a sacrifice},{Win probability before the opponent's mistake},{Mover's rating},{Mover's clock},{Material won by the solution},{Solution length},{First move is a capture},{Opponent's rating},{Legal moves}},
   ytick style={draw=none},
   y axis line style={draw=none},
   xmajorgrids,
   xmin=0,
   enlarge x limits={upper, value=0.16},
-  xlabel={Share of the trees' gain (percent)},
+  xlabel={Share of total split gain (percent)},
 ]
 \addplot[xbar, fill=labOrange, draw=none, bar width=5.5pt] coordinates {(8.71,0) (8.67,1) (6.13,2) (5.17,3) (4.74,4) (4.32,5) (3.83,6) (3.71,7) (3.58,8) (3.51,9)};
 \node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:8.71,0) {8.7};
