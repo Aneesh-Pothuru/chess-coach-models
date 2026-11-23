@@ -1,0 +1,29 @@
+% Written by `lab paper game-rating`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.66\textwidth,
+  height=5.2cm,
+  ymajorgrids,
+  xlabel={The player's rating},
+  ylabel={Lead in MAE},
+  legend columns=2,
+  xtick={0,1,2,3,4},
+  xticklabels={{\textless{}1100},{1100-1400},{1400-1700},{1700-2000},{2000+}},
+  xmin=-0.5, xmax=4.5,
+  yticklabel style={/pgf/number format/precision=0},
+]
+\addplot[draw=none, mark=none, forget plot] coordinates {(0,0)};
+\draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:-0.5,0) -- (axis cs:4.5,0) node[anchor=west, font=\sffamily\scriptsize, text=labSecondary, inner sep=2pt] {\run{gbm-hand}};
+\addplot[color=labMagenta, mark=pentagon*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labMagenta}] coordinates {(0,111.579) (1,26.3938) (2,-21.0021) (3,40.8383) (4,114.764)};
+\addlegendentry{\texttt{conv-small}}
+\addplot[color=labYellow, mark=diamond*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labYellow}] coordinates {(0,99.9465) (1,17.3121) (2,-15.6502) (3,49.9408) (4,112.796)};
+\addlegendentry{\texttt{transformer-small}}
+\addplot[color=labAqua, mark=triangle*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labAqua}] coordinates {(0,92.8042) (1,20.7759) (2,-23.4389) (3,39.5594) (4,98.9432)};
+\addlegendentry{\texttt{transformer-medium}}
+\addplot[color=labBlue, mark=*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labBlue}] coordinates {(0,60.8627) (1,5.18582) (2,-17.8341) (3,22.8307) (4,64.3924)};
+\addlegendentry{\texttt{transformer-medium-hand}}
+\end{axis}
+\end{tikzpicture}%
+}

@@ -63,10 +63,13 @@ The best run of each model on the harness, beside the tree baseline it is compar
 
 ### Papers
 
-Each model with full results has a paper: its data, what it reads, every run, a closer look at
+A model with full results has a paper: its data, what it reads, every run, a closer look at
 where it is right and where it is wrong, example positions, and what the app can use today.
 `lab paper <model>` draws a paper from the model's committed results, so no number in it is typed.
 One more paper sets the models side by side on one scale, and `lab paper` with no model draws it.
+Where to look, puzzle themes and human move have no paper of their own yet: a model's paper is
+drawn from a closer look that reads one number a row, and theirs is a chance for each square,
+theme or move. The lab's paper says what their first full runs found, and their cards say more.
 
 | Paper | Its question |
 |---|---|
@@ -77,6 +80,7 @@ One more paper sets the models side by side on one scale, and `lab paper` with n
 | [Think time](models/think-time/paper/paper.pdf) | How long do players at a level think in this position, on this clock? |
 | [Tactic found](models/tactic-found/paper/paper.pdf) | The opponent has just gone wrong. Does the player to move find the tactic? |
 | [Practical chances](models/practical-chances/paper/paper.pdf) | Between two people at these ratings, with these clocks, who wins from here? |
+| [Game rating](models/game-rating/paper/paper.pdf) | What rating does a player's play in one game look like? |
 
 ## One folder a model, one harness for all
 

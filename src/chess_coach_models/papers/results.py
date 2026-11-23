@@ -289,6 +289,11 @@ def values(src: Sources, out: tex.Generated) -> None:
         for part, run in parts.items():
             if run is not None and name in run["test_by_band"]:
                 out.set(f"band.{index}.{part}", tex.score(run["test_by_band"][name][primary], digits=band_digits(src)))
+        # By its own name too, so that prose about one run reads that run wherever it stands on the leaderboard.
+        # A study's run is on no table by band but the one of the studies.
+        for run in [*src.runs, *src.studies]:
+            if name in run.get("test_by_band", {}):
+                out.set(tex.key("run", run["run"], "band", index), tex.score(run["test_by_band"][name][primary], digits=band_digits(src)))
     if reference is not None and src.best is not reference:
         leads = {
             name: src.better_by(src.best["test_by_band"][name][primary], reference["test_by_band"][name][primary])
@@ -312,10 +317,20 @@ def values(src: Sources, out: tex.Generated) -> None:
             out.set(f"{run_part}.calibration.groups", tex.word(len(table)))
 
 
+# How many of the tags a run tells worst are named together in prose.
+WEAKEST_TAGS = 3
+
+
+def _tag(name: str) -> str:
+    return f"\\texttt{{{tex.esc(name)}}}"
+
+
 def candidate_values(src: Sources, out: tex.Generated) -> None:
     """What the best run's record says of a row's candidates. Where they are a position's legal moves: how many
     a test row has. Where they are tags: each tag by itself, as one yes or no over the test rows, so prose can
-    name the commonest and the rarest, and the tag whose chance tells its rows from the rest best and worst."""
+    name the commonest and the rarest, the tag whose chance tells its rows from the rest best and worst by each
+    of the table's two areas, the few it tells worst by the stricter one, and the tags where the best run is
+    furthest ahead of the reference and nearest to it."""
     moves = src.best.get("test_candidates")
     if moves:
         out.set("candidates.mean", tex.fixed(moves["mean"], 1))
@@ -326,15 +341,31 @@ def candidate_values(src: Sources, out: tex.Generated) -> None:
     out.set("candidates.run", run_tex(src.best["run"]))
     by_rows = sorted(each, key=lambda name: (-each[name]["rows"], name))
     for part, name in (("common", by_rows[0]), ("rare", by_rows[-1])):
-        out.set(f"candidates.{part}.name", f"\\texttt{{{tex.esc(name)}}}")
+        out.set(f"candidates.{part}.name", _tag(name))
         out.set(f"candidates.{part}.rows", tex.count(each[name]["rows"]))
         out.set(f"candidates.{part}.share", tex.percent(each[name]["share"]))
-    told = {name: row["roc_auc"] for name, row in each.items() if tex.known(row["roc_auc"])}
-    if told:
+    for column, area in (("roc", "roc_auc"), ("pr", "pr_auc")):
+        told = {name: row[area] for name, row in each.items() if tex.known(row[area])}
+        if not told:
+            continue
         for part, name in (("most", max(told, key=told.get)), ("least", min(told, key=told.get))):
-            out.set(f"candidates.roc.{part}.name", f"\\texttt{{{tex.esc(name)}}}")
-            out.set(f"candidates.roc.{part}", tex.fixed(told[name], 2))
-            out.set(f"candidates.roc.{part}.share", tex.percent(each[name]["share"]))
+            out.set(f"candidates.{column}.{part}.name", _tag(name))
+            out.set(f"candidates.{column}.{part}", tex.fixed(told[name], 2))
+            out.set(f"candidates.{column}.{part}.share", tex.percent(each[name]["share"]))
+    held = {name: row["pr_auc"] for name, row in each.items() if tex.known(row["pr_auc"])}
+    weakest = sorted(held, key=lambda name: (held[name], name))[:WEAKEST_TAGS]
+    if len(weakest) == WEAKEST_TAGS:
+        out.set("candidates.pr.weakest.count", tex.word(len(weakest)))
+        out.set("candidates.pr.weakest.names", tex.listed([_tag(name) for name in weakest]))
+        out.set("candidates.pr.weakest.highest", tex.fixed(held[weakest[-1]], 2))
+    reference = src.reference
+    under = reference.get("test_by_candidate") if reference is not None and reference is not src.best else None
+    leads = {name: area - under[name]["pr_auc"] for name, area in held.items() if under and tex.known(under.get(name, {}).get("pr_auc"))}
+    if leads:
+        for part, name in (("most", max(leads, key=leads.get)), ("least", min(leads, key=leads.get))):
+            out.set(f"candidates.pr.lead.{part}.name", _tag(name))
+            out.set(f"candidates.pr.lead.{part}.best", tex.fixed(held[name], 2))
+            out.set(f"candidates.pr.lead.{part}.reference", tex.fixed(under[name]["pr_auc"], 2))
 
 
 def candidates_table(src: Sources) -> str | None:
@@ -505,6 +536,30 @@ def bands_table(src: Sources) -> str:
         ]
         for run in src.runs
     ]
+    foot = ["test rows", *(tex.count(src.best["test_by_band"][name]["rows"]) for name in names)]
+    return tex.tabular("l" + "r" * len(names), ["Run", *(tex.esc(name) for name in names)], rows, foot=[foot])
+
+
+def studies_bands_table(src: Sources) -> str | None:
+    """The primary metric in every band for each run a study changes, with the study's runs under it: what a
+    change is worth band by band. A run that is on the leaderboard and its changed runs are one group, the
+    groups in the leaderboard's order. None where no study run is scored by band."""
+    names, digits = band_names(src), band_digits(src)
+
+    def cells(run: dict[str, Any]) -> list[str]:
+        by_band = run["test_by_band"]
+        return [tex.score(by_band[name][src.primary], digits=digits) if name in by_band else "n/a" for name in names]
+
+    rows = []
+    for base in src.runs:
+        under = [run for run in src.studies if run["config"].get("base") == base["run"] and run.get("test_by_band")]
+        if not under:
+            continue
+        gap = "\\addlinespace\n" if rows else ""
+        rows.append([gap + run_tex(base["run"]), *cells(base)])
+        rows += [[f"\\quad {run_tex(run['run'])}", *cells(run)] for run in under]
+    if not rows:
+        return None
     foot = ["test rows", *(tex.count(src.best["test_by_band"][name]["rows"]) for name in names)]
     return tex.tabular("l" + "r" * len(names), ["Run", *(tex.esc(name) for name in names)], rows, foot=[foot])
 
@@ -697,6 +752,7 @@ def blocks(src: Sources, out: tex.Generated) -> None:
         "settings": settings_table(src),
         "data": data_table(src),
         "bands-table": bands_table(src),
+        "studies-bands": studies_bands_table(src),
         "bands": bands_figure(src),
         "scores": scores_figure(src),
         "gains": gains_figure(src),

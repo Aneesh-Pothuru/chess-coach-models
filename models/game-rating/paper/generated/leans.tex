@@ -1,0 +1,32 @@
+% Written by `lab paper game-rating`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.5\textwidth,
+  height=5.70cm,
+  y dir=reverse,
+  ymin=-0.6, ymax=9.6,
+  ytick={0,1,2,3,4,5,6,7,8,9},
+  yticklabels={{Winning chances on average},{Winning chances lost a move},{Legal moves on average},{Share of moves that took},{Moves played at once},{Longest think},{Loss of the costliest move},{Lowest clock},{Share of moves that gave check},{Median loss of a move}},
+  ytick style={draw=none},
+  y axis line style={draw=none},
+  xmajorgrids,
+  xmin=0,
+  enlarge x limits={upper, value=0.16},
+  xlabel={Share of the trees' gain (percent)},
+]
+\addplot[xbar, fill=labOrange, draw=none, bar width=5.5pt] coordinates {(16.19,0) (13.58,1) (8.06,2) (7.14,3) (6.38,4) (4.76,5) (4.56,6) (4.55,7) (4.37,8) (4.29,9)};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:16.19,0) {16.2};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:13.58,1) {13.6};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:8.06,2) {8.1};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:7.14,3) {7.1};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:6.38,4) {6.4};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:4.76,5) {4.8};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:4.56,6) {4.6};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:4.55,7) {4.5};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:4.37,8) {4.4};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:4.29,9) {4.3};
+\end{axis}
+\end{tikzpicture}%
+}

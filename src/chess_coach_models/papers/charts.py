@@ -17,6 +17,7 @@ paper or in the generated leaderboard, so nothing is read from colour alone.
 
 from __future__ import annotations
 
+import math
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 
@@ -48,7 +49,9 @@ RUN_MARKS = {
     "gbm-context": "square*",
     "puzzle-rating": "triangle*",
     "elo-gap": "triangle*",
-    "maia2": "triangle*",
+    # A published model shares its colour with the rating formulas, as a run nothing is fitted for, and
+    # has a mark of its own: on the lab's one scale it stands in a strip beside every shape of the ladder.
+    "maia2": "oplus*",
     "engine-curve": "diamond*",
     "constant": "*",
 }
@@ -81,6 +84,10 @@ QUIET = "labGray"
 INK = "labInk"
 # A grid of differences: the colour below its centre and the colour above it, which meet in a neutral grey.
 DIVERGING = ("labBlue", "labOrange")
+# The papers' axis style prints a tick to four decimals, and pgf's arithmetic holds about seven digits of a
+# number. So from a hundred up the fourth decimal is past what pgf holds, and a tick at 246 prints as 246.0001.
+MOST_DECIMALS = 4
+PGF_DIGITS = 7
 
 
 def family(run: str) -> str:
@@ -136,6 +143,20 @@ def run_series(run: str, points: Sequence[tuple[float, float]], **more) -> Serie
 
 def _number(value: float) -> str:
     return f"{value:.6g}"
+
+
+def _tick_decimals(axis: str, values: Sequence[float | None]) -> list[str]:
+    """The option that holds an axis's tick labels to the decimals its ticks can have, where four would print noise.
+
+    pgfplots steps an axis by a twelfth of what it spans at the finest, so a tick has no more decimals than
+    such a step, and one more for a step of two and a half. An axis of small numbers keeps the style's four.
+    """
+    shown = [value for value in values if known(value)]
+    if not shown or max(abs(value) for value in shown) < 10 ** (PGF_DIGITS - MOST_DECIMALS - 1):
+        return []
+    span = (max(shown) - min(shown)) or max(abs(value) for value in shown)
+    decimals = max(0, min(MOST_DECIMALS, 1 - math.floor(math.log10(span / 12))))
+    return [f"{axis}ticklabel style={{/pgf/number format/precision={decimals}}}"]
 
 
 def _options(options: Sequence[str]) -> str:
@@ -221,6 +242,7 @@ def intervals(
         "xmajorgrids",
         f"xlabel={{{xlabel}}}",
         f"xmin={_number(min(shown) - 0.08 * span)}, xmax={_number(max(shown) + 0.08 * span)}",
+        *_tick_decimals("x", shown),
     ]
     return _picture(options, body)
 
@@ -278,6 +300,7 @@ def grouped_intervals(
         "xmajorgrids",
         f"xlabel={{{xlabel}}}",
         f"xmin={_number(min(shown) - 0.08 * span)}, xmax={_number(max(shown) + 0.08 * span)}",
+        *_tick_decimals("x", shown),
     ]
     return _picture(options, body)
 
@@ -397,6 +420,7 @@ def interval_panels(
             "y axis line style={draw=none}",
             "xmajorgrids",
             f"xmin={_number(min(shown) - 0.1 * span)}, xmax={_number(max(shown) + 0.1 * span)}",
+            *_tick_decimals("x", shown),
         ]
         # pgfplots: with this the picture ends at the axis's right edge, so pictures set flush right in a
         # column have their scales under one another whatever the widths of their rows' names.
@@ -413,6 +437,33 @@ def interval_panels(
     return "\\hfill\n".join(stacks) + f"\n\n\\smallskip\n{{\\sffamily\\footnotesize\\color{{labSecondary}}{xlabel}}}"
 
 
+# The tallest the strips of one figure stand together, in centimetres: what a page holds between a legend
+# and a caption. Past it the lanes move closer and the marks shrink with them, down to the share of their
+# size under which a mark is no longer told from its neighbour.
+TALLEST_STRIPS = 15.5
+SMALLEST_STRIPS = 0.6
+# A mark's radius in points where its lane has the room, and the points in a centimetre.
+STRIP_MARK = 2.4
+POINTS_A_CM = 28.45
+
+
+def strip_lanes(rows: Sequence[tuple[str, Sequence[tuple[str, float]]]], order: Sequence[str]) -> dict[str, int]:
+    """A lane for each run, taken in ``order``: the first lane that holds no run it shares a strip with.
+
+    So no two runs of a strip share a lane, a run keeps its lane from strip to strip, and a run that stands
+    in one strip alone (a formula, a published model) does not cost every other strip a lane of its own."""
+    beside = {run: {name for _, points in rows if any(other == run for other, _ in points) for name, _ in points} for run in order}
+    held: list[set[str]] = []
+    lane_of = {}
+    for run in order:
+        free = next((index for index, runs in enumerate(held) if not runs & beside[run]), len(held))
+        if free == len(held):
+            held.append(set())
+        held[free].add(run)
+        lane_of[run] = free
+    return lane_of
+
+
 def strips(
     rows: Sequence[tuple[str, Sequence[tuple[str, float]]]],
     *,
@@ -424,14 +475,24 @@ def strips(
 ) -> str:
     """Runs along one scale, a strip a row: where each run of each row stands, each in its own colour and mark.
 
-    ``rows`` are ``(name, points)`` and a point is ``(run, x)``. Inside a strip each run keeps a lane of its
-    own, in ``order`` or else in the order the runs first appear, so two runs at one place do not hide each
-    other, and a legend names the runs once. ``marks`` are ``(x, label)``: upright lines the strips are
-    read against.
+    ``rows`` are ``(name, points)`` and a point is ``(run, x)``. Inside a strip each run keeps a lane, taken
+    in ``order`` or else in the order the runs first appear, so two runs at one place do not hide each
+    other, and a legend names the runs once. Two runs that no strip holds together share a lane
+    (``strip_lanes``). ``marks`` are ``(x, label)``: upright lines the strips are read against.
+
+    Strips that would stand taller than a page holds are drawn closer, lanes and marks alike. Past the
+    point where a mark can still be told from its neighbour the figure is refused: it needs another shape.
     """
     order = list(order) if order is not None else list(dict.fromkeys(run for _, points in rows for run, _ in points))
-    lanes = len(order)
+    lane_of = strip_lanes(rows, order)
+    lanes = max(lane_of.values(), default=0) + 1
     height = lanes * lane + 0.5
+    scale = min(1.0, TALLEST_STRIPS / (len(rows) * height)) if rows else 1.0
+    if scale < SMALLEST_STRIPS:
+        raise ValueError(f"{len(rows)} strips of {lanes} lanes each are more than one page holds: draw them as two figures")
+    lane, height = lane * scale, height * scale
+    # A mark is as wide as its lane at most, so two runs at one place stand one under the other.
+    size = min(STRIP_MARK, 0.5 * lane * POINTS_A_CM)
     every = [x for _, points in rows for _, x in points] + [x for x, _ in marks]
     span = (max(every) - min(every)) or 1.0
     top = -0.5 * height
@@ -448,13 +509,13 @@ def strips(
         body.append(f"\\draw[labGrid, line width=0.3pt] (axis cs:{_number(left)},{_number(y)}) -- (axis cs:{_number(right)},{_number(y)});")
     for run in order:
         coordinates = " ".join(
-            f"({_number(x)},{_number(index * height + (order.index(run) - (lanes - 1) / 2) * lane)})"
+            f"({_number(x)},{_number(index * height + (lane_of[run] - (lanes - 1) / 2) * lane)})"
             for index, (_, points) in enumerate(rows)
             for name, x in points
             if name == run
         )
         body.append(
-            f"\\addplot[only marks, mark={run_mark(run)}, mark size=2.4pt, color={run_colour(run)}, mark options={{draw=white, line width=0.5pt, fill={run_colour(run)}}}] coordinates {{{coordinates}}};"
+            f"\\addplot[only marks, mark={run_mark(run)}, mark size={_number(size)}pt, color={run_colour(run)}, mark options={{draw=white, line width=0.5pt, fill={run_colour(run)}}}] coordinates {{{coordinates}}};"
         )
         body.append(f"\\addlegendentry{{{_name(run, True)}}}")
     options = [
@@ -469,8 +530,10 @@ def strips(
         "xmajorgrids",
         f"xlabel={{{xlabel}}}",
         f"xmin={_number(left)}, xmax={_number(right)}",
+        *_tick_decimals("x", every),
         "legend columns=3",
-        "legend style={at={(0,1.08)}, anchor=south west}",
+        # A fixed step over the labels of the upright lines: a share of the height would grow with the strips.
+        "legend style={at={(0,1)}, anchor=south west, yshift=0.55cm}",
     ]
     return _picture(options, body)
 
@@ -543,7 +606,8 @@ def lines(
         f"xlabel={{{xlabel}}}",
         f"ylabel={{{ylabel}}}",
         f"legend columns={legend_columns}",
-        *(_ticks(tick_labels) if tick_labels is not None else []),
+        *(_ticks(tick_labels) if tick_labels is not None else _tick_decimals("x", xs)),
+        *_tick_decimals("y", [y for one in series for _, y in one.points] + ([level[0]] if level is not None else [])),
         *extra,
     ]
     return _picture(options, body)
@@ -610,6 +674,7 @@ def panels(
         f"ymin={_number(low)}, ymax={_number(high)}",
         f"xlabel={{{xlabel}}}",
         f"ylabel={{{ylabel}}}",
+        *_tick_decimals("y", every),
     ]
     return (
         "\\begin{tikzpicture}\n\\begin{groupplot}[\n  "
@@ -642,6 +707,8 @@ def columns(
         f"ylabel={{{ylabel}}}",
         "enlarge x limits=0.02",
         "lab counts",
+        *_tick_decimals("x", edges),
+        *_tick_decimals("y", [0.0, *counts]),
         *extra,
     ]
     body = [f"\\addplot[ybar interval=0.9, fill={colour}, draw=none] coordinates {{{coordinates}}};"]
@@ -678,6 +745,7 @@ def bars(
         f"xlabel={{{xlabel}}}",
         f"ylabel={{{ylabel}}}",
         *_ticks(labels),
+        *_tick_decimals("y", [value for _, _, values in series for value in values] + ([ymin] if ymin is not None else [])),
         "xtick style={draw=none}",
         "area legend",
         *extra,
@@ -718,6 +786,7 @@ def ranked(
         "y axis line style={draw=none}",
         "xmajorgrids",
         f"xmin={_number(low)}",
+        *_tick_decimals("x", [low, *(value for _, value in rows)]),
         "enlarge x limits={upper, value=0.16}",
         f"xlabel={{{xlabel}}}",
     ]

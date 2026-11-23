@@ -97,11 +97,24 @@ What is left:
   followed it to the end, which a game answers while the opponent follows the puzzle's replies.
 - **Game rating, asked for the opponent's rating**: the same learners on the same rows with the
   other player's rating as the label. Lichess pairs players of like rating, so this says how much
-  of a reading is the level of the game and how much is the player.
+  of a reading is the level of the game and how much is the player. The first full runs make it
+  the run to add: with the player's band held fixed a reading falls as the opponent gets weaker,
+  for the trees nearly as far as for the networks (its card and its paper). A fit of the readings
+  on both ratings says the same in rating points for each point of the opponent's.
+- **Game rating on a longer schedule**: three of its four networks were at their best in the last
+  epoch they were given, and the larger transformer, behind the two small ones after every epoch,
+  was still improving at the last.
+- **Game rating on settled ratings only**: a game's record says by how many points it moved each
+  rating, which is large for a new account. The builder does not read it yet, and the largest
+  misses of the first runs are games whose two ratings are far apart.
 - **Game rating by phase**: a rating for the opening, the middlegame and the ending of one game,
   which needs a label for a part of a sequence ([`design.md`](design.md), "Growing it").
 - **Game rating from more games, and from a body that already reads a board**: its dataset keeps
   50,000 games of a month's, and a network over a sequence does not start from another run yet.
+  On half and on a quarter of the games its trees lose little, and no network is in that study.
+- **Where to look and puzzle themes from the body that learned an engine's evaluations**: their
+  first runs start from nothing. That start added most where a puzzle's line is hidden from the
+  learners, which where to look does too, so it is the first of the two.
 
 ### More from the body that learned an engine's evaluation
 
@@ -127,8 +140,10 @@ rows beside the runs trained here. Its authors have since published
 [Maia-3](https://github.com/CSSLab/maia3) and recommend it for new work. It is the next run of
 that leaderboard: on the same rows it says whether the app should move to it. Two more things the
 model waits for: a closer look that reads a move, so two named runs can be set against each other
-by their paired difference and the test rows cut by the clock, and a larger build of the dataset,
-if the `games` study says more games pay.
+by their paired difference and the test rows cut by the clock, and a larger build of the dataset.
+The `games` study of its first full runs says more games pay: the small and the medium transformer
+are level, and on half of the training games the medium one names fewer moves, on a quarter fewer
+still (its card). So the larger build comes before any larger network there.
 
 ### A published body under the lab's head
 

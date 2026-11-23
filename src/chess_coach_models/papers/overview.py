@@ -136,12 +136,6 @@ def paperless(lab: Lab) -> list[str]:
     return [name for name in lab.models if not (paths.paper(name) / "paper.tex").exists()]
 
 
-def _listed(names: list[str]) -> str:
-    if not names:
-        return "none"
-    return names[0] if len(names) == 1 else f"{', '.join(names[:-1])} and {names[-1]}"
-
-
 def _of(part: int, whole: int, thing: str) -> str:
     """``tex.of`` for a thing named in the singular: one pair, five pairs."""
     return tex.of(part, whole, thing if whole == 1 else thing + "s")
@@ -196,6 +190,11 @@ def _started_board(src: Sources) -> dict[str, Any] | None:
     """The best network of a model that started from another run's body and reads no hand feature."""
     learners = ((run, run["config"]["learner"]) for run in src.networks)
     return next((run for run, learner in learners if learner.get("init") and learner.get("features") != "hand"), None)
+
+
+def _ladder_board_where_started(src: Sources) -> dict[str, Any] | None:
+    """The ladder's largest network that reads the board alone, in a model that has one started from another run's body."""
+    return _largest_board(src) if _started_board(src) is not None else None
 
 
 def _kept(src: Sources, entry: dict[str, Any]) -> bool:
@@ -320,11 +319,11 @@ def _tally(better: list[str], level: list[str], worse: list[str]) -> str:
     name, and a part with no model left out."""
     whole = len(better) + len(level) + len(worse)
     parts = [
-        f"{words} in {_of(len(group), whole, 'model')} ({_listed([said(name) for name in group])})"
+        f"{words} in {_of(len(group), whole, 'model')} ({tex.listed([said(name) for name in group])})"
         for words, group in (("better beyond the noise", better), ("inside the noise", level), ("worse beyond the noise", worse))
         if group
     ]
-    return _listed(parts)
+    return tex.listed(parts)
 
 
 def _kind_title(key: str, learner: str) -> str:
@@ -335,18 +334,18 @@ def values(lab: Lab, out: tex.Generated) -> None:
     """What the lab as a whole says: how many models, and in how many of them a kind of run beats the trees."""
     every = list(lab.every.values())
     out.set("lab.models.count", tex.word(len(every)))
-    out.set("lab.models.names", _listed([said(name) for name in lab.every]))
+    out.set("lab.models.names", tex.listed([said(name) for name in lab.every]))
     # The models set side by side, which every count of how the models compare is made of, and the ones the
     # lab has for their body, which no such count holds.
     count = len(lab.models)
     out.set("lab.side.count", tex.word(count))
-    out.set("lab.side.names", _listed([said(name) for name in lab.models]))
+    out.set("lab.side.names", tex.listed([said(name) for name in lab.models]))
     out.set("lab.bodies.count", tex.word(len(lab.bodies)))
-    out.set("lab.bodies.names", _listed([said(name) for name in lab.bodies]))
+    out.set("lab.bodies.names", tex.listed([said(name) for name in lab.bodies]))
     out.set("lab.tasks.count", tex.word(len(every) + len(lab.waiting)))
     out.set("lab.waiting.count", tex.word(len(lab.waiting)))
-    out.set("lab.waiting.names", _listed([said(name) for name in lab.waiting]))
-    out.set("lab.paperless.names", _listed([said(name) for name in paperless(lab)]))
+    out.set("lab.waiting.names", tex.listed([said(name) for name in lab.waiting]))
+    out.set("lab.paperless.names", tex.listed([said(name) for name in paperless(lab)]))
     out.set("lab.runs.count", tex.count(sum(len(src.runs) for src in every)))
     out.set("lab.networks.count", tex.count(sum(len(src.networks) for src in every)))
     sizes = [run["learner"]["parameters"] for src in every for run in src.networks if run["learner"].get("parameters")]
@@ -373,7 +372,7 @@ def values(lab: Lab, out: tex.Generated) -> None:
         if percent is not None:
             out.set(f"lab.split.{side}.percent", percent)
     if apart:
-        out.set("lab.split.apart.names", _listed([said(name) for name in apart]))
+        out.set("lab.split.apart.names", tex.listed([said(name) for name in apart]))
         theirs = {split for split in apart.values()}
         if len(theirs) == 1:
             for side, percent in zip(SIDES, theirs.pop(), strict=True):
@@ -390,6 +389,9 @@ def values(lab: Lab, out: tex.Generated) -> None:
         # The best network that reads no hand feature among those that started from another run's body, so
         # prose can say what the start did from the board alone whatever other run is ahead of it there.
         "started.board": _started_board,
+        # The ladder's own in the models that have such a start, and in no other: the two counts are then of
+        # the same models, so prose can set where the start stands against where the ladder stood there.
+        "started.ladder.board": _ladder_board_where_started,
     }
     for part, pick in picks.items():
         ahead, level, behind = _verdicts(lab, pick)
@@ -397,14 +399,14 @@ def values(lab: Lab, out: tex.Generated) -> None:
         for word, group in (("ahead", ahead), ("level", level), ("behind", behind)):
             out.set(f"lab.{part}.{word}", tex.word(len(group)))
             out.set(f"lab.{part}.{word}.of", _of(len(group), compared, "model"))
-            out.set(f"lab.{part}.{word}.names", _listed([said(name) for name in group]))
+            out.set(f"lab.{part}.{word}.names", tex.listed([said(name) for name in group]))
             # Which runs they are, so prose can say what kind of network is ahead without naming one, and
             # in which models each of them is, for a sentence about one kind of run among them.
             runs = list(dict.fromkeys(pick(lab.models[name])["run"] for name in group))
-            out.set(f"lab.{part}.{word}.runs", _listed([run_tex(run) for run in runs]))
+            out.set(f"lab.{part}.{word}.runs", tex.listed([run_tex(run) for run in runs]))
             for run in runs:
                 where = [said(name) for name in group if pick(lab.models[name])["run"] == run]
-                out.set(f"lab.{part}.{word}.run.{tex.key(run)}.names", _listed(where))
+                out.set(f"lab.{part}.{word}.run.{tex.key(run)}.names", tex.listed(where))
     ladder = [run for src in lab.models.values() for run in src.ladder]
     last = [run for run in ladder if run["learner"]["best_epoch"] == run["config"]["train"]["epochs"]]
     out.set("lab.ladder.count", tex.count(len(ladder)))
@@ -412,7 +414,7 @@ def values(lab: Lab, out: tex.Generated) -> None:
     out.set("lab.ladder.at-last-epoch.of", _of(len(last), len(ladder), "network"))
     top = [name for name, src in lab.models.items() if src.best in src.networks]
     out.set("lab.best.network.of", _of(len(top), count, "model"))
-    out.set("lab.best.network.names", _listed([said(name) for name in top]))
+    out.set("lab.best.network.names", tex.listed([said(name) for name in top]))
 
     # The ends of each scale, so prose can name the model at each without knowing which it is.
     scales = {
@@ -429,7 +431,7 @@ def values(lab: Lab, out: tex.Generated) -> None:
     # nothing, under ``whole``, and prose can say which statement holds for which.
     hidden = [name for name, src in lab.models.items() if src.plan.get("shown")]
     out.set("lab.hidden.count", tex.word(len(hidden)))
-    out.set("lab.hidden.names", _listed([said(name) for name in hidden]))
+    out.set("lab.hidden.names", tex.listed([said(name) for name in hidden]))
     out.set("lab.whole.count", tex.word(count - len(hidden)))
     for part, amounts in scales.items():
         amounts = {name: amount for name, amount in amounts.items() if amount is not None}
@@ -450,16 +452,16 @@ def values(lab: Lab, out: tex.Generated) -> None:
         out.set(f"{prefix}.worse", tex.word(len(worse)))
         out.set(f"{prefix}.worse.of", _of(len(worse), len(found), "pair"))
         out.set(f"{prefix}.level", tex.word(len(found) - len(better) - len(worse)))
-        out.set(f"{prefix}.better.models", _listed(list(dict.fromkeys(said(name) for name in better))))
-        out.set(f"{prefix}.worse.models", _listed(list(dict.fromkeys(said(name) for name in worse))))
+        out.set(f"{prefix}.better.models", tex.listed(list(dict.fromkeys(said(name) for name in better))))
+        out.set(f"{prefix}.worse.models", tex.listed(list(dict.fromkeys(said(name) for name in worse))))
         # Better on the test rows is half of the rule for a change. How many pairs pass both halves, and in
         # which models every pair of the kind does: those changed runs are runs of their models now.
         passed = [name for name, entry in found if _kept(lab.models[name], entry)]
         whole = [name for name in dict.fromkeys(passed) if passed.count(name) == sum(1 for other, _ in found if other == name)]
         out.set(f"{prefix}.kept", tex.word(len(passed)))
         out.set(f"{prefix}.kept.of", _of(len(passed), len(found), "pair"))
-        out.set(f"{prefix}.kept.models", _listed(list(dict.fromkeys(said(name) for name in passed))))
-        out.set(f"{prefix}.kept.whole.models", _listed([said(name) for name in whole]))
+        out.set(f"{prefix}.kept.models", tex.listed(list(dict.fromkeys(said(name) for name in passed))))
+        out.set(f"{prefix}.kept.whole.models", tex.listed([said(name) for name in whole]))
     shapes_values(lab, out)
     # The same by the run the change was made in, where a model has one pair: a clause prose can read whole.
     for key, bases in by_base(lab).items():
@@ -495,11 +497,11 @@ def _across(lab: Lab, out: tex.Generated, prefix: str, entries: dict[str, dict[s
     worse = [name for name, entry in entries.items() if entry["beyond_noise"] and entry["gain"] < 0]
     level = [name for name in entries if name not in better and name not in worse]
     out.set(f"{prefix}.count", tex.word(len(entries)))
-    out.set(f"{prefix}.models", _listed([said(name) for name in entries]))
+    out.set(f"{prefix}.models", tex.listed([said(name) for name in entries]))
     out.set(f"{prefix}.said", _tally(better, level, worse))
     for word, group in (("better", better), ("level", level), ("worse", worse)):
         out.set(f"{prefix}.{word}.of", _of(len(group), len(entries), "model"))
-        out.set(f"{prefix}.{word}.models", _listed([said(name) for name in group]))
+        out.set(f"{prefix}.{word}.models", tex.listed([said(name) for name in group]))
     amounts = {name: on_step(lab.models[name], entry) for name, entry in entries.items()}
     amounts = {name: amount[0] for name, amount in amounts.items() if amount is not None}
     if amounts:
@@ -524,11 +526,11 @@ def shapes_values(lab: Lab, out: tex.Generated) -> None:
     still = [name for name in tried if not any(entry["beyond_noise"] for entry in shaped[name])]
     best = [name for name in tried if lab.models[name].best["run"] in {entry["run"] for entry in shaped[name]}]
     out.set("lab.shapes.models.count", tex.word(len(tried)))
-    out.set("lab.shapes.models.names", _listed([said(name) for name in tried]))
+    out.set("lab.shapes.models.names", tex.listed([said(name) for name in tried]))
     for word, group in (("still", still), ("best", best)):
         out.set(f"lab.shapes.{word}.of", _of(len(group), len(tried), "model"))
         if group:
-            out.set(f"lab.shapes.{word}.names", _listed([said(name) for name in group]))
+            out.set(f"lab.shapes.{word}.names", tex.listed([said(name) for name in group]))
 
 
 def models_table(lab: Lab) -> str:

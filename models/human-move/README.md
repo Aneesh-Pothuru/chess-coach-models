@@ -116,16 +116,62 @@ changes.
 
 ## Results
 
-None yet. The model runs end to end on a small sample
-(`lab all human-move --smoke`, which is a check of the code and never a
-result). Where the package and its weights are, a test holds the `maia2` run
-to the package's own reading of one position at a time: the same first move,
-and the same chances to the four places the package prints
-(`tests/test_maia.py`). Its first full pass is the plan `moves` in
-[`colab/plans/`](../../colab/plans/). The leaderboard will be
-`results/leaderboard.md`, written by `lab eval human-move`. A model whose
-answer is a move has no paper of its own yet, and its closer look holds only
-its pairs: each run set against the run it changed on the same test games.
+[`results/leaderboard.md`](results/leaderboard.md), written by
+`lab eval human-move`. Where the package and its weights are, a test holds
+the `maia2` run to the package's own reading of one position at a time: the
+same first move, and the same chances to the four places the package prints
+(`tests/test_maia.py`). What the first full runs say (commit `269bfb6`; the
+numbers are in the leaderboard and in the runs' records beside it):
+
+- **Maia-2 leads, as expected.** It names the move played in about one
+  position in two, and the move is among its first three in four positions
+  in five. That alone is not a finding: it learned from five and a half
+  years of games and the runs here from thirty thousand games of one month.
+- **Band by band, Maia-2 is weakest under 1100.** From 1400 up its first
+  right is level across the bands. Under 1100 it is several points in a
+  hundred lower.
+- **Its chances hold almost three years on.** The one temperature fitted on
+  the valid rows is close to one (the record's `calibration`), so its
+  chances were nearly right as published. In ten equal groups of its
+  chances, what it said and how often the move was played are within a
+  tenth of a point of each other in every group.
+- **Its reading of the ratings is worth most at the ends.** Told that both
+  players of every row are rated 1500, it loses under one point of first
+  right in a hundred over all the rows. By band (the record of
+  `maia2-one-rating`), it loses nothing in the band that holds 1500 and
+  nearly two points in a hundred under 1100 and at 2000 and above. The
+  paired difference of the two runs is not made yet.
+- **The runs trained here cover about three fifths of the step from the
+  trees to Maia-2.** They are close to it under 1100 and far behind at 2000
+  and above: Maia-2 holds its level as the players get stronger, and the
+  runs trained here fall back.
+- **Size did not matter here, and games do.** The small and the medium
+  transformer lie inside each other's intervals, the hand features add
+  nothing to the medium one, and the convolutional tower is behind both. On
+  half of the training games the medium transformer loses nearly two points
+  of first right in a hundred, and on a quarter more than four. On that
+  quarter, which is what the trees were trained on, it is still ahead of
+  the trees beyond the noise. So this model is short of games before it is
+  short of size, and the larger build of this dataset is the run to make
+  before any larger network.
+
+What the app can take from this today: Maia-2, which it already runs, is the
+right model to ask, and its chances can be shown as they are. The rating it
+is told matters most for the weakest and the strongest players, and for a
+player in the middle bands the band asked matters little to the first move
+it names.
+
+A model whose answer is a move has no paper of its own yet, and its closer
+look holds only its pairs: each run set against the run it changed on the
+same test games. The pairs of these runs are not made yet. `lab analyse
+human-move` makes them where the test predictions are.
+
+**Weights.** Every run's weights and test predictions are on the owner's
+machine, under `artifacts/runs/human-move/<run>/`, as the GPU session packed
+them; none is published. `maia2` has no weights of the lab's: its package
+fetches the published ones, whose hash is in the run's record. The best run
+trained here, `transformer-medium`, has a `model.pt` of 26,245,087 bytes,
+sha256 `de0a064be17f1efa290da06ad7e852558539d4387d8b83cc4070aad38bac468d`.
 
 ## What it does not say yet
 

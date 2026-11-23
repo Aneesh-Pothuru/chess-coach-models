@@ -4,11 +4,15 @@
 Model & Predicts & Rows & Test rows & Test games & Ranked by \\
 \midrule
 \run{blunder-hazard} & Chance the mover loses more than 20 points of win probability & 698{,}013 & 68{,}579 & 2{,}944 & PR-AUC, higher is better \\
+\run{game-rating} & Lichess rapid rating points & 99{,}699 & 9{,}974 & 4{,}999 & MAE, lower is better \\
+\run{human-move} & The chance that each legal move is the one the player makes & 698{,}013 & 68{,}579 & 2{,}944 & First right, higher is better \\
 \run{practical-chances} & Expected score of the mover in the game (a win 1, a draw 0.5, a loss 0) & 698{,}013 & 68{,}579 & 2{,}944 & RMSE, lower is better \\
 \run{puzzle-difficulty} & Lichess puzzle rating points & 1{,}127{,}915 & 112{,}450 & 112{,}450 & RMSE, lower is better \\
 \run{puzzle-difficulty-unsolved} & Lichess puzzle rating points & 1{,}127{,}915 & 112{,}450 & 112{,}450 & RMSE, lower is better \\
+\run{puzzle-themes} & The chance that a puzzle carries a theme & 1{,}127{,}915 & 112{,}450 & 112{,}450 & Average precision, higher is better \\
 \run{tactic-found} & Chance the move played is the first move of the tactic & 810{,}140 & 81{,}135 & 81{,}135 & Log loss, lower is better \\
 \run{think-time} & Log(1 + seconds spent on the move) & 698{,}013 & 68{,}579 & 2{,}944 & MAE, lower is better \\
+\run{where-to-look} & The chance that a square is one the tactic's line leaves or lands on & 1{,}127{,}915 & 112{,}450 & 112{,}450 & Average precision, higher is better \\
 \run{position-evaluation} & The mover's chance of winning by the engine's evaluation (percent) & 6{,}000{,}000 & 120{,}035 & 120{,}035 & RMSE, lower is better \\
 \bottomrule
 \end{tabularx}

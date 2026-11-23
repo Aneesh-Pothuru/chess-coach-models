@@ -70,8 +70,51 @@ Written before the first full run.
 
 ## Results
 
-No full run has been recorded yet. `results/leaderboard.md` is written by
-`lab eval puzzle-themes` once the runs are in.
+[`results/leaderboard.md`](results/leaderboard.md), written by
+`lab eval puzzle-themes`. What the first full runs say (commit `269bfb6`;
+the numbers are in the leaderboard):
+
+- **A network names a tactic's themes nearly as the tags do.** All four
+  networks are ahead of the reference beyond the noise. The theme the best
+  run names first is one the puzzle carries in all but two or three puzzles
+  in a hundred, and it puts a puzzle's themes ahead of the rest almost every
+  time.
+- **The hand features took the trees most of the way.** The length of the
+  line alone says little more than the floor. With the hand features of the
+  position and the line the trees are already most of the way from the floor
+  to the best run.
+- **The medium transformer leads, and the hand features add a little to
+  it.** With them it is ahead of the same transformer without them by a
+  small step, and the two runs' own intervals do not touch. The two were not
+  paired with each other, so this is read off the leaderboard. The
+  convolutional tower is a little ahead of the small transformer here, the
+  other way round from [where to look](../where-to-look/).
+- **Theme by theme, most are told apart almost perfectly.** The table of
+  each theme by itself has the common motifs with a plain shape on the board
+  near the top: a sacrifice, an attack on a king's side, a promotion, a
+  back-rank mate, a smothered mate. The weakest are interference, a trapped
+  piece, zugzwang, the three rare named mates, capturing the defender, a pin
+  and a discovered check. A reading: those are the themes that turn on what
+  the line does not show (a piece with no safe square, a side with no good
+  move), or a rare mate that a commoner tag also fits.
+- **Harder puzzles are a little harder to name.** The best run's average
+  precision falls with the puzzle's rating band, and stays high in the
+  highest.
+- **Its chances mean what they say.** In ten equal groups of the best run's
+  chances, what it said and how often the puzzle carried the theme agree in
+  every group.
+
+What the app can take from this today: a name, in a coach's words, for a
+tactic an engine's line shows, for the themes this model tells apart well.
+The weakest themes in the table should not be named from it alone, and a
+line from a game is not a puzzle's line: every line here is a tactic that
+works.
+
+**Weights.** Every run's weights and test predictions are on the owner's
+machine, under `artifacts/runs/puzzle-themes/<run>/`, as the GPU session
+packed them; none is published. The best run's `model.pt` is
+26,315,743 bytes, sha256
+`d75f42f15d0de7d620be8188be09808955a0631c0ecd980034b536313339d1bb`.
 
 ## What it does not say yet
 

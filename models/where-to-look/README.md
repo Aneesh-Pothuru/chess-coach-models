@@ -67,8 +67,45 @@ a logit, where the other models' heads read one vector for the whole board.
 
 ## Results
 
-No full run has been recorded yet. `results/leaderboard.md` is written by
-`lab eval where-to-look` once the runs are in.
+[`results/leaderboard.md`](results/leaderboard.md), written by
+`lab eval where-to-look`. What the first full runs say (commit `269bfb6`;
+the numbers are in the leaderboard):
+
+- **Every network beats the trees, and the medium transformer leads.** All
+  three networks are ahead of the reference beyond the noise, with the
+  solution hidden from every learner. The medium transformer is first, the
+  small transformer next and the convolutional tower last, and their
+  intervals do not touch.
+- **The first square is nearly always right.** The square the best run
+  points at first is one of the line's in all but a few positions in a
+  hundred. Even the trees that know no chess point at a right square first
+  in three positions of four. A reading: a tactic so often runs through the
+  square the opponent's last move reached. Putting all the line's squares
+  ahead of the rest is the harder part, and that is where the networks pull
+  away.
+- **A harder puzzle's squares are harder to point at.** Every learner's
+  average precision falls with the puzzle's rating band. The best run goes
+  from nearly every square in order in the lowest band to under three
+  quarters in the highest. Its lead over the trees is widest in the middle
+  bands and narrowest at both ends.
+- **Its chances mean what they say.** In ten equal groups of the best run's
+  chances, what it said and how often the square was one of the line's are
+  within half a point of each other in every group.
+- **Size has not run out.** The step from the small transformer to the
+  medium one is the largest between two networks here, and no run starts
+  from the body [position evaluation](../position-evaluation/) trained. One
+  of those two is the next run.
+
+What the app can take from this today: for a tactic an engine has found and
+the player missed, the squares to look at, as a hint that is a place and not
+yet a move. Only for a position where a tactic is known to be there: every
+position here holds one.
+
+**Weights.** Every run's weights and test predictions are on the owner's
+machine, under `artifacts/runs/where-to-look/<run>/`, as the GPU session
+packed them; none is published. The best run's `model.pt` is
+25,976,415 bytes, sha256
+`f69a861e2c4c0d603f8b0e893c9854880e0baf9c56688260bc7a9120e95fcdfb`.
 
 ## What it does not say yet
 

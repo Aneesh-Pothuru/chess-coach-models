@@ -4,43 +4,50 @@
 \begin{axis}[
   lab,
   width=0.78\textwidth,
-  height=14.50cm,
+  height=17.40cm,
   y dir=reverse,
-  ymin=-1.05, ymax=11.55,
-  ytick={0,2.1,4.2,6.3,8.4,10.5},
-  yticklabels={{\texttt{blunder-hazard}},{\texttt{practical-chances}},{\texttt{puzzle-difficulty}},{\texttt{puzzle-difficulty-unsolved}},{\texttt{tactic-found}},{\texttt{think-time}}},
+  ymin=-0.775, ymax=14.725,
+  ytick={0,1.55,3.1,4.65,6.2,7.75,9.3,10.85,12.4,13.95},
+  yticklabels={{\texttt{blunder-hazard}},{\texttt{game-rating}},{\texttt{human-move}},{\texttt{practical-chances}},{\texttt{puzzle-difficulty}},{\texttt{puzzle-difficulty-unsolved}},{\texttt{puzzle-themes}},{\texttt{tactic-found}},{\texttt{think-time}},{\texttt{where-to-look}}},
   ytick style={draw=none},
   y axis line style={draw=none},
   xmajorgrids,
   xlabel={Share of the step from the floor to the reference (\%)},
   xmin=-19.7707, xmax=210.036,
+  xticklabel style={/pgf/number format/precision=0},
   legend columns=3,
-  legend style={at={(0,1.08)}, anchor=south west},
+  legend style={at={(0,1)}, anchor=south west, yshift=0.55cm},
 ]
-\draw[labAxis, line width=0.6pt] (axis cs:0,-1.05) -- (axis cs:0,11.55);
-\node[anchor=south, font=\sffamily\scriptsize, text=labSecondary, inner sep=1.5pt] at (axis cs:0,-1.05) {floor};
-\draw[labAxis, line width=0.6pt] (axis cs:100,-1.05) -- (axis cs:100,11.55);
-\node[anchor=south, font=\sffamily\scriptsize, text=labSecondary, inner sep=1.5pt] at (axis cs:100,-1.05) {reference};
-\draw[labGrid, line width=0.3pt] (axis cs:-19.7707,1.05) -- (axis cs:210.036,1.05);
-\draw[labGrid, line width=0.3pt] (axis cs:-19.7707,3.15) -- (axis cs:210.036,3.15);
-\draw[labGrid, line width=0.3pt] (axis cs:-19.7707,5.25) -- (axis cs:210.036,5.25);
-\draw[labGrid, line width=0.3pt] (axis cs:-19.7707,7.35) -- (axis cs:210.036,7.35);
-\draw[labGrid, line width=0.3pt] (axis cs:-19.7707,9.45) -- (axis cs:210.036,9.45);
-\addplot[only marks, mark=*, mark size=2.4pt, color=labBlue, mark options={draw=white, line width=0.5pt, fill=labBlue}] coordinates {(107.205,-0.7) (98.2035,1.4) (111.87,3.5) (188.383,5.6) (105.625,7.7) (107.498,9.8)};
+\draw[labAxis, line width=0.6pt] (axis cs:0,-0.775) -- (axis cs:0,14.725);
+\node[anchor=south, font=\sffamily\scriptsize, text=labSecondary, inner sep=1.5pt] at (axis cs:0,-0.775) {floor};
+\draw[labAxis, line width=0.6pt] (axis cs:100,-0.775) -- (axis cs:100,14.725);
+\node[anchor=south, font=\sffamily\scriptsize, text=labSecondary, inner sep=1.5pt] at (axis cs:100,-0.775) {reference};
+\draw[labGrid, line width=0.3pt] (axis cs:-19.7707,0.775) -- (axis cs:210.036,0.775);
+\draw[labGrid, line width=0.3pt] (axis cs:-19.7707,2.325) -- (axis cs:210.036,2.325);
+\draw[labGrid, line width=0.3pt] (axis cs:-19.7707,3.875) -- (axis cs:210.036,3.875);
+\draw[labGrid, line width=0.3pt] (axis cs:-19.7707,5.425) -- (axis cs:210.036,5.425);
+\draw[labGrid, line width=0.3pt] (axis cs:-19.7707,6.975) -- (axis cs:210.036,6.975);
+\draw[labGrid, line width=0.3pt] (axis cs:-19.7707,8.525) -- (axis cs:210.036,8.525);
+\draw[labGrid, line width=0.3pt] (axis cs:-19.7707,10.075) -- (axis cs:210.036,10.075);
+\draw[labGrid, line width=0.3pt] (axis cs:-19.7707,11.625) -- (axis cs:210.036,11.625);
+\draw[labGrid, line width=0.3pt] (axis cs:-19.7707,13.175) -- (axis cs:210.036,13.175);
+\addplot[only marks, mark=*, mark size=2.32092pt, color=labBlue, mark options={draw=white, line width=0.5pt, fill=labBlue}] coordinates {(107.205,-0.489474) (124.868,1.06053) (121.384,2.61053) (98.2035,4.16053) (111.87,5.71053) (188.383,7.26053) (121.841,8.81053) (105.625,10.3605) (107.498,11.9105)};
 \addlegendentry{\texttt{transformer-medium-hand}}
-\addplot[only marks, mark=triangle*, mark size=2.4pt, color=labAqua, mark options={draw=white, line width=0.5pt, fill=labAqua}] coordinates {(91.1713,-0.5) (98.9085,1.6) (105.247,3.7) (167.52,5.8) (86.8755,7.9) (98.4998,10)};
+\addplot[only marks, mark=triangle*, mark size=2.32092pt, color=labAqua, mark options={draw=white, line width=0.5pt, fill=labAqua}] coordinates {(91.1713,-0.326316) (145.495,1.22368) (121.917,2.77368) (98.9085,4.32368) (105.247,5.87368) (167.52,7.42368) (121.221,8.97368) (86.8755,10.5237) (98.4998,12.0737) (129.805,13.6237)};
 \addlegendentry{\texttt{transformer-medium}}
-\addplot[only marks, mark=diamond*, mark size=2.4pt, color=labYellow, mark options={draw=white, line width=0.5pt, fill=labYellow}] coordinates {(90.8427,-0.3) (100.232,1.8) (100.888,3.9) (158.873,6) (85.1231,8.1) (101.362,10.2)};
+\addplot[only marks, mark=diamond*, mark size=2.32092pt, color=labYellow, mark options={draw=white, line width=0.5pt, fill=labYellow}] coordinates {(90.8427,-0.163158) (154.331,1.38684) (121.676,2.93684) (100.232,4.48684) (100.888,6.03684) (158.873,7.58684) (116.901,9.13684) (85.1231,10.6868) (101.362,12.2368) (123.633,13.7868)};
 \addlegendentry{\texttt{transformer-small}}
-\addplot[only marks, mark=pentagon*, mark size=2.4pt, color=labMagenta, mark options={draw=white, line width=0.5pt, fill=labMagenta}] coordinates {(91.1094,-0.1) (100.238,2) (101.974,4.1) (197.725,6.2) (87.3797,8.3) (100.985,10.4)};
+\addplot[only marks, mark=pentagon*, mark size=2.32092pt, color=labMagenta, mark options={draw=white, line width=0.5pt, fill=labMagenta}] coordinates {(91.1094,0) (155.421,1.55) (112.714,3.1) (100.238,4.65) (101.974,6.2) (197.725,7.75) (117.43,9.3) (87.3797,10.85) (100.985,12.4) (121.202,13.95)};
 \addlegendentry{\texttt{conv-small}}
-\addplot[only marks, mark=square*, mark size=2.4pt, color=labGreen, mark options={draw=white, line width=0.5pt, fill=labGreen}] coordinates {(64.6242,0.1) (96.6314,2.2) (35.6451,4.3) (35.4592,8.5) (65.548,10.6)};
+\addplot[only marks, mark=square*, mark size=2.32092pt, color=labGreen, mark options={draw=white, line width=0.5pt, fill=labGreen}] coordinates {(64.6242,0.163158) (7.7218,1.71316) (66.2606,3.26316) (96.6314,4.81316) (35.6451,6.36316) (9.93608,9.46316) (35.4592,11.0132) (65.548,12.5632) (62.8765,14.1132)};
 \addlegendentry{\texttt{gbm-context}}
-\addplot[only marks, mark=triangle*, mark size=2.4pt, color=labViolet, mark options={draw=white, line width=0.5pt, fill=labViolet}] coordinates {(39.8274,8.7)};
+\addplot[only marks, mark=triangle*, mark size=2.32092pt, color=labViolet, mark options={draw=white, line width=0.5pt, fill=labViolet}] coordinates {(39.8274,11.1763)};
 \addlegendentry{\texttt{puzzle-rating}}
-\addplot[only marks, mark=triangle*, mark size=2.4pt, color=labViolet, mark options={draw=white, line width=0.5pt, fill=labViolet}] coordinates {(-7.45964,2.6)};
+\addplot[only marks, mark=triangle*, mark size=2.32092pt, color=labViolet, mark options={draw=white, line width=0.5pt, fill=labViolet}] coordinates {(-7.45964,4.97632)};
 \addlegendentry{\texttt{elo-gap}}
-\addplot[only marks, mark=diamond*, mark size=2.4pt, color=labSecondary, mark options={draw=white, line width=0.5pt, fill=labSecondary}] coordinates {(79.8972,2.8)};
+\addplot[only marks, mark=oplus*, mark size=2.32092pt, color=labViolet, mark options={draw=white, line width=0.5pt, fill=labViolet}] coordinates {(135.719,3.42632)};
+\addlegendentry{\texttt{maia2}}
+\addplot[only marks, mark=diamond*, mark size=2.32092pt, color=labSecondary, mark options={draw=white, line width=0.5pt, fill=labSecondary}] coordinates {(79.8972,5.13947)};
 \addlegendentry{\texttt{engine-curve}}
 \end{axis}
 \end{tikzpicture}%

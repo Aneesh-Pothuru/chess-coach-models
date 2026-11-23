@@ -120,6 +120,13 @@ def of(part: int, whole: int, things: str) -> str:
     return f"{word(part)} of the {word(whole)} {things}"
 
 
+def listed(names: Sequence[str]) -> str:
+    """Names as prose lists them: a comma between each and the next, and "and" before the last. "none" for none."""
+    if not names:
+        return "none"
+    return names[0] if len(names) == 1 else f"{', '.join(names[:-1])} and {names[-1]}"
+
+
 def duration(seconds: float) -> str:
     """A time as a reader wants it: seconds under a minute and a half, minutes under two hours, then hours."""
     if seconds < 90:

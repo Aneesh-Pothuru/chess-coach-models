@@ -1,0 +1,28 @@
+% Written by `lab paper game-rating`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.5\textwidth,
+  height=3.02cm,
+  y dir=reverse,
+  ymin=-0.6, ymax=2.6,
+  ytick={0,1,2},
+  yticklabels={{what the moves lost},{what there was to choose from},{the use of the clock}},
+  ytick style={draw=none},
+  y axis line style={draw=none},
+  xmajorgrids,
+  xlabel={Gain in MAE without the group (left of the line: worse without it)},
+  xmin=-36.8932, xmax=2.73283,
+]
+\draw[labAxis, line width=0.6pt] (axis cs:0,-0.6) -- (axis cs:0,2.6);
+\node[anchor=south, font=\sffamily\scriptsize, text=labSecondary, inner sep=1.5pt] at (axis cs:0,-0.6) {\run{gbm-hand}};
+\draw[labOrange, line width=1pt, line cap=round] (axis cs:-34.1604,0) -- (axis cs:-27.1472,0);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labOrange, mark options={draw=white, line width=0.6pt}] coordinates {(-30.6831,0)};
+\draw[labOrange, line width=1pt, line cap=round] (axis cs:-12.6577,1) -- (axis cs:-8.75573,1);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labOrange, mark options={draw=white, line width=0.6pt}] coordinates {(-10.8171,1)};
+\draw[labOrange, line width=1pt, line cap=round] (axis cs:-8.42055,2) -- (axis cs:-4.79144,2);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labOrange, mark options={draw=white, line width=0.6pt}] coordinates {(-6.58323,2)};
+\end{axis}
+\end{tikzpicture}%
+}

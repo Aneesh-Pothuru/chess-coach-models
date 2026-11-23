@@ -1,0 +1,15 @@
+% Written by `lab paper game-rating`; do not edit by hand.
+{\setlength{\tabcolsep}{4.5pt}%
+\begin{tabular}{llrrrrrrr}
+\toprule
+Run & Body & Width & Layers & Heads & Heads over & Batch & Rate & Parameters \\
+\midrule
+\run{conv-small} & conv & 96 & 6 &  & 4 & 64 & 0.001 & 1{,}730{,}209 \\
+\run{transformer-small} & transformer & 128 & 4 & 8 & 4 & 64 & 0.0006 & 2{,}094{,}753 \\
+\run{transformer-medium} & transformer & 256 & 8 & 8 & 8 & 32 & 0.0003 & 11{,}444{,}545 \\
+\run{transformer-medium-hand} & transformer & 256 & 8 & 8 & 8 & 32 & 0.0003 & 11{,}453{,}249 \\
+\bottomrule
+\end{tabular}}
+
+\smallskip
+{\footnotesize Every one of them: dropout 0.1, layers over 2, epochs 8, decay 0.05, patience 3.}

@@ -1,0 +1,16 @@
+% Written by `lab paper game-rating`; do not edit by hand.
+\fit{%
+\begin{tabular}{lrrrr}
+\toprule
+Run & MAE & RMSE & R\textsuperscript{2} & Spearman \\
+\midrule
+\run{conv-small} & 204.1 & 259.2 & 0.5392 & 0.7324 \\
+\run{transformer-small} & 204.9 & 259.0 & 0.5397 & 0.7298 \\
+\run{transformer-medium} & 211.1 & 265.8 & 0.5152 & 0.7134 \\
+\run{transformer-medium-hand} & 225.4 & 283.2 & 0.4499 & 0.6635 \\
+\run{gbm-hand} & 242.7 & 302.0 & 0.3741 & 0.5964 \\
+\run{gbm-context} & 306.9 & 376.1 & 0.0294 & 0.1607 \\
+\run{constant} & 312.3 & 382.0 & $-$0.0012 & n/a \\
+\bottomrule
+\end{tabular}%
+}

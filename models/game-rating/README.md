@@ -65,11 +65,62 @@ changes.
 
 ## Results
 
-None yet. The model runs end to end on a small sample
-(`lab all game-rating --smoke`, which is a check of the code and never a
-result). Its first full pass is the plan `games` in
-[`colab/plans/`](../../colab/plans/). The leaderboard will be
-`results/leaderboard.md`, written by `lab eval game-rating`.
+[`results/leaderboard.md`](results/leaderboard.md), written by
+`lab eval game-rating`, the closer look in
+[`results/analysis.json`](results/analysis.json), and the paper,
+[`paper/paper.pdf`](paper/paper.pdf). What the first full runs say (commits
+`269bfb6` and `f56cc16`; the numbers are in those files):
+
+- **A network that reads the moves beats the counts.** All four networks are
+  ahead of the reference beyond the noise. The best takes about a sixth off
+  the trees' error, and it is the smallest of the four.
+- **The small networks lead.** The convolutional tower and the small
+  transformer lie inside each other's intervals, and the larger transformer
+  is behind both. On the valid rows it is behind them after every epoch and
+  still gaining at the last, so on this schedule it learns more slowly and
+  nothing shows a ceiling. Three of the four networks were at their best in
+  the last epoch they were given. A longer schedule is the first run to add.
+- **Handed the counts, the larger transformer is worse.** It is the one pair
+  among the `pairs` of the closer look: `transformer-medium-hand` is worse
+  than `transformer-medium` on the valid rows and on the test rows beyond
+  the noise, so it is not kept and will be filed as a measurement. Its loss
+  on its own training rows is the higher of the two after every epoch but
+  the first, so the counts do not help it fit even the rows it has seen.
+- **One reading is loose.** The best run lands within two hundred points of
+  the player's rating for a little over half of the test rows, and one
+  reading in ten misses by more than four hundred. It pulls toward the
+  middle: the weakest band is read more than two hundred points too high on
+  average and the strongest more than that too low.
+- **It reads the game more than the player.** With the player's rating band
+  held fixed, a reading falls as the opponent gets weaker, in every band
+  (the `rating-gap` grid). In the games whose players are two hundred points
+  or more apart, the two sides are more than four hundred points apart on
+  average and are read about fifty apart. The trees lean nearly as far, and
+  they read only counts over the player's own moves, so the lean does not
+  take a network that sees the opponent's moves. A reading of why: a weaker
+  opponent leaves more chances on the board, and a chance that is missed
+  counts as a loss.
+- **The largest misses are games the pairing would seldom make.** In each of
+  them the two players are several hundred points apart and the reading lies
+  nearer the opponent's rating. A reading: some of those ratings had not
+  settled, and the dataset cannot yet tell a new account from a settled one.
+- **What the trees lean on.** Without what the moves lost the trees lose
+  most, and the clock and the choices each add something beyond the noise.
+  On half and on a quarter of the training games the trees lose little, so
+  more games of the same kind would add little to them. No network is in
+  that study.
+
+What a review can take from this today: what a game looked like, in rating
+points, for an ordinary game between players of like rating, said as a wide
+band. It cannot yet say that a player played above or below their rating,
+because against a much stronger or weaker opponent a reading says mostly who
+the opponent was.
+
+**Weights.** Every run's weights and test predictions are on the owner's
+machine, under `artifacts/runs/game-rating/<run>/`, as the GPU session
+packed them; none is published. The best run's `model.pt` is
+6,959,863 bytes, sha256
+`4ee7e217b9179e513b28e9bd4912a5ec59ea47a0bf1b3733c090c2c993fcebbb`.
 
 ## What it does not say yet
 
@@ -78,9 +129,15 @@ result). Its first full pass is the plan `games` in
   is partly the model's and partly the game's, and nothing here separates the
   two yet. Several games of one player would.
 - **The pairing shows through.** Lichess pairs players of like rating, and a
-  position is made by both of them, so a network can read the level of the
-  game as much as the player. The same model asked for the opponent's rating
-  would say how much: it is not run yet.
+  position is made by both of them. The closer look shows that a reading
+  moves with the opponent's rating while the player's stays where it was. It
+  does not say by how much for each point of the opponent's rating: a fit of
+  the readings on both ratings would, and so would the same model asked for
+  the opponent's rating. Neither is made yet.
+- **Every rating counts alike.** A new account's rating has not settled, and
+  the model is trained on it and scored against it as on any other. The
+  record of a game says by how many points it moved each rating, which the
+  builder does not read yet.
 - **By phase.** The idea is a rating for the opening, the middlegame and the
   ending of a game. This model gives one number for the game.
 - **The engine is read.** What a move lost comes from the evaluations Lichess

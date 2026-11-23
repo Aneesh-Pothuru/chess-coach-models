@@ -283,7 +283,9 @@ changes setting by setting (read off the two records' configs), how many rows it
 both scores. It keeps its predictions on the test rows, which the closer look reads, and no
 weights: nobody will run it. A paper gives the games and the features study tables of their own;
 a run filed under any other study was tried as a candidate, and its pair stands with the other
-pairs, beside the run it changed.
+pairs, beside the run it changed. A record gives a study run's score band by band as it gives any
+run's, so a paper can also set each study run under the run it changes, by band (the block
+`studies-bands`, and a run's own `run.<run>.band.<n>`): what a change is worth to which rows.
 
 ## An answer that is a set
 
@@ -335,9 +337,11 @@ each tag by itself, as one yes or no over the test rows: how many carry it, and 
 chance tells those rows from the rest. The leaderboard prints that table for the best run, since
 a mean over rows is led by the common tags. A paper can read it too: the block `candidates` is
 the table, with the reference beside the best run, and the values under `candidates` name the
-commonest and the rarest tag and the tags the best run tells best and worst from the rest
-(`candidates.roc.most.name`). A score that is a share of the rows, such as first right, is also
-given as a percentage (`best.top1.percent`).
+commonest and the rarest tag, the tags the best run tells best and worst from the rest by each
+of the table's two areas (`candidates.roc.most.name`, `candidates.pr.least.name`), the three it
+tells worst by the stricter one (`candidates.pr.weakest.names`), and the tags where it leads the
+reference most and least (`candidates.pr.lead.most.name`). A score that is a share of the rows,
+such as first right, is also given as a percentage (`best.top1.percent`).
 
 What a set does not have yet: the tables of the closer look and the sections of a model's own
 paper that are drawn from them read one number a row. So `lab analyse` writes such a model's
@@ -568,6 +572,12 @@ read.
   divided by the step. The step is a measured number too and its noise is left out, so the scale
   is for setting models side by side, and a claim about one model rests on the paired gain in
   that model's own units.
+- **Every run on the one scale, a strip a model.** The figure of shares (`lab-shares`) gives
+  each model a strip and each run a lane inside it, so two runs at one place stand one under
+  the other (`charts.strips`). A run keeps its lane from strip to strip, and two runs that no
+  model has together, such as two models' formulas, share one (`charts.strip_lanes`). Strips that
+  would stand taller than a page holds move closer, their marks with them, and past the point
+  where a mark is told from its neighbour the build stops.
 - **Every network, a panel a model.** The figure of every network (`lab-networks`) gives each
   model a panel with the scale its own networks span, since one model's gains can be ten times
   another's, and sets the panels in two columns so that every network of every model shares a
@@ -578,7 +588,9 @@ read.
   of the reference, level with it or behind it, for a few picks of network: the best one
   (`lab.network.ahead.of`), the best that reads the board alone (`lab.board`), the best of those
   that started from another run's body (`lab.started.board`), the ladder's largest that reads the
-  board alone (`lab.ladder.board`) and the best that a CPU trains (`lab.small`). With each count
+  board alone (`lab.ladder.board`), the same in only the models that have such a start
+  (`lab.started.ladder.board`, so the two counts are of the same models) and the best that a CPU
+  trains (`lab.small`). With each count
   come the runs that are picked (`lab.board.ahead.runs`) and, run by run, the models each is the
   pick of (`lab.board.ahead.run.<run>.names`), so a sentence about one kind of run among them
   takes its models from the records.

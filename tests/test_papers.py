@@ -246,6 +246,22 @@ def test_a_level_far_from_every_series_is_inside_the_axis():
     assert "draw=none" not in charts.lines([one, two], xlabel="Epoch", ylabel="RMSE")
 
 
+def test_an_axis_of_hundreds_prints_no_more_decimals_than_its_ticks_have():
+    # The axis style prints four decimals and pgf holds about seven digits: a tick at 246 came out as 246.0001.
+    narrow = charts.Series("a", [(0, 246.993), (1, 244.613), (2, 242.707)])
+    drawn = charts.lines([narrow], xlabel="Games", ylabel="MAE", tick_labels=["a quarter", "half", "all"])
+    assert "yticklabel style={/pgf/number format/precision=2}" in drawn and "xticklabel style" not in drawn
+    wide = charts.Series("b", [(800.0, 812.0), (2400.0, 2391.0)])
+    ratings = charts.lines([wide], xlabel="Said", ylabel="Rating", diagonal=True)
+    assert "yticklabel style={/pgf/number format/precision=0}" in ratings
+    assert "xticklabel style={/pgf/number format/precision=0}" in ratings
+    small = charts.Series("c", [(1, 0.0142), (2, 0.0155)])
+    assert "number format" not in charts.lines([small], xlabel="Epoch", ylabel="Log loss")
+    scores = charts.intervals([("run", 204.1, 200.2, 208.2), ("other", 242.7, 238.3, 247.2)], xlabel="MAE")
+    assert "xticklabel style={/pgf/number format/precision=1}" in scores
+    assert "number format" not in charts.intervals([("run", 0.47, 0.46, 0.48)], xlabel="First right")
+
+
 def test_a_run_keeps_its_lane_colour_and_mark_from_strip_to_strip():
     drawn = charts.strips(
         [("first-model", [("gbm-context", 40.0), ("transformer-small", 101.0)]), ("second-model", [("gbm-context", 65.0)])],
@@ -262,6 +278,33 @@ def test_a_run_keeps_its_lane_colour_and_mark_from_strip_to_strip():
     # Without an order a run takes its lane where it first appears.
     plain = charts.strips([("one-model", [("gbm-context", 1.0), ("transformer-small", 2.0)])], xlabel="Share")
     assert plain.index("{gbm-context}") < plain.index("{transformer-small}")
+
+
+def test_strips_share_a_lane_between_runs_that_never_meet_and_stand_no_taller_than_a_page():
+    ladder = ["transformer-small", "gbm-context"]
+    rows = [
+        ("first-model", [("transformer-small", 110.0), ("gbm-context", 40.0), ("engine-curve", 80.0), ("elo-gap", -5.0)]),
+        ("second-model", [("transformer-small", 105.0), ("gbm-context", 60.0), ("maia2", 136.0)]),
+        ("third-model", [("transformer-small", 102.0), ("gbm-context", 35.0), ("puzzle-rating", 30.0)]),
+    ]
+    order = [*ladder, "engine-curve", "elo-gap", "maia2", "puzzle-rating"]
+    lanes = charts.strip_lanes(rows, order)
+    # The two formulas of one strip stand apart, and the formulas of other strips take the first of their lanes.
+    assert lanes == {"transformer-small": 0, "gbm-context": 1, "engine-curve": 2, "elo-gap": 3, "maia2": 2, "puzzle-rating": 2}
+    drawn = charts.strips(rows, xlabel="Share", order=order)
+    # Four lanes and not six: a strip is 1.3 high, and a run in the third lane sits 0.1 under its middle.
+    lines = drawn.splitlines()
+    published = lines[next(index for index, line in enumerate(lines) if line.startswith("\\addlegendentry") and "maia2" in line) - 1]
+    assert "(136,1.4)" in published and "mark size=2.4pt" in published and "height=5.80cm" in drawn
+    # The published model has a mark no run of the ladder or formula has, since it stands in a strip with them.
+    others = [run for run in charts.RUN_MARKS if run != "maia2"]
+    assert f"mark={charts.run_mark('maia2')}," in published and charts.run_mark("maia2") not in {charts.run_mark(run) for run in others}
+    # Strips that would outgrow a page move closer, marks and lanes alike, and keep to the page.
+    many = [(f"model-{index}", points) for index in range(15) for _, points in rows[:1]]
+    squeezed = charts.strips(many, xlabel="Share", order=order)
+    assert f"height={charts.TALLEST_STRIPS + 1.9:.2f}cm" in squeezed and "mark size=2.4pt" not in squeezed
+    with pytest.raises(ValueError, match="two figures"):
+        charts.strips([(f"model-{index}", points) for index in range(30) for _, points in rows[:1]], xlabel="Share", order=order)
 
 
 def test_two_runs_differ_in_the_settings_one_changes_or_in_the_learner():
@@ -408,6 +451,25 @@ def test_a_model_of_tags_gives_each_tag_by_itself_and_one_of_moves_how_many_a_ro
     assert (out.values["candidates.rare.name"], out.values["candidates.rare.rows"]) == ("\\texttt{zugzwang}", "0")
     assert (out.values["candidates.roc.most.name"], out.values["candidates.roc.most"]) == ("\\texttt{fork}", "0.90")
     assert (out.values["candidates.roc.least.name"], out.values["candidates.roc.least"]) == ("\\texttt{pin}", "0.60")
+    # The stricter of the table's two areas has its best and its worst told too.
+    assert (out.values["candidates.pr.most.name"], out.values["candidates.pr.most"]) == ("\\texttt{fork}", "0.80")
+    assert (out.values["candidates.pr.least.name"], out.values["candidates.pr.least.share"]) == ("\\texttt{pin}", "10.0")
+    # Two tags are told at all, so there are not three to name as the worst told.
+    assert "candidates.pr.weakest.names" not in out.values
+    # The reference shares the best run's precision-recall areas here, so the lead is nothing for every tag.
+    assert (out.values["candidates.pr.lead.most.best"], out.values["candidates.pr.lead.most.reference"]) == ("0.80", "0.80")
+    more = {
+        **each,
+        "skewer": {"rows": 8, "share": 0.08, "pr_auc": 0.5, "roc_auc": 0.7},
+        "mate": {"rows": 6, "share": 0.06, "pr_auc": 0.9, "roc_auc": 0.8},
+    }
+    behind = {name: {**row, "pr_auc": row["pr_auc"] - (0.4 if name == "mate" else 0.1)} for name, row in more.items()}
+    src, out = _sources("puzzle-themes", [{**best, "test_by_candidate": more}, {**reference, "test_by_candidate": behind}]), tex.Generated("a test")
+    results.candidate_values(src, out)
+    assert out.values["candidates.pr.weakest.names"] == "\\texttt{pin}, \\texttt{skewer} and \\texttt{fork}"
+    assert (out.values["candidates.pr.weakest.count"], out.values["candidates.pr.weakest.highest"]) == ("three", "0.80")
+    lead = [out.values[f"candidates.pr.lead.most.{part}"] for part in ("name", "best", "reference")]
+    assert lead == ["\\texttt{mate}", "0.90", "0.50"] and out.values["candidates.pr.lead.least.name"] != "\\texttt{mate}"
     # The reference is not set beside itself.
     assert results.candidates_table(_sources("puzzle-themes", [reference])).count("ROC-AUC") == 1
     # A model of moves says how many a test row has, and has no table of them.
@@ -419,6 +481,32 @@ def test_a_model_of_tags_gives_each_tag_by_itself_and_one_of_moves_how_many_a_ro
     plain, out = _sources("puzzle-difficulty", [_record("gbm-hand", {"kind": "gbm", "features": "hand"}, 300.0, "rmse")]), tex.Generated("a test")
     results.candidate_values(plain, out)
     assert out.values == {} and results.candidates_table(plain) is None
+
+
+def test_a_study_s_runs_stand_by_band_under_the_run_they_change():
+    def banded(name, learner, scores, **config):
+        by_band = {band: {"top1": value, "rows": 10} for band, value in scores.items()}
+        return {**_record(name, learner, 0.5, "top1", **config), "test_by_band": by_band}
+
+    published = banded("maia2", {"kind": "maia2"}, {"<1100": 0.46, "1100-1400": 0.51})
+    trees = banded("gbm-hand", {"kind": "gbm", "features": "hand"}, {"<1100": 0.4, "1100-1400": 0.41})
+    blind = banded("maia2-one-rating", {"kind": "maia2"}, {"<1100": 0.44, "1100-1400": 0.5}, base="maia2", study="ratings")
+    half = banded("gbm-hand-half", {"kind": "gbm", "features": "hand"}, {"<1100": 0.39}, base="gbm-hand", study="games")
+    unscored = {**_record("gbm-hand-quarter", {"kind": "gbm", "features": "hand"}, 0.3, "top1", base="gbm-hand", study="games")}
+    src = sources.Sources("human-move", False, tasks.get("human-move"), [published, trees], [blind, half, unscored], {}, {}, None, (), ())
+    lines = results.studies_bands_table(src).splitlines()
+    rows = [line for line in lines if "\\run{" in line]
+    # A changed run stands under the run it changed, the groups in the leaderboard's order with space between them.
+    assert rows == [
+        "\\run{maia2} & 0.4600 & 0.5100 \\\\",
+        "\\quad \\run{maia2-one-rating} & 0.4400 & 0.5000 \\\\",
+        "\\run{gbm-hand} & 0.4000 & 0.4100 \\\\",
+        "\\quad \\run{gbm-hand-half} & 0.3900 & n/a \\\\",
+    ]
+    assert lines[lines.index(rows[2]) - 1] == "\\addlinespace" and lines.count("\\addlinespace") == 1
+    assert "test rows & 10 & 10" in results.studies_bands_table(src)
+    # A model with no study run scored by band has no such table.
+    assert results.studies_bands_table(sources.Sources("human-move", False, tasks.get("human-move"), [published, trees], [unscored], {}, {}, None, (), ())) is None
 
 
 def test_a_table_by_band_keeps_one_precision_on_both_sides_of_a_hundred():
@@ -863,9 +951,26 @@ def test_every_model_s_card_opens_with_its_question(model):
     assert overview.question(model).endswith("?")
 
 
+def test_the_ladder_s_board_network_is_counted_apart_in_the_models_that_have_a_start():
+    from types import SimpleNamespace
+
+    def run(name, parameters, **learner):
+        return {"run": name, "learner": {"parameters": parameters}, "config": {"learner": learner}}
+
+    ladder = [run("transformer-small", 1), run("transformer-medium", 6), run("transformer-medium-hand", 7, features="hand")]
+    started = run("transformer-medium-pretrained", 6, init="position-evaluation/transformer-medium")
+    counted = run("transformer-medium-hand-pretrained", 7, init="position-evaluation/transformer-medium", features="hand")
+    pick = overview._ladder_board_where_started
+    assert pick(SimpleNamespace(ladder=ladder, networks=[started, *ladder]))["run"] == "transformer-medium"
+    # A model with no network that started from a body is in neither count, and one whose only start reads
+    # the hand features has no start from the board alone.
+    assert pick(SimpleNamespace(ladder=ladder, networks=ladder)) is None
+    assert pick(SimpleNamespace(ladder=ladder, networks=[counted, *ladder])) is None
+
+
 def test_a_name_and_a_count_read_as_the_lab_s_prose_says_them():
     assert overview.said("puzzle-difficulty-unsolved") == "puzzle difficulty unsolved"
-    assert overview._listed([]) == "none" and overview._listed(["one", "two", "three"]) == "one, two and three"
+    assert tex.listed([]) == "none" and tex.listed(["one"]) == "one" and tex.listed(["one", "two", "three"]) == "one, two and three"
     assert overview._of(1, 1, "pair") == "the one pair" and overview._of(2, 5, "model") == "two of the five models"
 
 
