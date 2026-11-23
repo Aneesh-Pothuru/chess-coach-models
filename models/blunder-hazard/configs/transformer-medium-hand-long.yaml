@@ -1,19 +1,5 @@
 # The GPU transformer that reads the hand features, with twice the epochs and nothing else changed.
-needs: cuda
-learner:
-  kind: net
-  body: transformer
-  features: hand
-  dim: 256
-  depth: 8
-  heads: 8
-  dropout: 0.1
+base: transformer-medium-hand
+study: epochs
 train:
   epochs: 24
-  batch: 1024
-  lr: 0.0006
-  weight_decay: 0.05
-  warmup: 0.05
-  patience: 3
-smoke:
-  train: {epochs: 1}

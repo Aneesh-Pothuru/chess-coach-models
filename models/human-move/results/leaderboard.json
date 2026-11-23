@@ -447,142 +447,6 @@
       }
     },
     {
-      "run": "conv-medium",
-      "learner": "conv, 10 layers of width 192, each block weighing its channels by the whole board",
-      "test": {
-        "top1": {
-          "value": 0.4428323539275872,
-          "low": 0.4385737657881843,
-          "high": 0.446658296898038
-        },
-        "top3": {
-          "value": 0.7237565435483165,
-          "low": 0.7198980431805562,
-          "high": 0.7276439196351675
-        },
-        "log_loss": {
-          "value": 1.7897466993437787,
-          "low": 1.7769863791775355,
-          "high": 1.8018588983955393
-        }
-      },
-      "test_by_band": {
-        "1100-1400": {
-          "rows": 16674,
-          "top1": 0.4525308864099796,
-          "top3": 0.7339270720882811,
-          "log_loss": 1.7555950868458792
-        },
-        "1400-1700": {
-          "rows": 19614,
-          "top1": 0.45194758845722444,
-          "top3": 0.7334811869073111,
-          "log_loss": 1.7582741375215554
-        },
-        "1700-2000": {
-          "rows": 14453,
-          "top1": 0.4381443298969072,
-          "top3": 0.7226873313498927,
-          "log_loss": 1.7870135724024574
-        },
-        "2000+": {
-          "rows": 7126,
-          "top1": 0.4292730844793713,
-          "top3": 0.707830479932641,
-          "log_loss": 1.8284945114542384
-        },
-        "<1100": {
-          "rows": 10712,
-          "top1": 0.4263909634055265,
-          "top3": 0.7021564600448096,
-          "log_loss": 1.8784445885293168
-        }
-      },
-      "parameters": 6934176,
-      "device": "NVIDIA A100-SXM4-40GB",
-      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
-      "seconds": 160.3,
-      "code": "173dddec7ab54890785803c32f46679fd53b0c40",
-      "trained": "2026-11-23T04:31:42Z",
-      "gain": {
-        "gain": 0.04479505387946747,
-        "low": 0.04096484303906699,
-        "high": 0.048453483750067895,
-        "beyond_noise": true,
-        "reference": "gbm-hand",
-        "reference_trained": "2026-11-23T04:28:59Z",
-        "reference_value": 0.3980373000481197
-      }
-    },
-    {
-      "run": "hybrid-medium",
-      "learner": "hybrid, 2 conv blocks then 5 transformer layers of width 256",
-      "test": {
-        "top1": {
-          "value": 0.4427594453112469,
-          "low": 0.4387115067352987,
-          "high": 0.4468173720917914
-        },
-        "top3": {
-          "value": 0.7188862479767859,
-          "low": 0.7150602605789829,
-          "high": 0.7227419161079935
-        },
-        "log_loss": {
-          "value": 1.8045217056751865,
-          "low": 1.791765654277271,
-          "high": 1.816493314605914
-        }
-      },
-      "test_by_band": {
-        "1100-1400": {
-          "rows": 16674,
-          "top1": 0.4495022190236296,
-          "top3": 0.7299088401103514,
-          "log_loss": 1.772479984587588
-        },
-        "1400-1700": {
-          "rows": 19614,
-          "top1": 0.45602630773936986,
-          "top3": 0.7286886917507902,
-          "log_loss": 1.765635974940788
-        },
-        "1700-2000": {
-          "rows": 14453,
-          "top1": 0.4393205562858922,
-          "top3": 0.7197467653774303,
-          "log_loss": 1.8017874690710012
-        },
-        "2000+": {
-          "rows": 7126,
-          "top1": 0.4321498737019366,
-          "top3": 0.7039012068481617,
-          "log_loss": 1.855004413166904
-        },
-        "<1100": {
-          "rows": 10712,
-          "top1": 0.4196695294996266,
-          "top3": 0.6925877520537714,
-          "log_loss": 1.895704167222318
-        }
-      },
-      "parameters": 6576680,
-      "device": "NVIDIA A100-SXM4-40GB",
-      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
-      "seconds": 336.9,
-      "code": "173dddec7ab54890785803c32f46679fd53b0c40",
-      "trained": "2026-11-23T04:37:22Z",
-      "gain": {
-        "gain": 0.04472214526312718,
-        "low": 0.04091606770940365,
-        "high": 0.04848350763238714,
-        "beyond_noise": true,
-        "reference": "gbm-hand",
-        "reference_trained": "2026-11-23T04:28:59Z",
-        "reference_value": 0.3980373000481197
-      }
-    },
-    {
       "run": "conv-small",
       "learner": "conv, 6 layers of width 96",
       "test": {
@@ -903,6 +767,170 @@
     ]
   },
   "studies": {
+    "body": [
+      {
+        "run": "conv-medium",
+        "learner": "conv, 10 layers of width 192, each block weighing its channels by the whole board",
+        "test": {
+          "top1": {
+            "value": 0.4428323539275872,
+            "low": 0.4385737657881843,
+            "high": 0.446658296898038
+          },
+          "top3": {
+            "value": 0.7237565435483165,
+            "low": 0.7198980431805562,
+            "high": 0.7276439196351675
+          },
+          "log_loss": {
+            "value": 1.7897466993437787,
+            "low": 1.7769863791775355,
+            "high": 1.8018588983955393
+          }
+        },
+        "test_by_band": {
+          "1100-1400": {
+            "rows": 16674,
+            "top1": 0.4525308864099796,
+            "top3": 0.7339270720882811,
+            "log_loss": 1.7555950868458792
+          },
+          "1400-1700": {
+            "rows": 19614,
+            "top1": 0.45194758845722444,
+            "top3": 0.7334811869073111,
+            "log_loss": 1.7582741375215554
+          },
+          "1700-2000": {
+            "rows": 14453,
+            "top1": 0.4381443298969072,
+            "top3": 0.7226873313498927,
+            "log_loss": 1.7870135724024574
+          },
+          "2000+": {
+            "rows": 7126,
+            "top1": 0.4292730844793713,
+            "top3": 0.707830479932641,
+            "log_loss": 1.8284945114542384
+          },
+          "<1100": {
+            "rows": 10712,
+            "top1": 0.4263909634055265,
+            "top3": 0.7021564600448096,
+            "log_loss": 1.8784445885293168
+          }
+        },
+        "parameters": 6934176,
+        "device": "NVIDIA A100-SXM4-40GB",
+        "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+        "seconds": 160.3,
+        "code": "173dddec7ab54890785803c32f46679fd53b0c40",
+        "trained": "2026-11-23T04:31:42Z",
+        "gain": {
+          "gain": 0.04479505387946747,
+          "low": 0.04096484303906699,
+          "high": 0.048453483750067895,
+          "beyond_noise": true,
+          "reference": "gbm-hand",
+          "reference_trained": "2026-11-23T04:28:59Z",
+          "reference_value": 0.3980373000481197
+        },
+        "base": "transformer-medium",
+        "base_test": {
+          "value": 0.47117193309905364,
+          "low": 0.46701429160414937,
+          "high": 0.47511361459049156
+        },
+        "changes": [
+          "`learner.body` conv (the base has transformer)",
+          "`learner.depth` 10 (the base has 8)",
+          "`learner.dim` 192 (the base has 256)",
+          "`learner.squeeze` 4",
+          "`train.lr` 0.002 (the base has 0.0006)"
+        ],
+        "train_rows": 594940
+      },
+      {
+        "run": "hybrid-medium",
+        "learner": "hybrid, 2 conv blocks then 5 transformer layers of width 256",
+        "test": {
+          "top1": {
+            "value": 0.4427594453112469,
+            "low": 0.4387115067352987,
+            "high": 0.4468173720917914
+          },
+          "top3": {
+            "value": 0.7188862479767859,
+            "low": 0.7150602605789829,
+            "high": 0.7227419161079935
+          },
+          "log_loss": {
+            "value": 1.8045217056751865,
+            "low": 1.791765654277271,
+            "high": 1.816493314605914
+          }
+        },
+        "test_by_band": {
+          "1100-1400": {
+            "rows": 16674,
+            "top1": 0.4495022190236296,
+            "top3": 0.7299088401103514,
+            "log_loss": 1.772479984587588
+          },
+          "1400-1700": {
+            "rows": 19614,
+            "top1": 0.45602630773936986,
+            "top3": 0.7286886917507902,
+            "log_loss": 1.765635974940788
+          },
+          "1700-2000": {
+            "rows": 14453,
+            "top1": 0.4393205562858922,
+            "top3": 0.7197467653774303,
+            "log_loss": 1.8017874690710012
+          },
+          "2000+": {
+            "rows": 7126,
+            "top1": 0.4321498737019366,
+            "top3": 0.7039012068481617,
+            "log_loss": 1.855004413166904
+          },
+          "<1100": {
+            "rows": 10712,
+            "top1": 0.4196695294996266,
+            "top3": 0.6925877520537714,
+            "log_loss": 1.895704167222318
+          }
+        },
+        "parameters": 6576680,
+        "device": "NVIDIA A100-SXM4-40GB",
+        "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+        "seconds": 336.9,
+        "code": "173dddec7ab54890785803c32f46679fd53b0c40",
+        "trained": "2026-11-23T04:37:22Z",
+        "gain": {
+          "gain": 0.04472214526312718,
+          "low": 0.04091606770940365,
+          "high": 0.04848350763238714,
+          "beyond_noise": true,
+          "reference": "gbm-hand",
+          "reference_trained": "2026-11-23T04:28:59Z",
+          "reference_value": 0.3980373000481197
+        },
+        "base": "transformer-medium",
+        "base_test": {
+          "value": 0.47117193309905364,
+          "low": 0.46701429160414937,
+          "high": 0.47511361459049156
+        },
+        "changes": [
+          "`learner.body` hybrid (the base has transformer)",
+          "`learner.convs` 2",
+          "`learner.depth` 5 (the base has 8)"
+        ],
+        "train_rows": 594940
+      }
+    ],
     "games": [
       {
         "run": "transformer-medium-half",

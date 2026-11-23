@@ -15,15 +15,11 @@ Written by `lab eval tactic-found` from the run records in this folder.
 | `conv-medium-hand` | conv, 10 layers of width 192, each block weighing its channels by the whole board, with hand features | 0.5337 (0.5306 to 0.5370) | 0.8627 | 0.7450 | 0.1797 | 0.0036 | **+0.007625 (+0.006176 to +0.009063)** | 6,960,097 | NVIDIA A100-SXM4-40GB | 4 min |
 | `transformer-medium-hand-double` | transformer, 8 layers of width 256, with hand features; trained on 1,377,614 rows of the larger build `tactics-all-v1` | 0.5348 (0.5316 to 0.5381) | 0.8616 | 0.7428 | 0.1802 | 0.0041 | **+0.006574 (+0.005468 to +0.007825)** | 6,565,953 | NVIDIA A100-SXM4-40GB | 11 min |
 | `transformer-medium-hand` | transformer, 8 layers of width 256, with hand features | 0.5369 (0.5338 to 0.5402) | 0.8599 | 0.7399 | 0.1810 | 0.0050 | **+0.004443 (+0.003247 to +0.00573)** | 6,565,953 | NVIDIA A100-SXM4-40GB | 10 min |
-| `transformer-medium-hand-attacks` | transformer, 8 layers of width 256, attention told what each piece attacks, with hand features | 0.5370 (0.5338 to 0.5403) | 0.8599 | 0.7398 | 0.1811 | 0.0052 | **+0.004397 (+0.003211 to +0.005691)** | 6,566,209 | NVIDIA A100-SXM4-40GB | 13 min |
-| `transformer-medium-hand-long` | transformer, 8 layers of width 256, with hand features | 0.5373 (0.5339 to 0.5407) | 0.8599 | 0.7401 | 0.1812 | 0.0053 | **+0.004086 (+0.002865 to +0.005432)** | 6,565,953 | NVIDIA A100-SXM4-80GB | 12 min |
 | `gbm-hand-double` | LightGBM, context and hand features; trained on 1,377,614 rows of the larger build `tactics-all-v1` | 0.5381 (0.5349 to 0.5416) | 0.8590 | 0.7381 | 0.1816 | 0.0048 | **+0.003246 (+0.002618 to +0.003861)** |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 2 min |
-| `hybrid-medium-hand` | hybrid, 2 conv blocks then 5 transformer layers of width 256, with hand features | 0.5398 (0.5367 to 0.5431) | 0.8574 | 0.7357 | 0.1822 | 0.0018 | **+0.001587 (+0.0002998 to +0.002928)** | 6,620,457 | NVIDIA A100-SXM4-40GB | 8 min |
 | `gbm-hand` | LightGBM, context and hand features | 0.5414 (0.5381 to 0.5447) | 0.8560 | 0.7337 | 0.1828 | 0.0043 | reference |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 65 s |
 | `transformer-medium-long` | transformer, 8 layers of width 256 | 0.5502 (0.5472 to 0.5536) | 0.8456 | 0.7197 | 0.1861 | 0.0028 | **-0.008867 (-0.01048 to -0.007188)** | 6,557,505 | NVIDIA A100-SXM4-80GB | 14 min |
 | `conv-small` | conv, 6 layers of width 96 | 0.5513 (0.5484 to 0.5546) | 0.8462 | 0.7198 | 0.1866 | 0.0078 | **-0.009968 (-0.01184 to -0.008098)** | 1,041,121 | NVIDIA A100-SXM4-40GB | 2 min |
 | `transformer-medium` | transformer, 8 layers of width 256 | 0.5517 (0.5486 to 0.5551) | 0.8447 | 0.7174 | 0.1867 | 0.0040 | **-0.01037 (-0.01199 to -0.008681)** | 6,557,505 | NVIDIA A100-SXM4-40GB | 10 min |
-| `transformer-medium-attacks` | transformer, 8 layers of width 256, attention told what each piece attacks | 0.5518 (0.5488 to 0.5552) | 0.8442 | 0.7171 | 0.1867 | 0.0029 | **-0.01048 (-0.01211 to -0.008814)** | 6,557,761 | NVIDIA A100-SXM4-40GB | 13 min |
 | `transformer-small` | transformer, 4 layers of width 128 | 0.5531 (0.5500 to 0.5563) | 0.8442 | 0.7153 | 0.1874 | 0.0041 | **-0.01175 (-0.0134 to -0.01015)** | 863,649 | NVIDIA A100-SXM4-40GB | 3 min |
 | `puzzle-rating` | the rating formula on `mover_elo` against `rating` | 0.5889 (0.5858 to 0.5920) | 0.7869 | 0.6570 | 0.2008 | 0.0171 | **-0.04753 (-0.04996 to -0.04484)** |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 0 s |
 | `gbm-context` | LightGBM, context numbers only | 0.5923 (0.5894 to 0.5953) | 0.7961 | 0.6369 | 0.2035 | 0.0050 | **-0.05098 (-0.05289 to -0.04909)** |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 6 s |
@@ -38,15 +34,11 @@ Written by `lab eval tactic-found` from the run records in this folder.
 | `conv-medium-hand` | 0.5456 | 0.5409 | 0.5223 | 0.5179 | 0.5306 |
 | `transformer-medium-hand-double` | 0.5472 | 0.5432 | 0.5212 | 0.5185 | 0.5315 |
 | `transformer-medium-hand` | 0.5484 | 0.5446 | 0.5239 | 0.5214 | 0.5355 |
-| `transformer-medium-hand-attacks` | 0.5487 | 0.5446 | 0.5239 | 0.5214 | 0.5354 |
-| `transformer-medium-hand-long` | 0.5501 | 0.5453 | 0.5243 | 0.5194 | 0.5350 |
 | `gbm-hand-double` | 0.5515 | 0.5463 | 0.5258 | 0.5176 | 0.5353 |
-| `hybrid-medium-hand` | 0.5536 | 0.5480 | 0.5258 | 0.5223 | 0.5367 |
 | `gbm-hand` | 0.5563 | 0.5491 | 0.5291 | 0.5206 | 0.5377 |
 | `transformer-medium-long` | 0.5654 | 0.5588 | 0.5362 | 0.5295 | 0.5469 |
 | `conv-small` | 0.5676 | 0.5581 | 0.5389 | 0.5298 | 0.5492 |
 | `transformer-medium` | 0.5658 | 0.5605 | 0.5384 | 0.5310 | 0.5483 |
-| `transformer-medium-attacks` | 0.5663 | 0.5608 | 0.5387 | 0.5300 | 0.5482 |
 | `transformer-small` | 0.5682 | 0.5619 | 0.5394 | 0.5312 | 0.5498 |
 | `puzzle-rating` | 0.6049 | 0.5923 | 0.5722 | 0.5705 | 0.6021 |
 | `gbm-context` | 0.6123 | 0.6033 | 0.5797 | 0.5620 | 0.5809 |
@@ -73,6 +65,25 @@ Test rows in ten equal groups by predicted chance: what the model said against w
 ## Studies
 
 A run here changes one thing in a run above, to say what that thing is worth. It is no candidate, so it is not ranked with the runs above. Its paired difference from the run it changes, on the same resampled test games, is in the closer look (`analysis.json`, under `pairs`).
+
+### `attacks`
+
+| Run | The run it changes | What it changes | Trained on | Log loss | That run's Log loss | Gain over `gbm-hand` | Time |
+|---|---|---|---|---|---|---|---|
+| `transformer-medium-hand-attacks` | `transformer-medium-hand` | `learner.attacks` True | 688,480 rows | 0.5370 (0.5338 to 0.5403) | 0.5369 | **+0.004397 (+0.003211 to +0.005691)** | 13 min |
+| `transformer-medium-attacks` | `transformer-medium` | `learner.attacks` True | 688,480 rows | 0.5518 (0.5488 to 0.5552) | 0.5517 | **-0.01048 (-0.01211 to -0.008814)** | 13 min |
+
+### `body`
+
+| Run | The run it changes | What it changes | Trained on | Log loss | That run's Log loss | Gain over `gbm-hand` | Time |
+|---|---|---|---|---|---|---|---|
+| `hybrid-medium-hand` | `transformer-medium-hand` | `learner.body` hybrid (the base has transformer); `learner.convs` 2; `learner.depth` 5 (the base has 8) | 688,480 rows | 0.5398 (0.5367 to 0.5431) | 0.5369 | **+0.001587 (+0.0002998 to +0.002928)** | 8 min |
+
+### `epochs`
+
+| Run | The run it changes | What it changes | Trained on | Log loss | That run's Log loss | Gain over `gbm-hand` | Time |
+|---|---|---|---|---|---|---|---|
+| `transformer-medium-hand-long` | `transformer-medium-hand` | `train.epochs` 24 (the base has 12) |  | 0.5373 (0.5339 to 0.5407) | 0.5369 | **+0.004086 (+0.002865 to +0.005432)** | 12 min |
 
 ### `features`
 

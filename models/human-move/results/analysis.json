@@ -1,0 +1,194 @@
+{
+ "model": "human-move",
+ "written_by": "lab analyse human-move",
+ "written": "2026-11-23T11:05:08Z",
+ "code": "9abec50bda400ff5f3581c9254cba4321fc0fe40+changes",
+ "dataset": {
+  "dataset": "game-positions-2026-10",
+  "builder": "game_positions",
+  "source": "https://database.lichess.org/standard/lichess_db_standard_rated_2026-10.pgn.zst",
+  "licence": "CC0 1.0, database.lichess.org",
+  "recipe": {
+   "month": "2026-10",
+   "speeds": [
+    "rapid"
+   ],
+   "min_ply": 11,
+   "per_game": 24,
+   "games": 30000,
+   "split": {
+    "salt": "game-positions-v1",
+    "valid": 0.05,
+    "test": 0.1
+   }
+  },
+  "games_read": 1003668,
+  "games_kept": 30000,
+  "marks": [
+   "en_passant",
+   "last_from",
+   "last_to"
+  ],
+  "hand": [
+   "material_count",
+   "material_imbalance",
+   "phase_piece_count",
+   "in_check",
+   "legal_moves",
+   "legal_captures",
+   "legal_checks",
+   "hanging_own",
+   "hanging_opponent",
+   "passed_pawns_own",
+   "passed_pawns_opponent",
+   "attackers_near_own_king",
+   "attackers_near_opponent_king"
+  ],
+  "group": "game_id",
+  "build_seconds": 226.9,
+  "rows": 698013,
+  "splits": {
+   "test": 68579,
+   "train": 594940,
+   "valid": 34494
+  },
+  "fingerprint": "340c68ed5c918cd6dfea4f5cb24218c52d8d0a88cb29e50498218aefdb9dfbd0",
+  "built": "2026-11-22T00:26:19Z",
+  "code": "5e4946ac1bff231bb0df94429fdc044c3ea9e6ec"
+ },
+ "task": {
+  "label": "move",
+  "kind": "moves",
+  "primary": "top1",
+  "band": "band"
+ },
+ "runs": [
+  "maia2",
+  "transformer-medium-attacks",
+  "transformer-large",
+  "transformer-medium",
+  "transformer-small",
+  "transformer-medium-hand",
+  "conv-small",
+  "gbm-hand",
+  "gbm-context",
+  "constant"
+ ],
+ "skipped": {},
+ "best": "maia2",
+ "reference": "gbm-hand",
+ "challenger": "maia2",
+ "test_rows": 68579,
+ "pairs": [
+  {
+   "run": "maia2",
+   "over": "transformer-medium",
+   "gain": 0.0460564,
+   "low": 0.0429457,
+   "high": 0.0492952,
+   "beyond_noise": true
+  },
+  {
+   "run": "maia2",
+   "over": "transformer-medium-hand",
+   "gain": 0.0478353,
+   "low": 0.0443282,
+   "high": 0.0508598,
+   "beyond_noise": true
+  },
+  {
+   "run": "maia2",
+   "over": "transformer-large",
+   "gain": 0.0435921,
+   "low": 0.0403609,
+   "high": 0.0469203,
+   "beyond_noise": true
+  },
+  {
+   "run": "conv-medium",
+   "over": "transformer-medium",
+   "gain": -0.0283396,
+   "study": "body",
+   "low": -0.0313056,
+   "high": -0.0251216,
+   "beyond_noise": true
+  },
+  {
+   "run": "hybrid-medium",
+   "over": "transformer-medium",
+   "gain": -0.0284125,
+   "study": "body",
+   "low": -0.0313368,
+   "high": -0.0252244,
+   "beyond_noise": true
+  },
+  {
+   "run": "maia2-one-rating",
+   "over": "maia2",
+   "gain": -0.00721795,
+   "study": "ratings",
+   "low": -0.00914705,
+   "high": -0.00538681,
+   "beyond_noise": true
+  },
+  {
+   "run": "transformer-large",
+   "over": "transformer-medium",
+   "gain": 0.00246431,
+   "low": 8.72489e-05,
+   "high": 0.00484201,
+   "beyond_noise": true
+  },
+  {
+   "run": "transformer-medium-attacks",
+   "over": "transformer-medium",
+   "gain": 0.0121757,
+   "low": 0.00957532,
+   "high": 0.014671,
+   "beyond_noise": true
+  },
+  {
+   "run": "transformer-medium-half",
+   "over": "transformer-medium",
+   "gain": -0.0180084,
+   "study": "games",
+   "low": -0.0204685,
+   "high": -0.015389,
+   "beyond_noise": true
+  },
+  {
+   "run": "transformer-medium-hand",
+   "over": "transformer-medium",
+   "gain": -0.00177897,
+   "low": -0.00409885,
+   "high": 0.000915368,
+   "beyond_noise": false
+  },
+  {
+   "run": "transformer-medium-no-geometry",
+   "over": "transformer-medium",
+   "gain": -0.0724493,
+   "study": "geometry",
+   "low": -0.0758686,
+   "high": -0.0689711,
+   "beyond_noise": true
+  },
+  {
+   "run": "transformer-medium-quarter",
+   "over": "transformer-medium",
+   "gain": -0.0453856,
+   "study": "games",
+   "low": -0.0481959,
+   "high": -0.0421538,
+   "beyond_noise": true
+  }
+ ],
+ "studies": [
+  "conv-medium",
+  "hybrid-medium",
+  "maia2-one-rating",
+  "transformer-medium-half",
+  "transformer-medium-no-geometry",
+  "transformer-medium-quarter"
+ ]
+}

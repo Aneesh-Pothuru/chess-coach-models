@@ -13,7 +13,6 @@ Written by `lab eval game-rating` from the run records in this folder.
 | `conv-small` | conv, 6 layers of width 96 for each position, then 2 transformer layers over the positions in order | 204.1 (200.2 to 208.2) | 259.2 | 0.5392 | 0.7324 | **+38.56 (+35.06 to +42.32)** | 1,730,209 | NVIDIA A100-SXM4-80GB | 5 min |
 | `transformer-small` | transformer, 4 layers of width 128 for each position, then 2 transformer layers over the positions in order | 204.9 (200.9 to 208.8) | 259.0 | 0.5397 | 0.7298 | **+37.8 (+34.08 to +41.24)** | 2,094,753 | NVIDIA A100-SXM4-80GB | 10 min |
 | `transformer-medium` | transformer, 8 layers of width 256 for each position, then 2 transformer layers over the positions in order | 211.1 (206.9 to 215.0) | 265.8 | 0.5152 | 0.7134 | **+31.65 (+28.19 to +35.05)** | 11,444,545 | NVIDIA A100-SXM4-80GB | 28 min |
-| `transformer-medium-hand` | transformer, 8 layers of width 256 for each position, then 2 transformer layers over the positions in order, with hand features | 225.4 (221.3 to 229.9) | 283.2 | 0.4499 | 0.6635 | **+17.3 (+14.9 to +19.68)** | 11,453,249 | NVIDIA A100-SXM4-80GB | 28 min |
 | `gbm-hand` | LightGBM, context and hand features | 242.7 (238.3 to 247.2) | 302.0 | 0.3741 | 0.5964 | reference |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 8 s |
 | `gbm-context` | LightGBM, context numbers only | 306.9 (300.9 to 312.8) | 376.1 | 0.0294 | 0.1607 | **-64.2 (-69.1 to -59.24)** |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 3 s |
 | `constant` | one number for every row | 312.3 (305.9 to 318.1) | 382.0 | -0.0012 | n/a | **-69.58 (-74.52 to -64.29)** |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 2 s |
@@ -25,7 +24,6 @@ Written by `lab eval game-rating` from the run records in this folder.
 | `conv-small` | 241.0 | 189.7 | 181.1 | 188.9 | 277.1 |
 | `transformer-small` | 252.7 | 198.8 | 175.7 | 179.8 | 279.0 |
 | `transformer-medium` | 259.8 | 195.3 | 183.5 | 190.2 | 292.9 |
-| `transformer-medium-hand` | 291.8 | 210.9 | 177.9 | 206.9 | 327.4 |
 | `gbm-hand` | 352.6 | 216.1 | 160.1 | 229.7 | 391.8 |
 | `gbm-context` | 576.4 | 256.7 | 89.689 | 306.7 | 611.7 |
 | `constant` | 592.6 | 261.7 | 74.698 | 322.1 | 636.2 |
@@ -49,3 +47,9 @@ A run here changes one thing in a run above, to say what that thing is worth. It
 |---|---|---|---|---|---|---|---|
 | `gbm-hand-half` | `gbm-hand` | `data.train_share` 0.5 | 42,481 rows | 244.6 (240.1 to 249.0) | 242.7 | **-1.905 (-2.913 to -0.8047)** | 4 s |
 | `gbm-hand-quarter` | `gbm-hand` | `data.train_share` 0.25 | 21,480 rows | 247.0 (242.6 to 251.5) | 242.7 | **-4.285 (-5.506 to -2.883)** | 4 s |
+
+### `hand`
+
+| Run | The run it changes | What it changes | Trained on | MAE | That run's MAE | Gain over `gbm-hand` | Time |
+|---|---|---|---|---|---|---|---|
+| `transformer-medium-hand` | `transformer-medium` | `learner.features` hand | 84,672 rows | 225.4 (221.3 to 229.9) | 211.1 | **+17.3 (+14.9 to +19.68)** | 28 min |

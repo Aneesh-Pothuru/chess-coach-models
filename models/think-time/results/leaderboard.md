@@ -17,9 +17,7 @@ Written by `lab eval think-time` from the run records in this folder.
 | `transformer-medium-hand-quadruple` | transformer, 8 layers of width 256, with hand features; trained on 2,371,230 rows of the larger build `game-positions-2026-10-120k` | 0.6179 (0.6128 to 0.6225) | 0.7855 | 0.3179 | 0.5561 | **+0.01268 (+0.01115 to +0.01407)** | 6,557,249 | NVIDIA A100-SXM4-40GB | 9 min |
 | `transformer-medium-hand-double` | transformer, 8 layers of width 256, with hand features; trained on 1,189,017 rows of the larger build `game-positions-2026-10-120k` | 0.6184 (0.6133 to 0.6230) | 0.7863 | 0.3166 | 0.5551 | **+0.01218 (+0.01059 to +0.01358)** | 6,557,249 | NVIDIA A100-SXM4-40GB | 9 min |
 | `transformer-medium-hand-long` | transformer, 8 layers of width 256, with hand features | 0.6185 (0.6134 to 0.6231) | 0.7875 | 0.3144 | 0.5569 | **+0.01205 (+0.01018 to +0.01388)** | 6,557,249 | NVIDIA A100-SXM4-80GB | 16 min |
-| `transformer-medium-hand-attacks` | transformer, 8 layers of width 256, attention told what each piece attacks, with hand features | 0.6194 (0.6142 to 0.6240) | 0.7879 | 0.3137 | 0.5537 | **+0.01121 (+0.009634 to +0.0127)** | 6,557,505 | NVIDIA A100-SXM4-40GB | 11 min |
 | `transformer-medium-hand` | transformer, 8 layers of width 256, with hand features | 0.6200 (0.6148 to 0.6246) | 0.7884 | 0.3129 | 0.5530 | **+0.01063 (+0.009066 to +0.01214)** | 6,557,249 | NVIDIA A100-SXM4-80GB | 8 min |
-| `hybrid-medium-hand` | hybrid, 2 conv blocks then 5 transformer layers of width 256, with hand features | 0.6207 (0.6155 to 0.6253) | 0.7886 | 0.3125 | 0.5532 | **+0.009835 (+0.00808 to +0.01155)** | 6,583,337 | NVIDIA A100-SXM4-40GB | 7 min |
 | `gbm-hand-quadruple` | LightGBM, context and hand features; trained on 2,371,230 rows of the larger build `game-positions-2026-10-120k` | 0.6270 (0.6219 to 0.6315) | 0.7954 | 0.3007 | 0.5378 | **+0.00363 (+0.002971 to +0.004316)** |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 2 min |
 | `transformer-medium-long` | transformer, 8 layers of width 256 | 0.6280 (0.6228 to 0.6328) | 0.7979 | 0.2963 | 0.5372 | **+0.002601 (+0.0002087 to +0.004526)** | 6,553,921 | NVIDIA A100-SXM4-80GB | 16 min |
 | `gbm-hand-double` | LightGBM, context and hand features; trained on 1,189,017 rows of the larger build `game-positions-2026-10-120k` | 0.6283 (0.6232 to 0.6328) | 0.7967 | 0.2983 | 0.5357 | **+0.002297 (+0.001541 to +0.003013)** |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 54 s |
@@ -41,9 +39,7 @@ Written by `lab eval think-time` from the run records in this folder.
 | `transformer-medium-hand-quadruple` | 0.5905 | 0.6018 | 0.6127 | 0.6346 | 0.6773 |
 | `transformer-medium-hand-double` | 0.5916 | 0.6020 | 0.6130 | 0.6357 | 0.6767 |
 | `transformer-medium-hand-long` | 0.5927 | 0.6017 | 0.6138 | 0.6367 | 0.6730 |
-| `transformer-medium-hand-attacks` | 0.5922 | 0.6021 | 0.6144 | 0.6370 | 0.6785 |
 | `transformer-medium-hand` | 0.5920 | 0.6031 | 0.6152 | 0.6373 | 0.6793 |
-| `hybrid-medium-hand` | 0.5939 | 0.6033 | 0.6152 | 0.6389 | 0.6804 |
 | `gbm-hand-quadruple` | 0.5979 | 0.6101 | 0.6231 | 0.6455 | 0.6831 |
 | `transformer-medium-long` | 0.6051 | 0.6107 | 0.6249 | 0.6440 | 0.6788 |
 | `gbm-hand-double` | 0.6000 | 0.6110 | 0.6241 | 0.6464 | 0.6860 |
@@ -58,6 +54,18 @@ Written by `lab eval think-time` from the run records in this folder.
 ## Studies
 
 A run here changes one thing in a run above, to say what that thing is worth. It is no candidate, so it is not ranked with the runs above. Its paired difference from the run it changes, on the same resampled test games, is in the closer look (`analysis.json`, under `pairs`).
+
+### `attacks`
+
+| Run | The run it changes | What it changes | Trained on | MAE | That run's MAE | Gain over `gbm-hand` | Time |
+|---|---|---|---|---|---|---|---|
+| `transformer-medium-hand-attacks` | `transformer-medium-hand` | `learner.attacks` True | 594,940 rows | 0.6194 (0.6142 to 0.6240) | 0.6200 | **+0.01121 (+0.009634 to +0.0127)** | 11 min |
+
+### `body`
+
+| Run | The run it changes | What it changes | Trained on | MAE | That run's MAE | Gain over `gbm-hand` | Time |
+|---|---|---|---|---|---|---|---|
+| `hybrid-medium-hand` | `transformer-medium-hand` | `learner.body` hybrid (the base has transformer); `learner.convs` 2; `learner.depth` 5 (the base has 8) | 594,940 rows | 0.6207 (0.6155 to 0.6253) | 0.6200 | **+0.009835 (+0.00808 to +0.01155)** | 7 min |
 
 ### `features`
 

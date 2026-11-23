@@ -20,8 +20,6 @@ Written by `lab eval puzzle-difficulty` from the run records in this folder.
 | `transformer-medium-hand-double` | transformer, 8 layers of width 256, with hand features; trained on 1,918,903 rows of the larger build `puzzles-all-v1` | 267.5 (266.0 to 268.8) | 203.2 | 0.7170 | 0.8512 | **+27.4 (+26.47 to +28.34)** | 6,563,649 | NVIDIA A100-SXM4-40GB | 14 min |
 | `transformer-medium-hand-quadruple` | transformer, 8 layers of width 256, with hand features; trained on 3,837,994 rows of the larger build `puzzles-all-v1` | 269.0 (267.5 to 270.2) | 204.6 | 0.7139 | 0.8493 | **+25.96 (+25.18 to +26.81)** | 6,563,649 | NVIDIA A100-SXM4-40GB | 14 min |
 | `transformer-medium-hand` | transformer, 8 layers of width 256, with hand features | 270.2 (268.8 to 271.6) | 204.8 | 0.7112 | 0.8484 | **+24.68 (+23.79 to +25.62)** | 6,563,649 | NVIDIA A100-SXM4-80GB | 13 min |
-| `hybrid-medium-hand` | hybrid, 2 conv blocks then 5 transformer layers of width 256, with hand features | 274.8 (273.3 to 276.3) | 206.8 | 0.7014 | 0.8449 | **+20.11 (+19.02 to +21.17)** | 6,615,849 | NVIDIA A100-SXM4-80GB | 11 min |
-| `transformer-large-hand` | transformer, 12 layers of width 384, with hand features | 278.1 (276.5 to 279.4) | 212.4 | 0.6943 | 0.8373 | **+16.87 (+16.09 to +17.61)** | 21,809,377 | NVIDIA A100-SXM4-80GB | 27 min |
 | `transformer-medium` | transformer, 8 layers of width 256 | 284.0 (282.4 to 285.4) | 214.5 | 0.6810 | 0.8320 | **+10.91 (+9.73 to +12.14)** | 6,555,201 | NVIDIA A100-SXM4-80GB | 13 min |
 | `gbm-hand-quadruple` | LightGBM, context and hand features; trained on 3,837,994 rows of the larger build `puzzles-all-v1` | 289.8 (288.4 to 291.1) | 224.6 | 0.6678 | 0.8207 | **+5.099 (+4.795 to +5.388)** |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 6 min |
 | `conv-small` | conv, 6 layers of width 96 | 290.8 (289.3 to 292.3) | 221.8 | 0.6656 | 0.8213 | **+4.105 (+2.851 to +5.371)** | 1,040,257 | NVIDIA A100-SXM4-80GB | 3 min |
@@ -45,8 +43,6 @@ Written by `lab eval puzzle-difficulty` from the run records in this folder.
 | `transformer-medium-hand-double` | 198.0 | 244.4 | 250.5 | 292.7 | 427.2 |
 | `transformer-medium-hand-quadruple` | 198.2 | 244.4 | 248.6 | 294.8 | 437.2 |
 | `transformer-medium-hand` | 196.5 | 247.3 | 254.8 | 297.6 | 428.9 |
-| `hybrid-medium-hand` | 191.1 | 247.9 | 261.2 | 305.1 | 444.5 |
-| `transformer-large-hand` | 212.7 | 252.9 | 252.1 | 300.9 | 456.5 |
 | `transformer-medium` | 209.8 | 250.6 | 263.6 | 317.4 | 464.6 |
 | `gbm-hand-quadruple` | 239.5 | 266.0 | 247.4 | 305.6 | 485.7 |
 | `conv-small` | 227.1 | 264.5 | 262.6 | 312.6 | 477.0 |
@@ -60,6 +56,13 @@ Written by `lab eval puzzle-difficulty` from the run records in this folder.
 ## Studies
 
 A run here changes one thing in a run above, to say what that thing is worth. It is no candidate, so it is not ranked with the runs above. Its paired difference from the run it changes, on the same resampled test games, is in the closer look (`analysis.json`, under `pairs`).
+
+### `body`
+
+| Run | The run it changes | What it changes | Trained on | RMSE | That run's RMSE | Gain over `gbm-hand` | Time |
+|---|---|---|---|---|---|---|---|
+| `hybrid-medium-hand` | `transformer-medium-hand` | `learner.body` hybrid (the base has transformer); `learner.convs` 2; `learner.depth` 5 (the base has 8) | 958,941 rows | 274.8 (273.3 to 276.3) | 270.2 | **+20.11 (+19.02 to +21.17)** | 11 min |
+| `transformer-large-hand` | `transformer-medium-hand` | `learner.depth` 12 (the base has 8); `learner.dim` 384 (the base has 256) | 958,941 rows | 278.1 (276.5 to 279.4) | 270.2 | **+16.87 (+16.09 to +17.61)** | 27 min |
 
 ### `features`
 
