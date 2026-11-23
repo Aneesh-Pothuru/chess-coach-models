@@ -91,8 +91,8 @@ def under(src: Sources, run: dict[str, Any]) -> float | None:
 
 def _verdict(entry: dict[str, Any]) -> str:
     if not entry["beyond_noise"]:
-        return "inside the noise"
-    return "better beyond the noise" if entry["gain"] > 0 else "worse beyond the noise"
+        return "not significantly different"
+    return "significantly better" if entry["gain"] > 0 else "significantly worse"
 
 
 def _pair_values(src: Sources, out: tex.Generated, prefix: str, here: dict[str, Any], there: dict[str, Any]) -> None:
@@ -211,7 +211,7 @@ def table(src: Sources) -> str | None:
         share = kept(src, here, there)
         cells.append("" if share is None else tex.fixed(share, 0))
         lines.append(cells)
-    head = ["Run", "Hidden", "Shown", "Worth", *(["95\\% interval"] if paired else []), "Kept (\\%)"]
+    head = ["Model", "Hidden", "Shown", "Difference", *(["95\\% CI"] if paired else []), "Retained (\\%)"]
     drawn = tex.tabular("l" + "r" * (len(head) - 1), head, lines)
     return tex.grouped(drawn, ["", f"\\multicolumn{{2}}{{c}}{{{METRIC_NAMES[primary]}}}", *[""] * (len(head) - 3)], [(2, 3)])
 
@@ -224,7 +224,7 @@ def slice_figure(src: Sources, key: str) -> str | None:
         return None
     return charts.intervals(
         [(group["group"], group["gain"]["gain"], group["gain"]["low"], group["gain"]["high"]) for group in compared],
-        xlabel=f"Gain in {METRIC_WORDS[src.primary]} from being shown more (right of the line is better)",
+        xlabel=f"Gain in {METRIC_WORDS[src.primary]} from the additional input (right of the line is better)",
         reference=0.0,
         colours=[charts.ACCENT] * len(compared),
         code=False,
@@ -246,7 +246,7 @@ def slice_table(src: Sources, key: str) -> str | None:
         else:
             cells += ["", ""]
         lines.append(cells)
-    head = [tex.esc(one["title"]), "Test rows", "Hidden", "Shown", "Worth", "95\\% interval"]
+    head = [tex.esc(one["title"]), "Test examples", "Hidden", "Shown", "Difference", "95\\% CI"]
     return tex.tabular("lrrrrr", head, lines)
 
 

@@ -415,13 +415,13 @@ def slice_table(src: Sources, one: dict[str, Any], named: str | None = None) -> 
         else:
             cells += ["", ""]
         rows.append(cells)
-    happened = "Happened (\\%)" if binary else "Happened"
-    head = ["Group", "Test rows", happened]
+    happened = "Observed (\\%)" if binary else "Observed"
+    head = ["Group", "Test examples", happened]
     top = ["", "", ""]
     for run in pair:
-        head += ["said", metric]
+        head += ["Predicted", metric]
         top += [run_head(run["run"], 2, "2.2cm")]
-    last = ["Reference's lead"] if named is not None else ["Gain", "95\\% interval"]
+    last = ["Baseline's lead"] if named is not None else ["Gain", "95\\% CI"]
     head += last
     top += [""] * len(last)
     spec = "lrr" + "rr" * len(pair) + "r" * len(last)
@@ -439,7 +439,7 @@ def slice_gain_figure(src: Sources, one: dict[str, Any]) -> str | None:
         rows.append((group["group"], gain["gain"], gain["low"], gain["high"]) if gain else (group["group"], None, None, None))
     return charts.intervals(
         rows,
-        xlabel=f"Gain in {METRIC_WORDS[src.primary]} of {run_tex(challenger['run'])} over the reference",
+        xlabel=f"Gain in {METRIC_WORDS[src.primary]} of {run_tex(challenger['run'])} over the baseline",
         reference=0.0,
         reference_label=run_tex(src.task.reference),
         colours=[charts.run_colour(challenger["run"])] * len(rows),
@@ -462,7 +462,7 @@ def slice_said_figure(src: Sources, one: dict[str, Any], named: str | None = Non
     names = [group["group"] for group in one["groups"]]
     series = [
         charts.Series(
-            "what happened",
+            "observed",
             [(index, shown(group["label_mean"])) for index, group in enumerate(one["groups"])],
             colour=charts.INK,
             mark="o",
@@ -515,9 +515,9 @@ def slice_bias_figure(src: Sources, one: dict[str, Any], named: str | None = Non
     return charts.lines(
         series,
         xlabel=tex.esc(one["title"]),
-        ylabel=f"Said less what happened{unit}",
+        ylabel=f"Predicted minus observed{unit}",
         tick_labels=[group["group"] for group in one["groups"]],
-        level=(0.0, "right on average", charts.QUIET),
+        level=(0.0, "unbiased", charts.QUIET),
         width="0.66\\textwidth",
         extra=["ylabel style={align=center}"],
     )
@@ -626,10 +626,10 @@ def ranking_table(src: Sources, end: str) -> str | None:
             row = table[index]
             cells += [tex.percent(row["precision"]) + "\\%", tex.percent(row["recall"]) + "\\%", tex.fixed(row["lift"], 2)]
         rows.append(cells)
-    head = ["Share of test rows", "Rows"]
+    head = ["Top share of test set", "Examples"]
     top = ["", ""]
     for run in pair:
-        head += ["rate", "of all", "lift"]
+        head += ["precision", "recall", "lift"]
         top += [run_head(run["run"], 3, "3.9cm")]
     table = tex.tabular("rr" + "rrr" * len(pair), head, rows)
     return tex.grouped(table, top, [(3 + 3 * index, 5 + 3 * index) for index in range(len(pair))])
@@ -656,7 +656,7 @@ def closeness_table(src: Sources) -> str | None:
         for name in src.names
         if name in close
     ]
-    head = ["Run", "Median miss", "Nine in ten within", *(f"Within {tex.esc(name)}" for name in names)]
+    head = ["Model", "Median abs. error", "90th pct. abs. error", *(f"Within {tex.esc(name)}" for name in names)]
     return tex.tabular("lrr" + "r" * len(names), head, rows)
 
 
@@ -675,7 +675,7 @@ def beside_table(src: Sources) -> str | None:
         for name in src.names
         if name in beside
     ]
-    head = ["Run", "Correlation with the reference", "Closer than the reference", "Tied"]
+    head = ["Model", "Correlation with baseline", "Closer than baseline", "Tied"]
     return tex.tabular("lrrr", head, rows)
 
 
@@ -693,7 +693,7 @@ def describe_table(src: Sources) -> str:
                 _plain_number(stats["max"]),
             ]
         )
-    head = ["", "Mean", "5\\%", "25\\%", "Median", "75\\%", "95\\%", "Least", "Most"]
+    head = ["", "Mean", "5\\%", "25\\%", "Median", "75\\%", "95\\%", "Min", "Max"]
     return tex.tabular("lrrrrrrrr", head, rows)
 
 
@@ -741,8 +741,8 @@ def reliability_figure(src: Sources, named: str | None = None) -> str | None:
     unit = f" ({unit})" if len(unit) <= LONGEST_AXIS_UNIT else ""
     return charts.lines(
         series,
-        xlabel=f"What the run said{unit}",
-        ylabel=f"What happened{unit}",
+        xlabel=f"Predicted{unit}",
+        ylabel=f"Observed{unit}",
         diagonal=True,
         width="0.55\\textwidth",
         height="6.6cm",
@@ -817,7 +817,7 @@ def example_block(src: Sources, name: str, number: int, example: dict[str, Any])
     if named:
         told.append(f"{named[0]}: {boards.moves(fen, [named[1]])}.")
     lines.append(" ".join(told))
-    truth = tex.esc(spec.get("truth", "What happened"))
+    truth = tex.esc(spec.get("truth", "Observed"))
     if binary:
         outcomes = spec.get("outcomes", ["no", "yes"])
         happened = f"{truth}: {tex.esc(outcomes[int(example['label'] > 0.5)])}."
@@ -876,7 +876,7 @@ def encoding_figure(src: Sources) -> str | None:
         f"{played}\\par\\smallskip\n{{\\small As it was played: {boards.mover(fen)} to move.}}\n"
         "\\end{minipage}\\hfill\n"
         "\\begin{minipage}[t]{0.46\\textwidth}\\centering\n"
-        f"{read}\\par\\smallskip\n{{\\small As the networks read it: the mover plays up the board.}}\n"
+        f"{read}\\par\\smallskip\n{{\\small As encoded: the side to move plays up the board.}}\n"
         "\\end{minipage}"
     )
 
@@ -890,7 +890,7 @@ def appendix(src: Sources, named: str | None = None) -> str:
         parts.append(
             "\\begin{table}[htbp]\\centering\\footnotesize\n"
             + tex.fit(slice_table(src, one, named))
-            + f"\n\\caption{{The test rows by: {tex.esc(one['title'][:1].lower() + one['title'][1:])}.}}\n"
+            + f"\n\\caption{{Test-set results by {tex.esc(one['title'][:1].lower() + one['title'][1:])}.}}\n"
             + f"\\label{{{label}}}\n\\end{{table}}"
         )
     return "\n\n".join(parts)

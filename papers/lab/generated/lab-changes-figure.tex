@@ -4,19 +4,19 @@
 \begin{axis}[
   lab,
   width=0.5\textwidth,
-  height=19.34cm,
+  height=19.50cm,
   y dir=reverse,
-  ymin=-0.6, ymax=41.6,
-  ytick={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41},
-  yticklabels={{\sffamily\bfseries\color{labInk}The hand features, under the trees},{blunder hazard: gbm-hand},{game rating: gbm-hand},{human move: gbm-hand},{practical chances: gbm-hand},{puzzle difficulty: gbm-hand},{puzzle themes: gbm-hand},{tactic found: gbm-hand},{think time: gbm-hand},{where to look: gbm-hand},{\sffamily\bfseries\color{labInk}The hand features, under a network},{blunder hazard: transformer-medium-hand},{game rating: transformer-medium-hand},{practical chances: transformer-medium-hand},{puzzle difficulty: transformer-medium-hand},{puzzle difficulty: transformer-medium-hand-long},{puzzle difficulty unsolved: transformer-medium-hand},{tactic found: transformer-medium-hand},{think time: transformer-medium-hand},{think time: transformer-medium-hand-long},{\sffamily\bfseries\color{labInk}More epochs, under a network},{blunder hazard: transformer-medium-long},{blunder hazard: transformer-medium-hand-long},{puzzle difficulty: transformer-medium-long},{puzzle difficulty: transformer-medium-hand-long},{tactic found: transformer-medium-long},{tactic found: transformer-medium-hand-long},{think time: transformer-medium-long},{think time: transformer-medium-hand-long},{\sffamily\bfseries\color{labInk}A body that learned an engine's evaluations first, under a network},{blunder hazard: transformer-medium-hand-pretrained},{blunder hazard: transformer-medium-pretrained},{practical chances: transformer-medium-hand-pretrained},{practical chances: transformer-medium-pretrained},{puzzle difficulty: transformer-medium-hand-pretrained},{puzzle difficulty: transformer-medium-pretrained},{puzzle difficulty unsolved: transformer-medium-hand-pretrained},{puzzle difficulty unsolved: transformer-medium-pretrained},{tactic found: transformer-medium-hand-pretrained},{tactic found: transformer-medium-pretrained},{think time: transformer-medium-hand-pretrained},{think time: transformer-medium-pretrained}},
+  ymin=-0.6, ymax=42.6,
+  ytick={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42},
+  yticklabels={{\sffamily\bfseries\color{labInk}Hand-crafted features (GBDT)},{Blunder hazard: gbm-hand},{Game rating: gbm-hand},{Human move: gbm-hand},{Practical chances: gbm-hand},{Puzzle difficulty: gbm-hand},{Puzzle themes: gbm-hand},{Tactic found: gbm-hand},{Think time: gbm-hand},{Where to look: gbm-hand},{\sffamily\bfseries\color{labInk}Hand-crafted features (neural network)},{Blunder hazard: transformer-medium-hand},{Game rating: transformer-medium-hand},{Human move: transformer-medium-hand},{Practical chances: transformer-medium-hand},{Puzzle difficulty: transformer-medium-hand},{Puzzle difficulty: transformer-medium-hand-long},{Puzzle difficulty unsolved: transformer-medium-hand},{Tactic found: transformer-medium-hand},{Think time: transformer-medium-hand},{Think time: transformer-medium-hand-long},{\sffamily\bfseries\color{labInk}Twice the training epochs (neural network)},{Blunder hazard: transformer-medium-long},{Blunder hazard: transformer-medium-hand-long},{Puzzle difficulty: transformer-medium-long},{Puzzle difficulty: transformer-medium-hand-long},{Tactic found: transformer-medium-long},{Tactic found: transformer-medium-hand-long},{Think time: transformer-medium-long},{Think time: transformer-medium-hand-long},{\sffamily\bfseries\color{labInk}Encoder pretrained on engine evaluations (neural network)},{Blunder hazard: transformer-medium-hand-pretrained},{Blunder hazard: transformer-medium-pretrained},{Practical chances: transformer-medium-hand-pretrained},{Practical chances: transformer-medium-pretrained},{Puzzle difficulty: transformer-medium-hand-pretrained},{Puzzle difficulty: transformer-medium-pretrained},{Puzzle difficulty unsolved: transformer-medium-hand-pretrained},{Puzzle difficulty unsolved: transformer-medium-pretrained},{Tactic found: transformer-medium-hand-pretrained},{Tactic found: transformer-medium-pretrained},{Think time: transformer-medium-hand-pretrained},{Think time: transformer-medium-pretrained}},
   ytick style={draw=none},
   y axis line style={draw=none},
   xmajorgrids,
-  xlabel={Gain of the run over the run it changes, in hundredths of the reference's step (right of the line is better)},
+  xlabel={Gain over the unmodified model, in points of normalised score (right of the line is better)},
   xmin=-34.4599, xmax=116.746,
   xticklabel style={/pgf/number format/precision=0},
 ]
-\draw[labAxis, line width=0.6pt] (axis cs:0,-0.6) -- (axis cs:0,41.6);
+\draw[labAxis, line width=0.6pt] (axis cs:0,-0.6) -- (axis cs:0,42.6);
 \draw[labOrange, line width=1pt, line cap=round] (axis cs:29.9246,1) -- (axis cs:40.7291,1);
 \addplot[only marks, mark=*, mark size=2.1pt, color=labOrange, mark options={draw=white, line width=0.6pt}] coordinates {(35.3758,1)};
 \draw[labOrange, line width=1pt, line cap=round] (axis cs:85.1517,2) -- (axis cs:99.3125,2);
@@ -39,60 +39,62 @@
 \addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(16.0336,11)};
 \draw[labBlue, line width=1pt, line cap=round] (axis cs:-24.0319,12) -- (axis cs:-16.991,12);
 \addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-20.6274,12)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:-1.89668,13) -- (axis cs:0.541876,13);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-0.704987,13)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:6.10405,14) -- (axis cs:7.11407,14);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(6.62252,14)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:0.593266,15) -- (axis cs:1.76851,15);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(1.20056,15)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:18.661,16) -- (axis cs:23.2091,16);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(20.8632,16)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:16.8684,17) -- (axis cs:20.6093,17);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(18.7495,17)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:7.92449,18) -- (axis cs:10.1163,18);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(8.99857,18)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:5.52885,19) -- (axis cs:7.85565,19);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(6.66132,19)};
-\draw[labAqua, line width=1pt, line cap=round] (axis cs:-2.78904,21) -- (axis cs:1.54672,21);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(-0.567094,21)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:-4.35151,22) -- (axis cs:0.490934,22);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-2.05041,22)};
-\draw[labAqua, line width=1pt, line cap=round] (axis cs:8.93658,23) -- (axis cs:9.85163,23);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(9.41192,23)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:3.64327,24) -- (axis cs:4.36265,24);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(3.98994,24)};
-\draw[labAqua, line width=1pt, line cap=round] (axis cs:0.900638,25) -- (axis cs:2.87606,25);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(1.89735,25)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:-1.48735,26) -- (axis cs:0.541593,26);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-0.451737,26)};
-\draw[labAqua, line width=1pt, line cap=round] (axis cs:2.64132,27) -- (axis cs:3.99625,27);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(3.33447,27)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:0.269467,28) -- (axis cs:1.75302,28);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.997202,28)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:1.26424,30) -- (axis cs:10.642,30);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(5.94533,30)};
-\draw[labAqua, line width=1pt, line cap=round] (axis cs:15.2427,31) -- (axis cs:26.1577,31);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(20.4215,31)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:-3.46877,32) -- (axis cs:-0.242938,32);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-1.8432,32)};
-\draw[labAqua, line width=1pt, line cap=round] (axis cs:-5.01286,33) -- (axis cs:-1.26045,33);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(-3.16722,33)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:8.41757,34) -- (axis cs:9.37456,34);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(8.91451,34)};
-\draw[labAqua, line width=1pt, line cap=round] (axis cs:10.1103,35) -- (axis cs:11.036,35);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(10.5781,35)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:88.9776,36) -- (axis cs:94.8258,36);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(91.9006,36)};
-\draw[labAqua, line width=1pt, line cap=round] (axis cs:100.138,37) -- (axis cs:106.318,37);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(103.249,37)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:8.45333,38) -- (axis cs:12.2117,38);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(10.3702,38)};
-\draw[labAqua, line width=1pt, line cap=round] (axis cs:21.7692,39) -- (axis cs:25.9892,39);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(23.8946,39)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:6.54284,40) -- (axis cs:8.95858,40);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(7.76213,40)};
-\draw[labAqua, line width=1pt, line cap=round] (axis cs:14.8052,41) -- (axis cs:17.5803,41);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(16.126,41)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-1.22833,13) -- (axis cs:0.274316,13);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-0.533118,13)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-1.89668,14) -- (axis cs:0.541876,14);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-0.704987,14)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:6.10405,15) -- (axis cs:7.11407,15);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(6.62252,15)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:0.593266,16) -- (axis cs:1.76851,16);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(1.20056,16)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:18.661,17) -- (axis cs:23.2091,17);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(20.8632,17)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:16.8684,18) -- (axis cs:20.6093,18);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(18.7495,18)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:7.92449,19) -- (axis cs:10.1163,19);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(8.99857,19)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:5.52885,20) -- (axis cs:7.85565,20);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(6.66132,20)};
+\draw[labAqua, line width=1pt, line cap=round] (axis cs:-2.78904,22) -- (axis cs:1.54672,22);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(-0.567094,22)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-4.35151,23) -- (axis cs:0.490934,23);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-2.05041,23)};
+\draw[labAqua, line width=1pt, line cap=round] (axis cs:8.93658,24) -- (axis cs:9.85163,24);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(9.41192,24)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:3.64327,25) -- (axis cs:4.36265,25);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(3.98994,25)};
+\draw[labAqua, line width=1pt, line cap=round] (axis cs:0.900638,26) -- (axis cs:2.87606,26);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(1.89735,26)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-1.48735,27) -- (axis cs:0.541593,27);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-0.451737,27)};
+\draw[labAqua, line width=1pt, line cap=round] (axis cs:2.64132,28) -- (axis cs:3.99625,28);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(3.33447,28)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:0.269467,29) -- (axis cs:1.75302,29);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.997202,29)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:1.26424,31) -- (axis cs:10.642,31);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(5.94533,31)};
+\draw[labAqua, line width=1pt, line cap=round] (axis cs:15.2427,32) -- (axis cs:26.1577,32);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(20.4215,32)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-3.46877,33) -- (axis cs:-0.242938,33);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-1.8432,33)};
+\draw[labAqua, line width=1pt, line cap=round] (axis cs:-5.01286,34) -- (axis cs:-1.26045,34);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(-3.16722,34)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:8.41757,35) -- (axis cs:9.37456,35);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(8.91451,35)};
+\draw[labAqua, line width=1pt, line cap=round] (axis cs:10.1103,36) -- (axis cs:11.036,36);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(10.5781,36)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:88.9776,37) -- (axis cs:94.8258,37);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(91.9006,37)};
+\draw[labAqua, line width=1pt, line cap=round] (axis cs:100.138,38) -- (axis cs:106.318,38);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(103.249,38)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:8.45333,39) -- (axis cs:12.2117,39);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(10.3702,39)};
+\draw[labAqua, line width=1pt, line cap=round] (axis cs:21.7692,40) -- (axis cs:25.9892,40);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(23.8946,40)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:6.54284,41) -- (axis cs:8.95858,41);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(7.76213,41)};
+\draw[labAqua, line width=1pt, line cap=round] (axis cs:14.8052,42) -- (axis cs:17.5803,42);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(16.126,42)};
 \end{axis}
 \end{tikzpicture}%
 }

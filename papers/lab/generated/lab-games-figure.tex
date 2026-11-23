@@ -4,18 +4,18 @@
 \begin{axis}[
   lab,
   width=0.5\textwidth,
-  height=12.62cm,
+  height=14.30cm,
   y dir=reverse,
-  ymin=-0.6, ymax=25.6,
-  ytick={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25},
-  yticklabels={{\sffamily\bfseries\color{labInk}gbm-hand on half of the games},{blunder hazard},{game rating},{practical chances},{puzzle difficulty},{tactic found},{think time},{\sffamily\bfseries\color{labInk}gbm-hand on a quarter of the games},{blunder hazard},{game rating},{practical chances},{puzzle difficulty},{tactic found},{think time},{\sffamily\bfseries\color{labInk}transformer-medium-hand on half of the games},{blunder hazard},{practical chances},{puzzle difficulty},{tactic found},{think time},{\sffamily\bfseries\color{labInk}transformer-medium-hand on a quarter of the games},{blunder hazard},{practical chances},{puzzle difficulty},{tactic found},{think time}},
+  ymin=-0.6, ymax=29.6,
+  ytick={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29},
+  yticklabels={{\sffamily\bfseries\color{labInk}gbm-hand on half of the games},{Blunder hazard},{Game rating},{Practical chances},{Puzzle difficulty},{Tactic found},{Think time},{\sffamily\bfseries\color{labInk}gbm-hand on a quarter of the games},{Blunder hazard},{Game rating},{Practical chances},{Puzzle difficulty},{Tactic found},{Think time},{\sffamily\bfseries\color{labInk}transformer-medium on half of the games},{Human move},{\sffamily\bfseries\color{labInk}transformer-medium on a quarter of the games},{Human move},{\sffamily\bfseries\color{labInk}transformer-medium-hand on half of the games},{Blunder hazard},{Practical chances},{Puzzle difficulty},{Tactic found},{Think time},{\sffamily\bfseries\color{labInk}transformer-medium-hand on a quarter of the games},{Blunder hazard},{Practical chances},{Puzzle difficulty},{Tactic found},{Think time}},
   ytick style={draw=none},
   y axis line style={draw=none},
   xmajorgrids,
-  xlabel={Gain over the run on all the games, in hundredths of the reference's step (left of the line is worse)},
+  xlabel={Gain over the model trained on the standard training set, in points of normalised score (left of the line is worse)},
   xmin=-22.1532, xmax=2.29985,
 ]
-\draw[labAxis, line width=0.6pt] (axis cs:0,-0.6) -- (axis cs:0,25.6);
+\draw[labAxis, line width=0.6pt] (axis cs:0,-0.6) -- (axis cs:0,29.6);
 \draw[labOrange, line width=1pt, line cap=round] (axis cs:-4.72272,1) -- (axis cs:0.155606,1);
 \addplot[only marks, mark=*, mark size=2.1pt, color=labOrange, mark options={draw=white, line width=0.6pt}] coordinates {(-2.32685,1)};
 \draw[labOrange, line width=1pt, line cap=round] (axis cs:-4.18656,2) -- (axis cs:-1.15659,2);
@@ -40,26 +40,30 @@
 \addplot[only marks, mark=*, mark size=2.1pt, color=labOrange, mark options={draw=white, line width=0.6pt}] coordinates {(-8.96972,12)};
 \draw[labOrange, line width=1pt, line cap=round] (axis cs:-3.92738,13) -- (axis cs:-2.549,13);
 \addplot[only marks, mark=*, mark size=2.1pt, color=labOrange, mark options={draw=white, line width=0.6pt}] coordinates {(-3.22179,13)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:-7.54038,15) -- (axis cs:-1.48773,15);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-4.58973,15)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:-2.4581,16) -- (axis cs:-0.535621,16);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-1.50672,16)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:-4.75566,17) -- (axis cs:-4.03709,17);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-4.38259,17)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:-10.2849,18) -- (axis cs:-7.69763,18);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-8.97339,18)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:-4.69411,19) -- (axis cs:-3.38448,19);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-4.04715,19)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:-17.394,21) -- (axis cs:-10.1448,21);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-13.698,21)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:-5.2021,22) -- (axis cs:-2.7908,22);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-3.97098,22)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:-10.661,23) -- (axis cs:-9.80874,23);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-10.2383,23)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:-20.4667,24) -- (axis cs:-17.256,24);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-18.8612,24)};
-\draw[labBlue, line width=1pt, line cap=round] (axis cs:-9.8385,25) -- (axis cs:-7.93126,25);
-\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-8.86133,25)};
+\draw[labAqua, line width=1pt, line cap=round] (axis cs:-6.13396,15) -- (axis cs:-4.61174,15);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(-5.39672,15)};
+\draw[labAqua, line width=1pt, line cap=round] (axis cs:-14.4432,17) -- (axis cs:-12.6326,17);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(-13.6011,17)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-7.54038,19) -- (axis cs:-1.48773,19);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-4.58973,19)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-2.4581,20) -- (axis cs:-0.535621,20);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-1.50672,20)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-4.75566,21) -- (axis cs:-4.03709,21);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-4.38259,21)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-10.2849,22) -- (axis cs:-7.69763,22);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-8.97339,22)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-4.69411,23) -- (axis cs:-3.38448,23);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-4.04715,23)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-17.394,25) -- (axis cs:-10.1448,25);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-13.698,25)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-5.2021,26) -- (axis cs:-2.7908,26);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-3.97098,26)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-10.661,27) -- (axis cs:-9.80874,27);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-10.2383,27)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-20.4667,28) -- (axis cs:-17.256,28);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-18.8612,28)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-9.8385,29) -- (axis cs:-7.93126,29);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-8.86133,29)};
 \end{axis}
 \end{tikzpicture}%
 }

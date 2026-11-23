@@ -8,20 +8,20 @@
   y dir=reverse,
   ymin=-0.775, ymax=14.725,
   ytick={0,1.55,3.1,4.65,6.2,7.75,9.3,10.85,12.4,13.95},
-  yticklabels={{\texttt{blunder-hazard}},{\texttt{game-rating}},{\texttt{human-move}},{\texttt{practical-chances}},{\texttt{puzzle-difficulty}},{\texttt{puzzle-difficulty-unsolved}},{\texttt{puzzle-themes}},{\texttt{tactic-found}},{\texttt{think-time}},{\texttt{where-to-look}}},
+  yticklabels={{Blunder hazard},{Game rating},{Human move},{Practical chances},{Puzzle difficulty},{Puzzle difficulty unsolved},{Puzzle themes},{Tactic found},{Think time},{Where to look}},
   ytick style={draw=none},
   y axis line style={draw=none},
   xmajorgrids,
-  xlabel={Share of the step from the floor to the reference (\%)},
+  xlabel={Normalised score (0: constant baseline, 100: GBDT with hand-crafted features)},
   xmin=-19.7707, xmax=210.036,
   xticklabel style={/pgf/number format/precision=0},
   legend columns=3,
   legend style={at={(0,1)}, anchor=south west, yshift=0.55cm},
 ]
 \draw[labAxis, line width=0.6pt] (axis cs:0,-0.775) -- (axis cs:0,14.725);
-\node[anchor=south, font=\sffamily\scriptsize, text=labSecondary, inner sep=1.5pt] at (axis cs:0,-0.775) {floor};
+\node[anchor=south, font=\sffamily\scriptsize, text=labSecondary, inner sep=1.5pt] at (axis cs:0,-0.775) {constant};
 \draw[labAxis, line width=0.6pt] (axis cs:100,-0.775) -- (axis cs:100,14.725);
-\node[anchor=south, font=\sffamily\scriptsize, text=labSecondary, inner sep=1.5pt] at (axis cs:100,-0.775) {reference};
+\node[anchor=south, font=\sffamily\scriptsize, text=labSecondary, inner sep=1.5pt] at (axis cs:100,-0.775) {GBDT};
 \draw[labGrid, line width=0.3pt] (axis cs:-19.7707,0.775) -- (axis cs:210.036,0.775);
 \draw[labGrid, line width=0.3pt] (axis cs:-19.7707,2.325) -- (axis cs:210.036,2.325);
 \draw[labGrid, line width=0.3pt] (axis cs:-19.7707,3.875) -- (axis cs:210.036,3.875);
@@ -31,7 +31,7 @@
 \draw[labGrid, line width=0.3pt] (axis cs:-19.7707,10.075) -- (axis cs:210.036,10.075);
 \draw[labGrid, line width=0.3pt] (axis cs:-19.7707,11.625) -- (axis cs:210.036,11.625);
 \draw[labGrid, line width=0.3pt] (axis cs:-19.7707,13.175) -- (axis cs:210.036,13.175);
-\addplot[only marks, mark=*, mark size=2.32092pt, color=labBlue, mark options={draw=white, line width=0.5pt, fill=labBlue}] coordinates {(107.205,-0.489474) (124.868,1.06053) (121.384,2.61053) (98.2035,4.16053) (111.87,5.71053) (188.383,7.26053) (121.841,8.81053) (105.625,10.3605) (107.498,11.9105)};
+\addplot[only marks, mark=*, mark size=2.32092pt, color=labBlue, mark options={draw=white, line width=0.5pt, fill=labBlue}] coordinates {(107.205,-0.489474) (121.384,2.61053) (98.2035,4.16053) (111.87,5.71053) (188.383,7.26053) (121.841,8.81053) (105.625,10.3605) (107.498,11.9105)};
 \addlegendentry{\texttt{transformer-medium-hand}}
 \addplot[only marks, mark=triangle*, mark size=2.32092pt, color=labAqua, mark options={draw=white, line width=0.5pt, fill=labAqua}] coordinates {(91.1713,-0.326316) (145.495,1.22368) (121.917,2.77368) (98.9085,4.32368) (105.247,5.87368) (167.52,7.42368) (121.221,8.97368) (86.8755,10.5237) (98.4998,12.0737) (129.805,13.6237)};
 \addlegendentry{\texttt{transformer-medium}}

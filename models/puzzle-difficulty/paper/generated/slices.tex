@@ -5,7 +5,7 @@
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Gain & 95\% CI \\
 \midrule
 \textless{}1000 & 22{,}751 & 805.9 & 876.8 & 170.8 & 970.6 & 245.3 & \textbf{+74.42} & +71.77 to +76.57 \\
 1000-1399 & 31{,}846 & 1200.6 & 1269.0 & 221.5 & 1329.7 & 270.2 & \textbf{+48.73} & +46.56 to +51.05 \\
@@ -15,7 +15,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the puzzle's rating.}
+\caption{The test set by: the puzzle's rating.}
 \label{tab:slice-band}
 \end{table}
 
@@ -25,7 +25,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Gain & 95\% CI \\
 \midrule
 1 & 14{,}854 & 961.2 & 940.8 & 189.8 & 960.5 & 226.3 & \textbf{+36.49} & +34.19 to +39.18 \\
 2 & 57{,}896 & 1394.8 & 1381.4 & 240.6 & 1394.7 & 285.0 & \textbf{+44.40} & +42.74 to +46.04 \\
@@ -35,7 +35,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: moves the solver has to find.}
+\caption{The test set by: moves the solver has to find.}
 \label{tab:slice-moves}
 \end{table}
 
@@ -45,7 +45,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Gain & 95\% CI \\
 \midrule
 short & 57{,}439 & 1394.5 & 1381.0 & 240.4 & 1394.3 & 284.9 & \textbf{+44.51} & +42.82 to +46.13 \\
 endgame & 55{,}361 & 1443.4 & 1433.8 & 262.7 & 1443.7 & 306.0 & \textbf{+43.32} & +41.47 to +45.32 \\
@@ -80,7 +80,7 @@ promotion & 2{,}901 & 1512.1 & 1509.1 & 292.0 & 1520.5 & 323.2 & \textbf{+31.20}
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: theme.}
+\caption{The test set by: theme.}
 \label{tab:slice-themes}
 \end{table}
 
@@ -90,7 +90,7 @@ promotion & 2{,}901 & 1512.1 & 1509.1 & 292.0 & 1520.5 & 323.2 & \textbf{+31.20}
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Gain & 95\% CI \\
 \midrule
 pawn & 13{,}094 & 1674.3 & 1669.1 & 286.1 & 1675.4 & 330.1 & \textbf{+44.04} & +40.12 to +48.40 \\
 knight & 16{,}147 & 1440.7 & 1430.1 & 238.3 & 1441.1 & 280.2 & \textbf{+41.98} & +38.67 to +44.55 \\
@@ -101,7 +101,7 @@ king & 5{,}141 & 1750.0 & 1739.2 & 331.9 & 1750.3 & 381.6 & \textbf{+49.73} & +4
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the piece that makes the first move.}
+\caption{The test set by: the piece that makes the first move.}
 \label{tab:slice-first-piece}
 \end{table}
 
@@ -111,14 +111,14 @@ king & 5{,}141 & 1750.0 & 1739.2 & 331.9 & 1750.3 & 381.6 & \textbf{+49.73} & +4
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Gain & 95\% CI \\
 \midrule
 no & 67{,}465 & 1458.6 & 1446.2 & 248.6 & 1457.5 & 291.7 & \textbf{+43.08} & +41.72 to +44.50 \\
 yes & 44{,}985 & 1465.7 & 1459.3 & 256.2 & 1468.2 & 299.6 & \textbf{+43.43} & +41.59 to +44.95 \\
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the first move takes something.}
+\caption{The test set by: the first move takes something.}
 \label{tab:slice-capture}
 \end{table}
 
@@ -128,14 +128,14 @@ yes & 44{,}985 & 1465.7 & 1459.3 & 256.2 & 1468.2 & 299.6 & \textbf{+43.43} & +4
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Gain & 95\% CI \\
 \midrule
 no & 42{,}741 & 1724.4 & 1716.0 & 281.4 & 1725.8 & 326.6 & \textbf{+45.24} & +43.05 to +46.93 \\
 yes & 69{,}709 & 1300.2 & 1289.3 & 231.6 & 1299.9 & 273.7 & \textbf{+42.05} & +40.73 to +43.44 \\
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the first move gives check.}
+\caption{The test set by: the first move gives check.}
 \label{tab:slice-check}
 \end{table}
 
@@ -145,14 +145,14 @@ yes & 69{,}709 & 1300.2 & 1289.3 & 231.6 & 1299.9 & 273.7 & \textbf{+42.05} & +4
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Gain & 95\% CI \\
 \midrule
 no & 97{,}168 & 1442.8 & 1432.2 & 254.3 & 1442.7 & 297.2 & \textbf{+42.91} & +41.66 to +44.28 \\
 yes & 15{,}282 & 1580.0 & 1573.8 & 234.8 & 1583.1 & 280.2 & \textbf{+45.41} & +42.39 to +48.11 \\
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the first move gives up material.}
+\caption{The test set by: the first move gives up material.}
 \label{tab:slice-sacrifice}
 \end{table}
 
@@ -162,14 +162,14 @@ yes & 15{,}282 & 1580.0 & 1573.8 & 234.8 & 1583.1 & 280.2 & \textbf{+45.41} & +4
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Gain & 95\% CI \\
 \midrule
 no & 102{,}725 & 1452.4 & 1441.9 & 250.0 & 1453.0 & 294.1 & \textbf{+44.03} & +42.70 to +45.14 \\
 yes & 9{,}725 & 1556.6 & 1552.4 & 268.6 & 1554.7 & 303.8 & \textbf{+35.20} & +31.24 to +39.56 \\
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the first move goes backward.}
+\caption{The test set by: the first move goes backward.}
 \label{tab:slice-backward}
 \end{table}
 
@@ -179,7 +179,7 @@ yes & 9{,}725 & 1556.6 & 1552.4 & 268.6 & 1554.7 & 303.8 & \textbf{+35.20} & +31
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Gain & 95\% CI \\
 \midrule
 0 & 76{,}556 & 1301.4 & 1291.0 & 228.1 & 1301.5 & 269.9 & \textbf{+41.88} & +40.54 to +43.12 \\
 1 & 23{,}549 & 1758.8 & 1749.5 & 286.7 & 1759.3 & 330.2 & \textbf{+43.58} & +40.78 to +46.73 \\
@@ -188,7 +188,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: solver's moves that neither take nor check.}
+\caption{The test set by: solver's moves that neither take nor check.}
 \label{tab:slice-quiet}
 \end{table}
 
@@ -198,14 +198,14 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Gain & 95\% CI \\
 \midrule
 no & 77{,}904 & 1613.5 & 1605.1 & 272.1 & 1614.4 & 316.0 & \textbf{+43.93} & +42.49 to +45.28 \\
 yes & 34{,}546 & 1118.6 & 1104.9 & 198.2 & 1117.7 & 240.7 & \textbf{+42.48} & +40.89 to +44.29 \\
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the line ends in mate.}
+\caption{The test set by: the line ends in mate.}
 \label{tab:slice-mate}
 \end{table}
 
@@ -215,7 +215,7 @@ yes & 34{,}546 & 1118.6 & 1104.9 & 198.2 & 1117.7 & 240.7 & \textbf{+42.48} & +4
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Gain & 95\% CI \\
 \midrule
 \textless{}3 & 15{,}773 & 1590.9 & 1579.2 & 297.9 & 1592.3 & 348.8 & \textbf{+50.86} & +47.00 to +55.03 \\
 3-6 & 24{,}519 & 1343.8 & 1334.9 & 245.3 & 1342.5 & 286.2 & \textbf{+40.97} & +38.36 to +43.29 \\
@@ -225,7 +225,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: knights, bishops, rooks and queens on the board.}
+\caption{The test set by: knights, bishops, rooks and queens on the board.}
 \label{tab:slice-pieces}
 \end{table}
 
@@ -235,7 +235,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Gain & 95\% CI \\
 \midrule
 \textless{}200 & 19{,}367 & 1389.4 & 1350.7 & 248.5 & 1375.0 & 295.2 & \textbf{+46.67} & +43.76 to +49.50 \\
 200-500 & 27{,}949 & 1336.2 & 1326.7 & 245.0 & 1355.1 & 295.0 & \textbf{+50.04} & +47.88 to +52.61 \\
@@ -245,7 +245,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: attempts the puzzle has had.}
+\caption{The test set by: attempts the puzzle has had.}
 \label{tab:slice-plays}
 \end{table}
 
@@ -255,7 +255,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Gain & 95\% CI \\
 \midrule
 \textless{}75 & 6{,}359 & 1669.0 & 1683.6 & 232.5 & 1662.1 & 244.6 & \textbf{+12.13} & +7.70 to +17.59 \\
 75-80 & 69{,}429 & 1500.0 & 1505.2 & 245.7 & 1511.9 & 277.4 & \textbf{+31.70} & +30.16 to +33.26 \\
@@ -264,6 +264,6 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the rating's deviation.}
+\caption{The test set by: the rating's deviation.}
 \label{tab:slice-deviation}
 \end{table}

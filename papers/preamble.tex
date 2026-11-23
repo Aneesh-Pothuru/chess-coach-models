@@ -253,8 +253,20 @@
 \captionsetup{font=small, labelfont=bf}
 \setlist{itemsep=0.15em, topsep=0.2em}
 
-% A paper's head: its name, the question it answers, and the line that says
-% which results it was drawn from. Then its summary, set apart.
+% A paper's head, as a published paper has it: the title, who wrote it, and the
+% line that says which results it reports. The abstract is the article class's.
+\newcommand{\papertitle}[2]{%
+  \hypersetup{pdftitle={#1}, pdfauthor={Chess Coach Models}}%
+  \begin{center}
+  {\LARGE\bfseries #1\par}
+  \medskip
+  {\large Chess Coach Models\par}
+  \smallskip
+  {\small\color{labSecondary}#2\par}
+  \end{center}}
+\renewenvironment{abstract}{\begin{center}\small\bfseries Abstract\end{center}\begin{quote}\small}{\end{quote}}
+
+% The head of the papers that are not rewritten yet.
 \newcommand{\labtitle}[3]{%
   \hypersetup{pdftitle={#1: #2}, pdfauthor={Chess Coach Models}}%
   \begin{center}

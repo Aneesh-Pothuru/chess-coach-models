@@ -488,13 +488,15 @@ def strips(
     order: Sequence[str] | None = None,
     width: str = "0.78\\textwidth",
     lane: float = 0.2,
+    code_rows: bool = True,
 ) -> str:
     """Runs along one scale, a strip a row: where each run of each row stands, each in its own colour and mark.
 
     ``rows`` are ``(name, points)`` and a point is ``(run, x)``. Inside a strip each run keeps a lane, taken
     in ``order`` or else in the order the runs first appear, so two runs at one place do not hide each
     other, and a legend names the runs once. Two runs that no strip holds together share a lane
-    (``strip_lanes``). ``marks`` are ``(x, label)``: upright lines the strips are read against.
+    (``strip_lanes``). ``marks`` are ``(x, label)``: upright lines the strips are read against. A row's name is
+    set as code, like a run's, unless ``code_rows`` is off: a name in words then.
 
     Strips that would stand taller than a page holds are drawn closer, lanes and marks alike. Past the
     point where a mark can still be told from its neighbour the figure is refused: it needs another shape.
@@ -540,7 +542,7 @@ def strips(
         "y dir=reverse",
         f"ymin={_number(top)}, ymax={_number(bottom)}",
         f"ytick={{{','.join(_number(index * height) for index in range(len(rows)))}}}",
-        f"yticklabels={{{','.join(f'{{{_name(name, True)}}}' for name, _ in rows)}}}",
+        f"yticklabels={{{','.join(f'{{{_name(name, code_rows)}}}' for name, _ in rows)}}}",
         "ytick style={draw=none}",
         "y axis line style={draw=none}",
         "xmajorgrids",

@@ -191,16 +191,16 @@ MARKS: dict[str, str] = {
 # The groups the hand features come in, as a run that leaves one out names them, and as a paper says them.
 GROUPS: dict[str, str] = {
     "material": "material",
-    "mobility": "the moves on offer",
-    "hanging": "pieces that can be taken",
+    "mobility": "mobility",
+    "hanging": "hanging pieces",
     "pawns": "passed pawns",
-    "kings": "attacks near the kings",
-    "setup": "the opponent's move",
-    "first-move": "the first move",
-    "line": "the line",
-    "accuracy": "what the moves lost",
-    "tempo": "the use of the clock",
-    "choices": "what there was to choose from",
+    "kings": "king safety",
+    "setup": "opponent's last move",
+    "first-move": "first move",
+    "line": "solution line",
+    "accuracy": "move accuracy",
+    "tempo": "clock use",
+    "choices": "available moves",
 }
 
 # How a column's values are printed beside a board: a unit after the number.

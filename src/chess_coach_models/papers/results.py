@@ -21,10 +21,10 @@ from typing import Any
 
 from .. import bands
 from ..data import games
-from ..evals import bootstrap, leaderboard
+from ..evals import bootstrap
 from ..train.learners import gbm
 from . import charts, glossary, tex
-from .sources import METRIC_NAMES, METRIC_WORDS, Sources, run_head, run_tex
+from .sources import METRIC_NAMES, METRIC_WORDS, Sources, describe, run_head, run_tex
 
 
 def _flatten(prefix: str, value: Any, out: tex.Generated) -> None:
@@ -62,7 +62,7 @@ def run_values(src: Sources, out: tex.Generated, prefix: str, run: dict[str, Any
     task = src.task
     learner, details = run["config"]["learner"], run["learner"]
     out.set(f"{prefix}.name", run_tex(run["run"]))
-    out.set(f"{prefix}.learner", tex.code(leaderboard.learner_words(run)))
+    out.set(f"{prefix}.learner", describe(run))
     for metric, entry in run["test"].items():
         for part, text in zip(("", ".low", ".high"), (entry["value"], entry["low"], entry["high"])):
             out.set(tex.key(prefix, metric) + part, tex.score(text))
@@ -385,7 +385,7 @@ def candidates_table(src: Sources) -> str | None:
             entry = run["test_by_candidate"][name]
             cells += [tex.fixed(entry["pr_auc"], 3), tex.fixed(entry["roc_auc"], 3)]
         rows.append(cells)
-    head = ["Tag", "Test rows", "Share"] + ["PR-AUC", "ROC-AUC"] * len(shown)
+    head = ["Tag", "Test examples", "Share"] + ["PR-AUC", "ROC-AUC"] * len(shown)
     top = ["", "", ""] + [run_head(run["run"], 2, "2.9cm") for run in shown]
     table = tex.tabular("lrr" + "rr" * len(shown), head, rows)
     return tex.grouped(table, top, [(4 + 2 * index, 5 + 2 * index) for index in range(len(shown))])
@@ -394,7 +394,7 @@ def candidates_table(src: Sources) -> str | None:
 def _gain_cells(src: Sources, run: dict[str, Any]) -> list[str]:
     gain = run.get("gain")
     if run["run"] == src.task.reference:
-        return ["reference", ""]
+        return ["baseline", ""]
     if gain is None:
         return ["not compared", ""]
     value, low, high = tex.trio(gain["gain"], gain["low"], gain["high"])
@@ -414,7 +414,7 @@ def leaderboard_table(src: Sources) -> str:
                 *_gain_cells(src, run),
             ]
         )
-    head = ["Run", METRIC_NAMES[src.primary], "95\\% interval", f"Gain over {run_tex(src.task.reference)}", "95\\% interval"]
+    head = ["Model", METRIC_NAMES[src.primary], "95\\% CI", f"Gain over {run_tex(src.task.reference)}", "95\\% CI"]
     return tex.tabular("lrrrr", head, rows)
 
 
@@ -423,7 +423,7 @@ def metrics_table(src: Sources) -> str:
     rows = [
         [run_tex(run["run"]), *(tex.score(run["test"][metric]["value"]) for metric in src.metrics)] for run in src.runs
     ]
-    return tex.tabular("l" + "r" * len(src.metrics), ["Run", *(METRIC_NAMES[metric] for metric in src.metrics)], rows)
+    return tex.tabular("l" + "r" * len(src.metrics), ["Model", *(METRIC_NAMES[metric] for metric in src.metrics)], rows)
 
 
 def trained_on(run: dict[str, Any]) -> str:
@@ -449,13 +449,13 @@ def runs_table(src: Sources) -> str:
         rows.append(
             [
                 run_tex(run["run"]),
-                tex.code(leaderboard.learner_words(run)),
+                describe(run),
                 _fitted(run),
                 tex.esc(trained_on(run)),
                 tex.duration(run["seconds"]),
             ]
         )
-    head = ["Run", "Learner", "Kept", "Trained on", "Time"]
+    head = ["Model", "Description", "Selected", "Hardware", "Time"]
     return tex.tabular("l>{\\raggedright\\arraybackslash}p{5.1cm}l>{\\raggedright\\arraybackslash}p{3.9cm}r", head, rows)
 
 
@@ -467,17 +467,17 @@ def _over(run: dict[str, Any], setting: str) -> str:
 
 # A network's settings as the settings table heads them, and how each is read from a run's config.
 SETTINGS = (
-    ("Body", "l", lambda run: tex.esc(run["config"]["learner"]["body"])),
+    ("Encoder", "l", lambda run: tex.esc(run["config"]["learner"]["body"])),
     ("Width", "r", lambda run: str(run["config"]["learner"]["dim"])),
     ("Layers", "r", lambda run: str(run["config"]["learner"]["depth"])),
     ("Heads", "r", lambda run: str(run["config"]["learner"].get("heads", ""))),
     ("Dropout", "r", lambda run: tex.plain(float(run["config"]["learner"].get("dropout", 0.0)))),
     # Of a network that reads a row's positions in order: the layers that do, over the body that reads a board.
-    ("Layers over", "r", lambda run: _over(run, "depth")),
-    ("Heads over", "r", lambda run: _over(run, "heads")),
+    ("Seq. layers", "r", lambda run: _over(run, "depth")),
+    ("Seq. heads", "r", lambda run: _over(run, "heads")),
     ("Epochs", "r", lambda run: str(run["config"]["train"]["epochs"])),
     ("Batch", "r", lambda run: tex.count(run["config"]["train"]["batch"])),
-    ("Rate", "r", lambda run: tex.plain(float(run["config"]["train"]["lr"]))),
+    ("LR", "r", lambda run: tex.plain(float(run["config"]["train"]["lr"]))),
     ("Decay", "r", lambda run: tex.plain(float(run["config"]["train"].get("weight_decay", 0.05)))),
     ("Patience", "r", lambda run: str(run["config"]["train"].get("patience", ""))),
 )
@@ -501,7 +501,7 @@ def settings_table(src: Sources) -> str | None:
     columns.append(("Parameters", "r", sizes))
     rows = [[run_tex(run["run"]), *(cells[index] for _, _, cells in columns)] for index, run in enumerate(networks)]
     spec = "l" + "".join(align for _, align, _ in columns)
-    table = "{\\setlength{\\tabcolsep}{4.5pt}%\n" + tex.tabular(spec, ["Run", *(name for name, _, _ in columns)], rows) + "}"
+    table = "{\\setlength{\\tabcolsep}{4.5pt}%\n" + tex.tabular(spec, ["Model", *(name for name, _, _ in columns)], rows) + "}"
     if shared:
         table += f"\n\n\\smallskip\n{{\\footnotesize Every one of them: {', '.join(shared)}.}}"
     return table
@@ -519,11 +519,11 @@ def data_table(src: Sources) -> str:
             row.append(src.label_text(by_split[split]["rate" if binary else "mean"]))
         rows.append(row)
     foot = ["all", tex.count(data["rows"]), ""]
-    head = ["Split", "Rows", "Share"]
+    head = ["Split", "Examples", "Share"]
     if by_split:
         look = src.look["label"]
         foot.append(src.label_text(look["rate" if binary else "mean"]))
-        head.append("Share that happened" if binary else "Mean label")
+        head.append("Positive rate" if binary else "Label mean")
     return tex.tabular("lrr" + ("r" if by_split else ""), head, rows, foot=[foot])
 
 
@@ -537,8 +537,8 @@ def bands_table(src: Sources) -> str:
         ]
         for run in src.runs
     ]
-    foot = ["test rows", *(tex.count(src.best["test_by_band"][name]["rows"]) for name in names)]
-    return tex.tabular("l" + "r" * len(names), ["Run", *(tex.esc(name) for name in names)], rows, foot=[foot])
+    foot = ["test examples", *(tex.count(src.best["test_by_band"][name]["rows"]) for name in names)]
+    return tex.tabular("l" + "r" * len(names), ["Model", *(tex.esc(name) for name in names)], rows, foot=[foot])
 
 
 def studies_bands_table(src: Sources) -> str | None:
@@ -561,8 +561,8 @@ def studies_bands_table(src: Sources) -> str | None:
         rows += [[f"\\quad {run_tex(run['run'])}", *cells(run)] for run in under]
     if not rows:
         return None
-    foot = ["test rows", *(tex.count(src.best["test_by_band"][name]["rows"]) for name in names)]
-    return tex.tabular("l" + "r" * len(names), ["Run", *(tex.esc(name) for name in names)], rows, foot=[foot])
+    foot = ["test examples", *(tex.count(src.best["test_by_band"][name]["rows"]) for name in names)]
+    return tex.tabular("l" + "r" * len(names), ["Model", *(tex.esc(name) for name in names)], rows, foot=[foot])
 
 
 def band_title(src: Sources) -> str:
@@ -609,7 +609,7 @@ def scores_figure(src: Sources) -> str:
     better = "lower" if src.task.lower_is_better else "higher"
     return charts.intervals(
         rows,
-        xlabel=f"{METRIC_NAMES[src.primary]} on the test rows ({better} is better)",
+        xlabel=f"{METRIC_NAMES[src.primary]} on the test set ({better} is better)",
         reference=reference["test"][src.primary]["value"] if reference is not None else None,
         reference_label=run_tex(reference["run"]) if reference is not None else "",
         colours=[charts.run_colour(run["run"]) for run in src.runs],
@@ -624,7 +624,7 @@ def gains_figure(src: Sources) -> str | None:
     rows = [(run["run"], run["gain"]["gain"], run["gain"]["low"], run["gain"]["high"]) for run in compared]
     return charts.intervals(
         rows,
-        xlabel=f"Gain in {METRIC_WORDS[src.primary]} over the reference (right of the line is better)",
+        xlabel=f"Gain in {METRIC_WORDS[src.primary]} over the baseline (right of the line is better)",
         reference=0.0,
         reference_label=run_tex(src.task.reference),
         colours=[charts.run_colour(run["run"]) for run in compared],
@@ -653,7 +653,7 @@ def curves_figure(src: Sources) -> str | None:
     return charts.lines(
         series,
         xlabel="Epoch",
-        ylabel=f"{METRIC_NAMES[src.primary]} on the valid rows",
+        ylabel=f"{METRIC_NAMES[src.primary]} on the validation set",
         level=reference_level(src),
         legend_columns=2,
         width="0.66\\textwidth",
@@ -671,7 +671,7 @@ def leans_figure(src: Sources, run: dict[str, Any] | None) -> str | None:
         return None
     return charts.ranked(
         [(glossary.title(lean["feature"]), 100.0 * lean["share_of_gain"]) for lean in leans],
-        xlabel="Share of the trees' gain (percent)",
+        xlabel="Share of total split gain (percent)",
         labels=[tex.percent(lean["share_of_gain"]) for lean in leans],
         colour=charts.run_colour(run["run"]),
     )
@@ -691,7 +691,7 @@ def calibration_table(src: Sources) -> str | None:
             entry = run["test_calibration"][index]
             cells += [tex.percent(entry["predicted"]) + "\\%", tex.percent(entry["observed"]) + "\\%"]
         rows.append(cells)
-    head = ["Group", "Rows"] + ["said", "happened"] * len(shown)
+    head = ["Bin", "Examples"] + ["predicted", "observed"] * len(shown)
     top = ["", ""] + [run_head(run["run"], 2, "2.9cm") for run in shown]
     table = tex.tabular("rr" + "rr" * len(shown), head, rows)
     return tex.grouped(table, top, [(3 + 2 * index, 4 + 2 * index) for index in range(len(shown))])
@@ -709,8 +709,8 @@ def calibration_figure(src: Sources) -> str | None:
     ]
     return charts.lines(
         series,
-        xlabel="Stated chance (percent)",
-        ylabel="Share that happened (percent)",
+        xlabel="Predicted probability (percent)",
+        ylabel="Observed frequency (percent)",
         diagonal=True,
         width="0.5\\textwidth",
         height="6.2cm",
@@ -720,7 +720,7 @@ def calibration_figure(src: Sources) -> str | None:
 def reads_table(src: Sources) -> str:
     """The context numbers every learner reads beside the board."""
     rows = [[f"\\texttt{{{tex.esc(name)}}}", glossary.says(name)] for name in src.task.context]
-    return tex.tabular("lL", ["Number", "What it is"], rows, width="\\textwidth")
+    return tex.tabular("lL", ["Feature", "Description"], rows, width="\\textwidth")
 
 
 def steps_table(src: Sources) -> str | None:
@@ -728,20 +728,20 @@ def steps_table(src: Sources) -> str | None:
     if not src.sequence:
         return None
     rows = [[f"\\texttt{{{tex.esc(name)}}}", glossary.says(name)] for name in src.steps]
-    return tex.tabular("lL", ["Number", "What it is"], rows, width="\\textwidth")
+    return tex.tabular("lL", ["Feature", "Description"], rows, width="\\textwidth")
 
 
 def hand_table(src: Sources) -> str:
     """The hand features the tree baseline reads, and a network when its run asks for them."""
     extra = [name for name in src.hand if name not in src.task.context]
     rows = [[f"\\texttt{{{tex.esc(name)}}}", glossary.says(name)] for name in extra]
-    return tex.tabular("lL", ["Feature", "What it counts"], rows, width="\\textwidth")
+    return tex.tabular("lL", ["Feature", "Description"], rows, width="\\textwidth")
 
 
 def marks_table(src: Sources) -> str:
     """The mark channels: what the task tells a network about squares."""
     rows = [[f"\\texttt{{{tex.esc(name)}}}", glossary.MARKS[name]] for name in src.marks]
-    return tex.tabular("lL", ["Mark", "The squares it is set on"], rows, width="\\textwidth")
+    return tex.tabular("lL", ["Plane", "Squares set"], rows, width="\\textwidth")
 
 
 def blocks(src: Sources, out: tex.Generated) -> None:

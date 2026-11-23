@@ -1,20 +1,22 @@
 % Written by `lab paper`; do not edit by hand.
-\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.6cm}rrrrLrr}
+\fit{%
+\begin{tabular}{lrrrrrr}
 \toprule
- & \multicolumn{2}{c}{\parbox[b]{2.4cm}{\centering Floor, baselines and trees}} & \multicolumn{3}{c}{Networks} & \multicolumn{2}{c}{Study runs} \\
-\cmidrule(lr){2-3} \cmidrule(lr){4-6} \cmidrule(lr){7-8}
-Model & Runs & Training & Runs & Training & On & Runs & Training \\
+ & \multicolumn{2}{c}{Baselines and GBDT} & \multicolumn{2}{c}{Networks} & \multicolumn{2}{c}{Ablations} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Task & Models & Training & Models & Training & Models & Training \\
 \midrule
-\run{blunder-hazard} & 5 & 3 min & 14 & 110 min & NVIDIA A100-SXM4-40GB, NVIDIA A100-SXM4-80GB & 15 & 63 min \\
-\run{game-rating} & 3 & 12 s & 4 & 70 min & NVIDIA A100-SXM4-80GB & 5 & 20 s \\
-\run{human-move} & 4 & 7 min & 8 & 61 min & NVIDIA A100-SXM4-40GB, NVIDIA A100-SXM4-80GB & 4 & 24 min \\
-\run{practical-chances} & 7 & 2 min & 8 & 41 min & NVIDIA A100-SXM4-40GB, NVIDIA A100-SXM4-80GB & 9 & 8 min \\
-\run{puzzle-difficulty} & 5 & 12 min & 15 & 3.5 h & NVIDIA A100-SXM4-40GB, NVIDIA A100-SXM4-80GB & 13 & 50 min \\
-\run{puzzle-difficulty-unsolved} & 2 & 34 s & 6 & 61 min & NVIDIA A100-SXM4-40GB, NVIDIA A100-SXM4-80GB & 0 &  \\
-\run{puzzle-themes} & 3 & 11 min & 4 & 35 min & NVIDIA A100-SXM4-80GB & 0 &  \\
-\run{tactic-found} & 5 & 3 min & 13 & 119 min & NVIDIA A100-SXM4-40GB, NVIDIA A100-SXM4-80GB & 13 & 25 min \\
-\run{think-time} & 5 & 3 min & 14 & 2.0 h & NVIDIA A100-SXM4-40GB, NVIDIA A100-SXM4-80GB & 10 & 23 min \\
-\run{where-to-look} & 3 & 10 min & 3 & 22 min & NVIDIA A100-SXM4-80GB & 0 &  \\
-\run{position-evaluation} & 2 & 2 min & 1 & 42 min & NVIDIA A100-SXM4-40GB & 0 &  \\
+Blunder hazard & 5 & 3 min & 7 & 47 min & 22 & 2.1 h \\
+Game rating & 3 & 12 s & 3 & 42 min & 6 & 28 min \\
+Human move & 4 & 7 min & 6 & 52 min & 6 & 32 min \\
+Practical chances & 6 & 69 s & 6 & 32 min & 12 & 18 min \\
+Puzzle difficulty & 5 & 12 min & 13 & 2.9 h & 15 & 88 min \\
+Puzzle difficulty unsolved & 2 & 34 s & 6 & 61 min & 0 &  \\
+Puzzle themes & 3 & 11 min & 4 & 35 min & 0 &  \\
+Tactic found & 5 & 3 min & 9 & 73 min & 17 & 71 min \\
+Think time & 5 & 3 min & 12 & 103 min & 12 & 41 min \\
+Where to look & 3 & 10 min & 3 & 22 min & 0 &  \\
+Position evaluation & 2 & 2 min & 1 & 42 min & 0 &  \\
 \bottomrule
-\end{tabularx}
+\end{tabular}%
+}

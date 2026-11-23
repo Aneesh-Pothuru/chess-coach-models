@@ -221,11 +221,11 @@ def test_a_paper_reads_every_run_by_name_from_the_closer_look(lab):
     # A run the closer look does not already set beside the reference has figures and tables of its own.
     for block in (f"slice-band-{other}", f"slice-band-said-{other}", f"slice-band-bias-{other}", f"slices-{other}", f"reliability-{other}"):
         assert block in out.files
-    assert f"tab:slice-band-{other}" in out.files[f"slices-{other}"] and "Reference's lead" in out.files[f"slice-band-{other}"]
+    assert f"tab:slice-band-{other}" in out.files[f"slices-{other}"] and "Baseline's lead" in out.files[f"slice-band-{other}"]
     for name in pair:
         assert f"slice-band-said-{name}" not in out.files and f"reliability-{name}" not in out.files
     assert {"slice-band", "slice-band-said", "slices", "reliability"} <= set(out.files)
-    assert "tab:slice-band}" in out.files["slices"] and "95\\% interval" in out.files["slice-band"]
+    assert "tab:slice-band}" in out.files["slices"] and "95\\% CI" in out.files["slice-band"]
 
 
 def test_a_paper_stops_on_what_its_files_cannot_give(lab):
@@ -298,7 +298,7 @@ def test_the_lab_s_paper_reads_every_model_under_its_name_and_lists_one_that_wai
     made = {"lab-models", "lab-scores", "lab-shares", "lab-networks", "lab-changes", "lab-changes-figure", "lab-cost", "lab-waiting"}
     assert made <= set(out.files) and "unsolved" in out.files["lab-waiting"] and "over \\run{gbm-context}" in out.files["lab-changes"]
     assert out.values["lab.change.hand.over.gbm-context.models"] == "puzzle difficulty"
-    assert out.values["lab.change.hand.over.gbm-context.said"].endswith("in the one model (puzzle difficulty)")
+    assert out.values["lab.change.hand.over.gbm-context.said"].endswith("in the one task (puzzle difficulty)")
 
     # The paper itself is drawn from the committed results: here the small check's records stand in for them.
     shutil.copytree(paths.results(model, smoke=True), paths.results(model))
@@ -345,13 +345,13 @@ def test_the_lab_s_paper_lists_a_model_it_has_for_its_body_apart_from_the_ones_i
     assert out.values["lab.bodies.count"] == "one" and out.values["lab.bodies.names"] == "evaluation"
     # It is listed and costed with the rest, and its values and blocks are there under its name.
     assert out.values["lab.runs.count"] == "6" and out.values["lab.networks.count"] == "2"
-    assert all(run_tex(lender) in out.files[block] for block in ("lab-models", "lab-cost"))
+    assert all(overview.titled(lender) in out.files[block] for block in ("lab-models", "lab-cost"))
     assert f"{lender}.best.score" in out.values and f"{lender}-leaderboard" in out.files
     # No statement of how the models compare counts it: one model, one network of the ladder.
-    assert not any(run_tex(lender) in out.files[block] for block in ("lab-scores", "lab-changes") if block in out.files)
-    assert lender not in out.files["lab-shares"] and lender not in out.files["lab-networks"]
+    assert not any(overview.titled(lender) in out.files[block] for block in ("lab-scores", "lab-changes") if block in out.files)
+    assert not any(name in out.files[block] for name in (overview.said(lender), overview.titled(lender)) for block in ("lab-shares", "lab-networks"))
     assert out.values["lab.ladder.count"] == "1" and out.values["lab.whole.count"] == "one"
-    assert all(out.values[f"lab.network.{word}.of"].endswith("the one model") for word in ("ahead", "level", "behind"))
+    assert all(out.values[f"lab.network.{word}.of"].endswith("the one task") for word in ("ahead", "level", "behind"))
 
 
 def test_study_runs_train_on_what_their_config_changes_and_are_listed_apart(lab, temp_lab):
@@ -474,9 +474,9 @@ def test_a_run_trains_on_a_larger_build_and_is_scored_on_the_rows_every_run_is(l
     assert out.values["more.gbm-hand.most.rows"] == tex.count(more["train_rows"])
     assert out.values["more.gbm-hand.most.kept"] == out.values["pair.gbm-hand-double.gbm-hand.kept"]
     assert out.values["pair.gbm-hand-double.gbm-hand.differs"] == (
-        f"trains on {changes.games_words(twice)}, from the larger build \\code{{puzzles-all}}"
+        f"trained on {changes.games_words(twice)} (\\code{{puzzles-all}})"
     )
-    assert out.values["pair.transformer-small-double.transformer-small.differs"].endswith("; 1 epoch for 2")
+    assert out.values["pair.transformer-small-double.transformer-small.differs"].endswith("; 1 epoch in place of 2")
     switches = papers.switches(src, out)
     assert switches["more"] and switches["games"] and switches["pairs"]
     # And the lab's paper sets it beside the other models' in the same study.
@@ -559,16 +559,16 @@ def test_the_lab_s_paper_reads_the_two_studies_across_its_models(lab, temp_lab):
     whole, out = overview.generate(smoke=True)
     switches = overview.switches(whole)
     assert switches["games"] and switches["features"] and switches["studies"]
-    assert out.values["lab.studies.count"] == "3" and "Study runs" in out.files["lab-cost"]
+    assert out.values["lab.studies.count"] == "3" and "Ablations" in out.files["lab-cost"]
     assert {base: list(parts) for base, parts in overview.games(whole).items()} == {"gbm-hand": [0.5]}
     # A run that leaves two groups out measures neither of them: the lab's table has a group a row.
     assert list(overview.features(whole)) == ["kings"]
     assert out.values["lab.games.gbm-hand.half.models"] == "puzzle difficulty" and out.values["lab.features.kings.count"] == "one"
     assert out.values["lab.features.in.puzzle-difficulty.groups"] == "one"
-    assert out.values["lab.features.in.puzzle-difficulty.most.group"] == "attacks near the kings"
+    assert out.values["lab.features.in.puzzle-difficulty.most.group"] == "king safety"
     assert {"lab-games", "lab-games-figure", "lab-features"} <= set(out.files)
-    assert "\\run{gbm-hand} on" in out.files["lab-games"] and "& Half \\\\" in out.files["lab-games"]
-    assert "Attacks near the kings & 2 &" in out.files["lab-features"]
+    assert "\\run{gbm-hand}, training games" in out.files["lab-games"] and "& Half \\\\" in out.files["lab-games"]
+    assert "King safety & 2 &" in out.files["lab-features"]
 
 
 def test_a_task_that_hides_the_solution_gives_no_learner_a_way_to_read_it(lab, temp_lab):
@@ -695,7 +695,7 @@ def test_the_closer_look_measures_what_being_shown_more_is_worth(lab, temp_lab):
     src, out = papers.generate(model, smoke=True)
     flags = papers.switches(src, out)
     assert flags["shown"] is True and flags["shownpaired"] is True
-    assert out.values["shown.gbm-hand.verdict"] in ("better beyond the noise", "inside the noise", "worse beyond the noise")
+    assert out.values["shown.gbm-hand.verdict"] in ("significantly better", "not significantly different", "significantly worse")
     assert out.values["shown.best.there.name"].startswith("\\") and "shown.best.gain.low" in out.values
     assert "95" in out.files["shown"] and {"shown-band", "shown-moves"} <= set(out.files)
 
@@ -904,7 +904,7 @@ def test_a_run_that_changes_only_the_body_trains_and_is_set_against_the_run_it_n
     assert all(overview.TITLES[key] in out.files["lab-shapes"] for key in ("attacks", "geometry", "conv", "hybrid"))
     assert out.files["lab-shapes"].count(f"over {run_tex(base)}") == 4 and "lab-shapes-figure" in out.files
     assert all(out.values[f"lab.change.{key}.over.{base}.models"] == "puzzle difficulty" for key in ("attacks", "geometry", "conv", "hybrid"))
-    assert out.values[f"lab.change.conv.over.{base}.said"].endswith("in the one model (puzzle difficulty)")
+    assert out.values[f"lab.change.conv.over.{base}.said"].endswith("in the one task (puzzle difficulty)")
 
 
 SET_CONFIGS = {
@@ -1018,7 +1018,7 @@ def test_a_model_that_predicts_squares_runs_scores_and_ranks(lab, temp_lab):
     switches = papers.switches(src, out)
     assert switches["pairs"] and not switches["look"] and "pair.gbm-hand-few.gbm-hand.gain" in out.values
     assert out.values["task.candidates.count"] == "64"
-    assert out.values["pair.gbm-hand-few.gbm-hand.kept"] in ("kept", "not kept")
+    assert out.values["pair.gbm-hand-few.gbm-hand.kept"] in ("accepted", "not accepted")
     # A run whose predictions are gone is left out of the look, and its pair has no gain.
     paths.predictions(model, "gbm-hand-few", smoke=True).unlink()
     look = analysis.analyse(model, smoke=True)
@@ -1232,7 +1232,7 @@ def test_a_model_whose_rows_are_sequences_runs_scores_and_ranks(players_lab):
     assert out.values["task.steps.count"] == tex.word(len(task.steps))
     assert out.values["data.positions"] == tex.count(len(steps.tokens))
     assert all(f"\\texttt{{{tex.esc(name)}}}" in out.files["steps"] for name in task.steps)
-    assert "Layers over" in out.files["settings"] and "Heads over" in out.files["settings"]
+    assert "Seq. layers" in out.files["settings"] and "Seq. heads" in out.files["settings"]
     text = (paths.results(model, smoke=True) / "leaderboard.md").read_text()
     assert "for each position, then 1 transformer layer over the positions in order" in text
     # A row is shown by the position before the player's costliest move, with that move on the board.
@@ -1695,7 +1695,7 @@ def test_a_model_whose_answer_is_a_move_has_its_pairs_and_stands_in_the_lab_s_pa
     switches = papers.switches(src, out)
     assert switches["pairs"] and switches["changes"] and not switches["look"] and not switches["chance"]
     assert {"pairs", "pairs-figure", "leaderboard"} <= set(out.files)
-    assert out.values["pair.transformer-small-hand.transformer-small.differs"] == "reads the hand features"
+    assert out.values["pair.transformer-small-hand.transformer-small.differs"] == "with hand-crafted features"
     assert all(f"run.{name}.temperature" in out.values and f"run.{name}.platt.slope" not in out.values for name in ranked)
     # A row's candidates are its own position's moves, so a paper has no count of them to give: it says how
     # many a test row has, and a share of the rows as a percentage.
@@ -1716,7 +1716,7 @@ def test_a_model_whose_answer_is_a_move_has_its_pairs_and_stands_in_the_lab_s_pa
     assert overview.share(src, src.run("maia2")) == pytest.approx(100.0 * (published - floor) / (reference - floor))
     assert across.values["lab.networks.count"] == "3" and across.values["lab.ladder.count"] == "2"
     assert across.values[f"{model}.run.maia2.lift.share"] == tex.fixed(overview.share(src, src.run("maia2")), 0)
-    assert "First right" in across.files["lab-scores"] and "First right, higher is better" in across.files["lab-models"]
+    assert "Top-1 accuracy" in across.files["lab-scores"] and "Top-1 accuracy $\\uparrow$" in across.files["lab-models"]
     # The hand features under a network are a pair of this model as of any other.
     measured = {(entry["run"], entry["over"]): entry["kind"] for entry in overview.pairs(src)}
     assert measured["transformer-small-hand", "transformer-small"] == "hand"

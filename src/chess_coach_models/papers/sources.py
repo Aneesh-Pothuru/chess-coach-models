@@ -22,7 +22,7 @@ from . import charts, tex
 
 
 # A metric as a table's head names it, and as a sentence or an axis does.
-METRIC_NAMES = {**leaderboard.NAMES, "r2": "R\\textsuperscript{2}"}
+METRIC_NAMES = {**leaderboard.NAMES, "r2": "R\\textsuperscript{2}", "top1": "Top-1 accuracy", "top3": "Top-3 accuracy"}
 METRIC_WORDS = {
     **METRIC_NAMES,
     "log_loss": "log loss",
@@ -30,8 +30,8 @@ METRIC_WORDS = {
     "brier": "Brier score",
     "spearman": "rank correlation",
     "ap": "average precision",
-    "top1": "first right",
-    "top3": "in the first three",
+    "top1": "top-1 accuracy",
+    "top3": "top-3 accuracy",
 }
 
 
@@ -178,9 +178,69 @@ def run_tex(name: str) -> str:
     return f"\\run{{{tex.esc(name)}}}"
 
 
+# An encoder as a paper names it, and what a constant model predicts where a task's answer is not one number.
+ENCODERS = {"transformer": "Transformer", "conv": "ResNet", "hybrid": "CNN-transformer hybrid"}
+CONSTANTS = {
+    "squares": "Each square's frequency in the training set",
+    "tags": "Each tag's frequency in the training set",
+    "moves": "Uniform over the legal moves",
+}
+PER_EXAMPLE = {"squares": ", one example per square", "tags": ", one model per tag", "moves": ", one example per legal move"}
+
+
+def describe(record: dict[str, Any]) -> str:
+    """A model in a few words, as a paper's table describes it, from its record's config: the model class, its
+    size, what it reads, what it starts from, and the larger training set it was trained on where it has one."""
+    learner, kind = record["config"]["learner"], record["task"]["kind"]
+    more = record.get("train_dataset")
+    larger = "" if more is None else f"; {tex.count(record['train_rows'])} training examples (\\code{{{tex.esc(more['dataset'])}}})"
+    if learner["kind"] == "constant":
+        return CONSTANTS.get(kind, "Constant prediction")
+    if learner["kind"] == "maia2":
+        told = [learner["player"], learner["against"]]
+        rated = (
+            ""
+            if all(isinstance(one, str) for one in told)
+            else f", both ratings set to {tex.esc(told[0])}"
+            if told[0] == told[1]
+            else f", ratings set to {tex.esc(told[0])} and {tex.esc(told[1])}"
+        )
+        return f"Maia-2 ({tex.esc(learner.get('type', 'rapid'))}) as published{rated}; not trained here"
+    if learner["kind"] == "column":
+        scale = float(learner.get("scale", 1.0))
+        return f"The feature \\code{{{tex.esc(learner['column'])}}}" + ("" if scale == 1.0 else f", scaled by {scale:g}")
+    if learner["kind"] == "rating-formula":
+        return f"Elo expected score from \\code{{{tex.esc(learner['player'])}}} and \\code{{{tex.esc(learner['against'])}}}"
+    removed = f", \\code{{{tex.esc(' and '.join(learner['without']))}}} group removed" if learner.get("without") else ""
+    if learner["kind"] == "gbm":
+        reads = "context and hand-crafted features" if learner["features"] == "hand" else "context features"
+        return f"GBDT{PER_EXAMPLE.get(kind, '')}, {reads}{removed}{larger}"
+    body = learner["body"]
+    if body == "hybrid":
+        shape = f"Hybrid, {learner['convs']} residual blocks and {learner['depth']} transformer layers, width {learner['dim']}"
+    elif body == "conv":
+        shape = f"ResNet, {learner['depth']} blocks, width {learner['dim']}" + (", squeeze-and-excitation" if learner.get("squeeze") else "")
+    else:
+        shape = f"{ENCODERS.get(body, tex.esc(body))}, {learner['depth']} layers, width {learner['dim']}"
+        shape += ", attack-aware attention bias" if learner.get("attacks") else ""
+        shape += "" if learner.get("geometry", True) else ", no relative position bias"
+    over = learner.get("over")
+    if over:
+        layers = "transformer layers" if "depth" not in over else f"{over['depth']} transformer layer{'' if int(over['depth']) == 1 else 's'}"
+        shape += f" per position, then {layers} over the sequence"
+    reads = ", hand-crafted features" if learner.get("features") == "hand" else ""
+    start = f", initialised from \\code{{{tex.esc(learner['init']['model'] + '/' + learner['init']['run'])}}}" if learner.get("init") else ""
+    return f"{shape}{reads}{removed}{start}{larger}"
+
+
+def wide_head(text: str, span: int, width: str) -> str:
+    """A head over the columns that are its own: centred, and broken where it is wider than they are."""
+    return f"\\multicolumn{{{span}}}{{c}}{{\\parbox[b]{{{width}}}{{\\centering {text}}}}}"
+
+
 def run_head(name: str, span: int, width: str) -> str:
-    """A run's name over the columns that are its own: centred, and broken where it is wider than they are."""
-    return f"\\multicolumn{{{span}}}{{c}}{{\\parbox[b]{{{width}}}{{\\centering {run_tex(name)}}}}}"
+    """A run's name over the columns that are its own."""
+    return wide_head(run_tex(name), span, width)
 
 
 def read(model: str, *, smoke: bool = False) -> Sources:

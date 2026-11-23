@@ -97,8 +97,8 @@ def valid_gain(src: Sources, run: dict[str, Any], over: dict[str, Any]) -> float
 def verdict(entry: dict[str, Any]) -> str:
     """A pair's gain as a sentence ends: better, worse, or inside the noise."""
     if not entry["beyond_noise"]:
-        return "inside the noise"
-    return "better beyond the noise" if entry["gain"] > 0 else "worse beyond the noise"
+        return "not significantly different"
+    return "significantly better" if entry["gain"] > 0 else "significantly worse"
 
 
 def kept(entry: dict[str, Any], ahead: float) -> bool:
@@ -180,32 +180,32 @@ def more(src: Sources) -> list[tuple[str, float, dict[str, Any], dict[str, Any]]
 def _change(block: str, key: str, new: Any, old: Any) -> str:
     """One setting a run changes, in words."""
     if (block, key) == ("learner", "features"):
-        return "reads the hand features" if new == "hand" else "does not read the hand features"
+        return "with hand-crafted features" if new == "hand" else "without hand-crafted features"
     if (block, key) == ("learner", "init"):
-        return "does not start from another run" if new is None else f"starts from the body of {run_tex(new['model'] + '/' + new['run'])}"
+        return "trained from scratch" if new is None else f"encoder initialised from {run_tex(new['model'] + '/' + new['run'])}"
     if (block, key) == ("learner", "without"):
         groups = " and ".join(glossary.group(name) for name in new or [])
-        return f"does not read the hand features of {groups}"
+        return f"without the {groups} features"
     if (block, key) == ("learner", "attacks"):
-        return "its attention is told what each piece attacks" if new else "its attention is told nothing of the attacks"
+        return "with attack-aware attention bias" if new else "without attack-aware attention bias"
     if (block, key) == ("learner", "geometry"):
-        return "its attention is not told the offsets between squares" if new is False else "its attention is told the offsets between squares"
+        return "without relative position bias" if new is False else "with relative position bias"
     if (block, key) == ("data", "train_share"):
-        return f"trains on {games_words(float(new))}" if new is not None else "trains on all the training games"
+        return f"trained on {games_words(float(new))}" if new is not None else "trained on all the training games"
     if (block, key) == ("data", "train_on"):
-        return "trains on the dataset's own rows" if new is None else f"trains on the larger build \\code{{{tex.esc(new)}}}"
+        return "trained on the standard training set" if new is None else f"trained on the larger training set \\code{{{tex.esc(new)}}}"
     if (block, key) == ("train", "seed"):
-        return "is trained a second time, with another seed"
+        return "second training run, different random seed"
     if (block, key) == ("learner", "rounds"):
-        return "may grow as many trees as any run" if new is None else f"may grow {tex.count(new)} trees"
+        return "default limit on boosting rounds" if new is None else f"up to {tex.count(new)} boosting rounds"
     names = {"epochs": ("epoch", "epochs"), "patience": ("epoch of patience", "epochs of patience")}
-    name = names[key][new != 1] if key in names else {"lr": "peak learning rate", "batch": "rows a batch"}.get(key)
+    name = names[key][new != 1] if key in names else {"lr": "peak learning rate", "batch": "examples per batch"}.get(key)
     if block == "train" and name is not None and new is not None:
         number = tex.plain(new) if isinstance(new, (int, float)) else tex.esc(new)
-        was = "" if old is None else f" for {tex.plain(old) if isinstance(old, (int, float)) else tex.esc(old)}"
+        was = "" if old is None else f" in place of {tex.plain(old) if isinstance(old, (int, float)) else tex.esc(old)}"
         return f"{number} {name}{was}"
     said = "not set" if new is None else tex.esc(new)
-    return f"\\texttt{{{tex.esc(block)}.{tex.esc(key)}}} {said}" + ("" if old is None else f" for {tex.esc(old)}")
+    return f"\\texttt{{{tex.esc(block)}.{tex.esc(key)}}} {said}" + ("" if old is None else f" in place of {tex.esc(old)}")
 
 
 # The settings that say a network's shape: its body, and what the body is made of.
@@ -276,7 +276,7 @@ def kind(run: dict[str, Any], over: dict[str, Any]) -> str | None:
 
 
 # A network's body as a table says it.
-BODIES = {"transformer": "a transformer", "conv": "a convolutional tower", "hybrid": "convolutions under a transformer"}
+BODIES = {"transformer": "transformer", "conv": "ResNet", "hybrid": "CNN-transformer hybrid"}
 
 
 def differs(run: dict[str, Any], other: dict[str, Any]) -> str:
@@ -288,21 +288,21 @@ def differs(run: dict[str, Any], other: dict[str, Any]) -> str:
     if settings is None:
         ours, theirs = run["config"]["learner"], other["config"]["learner"]
         if ours.get("kind") != "net" or theirs.get("kind") != "net":
-            return "another learner"
+            return "a different model class"
         if ours["body"] != theirs["body"]:
-            said.append(f"its body is {BODIES.get(ours['body'], tex.esc(ours['body']))} for {BODIES.get(theirs['body'], tex.esc(theirs['body']))}")
+            said.append(f"{BODIES.get(ours['body'], tex.esc(ours['body']))} encoder in place of the {BODIES.get(theirs['body'], tex.esc(theirs['body']))}")
         else:
-            said.append(f"{tex.plain(ours['depth'])} layers of width {tex.plain(ours['dim'])} for {tex.plain(theirs['depth'])} of width {tex.plain(theirs['dim'])}")
+            said.append(f"{tex.plain(ours['depth'])} layers of width {tex.plain(ours['dim'])} in place of {tex.plain(theirs['depth'])} of width {tex.plain(theirs['dim'])}")
         settings = beside_shape(run, other)
     ours, theirs = run["config"], other["config"]
     times = multiple(run, other) if ("data", "train_on") in settings else None
     if times is not None:
         # A larger build and the share of it a run takes are one change: how many games it trains on.
         build = tex.esc(ours["data"]["train_on"])
-        said.append(f"trains on {games_words(times)}, from the larger build \\code{{{build}}}")
+        said.append(f"trained on {games_words(times)} (\\code{{{build}}})")
         settings = [(block, key) for block, key in settings if (block, key) not in (("data", "train_on"), ("data", "train_share"))]
     said += [_change(block, key, (ours.get(block) or {}).get(key), (theirs.get(block) or {}).get(key)) for block, key in settings]
-    return "; ".join(said) if said else "nothing its config names"
+    return "; ".join(said) if said else "no configured difference"
 
 
 def _gain_cells(entry: dict[str, Any] | None) -> list[str]:
@@ -336,7 +336,7 @@ def values(src: Sources, out: tex.Generated) -> None:
                 # A study run is there to measure, not to be kept. A run on more games was tried as a run of
                 # the model's own, so the rule was read off it even where it has been filed under the study.
                 if not tabled(entry) or (games_share(src, known[entry["run"]]) or 0.0) > 1.0:
-                    out.set(f"{prefix}.kept", "kept" if kept(entry, ahead) else "not kept")
+                    out.set(f"{prefix}.kept", "accepted" if kept(entry, ahead) else "not accepted")
     plain = [entry for entry in pairs(src) if not tabled(entry)]
     out.set("pairs.count", tex.word(len(plain)))
     for study in sorted({run["config"]["study"] for run in src.studies}):
@@ -355,7 +355,7 @@ def values(src: Sources, out: tex.Generated) -> None:
             worse = [entry for _, entry in measured if entry["beyond_noise"] and entry["gain"] < 0]
             better = [entry for _, entry in measured if entry["beyond_noise"] and entry["gain"] > 0]
             out.set(f"{inner}.worse", tex.word(len(worse)))
-            out.set(f"{inner}.worse.of", tex.of(len(worse), len(measured), "runs"))
+            out.set(f"{inner}.worse.of", tex.of(len(worse), len(measured), "ablations"))
             out.set(f"{inner}.better", tex.word(len(better)))
             out.set(f"{inner}.level", tex.word(len(measured) - len(worse) - len(better)))
             if study == "features" and measured:
@@ -381,7 +381,7 @@ def more_values(src: Sources, out: tex.Generated) -> None:
         worse = [entry for _, _, entry in found if entry["beyond_noise"] and entry["gain"] < 0]
         out.set(f"{prefix}.runs", tex.word(len(found)))
         out.set(f"{prefix}.better", tex.word(len(better)))
-        out.set(f"{prefix}.better.of", tex.of(len(better), len(found), "runs"))
+        out.set(f"{prefix}.better.of", tex.of(len(better), len(found), "models"))
         out.set(f"{prefix}.worse", tex.word(len(worse)))
         out.set(f"{prefix}.level", tex.word(len(found) - len(better) - len(worse)))
         share, run, entry = max(found, key=lambda item: item[0])
@@ -392,7 +392,7 @@ def more_values(src: Sources, out: tex.Generated) -> None:
         out.set(f"{prefix}.most.verdict", verdict(entry))
         ahead = valid_gain(src, run, known[base])
         if ahead is not None:
-            out.set(f"{prefix}.most.kept", "kept" if kept(entry, ahead) else "not kept")
+            out.set(f"{prefix}.most.kept", "accepted" if kept(entry, ahead) else "not accepted")
 
 
 def pairs_table(src: Sources) -> str | None:
@@ -413,7 +413,7 @@ def pairs_table(src: Sources) -> str | None:
     if not rows:
         return None
     name = ">{\\raggedright\\arraybackslash}p{2.45cm}"
-    head = ["Run", "Set against", "What the run changes", "Valid rows", "Test rows", "95\\% interval"]
+    head = ["Model", "Baseline", "Change", "Validation", "Test", "95\\% CI"]
     table = tex.tabular(f"{name}{name}Lrrr", head, rows, width="\\textwidth", pages=True)
     gain = f"\\multicolumn{{3}}{{c}}{{Gain in {METRIC_NAMES[src.primary]}}}"
     return tex.grouped(table, ["", "", "", gain], [(4, 6)])
@@ -427,7 +427,7 @@ def pairs_figure(src: Sources) -> str | None:
     rows = [(f"{entry['run']} over {entry['over']}", entry["gain"], entry["low"], entry["high"]) for entry in measured]
     return charts.intervals(
         rows,
-        xlabel=f"Gain in {METRIC_WORDS[src.primary]} of the first run over the second (right of the line is better)",
+        xlabel=f"Gain in {METRIC_WORDS[src.primary]} of the first model over the second (right of the line is better)",
         reference=0.0,
         colours=[charts.run_colour(entry["run"]) for entry in measured],
         width="0.5\\textwidth",
@@ -455,7 +455,7 @@ def variants_figure(src: Sources) -> str | None:
     return charts.panels(
         groups,
         xlabel="Epoch",
-        ylabel=f"{METRIC_NAMES[src.primary]} on the valid rows",
+        ylabel=f"{METRIC_NAMES[src.primary]} on the validation set",
         level=reference_level(src),
         width=f"{min(0.52, 0.98 / len(groups)):.2f}\\textwidth",
     )
@@ -476,7 +476,7 @@ def shapes_figure(src: Sources) -> str | None:
     return charts.panels(
         groups,
         xlabel="Epoch",
-        ylabel=f"{METRIC_NAMES[src.primary]} on the valid rows",
+        ylabel=f"{METRIC_NAMES[src.primary]} on the validation set",
         level=reference_level(src),
         width="0.52\\textwidth",
         height="4.5cm",
@@ -519,7 +519,7 @@ def games_table(src: Sources) -> str | None:
     if not rows:
         return None
     # The run's name takes what the numbers leave of the page: a gain of six digits with its interval is wide.
-    head = ["Run", "Training games", "Train rows", METRIC_NAMES[src.primary], "Gain", "95\\% interval"]
+    head = ["Model", "Training games", "Training examples", METRIC_NAMES[src.primary], "Gain", "95\\% CI"]
     return tex.tabular("Llrrrr", head, rows, width="\\textwidth")
 
 
@@ -544,8 +544,8 @@ def games_figure(src: Sources) -> str | None:
     better = "lower" if src.task.lower_is_better else "higher"
     return charts.lines(
         drawn,
-        xlabel="Training games, beside all the games of the dataset",
-        ylabel=f"{METRIC_NAMES[src.primary]} on the test rows ({better} is better)",
+        xlabel="Training games, relative to the standard training set",
+        ylabel=f"{METRIC_NAMES[src.primary]} on the test set ({better} is better)",
         tick_labels=[share_words(share) for share in shares],
         width="0.5\\textwidth",
     )
@@ -563,7 +563,7 @@ def features_table(src: Sources) -> str | None:
     for base, runs in _study(src, "features").items():
         if base not in known:
             continue
-        rows.append([run_tex(base), "nothing", "", _score(src, known[base]), "", ""])
+        rows.append([run_tex(base), "none", "", _score(src, known[base]), "", ""])
         measured = [(run, pair(src, run["run"], base)) for run in runs]
         for run, entry in sorted(measured, key=lambda item: (item[1] is None, item[1]["gain"] if item[1] else 0.0)):
             groups = _left_out(run)
@@ -573,7 +573,7 @@ def features_table(src: Sources) -> str | None:
             )
     if not rows:
         return None
-    head = ["Run", "Left out", "Features", METRIC_NAMES[src.primary], "Gain", "95\\% interval"]
+    head = ["Model", "Removed group", "Features", METRIC_NAMES[src.primary], "Gain", "95\\% CI"]
     return tex.tabular(">{\\raggedright\\arraybackslash}p{3.7cm}Lrrrr", head, rows, width="\\textwidth")
 
 

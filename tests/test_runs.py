@@ -304,6 +304,6 @@ def test_a_second_training_names_its_seed_as_a_setting_of_its_training():
     first = {"run": "net", "config": settings}
     second = {"run": "net-seed1", "config": {**settings, "base": "net", "study": "seed", "train": {"epochs": 12, "seed": 1}}}
     assert changes.changed(second, first) == [("train", "seed")]
-    assert changes.differs(second, first) == "is trained a second time, with another seed"
+    assert changes.differs(second, first) == "second training run, different random seed"
     # A second training is no kind of change the lab's paper counts: it measures the luck of a training.
     assert changes.kind(second, first) is None

@@ -348,20 +348,20 @@ def test_two_runs_differ_in_the_settings_one_changes_or_in_the_learner():
     trees = {"config": {"learner": {"kind": "gbm", "features": "hand"}}}
     assert changes.changed(longer, plain) == [("learner", "features"), ("train", "epochs")]
     assert changes.changed(plain, plain) == []
-    assert changes.changed(longer, trees) is None and changes.differs(longer, trees) == "another learner"
+    assert changes.changed(longer, trees) is None and changes.differs(longer, trees) == "a different model class"
     # Two networks of different bodies or sizes differ in that, and a table says it.
     tower = {"config": {"learner": {"kind": "net", "body": "conv", "dim": 192, "depth": 10, "squeeze": 4}, "train": plain["config"]["train"]}}
     large = {"config": {"learner": {**body, "dim": 384, "depth": 12}, "train": plain["config"]["train"]}}
     told = {"config": {"learner": {**body, "attacks": True}, "train": plain["config"]["train"]}}
     blind = {"config": {"learner": {**body, "geometry": False}, "train": plain["config"]["train"]}}
-    assert changes.differs(tower, plain) == "its body is a convolutional tower for a transformer"
-    assert changes.differs(large, plain) == "12 layers of width 384 for 8 of width 256"
+    assert changes.differs(tower, plain) == "ResNet encoder in place of the transformer"
+    assert changes.differs(large, plain) == "12 layers of width 384 in place of 8 of width 256"
     # What they differ in beside their shape is said after it: a tower at the rate a tower takes.
     faster = {"config": {"learner": tower["config"]["learner"], "train": {"epochs": 12, "lr": 0.002}}}
     assert changes.beside_shape(tower, plain) == [] and changes.beside_shape(faster, plain) == [("train", "lr")]
-    assert changes.differs(faster, plain) == "its body is a convolutional tower for a transformer; 0.002 peak learning rate for 0.0006"
-    assert changes.differs(told, plain) == "its attention is told what each piece attacks"
-    assert changes.differs(blind, plain) == "its attention is not told the offsets between squares"
+    assert changes.differs(faster, plain) == "ResNet encoder in place of the transformer; 0.002 peak learning rate in place of 0.0006"
+    assert changes.differs(told, plain) == "with attack-aware attention bias"
+    assert changes.differs(blind, plain) == "without relative position bias"
 
 
 def _record(name, learner, score, primary, gain=None, **config):
@@ -538,7 +538,7 @@ def test_a_study_s_runs_stand_by_band_under_the_run_they_change():
         "\\quad \\run{gbm-hand-half} & 0.3900 & n/a \\\\",
     ]
     assert lines[lines.index(rows[2]) - 1] == "\\addlinespace" and lines.count("\\addlinespace") == 1
-    assert "test rows & 10 & 10" in results.studies_bands_table(src)
+    assert "test examples & 10 & 10" in results.studies_bands_table(src)
     # A model with no study run scored by band has no such table.
     assert results.studies_bands_table(sources.Sources("human-move", False, tasks.get("human-move"), [published, trees], [unscored], {}, {}, None, (), ())) is None
 
@@ -594,13 +594,13 @@ def test_one_change_is_read_model_by_model_by_the_run_it_was_made_in():
     switches = overview.switches(lab)
     assert switches["changehand"] and switches["changeepochs"] and not switches["changestart"]
     table = overview.changes_table(lab)
-    assert "\\textbf{More epochs}" in table and "over \\run{transformer-medium}" in table and "over \\run{gbm-context}" in table
+    assert "\\textbf{Twice the training epochs}" in table and "over \\run{transformer-medium}" in table and "over \\run{gbm-context}" in table
     # A step of 1 in both models, so a gain of 0.3 is thirty hundredths of it, and only the gain beyond the noise is bold.
     assert "\\textbf{+30.0} & +10.0 to +50.0" in table and "& +10.0 & $-$20.0 to +40.0" in table
     assert overview._tally(["puzzle-difficulty"], ["blunder-hazard"], []) == (
-        "better beyond the noise in one of the two models (puzzle difficulty) and inside the noise in one of the two models (blunder hazard)"
+        "significantly better in one of the two tasks (puzzle difficulty) and not significantly different in one of the two tasks (blunder hazard)"
     )
-    assert overview._tally([], ["think-time"], []) == "inside the noise in the one model (think time)"
+    assert overview._tally([], ["think-time"], []) == "not significantly different in the one task (think time)"
 
 
 def test_a_change_made_in_more_runs_than_a_table_sets_side_by_side_goes_on_under_itself(monkeypatch):
@@ -623,17 +623,17 @@ def test_a_change_made_in_more_runs_than_a_table_sets_side_by_side_goes_on_under
     assert list(overview.by_base(lab)["epochs"]) == ["transformer-medium", "transformer-medium-hand"]
     # Both runs the epochs were changed in fit side by side: one row of the model under one line of heads.
     wide = overview.changes_table(lab).splitlines()
-    assert "Model & Gain & 95\\% interval & Gain & 95\\% interval \\\\" in wide
+    assert "Task & Gain & 95\\% CI & Gain & 95\\% CI \\\\" in wide
     assert " & \\multicolumn{2}{c}{over \\run{transformer-medium}} & \\multicolumn{2}{c}{over \\run{transformer-medium-hand}} \\\\" in wide
-    assert "\\run{puzzle-difficulty} & \\textbf{+30.0} & +10.0 to +50.0 & +10.0 & $-$20.0 to +40.0 \\\\" in wide
+    assert "Puzzle difficulty & \\textbf{+30.0} & +10.0 to +50.0 & +10.0 & $-$20.0 to +40.0 \\\\" in wide
     # A table that holds one run across names the second under the first, each with the model's row of its own.
     monkeypatch.setattr(overview, "ACROSS", 1)
     narrow = overview.changes_table(lab).splitlines()
-    assert "Model & Gain & 95\\% interval \\\\" in narrow and "\\multicolumn{3}{l}{\\textbf{More epochs}} \\\\" in narrow
+    assert "Task & Gain & 95\\% CI \\\\" in narrow and "\\multicolumn{3}{l}{\\textbf{Twice the training epochs}} \\\\" in narrow
     first = narrow.index(" & \\multicolumn{2}{c}{over \\run{transformer-medium}} \\\\")
     second = narrow.index(" & \\multicolumn{2}{c}{over \\run{transformer-medium-hand}} \\\\")
-    assert narrow[first + 1] == "\\run{puzzle-difficulty} & \\textbf{+30.0} & +10.0 to +50.0 \\\\" and second == first + 2
-    assert narrow[second + 1] == "\\run{puzzle-difficulty} & +10.0 & $-$20.0 to +40.0 \\\\"
+    assert narrow[first + 1] == "Puzzle difficulty & \\textbf{+30.0} & +10.0 to +50.0 \\\\" and second == first + 2
+    assert narrow[second + 1] == "Puzzle difficulty & +10.0 & $-$20.0 to +40.0 \\\\"
 
 
 def _shaped(model, gains):
@@ -703,27 +703,27 @@ def test_a_network_of_another_shape_is_a_kind_of_change_with_a_table_of_its_own(
     assert all(f"\\textbf{{{overview.TITLES[key]}}}" in table for key in order)
     assert table.count("over \\run{transformer-medium-hand}") == len(order)
     # A step of 1 in both models: thirty hundredths of it ahead, and a model with no pair of a kind has no row there.
-    assert "\\run{puzzle-difficulty} & \\textbf{+30.0} & +10.0 to +50.0" in table
-    assert "\\run{blunder-hazard} & +10.0 & $-$20.0 to +40.0" in table
-    assert table.count("\\run{blunder-hazard}") == 2 and table.count("\\run{puzzle-difficulty}") == len(order)
+    assert "Puzzle difficulty & \\textbf{+30.0} & +10.0 to +50.0" in table
+    assert "Blunder hazard & +10.0 & $-$20.0 to +40.0" in table
+    assert table.count("Blunder hazard") == 2 and table.count("Puzzle difficulty") == len(order)
     figure = overview.changes_figure(lab, changes.SHAPES)
-    assert "A convolutional tower for the transformer, under a network" in figure
+    assert "ResNet in place of the transformer (neural network)" in figure
     # What a shape is worth is read model by model as any change is, by the run it was made in.
     found, written = overview.by_base(lab), tex.Generated("a test")
     assert list(found) == order and all(list(bases) == ["transformer-medium-hand"] for bases in found.values())
     for key in ("conv", "larger"):
         overview._across(lab, written, f"lab.change.{key}.over.transformer-medium-hand", found[key]["transformer-medium-hand"])
     assert written.values["lab.change.conv.over.transformer-medium-hand.said"] == (
-        "inside the noise in one of the two models (blunder hazard) and worse beyond the noise in one of the two models (puzzle difficulty)"
+        "not significantly different in one of the two tasks (blunder hazard) and significantly worse in one of the two tasks (puzzle difficulty)"
     )
-    assert written.values["lab.change.larger.over.transformer-medium-hand.said"] == "better beyond the noise in the one model (puzzle difficulty)"
+    assert written.values["lab.change.larger.over.transformer-medium-hand.said"] == "significantly better in the one task (puzzle difficulty)"
     # The shapes as a whole: the models where none of them leaves the noise, and in how many one of them is
     # the best run. A list of no model is not set, so a sentence that names its models cannot be built.
     overview.shapes_values(lab, written)
     assert written.values["lab.shapes.models.count"] == "two"
     assert written.values["lab.shapes.models.names"] == "blunder hazard and puzzle difficulty"
-    assert written.values["lab.shapes.still.of"] == "one of the two models" and written.values["lab.shapes.still.names"] == "blunder hazard"
-    assert written.values["lab.shapes.best.of"] == "neither of the two models" and "lab.shapes.best.names" not in written.values
+    assert written.values["lab.shapes.still.of"] == "one of the two tasks" and written.values["lab.shapes.still.names"] == "blunder hazard"
+    assert written.values["lab.shapes.best.of"] == "neither of the two tasks" and "lab.shapes.best.names" not in written.values
     # A lab with no pair of these kinds asks for none of what is said of them.
     plain = overview.Lab({"puzzle-difficulty": _longer("puzzle-difficulty", level)}, {}, {})
     assert not overview.switches(plain)["shapes"] and overview.changes_table(plain, changes.SHAPES) is None
@@ -862,7 +862,7 @@ def test_a_run_that_was_filed_keeps_its_pair_and_its_place_beside_the_run_it_cha
     written = tex.Generated("a test")
     changes.values(filed, written)
     assert written.values["pairs.count"] == "one" and written.values["study.epochs.runs"] == "one"
-    assert written.values["pair.transformer-medium-long.transformer-medium.verdict"] == "inside the noise"
+    assert written.values["pair.transformer-medium-long.transformer-medium.verdict"] == "not significantly different"
     # And the lab still reads it as what more epochs are worth in this model.
     (measured,) = [one for one in overview.pairs(filed) if one["kind"] == "epochs"]
     assert (measured["run"], measured["over"], measured["gain"]) == ("transformer-medium-long", "transformer-medium", 0.1)
@@ -936,14 +936,14 @@ def test_a_run_on_a_larger_build_is_read_by_how_many_of_the_games_it_was_given()
         ("transformer-medium", 2.0, "transformer-medium-double"),
     ]
     assert changes.differs(known["gbm-hand-double"], known["gbm-hand"]) == (
-        "trains on twice the training games, from the larger build \\code{puzzles-all}"
+        "trained on twice the training games (\\code{puzzles-all})"
     )
     assert changes.differs(known["transformer-medium-double"], known["transformer-medium"]) == (
-        "trains on twice the training games, from the larger build \\code{puzzles-all}; 6 epochs for 12; 2 epochs of patience for 3"
+        "trained on twice the training games (\\code{puzzles-all}); 6 epochs in place of 12; 2 epochs of patience in place of 3"
     )
-    assert changes._change("train", "patience", 1, 3) == "1 epoch of patience for 3"
-    assert changes._change("train", "epochs", 3, 12) == "3 epochs for 12"
-    assert changes._change("learner", "rounds", 8000, None) == "may grow 8{,}000 trees"
+    assert changes._change("train", "patience", 1, 3) == "1 epoch of patience in place of 3"
+    assert changes._change("train", "epochs", 3, 12) == "3 epochs in place of 12"
+    assert changes._change("learner", "rounds", 8000, None) == "up to 8{,}000 boosting rounds"
 
     written = tex.Generated("a test")
     changes.values(src, written)
@@ -957,11 +957,11 @@ def test_a_run_on_a_larger_build_is_read_by_how_many_of_the_games_it_was_given()
         "one",
     )
     assert said["more.gbm-hand.most"] == "four times" and "quadruple" in said["more.gbm-hand.most.run"]
-    assert said["more.gbm-hand.most.rows"] == tex.count(4030) and said["more.gbm-hand.most.verdict"] == "better beyond the noise"
+    assert said["more.gbm-hand.most.rows"] == tex.count(4030) and said["more.gbm-hand.most.verdict"] == "significantly better"
     # Puzzle difficulty is an error, so the lower valid score is the better one, and both halves of the rule hold.
-    assert said["more.gbm-hand.most.kept"] == said["pair.gbm-hand-quadruple.gbm-hand.kept"] == "kept"
+    assert said["more.gbm-hand.most.kept"] == said["pair.gbm-hand-quadruple.gbm-hand.kept"] == "accepted"
     # A run on more games was a candidate even after it is filed; a run on fewer never was.
-    assert said["pair.gbm-hand-triple.gbm-hand.kept"] == "not kept" and "pair.gbm-hand-half.gbm-hand.kept" not in said
+    assert said["pair.gbm-hand-triple.gbm-hand.kept"] == "not accepted" and "pair.gbm-hand-half.gbm-hand.kept" not in said
     assert said["more.transformer-medium.runs"] == "one" and "more.transformer-medium.most.kept" not in said
 
     # The table has the runs on more games above the run on all of them, and the runs on fewer below it.
@@ -996,13 +996,13 @@ def test_a_change_is_kept_only_when_both_halves_of_the_rule_hold():
         return {key.rsplit(".", 1)[-1]: value for key, value in written.values.items() if key.endswith((".kept", "valid.verdict"))}
 
     # Puzzle difficulty is an error, so the lower valid score is the better one.
-    assert said((0.3, 0.1, 0.5), 7.0) == {"verdict": "better", "kept": "kept"}
+    assert said((0.3, 0.1, 0.5), 7.0) == {"verdict": "better", "kept": "accepted"}
     # Better on the valid rows and inside the noise on the test rows: not kept.
-    assert said((0.1, -0.2, 0.4), 7.0) == {"verdict": "better", "kept": "not kept"}
+    assert said((0.1, -0.2, 0.4), 7.0) == {"verdict": "better", "kept": "not accepted"}
     # Beyond the noise on the test rows and no better on the valid rows: not kept either.
-    assert said((0.3, 0.1, 0.5), 9.0) == {"verdict": "no better", "kept": "not kept"}
+    assert said((0.3, 0.1, 0.5), 9.0) == {"verdict": "no better", "kept": "not accepted"}
     # Worse beyond the noise is not kept, whatever the valid rows say.
-    assert said((-0.3, -0.5, -0.1), 7.0)["kept"] == "not kept"
+    assert said((-0.3, -0.5, -0.1), 7.0)["kept"] == "not accepted"
     # A run that names no valid score has no verdict by the rule.
     tried, written = _longer("puzzle-difficulty", (0.3, 0.1, 0.5)), tex.Generated("a test")
     changes.values(tried, written)
@@ -1042,6 +1042,9 @@ def test_the_ladder_s_board_network_is_counted_apart_in_the_models_that_have_a_s
 
 def test_a_name_and_a_count_read_as_the_lab_s_prose_says_them():
     assert overview.said("puzzle-difficulty-unsolved") == "puzzle difficulty unsolved"
+    assert overview.titled("puzzle-difficulty-unsolved") == "Puzzle difficulty unsolved"
+    card, chip = ({"learner": {"device": name}, "machine": {"processor": "Some CPU"}} for name in ("Some GPU", "cpu"))
+    assert overview.processors([card, chip], cards=True) == ["Some GPU"] and overview.processors([card, chip, chip], cards=False) == ["Some CPU"]
     assert tex.listed([]) == "none" and tex.listed(["one"]) == "one" and tex.listed(["one", "two", "three"]) == "one, two and three"
     assert overview._of(1, 1, "pair") == "the one pair" and overview._of(2, 5, "model") == "two of the five models"
 
