@@ -166,7 +166,7 @@ def test_the_closer_look_agrees_with_the_records_and_stays_off_the_leaderboard(l
     assert look["test_rows"] == records["gbm-hand"]["test_rows"]
     assert look["dataset"]["fingerprint"] == records["gbm-hand"]["dataset"]["fingerprint"]
     by_band = look["slices"][0]
-    assert by_band["key"] == "band" and by_band["title"] == "The puzzle's rating"
+    assert by_band["key"] == "band" and by_band["title"] == "Puzzle rating"
     for group in by_band["groups"]:
         for name, record in records.items():
             recorded = record["test_by_band"][group["group"]]

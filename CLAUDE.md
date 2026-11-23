@@ -52,8 +52,8 @@ engine, a human-move model, board code or data.
    predictions are, commit `results/analysis.json`, and say on the card what
    the results mean.
 7. Write its paper: `models/<model>/paper/paper.tex`, from another model's as
-   the pattern, then `lab paper <model>`, and commit the prose, `generated/`
-   and `paper.pdf`.
+   the pattern and in the style of `docs/writing.md`, then `lab paper
+   <model>`, and commit the prose, `generated/` and `paper.pdf`.
 
 A new kind of input or output (a label for each position of a game, a
 published body under a new head) is a new body or head in `nets/`, with a
@@ -82,7 +82,9 @@ whenever such a model has a run that names a `base`. Its card says so.
   value the files cannot give. It cannot catch a sentence that stopped being
   true, so when a model's runs change, rebuild its paper and read its prose
   again against the new tables. A claim about something no generated file
-  holds (why a number is what it is) is marked as a reading.
+  holds (why a number is what it is) is marked as a hypothesis.
+  [`docs/writing.md`](docs/writing.md) is the style every paper keeps: its
+  sections, its terms and what it may claim.
 - `lab paper` with no model writes the lab's own paper (`papers/lab/`) the
   same way. It reads every model's values under the model's name
   (`puzzle-difficulty.best.score`) and the lab's own under `lab`, and it sets

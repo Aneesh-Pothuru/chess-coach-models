@@ -638,8 +638,8 @@ accuracy of the moves is by far the most important group.
 \label{sec:epochs}
 
 In the fixed sequence, \V{lab.ladder.at-last-epoch.of} reached their best
-validation score in the final epoch, which suggests that some had not
-converged. In \V{lab.change.epochs.over.transformer-medium.count} tasks we
+validation score in the final epoch, so their training ended while they were
+still improving. In \V{lab.change.epochs.over.transformer-medium.count} tasks we
 therefore retrained both medium transformers for
 \V{puzzle-difficulty.run.transformer-medium-long.epochs} epochs instead of
 \V{puzzle-difficulty.run.transformer-medium.epochs}
@@ -702,8 +702,8 @@ encoder has had to learn both from the board.
 
 \paragraph{Pretraining does not help in practical chances.}
 In practical chances both pretrained models are significantly worse, and
-both reached their best validation epoch earlier than the models trained
-from scratch (epochs
+both had their best validation score at an earlier epoch than the models
+trained from scratch (epochs
 \V{practical-chances.run.transformer-medium-pretrained.best-epoch} and
 \V{practical-chances.run.transformer-medium-hand-pretrained.best-epoch} of
 \V{practical-chances.run.transformer-medium-pretrained.epochs}, compared with
@@ -927,7 +927,8 @@ and on a quarter of the games the transformer sees each game two and four
 times as often, and in every task its best validation epoch came before the
 end of its schedule, which indicates overfitting. On twice and four times
 the games its best epoch was the last one in all but one model (twice the
-games in practical chances), which indicates that it had not converged. Part of the transformer's loss on
+games in practical chances), so it was still improving when its schedule
+ended. Part of the transformer's loss on
 smaller training sets is therefore due to overfitting under repeated passes
 over the same games. That effect does not extend beyond the standard
 training set, where the transformer is instead limited by the number of
@@ -1067,9 +1068,9 @@ corresponds to a multiplicative factor. The best model is off by a factor of
 \V{think-time.reference.mae.factor} and the constant baseline by
 \V{think-time.floor.mae.factor}. GBDT on context features alone reaches a
 normalised score of \V{think-time.context.lift.share}, and its most
-important feature is \V{think-time.run.gbm-context.leans.1.feature}
+important feature is the \V{think-time.run.gbm-context.leans.1.feature}
 (Figure~\ref{fig:think}). Most of the variation in thinking time is not
-predictable from these inputs: the best model has an $R^2$ of
+predictable from these inputs: the best model has an R\textsuperscript{2} of
 \V{think-time.best.r2}. The model describes what is typical, so a single
 move that deviates from it is weak evidence, whereas a consistent pattern
 over many moves is informative.
@@ -1361,22 +1362,35 @@ transformer worse (paired gain
 points, 95\% CI
 \V{game-rating.pair.transformer-medium-hand.transformer-medium.gain.low} to
 \V{game-rating.pair.transformer-medium-hand.transformer-medium.gain.high}),
-the opposite of most other tasks (Table~\ref{tab:changes}).
+the opposite of most other tasks (Table~\ref{tab:changes}). In this task
+every hand-crafted feature is an aggregate of inputs that a network already
+receives for each move, so the features add no information. Why the model is
+worse with them is not identified.
 
 A prediction from a single game is imprecise: the best model is within 200
 points of the player's rating for
 \V{game-rating.best.close.within.200}\% of test examples. The prediction
 also depends on the opponent. Among players rated 1400 to 1700, the best
-network predicts \V{game-rating.grid.rating-gap.1400-1700.--200.said} on average against opponents rated 200 or
-more points higher and \V{game-rating.grid.rating-gap.1400-1700.200+.said} against opponents rated 200 or more
-points lower, although the players' mean ratings in the two groups are
-\V{game-rating.grid.rating-gap.1400-1700.--200.happened} and \V{game-rating.grid.rating-gap.1400-1700.200+.happened}. The GBDT baseline, which
-receives features of the player's own moves only, shows the same dependence
-(\V{game-rating.grid.rating-gap.1400-1700.--200.gbm-hand.said} and \V{game-rating.grid.rating-gap.1400-1700.200+.gbm-hand.said}), and GBDT on
-the context features does not (\V{game-rating.grid.rating-gap.1400-1700.--200.gbm-context.said} and
-\V{game-rating.grid.rating-gap.1400-1700.200+.gbm-context.said}). A plausible explanation is that a weaker
+network predicts \V{game-rating.grid.rating-gap.1400-1700.--200.said} on
+average against opponents rated more than 200 points higher and
+\V{game-rating.grid.rating-gap.1400-1700.200+.said} against opponents rated
+at least 200 points lower, although the players' mean ratings in the two
+groups are \V{game-rating.grid.rating-gap.1400-1700.--200.happened} and
+\V{game-rating.grid.rating-gap.1400-1700.200+.happened}. The GBDT baseline,
+whose features are aggregates over the player's moves, shows the same
+dependence (\V{game-rating.grid.rating-gap.1400-1700.--200.gbm-hand.said}
+and \V{game-rating.grid.rating-gap.1400-1700.200+.gbm-hand.said}), and GBDT
+on the context features hardly does
+(\V{game-rating.grid.rating-gap.1400-1700.--200.gbm-context.said} and
+\V{game-rating.grid.rating-gap.1400-1700.200+.gbm-context.said}). The cause
+is not identified, and we see two explanations that do not exclude each
+other. The first is that the models use the opponent's play as evidence,
+which is informative because players are paired with opponents of similar
+rating: a network is given the opponent's preceding move and clock, and the
+baseline's most important feature, the player's mean win probability before
+a move, rises with the opponent's losses. The second is that a weaker
 opponent creates more opportunities, and each missed opportunity is counted
-as a loss of accuracy.
+as a loss of accuracy. Neither has been tested.
 
 \section{Practical Use}
 \label{sec:use}
@@ -1425,11 +1439,11 @@ predicted well.
 \item \textbf{Maia-2 can be used as released.} Its probabilities remained
 calibrated on these games. The ratings it is given matter most for the
 lowest- and highest-rated players.
-\item \textbf{Game rating is a wide estimate.} It can describe what one game
-looked like for games between players of similar rating. It cannot yet say
-whether a player performed above or below their rating, because against a
-much stronger or weaker opponent the prediction mostly reflects the
-opponent.
+\item \textbf{Game rating is a wide estimate.} It can describe the level of
+one game for games between players of similar rating. It cannot say whether a
+player performed above or below the player's own rating: the predictions are
+compressed towards the mean rating, and against a much stronger or weaker
+opponent they describe the level of the game more than the player's own.
 \end{itemize}
 
 All results hold for Lichess players and Lichess ratings. Ratings from

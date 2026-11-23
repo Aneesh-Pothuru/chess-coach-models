@@ -271,7 +271,7 @@ opponent's move.
 The primary metric, fixed before the first full training run, is the RMSE on
 the test set in rating points; lower is better. We report three secondary
 metrics: the mean absolute error (MAE), the coefficient of determination
-($R^2$), and Spearman's rank correlation, which measures only whether the
+(R\textsuperscript{2}), and Spearman's rank correlation, which measures only whether the
 puzzles are ordered correctly. We also report results separately for
 \V{bands.count} bands of the true rating.
 
@@ -356,7 +356,7 @@ smaller gain.
 \subsection{Ranking accuracy and absolute error}
 
 The best model orders puzzles moderately well. Its Spearman correlation with
-the true rating is \V{best.spearman} and its $R^2$ is \V{best.r2}
+the true rating is \V{best.spearman} and its R\textsuperscript{2} is \V{best.r2}
 (Table~\ref{tab:metrics}), compared with \V{reference.spearman} and
 \V{reference.r2} for the GBDT baseline. Its MAE is \V{best.mae} rating
 points. Chess players are conventionally grouped into rating classes 200
@@ -367,7 +367,7 @@ not place it within a rating class.
 \begin{table}[htbp]\centering\small
 \block{metrics}
 \caption{All metrics for every model on the test set. RMSE and MAE are in
-rating points (lower is better); for $R^2$ and Spearman's rank correlation
+rating points (lower is better); for R\textsuperscript{2} and Spearman's rank correlation
 higher is better. The constant baseline has no rank correlation.}
 \label{tab:metrics}
 \end{table}
@@ -416,9 +416,8 @@ intervals). Above the dashed line the network is better.}
 Figure~\ref{fig:curves} shows the validation RMSE of each network of the
 fixed sequence after every epoch. Of these, \V{ladder.at-last-epoch.of}
 reached their best validation score in the final epoch, so their training
-ended while they were still improving. The scores of the fixed sequence are
-therefore lower bounds on what these architectures can achieve. A longer
-schedule has not been tested in this task.
+ended while they were still improving. A longer schedule may therefore
+improve them, which was not tested in this task.
 
 \begin{figure}[htbp]\centering
 \block{curves}
@@ -721,10 +720,10 @@ the intervals of their gains over the GBDT baseline do not overlap
 The validation curves of the pretrained models lie below those of their
 bases after every epoch, and within a few epochs they pass the scores that
 their bases reach at the end of training (Figure~\ref{fig:variants}). The
-pretrained model without hand-crafted features reached its best validation
-epoch at \V{run.transformer-medium-pretrained.best-epoch} of
+pretrained model without hand-crafted features had its best validation score
+at epoch \V{run.transformer-medium-pretrained.best-epoch} of
 \V{run.transformer-medium-pretrained.epochs} and the pretrained model with
-them at \V{run.transformer-medium-hand-pretrained.best-epoch} of
+them at epoch \V{run.transformer-medium-hand-pretrained.best-epoch} of
 \V{run.transformer-medium-hand-pretrained.epochs}. Both curves are nearly
 flat over the final epochs.
 \fi
@@ -1114,7 +1113,8 @@ Training all \V{runs.count} models took \V{cost.seconds} in total:
 GPU, and \V{cost.seconds.others} for the constant baseline and GBDT on a CPU.
 The best model has \V{best.parameters} parameters and was trained for
 \V{best.epochs.run} epochs in \V{best.seconds} on an \V{best.device}, at
-about \V{best.rows-a-second} puzzles per second. Table~\ref{tab:runs} lists
+about \V{best.rows-a-second} puzzles per second, not counting the pretraining
+of its encoder. Table~\ref{tab:runs} lists
 the hardware and training time of every model, and
 Table~\ref{tab:settings} the hyperparameters of the networks of the fixed
 sequence.

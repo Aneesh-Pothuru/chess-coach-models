@@ -241,7 +241,7 @@ hand-crafted features state exactly these properties.
 The primary metric, fixed before the first full training run, is the RMSE on
 the test set in rating points; lower is better. We report three secondary
 metrics: the mean absolute error (MAE), the coefficient of determination
-($R^2$), and Spearman's rank correlation, which measures only whether the
+(R\textsuperscript{2}), and Spearman's rank correlation, which measures only whether the
 puzzles are ordered correctly. We also report results separately for
 \V{bands.count} bands of the true rating, because an error of a given size
 matters most for puzzles near a player's own level.
@@ -257,7 +257,7 @@ Table~\ref{tab:leaderboard} and Figure~\ref{fig:scores} give the main
 results. The constant baseline predicts \V{floor.constant} for every puzzle
 and has an RMSE of \V{floor.score}, the standard deviation of the ratings.
 GBDT on the context features alone, that is on the solution length and the
-castling rights, reaches \V{run.gbm-context.score}, which is
+castling rights, reaches \V{run.gbm-context.score} and thereby achieves
 \V{context.lift.share}\% of the improvement that the GBDT baseline achieves
 over the constant baseline. The GBDT baseline, with the hand-crafted features
 of the position and the solution, reaches \V{reference.score}, which is
@@ -330,7 +330,7 @@ for most of what is predicted, and the network adds a smaller improvement.
 
 The best model orders puzzles well and is less accurate in absolute terms.
 Its Spearman correlation with the true rating is \V{best.spearman} and its
-$R^2$ is \V{best.r2} (Table~\ref{tab:metrics}), while its MAE is
+R\textsuperscript{2} is \V{best.r2} (Table~\ref{tab:metrics}), while its MAE is
 \V{best.mae} rating points. Chess players are conventionally grouped into
 rating classes 200 points wide, so the typical error is close to one class.
 The model can therefore order the tactics of a game by difficulty, which is
@@ -341,7 +341,7 @@ within one class.
 \begin{table}[htbp]\centering\small
 \block{metrics}
 \caption{All metrics for every model on the test set. RMSE and MAE are in
-rating points (lower is better); for $R^2$ and Spearman's rank correlation
+rating points (lower is better); for R\textsuperscript{2} and Spearman's rank correlation
 higher is better. The constant baseline has no rank correlation.}
 \label{tab:metrics}
 \end{table}
@@ -384,12 +384,10 @@ fixed sequence after every epoch. Of these, \V{ladder.at-last-epoch.of}
 reached their best validation score in the final epoch, so their training
 ended while they were still improving.
 \ifvariants
-The scores of the fixed sequence are therefore lower bounds on what these
-architectures can achieve, and Section~\ref{sec:ablations} reports the same
-models with a longer schedule.
+A longer schedule may therefore improve them, and
+Section~\ref{sec:ablations} reports the same models with a longer schedule.
 \else
-The scores reported here are therefore lower bounds on what these
-architectures can achieve.
+A longer schedule may therefore improve them, which was not tested.
 \fi
 
 \begin{figure}[htbp]\centering
@@ -479,11 +477,10 @@ intervals). We hypothesise that, given enough optimisation steps, the
 transformer learns from the board most of what the hand-crafted features
 encode, and that the features remain useful for the hardest puzzles.
 
-Neither model used its full schedule. \run{transformer-medium-long} reached
-its best validation epoch at
-\V{run.transformer-medium-long.best-epoch} of
+Neither model used its full schedule. \run{transformer-medium-long} had its
+best validation score at epoch \V{run.transformer-medium-long.best-epoch} of
 \V{run.transformer-medium-long.epochs} and
-\run{transformer-medium-hand-long} at
+\run{transformer-medium-hand-long} at epoch
 \V{run.transformer-medium-hand-long.best-epoch}, and each was stopped
 \V{networks.patience} epochs later by early stopping
 (Figure~\ref{fig:variants}). This is consistent with overfitting to the
@@ -550,10 +547,10 @@ which is not what makes a tactic hard to find, whereas the hand-crafted
 features describe the moves of the solution directly.
 \fi
 
-The pretrained model with hand-crafted features reached its best validation
-epoch at \V{run.transformer-medium-hand-pretrained.best-epoch} of
+The pretrained model with hand-crafted features had its best validation
+score at epoch \V{run.transformer-medium-hand-pretrained.best-epoch} of
 \V{run.transformer-medium-hand-pretrained.epochs}, whereas the pretrained
-model without them reached it at
+model without them had it at epoch
 \V{run.transformer-medium-pretrained.best-epoch}
 (Figure~\ref{fig:variants}). The former was therefore stopped by its schedule
 and not by early stopping, and may improve with further training.
@@ -677,8 +674,9 @@ transformer can derive most of what the hand-crafted features encode from the
 board. We hypothesise that, given the attack relations, it does so within
 the standard number of epochs.
 
-\paragraph{Neither attack-aware model had converged.}
-Both reached their best validation epoch in the final epoch
+\paragraph{Both attack-aware models were still improving when training
+ended.}
+Both had their best validation score in the final epoch
 (\V{run.transformer-medium-attacks.best-epoch} of
 \V{run.transformer-medium-attacks.epochs}; Figure~\ref{fig:shapes}). Neither
 is the best model of this task, which remains \V{best.name} with an RMSE of
@@ -701,7 +699,7 @@ larger model would change the result was not tested.
 \fi
 \ifchangehybrid
 The hybrid shows the opposite pattern. It is ahead of the transformer for
-most of the schedule, reaches its best validation epoch at
+most of the schedule, has its best validation score at epoch
 \V{run.hybrid-medium-hand.best-epoch} of \V{run.hybrid-medium-hand.epochs},
 and then deteriorates while the transformer continues to improve.
 \fi
@@ -778,7 +776,7 @@ was trained once. No model trained on a larger set approaches the best
 model, which remains \V{best.name}.
 
 The three transformer models take the same number of optimisation steps, and
-each reached its best validation epoch in its final epoch:
+each had its best validation score in its final epoch:
 \V{run.transformer-medium-hand.best-epoch} of
 \V{run.transformer-medium-hand.epochs} on the standard training set,
 \V{run.transformer-medium-hand-double.best-epoch} of
@@ -1198,12 +1196,14 @@ not the variation between training runs.
 \section{Reproducibility}
 \label{sec:cost}
 
-Training all \V{runs.count} models took \V{cost.seconds} in total:
-\V{cost.seconds.networks} for the networks, each trained on a single cloud
-GPU, and \V{cost.seconds.others} for the constant baseline and GBDT on a CPU.
-The best model has \V{best.parameters} parameters and was trained for
-\V{best.epochs.run} epochs in \V{best.seconds} on an \V{best.device}, at
-about \V{best.rows-a-second} puzzles per second. Table~\ref{tab:runs} lists
+Training the \V{runs.count} models on the leaderboard took \V{cost.seconds}
+in total: \V{cost.seconds.networks} for the networks, each trained on a
+single cloud GPU, and \V{cost.seconds.others} for the constant baseline and
+GBDT on a CPU. The ablation models that are not on the leaderboard are not
+included in this total. The best model has \V{best.parameters} parameters and
+was trained for \V{best.epochs.run} epochs in \V{best.seconds} on an
+\V{best.device}, at about \V{best.rows-a-second} puzzles per second, not
+counting the pretraining of its encoder. Table~\ref{tab:runs} lists
 the hardware and training time of every model, and
 Table~\ref{tab:settings} the hyperparameters of the networks of the fixed
 sequence.
@@ -1256,8 +1256,8 @@ GBDT used every round it was allowed.
 \fi
 \ifchangestart
 \item \textbf{A longer schedule from the pretrained encoder.}
-\run{transformer-medium-hand-pretrained} reached its best validation epoch at
-\V{run.transformer-medium-hand-pretrained.best-epoch} of
+\run{transformer-medium-hand-pretrained} had its best validation score at
+epoch \V{run.transformer-medium-hand-pretrained.best-epoch} of
 \V{run.transformer-medium-hand-pretrained.epochs}, so it was stopped by its
 schedule and not by early stopping.
 \item \textbf{A stronger pretrained encoder.} The encoder was pretrained

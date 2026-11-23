@@ -44,6 +44,23 @@ for each task.
 - A task is named in words ("blunder hazard"), with a capital in a table or a figure. A model's
   identifier is set in monospace.
 
+## Claims
+
+- Say what was measured. A network "had its best validation score in the final epoch" and "was
+  still improving when training ended". It is not said to have "not converged": the learning rate
+  goes to zero over the schedule, so a validation curve flattens for that reason too.
+- A claim about a cause is a hypothesis until an experiment tests it. Mark it, name the
+  experiment that would test it, and check it against the other tasks first: a cause that would
+  also hold where the effect is absent is not the cause.
+- "Largest", "only", "every" and "with every group" are claims about a whole table. Read the
+  table before writing one, and again after the results change.
+- A model reaches a score and thereby achieves a share of an improvement. The score is not
+  itself that share.
+- A deviation is signed and says which way: "the mean prediction minus the mean rating is +220".
+- Text beside an example figure says only what the generated lines beside the board show.
+- What another paper of the lab found is said without a typed count ("in most of the companion
+  tasks"), since this paper cannot read that paper's values.
+
 ## Terms
 
 Use the standard term. The names on the left are the repository's own, and they stay in code,
@@ -83,9 +100,15 @@ introduced with a description the first time it appears.
 
 ## Numbers
 
-No number is typed: every value is read with `\V{key}`, and every table and figure with
+No result is typed: every value is read with `\V{key}`, and every table and figure with
 `\block{name}`. Report a score with its unit and its 95% confidence interval. Report a comparison
-as a paired difference with its interval, and say what the baseline is.
+as a paired difference with its interval, and say what the baseline is. What may be typed is a
+number that no result can change: a bound that defines a group in the analysis plan ("rated 2000
+and above"), a consequence of a formula, a value cited from another publication, and a count read
+off an example figure.
+
+A generated count is a lowercase phrase ("all three networks"), so a sentence never begins with
+one.
 
 A gain is signed, and positive when the first model is better whatever the metric: write "a gain of
 +25.49 rating points of RMSE", never "reduces RMSE by +25.49". A count over tasks comes from a

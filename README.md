@@ -63,24 +63,26 @@ The best run of each model on the harness, beside the tree baseline it is compar
 
 ### Papers
 
-A model with full results has a paper: its data, what it reads, every run, a closer look at
-where it is right and where it is wrong, example positions, and what the app can use today.
-`lab paper <model>` draws a paper from the model's committed results, so no number in it is typed.
-One more paper sets the models side by side on one scale, and `lab paper` with no model draws it.
+A model with full results has a paper, written as a research paper: related work, the task and
+its data, the methods, the evaluation protocol, results with confidence intervals, ablations, an
+error analysis with example positions, practical use and limitations.
+`lab paper <model>` draws a paper from the model's committed results, so no result in it is typed,
+and [`docs/writing.md`](docs/writing.md) is the style every paper keeps.
+One more paper compares the tasks on one scale, and `lab paper` with no model draws it.
 Where to look, puzzle themes and human move have no paper of their own yet: a model's paper is
 drawn from a closer look that reads one number a row, and theirs is a chance for each square,
 theme or move. The lab's paper says what their first full runs found, and their cards say more.
 
-| Paper | Its question |
-|---|---|
-| [The model lab](papers/lab/paper.pdf) | What holds across the models, and what can the app use today? |
-| [Puzzle difficulty](models/puzzle-difficulty/paper/paper.pdf) | How hard is this tactic for people? |
-| [Puzzle difficulty, unsolved](models/puzzle-difficulty-unsolved/paper/paper.pdf) | How hard is this tactic, judged from the position alone? |
-| [Blunder hazard](models/blunder-hazard/paper/paper.pdf) | Before a move is played, how likely is the player to blunder here? |
-| [Think time](models/think-time/paper/paper.pdf) | How long do players at a level think in this position, on this clock? |
-| [Tactic found](models/tactic-found/paper/paper.pdf) | The opponent has just gone wrong. Does the player to move find the tactic? |
-| [Practical chances](models/practical-chances/paper/paper.pdf) | Between two people at these ratings, with these clocks, who wins from here? |
-| [Game rating](models/game-rating/paper/paper.pdf) | What rating does a player's play in one game look like? |
+| Model | Paper | Its question |
+|---|---|---|
+| All of them | [Predicting Human Behaviour in Chess: A Multi-Task Comparison of Gradient-Boosted Trees and Neural Networks](papers/lab/paper.pdf) | What holds across the models, and what can the app use today? |
+| Puzzle difficulty | [Predicting the Difficulty of Chess Puzzles from the Position and Its Solution](models/puzzle-difficulty/paper/paper.pdf) | How hard is this tactic for people? |
+| Puzzle difficulty, unsolved | [Predicting the Difficulty of Chess Puzzles from the Position Alone](models/puzzle-difficulty-unsolved/paper/paper.pdf) | How hard is this tactic, judged from the position alone? |
+| Blunder hazard | [Predicting Blunder Risk in Human Chess Games](models/blunder-hazard/paper/paper.pdf) | Before a move is played, how likely is the player to blunder here? |
+| Think time | [Predicting Move Times in Human Chess Games](models/think-time/paper/paper.pdf) | How long do players at a level think in this position, on this clock? |
+| Tactic found | [Predicting Whether Players Find Tactics in Their Own Games](models/tactic-found/paper/paper.pdf) | The opponent has just gone wrong. Does the player to move find the tactic? |
+| Practical chances | [Predicting the Results of Human Chess Games from Engine Evaluations, Ratings and Clocks](models/practical-chances/paper/paper.pdf) | Between two people at these ratings, with these clocks, who wins from here? |
+| Game rating | [Estimating a Player's Rating from a Single Game](models/game-rating/paper/paper.pdf) | What rating does a player's play in one game look like? |
 
 ## One folder a model, one harness for all
 

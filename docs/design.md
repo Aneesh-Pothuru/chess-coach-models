@@ -508,10 +508,13 @@ rounded to six significant digits, so two machines write the same file.
 
 ## The paper
 
-A card says briefly what a model is for and what its results mean. A paper says it at length: the
-data, what a model reads, every run, the closer look cut by cut, example positions, what the app
-can use today and what the model does not say yet. `lab paper <model>` (`papers/`) draws one from
-the model's committed files, on any machine, and compiles `models/<model>/paper/paper.pdf`.
+A card says briefly what a model is for and what its results mean. A paper says it at length, in
+the form of a published machine-learning paper: related work, the task and its data, the methods,
+the evaluation protocol, results, ablations, an error analysis with example positions, practical
+use, limitations and reproducibility. [`docs/writing.md`](writing.md) is the style every paper
+keeps: its sections, its terms and what it may claim. `lab paper <model>` (`papers/`) draws a
+paper from the model's committed files, on any machine, and compiles
+`models/<model>/paper/paper.pdf`.
 
 - **The prose types no number.** `paper/paper.tex` is typed and says what the numbers mean. Every
   number is a value it reads with `\V{key}`, and every table, figure and board is a block it
@@ -531,7 +534,10 @@ the model's committed files, on any machine, and compiles `models/<model>/paper/
   pairs, runs that change how a network is trained, runs of another shape, and the two studies,
   `\ifchanges` for any of those five, `\ifchance`
   for a model that predicts a chance, and `\ifsequence` for a model whose row is a sequence of
-  positions. `\ifshown` is on where the model is read against one that
+  positions. `\ifcontextgbdt` is on where the model has GBDT on the context features alone, and
+  `\ifchange<kind>` where a pair of that kind of change is measured (`changes.KINDS`: `hand`,
+  `epochs`, `start`, `attacks`, `geometry`, `conv`, `hybrid`, `larger`), so a shared section says
+  only what is true of the model. `\ifshown` is on where the model is read against one that
   is shown more and that one has runs (the table of the two leaderboards side by side,
   `papers/shown.py`), and `\ifshownpaired` where a closer look has measured the pairs. `\ifmore`
   is on where a run on more games than the run it changes, from a larger build of the dataset, has
@@ -539,12 +545,26 @@ the model's committed files, on any machine, and compiles `models/<model>/paper/
   games, its curve runs on to their right, and their values are under `more.<the run changed>`. A
   switch that is off takes its side of the prose out, so one text serves before and after a batch
   of runs lands.
-- **Shared sections.** What is the same for every model is typed once under `papers/`: how a board
-  is read, the learners, how a result is scored, what a closer look is, how one change at a time
-  is read (`changes.tex`), how the two studies are read (`studies.tex`), the preamble and the
-  references. A paper says what its own runs found between those two: which changes it kept by
+- **Shared sections.** What is the same for every model is typed once under `papers/`, a file a
+  section: the input representation (`input-representation.tex`), the models and their training
+  (`models.tex`), the evaluation (`evaluation.tex`), the ablations (`ablations.tex`), the
+  training-set size (`training-set-size.tex`), the feature groups (`feature-groups.tex`) and the
+  error analysis (`error-analysis.tex`), beside the preamble and the references. A paper inputs
+  them where they belong and says what its own runs found between them: which changes it kept by
   the lab's rule, read off each pair (`pair.<run>.<the run it changed>.kept`, beside its gain on
-  the valid rows and its verdict on the test rows).
+  the valid rows and its verdict on the test rows). A shared sentence has to hold for every paper
+  that prints it, so one that holds for some stands inside the switch that says which.
+- **Words come from one place.** A column, an auxiliary plane and a hand-crafted feature have
+  their label and their sentence in `papers/glossary.py`, in standard chess and machine-learning
+  terms. A subgroup, a two-way table and the examples take their titles from the model's
+  `analysis.yaml` when the paper is built, as noun phrases, so a title is reworded there and
+  needs no new closer look. A table's head names its metric as a sentence does ("Gain in log
+  loss"), a ranking table names the end of the ranking it is taken from, and the error table of a
+  model with a logarithmic target names factors.
+- **What is counted.** A hand-crafted feature that is also a context feature is counted once, as
+  context. A count is written as a phrase ("all three networks", "the one ablation"), in the
+  singular where there is one.
+- **The board as encoded** shades a move's squares only where the task lets a network read them.
 - **Every run by name.** The closer look resamples one pair of runs group by group: the best run
   that is not the reference, against the reference. A paper can set any other run beside the
   reference by its name. What that run said in each group and cell is a value, and its figures
@@ -554,9 +574,14 @@ the model's committed files, on any machine, and compiles `models/<model>/paper/
   and a paper says so where it shows one.
 - **One look for every figure** (`papers/charts.py`). A run keeps its colour and its mark in every
   figure of every paper, a run that changes another is drawn as that run with a broken line, and
-  every figure has its numbers in a table. A figure of rows fits its page however many runs it
-  comes to hold: rows that would run off the page are set closer, and where they cannot be the
-  build stops and says to split the figure.
+  every figure has its numbers in a table. The figure of modified models (`variants`) sets each
+  network of the fixed sequence beside the runs that change one thing in it and keep its
+  architecture and its training set: the ones on the leaderboard, and the ones that were filed,
+  such as a network given the hand-crafted features where that was not kept. A figure of rows
+  fits its page however many runs it comes to hold: rows that would run off the page are set
+  closer, and where they cannot be the build stops and says to split the figure. An interval
+  chart sets its ticks as far apart as their labels are wide. A two-way table prints a rating as
+  a whole number, a share or a time to a tenth, and any other quantity below ten to two decimals.
 
 `lab paper <model> --smoke` draws the same prose from the small check's records, under
 `artifacts/smoke-papers/`. It proves the paper compiles and is never a result. A machine without

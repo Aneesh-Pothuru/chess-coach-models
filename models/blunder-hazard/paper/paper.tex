@@ -79,7 +79,7 @@ Our main findings are the following.
 \begin{itemize}
 \item \textbf{The context accounts for most of what is predicted.} GBDT on
 the ratings, the clocks, the ply and the win probability before the move,
-without the board, has a PR-AUC of \V{run.gbm-context.score}. This is
+without the board, has a PR-AUC of \V{run.gbm-context.score}. It achieves
 \V{context.lift.share}\% of the improvement of the GBDT baseline
 (\V{reference.score}) over the constant baseline (\V{floor.score}).
 \item \textbf{From random initialisation, a network needs the hand-crafted
@@ -193,7 +193,7 @@ W(c) = 50 + 50\left(\frac{2}{1 + e^{-0.00368208\,c}} - 1\right).
 A move is a \emph{blunder} when the mover's win probability before the move
 exceeds the mover's win probability after it by more than
 \V{method.blunder-bar} percentage points. The evaluations are those that
-Lichess attaches to a game when a player requests computer analysis. The
+Lichess attaches to a game when a user requests computer analysis. The
 coaching application uses the same curve, and a parity check in the
 repository verifies that the two implementations agree.
 
@@ -213,7 +213,7 @@ rating and neither is a bot, the time control is rapid by Lichess's
 definition (an estimated duration of 8 to 25 minutes, where the estimate is
 the initial time plus 40 times the increment), the game ended on the board
 or on time, and its record carries engine evaluations and clock times.
-Lichess computes evaluations for a game only when a player requests an
+Lichess computes evaluations for a game only when a user requests an
 analysis, so the analysed games are a self-selected subset of all games.
 
 The monthly file is read from its beginning until \V{recipe.games} games have
@@ -272,10 +272,11 @@ and are not inputs.}
 \paragraph{Inputs of this task.}
 The auxiliary planes mark the en passant square and the origin and
 destination squares of the opponent's preceding move. Besides the castling
-rights, the scalar context features are the two ratings, the time remaining
-on each clock and the initial time of the time control, each as the logarithm
-of one plus the number of seconds, the increment, the ply, and the mover's
-win probability before the move. The win probability tells a model how the
+rights, the scalar context features are the two ratings, three durations,
+each encoded as the logarithm of one plus the number of seconds (the time
+remaining on each clock and the initial time of the time control), the
+increment, the ply, and the mover's win probability before the move. The win
+probability tells a model how the
 mover stands. It does not reveal which move is best, how many moves maintain
 the evaluation, or how the position will be evaluated after any particular
 move. No input describes the move that is played. The time spent on the move
@@ -320,9 +321,9 @@ PR-AUC depends on it.
 Table~\ref{tab:leaderboard} and Figure~\ref{fig:scores} give the main
 results. The constant baseline predicts the base rate of the training set,
 \V{floor.constant}, for every position, and has a PR-AUC of \V{floor.score}.
-GBDT on the context features alone reaches \V{run.gbm-context.score}, which
-is \V{context.lift.share}\% of the improvement that the GBDT baseline
-achieves over the constant baseline. The ratings, the clocks, the ply and the
+GBDT on the context features alone reaches \V{run.gbm-context.score} and
+thereby achieves \V{context.lift.share}\% of the improvement that the GBDT
+baseline achieves over the constant baseline. The ratings, the clocks, the ply and the
 win probability before the move thus carry most of the predictable signal,
 before anything is known about the pieces on the board. The GBDT baseline,
 with the hand-crafted features of the position, reaches \V{reference.score}.
@@ -455,8 +456,8 @@ The calibration step of Section~\ref{sec:protocol} matters most for the
 pretrained models. The fitted slope is \V{best.platt.slope} for the best
 model and \V{run.transformer-medium-pretrained.platt.slope} for the
 pretrained model without hand-crafted features. A slope below one means that
-the uncalibrated predictions were too extreme, and the calibration step moves
-them towards the base rate. For the GBDT baseline the slope is
+the uncalibrated predictions were too extreme, and the calibration step makes
+them less so. For the GBDT baseline the slope is
 \V{reference.platt.slope}, and for \run{transformer-medium-hand} it is
 \V{run.transformer-medium-hand.platt.slope}, so these models were close to
 calibrated without correction. The expected calibration error of the best
@@ -641,10 +642,10 @@ test set (gain
 and the modification is
 \V{pair.transformer-medium-hand-long.transformer-medium-hand.kept}.
 
-Neither model used its full schedule. \run{transformer-medium-long} reached
-its best validation epoch at \V{run.transformer-medium-long.best-epoch} of
+Neither model used its full schedule. \run{transformer-medium-long} had its
+best validation score at epoch \V{run.transformer-medium-long.best-epoch} of
 \V{run.transformer-medium-long.epochs} and
-\run{transformer-medium-hand-long} at
+\run{transformer-medium-hand-long} at epoch
 \V{run.transformer-medium-hand-long.best-epoch}, and each was stopped
 \V{networks.patience} epochs later by early stopping
 (Figure~\ref{fig:variants}). The validation PR-AUC of these models changes
@@ -715,10 +716,10 @@ material on the board, which is the feature group that the models trained
 from random initialisation depend on most
 (Section~\ref{sec:feature-groups})\fi.
 
-The pretrained model with hand-crafted features reached its best validation
-epoch at \V{run.transformer-medium-hand-pretrained.best-epoch} of
+The pretrained model with hand-crafted features had its best validation
+score at epoch \V{run.transformer-medium-hand-pretrained.best-epoch} of
 \V{run.transformer-medium-hand-pretrained.epochs}, and the pretrained model
-without them at \V{run.transformer-medium-pretrained.best-epoch}
+without them at epoch \V{run.transformer-medium-pretrained.best-epoch}
 (Figure~\ref{fig:variants}). Neither was still improving when its schedule
 ended.
 \fi
@@ -873,12 +874,11 @@ the three models' gains over the GBDT baseline overlap
 \fi
 
 The three transformer models take the same number of optimisation steps. On
-the standard training set the transformer reached its best validation epoch
-at \V{run.transformer-medium-hand.best-epoch} of
-\V{run.transformer-medium-hand.epochs}. On the larger training sets it
-reached it in the final epoch, at
-\V{run.transformer-medium-hand-double.best-epoch} of
-\V{run.transformer-medium-hand-double.epochs} on twice the games and at
+the standard training set the transformer had its best validation score at
+epoch \V{run.transformer-medium-hand.best-epoch} of
+\V{run.transformer-medium-hand.epochs}. On the larger training sets it had it
+in the final epoch, epoch \V{run.transformer-medium-hand-double.best-epoch}
+of \V{run.transformer-medium-hand-double.epochs} on twice the games and epoch
 \V{run.transformer-medium-hand-quadruple.best-epoch} of
 \V{run.transformer-medium-hand-quadruple.epochs} on four times, so it was
 still improving when its schedule ended.
@@ -1308,7 +1308,7 @@ missing the only move that keeps an advantage both lose win probability.
 They are different mistakes with different remedies, and the label does not
 separate them.
 \item \textbf{Only analysed games have labels.} Lichess analyses a game when
-a player requests it, and players choose which games to analyse.
+a user requests it, and users choose which games to analyse.
 \item \textbf{The label depends on the server's analysis.} A move that the
 server's engine misjudged at its search depth is mislabelled.
 \item \textbf{A single position without history.} The models do not see the
@@ -1333,12 +1333,14 @@ not the variation between training runs.
 \section{Reproducibility}
 \label{sec:cost}
 
-Training all \V{runs.count} models took \V{cost.seconds} in total:
-\V{cost.seconds.networks} for the networks, each trained on a single cloud
-GPU, and \V{cost.seconds.others} for the constant baseline and GBDT on a CPU.
-The best model has \V{best.parameters} parameters and was trained for
-\V{best.epochs.run} epochs in \V{best.seconds} on an \V{best.device}, at
-about \V{best.rows-a-second} positions per second. Table~\ref{tab:runs} lists
+Training the \V{runs.count} models on the leaderboard took \V{cost.seconds}
+in total: \V{cost.seconds.networks} for the networks, each trained on a
+single cloud GPU, and \V{cost.seconds.others} for the constant baseline and
+GBDT on a CPU. The ablation models that are not on the leaderboard are not
+included in this total. The best model has \V{best.parameters} parameters and
+was trained for \V{best.epochs.run} epochs in \V{best.seconds} on an
+\V{best.device}, at about \V{best.rows-a-second} positions per second, not
+counting the pretraining of its encoder. Table~\ref{tab:runs} lists
 the hardware and training time of every model, and
 Table~\ref{tab:settings} the hyperparameters of the networks of the fixed
 sequence.

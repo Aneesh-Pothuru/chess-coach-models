@@ -5,16 +5,16 @@
 \cmidrule(lr){4-5}
 Task & Target & Examples & Examples & Games & Primary metric \\
 \midrule
-Blunder hazard & Chance the mover loses more than 20 points of win probability & 698{,}013 & 68{,}579 & 2{,}944 & PR-AUC $\uparrow$ \\
+Blunder hazard & Probability that the mover loses more than 20 percentage points of win probability & 698{,}013 & 68{,}579 & 2{,}944 & PR-AUC $\uparrow$ \\
 Game rating & Lichess rapid rating points & 99{,}699 & 9{,}974 & 4{,}999 & MAE $\downarrow$ \\
-Human move & The chance that each legal move is the one the player makes & 698{,}013 & 68{,}579 & 2{,}944 & Top-1 accuracy $\uparrow$ \\
-Practical chances & Expected score of the mover in the game (a win 1, a draw 0.5, a loss 0) & 698{,}013 & 68{,}579 & 2{,}944 & RMSE $\downarrow$ \\
+Human move & Probability that each legal move is the move played & 698{,}013 & 68{,}579 & 2{,}944 & Top-1 accuracy $\uparrow$ \\
+Practical chances & Expected score of the mover (win 1, draw 0.5, loss 0) & 698{,}013 & 68{,}579 & 2{,}944 & RMSE $\downarrow$ \\
 Puzzle difficulty & Lichess puzzle rating points & 1{,}127{,}915 & 112{,}450 & 112{,}450 & RMSE $\downarrow$ \\
 Puzzle difficulty unsolved & Lichess puzzle rating points & 1{,}127{,}915 & 112{,}450 & 112{,}450 & RMSE $\downarrow$ \\
-Puzzle themes & The chance that a puzzle carries a theme & 1{,}127{,}915 & 112{,}450 & 112{,}450 & Average precision $\uparrow$ \\
-Tactic found & Chance the move played is the first move of the tactic & 810{,}140 & 81{,}135 & 81{,}135 & Log loss $\downarrow$ \\
+Puzzle themes & Probability that the puzzle carries each theme & 1{,}127{,}915 & 112{,}450 & 112{,}450 & Average precision $\uparrow$ \\
+Tactic found & Probability that the move played is the first move of the tactic & 810{,}140 & 81{,}135 & 81{,}135 & Log loss $\downarrow$ \\
 Think time & Log(1 + seconds spent on the move) & 698{,}013 & 68{,}579 & 2{,}944 & MAE $\downarrow$ \\
-Where to look & The chance that a square is one the tactic's line leaves or lands on & 1{,}127{,}915 & 112{,}450 & 112{,}450 & Average precision $\uparrow$ \\
-Position evaluation & The mover's chance of winning by the engine's evaluation (percent) & 6{,}000{,}000 & 120{,}035 & 120{,}035 & RMSE $\downarrow$ \\
+Where to look & Probability that a square is an origin or destination square of a move of the solution & 1{,}127{,}915 & 112{,}450 & 112{,}450 & Average precision $\uparrow$ \\
+Position evaluation & The mover's win probability implied by the engine evaluation (percent) & 6{,}000{,}000 & 120{,}035 & 120{,}035 & RMSE $\downarrow$ \\
 \bottomrule
 \end{tabularx}

@@ -285,9 +285,9 @@ input.}
 The auxiliary planes mark the en passant square and the origin and
 destination squares of the opponent's preceding move. Besides the castling
 rights, the scalar context features are the two ratings, the increment, the
-ply, and three times, each as the logarithm of one plus the number of
-seconds: the time remaining on the mover's clock, the time remaining on the
-opponent's clock and the initial time of the time control. No model receives
+ply, and three durations, each encoded as the logarithm of one plus the
+number of seconds: the time remaining on the mover's clock, the time
+remaining on the opponent's clock and the initial time of the time control. No model receives
 an engine evaluation, although the dataset contains one for every position.
 No input describes the move that is played. The move, the time spent on it
 and the evaluations appear in the error analysis
@@ -503,14 +503,14 @@ is better.}
 \subsection{Training curves}
 
 Figure~\ref{fig:curves} shows the validation MAE of each network of the fixed
-sequence after every epoch, and \V{ladder.at-last-epoch.of} reached their
-best validation MAE in the final epoch: \run{conv-small} at
+sequence after every epoch, and \V{ladder.at-last-epoch.of} had their best
+validation MAE in the final epoch: \run{conv-small} at
 \V{run.conv-small.best-epoch} of \V{run.conv-small.epochs},
 \run{transformer-small} at \V{run.transformer-small.best-epoch} of
 \V{run.transformer-small.epochs} and \run{transformer-medium} at
 \V{run.transformer-medium.best-epoch} of \V{run.transformer-medium.epochs}.
 The validation MAE of these models was still decreasing when training ended.
-\run{transformer-medium-hand} reached its best epoch at
+\run{transformer-medium-hand} had its best validation MAE at epoch
 \V{run.transformer-medium-hand.best-epoch} of
 \V{run.transformer-medium-hand.epochs}.
 \ifchangeepochs
@@ -614,10 +614,11 @@ baseline is \V{run.transformer-medium-long.gain} (95\% CI
 result of the fixed sequence, in which the medium transformer without
 hand-crafted features is significantly worse than the GBDT baseline,
 therefore reflects its schedule: the model was undertrained. Both models with
-the longer schedule reached their best validation epoch near its end,
-\run{transformer-medium-long} at \V{run.transformer-medium-long.best-epoch}
-of \V{run.transformer-medium-long.epochs} and
-\run{transformer-medium-hand-long} at
+the longer schedule had their best validation MAE near its end,
+\run{transformer-medium-long} at epoch
+\V{run.transformer-medium-long.best-epoch} of
+\V{run.transformer-medium-long.epochs} and
+\run{transformer-medium-hand-long} at epoch
 \V{run.transformer-medium-hand-long.best-epoch}
 (Figure~\ref{fig:variants}), so a still longer schedule may improve them
 further. We have not tried one.
@@ -665,10 +666,10 @@ other's intervals (Table~\ref{tab:leaderboard}). We hypothesise that an
 encoder pretrained to predict engine evaluations already represents most of
 what the hand-crafted features provide.
 
-The pretrained model with hand-crafted features reached its best validation
-epoch at \V{run.transformer-medium-hand-pretrained.best-epoch} of
+The pretrained model with hand-crafted features had its best validation MAE
+at epoch \V{run.transformer-medium-hand-pretrained.best-epoch} of
 \V{run.transformer-medium-hand-pretrained.epochs}, and the pretrained model
-without them at \V{run.transformer-medium-pretrained.best-epoch}
+without them at epoch \V{run.transformer-medium-pretrained.best-epoch}
 (Figure~\ref{fig:variants}). The validation MAE of neither model was still
 decreasing when its schedule ended.
 \fi
@@ -852,12 +853,11 @@ overlap (Table~\ref{tab:pairs}).
 \fi
 
 The three transformer models take the same number of optimisation steps. On
-the standard training set the transformer reached its best validation epoch
-at \V{run.transformer-medium-hand.best-epoch} of
-\V{run.transformer-medium-hand.epochs}. On the larger training sets it
-reached it in the final epoch, at
-\V{run.transformer-medium-hand-double.best-epoch} of
-\V{run.transformer-medium-hand-double.epochs} on twice the games and at
+the standard training set the transformer had its best validation MAE at
+epoch \V{run.transformer-medium-hand.best-epoch} of
+\V{run.transformer-medium-hand.epochs}. On the larger training sets it had it
+in the final epoch, epoch \V{run.transformer-medium-hand-double.best-epoch}
+of \V{run.transformer-medium-hand-double.epochs} on twice the games and epoch
 \V{run.transformer-medium-hand-quadruple.best-epoch} of
 \V{run.transformer-medium-hand-quadruple.epochs} on four times, so its
 validation MAE was still decreasing when its schedule ended.
@@ -1356,7 +1356,7 @@ take longest. A model trained on both targets tests whether a long think can
 be anticipated from the position.
 \ifmore
 \item \textbf{More data together with more optimisation steps.} On the
-larger training sets the transformer reached its best validation MAE in the
+larger training sets the transformer had its best validation MAE in the
 final epoch of its schedule. Training on four times the games with a longer
 schedule, and training the pretrained model on four times the games, are the
 two missing cases.

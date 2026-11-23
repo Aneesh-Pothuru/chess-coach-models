@@ -74,18 +74,12 @@ longest, and padded elements are masked: they are not encoded and no token
 attends to them, so a prediction does not depend on the other examples in
 the batch.
 
-Model sizes are hyperparameters. An example consists of tens of positions,
-each of which is encoded, and all networks of this task were trained on a GPU
-(Table~\ref{tab:runs}). \run{transformer-medium-hand} is
-\run{transformer-medium} with the hand-crafted features added to its context
-features. Table~\ref{tab:settings} in the appendix lists the hyperparameters.
-\else
-Model sizes are hyperparameters. \run{conv-small} and \run{transformer-small}
-are small enough to train on a CPU. \run{transformer-medium} is trained on a
-GPU, and \run{transformer-medium-hand} is the same network with the
-hand-crafted features added to its context features.
-Table~\ref{tab:settings} in the appendix lists the hyperparameters.
 \fi
+Model sizes are hyperparameters. \run{transformer-medium-hand} is
+\run{transformer-medium} with the hand-crafted features added to its context
+features. Table~\ref{tab:settings} in the appendix lists the hyperparameters
+of the networks of the fixed sequence, and Table~\ref{tab:runs} the hardware
+on which each model was trained.
 
 \paragraph{Training.}
 All networks are trained in the same way: with AdamW~\cite{adamw}, a learning
