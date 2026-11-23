@@ -514,6 +514,72 @@ test positions (\V{pair.transformer-medium-hand-no-geometry.transformer-medium-h
 \V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain.low} to
 \V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain.high}).
 \end{itemize}
+
+Four things follow. The first is that what each piece attacks was worth more
+to the transformer on the board alone than anything else tried from nothing.
+Told it, that transformer gains
+\V{pair.transformer-medium-attacks.transformer-medium.gain}, where the hand
+features gave it \V{pair.transformer-medium-hand.transformer-medium.gain}
+and twice the epochs
+\V{pair.transformer-medium-long.transformer-medium.gain}. Only the start
+from the body gave it more,
+\V{pair.transformer-medium-pretrained.transformer-medium.gain}, and in
+Table~\ref{tab:pairs} the four intervals stand apart. On the ladder this
+transformer was behind the trees. Told the attacks it is ahead of them by
+\V{run.transformer-medium-attacks.gain}
+(\V{run.transformer-medium-attacks.gain.low} to
+\V{run.transformer-medium-attacks.gain.high}), from nothing and on the
+ladder's schedule. That is the third footnote to
+Section~\ref{sec:results}: the squares hold more for this question than the
+ladder found, for a network that is told which piece attacks which.
+
+The second is that the counts did not add to that.
+\V{run.transformer-medium-hand-attacks.name}, which has both, is not kept.
+It scores \V{run.transformer-medium-hand-attacks.score}, where
+\V{run.transformer-medium-attacks.name}, which reads no count, scores
+\V{run.transformer-medium-attacks.score}. So the difference the counts make
+there is \V{run.transformer-medium-hand-attacks.over-twin}, below zero
+because the run that reads them is the worse, where on the ladder it was
+\V{run.transformer-medium-hand.over-twin}. The intervals of the two runs'
+gains over the reference do not touch (Table~\ref{tab:leaderboard}). The two
+were not set against each other on resampled games, so that is a reading of
+the leaderboard. Figure~\ref{fig:shapes} shows how it came about: from the
+second epoch on, the run that has both lies on the curve of the transformer
+that has the counts and is told nothing. A
+reading: with the counts at hand a network trained from nothing leans on
+them and learns little of what its attention is told, and without them it
+learns to read the attacks and ends ahead. Each run was trained once, and a
+second training is the first check of this.
+
+The third is the tower. \V{run.conv-medium-hand.name} gains
+\V{pair.conv-medium-hand.transformer-medium-hand.gain} over the transformer
+it changes, where twice the epochs gave that transformer
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain} and the
+start from the body
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain},
+and the three intervals stand apart. It took
+\V{run.conv-medium-hand.seconds} of the GPU for the transformer's
+\V{run.transformer-medium-hand.seconds}. It is the best run of this model
+that starts from nothing. It is ahead of
+\V{run.transformer-medium-hand-long.name}, the best before it, by the
+intervals of their gains over the reference
+(Table~\ref{tab:leaderboard}), and it is not to be told from
+\V{run.transformer-medium-attacks.name}, whose interval overlaps its own.
+It changes its learning rate with its body, so the gain is the tower's as
+trained and cannot be given to the convolutions alone. The hybrid is inside
+the noise of the transformer it changes, and so is the transformer without
+its offsets.
+
+The fourth is what stays. The model's best run is still \V{best.name}, at
+\V{best.score}. It starts from the body, and the interval of its gain over
+the reference stands clear of the tower's. What the test changes is what to
+start from that body. The attention that is told the attacks can start from
+it as it is, since the weights on what it is told start at nothing, and
+that run changes one thing in a kept run. It is worth making on the board
+alone as well as with the counts, since here the network that was told the
+attacks did better without them. A tower cannot start from a
+transformer's body: it needs a body of its own shape that has learned the
+same evaluations.
 \fi
 
 \input{../../../papers/studies}
@@ -930,6 +996,15 @@ when training stopped.
 \ifgames\else
 \item \textbf{More games, or fewer.} A run on half and on a quarter of the
 training games says what a larger build would buy.
+\fi
+\ifshapes
+\item \textbf{The attention that is told the attacks, from the body.}
+\V{run.transformer-medium-pretrained.name} with its attention told what
+each piece attacks, and the same with the hand features: one change in a
+kept run, and the two largest gains measured here in one network.
+\item \textbf{A tower that has learned the evaluations.} The tower is the
+best run here that starts from nothing, and it cannot start from a
+transformer's body.
 \fi
 \item \textbf{A stronger body to start from.} The body was trained once, at
 one size, on a part of the evaluations file. One trained for longer, on more

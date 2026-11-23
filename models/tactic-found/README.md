@@ -206,6 +206,48 @@ run it changed among the `pairs` of
   start would not help. More positions from it may: the `games` study above
   says positions are what this model lacks.
 
+What the architecture test says (commit `414f6d3`: the four runs of another
+shape and the `geometry` study, each trained once from nothing and set
+against the run it changed among the `pairs` of
+[`results/analysis.json`](results/analysis.json)):
+
+- **The convolutional tower is kept, and is the best run that starts from
+  nothing.** `conv-medium-hand` is better than `transformer-medium-hand` on
+  the valid rows, and on the test rows beyond the noise, where twice the
+  epochs had given that transformer nothing. The start from the body gave it
+  more (the two intervals do not touch), and
+  `transformer-medium-hand-pretrained` is still the model's best run, ahead
+  of the tower (the intervals of their gains over the reference do not
+  touch). The tower took under half the transformer's time on the GPU. It
+  also changes its learning rate, so the gain is the tower's as trained and
+  cannot be given to the convolutions alone.
+- **It fits its training rows fast.** Its best valid epoch was the seventh
+  of twelve, and the trainer stopped it after the tenth: its loss on the
+  valid rows had turned up steeply while its loss on its own training rows
+  went on falling (`learner.history` in its record). Positions are what it
+  runs out of first, so the larger build of this dataset is the run for it.
+- **The hybrid is worse, and is not kept.** It is worse than
+  `transformer-medium-hand` on the valid rows, and on the test rows beyond
+  the noise. Like the tower it has its best valid epoch before the end of
+  its schedule and loses ground after it.
+- **Telling the attention what each piece attacks changes nothing here.**
+  Neither run is kept. On the board alone and with the features, each is
+  inside the noise of the run it changed, and its loss follows that run's
+  epoch for epoch, on its own training rows as well. This was the model
+  where the most was expected of the change, since its networks on the board
+  alone are the ones behind the trees, and the run that is told the attacks
+  is still behind them. [Blunder hazard](../blunder-hazard/) found the same.
+  A reading: those are the lab's two models whose label is a yes or a no
+  about one move in a game, the two where twice the epochs gave the
+  transformer with the features nothing, and the two where fewer games cost
+  the network its lead over the trees. The weights on what the attention is
+  told start at nothing and are learned from a model's own rows, and these
+  rows teach a network least. What moved both models was the start from a
+  body that had read many more positions elsewhere.
+- **The offsets between squares cannot be shown to matter here.** Without
+  them (the `geometry` study) the transformer is inside the noise of the one
+  that has them.
+
 **Weights.** Every run's weights and test predictions are on the owner's
 machine, under `artifacts/runs/tactic-found/<run>/`, as the GPU session
 packed them; none is published. Each record names its run's files by size

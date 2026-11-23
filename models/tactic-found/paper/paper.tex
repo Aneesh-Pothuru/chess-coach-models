@@ -573,6 +573,59 @@ test rows (\V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.g
 \V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain.low} to
 \V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain.high}).
 \end{itemize}
+
+Three things follow. The first is that the tower is the one shape kept
+here. \V{run.conv-medium-hand.name} gains
+\V{pair.conv-medium-hand.transformer-medium-hand.gain} over the transformer
+it changes, where twice the epochs gave that transformer nothing these test
+rows can show
+(\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain}). The
+start from the body gave it more,
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain},
+and in Table~\ref{tab:pairs} the tower's interval and the start's do not
+touch. The tower is the best run of this model that starts from nothing,
+and it took \V{run.conv-medium-hand.seconds} of the GPU for the
+transformer's \V{run.transformer-medium-hand.seconds}. It changes its
+learning rate with its body, so the gain is the tower's as trained and
+cannot be given to the convolutions alone. The model's best run is still
+\V{best.name}, at \V{best.score}: it starts from the body, and the interval
+of its gain over the reference stands clear of the tower's
+(Table~\ref{tab:leaderboard}).
+
+The second is how the networks with convolutions learned
+(Figure~\ref{fig:shapes}). The tower had its best valid epoch at
+\V{run.conv-medium-hand.best-epoch} of a schedule of
+\V{run.conv-medium-hand.epochs}, and the trainer stopped it after
+\V{run.conv-medium-hand.epochs.run}: its loss on the valid rows had turned
+up while its loss on its own training rows went on falling. The hybrid
+turned after epoch \V{run.hybrid-medium-hand.best-epoch} and ended
+\V{pair.hybrid-medium-hand.transformer-medium-hand.verdict} against the
+transformer on the test rows. A reading: these networks learn their rows
+sooner and fit them too closely sooner, as they did in the lab's puzzle
+model, so for the tower more positions are likelier to help than more
+epochs are.
+
+The third is that telling the attention what each piece attacks changed
+nothing here, on the board alone or with the counts. Each run is inside the
+noise of the transformer it changes, and Figure~\ref{fig:shapes} has each on
+the curve of that transformer from the first epoch to the last. On the
+board alone the run that is told the attacks is still behind the trees, at
+\V{run.transformer-medium-attacks.gain}
+(\V{run.transformer-medium-attacks.gain.low} to
+\V{run.transformer-medium-attacks.gain.high}). This was the model where the
+most was expected of the change, since its networks on the board alone are
+the ones behind the trees. The lab's blunder model found the same on other
+data, and the lab's own paper sets the models side by side. A reading: the
+weights on what the attention is told start at nothing and are learned from
+the model's own rows, and these rows teach a network little beyond the
+counts. Twice the epochs gave the transformer with the counts nothing
+either.
+\ifgames
+The games study below says its lead over the trees comes with the data.
+\fi
+What moved this model was the start from a body that had read many more
+positions elsewhere. Without its offsets the transformer is inside the
+noise of the one that has them.
 \fi
 
 \input{../../../papers/studies}
@@ -1020,6 +1073,12 @@ make.
 from was trained once, at one size, on a part of the evaluations file. One
 trained for longer, on more of the file or at a larger size has not been
 tried.
+\ifshapes
+\item \textbf{A tower that has learned the evaluations.} The tower is the
+best run here that starts from nothing, and it cannot start from a
+transformer's body. It also fitted its training rows soonest, so a larger
+build of the dataset is the other run for it.
+\fi
 \item \textbf{The whole line.} A stricter label: the player played the first
 move and went on to play the rest.
 \item \textbf{The time taken, for reviews.} A second model that reads how

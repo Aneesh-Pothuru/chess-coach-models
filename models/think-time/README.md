@@ -162,6 +162,65 @@ run it changed among the `pairs` of
   that lie inside each other's intervals. From nothing, twelve epochs had
   left the transformer on the board alone behind the trees.
 
+What the architecture test says (commit `414f6d3`: the four runs of another
+shape and the `geometry` study, each trained once from nothing and set
+against the run it changed among the `pairs` of
+[`results/analysis.json`](results/analysis.json)):
+
+- **Told what each piece attacks, the transformer on the board alone is
+  kept.** `transformer-medium-attacks` is better than `transformer-medium`
+  on the valid rows, and on the test rows beyond the noise. It is the
+  largest gain this model has had from one change made from nothing: more
+  than the hand features gave the same transformer, and several times what
+  twice the epochs did. Only the start from the body gave it more (the four
+  intervals do not touch). On the ladder that transformer was just behind
+  the trees. Told the attacks it is well ahead of them.
+- **With the hand features the same change does next to nothing, and that
+  run is not kept.** `transformer-medium-hand-attacks` is a hair worse than
+  `transformer-medium-hand` on the valid rows, which fails the first half of
+  the rule, and a hair better on the test rows, beyond the noise. From the
+  second epoch on its valid score follows that of the run it changed
+  (`learner.history` in the two records).
+- **So the run on the board alone is ahead of the run that has both.** Told
+  the attacks, the transformer that reads no hand feature is ahead of the
+  one that reads them, where on the ladder the features were worth a clear
+  step. The intervals of the two runs' gains over the reference do not
+  touch. The two were not set against each other on resampled games, so this
+  is a reading of the leaderboard. A reading of why: with the features at
+  hand a network trained from nothing leans on them and learns little of
+  what its attention is told, and without them it learns to read the attacks
+  and ends ahead. Each run was trained once, and a second training is the
+  first check of it.
+- **The convolutional tower is kept, and is the best run that starts from
+  nothing.** `conv-medium-hand` is better than `transformer-medium-hand` on
+  the valid rows, and on the test rows beyond the noise: by more than twice
+  the epochs gave that run and by less than the start from the body did (the
+  three intervals do not touch). It is ahead of
+  `transformer-medium-hand-long`, the best run from nothing before it (the
+  intervals of their gains over the reference do not touch), in half the
+  transformer's time on the GPU. It also changes its learning rate, so the
+  gain is the tower's as trained and cannot be given to the convolutions
+  alone. The tower and the board-alone run that is told the attacks cannot
+  be told apart on the leaderboard.
+- **The hybrid is not kept.** It is a hair better than
+  `transformer-medium-hand` on the valid rows and inside its noise on the
+  test rows.
+- **The offsets between squares cannot be shown to matter here.** Without
+  them (the `geometry` study) the transformer is inside the noise of the one
+  that has them.
+- **The best run still starts from the body.**
+  `transformer-medium-hand-pretrained` is ahead of the tower, and
+  `transformer-medium-pretrained` is ahead of the board-alone run that is
+  told the attacks (the intervals of their gains over the reference do not
+  touch). What was written before these ran, that no shape would do much for
+  a model that leans on the clock, did not hold. A reading: beside the clock
+  a move's time turns on what can be taken and on how much there is to
+  choose from, as the `features` study said, and what each piece attacks is
+  how a network sees both. Two runs follow, each one change in a kept run:
+  the attention that is told the attacks started from the body, on the board
+  alone and with the features, and a tower as the body that learns the
+  engine's evaluations ([`docs/ideas.md`](../../docs/ideas.md)).
+
 **Weights.** Every run's weights and test predictions are on the owner's
 machine, under `artifacts/runs/think-time/<run>/`, as the GPU session
 packed them; none is published. The best run's `model.pt` is

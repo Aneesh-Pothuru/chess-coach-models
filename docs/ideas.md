@@ -72,8 +72,24 @@ difficulty that attention is the largest gain any one change has made to a netwo
 from nothing, the tower is a small gain from a cheaper network, the hybrid is worse, and the
 transformer three times larger is worse than the medium one on the same rows. The best run of both
 models is still the transformer that started from the body trained on an engine's evaluations.
-Each model's card says what it found, and the lab's paper sets the two side by side. Think time,
-tactic found and human-move come next (`bodies-rest`).
+Each model's card says what it found, and the lab's paper sets the models side by side.
+
+The other three have theirs now (think time, tactic found and human-move, the plan `bodies-rest`),
+and the expectations held no better. On think time, where little was expected of any shape, the
+attention told the attacks is the largest gain made from nothing to the transformer that reads the
+board alone, which it takes from behind the trees to well ahead of them, and the tower is kept and
+is the best run that starts from nothing. On tactic found, where the most was expected of that
+attention, it changes nothing, on the board alone or with the hand features. The tower is kept
+there too, and the hybrid is worse. On human-move, whose pairs are not made yet, the attention told
+the attacks is the best network trained here, a transformer three times larger cannot be told from
+the medium one, the tower and the hybrid are far behind every transformer that has its offsets,
+and without the offsets the transformer falls to the level of the trees.
+
+Across the five models: the attention told the attacks pays in three and does nothing in the two
+whose label is a yes or a no about one move in a game. The tower is kept in three of the four
+models that answer with one number, and is well behind where the answer is a move. The hybrid is
+kept nowhere, and size alone never paid. In the four models that have both a start from the body
+and runs of another shape, the best run is still the transformer that starts from the body.
 
 What is left:
 
@@ -126,12 +142,21 @@ model only where it beats the same run started from nothing there. What is left 
 those say whether it pays: more of the file, more epochs, a larger body, and a lower learning rate
 for the run that starts from it.
 
-The architecture test adds one run to that list, ahead of the rest: the attention that is told
-what each piece attacks, started from that body. On puzzle difficulty the two are the largest
-gains measured, each made alone, and they can be made together without a new body: what the
-attention is told enters with weights that start at nothing ([`design.md`](design.md), "Bodies
-and a head"), so such a network takes the body as it is and begins as that body does. A tower
-cannot, until a tower has learned the same evaluations.
+The architecture test adds two runs to that list, ahead of the rest. The first is the attention
+that is told what each piece attacks, started from that body. On puzzle difficulty and on think
+time the two are the largest gains measured, each made alone, and they can be made together
+without a new body: what the attention is told enters with weights that start at nothing
+([`design.md`](design.md), "Bodies and a head"), so such a network takes the body as it is and
+begins as that body does. On think time it is made on the board alone as well as with the hand
+features, since there the network that was told the attacks did better without them. On human-move
+the same network is the first to put under the move head from the body. The second is a tower
+that learns the same evaluations and is then a body to start from: the tower is kept in three
+models and is the best run from nothing in two of them, and it cannot start from a transformer's
+body.
+
+Every run was trained once. A second training matters most for the small gains (the tower's in
+puzzle difficulty) and for the one odd result: on think time the transformer that is told the
+attacks is better without the hand features than with them.
 
 ### More published models on the human-move rows
 

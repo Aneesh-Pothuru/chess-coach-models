@@ -9,6 +9,11 @@ Run & Set against & What the run changes & Valid rows & Test rows & 95\% interva
 \run{transformer-medium-hand-long} & \run{transformer-medium-hand} & 24 epochs for 12 & +0.00173 & \textbf{+0.001414} & +0.000382 to +0.002486 \\
 \run{transformer-medium-hand} & \run{transformer-medium} & reads the hand features & +0.0147 & \textbf{+0.01276} & +0.01124 to +0.01434 \\
 \run{transformer-medium-hand-long} & \run{transformer-medium-long} & reads the hand features & +0.0108 & \textbf{+0.00944} & +0.00784 to +0.01114 \\
+\run{conv-medium-hand} & \run{transformer-medium-hand} & its body is a convolutional tower for a transformer; 0.002 peak learning rate for 0.0006 & +0.00732 & \textbf{+0.006249} & +0.004890 to +0.007704 \\
+\run{hybrid-medium-hand} & \run{transformer-medium-hand} & its body is convolutions under a transformer for a transformer & +0.000198 & $-$0.000796 & $-$0.002055 to +0.000576 \\
+\run{transformer-medium-attacks} & \run{transformer-medium} & its attention is told what each piece attacks & +0.0195 & \textbf{+0.01787} & +0.01650 to +0.01934 \\
+\run{transformer-medium-hand-attacks} & \run{transformer-medium-hand} & its attention is told what each piece attacks & $-$0.000139 & \textbf{+0.000576} & +0.000133 to +0.001023 \\
+\run{transformer-medium-hand-no-geometry} & \run{transformer-medium-hand} & its attention is not told the offsets between squares & $-$0.000440 & $-$0.0002229 & $-$0.0006434 to +0.0001984 \\
 \run{transformer-medium-hand-pretrained} & \run{transformer-medium-hand} & starts from the body of \run{position-evaluation/transformer-medium} & +0.0118 & \textbf{+0.01101} & +0.00928 to +0.01270 \\
 \run{transformer-medium-pretrained} & \run{transformer-medium} & starts from the body of \run{position-evaluation/transformer-medium} & +0.0261 & \textbf{+0.02286} & +0.02099 to +0.02493 \\
 \bottomrule

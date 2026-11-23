@@ -155,6 +155,50 @@ numbers are in the leaderboard and in the runs' records beside it):
   short of size, and the larger build of this dataset is the run to make
   before any larger network.
 
+What the architecture test says (commit `414f6d3`: the four runs of another
+shape and the `geometry` study, each trained once from nothing). Their pairs
+are not made yet. So each is read here off its own interval and the interval
+of its gain over the trees, and none is kept or filed until
+`lab analyse human-move` has set it against the run it changed:
+
+- **Told what each piece attacks, the transformer is the best network
+  trained here.** `transformer-medium-attacks` is better than
+  `transformer-medium` on the valid rows, and on the test rows it stands
+  clear of every other network trained here, the one three times its size
+  among them (the intervals of their gains over the trees do not touch). It
+  covers about seven tenths of the step from the trees to Maia-2, where the
+  ladder's transformers covered about three fifths. It is ahead of
+  `transformer-medium` in every band, by least under 1100 and by most at
+  2000 and above, where the ladder's runs fell furthest behind. Maia-2 is
+  still ahead of it in every band. Its best valid epoch was its last, so it
+  had not finished learning.
+- **Three times the parameters cannot be told from the medium
+  transformer.** `transformer-large` is a little better than
+  `transformer-medium` on the valid rows, and on the test rows the two lie
+  inside each other's intervals. From under one million parameters to over
+  twenty million, the three transformers of the ladder's shape lie inside
+  each other's intervals. Size is still not what this model is short of.
+- **The tower and the hybrid are far behind.** Each is behind every
+  transformer that has its offsets, the small one too (the intervals do not
+  touch), and level with the small tower of the ladder. Both fitted their
+  training rows fast:
+  the tower's best valid epoch was its fifth and the hybrid's its seventh,
+  the trainer stopped both early, and by then their loss on their own
+  training rows was far below any transformer's. In the models that answer
+  with one number the tower is kept in three of four. Here it is well
+  behind.
+- **Without the offsets between squares the transformer falls to the
+  trees.** `transformer-medium-no-geometry` is level with `gbm-hand` (the
+  interval of its gain over them holds zero), where with the offsets the
+  same network is far ahead. It was still improving at its last epoch, and
+  its loss on its own training rows was far above the other's: it learns
+  slowly what the offsets hand the other. In the models that answer with one
+  number the same study found little or nothing.
+- **A reading of the three.** A move joins two squares anywhere on the
+  board. Attention joins any two squares in one layer and a convolution only
+  neighbours, and what attention has to know to do it is how the two squares
+  lie to each other and whether the piece on one reaches the other.
+
 What the app can take from this today: Maia-2, which it already runs, is the
 right model to ask, and its chances can be shown as they are. The rating it
 is told matters most for the weakest and the strongest players, and for a
@@ -170,8 +214,9 @@ human-move` makes them where the test predictions are.
 machine, under `artifacts/runs/human-move/<run>/`, as the GPU session packed
 them; none is published. `maia2` has no weights of the lab's: its package
 fetches the published ones, whose hash is in the run's record. The best run
-trained here, `transformer-medium`, has a `model.pt` of 26,245,087 bytes,
-sha256 `de0a064be17f1efa290da06ad7e852558539d4387d8b83cc4070aad38bac468d`.
+trained here, `transformer-medium-attacks`, has a `model.pt` of 26,247,999
+bytes, sha256
+`3c690d6eb229260ec507cca01a2c48b2f3ca27e845aaa5e7ee218358f0b48a4b`.
 
 ## What it does not say yet
 
@@ -191,7 +236,9 @@ sha256 `de0a064be17f1efa290da06ad7e852558539d4387d8b83cc4070aad38bac468d`.
   says what half and a quarter of them are worth, which is the case for or
   against a larger build of the dataset. A body that already reads a board
   (the one [position-evaluation](../position-evaluation/) trains) under the
-  move head is not run yet.
+  move head is not run yet. The attention that is told the attacks can start
+  from that body as it is, and it had not finished learning on the games it
+  had, so the larger build and that start are the two runs for it.
 - **A promotion is one move.** A model here does not say which piece a pawn
   becomes.
 - **What people play, not what is good.** Nothing here reads an engine. The
