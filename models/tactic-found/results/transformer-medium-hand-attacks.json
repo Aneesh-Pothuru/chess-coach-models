@@ -1,0 +1,312 @@
+{
+  "model": "tactic-found",
+  "run": "transformer-medium-hand-attacks",
+  "task": {
+    "label": "found",
+    "kind": "binary",
+    "unit": "chance the move played is the first move of the tactic",
+    "primary": "log_loss",
+    "lower_is_better": true,
+    "context": [
+      "mover_elo",
+      "opponent_elo",
+      "log_clock",
+      "log_opponent_clock",
+      "log_base",
+      "increment",
+      "ply",
+      "win_prior",
+      "win_before",
+      "solver_moves",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "tactics-v1",
+    "source": "https://huggingface.co/datasets/Lichess/chess-puzzles-with-games/tree/3510a01f320eaaab7b7775ebc73afcfe0b33b4c2",
+    "licence": "CC0 1.0, huggingface.co/datasets/Lichess/chess-puzzles-with-games",
+    "rows": 810140,
+    "splits": {
+      "test": 81135,
+      "train": 688480,
+      "valid": 40525
+    },
+    "fingerprint": "15bd888b36b8fa30bcf93923ba28de9274fed4facb8662ebe5daac040a66193a",
+    "built": "2026-11-23T02:50:45Z",
+    "code": "173dddec7ab54890785803c32f46679fd53b0c40"
+  },
+  "config": {
+    "needs": "cuda",
+    "learner": {
+      "kind": "net",
+      "body": "transformer",
+      "features": "hand",
+      "dim": 256,
+      "depth": 8,
+      "heads": 8,
+      "dropout": 0.1,
+      "attacks": true
+    },
+    "train": {
+      "epochs": 12,
+      "batch": 1024,
+      "lr": 0.0006,
+      "weight_decay": 0.05,
+      "warmup": 0.05,
+      "patience": 3
+    },
+    "base": "transformer-medium-hand"
+  },
+  "learner": {
+    "features": 47,
+    "parameters": 6566209,
+    "device": "NVIDIA A100-SXM4-40GB",
+    "best_epoch": 10,
+    "fit_seconds": 732.7,
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.56665,
+        "valid_log_loss": 0.55718,
+        "rows_a_second": 11516
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.55222,
+        "valid_log_loss": 0.55328,
+        "rows_a_second": 11525
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.54723,
+        "valid_log_loss": 0.54958,
+        "rows_a_second": 11542
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.54372,
+        "valid_log_loss": 0.5452,
+        "rows_a_second": 11533
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.54091,
+        "valid_log_loss": 0.54368,
+        "rows_a_second": 11537
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.53825,
+        "valid_log_loss": 0.54423,
+        "rows_a_second": 11529
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.5353,
+        "valid_log_loss": 0.54222,
+        "rows_a_second": 11528
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.53253,
+        "valid_log_loss": 0.54021,
+        "rows_a_second": 11525
+      },
+      {
+        "epoch": 9,
+        "train_loss": 0.52978,
+        "valid_log_loss": 0.53969,
+        "rows_a_second": 11530
+      },
+      {
+        "epoch": 10,
+        "train_loss": 0.52731,
+        "valid_log_loss": 0.53924,
+        "rows_a_second": 11527
+      },
+      {
+        "epoch": 11,
+        "train_loss": 0.52519,
+        "valid_log_loss": 0.53927,
+        "rows_a_second": 11529
+      },
+      {
+        "epoch": 12,
+        "train_loss": 0.52399,
+        "valid_log_loss": 0.53932,
+        "rows_a_second": 11540
+      }
+    ]
+  },
+  "calibration": {
+    "platt_slope": 0.9002543796901309,
+    "platt_intercept": 0.04957948086394766,
+    "fitted_on": "valid"
+  },
+  "machine": {
+    "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "threads": 12,
+    "system": "Linux"
+  },
+  "software": {
+    "python": "3.13.16",
+    "numpy": "2.4.6",
+    "polars": "2.1.0",
+    "lightgbm": "4.6.0",
+    "torch": "2.14.1+cu130"
+  },
+  "code": "173dddec7ab54890785803c32f46679fd53b0c40",
+  "trained": "2026-11-23T04:00:28Z",
+  "seconds": 767.2,
+  "train_rows": 688480,
+  "train_groups": 688480,
+  "valid": {
+    "pr_auc": 0.8580852313916174,
+    "roc_auc": 0.738393849685449,
+    "brier": 0.18152774294635526,
+    "log_loss": 0.5385165071368246,
+    "calibration_error": 0.007517302363253011
+  },
+  "test": {
+    "pr_auc": {
+      "value": 0.8598723979552662,
+      "low": 0.8568096146240236,
+      "high": 0.862790087587519
+    },
+    "roc_auc": {
+      "value": 0.7398381636842322,
+      "low": 0.7361335760280062,
+      "high": 0.7434168759727573
+    },
+    "brier": {
+      "value": 0.1810713816100246,
+      "low": 0.17977806860101025,
+      "high": 0.1824484652504234
+    },
+    "log_loss": {
+      "value": 0.5369699680336824,
+      "low": 0.5338065600591209,
+      "high": 0.5402835288155006
+    },
+    "calibration_error": {
+      "value": 0.005153962566148448,
+      "low": 0.0038546137688256752,
+      "high": 0.008548453769456862
+    }
+  },
+  "test_rows": 81135,
+  "test_groups": 81135,
+  "test_by_band": {
+    "1700-1899": {
+      "rows": 28346,
+      "pr_auc": 0.8523110595948111,
+      "roc_auc": 0.7372368685279728,
+      "brier": 0.1839195273920225,
+      "log_loss": 0.5445895584505686,
+      "calibration_error": 0.008802475549530862
+    },
+    "1900-2099": {
+      "rows": 18674,
+      "pr_auc": 0.871768823025663,
+      "roc_auc": 0.7439652255358381,
+      "brier": 0.17609633043213166,
+      "log_loss": 0.5239423137746035,
+      "calibration_error": 0.00658338029267493
+    },
+    "2100-2299": {
+      "rows": 8845,
+      "pr_auc": 0.8742555931739796,
+      "roc_auc": 0.7353113242090322,
+      "brier": 0.17507664980843907,
+      "log_loss": 0.5214269441429489,
+      "calibration_error": 0.00861941010564396
+    },
+    "2300+": {
+      "rows": 9862,
+      "pr_auc": 0.8647482445393506,
+      "roc_auc": 0.7283860695645454,
+      "brier": 0.1808634548482189,
+      "log_loss": 0.5353734500945793,
+      "calibration_error": 0.012586497509606871
+    },
+    "<1700": {
+      "rows": 15408,
+      "pr_auc": 0.8448850229613175,
+      "roc_auc": 0.7464056446212144,
+      "brier": 0.18543564315398958,
+      "log_loss": 0.548685726854162,
+      "calibration_error": 0.008184139587031358
+    }
+  },
+  "test_calibration": [
+    {
+      "n": 8114,
+      "predicted": 0.328857139685627,
+      "observed": 0.3278284446635445
+    },
+    {
+      "n": 8114,
+      "predicted": 0.4942328175662407,
+      "observed": 0.4910032043381809
+    },
+    {
+      "n": 8114,
+      "predicted": 0.5784135888820019,
+      "observed": 0.575794922356421
+    },
+    {
+      "n": 8114,
+      "predicted": 0.6390493275313496,
+      "observed": 0.6285432585654425
+    },
+    {
+      "n": 8114,
+      "predicted": 0.6895978503947295,
+      "observed": 0.6875770273601183
+    },
+    {
+      "n": 8113,
+      "predicted": 0.7351827546218763,
+      "observed": 0.7248859854554419
+    },
+    {
+      "n": 8113,
+      "predicted": 0.7788256104255924,
+      "observed": 0.7866387279674596
+    },
+    {
+      "n": 8113,
+      "predicted": 0.8240926963883084,
+      "observed": 0.8211512387526193
+    },
+    {
+      "n": 8113,
+      "predicted": 0.877477998484297,
+      "observed": 0.8852459016393442
+    },
+    {
+      "n": 8113,
+      "predicted": 0.9524327347686016,
+      "observed": 0.9557500308147417
+    }
+  ],
+  "weights": [
+    {
+      "file": "model.pt",
+      "bytes": 26297663,
+      "sha256": "eae7da33483f80ded295063be8a6e673c77db84df16bf4305a86cc29cb20adc4"
+    }
+  ],
+  "gain": {
+    "gain": 0.0043966306330910365,
+    "low": 0.003210766455922098,
+    "high": 0.005691415926388546,
+    "beyond_noise": true,
+    "reference": "gbm-hand",
+    "reference_trained": "2026-11-23T03:35:10Z",
+    "reference_value": 0.5413665986667734
+  }
+}

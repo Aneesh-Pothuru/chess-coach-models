@@ -1,0 +1,241 @@
+{
+  "model": "think-time",
+  "run": "transformer-medium-attacks",
+  "task": {
+    "label": "log_spent",
+    "kind": "regression",
+    "unit": "log(1 + seconds spent on the move)",
+    "primary": "mae",
+    "lower_is_better": true,
+    "context": [
+      "mover_elo",
+      "opponent_elo",
+      "log_clock",
+      "log_opponent_clock",
+      "log_base",
+      "increment",
+      "ply",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "game-positions-2026-10",
+    "source": "https://database.lichess.org/standard/lichess_db_standard_rated_2026-10.pgn.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 698013,
+    "splits": {
+      "test": 68579,
+      "train": 594940,
+      "valid": 34494
+    },
+    "fingerprint": "340c68ed5c918cd6dfea4f5cb24218c52d8d0a88cb29e50498218aefdb9dfbd0",
+    "built": "2026-11-23T02:45:49Z",
+    "code": "173dddec7ab54890785803c32f46679fd53b0c40"
+  },
+  "config": {
+    "needs": "cuda",
+    "learner": {
+      "kind": "net",
+      "body": "transformer",
+      "dim": 256,
+      "depth": 8,
+      "heads": 8,
+      "dropout": 0.1,
+      "attacks": true
+    },
+    "train": {
+      "epochs": 12,
+      "batch": 1024,
+      "lr": 0.0006,
+      "weight_decay": 0.05,
+      "warmup": 0.05,
+      "patience": 3
+    },
+    "base": "transformer-medium"
+  },
+  "learner": {
+    "features": 11,
+    "parameters": 6554177,
+    "device": "NVIDIA A100-SXM4-40GB",
+    "best_epoch": 12,
+    "fit_seconds": 633.3,
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.68102,
+        "valid_mae": 0.68804,
+        "rows_a_second": 11499
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.65499,
+        "valid_mae": 0.66525,
+        "rows_a_second": 11513
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.64082,
+        "valid_mae": 0.65309,
+        "rows_a_second": 11503
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.63192,
+        "valid_mae": 0.64978,
+        "rows_a_second": 11506
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.62505,
+        "valid_mae": 0.64409,
+        "rows_a_second": 11511
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.62022,
+        "valid_mae": 0.64047,
+        "rows_a_second": 11509
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.61605,
+        "valid_mae": 0.63565,
+        "rows_a_second": 11510
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.61203,
+        "valid_mae": 0.63051,
+        "rows_a_second": 11564
+      },
+      {
+        "epoch": 9,
+        "train_loss": 0.60863,
+        "valid_mae": 0.63045,
+        "rows_a_second": 11549
+      },
+      {
+        "epoch": 10,
+        "train_loss": 0.60596,
+        "valid_mae": 0.6268,
+        "rows_a_second": 11539
+      },
+      {
+        "epoch": 11,
+        "train_loss": 0.60364,
+        "valid_mae": 0.62548,
+        "rows_a_second": 11526
+      },
+      {
+        "epoch": 12,
+        "train_loss": 0.6025,
+        "valid_mae": 0.62538,
+        "rows_a_second": 11549
+      }
+    ]
+  },
+  "calibration": null,
+  "machine": {
+    "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "threads": 12,
+    "system": "Linux"
+  },
+  "software": {
+    "python": "3.13.16",
+    "numpy": "2.4.6",
+    "polars": "2.1.0",
+    "lightgbm": "4.6.0",
+    "torch": "2.14.1+cu130"
+  },
+  "code": "173dddec7ab54890785803c32f46679fd53b0c40",
+  "trained": "2026-11-23T03:25:22Z",
+  "seconds": 648.5,
+  "train_rows": 594940,
+  "train_groups": 25573,
+  "valid": {
+    "rmse": 0.7942459846476169,
+    "mae": 0.6253840710630296,
+    "r2": 0.3160599333903723,
+    "spearman": 0.5604221197863766
+  },
+  "test": {
+    "rmse": {
+      "value": 0.7819753099769736,
+      "low": 0.7756578885678778,
+      "high": 0.7874859779328682
+    },
+    "mae": {
+      "value": 0.6148377179061852,
+      "low": 0.6098112218084181,
+      "high": 0.619469138960892
+    },
+    "r2": {
+      "value": 0.32404584809477543,
+      "low": 0.31515259289629355,
+      "high": 0.33371282584686957
+    },
+    "spearman": {
+      "value": 0.5623246286141754,
+      "low": 0.5547275058125694,
+      "high": 0.5704886992990043
+    }
+  },
+  "test_rows": 68579,
+  "test_groups": 2944,
+  "test_by_band": {
+    "1100-1400": {
+      "rows": 16674,
+      "rmse": 0.7554553115865907,
+      "mae": 0.5955352999526312,
+      "r2": 0.31550504797290746,
+      "spearman": 0.555816422731577
+    },
+    "1400-1700": {
+      "rows": 19614,
+      "rmse": 0.7773116635308793,
+      "mae": 0.611871961394601,
+      "r2": 0.33408719622254546,
+      "spearman": 0.5737706102146017
+    },
+    "1700-2000": {
+      "rows": 14453,
+      "rmse": 0.8069087798613493,
+      "mae": 0.6338801416181108,
+      "r2": 0.3369148121965777,
+      "spearman": 0.5737190091112642
+    },
+    "2000+": {
+      "rows": 7126,
+      "rmse": 0.8559840606130816,
+      "mae": 0.6723616580794307,
+      "r2": 0.31753403233381206,
+      "spearman": 0.5579717957399805
+    },
+    "<1100": {
+      "rows": 10712,
+      "rmse": 0.7444275098751287,
+      "mae": 0.5863540657023744,
+      "r2": 0.2948923549586534,
+      "spearman": 0.5335234034398334
+    }
+  },
+  "weights": [
+    {
+      "file": "model.pt",
+      "bytes": 26248063,
+      "sha256": "ee632a48abfb8e06d47de5769cdd38a977a1c9f2b6201f8b067e7bd8a69e9a97"
+    }
+  ],
+  "gain": {
+    "gain": 0.015744327280648562,
+    "low": 0.013639202863549924,
+    "high": 0.017461305134309067,
+    "beyond_noise": true,
+    "reference": "gbm-hand",
+    "reference_trained": "2026-11-23T02:52:58Z",
+    "reference_value": 0.6305820451868338
+  }
+}

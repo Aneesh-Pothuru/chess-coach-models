@@ -12,12 +12,16 @@ Written by `lab eval think-time` from the run records in this folder.
 |---|---|---|---|---|---|---|---|---|---|
 | `transformer-medium-hand-pretrained` | transformer, 8 layers of width 256, with hand features, started from `position-evaluation/transformer-medium` | 0.6089 (0.6042 to 0.6138) | 0.7772 | 0.3323 | 0.5758 | **+0.02164 (+0.01944 to +0.0239)** | 6,557,249 | NVIDIA A100-SXM4-40GB | 9 min |
 | `transformer-medium-pretrained` | transformer, 8 layers of width 256, started from `position-evaluation/transformer-medium` | 0.6098 (0.6051 to 0.6145) | 0.7777 | 0.3314 | 0.5739 | **+0.02074 (+0.01859 to +0.02273)** | 6,553,921 | NVIDIA A100-SXM4-40GB | 9 min |
+| `conv-medium-hand` | conv, 10 layers of width 192, each block weighing its channels by the whole board, with hand features | 0.6137 (0.6087 to 0.6183) | 0.7817 | 0.3246 | 0.5657 | **+0.01688 (+0.01496 to +0.01881)** | 6,936,673 | NVIDIA A100-SXM4-40GB | 4 min |
+| `transformer-medium-attacks` | transformer, 8 layers of width 256, attention told what each piece attacks | 0.6148 (0.6098 to 0.6195) | 0.7820 | 0.3240 | 0.5623 | **+0.01574 (+0.01364 to +0.01746)** | 6,554,177 | NVIDIA A100-SXM4-40GB | 11 min |
 | `transformer-medium-hand-long` | transformer, 8 layers of width 256, with hand features | 0.6185 (0.6134 to 0.6231) | 0.7875 | 0.3144 | 0.5569 | **+0.01205 (+0.01018 to +0.01388)** | 6,557,249 | NVIDIA A100-SXM4-80GB | 16 min |
+| `transformer-medium-hand-attacks` | transformer, 8 layers of width 256, attention told what each piece attacks, with hand features | 0.6194 (0.6142 to 0.6240) | 0.7879 | 0.3137 | 0.5537 | **+0.01121 (+0.009634 to +0.0127)** | 6,557,505 | NVIDIA A100-SXM4-40GB | 11 min |
 | `transformer-medium-hand` | transformer, 8 layers of width 256, with hand features | 0.6200 (0.6148 to 0.6246) | 0.7884 | 0.3129 | 0.5530 | **+0.01063 (+0.009066 to +0.01214)** | 6,557,249 | NVIDIA A100-SXM4-80GB | 8 min |
+| `hybrid-medium-hand` | hybrid, 2 conv blocks then 5 transformer layers of width 256, with hand features | 0.6207 (0.6155 to 0.6253) | 0.7886 | 0.3125 | 0.5532 | **+0.009835 (+0.00808 to +0.01155)** | 6,583,337 | NVIDIA A100-SXM4-40GB | 7 min |
 | `transformer-medium-long` | transformer, 8 layers of width 256 | 0.6280 (0.6228 to 0.6328) | 0.7979 | 0.2963 | 0.5372 | **+0.002601 (+0.0002087 to +0.004526)** | 6,553,921 | NVIDIA A100-SXM4-80GB | 16 min |
 | `transformer-small` | transformer, 4 layers of width 128 | 0.6287 (0.6233 to 0.6334) | 0.7975 | 0.2969 | 0.5372 | +0.001931 (-0.0002074 to +0.003677) | 861,857 | NVIDIA A100-SXM4-80GB | 3 min |
 | `conv-small` | conv, 6 layers of width 96 | 0.6292 (0.6236 to 0.6344) | 0.7994 | 0.2935 | 0.5384 | +0.001397 (-0.001706 to +0.003967) | 1,031,329 | NVIDIA A100-SXM4-80GB | 2 min |
-| `gbm-hand` | LightGBM, context and hand features | 0.6306 (0.6255 to 0.6352) | 0.7992 | 0.2939 | 0.5322 | reference |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 27 s |
+| `gbm-hand` | LightGBM, context and hand features | 0.6306 (0.6255 to 0.6352) | 0.7992 | 0.2939 | 0.5322 | reference |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 39 s |
 | `transformer-medium` | transformer, 8 layers of width 256 | 0.6327 (0.6277 to 0.6374) | 0.8020 | 0.2889 | 0.5286 | **-0.002127 (-0.004274 to -0.0003426)** | 6,553,921 | NVIDIA A100-SXM4-80GB | 8 min |
 | `gbm-context` | LightGBM, context numbers only | 0.6794 (0.6737 to 0.6846) | 0.8536 | 0.1945 | 0.4265 | **-0.04885 (-0.05155 to -0.04637)** |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 6 s |
 | `constant` | one number for every row | 0.7724 (0.7661 to 0.7789) | 0.9511 | -0.0000 | n/a | **-0.1418 (-0.1474 to -0.1367)** |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 0 s |
@@ -28,8 +32,12 @@ Written by `lab eval think-time` from the run records in this folder.
 |---|---|---|---|---|---|
 | `transformer-medium-hand-pretrained` | 0.5814 | 0.5883 | 0.6061 | 0.6283 | 0.6669 |
 | `transformer-medium-pretrained` | 0.5840 | 0.5892 | 0.6095 | 0.6252 | 0.6668 |
+| `conv-medium-hand` | 0.5875 | 0.5961 | 0.6086 | 0.6325 | 0.6702 |
+| `transformer-medium-attacks` | 0.5864 | 0.5955 | 0.6119 | 0.6339 | 0.6724 |
 | `transformer-medium-hand-long` | 0.5927 | 0.6017 | 0.6138 | 0.6367 | 0.6730 |
+| `transformer-medium-hand-attacks` | 0.5922 | 0.6021 | 0.6144 | 0.6370 | 0.6785 |
 | `transformer-medium-hand` | 0.5920 | 0.6031 | 0.6152 | 0.6373 | 0.6793 |
+| `hybrid-medium-hand` | 0.5939 | 0.6033 | 0.6152 | 0.6389 | 0.6804 |
 | `transformer-medium-long` | 0.6051 | 0.6107 | 0.6249 | 0.6440 | 0.6788 |
 | `transformer-small` | 0.6052 | 0.6105 | 0.6250 | 0.6451 | 0.6830 |
 | `conv-small` | 0.5981 | 0.6093 | 0.6250 | 0.6514 | 0.6889 |
@@ -61,3 +69,9 @@ A run here changes one thing in a run above, to say what that thing is worth. It
 | `gbm-hand-half` | `gbm-hand` | `data.train_share` 0.5 | 299,955 rows | 0.6321 (0.6270 to 0.6368) | 0.6306 | **-0.001566 (-0.002294 to -0.0009242)** | 9 s |
 | `transformer-medium-hand-quarter` | `transformer-medium-hand` | `data.train_share` 0.25; `train.epochs` 48 (the base has 12); `train.patience` 12 (the base has 3) | 151,209 rows | 0.6325 (0.6275 to 0.6372) | 0.6200 | **-0.001933 (-0.00388 to -0.0001612)** | 6 min |
 | `gbm-hand-quarter` | `gbm-hand` | `data.train_share` 0.25 | 151,209 rows | 0.6352 (0.6299 to 0.6400) | 0.6306 | **-0.004568 (-0.005568 to -0.003614)** | 4 s |
+
+### `geometry`
+
+| Run | The run it changes | What it changes | Trained on | MAE | That run's MAE | Gain over `gbm-hand` | Time |
+|---|---|---|---|---|---|---|---|
+| `transformer-medium-hand-no-geometry` | `transformer-medium-hand` | `learner.geometry` False | 594,940 rows | 0.6202 (0.6149 to 0.6249) | 0.6200 | **+0.01041 (+0.008929 to +0.01194)** | 9 min |
