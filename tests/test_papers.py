@@ -877,6 +877,7 @@ def test_a_plan_s_titles_stand_in_place_of_the_ones_an_analysis_was_written_with
     look = {
         "slices": [{"key": "band", "title": "Old band"}, {"key": "moves", "title": "Old moves"}, {"key": "themes", "title": "Theme"}],
         "grids": [{"key": "moves-pieces", "rows": {"title": "Old rows"}, "columns": {"title": "Old columns"}}],
+        "shown": {"slices": [{"key": "band", "title": "Old band"}, {"key": "moves", "title": "Old moves"}]},
     }
     plan = {
         "band": {"title": "Puzzle rating"},
@@ -886,6 +887,25 @@ def test_a_plan_s_titles_stand_in_place_of_the_ones_an_analysis_was_written_with
     read = sources.retitled(look, plan)
     assert [one["title"] for one in read["slices"]] == ["Puzzle rating", "Solution length", "Theme"]
     assert read["grids"][0]["rows"]["title"] == "Solution length" and read["grids"][0]["columns"]["title"] == "Old columns"
+    assert [one["title"] for one in read["shown"]["slices"]] == ["Puzzle rating", "Solution length"]
+
+
+def test_the_board_as_encoded_shades_only_the_moves_the_task_lets_a_network_read():
+    example = {"fen": "4nk2/5pp1/1R1p3p/4pP2/4r3/2P3PP/3B3K/4N3 b - - 0 41", "moves": {"setup": "b7b6", "line": "e4e2 e1g2 e2d2"}}
+    look = {"examples": {"typical": [example]}}
+    task = tasks.get("puzzle-difficulty")
+
+    def figure(marks):
+        return closer.encoding_figure(sources.Sources("puzzle-difficulty", False, task, [], [], {}, {}, look, marks, ()))
+
+    shown = figure(("en_passant", "setup_from", "setup_to", "solver1_from", "solver1_to", "later"))
+    hidden = figure(("en_passant", "setup_from", "setup_to"))
+    # As played, the first move of the line is drawn either way. As encoded, its squares are shaded only where they are read.
+    assert shown.count("markmoves={e4-e2}") == 1 and hidden.count("markmoves={e4-e2}") == 1
+    assert "color=labBlue, markfields=" in shown and "color=labOrange, markfields=" in shown
+    assert "color=labGray, markfields=" in hidden
+    assert "color=labBlue, markfields=" not in hidden and "color=labOrange, markfields=" not in hidden
+    assert "markfields=" not in figure(("en_passant",))
 
 
 def test_a_run_that_was_filed_keeps_its_pair_and_its_place_beside_the_run_it_changed():

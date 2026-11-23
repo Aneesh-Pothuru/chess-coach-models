@@ -1,27 +1,27 @@
 # How puzzle-difficulty-unsolved's paper looks at its results (src/chess_coach_models/evals/analysis.py).
 # The columns below describe the solution. No learner here reads them: they say where a puzzle's
 # difficulty can be told from its position, and where it cannot.
-band: {title: The puzzle's rating}
+band: {title: Puzzle rating}
 describe: [rating, rating_deviation, plays, solver_moves, legal_moves, phase_piece_count]
 label: {low: 400, high: 3000, bins: 26}
 within: {"100": 100, "200": 200, "300": 300}
 slices:
-  - {key: moves, column: solver_moves, title: Moves the solver has to find, values: [1, 2, 3, 4], rest: 5+}
+  - {key: moves, column: solver_moves, title: Solution length (moves by the solver), values: [1, 2, 3, 4], rest: 5+}
   - {key: themes, column: themes, title: Theme, tags: 30}
-  - {key: first-piece, column: first_piece, title: The piece that makes the first move, values: [1, 2, 3, 4, 5, 6], labels: [pawn, knight, bishop, rook, queen, king]}
-  - {key: capture, column: first_capture, title: The first move takes something, values: [0, 1], labels: ["no", "yes"]}
-  - {key: check, column: first_check, title: The first move gives check, values: [0, 1], labels: ["no", "yes"]}
-  - {key: sacrifice, column: first_sacrifice, title: The first move gives up material, values: [0, 1], labels: ["no", "yes"]}
-  - {key: backward, column: first_backward, title: The first move goes backward, values: [0, 1], labels: ["no", "yes"]}
-  - {key: quiet, column: line_quiet, title: Solver's moves that neither take nor check, values: [0, 1, 2], rest: 3+}
-  - {key: mate, column: ends_in_mate, title: The line ends in mate, values: [0, 1], labels: ["no", "yes"]}
-  - {key: pieces, column: phase_piece_count, title: "Knights, bishops, rooks and queens on the board", edges: [3, 6, 9, 12]}
-  - {key: plays, column: plays, title: Attempts the puzzle has had, edges: [200, 500, 1000, 5000]}
-  - {key: deviation, column: rating_deviation, title: The rating's deviation, edges: [75, 80, 90]}
+  - {key: first-piece, column: first_piece, title: Piece moved first, values: [1, 2, 3, 4, 5, 6], labels: [pawn, knight, bishop, rook, queen, king]}
+  - {key: capture, column: first_capture, title: Capture on the first move, values: [0, 1], labels: ["no", "yes"]}
+  - {key: check, column: first_check, title: Check on the first move, values: [0, 1], labels: ["no", "yes"]}
+  - {key: sacrifice, column: first_sacrifice, title: Sacrifice on the first move, values: [0, 1], labels: ["no", "yes"]}
+  - {key: backward, column: first_backward, title: Retreat on the first move, values: [0, 1], labels: ["no", "yes"]}
+  - {key: quiet, column: line_quiet, title: Quiet moves in the solution, values: [0, 1, 2], rest: 3+}
+  - {key: mate, column: ends_in_mate, title: Mate at the end of the solution, values: [0, 1], labels: ["no", "yes"]}
+  - {key: pieces, column: phase_piece_count, title: Minor and major pieces on the board, edges: [3, 6, 9, 12]}
+  - {key: plays, column: plays, title: Attempts on the puzzle, edges: [200, 500, 1000, 5000]}
+  - {key: deviation, column: rating_deviation, title: Rating deviation, edges: [75, 80, 90]}
 grids:
   - key: moves-pieces
-    rows: {column: solver_moves, title: Moves the solver has to find, values: [1, 2, 3, 4], rest: 5+}
-    columns: {column: phase_piece_count, title: "Knights, bishops, rooks and queens on the board", edges: [3, 6, 9, 12]}
+    rows: {column: solver_moves, title: Solution length (moves by the solver), values: [1, 2, 3, 4], rest: 5+}
+    columns: {column: phase_piece_count, title: Minor and major pieces on the board, edges: [3, 6, 9, 12]}
 examples:
   count: 3
   # What a paper calls the label beside a board.

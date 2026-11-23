@@ -257,11 +257,12 @@ def run_head(name: str, span: int, width: str) -> str:
 def retitled(look: dict[str, Any], plan: dict[str, Any]) -> dict[str, Any]:
     """An error analysis under the titles its plan gives its subgroups today. A title is a paper's wording and
     changes nothing that was measured, so the plan's title wins over the one the analysis was written with, and
-    rewording a title needs no second analysis."""
+    rewording a title needs no second analysis. The subgroups of the comparison with the model that is shown
+    more are the same subgroups, and take the same titles."""
     titles = {spec["key"]: spec["title"] for spec in plan.get("slices") or [] if "title" in spec}
     if "title" in (plan.get("band") or {}):
         titles["band"] = plan["band"]["title"]
-    for one in look.get("slices") or []:
+    for one in [*(look.get("slices") or []), *((look.get("shown") or {}).get("slices") or [])]:
         one["title"] = titles.get(one["key"], one["title"])
     grids = {spec["key"]: spec for spec in plan.get("grids") or []}
     for one in look.get("grids") or []:

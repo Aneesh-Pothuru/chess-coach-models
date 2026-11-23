@@ -1,918 +1,1169 @@
-% Puzzle difficulty, unsolved: the paper. What is typed here says what the
-% numbers mean. Every number, table, figure and board is written by
+% Puzzle difficulty without the solution: the paper. The prose follows
+% docs/writing.md. Every number, table, figure and board is written by
 % `lab paper puzzle-difficulty-unsolved` into generated/, from the model's
-% committed results and from those of puzzle-difficulty, the model it is read
-% against, and read back with \V{key} and \block{name}.
+% committed results and from those of the model it is compared with, and read
+% back with \V{key} and \block{name}.
 \documentclass[11pt]{article}
 \input{../../../papers/preamble}
 \input{generated/values}
 
 \begin{document}
 
-\labtitle{Puzzle difficulty, unsolved}
-  {How hard is this tactic, judged from the position alone?}
-  {Results of \V{results.date}\quad\textperiodcentered\quad dataset \V{data.name},
+\papertitle{Predicting the Difficulty of Chess Puzzles from the Position
+  Alone}
+  {Results as of \V{results.date}\quad\textperiodcentered\quad dataset \V{data.name},
    build \V{data.fingerprint}\quad\textperiodcentered\quad code \V{code.commit}}
 
-\begin{summary}
-The lab's puzzle-difficulty model reads a Lichess puzzle with its solution
-marked on the board, and says how hard the tactic is for people. This paper
-asks the same of the same \V{data.rows} puzzles with the solution hidden. A
-learner here sees what the solver saw, the position and the opponent's last
-move, and nothing of the line: not its squares, not its length, not what its
-moves do. The best of \V{runs.count} runs is \V{best.name}. On
-\V{data.rows.test} held-out puzzles its root mean squared error is
-\V{best.score} rating points (95\% interval \V{best.score.low} to
-\V{best.score.high}), against \V{reference.score} for gradient-boosted trees
-on hand-made counts of the position and \V{floor.score} for one number said
-for every puzzle.
+\begin{abstract}
+A model that is given the solution of a chess puzzle can predict the puzzle's
+Lichess rating from properties of the solution, such as its length. We ask how
+much of the rating can be predicted from the position alone: the board
+presented to the solver and the opponent's preceding move, with all
+information about the solution withheld. The dataset, the split and the model
+configurations are those of a companion study in which the models are given
+the solution, so each model has a counterpart that differs from it only in
+its inputs. On \V{data.rows.test} test puzzles, the best of \V{runs.count}
+models is a transformer that also receives hand-crafted features of the
+position and whose encoder is pretrained on engine evaluations. Its
+root-mean-square error (RMSE) is \V{best.score} rating points (95\% CI
+\V{best.score.low} to \V{best.score.high}), compared with
+\V{reference.score} for gradient-boosted decision trees (GBDT) on the
+hand-crafted features and \V{floor.score} for a constant baseline.
 \ifshown
-Shown the solution, the best run of puzzle difficulty reaches
-\V{shown.best.there} on the same test puzzles. Measured from the floor, the
-model here makes \V{shown.best.kept.percent}\% of that run's step: that much
-of a tactic's difficulty these learners can read off the position, and the
-other \V{shown.best.lost.percent}\% they get only from the line.
+Its counterpart with the solution has an RMSE of \V{shown.best.there}, so
+without the solution the model achieves \V{shown.best.kept.percent}\% of the
+counterpart's improvement over the constant baseline. GBDT achieves
+\V{shown.reference.kept.percent}\%.
 \fi
-\end{summary}
+Pretraining is the most effective modification that we tested. The
+predictions order puzzles moderately well (Spearman correlation
+\V{best.spearman}) and regress strongly towards the mean rating, so they are
+not suitable for rating an individual position.
+\end{abstract}
 
-\section{The question}
+\section{Introduction}
+\label{sec:intro}
 
 A Lichess puzzle is solved from the position. The solver sees the board and
-the move the opponent has just made, knows that something is there, and has
-to find the line. The puzzle's rating is where those attempts
-settled~\cite{glicko2}: each attempt is scored as a game between the solver
-and the puzzle, and after a few hundred of them the rating is the best
-measure there is of how hard the tactic is to find for someone who is not
-shown it~\cite{lichessdb}.
+the move the opponent has just played, knows that a winning line exists, and
+has to find it~\cite{lichessdb}. The puzzle's Glicko-2
+rating~\cite{glicko2} summarises the outcomes of many such attempts, and it
+is the best available measure of how difficult the tactic is for human
+solvers.
 
-The lab's first model of that rating, puzzle difficulty, is shown the line.
-The squares each move of the solution leaves and reaches are marked on the
-board, the number of moves the solver has to find stands beside it, and the
-hand-made features count what those moves do. That is the right reading for a
-coach who has the engine's line in hand and wants to know how hard it was to
-find. It also leaves a question open. A model that is handed the solution can
-rate a tactic by what the solution looks like: how long it is, whether it
-begins with a check, whether it has a quiet move in it. How much of the
-rating can be told without it, from the position the solver was looking at?
+A model can predict this rating in two settings. In the first, the model is
+given the solution, in the way an analyst who has an engine's line asks how
+hard that line was to find. The companion paper, \emph{Predicting the
+Difficulty of Chess Puzzles from the Position and Its Solution}, studies this
+setting and finds that hand-crafted features of the solution carry most of
+the signal. In the second setting, the model receives only what the solver
+sees. This paper studies the second setting on the same puzzles.
 
-This paper asks that. Its model is given the same puzzles, the same ratings
-and the same split, and nothing of the solution. Two things come out. The
-first is how well a tactic's difficulty can be read off the position before
-anyone knows the line. The second is the gap between the two models, which
-is what knowing the line is worth to a learner, measured run by run on the
-same test puzzles.
+We address two questions. The first is how accurately the difficulty of a
+puzzle can be predicted from its position. The second is how much of the
+accuracy of a model that is given the solution depends on the solution. The
+second question is answered by a controlled comparison: every model in this
+paper has a counterpart in the companion study with the same configuration,
+the same training puzzles and the same test puzzles, and the two differ only
+in whether the solution is part of the input.
 
-For the coaching app this lab works for, the answer says where difficulty
-lives. If most of a rating can be read off the position, positions can be
-sorted by how demanding they are before any line is computed, and a missed
-tactic can be called hard for how the position looked. If most of it lives
-in the line, a difficulty model belongs after the engine, where puzzle
-difficulty already stands, and the look of a position is a weak guide to how
-hard its tactic is.
+This work supports a chess coaching application, for which the comparison
+shows where a difficulty model has to be placed. If most of a rating could be
+predicted from the position, positions could be ordered by difficulty before
+any line is computed. If most of it depends on the solution, the difficulty
+model has to follow the engine analysis that provides the line. Our main
+findings are the following.
+\begin{itemize}
+\item \textbf{Aggregate features of the position predict little.} The GBDT
+baseline, which receives \V{task.hand.count} hand-crafted features of the
+position, has an RMSE of \V{reference.score} rating points, only
+\V{reference.lift.percent}\% below the constant baseline (\V{floor.score}).
+\item \textbf{Neural networks that read the board predict much more.}
+Compared with the GBDT baseline, \V{networks.ahead.of} are significantly
+better. The best model has a gain of \V{best.gain} RMSE points (95\% CI
+\V{best.gain.low} to \V{best.gain.high}), which is \V{best.gain.of-lift}\% of
+the improvement of the GBDT baseline over the constant baseline
+(Section~\ref{sec:results}).
+\ifshown
+\item \textbf{About half of the improvement is achieved without the
+solution.} The best model achieves \V{shown.best.kept.percent}\% of the
+improvement over the constant baseline that its counterpart achieves with
+the solution. The medium transformer trained from random initialisation
+achieves \V{shown.transformer-medium.kept.percent}\% and GBDT
+\V{shown.reference.kept.percent}\% (Section~\ref{sec:shown}).
+\fi
+\ifchangestart
+\item \textbf{Pretraining on engine evaluations is the most effective
+modification.} It improves the medium transformer by
+\V{pair.transformer-medium-pretrained.transformer-medium.gain} RMSE points
+(95\% CI \V{pair.transformer-medium-pretrained.transformer-medium.gain.low}
+to \V{pair.transformer-medium-pretrained.transformer-medium.gain.high}),
+several times the gain from adding the hand-crafted features
+(Section~\ref{sec:ablations}).
+\fi
+\iflook
+\item \textbf{The predictions regress strongly towards the mean.} For puzzles
+rated 2200 and above, the mean prediction of the best model minus the mean
+true rating is \V{slice.band.2200+.challenger.off} points, and for puzzles
+rated below 1000 it is \V{slice.band.-1000.challenger.off} points. The
+models recover only part of the solution length, a property that by itself
+predicts the rating better than all hand-crafted features of the position
+(Sections~\ref{sec:shown} and~\ref{sec:error}).
+\fi
+\end{itemize}
+
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{Puzzle difficulty.}
+Predicting the Lichess rating of a puzzle from its position and solution was
+the task of data-mining competitions at IEEE BigData 2024 and FedCSIS
+2025~\cite{puzzlecup}. The winning entry of the 2025 competition combines a
+fine-tuned Maia-2~\cite{maia2}, a model of human moves, with hand-crafted and
+engine-derived features~\cite{puzzlecupwinner}. Mi{\l}osz and
+Kapusta~\cite{glickformer} introduce GlickFormer, a transformer that encodes
+the sequence of positions along the solution and predicts the puzzle's
+Glicko-2 rating. In these approaches the model is given the solution. We
+withhold it, in order to measure how much of the rating can be predicted from
+the position that the solver sees, and we compare each model with a
+counterpart that is given the solution. We use our own sample of the puzzle
+database and our own test set, so our scores are not comparable with the
+competition results.
+
+\paragraph{Models of human play.}
+Maia~\cite{maia} and Maia-2~\cite{maia2} predict the moves that players of a
+given rating make. Anderson et al.~\cite{humanerror} find that the difficulty
+of a position predicts human error better than the player's skill or the time
+available. These studies model behaviour in games. Puzzle ratings offer a
+complementary signal: a direct measurement, from many attempts, of how hard
+one specific tactic is.
+
+\paragraph{Learning from engine evaluations.}
+Ruoss et al.~\cite{searchless} train transformers to predict engine
+evaluations and play strong chess without search. Our pretrained encoder is
+trained on the same kind of target at a much smaller scale, and we use it
+only as an initialisation for the difficulty model.
+
+\section{Task and Data}
+\label{sec:data}
+
+\subsection{Task}
+
+The input is the position that the solver sees and the opponent's preceding
+move. The target is the puzzle's Lichess rating. Table~\ref{tab:brief}
+summarises the task.
 
 \begin{table}[htbp]\centering\small
 \begin{tabularx}{\textwidth}{lL}
 \toprule
-Reads & The position the solver sees, the opponent's move that led to it, and
-the castling rights. Nothing of the solution. \\
-Predicts & The puzzle's Lichess rating, in rating points. \\
-Data & The rows puzzle difficulty reads: the Lichess puzzle database
-(\V{data.licence}), puzzles whose rating has settled, a fixed
-\V{recipe.sample.percent}\% of them. \\
-Split & By the game a puzzle was cut from: \V{data.share.train}\% train,
-\V{data.share.valid}\% valid, \V{data.share.test}\% test, the same puzzles in
-each as for puzzle difficulty. \\
-Score & Root mean squared error on the test puzzles, in rating points. Lower
-is better. \\
-Read against & Puzzle difficulty, run by run: a run here and the run of the
-same name there differ in one thing, whether the solution is shown. \\
+Input & The position presented to the solver and the opponent's preceding
+move, whose origin and destination squares are marked in auxiliary input
+planes. No information about the solution. \\
+Target & The puzzle's Lichess rating, in rating points. \\
+Data & The Lichess puzzle database (\V{data.licence}): a fixed
+\V{recipe.sample.percent}\% sample of the puzzles with a stable rating, the
+same dataset as in the companion study. \\
+Split & By the game a puzzle was extracted from: \V{data.share.train}\%
+training, \V{data.share.valid}\% validation, \V{data.share.test}\% test, with
+the same puzzles in each set as in the companion study. \\
+Primary metric & RMSE on the test set, in rating points (lower is better). \\
+Comparison & The model of the same name in the companion study, which differs
+only in that it is given the solution. \\
 \bottomrule
 \end{tabularx}
-\caption{The model in brief.}
+\caption{Summary of the task.}
 \label{tab:brief}
 \end{table}
 
-\section{The data}
+\subsection{Dataset}
 
-The rows are the ones puzzle difficulty reads, from the Lichess puzzle
-database. A row of it gives a puzzle's id, the position before the
-opponent's move, the moves of the solution with the opponent's move first,
-the puzzle's rating and that rating's deviation, how often the puzzle has
-been attempted, the themes Lichess tags it with, and the game it was cut
-from.
+The source is the Lichess puzzle database~\cite{lichessdb}. Each record gives
+the puzzle's identifier, the position before the opponent's move, the moves
+of the solution with the opponent's move first, the puzzle's rating and
+rating deviation, the number of attempts, the theme tags, and the game the
+puzzle was extracted from. The solution is thus part of every record. In this
+task it is never an input, and we use it only to analyse the errors of the
+models (Section~\ref{sec:error}).
 
-A puzzle is kept when its rating has settled: a Glicko deviation of at most
-\V{recipe.filters.max-rating-deviation} after at least
-\V{recipe.filters.min-plays} attempts. Of the puzzles that pass, a fixed
-\V{recipe.sample.percent}\% are kept, chosen by a hash of the puzzle's id.
-That leaves \V{data.rows} puzzles (Table~\ref{tab:data}).
+We keep the puzzles whose rating is stable: a Glicko-2 rating deviation of at
+most \V{recipe.filters.max-rating-deviation} after at least
+\V{recipe.filters.min-plays} attempts. Of these we keep a fixed
+\V{recipe.sample.percent}\% sample, selected by a hash of the puzzle
+identifier, so that the dataset can be rebuilt exactly. The resulting dataset
+has \V{data.rows} puzzles (Table~\ref{tab:data}).
 
-The split is a hash of the game a puzzle was cut from, so no game has a
-puzzle on both sides of it, and the same grouping is used when a score's
-noise is measured. Both models read one build of the dataset, named by its
-fingerprint, \V{data.fingerprint}: a hash of the boards and of every exact
-column. So the two are trained on the same puzzles and scored on the same
-\V{data.rows.test} test puzzles, and the comparison between them refuses
-records that name different builds.
+The split is determined by a hash of the source game, so no game contributes
+puzzles to more than one of the training, validation and test sets. The same
+grouping is used for the bootstrap (Section~\ref{sec:protocol}). The dataset
+is not stored in the repository. Its recipe is, and a build of the dataset is
+identified by a fingerprint, a hash of its contents. All models in this
+paper and their counterparts in the companion study were trained on build
+\V{data.fingerprint}, and the evaluation code refuses to compare models
+trained on different builds.
 
 \begin{table}[htbp]\centering\small
 \block{data}
-\caption{The dataset's rows by split.}
+\caption{Dataset statistics by split.}
 \label{tab:data}
 \end{table}
 
 \iflook
-The ratings have a mean of \V{label.mean} and a standard deviation of
-\V{label.sd}, and nine in ten lie between \V{label.q5} and \V{label.q95}
-(Figure~\ref{fig:label}, Table~\ref{tab:describe}). That spread is what the
-floor is off by: a model that says the mean for every puzzle misses by about
-one standard deviation. The columns of Table~\ref{tab:describe} that describe
-the solution are there for the cuts of Section~\ref{sec:closer}. No learner
-of this model reads them.
+The source contains \V{manifest.source-rows-read} puzzles, of which
+\V{manifest.kept.percent}\% remain after filtering and sampling. The ratings
+have a mean of \V{label.mean} and a standard deviation of \V{label.sd}, and
+90\% of them lie between \V{label.q5} and \V{label.q95}
+(Figure~\ref{fig:label}, Table~\ref{tab:describe}). The standard deviation is
+also the RMSE of a model that predicts the mean rating for every puzzle.
 
 \begin{figure}[htbp]\centering
 \block{label}
-\caption{The puzzles' ratings over every row of the dataset.}
+\caption{Distribution of the puzzle ratings in the dataset.}
 \label{fig:label}
 \end{figure}
 
 \begin{table}[htbp]\centering\small
 \block{describe}
-\caption{The spread of a few columns over every row of the dataset: the mean,
-five quantiles, and the least and the most.}
+\caption{Summary statistics of selected variables over the whole dataset:
+the mean, five quantiles, the minimum and the maximum. The solution length is
+listed for reference and is not an input.}
 \label{tab:describe}
 \end{table}
 \fi
 
-\section{What a model reads}
-\label{sec:reads}
+\section{Methods}
+\label{sec:methods}
 
-\input{../../../papers/reading}
+\subsection{Input representation}
+\label{sec:input}
 
-\paragraph{This model is not shown the solution.}
-A model's task names what its learners may read, and this one names less than
-the dataset holds. Of the marks on squares it allows \V{task.marks.count}:
-the square a pawn may be taken on in passing, and the two squares of the
-opponent's last move, which the solver also sees played. The squares of the
-solver's moves and of the replies between them are in the dataset and are
-never laid on the board. Beside the board stand the castling rights and
-nothing else: the number of moves the solver has to find, which puzzle
-difficulty is told, is not among them.
+\input{../../../papers/input-representation}
 
-The hand features are cut the same way. Of their groups a learner here may
-read the ones counted from the position: material, what the mover can do,
-pieces that can be taken, passed pawns, attackers near each king, and whether
-the opponent's last move took something (\V{task.hand.count} features,
-Table~\ref{tab:hand}). The two groups that describe the solution, its first
-move and the line as a whole, are left out. Those are the features the trees
-of puzzle difficulty lean on most.
+\paragraph{Withholding the solution.}
+The dataset records the solution of every puzzle, and the companion task
+encodes it. In this task it is withheld from every model. Of the auxiliary
+planes, a model receives the en passant target square and the origin and
+destination squares of the opponent's preceding move, which the solver also
+sees played. The planes that mark the moves of the solution are not used. The
+scalar context features are the four castling rights. The number of moves the
+solver has to find, which is a context feature in the companion task, is not
+given. Of the hand-crafted features, a model receives those that are computed
+from the position: material, mobility, hanging pieces, passed pawns, attacks
+near each king, and whether the opponent's preceding move was a capture. The
+two groups that describe the first move of the solution and the solution line
+as a whole are excluded. These restrictions are part of the task definition
+and not of a model's configuration, so no model of this task can be
+configured to receive the solution.
+\iflook
+In Figure~\ref{fig:encoding} the first move of the solution is drawn on the
+left board for the reader. The encoded position on the right marks only the
+opponent's move.
+\fi
 
-The hiding is done by the task and not by a run's config, so no run of this
-model has a way to ask for the solution. A run's record lists the marks and
-the features its learner was given, and a test of the lab holds them to what
-the task allows.
+\subsection{Models and training}
+\label{sec:models}
 
-\section{The learners}
-\label{sec:learners}
+\input{../../../papers/models}
 
-\input{../../../papers/learners}
+\section{Evaluation Protocol}
+\label{sec:protocol}
 
-\section{How a result is scored}
-\label{sec:scoring}
+\paragraph{Metrics.}
+The primary metric, fixed before the first full training run, is the RMSE on
+the test set in rating points; lower is better. We report three secondary
+metrics: the mean absolute error (MAE), the coefficient of determination
+($R^2$), and Spearman's rank correlation, which measures only whether the
+puzzles are ordered correctly. We also report results separately for
+\V{bands.count} bands of the true rating.
 
-The model's card named its score before the first full run: the root mean
-squared error on the test puzzles, in rating points, where lower is better. A
-run beats the reference when its paired gain has a 95\% interval above zero.
-Three more scores are reported beside it: the mean absolute error, which is
-the typical miss, R\textsuperscript{2}, the share of the ratings' variance a
-run explains, and Spearman's rank correlation, which asks only whether the
-puzzles come out in the right order.
-
-Results are also given by the puzzle's true rating in \V{bands.count} bands.
-The card named one more reading before any run: beside puzzle difficulty,
-run against the run of the same name, on the same test puzzles
-(Section~\ref{sec:shown}).
-
-\input{../../../papers/scoring}
+\input{../../../papers/evaluation}
 
 \section{Results}
 \label{sec:results}
 
-\subsection{The leaderboard}
+\subsection{Main results}
 
-The floor says \V{floor.constant} for every puzzle and is off by
-\V{floor.score} points, which is the spread of the ratings themselves
-(Table~\ref{tab:leaderboard}). The reference, trees on the hand features of
-the position, reaches \V{reference.score}, which is
-\V{reference.lift.percent}\% under the floor. The best run,
-\V{best.name}, reaches \V{best.score} (Figure~\ref{fig:scores}).
+Table~\ref{tab:leaderboard} and Figure~\ref{fig:scores} give the main
+results. The constant baseline predicts \V{floor.constant} for every puzzle
+and has an RMSE of \V{floor.score}, the standard deviation of the ratings.
+The GBDT baseline, with the castling rights and the \V{task.hand.count}
+hand-crafted features of the position, reaches \V{reference.score}, which is
+only \V{reference.lift.percent}\% below the constant baseline. Aggregate
+properties of the position, such as the material and the numbers of legal
+moves, checks and captures, are therefore weak predictors of a puzzle's
+difficulty.
 
 \begin{table}[htbp]\centering\small
 \block{leaderboard}
-\caption{The runs on the \V{data.rows.test} test puzzles, best first. The
-gain is paired with \V{task.reference} on the same resampled games, positive
-when the run is better, and bold when its interval leaves zero out.}
+\caption{Main results on the \V{data.rows.test} test puzzles, best first.
+The gain is the paired difference from \V{task.reference} on the same
+resampled games. It is positive when the model is better, and bold when
+statistically significant.}
 \label{tab:leaderboard}
 \end{table}
 
 \begin{figure}[htbp]\centering
 \block{scores}
-\caption{Every run's RMSE with its 95\% interval. The vertical line is the
-reference's score.}
+\caption{Test RMSE of every model with its 95\% CI. The vertical line marks
+the GBDT baseline.}
 \label{fig:scores}
 \end{figure}
 
-\subsection{What a network adds}
-
-Beyond the noise, \V{networks.ahead.of} are ahead of the reference
-(Figure~\ref{fig:gains}). The medium transformer on the board alone gains
-\V{run.transformer-medium.gain} points over the trees, and the same
-transformer with the position's hand features beside the board
-\V{run.transformer-medium-hand.gain}. The two small networks gain
-\V{run.conv-small.gain} (the convolutional tower) and
-\V{run.transformer-small.gain} (the small transformer). Those four are the
-ladder, each trained from nothing. The two medium transformers were also
-started from a body that was trained on engine evaluations first, and from
-it they gain \V{run.transformer-medium-pretrained.gain} and
-\V{run.transformer-medium-hand-pretrained.gain}: Section~\ref{sec:changes}
-says what that start is.
+Compared with the GBDT baseline, \V{networks.ahead.of} are significantly
+better (Figure~\ref{fig:gains}). Among the networks of the fixed sequence,
+which are trained from random initialisation, the small ResNet is the most
+accurate. \run{conv-small}, with \V{run.conv-small.parameters.millions}
+million parameters, has a gain of \V{run.conv-small.gain} RMSE points over
+the GBDT baseline. The medium transformer, with
+\V{run.transformer-medium.parameters.millions} million parameters, gains
+\V{run.transformer-medium.gain}, the same transformer with hand-crafted
+features \V{run.transformer-medium-hand.gain}, and the small transformer
+\V{run.transformer-small.gain}. The intervals of the gains of
+\run{conv-small} and \run{transformer-medium-hand} do not overlap
+(Table~\ref{tab:leaderboard}).
+\ifshown
+In the companion task the order is reversed: there both medium transformers
+are more accurate than the small ResNet (Table~\ref{tab:shown}).
+\fi
+The transformers were still improving when their training ended
+(Figure~\ref{fig:curves}), so this order may reflect the training schedule
+and not only the architectures.
 
 \begin{figure}[htbp]\centering
 \block{gains}
-\caption{Each network's paired gain in RMSE over the reference, with its 95\%
-interval. A run whose interval clears the line beats the trees beyond the
-noise.}
+\caption{Paired gain in RMSE of each network over the GBDT baseline, with
+its 95\% CI. A model whose interval lies entirely to the right of the line is
+significantly better than the baseline.}
 \label{fig:gains}
 \end{figure}
 
+\ifchangestart
+The two most accurate models are the medium transformers whose encoder is
+pretrained on engine evaluations, with gains of
+\V{run.transformer-medium-pretrained.gain} and
+\V{run.transformer-medium-hand-pretrained.gain} RMSE points over the GBDT
+baseline (Section~\ref{sec:ablations}).
+\fi
+The best model's gain is \V{best.gain.percent}\% of the GBDT baseline's
+error, and \V{best.gain.of-lift}\% of the improvement of the GBDT baseline
+over the constant baseline. In this task the best network thus improves on
+GBDT by more than GBDT improves on a constant prediction.
 \ifshown
-With the solution shown, the same networks stand much closer to their trees.
-In puzzle difficulty the convolutional tower leads that model's trees by
-\V{shown.there.conv-small.gain} points and the small transformer by
-\V{shown.there.transformer-small.gain}, and the two medium transformers by
-\V{shown.there.transformer-medium.gain} and
-\V{shown.there.transformer-medium-hand.gain}. A reading: the trees of
-puzzle difficulty are handed counts of what the line's moves do, and those
-counts carry most of what they know (Section~\ref{sec:shown}). With the line
-hidden the counts of the position are all the trees have, while a network
-still has the whole board to read. A network matters most where the least is
-handed over.
-
-On the ladder the order of the networks is not puzzle difficulty's either.
-There the medium transformers lead the small networks. Here the
-convolutional tower, a network of \V{run.conv-small.parameters.millions}
-million parameters that trains in \V{run.conv-small.seconds}, scores
-\V{run.conv-small.score}, ahead of the medium transformer of
-\V{run.transformer-medium-hand.parameters.millions} million that reads the
-hand features, at \V{run.transformer-medium-hand.score}. The intervals of
-their gains over the reference do not touch (Figure~\ref{fig:gains}). The
-start from engine evaluations puts the transformers back in front: the best
-run here is \V{best.name}, and the best run of puzzle difficulty is
-\V{shown.best.there.name}.
+The companion task shows the opposite: there GBDT on hand-crafted features of
+the solution accounts for most of the improvement, and the networks add a
+smaller gain.
 \fi
 
-\subsection{Ranking and the rating}
+\subsection{Ranking accuracy and absolute error}
 
-The best run's rank correlation with the true rating is \V{best.spearman},
-and it explains a share of \V{best.r2} of the ratings' variance
-(Table~\ref{tab:metrics}). Its mean absolute error is \V{best.mae} points.
-Players speak of rating classes two hundred points wide.
+The best model orders puzzles moderately well. Its Spearman correlation with
+the true rating is \V{best.spearman} and its $R^2$ is \V{best.r2}
+(Table~\ref{tab:metrics}), compared with \V{reference.spearman} and
+\V{reference.r2} for the GBDT baseline. Its MAE is \V{best.mae} rating
+points. Chess players are conventionally grouped into rating classes 200
+points wide, so the typical error is larger than one class. A prediction
+therefore indicates whether a puzzle is likely to be easy or hard, and does
+not place it within a rating class.
 
 \begin{table}[htbp]\centering\small
 \block{metrics}
-\caption{Every score of every run on the test puzzles. RMSE and MAE are in
-rating points and lower is better; for R\textsuperscript{2} and Spearman's
-rank correlation higher is better. The floor says one number, so it has no
-rank correlation.}
+\caption{All metrics for every model on the test set. RMSE and MAE are in
+rating points (lower is better); for $R^2$ and Spearman's rank correlation
+higher is better. The constant baseline has no rank correlation.}
 \label{tab:metrics}
 \end{table}
 
-A reading of those scores. The typical miss is well over one rating class, so
-this model does not place a single puzzle. It does put puzzles in order: of
-two, the one it calls harder is more often the harder one, and the puzzles it
-rates lowest and highest are far apart in truth
-(Section~\ref{sec:closer}). From the position alone, then, this is a sorter
-of many positions and not a judge of one.
+\subsection{Results by rating band}
 
-\subsection{By the puzzle's rating}
-
-A band rewards hedging. The bands are cut by the true rating, so the floor,
-which says the average for every puzzle, has the smallest error of all in the
-middle band and the largest at both ends (Table~\ref{tab:bands}). A model that
-leans toward the middle looks good there for the same reason. So a band's
-column is read from the top down, run against run, and never across.
+Table~\ref{tab:bands} gives the RMSE by band of the true rating. Because the
+bands are defined by the target, they favour predictions near the mean: the
+constant baseline has its smallest error in the middle band and its largest
+errors in the extreme bands. Errors should therefore be compared between
+models within a band, and not between bands.
 
 \begin{table}[htbp]\centering\small
 \block{bands-table}
-\caption{RMSE by the puzzle's true rating band. Read a column from the top
-down: the bands are cut by the truth, so one band cannot be compared with
-another.}
+\caption{Test RMSE by band of the true puzzle rating. The bands are defined
+by the target, so values are comparable within a column and not between
+columns.}
 \label{tab:bands}
 \end{table}
 
-Read that way, the best run leads the reference in \V{bands.best-ahead.of}.
-Its lead is widest for puzzles rated \V{bands.lead.widest.name}, at
-\V{bands.lead.widest} points, and narrowest for those rated
-\V{bands.lead.narrowest.name}, at \V{bands.lead.narrowest}, where a lead below
-zero means the trees are ahead (Figure~\ref{fig:bands}).
+The best model has a lower RMSE than the GBDT baseline in
+\V{bands.best-ahead.of}. The RMSE of the baseline minus that of the best
+model is \V{bands.lead.widest} points for puzzles rated
+\V{bands.lead.widest.name} and \V{bands.lead.narrowest} points for puzzles
+rated \V{bands.lead.narrowest.name}, where a negative value means that the
+baseline has the lower error (Figure~\ref{fig:bands}). The baseline's lower
+error in the middle bands is not evidence that it rates these puzzles
+better. In the band \V{band.3.name} the constant baseline has an RMSE of
+\V{band.3.floor}, lower than that of the GBDT baseline (\V{band.3.reference})
+and of the best model (\V{band.3.best}). In this task no model predicts the
+rating precisely, and a model whose predictions stay close to the mean rating
+is accurate in the middle bands and inaccurate elsewhere. The best model
+spreads its predictions more widely. It pays for this in the middle bands and
+gains much more in the lowest and the two highest bands.
 
 \begin{figure}[htbp]\centering
 \block{bands}
-\caption{Each network's lead over the reference in RMSE, band by band: the
-differences of the scores in Table~\ref{tab:bands}, without intervals. Above
-the dashed line a network is ahead of the trees.}
+\caption{Difference in RMSE between the GBDT baseline and each network, by
+rating band (the differences of the values in Table~\ref{tab:bands}, without
+intervals). Above the dashed line the network is better.}
 \label{fig:bands}
 \end{figure}
 
-\subsection{How the networks learned}
+\subsection{Training curves}
 
-Figure~\ref{fig:curves} follows each network of the ladder on the valid
-puzzles. By that score, \V{ladder.at-last-epoch.of} had their best epoch at
-the last one they were given.
+Figure~\ref{fig:curves} shows the validation RMSE of each network of the
+fixed sequence after every epoch. Of these, \V{ladder.at-last-epoch.of}
+reached their best validation score in the final epoch, so their training
+ended while they were still improving. The scores of the fixed sequence are
+therefore lower bounds on what these architectures can achieve. A longer
+schedule has not been tested in this task.
 
 \begin{figure}[htbp]\centering
 \block{curves}
-\caption{Each ladder network's RMSE on the valid puzzles after every epoch.
-The dashed line is the reference's score on the same rows.}
+\caption{Validation RMSE of each network of the fixed sequence after every
+epoch. The dashed line is the GBDT baseline's validation RMSE.}
 \label{fig:curves}
 \end{figure}
 
-\subsection{What the trees lean on}
+\subsection{Feature importance of the GBDT baseline}
 
-The reference grew \V{reference.trees} trees over \V{reference.features}
-features, and Figure~\ref{fig:leans} shows where its gain came from. The three
-it leans on most are: \V{reference.leans.1.feature}
-(\V{reference.leans.1.share}\% of the gain), \V{reference.leans.2.feature}
-(\V{reference.leans.2.share}\%) and \V{reference.leans.3.feature}
-(\V{reference.leans.3.share}\%). A share of gain says what the trees used. It
-does not say what makes a puzzle hard, since two features that carry the same
-information split the credit between them by chance.
+The GBDT baseline consists of \V{reference.trees} trees over
+\V{reference.features} features. Figure~\ref{fig:leans} shows each feature's
+share of the total split gain. The three most important features are
+\V{reference.leans.1.feature} (\V{reference.leans.1.share}\% of the gain),
+\V{reference.leans.2.feature} (\V{reference.leans.2.share}\%) and
+\V{reference.leans.3.feature} (\V{reference.leans.3.share}\%). All of them
+describe the position. In the companion task the three most important
+features all describe the solution. Split gain shows which features the model
+used. It does not identify what makes a puzzle difficult,
+because correlated features divide the credit between them arbitrarily.
 
 \begin{figure}[htbp]\centering
 \block{leans}
-\caption{The ten features the reference's trees gained most from: each
-feature's share of the total gain of the splits made on it.}
+\caption{The ten most important features of the GBDT baseline, by share of
+the total split gain.}
 \label{fig:leans}
 \end{figure}
 
 \ifshown
-\section{What the solution is worth}
+\section{Comparison with Models Given the Solution}
 \label{sec:shown}
 
-Every run here has a partner. Puzzle difficulty trains a run of the same name
-from the same config on the same puzzles and scores it on the same test
-puzzles. The two differ in one thing: the partner's learner is shown the
-solution. That is the line's squares on the board, the number of moves the
-solver has to find beside it, and, where a run reads hand features, the
-counts of what the line's moves do. Below, a run of this model is the hidden
-run and its partner the shown run, and Table~\ref{tab:shown} sets the
-\V{shown.runs} runs both models have side by side.
+Every model in this paper has a counterpart in the companion study. The
+counterpart has the same name, is trained from an identical configuration
+file on the same training puzzles, and is evaluated on the same test
+puzzles. The two models differ only in their inputs. The counterpart also
+receives the solution: the auxiliary planes that mark its moves, the number
+of moves the solver has to find and, if the model uses hand-crafted features,
+the features that describe the first move and the solution line.
+Table~\ref{tab:shown} compares the \V{shown.runs} models that both studies
+have.
 
-Two of its columns carry the comparison. \emph{Worth} is how many points
-better the shown run scores: what being shown the solution is worth to that
-learner. \emph{Kept} is the share of the shown run's step from the floor that
-the hidden run still makes. The floor says one number for every puzzle
-whatever it is shown, so it is the same floor for both models, and a step
-from it is measured on one scale.
+We report two quantities for each model. The \emph{difference} is the RMSE
+without the solution minus the RMSE with it, that is, the number of rating
+points by which the solution improves the model.
+\ifshownpaired
+It is computed on the same resampled test games for both models and has a
+95\% CI.
+\fi
+The share \emph{retained} is the model's improvement over the constant
+baseline without the solution, as a percentage of its counterpart's
+improvement over the constant baseline with the solution. The constant
+baseline makes the same prediction in both studies, so both improvements are
+measured from the same value.
 
 \begin{table}[htbp]\centering\small
 \block{shown}
-\caption{Each run with the solution hidden (this model) and shown (the run of
-the same name in \V{shown.model}), on the same test puzzles. \emph{Worth} is
-the shown run's lead in RMSE, and \emph{Kept} the share of the shown run's
-step from the floor that the hidden run makes.
+\caption{Test RMSE of each model without the solution (\emph{Hidden}, this
+paper) and of the model of the same name with the solution (\emph{Shown},
+the companion study, \V{shown.model}), on the same test puzzles.
+\emph{Difference} is the hidden RMSE minus the shown RMSE%
 \ifshownpaired
-The lead is measured on the same resampled test games, and is bold when its
-95\% interval leaves zero out.
-\else
-The lead is a difference of the two leaderboards' scores. Its interval over
-resampled games is the closer look's, and stands here once that has been
-run with both models' predictions on one machine.
-\fi}
+, paired on the same resampled test games and bold when statistically
+significant%
+\fi
+. \emph{Retained} is the improvement of the hidden model over the constant
+baseline as a percentage of the improvement of the shown model.}
 \label{tab:shown}
 \end{table}
 
-\paragraph{The trees.}
-With the solution hidden the reference reaches \V{shown.reference.here},
-which is \V{shown.reference.here.lift.percent}\% under the floor. Shown the
-solution it reaches \V{shown.reference.there},
-\V{shown.reference.there.lift.percent}\% under it. The solution is worth
-\V{shown.reference.worth} points to the trees, and without it they keep
-\V{shown.reference.kept.percent}\% of the step.
+\paragraph{GBDT.}
+Without the solution the GBDT baseline has an RMSE of
+\V{shown.reference.here}, which is \V{shown.reference.here.lift.percent}\%
+below the constant baseline. With the solution it has an RMSE of
+\V{shown.reference.there}, which is \V{shown.reference.there.lift.percent}\%
+below. The difference is \V{shown.reference.worth} rating points, and the
+model retains \V{shown.reference.kept.percent}\% of the improvement. GBDT
+depends on the solution more than any network does. This agrees with the
+feature-group ablation of the companion paper, in which removing the features
+of the solution line costs the GBDT baseline more than removing any other
+group.
 
-\paragraph{The networks.}
-Among the networks the solution is worth least to
-\V{shown.networks.least.name}, at \V{shown.networks.least.worth} points, and
-most to \V{shown.networks.most.name}, at \V{shown.networks.most.worth}. The
-medium transformer on the board alone keeps
-\V{shown.transformer-medium.kept.percent}\% of the shown run's step from the
-floor, and with the hand features beside the board
-\V{shown.transformer-medium-hand.kept.percent}\%.
+\paragraph{Networks.}
+Among the networks the difference is smallest for
+\V{shown.networks.least.name} (\V{shown.networks.least.worth} rating points)
+and largest for \V{shown.networks.most.name}
+(\V{shown.networks.most.worth}). Trained from random initialisation, the
+medium transformer retains \V{shown.transformer-medium.kept.percent}\% of
+the improvement without hand-crafted features and
+\V{shown.transformer-medium-hand.kept.percent}\% with them, and the small
+ResNet retains \V{shown.conv-small.kept.percent}\%. The two pretrained
+transformers retain \V{shown.transformer-medium-pretrained.kept.percent}\%
+and \V{shown.transformer-medium-hand-pretrained.kept.percent}\%.
 
-\paragraph{The best of each.}
-The best run here is \V{shown.best.here.name}, at \V{shown.best.here}. The
-best run of puzzle difficulty is \V{shown.best.there.name}, at
-\V{shown.best.there}. Between them the solution is worth
-\V{shown.best.worth} points, and the model here makes
-\V{shown.best.kept.percent}\% of the step from the floor that the model
-shown the solution makes.
+\paragraph{Best models.}
+The best model of this paper, \V{shown.best.here.name}, has an RMSE of
+\V{shown.best.here}, and the best model of the companion study,
+\V{shown.best.there.name}, has an RMSE of \V{shown.best.there}. Without the
+solution, the best model thus achieves \V{shown.best.kept.percent}\% of the
+improvement over the constant baseline that is achieved with the solution.
 \ifshownpaired
-Measured on the same resampled test games, the run that is shown the
-solution is \V{shown.best.verdict}: a gain of \V{shown.best.gain} points,
-with a 95\% interval of \V{shown.best.gain.low} to \V{shown.best.gain.high}.
+On the same resampled test games the model with the solution is
+\V{shown.best.verdict} (gain \V{shown.best.gain} RMSE points; 95\% CI
+\V{shown.best.gain.low} to \V{shown.best.gain.high}).
 \fi
 
-\paragraph{One number of the solution.}
-Puzzle difficulty has a run that this model cannot have:
-\V{shown.there.gbm-context.name}, trees that see no board at all. Beside the
-castling rights they are told one thing, how many moves the solver has to
-find. That run reaches
-\V{shown.there.gbm-context.score}, which is
-\V{shown.there.gbm-context.lift.percent}\% under the floor, and that puts it
-\V{shown.there.gbm-context.than-reference} the trees here by
-\V{shown.there.gbm-context.over-reference} points and
-\V{shown.there.gbm-context.than-best} this model's best run by
-\V{shown.there.gbm-context.over-best}. These are differences of two
-leaderboards' scores, with no interval.
+\paragraph{The solution length alone.}
+The companion study includes a model that has no counterpart here:
+\V{shown.there.gbm-context.name}, a GBDT that never sees the board and
+receives only the castling rights and the number of moves the solver has to
+find. Its RMSE is \V{shown.there.gbm-context.score}, which is
+\V{shown.there.gbm-context.lift.percent}\% below the constant baseline. It is
+\V{shown.there.gbm-context.than-reference} the GBDT baseline of this paper by
+\V{shown.there.gbm-context.over-reference} rating points and
+\V{shown.there.gbm-context.than-best} the best model of this paper by
+\V{shown.there.gbm-context.over-best}. These two values are differences
+between test scores and have no confidence interval. For GBDT, this single
+property of the solution is more informative than all \V{task.hand.count}
+hand-crafted features of the position. A network that reads the board
+without the solution is nevertheless more accurate than GBDT with the
+solution length.
 
-\paragraph{What the share kept says.}
-A reading of Table~\ref{tab:shown}. The trees keep the least, since the
-counts of the line were nearly all they had. A network keeps more, since a
-board is left to read when the line is gone, and a network trained from
-nothing still gets most of what it knows about a puzzle's difficulty from
-the solution: none of the ladder's keeps half of its shown run's step. The
-two runs that start from a body trained on engine evaluations keep about
-half, \V{shown.transformer-medium-pretrained.kept.percent}\% on the board
-alone and \V{shown.transformer-medium-hand-pretrained.kept.percent}\% with
-the hand features, where the same two runs from nothing keep
-\V{shown.transformer-medium.kept.percent}\% and
-\V{shown.transformer-medium-hand.kept.percent}\%. So the share is not a
-fact about puzzles. It is what these learners read off a position, and a
-better reader of positions raises it (Section~\ref{sec:limits}).
+\paragraph{Interpretation.}
+The share retained measures what these models extract from a position, and
+not what a position contains. GBDT retains the least. A network retains more:
+when the solution is withheld it still receives the whole board. Pretraining
+raises the share from \V{shown.transformer-medium.kept.percent}\% to
+\V{shown.transformer-medium-pretrained.kept.percent}\% for the medium
+transformer, and from \V{shown.transformer-medium-hand.kept.percent}\% to
+\V{shown.transformer-medium-hand-pretrained.kept.percent}\% with hand-crafted
+features. A better encoder of positions therefore retains more, and the
+values in Table~\ref{tab:shown} are lower bounds on the share of the
+predictable difficulty that is visible in the position
+(Section~\ref{sec:limits}).
 
 \ifshownpaired
-\subsection{Where the solution is worth most}
+\subsection{Subgroups}
 
-The closer look cuts the pair of best runs by the same columns it cuts this
-model's own runs by, and measures the shown run's gain over the hidden one
-inside each group, on resampled games. A group whose interval holds zero
-says nothing either way.
+We repeat the comparison of the two best models within subgroups of the test
+set. The difference is computed within each subgroup as for the whole test
+set, as a paired difference over resampled games.
 
-By the length of the solution the gain is largest for puzzles of
-\V{shown.slice.moves.most.group} moves, at \V{shown.slice.moves.most.gain}
-points, and smallest for those of \V{shown.slice.moves.least.group}, at
-\V{shown.slice.moves.least.gain} (Table~\ref{tab:shown-moves},
-Figure~\ref{fig:shown-moves}). By the puzzle's rating it is largest in the
-band \V{shown.slice.band.most.group}, at \V{shown.slice.band.most.gain}, and
-smallest in \V{shown.slice.band.least.group}, at
-\V{shown.slice.band.least.gain} (Table~\ref{tab:shown-band}).
+The solution matters more the longer it is. The difference increases with
+every additional move, from \V{shown.slice.moves.1.gain} RMSE points for
+one-move puzzles to \V{shown.slice.moves.5+.gain} for solutions of five or
+more moves (Table~\ref{tab:shown-moves}, Figure~\ref{fig:shown-moves}). It
+also increases with the number of quiet moves in the solution, from
+\V{shown.slice.quiet.0.gain} for solutions without a quiet move to
+\V{shown.slice.quiet.3+.gain} for solutions with three or more. By theme it
+is largest for \texttt{\V{shown.slice.themes.most.group}}
+(\V{shown.slice.themes.most.gain}) and smallest for
+\texttt{\V{shown.slice.themes.least.group}}
+(\V{shown.slice.themes.least.gain}; Figure~\ref{fig:shown-themes}).
 
 \begin{table}[htbp]\centering\small
 \block{shown-moves}
-\caption{The pair of best runs by how many moves the solver has to find: the
-group's test puzzles, the RMSE of the run with the solution hidden and of the
-run shown it, and the shown run's paired gain with its 95\% interval, bold
-when the interval leaves zero out.}
+\caption{The two best models by solution length: the number of test puzzles,
+the RMSE of the model without the solution (\emph{Hidden}) and of the model
+with it (\emph{Shown}), and their paired difference with its 95\% CI, bold
+when statistically significant.}
 \label{tab:shown-moves}
 \end{table}
 
 \begin{figure}[htbp]\centering
 \block{shown-moves-figure}
-\caption{What being shown the solution is worth to the best run, by the
-length of the solution: the paired gain in RMSE with its 95\% interval.}
+\caption{Paired gain in RMSE from being given the solution, for the best
+model, by solution length, with its 95\% CI.}
 \label{fig:shown-moves}
 \end{figure}
 
+By rating band the difference is largest for puzzles rated
+\V{shown.slice.band.most.group} (\V{shown.slice.band.most.gain}) and smallest
+for puzzles rated \V{shown.slice.band.least.group}
+(\V{shown.slice.band.least.gain}; Table~\ref{tab:shown-band}). This pattern
+is expected of any two models of unequal accuracy, because the bands are
+defined by the target: the less accurate model predicts closer to the mean,
+which costs little in the middle band and much in the extreme bands.
+
 \begin{table}[htbp]\centering\small
 \block{shown-band}
-\caption{The same pair by the puzzle's true rating band.}
+\caption{The two best models by band of the true rating, as in
+Table~\ref{tab:shown-moves}.}
 \label{tab:shown-band}
 \end{table}
 
-By theme the solution is worth most for
-\texttt{\V{shown.slice.themes.most.group}}, at
-\V{shown.slice.themes.most.gain} points, and least for
-\texttt{\V{shown.slice.themes.least.group}}, at
-\V{shown.slice.themes.least.gain} (Figure~\ref{fig:shown-themes}).
-
 \begin{figure}[htbp]\centering
 \block{shown-themes-figure}
-\caption{What being shown the solution is worth to the best run, for the
-thirty most common themes. A puzzle carries several themes and is counted
-under each.}
+\caption{Paired gain in RMSE from being given the solution, for the best
+model, for the \V{slice.themes.compared} most common themes. A puzzle has
+several themes and is counted under each.}
 \label{fig:shown-themes}
 \end{figure}
+
+The solution thus matters least for one-move puzzles and back-rank mates,
+and most for long solutions, for solutions with quiet moves and for the
+hardest puzzles. A plausible explanation is that the difficulty of a short
+forcing tactic is largely determined by the position, which the network
+reads, whereas the difficulty of a long solution depends on its later moves,
+which the position does not show.
 \fi
 \fi
 
 \ifchanges
-\section{One change at a time}
-\label{sec:changes}
+\section{Ablations}
+\label{sec:ablations}
 
-\input{../../../papers/changes}
+\input{../../../papers/ablations}
 
-\ifpairs
-\paragraph{What the position's counts are worth under a network.}
-\V{run.transformer-medium-hand.name} reads the position's hand features
-beside the board, and \V{run.transformer-medium.name} the board alone. The
-first is \V{pair.transformer-medium-hand.transformer-medium.valid.verdict}
-than the second on the valid puzzles and
-\V{pair.transformer-medium-hand.transformer-medium.verdict} on the test
-puzzles, by \V{pair.transformer-medium-hand.transformer-medium.gain} points
-(Table~\ref{tab:pairs}). The counts on offer here are the ones a network
-could work out from the squares it already reads: material, the moves on
-offer, loose pieces, passed pawns, the attackers near each king. In puzzle
-difficulty the same pair of runs also differs in the counts of what the
-solution's moves do, which is why that paper's pair measures something
-else.
+\ifchangehand
+\subsection{Hand-crafted features}
 
-\paragraph{What a start from engine evaluations was worth here.}
-The lab's position-evaluation model trains the same medium transformer on
-positions from the open Lichess evaluations file, to say the mover's winning
-chances as an engine sees them. That label says nothing about people. The
-model is there for its body: a run of this model can start from it. The
-embeddings and the blocks are copied in, the head starts new, and the run
-then trains on this model's puzzles on the ladder's schedule, with nothing
-else changed.
+The hand-crafted features of this task describe only the position, and a
+network could in principle compute all of them from the square tokens.
+Compared with \run{transformer-medium}, \run{transformer-medium-hand} is
+\V{pair.transformer-medium-hand.transformer-medium.valid.verdict} than its
+base on the validation set and
+\V{pair.transformer-medium-hand.transformer-medium.verdict} on the test set
+(gain \V{pair.transformer-medium-hand.transformer-medium.gain} RMSE points;
+95\% CI \V{pair.transformer-medium-hand.transformer-medium.gain.low} to
+\V{pair.transformer-medium-hand.transformer-medium.gain.high}), so the
+modification is \V{pair.transformer-medium-hand.transformer-medium.kept}. The
+features help, and their contribution is the smallest in
+Table~\ref{tab:pairs}.
+\ifshown
+In the companion task the same two models also differ in the features of the
+solution, so the gain reported there measures a different modification.
+\fi
+\fi
 
-On the board alone, \V{run.transformer-medium-pretrained.name} is
+\ifchangestart
+\subsection{Pretraining}
+
+Pretraining the encoder on engine evaluations is the most effective
+modification in this task. Without hand-crafted features,
+\run{transformer-medium-pretrained} is
 \V{pair.transformer-medium-pretrained.transformer-medium.valid.verdict} than
-the run it changed on the valid puzzles and
+its base on the validation set and
 \V{pair.transformer-medium-pretrained.transformer-medium.verdict} on the
-test puzzles, by \V{pair.transformer-medium-pretrained.transformer-medium.gain}
-points: it is \V{pair.transformer-medium-pretrained.transformer-medium.kept}.
-With the position's hand features,
-\V{run.transformer-medium-hand-pretrained.name} is
+test set (gain \V{pair.transformer-medium-pretrained.transformer-medium.gain}
+RMSE points; 95\% CI
+\V{pair.transformer-medium-pretrained.transformer-medium.gain.low} to
+\V{pair.transformer-medium-pretrained.transformer-medium.gain.high}), and
+the modification is
+\V{pair.transformer-medium-pretrained.transformer-medium.kept}. With
+hand-crafted features, \run{transformer-medium-hand-pretrained} is
 \V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.valid.verdict}
-than the run it changed on the valid puzzles and
+than its base on the validation set and
 \V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.verdict}
-on the test puzzles, by
-\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain}: it
-is \V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.kept}.
-Both pass the convolutional tower, and the intervals of their gains over the
-reference do not touch the tower's (Table~\ref{tab:leaderboard}). The
-model's best run is \V{best.name}.
+on the test set (gain
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain};
+95\% CI
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.low}
+to
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.high}),
+and the modification is
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.kept}.
+The best model of this task is \V{best.name}. Both pretrained transformers
+are also more accurate than \run{conv-small}, the best network trained from
+random initialisation, and the intervals of their gains over the GBDT
+baseline lie entirely above its interval (Table~\ref{tab:leaderboard}).
+
+In this task the context features of the model without hand-crafted features
+are the four castling rights, the same as in the pretraining task. The
+projection of the context features is therefore copied together with the
+encoder, and only the prediction head and the weights of the two planes that
+mark the opponent's move are initialised randomly. In the model with
+hand-crafted features the projection of the context features is initialised
+randomly as well.
 
 \ifshown
-The start is worth more here than where the solution is shown. In puzzle
-difficulty it took the transformer on the board alone from
-\V{shown.transformer-medium.there} to
-\V{shown.transformer-medium-pretrained.there} and the one with the features
-from \V{shown.transformer-medium-hand.there} to
-\V{shown.transformer-medium-hand-pretrained.there}. Here it took them from
-\V{shown.transformer-medium.here} to
+Pretraining gains more here than in the companion task. There it lowers the
+RMSE of the medium transformer from \V{shown.transformer-medium.there} to
+\V{shown.transformer-medium-pretrained.there} without hand-crafted features
+and from \V{shown.transformer-medium-hand.there} to
+\V{shown.transformer-medium-hand-pretrained.there} with them. Here it lowers
+the RMSE from \V{shown.transformer-medium.here} to
 \V{shown.transformer-medium-pretrained.here} and from
 \V{shown.transformer-medium-hand.here} to
-\V{shown.transformer-medium-hand-pretrained.here}, more than twice as far
-each time. So the solution is worth less to a run that starts from the
-body: \V{shown.transformer-medium-hand-pretrained.worth} points with the
-features, against \V{shown.transformer-medium-hand.worth} for the same run
-from nothing (Table~\ref{tab:shown}). A reading: with the line hidden, what
-is left to do is read the position, and reading positions is what the body
-was trained for.
+\V{shown.transformer-medium-hand-pretrained.here}, more than twice as much in
+both cases. The solution is consequently worth less to a pretrained model:
+with hand-crafted features the difference between the two tasks is
+\V{shown.transformer-medium-hand-pretrained.worth} rating points for the
+pretrained model and \V{shown.transformer-medium-hand.worth} for the model
+trained from random initialisation (Table~\ref{tab:shown}). A plausible
+explanation is that an engine evaluation depends on the tactics available in
+a position, so an encoder trained to predict it has already learned features
+of the position that a model without the solution otherwise has to learn from
+the puzzles alone.
 \fi
 
-The position's counts still pay from the body. The run that reads them
-scores \V{run.transformer-medium-hand-pretrained.over-twin} points better
-than the one that does not, and the intervals of the two runs' gains over
-the reference do not touch. Their best valid epochs were
-\V{run.transformer-medium-pretrained.best-epoch} and
-\V{run.transformer-medium-hand-pretrained.best-epoch} of
-\V{run.transformer-medium-hand-pretrained.epochs}
-(Figure~\ref{fig:variants}).
+With a pretrained encoder the hand-crafted features still contribute. The
+pretrained model with hand-crafted features has a test RMSE of
+\V{run.transformer-medium-hand-pretrained.score} and the pretrained model
+without them one of \V{run.transformer-medium-pretrained.score}, a
+difference of \V{run.transformer-medium-hand-pretrained.over-twin} points.
+The two pretrained models were not compared directly on resampled games, but
+the intervals of their gains over the GBDT baseline do not overlap
+(Table~\ref{tab:leaderboard}).
+
+The validation curves of the pretrained models lie below those of their
+bases after every epoch, and within a few epochs they pass the scores that
+their bases reach at the end of training (Figure~\ref{fig:variants}). The
+pretrained model without hand-crafted features reached its best validation
+epoch at \V{run.transformer-medium-pretrained.best-epoch} of
+\V{run.transformer-medium-pretrained.epochs} and the pretrained model with
+them at \V{run.transformer-medium-hand-pretrained.best-epoch} of
+\V{run.transformer-medium-hand-pretrained.epochs}. Both curves are nearly
+flat over the final epochs.
 \fi
 
-\input{../../../papers/studies}
+\input{../../../papers/training-set-size}
+
+\input{../../../papers/feature-groups}
 \fi
 
-\section{A closer look}
-\label{sec:closer}
+\section{Error Analysis}
+\label{sec:error}
 
-\input{../../../papers/closer}
+\input{../../../papers/error-analysis}
 
 \iflook
-\subsection{How close a prediction lands}
+\paragraph{Variables that describe the solution.}
+Several of the variables by which we partition the test set describe the
+solution: its length, the properties of its first move, the number of its
+quiet moves and whether it ends in mate. No model in this paper receives
+them. A model's mean prediction in such a subgroup therefore shows whether
+the position reveals the property. If it did, the mean prediction would
+follow the mean true rating from one subgroup to the next.
 
-The best run's median miss is \V{best.close.median} points, and nine in ten
-of its predictions fall within \V{best.close.p90}. It is within a hundred
-points of the truth for \V{best.close.within.100}\% of the test puzzles,
-within two hundred for \V{best.close.within.200}\%, and within three hundred
-for \V{best.close.within.300}\% (Table~\ref{tab:closeness}). A rating class
-is two hundred points wide, so the second of those shares is how often the
-model lands within a class of where the crowd put the puzzle.
+\subsection{Distribution of the errors}
+
+The median absolute error of the best model is \V{best.close.median} rating
+points, and 90\% of its predictions are within \V{best.close.p90} points of
+the true rating. \V{best.close.within.100}\% of the predictions are within
+100 points, \V{best.close.within.200}\% within 200 points and
+\V{best.close.within.300}\% within 300 points (Table~\ref{tab:closeness}).
+For the GBDT baseline the three shares are
+\V{reference.close.within.100}\%, \V{reference.close.within.200}\% and
+\V{reference.close.within.300}\%. With rating classes 200 points wide, the
+best model places fewer than half of the puzzles within one class of their
+true rating.
 
 \begin{table}[htbp]\centering\small
 \block{closeness}
-\caption{How close each run's predictions land on the test puzzles: the
-median miss, the distance nine in ten predictions fall within, and the share
-within one, two and three hundred points of the true rating.}
+\caption{Distribution of the absolute errors on the test set: the median,
+the 90th percentile, and the share of predictions within 100, 200 and 300
+rating points of the true rating.}
 \label{tab:closeness}
 \end{table}
 
-\subsection{What a stated rating is worth}
+\subsection{Calibration}
 
-Figure~\ref{fig:reliability} asks whether a stated rating means what it says.
-The test puzzles are put in \V{best.reliability.groups} equal groups by what
-the best run said. The group it rates lowest it calls
-\V{best.reliability.lowest.said} on average, and those puzzles' true ratings
-average \V{best.reliability.lowest.happened}. The group it rates highest it
-calls \V{best.reliability.highest.said}, against
-\V{best.reliability.highest.happened}. In no group are the two further apart
-than \V{best.reliability.widest-gap} points. Around one stated number, the
-middle four fifths of the true ratings span about
-\V{best.reliability.spread} points.
+In Figure~\ref{fig:reliability} the test puzzles are divided into
+\V{best.reliability.groups} bins of equal size by the model's prediction. In
+the lowest bin the mean prediction of the best model is
+\V{best.reliability.lowest.said} and the mean true rating is
+\V{best.reliability.lowest.happened}. In the highest bin they are
+\V{best.reliability.highest.said} and \V{best.reliability.highest.happened}.
+The largest difference in any bin is \V{best.reliability.widest-gap} points,
+so the mean prediction is within that distance of the mean true rating at
+every predicted level. At the two ends the predictions are too extreme: the
+lowest predictions are too low and the highest too high.
+
+Predictions for individual puzzles are imprecise. For a given prediction, the
+central 80\% of the true ratings span about \V{best.reliability.spread}
+points (shaded band in Figure~\ref{fig:reliability}), so a prediction leaves
+the rating of an individual puzzle largely undetermined.
 
 \begin{figure}[htbp]\centering
 \block{reliability}
-\caption{What a run said against the true rating. The test puzzles are put in
-equal groups by what the run said; each point is one group's average
-prediction against its average true rating. The wash is the middle four
-fifths of the true ratings in each group of the first run. On the diagonal a
-run is right on average at that level.}
+\caption{Mean true rating against mean predicted rating. The test puzzles
+are divided into bins of equal size by the prediction, and each point is one
+bin. The shaded band is the central 80\% of the true ratings in each bin of
+the first model. Points on the diagonal are unbiased.}
 \label{fig:reliability}
 \end{figure}
 
-Grouped by their true rating instead, the puzzles show the pull toward the
-middle that every model with error has (Figure~\ref{fig:band-bias}). Puzzles
-truly rated under 1000 are called \V{slice.band.-1000.challenger.off} points
-off on average by \V{challenger.name}, and puzzles rated 2200 and over
-\V{slice.band.2200+.challenger.off}, where a number above zero is too hard
-and one below it too easy. The trees are off by
-\V{slice.band.-1000.reference.off} and \V{slice.band.2200+.reference.off}.
+Conditioning on the true rating instead of the prediction shows strong
+regression towards the mean (Figure~\ref{fig:band-bias}). For puzzles with a
+true rating below 1000, the mean prediction of \V{challenger.name} minus the
+mean true rating is \V{slice.band.-1000.challenger.off} points, and for
+puzzles rated 2200 and above it is \V{slice.band.2200+.challenger.off}
+points: easy puzzles are rated too hard and hard puzzles too easy. The GBDT
+baseline is more biased in both bands (\V{slice.band.-1000.reference.off} and
+\V{slice.band.2200+.reference.off}). The best model does recognise the
+hardest puzzles as harder than average: its mean prediction for them is
+\V{slice.band.2200+.challenger.said}, above the mean rating of the dataset
+(\V{label.mean}). Their mean true rating, however, is
+\V{slice.band.2200+.happened}.
 
 \begin{figure}[htbp]\centering
 \block{slice-band-bias}
-\caption{What the two runs said on average, less the mean true rating, by
-the puzzle's true rating band. Above the line a run calls a band's puzzles
-harder than they are, and below it easier.}
+\caption{Mean prediction minus mean true rating, by band of the true rating,
+for the two models compared. Above the line a model rates the puzzles of the
+band as harder than they are, and below it as easier.}
 \label{fig:band-bias}
 \end{figure}
 
-\subsection{By the length of the solution}
+\subsection{Solution length}
 
-The length of the line is the first thing this model is not told. The
-puzzles themselves say what it carries: a one-move puzzle averages
-\V{slice.moves.1.happened}, a two-move puzzle \V{slice.moves.2.happened}, a
-three-move puzzle \V{slice.moves.3.happened}, and one of five moves or more
-\V{slice.moves.5+.happened} (Table~\ref{tab:moves}). A learner that cannot
-see the length has to guess it from the position, and what it says on
-average for each length shows how far it gets
-(Figure~\ref{fig:slice-moves}). \V{challenger.name} calls the one-move
-puzzles \V{slice.moves.1.challenger.off} points off on average and those of
-five moves or more \V{slice.moves.5+.challenger.off}, and the trees
-\V{slice.moves.1.reference.off} and \V{slice.moves.5+.reference.off}. Both
-lean toward the middle, as a learner that cannot see the length must, and
-the network leans less than the trees: it reads part of the length off the
-position.
+The solution length is strongly associated with the rating, and no model
+receives it. The mean true rating rises from
+\V{slice.moves.1.happened} for one-move puzzles to
+\V{slice.moves.5+.happened} for solutions of five or more moves
+(Table~\ref{tab:moves}). The mean prediction of \V{challenger.name} rises
+with the solution length as well, but over a smaller range, from
+\V{slice.moves.1.challenger.said} to \V{slice.moves.5+.challenger.said}
+(Figure~\ref{fig:slice-moves}). Its mean prediction minus the mean true
+rating is \V{slice.moves.1.challenger.off} points for one-move puzzles and
+\V{slice.moves.5+.challenger.off} points for solutions of five or more
+moves. The position therefore reveals part of the solution length.
 
 \begin{table}[htbp]\centering\footnotesize
 \block{slice-moves}
-\caption{The test puzzles by how many moves the solver has to find, which no
-learner here reads. For each group: its test rows, the mean true rating, what
-each of the two runs said on average and its RMSE there, and the first run's
-paired gain over the second.}
+\caption{Test-set results by solution length, which no model receives. For
+each group: the number of test puzzles, the mean true rating, the mean
+prediction and RMSE of each of the two models, and the paired gain of the
+first model over the second.}
 \label{tab:moves}
 \end{table}
 
 \begin{figure}[htbp]\centering
-\block{slice-moves-bias}
-\caption{What the two runs said on average, less the mean true rating, by
-the length of the solution. A run that could tell the length from the
-position would sit on the line.}
+\block{slice-moves-said}
+\caption{Mean true rating and mean prediction of the two models compared, by
+solution length.}
 \label{fig:slice-moves}
 \end{figure}
 
-\subsection{By theme}
+\V{challenger.name} is significantly better than the GBDT baseline in
+\V{slice.moves.ahead.of}, and the gain is largest for one-move puzzles
+(\V{slice.moves.1.gain} RMSE points). For these puzzles the GBDT baseline
+predicts a mean rating of \V{slice.moves.1.reference.said}, far above the
+true mean, whereas the network predicts \V{slice.moves.1.challenger.said}.
+Almost all one-move puzzles are mates in one: there are
+\V{slice.moves.1.rows} one-move puzzles in the test set, and
+\V{slice.themes.mateIn1.rows} test puzzles have the theme \texttt{mateIn1},
+which by definition has a one-move solution.
+We hypothesise that the network recognises from the board that a mate in one
+is available, which none of the hand-crafted features states. For longer
+solutions the network distinguishes the lengths much less well. Its mean
+predictions for solutions of three, four and five or more moves are
+\V{slice.moves.3.challenger.said}, \V{slice.moves.4.challenger.said} and
+\V{slice.moves.5+.challenger.said}, whereas the mean true ratings are
+\V{slice.moves.3.happened}, \V{slice.moves.4.happened} and
+\V{slice.moves.5+.happened}.
 
-Lichess tags every puzzle with themes: what the tactic is, what it wins, the
-phase of the game, how long it is. No learner reads them.
-Figure~\ref{fig:themes} uses them to ask where \V{challenger.name} is ahead
-of the trees: beyond the noise in \V{slice.themes.ahead} of
-\V{slice.themes.compared} themes, and behind in \V{slice.themes.behind}. Its
-gain is largest for the theme \texttt{\V{slice.themes.gain.most.group}}, at
-\V{slice.themes.gain.most} points, and smallest for
-\texttt{\V{slice.themes.gain.least.group}}, at \V{slice.themes.gain.least}.
-The table behind the figure is in the appendix
-(Table~\ref{tab:slice-themes}).
+\subsection{Themes}
+
+Lichess tags every puzzle with themes that describe the tactical motif (for
+example a fork, a pin or a discovered attack), the material won, the phase of
+the game and the length of the solution. No model receives the themes as
+input. We form one group for each of the \V{slice.themes.compared} most
+common themes, and a puzzle belongs to the group of every theme it has.
+\V{challenger.name} is significantly better than the GBDT baseline in
+\V{slice.themes.ahead.of} (Figure~\ref{fig:themes}).
 
 \begin{figure}[htbp]\centering
 \block{slice-themes-gain}
-\caption{The paired gain in RMSE of the best run that is not the reference
-over the reference, for the thirty most common themes. A puzzle carries
-several themes and is counted under each. A theme whose interval crosses the
-line says nothing either way.}
+\caption{Paired gain in RMSE of the best model other than the GBDT baseline
+over the GBDT baseline, for the \V{slice.themes.compared} most common themes.
+A puzzle has several themes and is counted under each. A theme whose interval
+includes zero provides no evidence in either direction.}
 \label{fig:themes}
 \end{figure}
 
-\subsection{What the line holds that the position does not show}
+The gain is largest for the theme
+\texttt{\V{slice.themes.gain.most.group}}
+(\V{slice.themes.gain.most} RMSE points) and smallest for
+\texttt{\V{slice.themes.gain.least.group}} (\V{slice.themes.gain.least}).
+The next largest gains are for \texttt{mateIn1}
+(\V{slice.themes.mateIn1.gain}) and \texttt{oneMove}
+(\V{slice.themes.oneMove.gain}), which are nearly the same set of puzzles.
+The network's advantage over GBDT is thus largest for back-rank mates and
+mates in one. The network underestimates most the themes that describe a long or quiet
+solution: its mean prediction minus the mean true rating is
+\V{slice.themes.veryLong.challenger.off} points for \texttt{veryLong} and
+\V{slice.themes.quietMove.challenger.off} points for \texttt{quietMove}.
+Table~\ref{tab:slice-themes} in the appendix gives the values behind the
+figure.
 
-The cuts below are by facts about the solution. Puzzle difficulty reads each
-of them off the marked line. Here they are hidden, so what a run says on
-average on either side of a cut shows whether the position gives the fact
-away.
+\subsection{Properties of the solution}
 
+The companion paper shows that several properties of the solution are
+associated with large differences in the mean rating. Here we ask whether the
+position reveals them. For each property we give the mean true rating of the
+two groups, which depends only on the puzzles, and the mean prediction of
+\V{challenger.name}.
 \begin{itemize}
-\item \textbf{A quiet move in the line.} A line with no move that neither
-takes nor checks averages \V{slice.quiet.0.happened}, and a line with one
-such move \V{slice.quiet.1.happened}. \V{challenger.name} is off by
-\V{slice.quiet.0.challenger.off} points on the first group and
-\V{slice.quiet.1.challenger.off} on the second (Table~\ref{tab:quiet}).
-\item \textbf{A line that ends in mate.} It averages
-\V{slice.mate.yes.happened}, against \V{slice.mate.no.happened} for a line
-that wins material. \V{challenger.name} is off by
-\V{slice.mate.yes.challenger.off} and \V{slice.mate.no.challenger.off}
+\item \textbf{Quiet moves.} A quiet move is a move that is neither a capture
+nor a check. Puzzles whose solution has no quiet move have a mean rating of
+\V{slice.quiet.0.happened}, and puzzles with one quiet move a mean rating of
+\V{slice.quiet.1.happened}. The mean predictions are
+\V{slice.quiet.0.challenger.said} and \V{slice.quiet.1.challenger.said}
+(Table~\ref{tab:quiet}).
+\item \textbf{Mate.} Puzzles whose solution ends in mate have a mean rating
+of \V{slice.mate.yes.happened}, compared with \V{slice.mate.no.happened} for
+puzzles whose solution wins material. The mean predictions are
+\V{slice.mate.yes.challenger.said} and \V{slice.mate.no.challenger.said}
 (Table~\ref{tab:mate}).
-\item \textbf{A first move that gives check.} Such puzzles average
-\V{slice.check.yes.happened}, against \V{slice.check.no.happened} for the
-rest, and \V{challenger.name} is off by \V{slice.check.yes.challenger.off}
-and \V{slice.check.no.challenger.off}.
-\item \textbf{A first move that gives something up.} These average
-\V{slice.sacrifice.yes.happened}, against \V{slice.sacrifice.no.happened},
-and \V{challenger.name} is off by \V{slice.sacrifice.yes.challenger.off} and
-\V{slice.sacrifice.no.challenger.off}.
+\item \textbf{Check on the first move.} Puzzles whose first move gives check
+have a mean rating of \V{slice.check.yes.happened}, compared with
+\V{slice.check.no.happened} for the others. The mean predictions are
+\V{slice.check.yes.challenger.said} and \V{slice.check.no.challenger.said}.
+\item \textbf{Sacrifice on the first move.} When the first move leaves the
+moved piece open to capture, the mean rating is
+\V{slice.sacrifice.yes.happened}, compared with
+\V{slice.sacrifice.no.happened} otherwise. The mean predictions are
+\V{slice.sacrifice.yes.challenger.said} and
+\V{slice.sacrifice.no.challenger.said}.
 \end{itemize}
-
-In each of the four cuts the run's averages move the way the truth does, and
-by less than the truth does. The position gives each of these facts away in
-part and none of them in full.
+For each of the four properties the mean predictions of the two groups
+differ in the same direction as the mean true ratings, and by less. The
+position therefore reveals each property in part, and none of them
+completely. The network is significantly better than the GBDT baseline in
+every group of these four partitions (Tables~\ref{tab:quiet}
+and~\ref{tab:mate}, and Tables~\ref{tab:slice-check}
+and~\ref{tab:slice-sacrifice} in the appendix).
 
 \begin{table}[htbp]\centering\footnotesize
 \block{slice-quiet}
-\caption{The test puzzles by how many of the solver's moves neither take nor
-check.}
+\caption{Test-set results by the number of quiet moves (neither captures nor
+checks) among the solver's moves, which no model receives.}
 \label{tab:quiet}
 \end{table}
 
 \begin{table}[htbp]\centering\footnotesize
 \block{slice-mate}
-\caption{The test puzzles by whether the line ends in mate.}
+\caption{Test-set results by whether the solution ends in mate, which no
+model receives.}
 \label{tab:mate}
 \end{table}
 
-\subsection{Two things at once}
+\subsection{Reliability of the rating}
 
-Figure~\ref{fig:grid} crosses the length of the line, which is hidden, with
-how much material is left, which is on the board. If the lower grid looks
-like the upper one, the run has the joint pattern and not only each margin.
+As in the companion task, the network's gain over the GBDT baseline depends
+on how well a puzzle's rating is measured. By rating deviation, the gain is
+\V{slice.deviation.-75.gain} RMSE points for the most reliable ratings (a
+deviation below 75) and \V{slice.deviation.90+.gain} for the least reliable
+(a deviation of 90 or more), and it increases from each group to the next
+(Table~\ref{tab:slice-deviation}). By number of attempts, the gain falls from
+each group to the next, from \V{slice.plays.-200.gain} for puzzles attempted
+fewer than 200 times to \V{slice.plays.5000+.gain} for puzzles attempted
+5{,}000 times or more (Table~\ref{tab:slice-plays}).
+
+These groups also differ in difficulty. The most reliable ratings have a
+mean of \V{slice.deviation.-75.happened} and the least reliable a mean of
+\V{slice.deviation.90+.happened}, and in this task the gain depends strongly
+on the rating band and is negative in the middle bands
+(Figure~\ref{fig:bands}). The subgroup tables therefore do not show whether
+the reliability of the rating has an effect of its own. An analysis by rating
+deviation within each rating band would separate the two effects and has not
+been done.
+
+\subsection{Solution length and material}
+
+Figure~\ref{fig:grid} shows the mean rating by solution length and by the
+number of minor and major pieces on the board, which serves as a proxy for
+the phase of the game. The model receives the pieces and not the solution
+length. Its predictions reproduce the direction of the effect of the
+solution length and understate its size, as in Table~\ref{tab:moves}.
 
 \begin{figure}[htbp]\centering
 \block{grid-moves-pieces}
 
 \medskip
 \block{grid-moves-pieces-said}
-\caption{The mean rating by the length of the solution and by how many
-knights, bishops, rooks and queens are on the board. Above: the true ratings.
-Below: what the best run that is not the reference said. Both grids share one
-scale of colour, and a cell with too few test puzzles is left empty.}
+\caption{Mean rating by solution length and by the number of knights,
+bishops, rooks and queens on the board. Top: true ratings. Bottom:
+predictions of the best model other than the GBDT baseline. Both panels use
+the same colour scale, and cells with too few test puzzles are left empty.}
 \label{fig:grid}
 \end{figure}
 
-\subsection{Beside the reference}
+\subsection{Agreement with the GBDT baseline}
 
-Table~\ref{tab:beside} gives each run's correlation with the reference's
-predictions and the share of test puzzles on which the run is the closer of
-the two. \V{challenger.name} is closer than the reference on
-\V{challenger.beside.closer}\% of them, with a correlation of
-\V{challenger.beside.correlation} between what the two said.
+Table~\ref{tab:beside} gives, for each model, the correlation of its
+predictions with those of the GBDT baseline and the share of test puzzles on
+which it is the closer of the two to the true rating. The best model is
+closer than the GBDT baseline on \V{best.beside.closer}\% of the test
+puzzles, and the correlation between the two sets of predictions is
+\V{best.beside.correlation}.
 
 \begin{table}[htbp]\centering\small
 \block{beside}
-\caption{Each run's predictions beside the reference's on the same test
-puzzles: their correlation, and how often the run is the closer of the two to
-the true rating.}
+\caption{Agreement with the GBDT baseline on the test set: the correlation
+between the two models' predictions, and the share of puzzles on which the
+model is closer to the true rating than the baseline.}
 \label{tab:beside}
 \end{table}
 
-\section{Positions}
+\subsection{Example positions}
 \label{sec:positions}
 
-The positions below were chosen by rule from the test puzzles. Each board is
-seen from the side to move. The grey arrow is the opponent's move that set
-the puzzle up, which the model sees. The blue arrow is the first move of the
-solution, which it does not: it is drawn for the reader. Beside each board
-are the line, the true rating, what the best run and the reference said, and
-the puzzle's id, by which it can be opened on Lichess.
+The following examples were selected from the test set by the fixed rules
+described above. Each board is shown from the mover's side. The grey arrow is
+the opponent's preceding move, which the models receive. The blue arrow is
+the first move of the solution, which they do not receive: it is drawn for
+the reader. Next to each board we give the solution, the true rating, the
+predictions of the best model and of the GBDT baseline, and the puzzle's
+identifier on Lichess.
 
-\examples{examples-typical}{Ordinary puzzles: the first \V{examples.count}
-test puzzles in the order of a hash of their key, so nothing about them
-picked them.}{fig:typical}
+The largest errors show what the position does not reveal. The three largest
+underestimates all have the theme \texttt{veryLong}
+(Figure~\ref{fig:under}), and each of the three largest overestimates has
+the theme \texttt{oneMove} or \texttt{short} (Figure~\ref{fig:over}). In
+these puzzles the length of the solution contradicts what the model infers
+from the position, which agrees with the results by solution length above.
+The puzzles with the highest and the lowest predictions are shown in the
+appendix (Figures~\ref{fig:highest} and~\ref{fig:lowest}).
 
-\examples{examples-over}{The best run's largest misses upward: the test
-puzzles it rated furthest above their true rating.}{fig:over}
+\examples{examples-typical}{Typical puzzles: the first \V{examples.count}
+test puzzles in the order of a hash of their key.}{fig:typical}
 
-\examples{examples-under}{The best run's largest misses downward: the test
-puzzles it rated furthest below their true rating.}{fig:under}
+\examples{examples-over}{The largest overestimates: the test puzzles for
+which the best model's prediction exceeds the true rating by the most.}{fig:over}
+
+\examples{examples-under}{The largest underestimates: the test puzzles for
+which the best model's prediction falls below the true rating by the
+most.}{fig:under}
 \fi
 
-\section{What the app can use today}
+\section{Practical Use}
 \label{sec:use}
 
-Nothing here is ready to port. What the app can use is what the comparison
-found.
-
 \begin{itemize}
-\item \textbf{The app already has the line.} A position reaches the app's
-tactics only after an engine has found that something is there, and by then
-the line is known.
+\item \textbf{Where a solution is available, the model that receives it
+should be used.} In the coaching application a tactic is rated after an
+engine has found it, so its line is known.
 \ifshown
-With the line shown, the best run of puzzle difficulty is off by
-\V{shown.best.there} points on these test puzzles, where the best run here
-is off by \V{best.score}.
+With the solution, the best model of the companion study has an RMSE of
+\V{shown.best.there} rating points on these test puzzles, compared with
+\V{best.score} for the best model without it.
 \fi
-Wherever both models could be asked, the one that reads the line should be.
-\item \textbf{Look to the line as well as the position for why a tactic was
-hard.}
+\item \textbf{Ordering positions before a line is computed.} For a set of
+positions that are known to contain a tactic and for which no line has been
+computed, the model can order the positions roughly by difficulty: its
+Spearman correlation with the true rating is \V{best.spearman}. Its MAE of
+\V{best.mae} rating points is too large to state the difficulty of any one of
+them.
+\item \textbf{Explaining why a tactic was hard.}
 \ifshown
-These learners read \V{shown.best.kept.percent}\% of the shown model's step
-off the position, and take the rest from the line.
+The best model achieves \V{shown.best.kept.percent}\% of the improvement
+that is achieved with the solution.
 \fi
-A reading for the coach's words: when a missed tactic is explained, how the
-position looked is one part of its difficulty and what the line asks for
-(how long it is, a quiet move in it, a piece given up) is the other, and the
-app has both.
-\item \textbf{A sorter, where no line is known.} A batch of positions that
-are known to hold a tactic, with no line computed yet, can be put in order
-from easy to hard: the rank correlation with the true rating is
-\V{best.spearman}. The typical miss of \V{best.mae} points is too wide to
-tell a player how hard any one of them is.
-\item \textbf{Not for a position that may hold nothing.} Every position this
-model has seen holds a tactic. Its number for a position from a game means
-how hard the tactic would be if one is there, and says nothing on whether
-one is (Section~\ref{sec:limits}).
+The appearance of the position is thus one part of a tactic's difficulty,
+and the properties of the line, such as its length and its quiet moves, are
+another. An explanation of a missed tactic should refer to both.
+\item \textbf{Not for positions that may contain no tactic.} Every position
+in the dataset contains a winning tactic. For an arbitrary position from a
+game, a prediction estimates how hard a tactic would be if one existed, and
+gives no indication of whether one exists (Section~\ref{sec:limits}).
+\item \textbf{Not for display as a number.} A predicted rating is imprecise
+for a single position, and it strongly underestimates the hardest tactics.
 \end{itemize}
 
-\section{What the model does not say yet}
+\section{Limitations}
 \label{sec:limits}
 
 \begin{itemize}
-\item \textbf{The share kept is a floor, not a ceiling.} It is what these
-learners read off a position, not all that a position holds. A stronger
-reader of positions keeps more, and the start from engine evaluations is
-the first to show it (Section~\ref{sec:changes}). Nothing here says where
-the share stops rising.
-\item \textbf{One run each.} A hidden run and its shown run were each
-trained once. The comparison holds their configs to be the same and scores
-them on the same test puzzles, and it does not yet say how much two
-trainings of one config differ.
-\item \textbf{A puzzle position is not any position.} Every one of them holds
-a tactic, and the opponent has just gone wrong. The model says nothing about
-a position where there may be nothing to find, which is most positions of a
-game.
-\item \textbf{The solver was told there is something.} A puzzle's rating is
-earned by solvers who know a tactic exists. How hard the same tactic is to
-notice in a game, where nobody says so, is a harder question still, and no
-puzzle rating answers it.
-\item \textbf{The rating is on Lichess's puzzle scale}, as for puzzle
-difficulty, and it depends on who is served the puzzle, which the model
-takes as given.
-\item \textbf{Only settled ratings.} A puzzle with few attempts is left out.
+\item \textbf{The share retained is a lower bound.} It measures what these
+models extract from a position, and not all the information that a position
+contains. A stronger encoder retains more, as the pretrained models show
+(Section~\ref{sec:ablations}). Our results do not show where the share stops
+increasing.
+\item \textbf{Single training runs.} Each model and its counterpart were
+trained once, with one random seed. The confidence intervals reflect the
+sampling of test games and not the variation between training runs.
+\item \textbf{Few modifications were tested.} The longer schedule, the
+architecture ablations and the training-set sizes of the companion study were
+not repeated for this task, and most networks of the fixed sequence were
+still improving when their training ended.
+\item \textbf{Every position contains a winning tactic.} A puzzle is taken
+from a position in which the opponent has just made a mistake and a winning
+line exists. The models have seen no position without a tactic, which is the
+case for most positions of a game.
+\item \textbf{Solvers know that a tactic exists.} A puzzle's rating is
+determined by solvers who are told that there is something to find. How
+hard the same tactic is to notice during a game, without that knowledge, is a
+different question, which puzzle ratings do not answer.
+\item \textbf{The target is on the Lichess puzzle scale.} As in the
+companion study, the rating depends on which solvers attempt the puzzle, and
+relating a prediction to a player's game rating requires a mapping that this
+work does not provide.
+\item \textbf{Only stable ratings are included.} Puzzles with few attempts
+are excluded.
 \end{itemize}
 
-\section{Cost and how to draw this again}
+\section{Reproducibility}
 \label{sec:cost}
 
-The \V{runs.count} runs took \V{cost.seconds} in all: \V{cost.seconds.networks}
-for the networks and \V{cost.seconds.others} for the floor and the trees.
-The best run trained in \V{best.seconds}. Table~\ref{tab:runs} has every
-run's time and Table~\ref{tab:settings} the ladder networks' settings.
+Training all \V{runs.count} models took \V{cost.seconds} in total:
+\V{cost.seconds.networks} for the networks, each trained on a single cloud
+GPU, and \V{cost.seconds.others} for the constant baseline and GBDT on a CPU.
+The best model has \V{best.parameters} parameters and was trained for
+\V{best.epochs.run} epochs in \V{best.seconds} on an \V{best.device}, at
+about \V{best.rows-a-second} puzzles per second. Table~\ref{tab:runs} lists
+the hardware and training time of every model, and
+Table~\ref{tab:settings} the hyperparameters of the networks of the fixed
+sequence.
 
-Everything is drawn from committed files. The dataset is built by
-\texttt{lab data puzzles} from the recipe, the runs are trained by
-\texttt{lab all puzzle-difficulty-unsolved}, each run writes its record
-under the model's \texttt{results/} folder, and
-\texttt{lab paper puzzle-difficulty-unsolved} writes every number, table and
-figure of this paper from those records, and from puzzle difficulty's for
-Section~\ref{sec:shown}, and compiles it. A record names the build of the
-data it read (\V{data.fingerprint}) and the commit of the code that trained
-it (\V{code.commit}). Weights and test predictions are not committed. They
-are kept on the owner's machine.
+All results are generated from committed files. The dataset is built from
+its recipe by \texttt{lab data puzzles}, the models are trained by
+\texttt{lab all puzzle-difficulty-unsolved}, each training run writes a
+record to the model's \texttt{results/} directory, and
+\texttt{lab paper puzzle-difficulty-unsolved} generates every number, table
+and figure of this paper from those records, and from the records of the
+companion study for Section~\ref{sec:shown}, and compiles it. A record names
+the build of the dataset it used (\V{data.fingerprint}) and the commit of
+the code that produced it (\V{code.commit}). Model weights and test
+predictions are not stored in the repository. The model's card states where
+they are kept and gives the hash of the best model's weights.
 
-\section{What comes next}
+\section{Conclusion and Future Work}
+\label{sec:conclusion}
 
+From the position alone, the rating of a Lichess puzzle can be predicted with
+an RMSE of \V{best.score} rating points, compared with \V{floor.score} for a
+constant prediction\ifshown{} and \V{shown.best.there} for the same model
+given the solution\fi. Aggregate features of the position predict little, a
+network that reads the board predicts much more, and pretraining the encoder
+on engine evaluations is the largest single improvement. The remaining error
+is dominated by properties of the solution that the position reveals only in
+part, above all its length. The following experiments are the natural next
+steps.
 \begin{itemize}
-\ifshownpaired\else
-\item \textbf{The comparison with intervals.} The closer look can set each
-run against its shown run on the same resampled test games, overall and
-inside each cut, once both models' predictions are on one machine.
-\fi
-\item \textbf{A stronger body to start from.} The body was trained once, at
-one size, on a part of the evaluations file. The start from it was worth
-more here than anything else tried, so one trained for longer, on more of
-the file or at a larger size is the first run to add.
-\item \textbf{A body told what each piece attacks.} If the gap to the shown
-model is partly a network failing to see the tactic that is there, attention
-that is handed the attack relations should narrow it.
-\item \textbf{A second seed.} Training each hidden run and its shown run
-again says how much of a difference between them is the solution and how
-much is chance.
-\item \textbf{More epochs and more puzzles.} By the valid puzzles,
-\V{ladder.at-last-epoch.of} were still at their best in the last epoch they
-were given. In puzzle difficulty twice the epochs made the medium
-transformers better, and so did every further share of the training puzzles
-(that model's paper has both). Neither has been tried here.
-\item \textbf{Where a tactic is, before how hard it is.} The lab's
-where-to-look model is asked for the squares of the first move from the same
-position. What it finds could be handed to this one.
+\item \textbf{A stronger pretrained encoder.} The encoder was pretrained
+once, at one size, on part of the evaluation database. Pretraining gained
+more than any other modification in this task, so longer pretraining, more
+positions and a larger encoder are the first experiments to add.
+\item \textbf{Attack-aware attention bias.} In the companion task this bias
+is the largest gain for a transformer trained from random initialisation.
+If part of the gap between the two tasks is due to the network failing to
+find the tactic that the position contains, attention that receives the
+attack relations should narrow it.
+\item \textbf{A longer schedule and more data.} Most networks of the fixed
+sequence were still improving when their training ended. In the companion
+task both a longer schedule and more training puzzles improved the medium
+transformer. Neither has been tested here.
+\item \textbf{A second random seed.} Training each model and its counterpart
+again would show how much of the difference between them is due to the
+solution and how much to the variation between training runs.
+\item \textbf{Locating the tactic first.} A separate model of this project
+predicts, from the same position, which squares the moves of the solution
+leave or reach. Its output could be given to the difficulty model as
+additional input planes.
 \end{itemize}
 
 \bibliographystyle{unsrt}
@@ -921,42 +1172,42 @@ position. What it finds could be handed to this one.
 \clearpage
 \appendix
 
-\section{Sizes, schedules and features}
+\section{Hyperparameters and Features}
 
 \begin{table}[htbp]\centering\footnotesize
 \block{settings}
-\caption{The ladder networks' sizes and schedules, from their run configs.
-\emph{Rate} is the peak learning rate. A setting they all share is in the
-line under the table.}
+\caption{Hyperparameters of the networks of the fixed sequence, from their
+configuration files. \emph{LR} is the peak learning rate. Values shared by
+all of them are given below the table.}
 \label{tab:settings}
 \end{table}
 
 \begin{table}[htbp]\centering\footnotesize
 \block{hand}
-\caption{The hand features a learner of this model may read: the ones counted
-from the position. \V{task.reference} reads them beside the context numbers,
-and a network when its run asks for them.}
+\caption{Hand-crafted features: the inputs of \V{task.reference} in addition
+to the scalar context features, and of a network whose configuration includes
+them. All of them are computed from the position and the opponent's
+preceding move.}
 \label{tab:hand}
 \end{table}
 
 \iflook
-\section{The extremes of what the model says}
+\section{Examples with Extreme Predictions}
 
-\examples{examples-highest}{The test puzzles the best run rated
-highest.}{fig:highest}
+\examples{examples-highest}{The test puzzles with the highest predictions of
+the best model.}{fig:highest}
 
-\examples{examples-lowest}{The test puzzles the best run rated
-lowest.}{fig:lowest}
+\examples{examples-lowest}{The test puzzles with the lowest predictions of
+the best model.}{fig:lowest}
 
-\section{Every cut of the test puzzles}
+\section{Subgroup Tables}
 
-Each table below groups the test puzzles by one column. The columns are the
-group, its test rows, the mean true rating, then for each of the two runs
-what it said on average and its RMSE, and the paired gain of the first run
-over the second with its 95\% interval, bold when the interval leaves zero
-out. The cuts by the pieces on the board, by attempts and by the rating's
-deviation aside, each of these columns describes the solution, which no
-learner of this model reads.
+Each table below partitions the test puzzles by one variable. The columns are
+the group, the number of test puzzles, the mean true rating, the mean
+prediction and RMSE of each of the two models compared, and the paired gain
+of the first model over the second with its 95\% CI, in bold when
+statistically significant. The variables that describe the solution are not
+inputs of any model.
 
 \block{slices}
 \fi

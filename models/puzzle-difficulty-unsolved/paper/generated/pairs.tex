@@ -3,7 +3,7 @@
 \toprule
  &  &  & \multicolumn{3}{c}{Gain in RMSE} \\
 \cmidrule(lr){4-6}
-Run & Set against & What the run changes & Valid rows & Test rows & 95\% interval \\
+Model & Baseline & Change & Validation & Test & 95\% CI \\
 \midrule
 \endhead
 \bottomrule
@@ -11,7 +11,7 @@ Run & Set against & What the run changes & Valid rows & Test rows & 95\% interva
 \bottomrule
 \lablongcaption
 \endlastfoot
-\run{transformer-medium-hand} & \run{transformer-medium} & reads the hand features & +9.60 & \textbf{+9.61} & +8.59 to +10.69 \\
-\run{transformer-medium-hand-pretrained} & \run{transformer-medium-hand} & starts from the body of \run{position-evaluation/transformer-medium} & +42.1 & \textbf{+42.33} & +40.98 to +43.67 \\
-\run{transformer-medium-pretrained} & \run{transformer-medium} & starts from the body of \run{position-evaluation/transformer-medium} & +46.8 & \textbf{+47.55} & +46.12 to +48.97 \\
+\run{transformer-medium-hand} & \run{transformer-medium} & with hand-crafted features & +9.60 & \textbf{+9.61} & +8.59 to +10.69 \\
+\run{transformer-medium-pretrained} & \run{transformer-medium} & encoder initialised from \run{position-evaluation/transformer-medium} & +46.8 & \textbf{+47.55} & +46.12 to +48.97 \\
+\run{transformer-medium-hand-pretrained} & \run{transformer-medium-hand} & encoder initialised from \run{position-evaluation/transformer-medium} & +42.1 & \textbf{+42.33} & +40.98 to +43.67 \\
 \end{xltabular}

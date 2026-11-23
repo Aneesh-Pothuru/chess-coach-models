@@ -849,8 +849,16 @@ def examples_block(src: Sources, name: str) -> str:
     )
 
 
+# The marks on squares that stand for each move an example holds. The board "as encoded" shades a move's
+# squares only where the task lets a network read one of them: a task that hides the solution shades none of it.
+CONTEXT_MARKS = ("setup_from", "setup_to", "last_from", "last_to")
+LINE_MARKS = ("solver1_from", "solver1_to", "later")
+READ_MARKS = ("move_from", "move_to")
+
+
 def encoding_figure(src: Sources) -> str | None:
-    """One of the dataset's positions twice: as it was played, and as the networks read it, with its marks."""
+    """One of the dataset's positions twice: as it was played, and as the networks read it, with the marks
+    the task lets them read."""
     examples = src.look["examples"].get("typical")
     if not examples:
         return None
@@ -862,21 +870,26 @@ def encoding_figure(src: Sources) -> str | None:
         pair = [uci[0:2], uci[2:4]]
         return [boards.mirror_square(square) for square in pair] if black else pair
 
+    def read(names: tuple[str, ...]) -> bool:
+        return any(name in src.marks for name in names)
+
     fields = []
     context = moves.get("setup") or moves.get("last_move")
-    if context:
+    if context and read(CONTEXT_MARKS):
         fields.append((squares(context), boards.CONTEXT))
-    for index, uci in enumerate(moves.get("line", "").split()):
-        fields.append((squares(uci), boards.SUBJECT if index % 2 == 0 else boards.OTHER))
-    fields += [(squares(moves[name]), boards.SUBJECT) for name in READ_MOVES if moves.get(name)]
+    if read(LINE_MARKS):
+        for index, uci in enumerate(moves.get("line", "").split()):
+            fields.append((squares(uci), boards.SUBJECT if index % 2 == 0 else boards.OTHER))
+    if read(READ_MARKS):
+        fields += [(squares(moves[name]), boards.SUBJECT) for name in READ_MOVES if moves.get(name)]
     played = boards.board(fen, arrows=_arrows(moves), from_mover=False, size="11pt")
-    read = boards.board(boards.mirrored(fen), fields=fields, from_mover=False, size="11pt")
+    encoded = boards.board(boards.mirrored(fen), fields=fields, from_mover=False, size="11pt")
     return (
         "\\begin{minipage}[t]{0.46\\textwidth}\\centering\n"
         f"{played}\\par\\smallskip\n{{\\small As it was played: {boards.mover(fen)} to move.}}\n"
         "\\end{minipage}\\hfill\n"
         "\\begin{minipage}[t]{0.46\\textwidth}\\centering\n"
-        f"{read}\\par\\smallskip\n{{\\small As encoded: the side to move plays up the board.}}\n"
+        f"{encoded}\\par\\smallskip\n{{\\small As encoded: the side to move plays up the board.}}\n"
         "\\end{minipage}"
     )
 
