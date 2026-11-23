@@ -435,7 +435,7 @@ def pairs_table(src: Sources) -> str | None:
     name = ">{\\raggedright\\arraybackslash}p{2.45cm}"
     head = ["Model", "Baseline", "Change", "Validation", "Test", "95\\% CI"]
     table = tex.tabular(f"{name}{name}Lrrr", head, rows, width="\\textwidth", pages=True)
-    gain = f"\\multicolumn{{3}}{{c}}{{Gain in {METRIC_NAMES[src.primary]}}}"
+    gain = f"\\multicolumn{{3}}{{c}}{{Gain in {METRIC_WORDS[src.primary]}}}"
     return tex.grouped(table, ["", "", "", gain], [(4, 6)])
 
 

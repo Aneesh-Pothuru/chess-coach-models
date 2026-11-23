@@ -296,6 +296,24 @@ def test_an_axis_of_hundreds_prints_no_more_decimals_than_its_ticks_have():
     assert "number format" not in charts.intervals([("run", 0.47, 0.46, 0.48)], xlabel="First right")
 
 
+def test_a_narrow_axis_of_small_numbers_sets_its_ticks_as_far_apart_as_their_labels_are_wide():
+    # pgfplots stepped half a page of gains by 0.002, and the labels (-0.014, -0.012) ran into one another.
+    gains = [("first move", -0.0133, -0.01438, -0.01216), ("passed pawns", -0.00013, -0.00069, 0.00041)]
+    narrow = charts.intervals(gains, xlabel="Gain in log loss", reference=0.0, width="0.5\\textwidth")
+    assert "xtick distance=0.005" in narrow
+    # The same gains across the page, and an axis of short labels, keep the steps pgfplots takes by itself.
+    assert "xtick distance" not in charts.intervals(gains, xlabel="Gain in log loss", reference=0.0, width="0.95\\textwidth")
+    scores = [("run", 204.1, 200.2, 208.2), ("other", 242.7, 238.3, 247.2)]
+    assert "xtick distance" not in charts.intervals(scores, xlabel="MAE", width="0.5\\textwidth")
+    # The steps pgfplots was seen to take: 0.002 for these gains on half the page and across it, 10 for the scores.
+    assert charts._own_step(0.01715, 0.5 * charts.TEXT_WIDTH - 45) == pytest.approx(0.002)
+    assert charts._own_step(0.01715, 0.95 * charts.TEXT_WIDTH - 45) == pytest.approx(0.002)
+    assert charts._own_step(55.0, 0.5 * charts.TEXT_WIDTH - 45) == pytest.approx(10.0)
+    assert charts._own_step(0.053, 0.62 * charts.TEXT_WIDTH - 45) == pytest.approx(0.01)
+    groups = [("Rating", [("low", -0.0133, -0.01438, -0.01216, "labBlue"), ("high", -0.00013, -0.00069, 0.00041, "labBlue")])]
+    assert "xtick distance=0.005" in charts.grouped_intervals(groups, xlabel="Gain", reference=0.0, width="0.5\\textwidth")
+
+
 def test_a_run_keeps_its_lane_colour_and_mark_from_strip_to_strip():
     drawn = charts.strips(
         [("first-model", [("gbm-context", 40.0), ("transformer-small", 101.0)]), ("second-model", [("gbm-context", 65.0)])],

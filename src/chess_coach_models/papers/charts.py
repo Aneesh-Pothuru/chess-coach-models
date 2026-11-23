@@ -88,6 +88,15 @@ DIVERGING = ("labBlue", "labOrange")
 # number. So from a hundred up the fourth decimal is past what pgf holds, and a tick at 246 prints as 246.0001.
 MOST_DECIMALS = 4
 PGF_DIGITS = 7
+# pgfplots gives an axis a tick for every so many points of its length and no fewer than so many ticks, and keeps
+# this much of the width it is given for what stands around an axis, in points. A tick label is set in
+# sans-serif at ten points: the widths of a figure, a decimal point and a minus sign there, and the least room
+# between two labels.
+TICK_SPACE = 35.0
+FEWEST_TICKS = 4
+AXIS_SURROUND = 45.0
+FIGURE_WIDTH, POINT_WIDTH, MINUS_WIDTH = 5.0, 2.8, 7.8
+LABEL_GAP = 4.0
 
 
 def _changed(run: str) -> tuple[str, str] | None:
@@ -175,6 +184,53 @@ def _tick_decimals(axis: str, values: Sequence[float | None]) -> list[str]:
     return [f"{axis}ticklabel style={{/pgf/number format/precision={decimals}}}"]
 
 
+def _label_width(tick: float) -> float:
+    """The width in points of a tick's label as the papers' axis style prints it: to four decimals at most, with no closing zeros."""
+    text = f"{tick:.{MOST_DECIMALS}f}".rstrip("0").rstrip(".")
+    if text in ("-0", ""):
+        text = "0"
+    figures = sum(character.isdigit() for character in text)
+    return FIGURE_WIDTH * figures + POINT_WIDTH * text.count(".") + MINUS_WIDTH * text.count("-")
+
+
+def _own_step(span: float, length: float) -> float:
+    """The step pgfplots gives a linear axis that spans ``span`` over ``length`` points (``pgfplotsticks.code.tex``):
+    the span over the ticks it wants, taken to one, two or five of a power of ten."""
+    raw = span / (max(FEWEST_TICKS, int(length / TICK_SPACE) + 1) - 1)
+    power = math.floor(math.log10(raw))
+    mantissa = raw / 10.0**power
+    return (1 if mantissa < 1.5 else 2 if mantissa < 3.5 else 5 if mantissa < 7.5 else 10) * 10.0**power
+
+
+def _tick_distance(axis: str, low: float, high: float, width: str) -> list[str]:
+    """The option that sets an axis's ticks further apart, where pgfplots would run their labels into one another.
+
+    pgfplots chooses a step from the length of an axis and does not ask how wide a label is: on a narrow axis
+    of small numbers (a gain of -0.014 on half the page) the labels overlap. Where the step it would take is
+    narrower than its widest label, the axis takes the finest step of one, two or five that is not. ``width``
+    is the picture's, as a share of the text's.
+    """
+    try:
+        length = float(width.removesuffix("\\textwidth")) * TEXT_WIDTH - AXIS_SURROUND
+    except ValueError:
+        return []
+    span = high - low
+    if span <= 0 or length <= 0:
+        return []
+
+    def fits(step: float) -> bool:
+        ticks = [index * step for index in range(math.ceil(low / step), math.floor(high / step) + 1)]
+        return max(map(_label_width, ticks), default=0.0) + LABEL_GAP <= step / span * length
+
+    own = _own_step(span, length)
+    if fits(own):
+        return []
+    power = math.floor(math.log10(own))
+    wider = [times * 10.0**more for more in range(power, power + 3) for times in (1, 2, 5)]
+    roomy = [step for step in wider if step > own * (1 + 1e-9) and fits(step)]
+    return [f"{axis}tick distance={_number(roomy[0])}"] if roomy else []
+
+
 def _options(options: Sequence[str]) -> str:
     return ",\n  ".join(option for option in options if option)
 
@@ -259,6 +315,7 @@ def intervals(
         f"xlabel={{{xlabel}}}",
         f"xmin={_number(min(shown) - 0.08 * span)}, xmax={_number(max(shown) + 0.08 * span)}",
         *_tick_decimals("x", shown),
+        *_tick_distance("x", min(shown) - 0.08 * span, max(shown) + 0.08 * span, width),
     ]
     return _picture(options, body)
 
@@ -317,6 +374,7 @@ def grouped_intervals(
         f"xlabel={{{xlabel}}}",
         f"xmin={_number(min(shown) - 0.08 * span)}, xmax={_number(max(shown) + 0.08 * span)}",
         *_tick_decimals("x", shown),
+        *_tick_distance("x", min(shown) - 0.08 * span, max(shown) + 0.08 * span, width),
     ]
     return _picture(options, body)
 
