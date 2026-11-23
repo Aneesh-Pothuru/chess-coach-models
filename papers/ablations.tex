@@ -1,0 +1,114 @@
+% Ablations: what a modification is, the table of paired comparisons and the
+% two figures of validation curves. The same for every task, so a model paper
+% inputs this file at the start of its ablation section and then reports its
+% own findings. Each part appears once the task has the runs it needs, and the
+% list below needs at least one of its items.
+% The prose follows docs/writing.md.
+\ifpairs
+The main results compare complete models. An ablation isolates one factor: it
+compares a model with its \emph{base}, a model that differs from it in a
+single respect. Table~\ref{tab:pairs} lists every such comparison for this
+task, with the gain of the modified model over its base on the validation set
+and its paired gain on the test set, computed on the same resampled test
+games as in the main results. The acceptance criterion of
+Section~\ref{sec:protocol} is applied to these pairs. The modifications are
+the following.
+\begin{itemize}
+\ifchangehand
+\item \textbf{Hand-crafted features} (suffix \code{-hand}): the network
+receives the hand-crafted features as additional context features.
+\fi
+\ifchangeepochs
+\item \textbf{Longer schedule} (suffix \code{-long}): twice the training
+epochs, with the same warm-up fraction and cosine schedule.
+\fi
+\ifchangestart
+\item \textbf{Pretraining} (suffix \code{-pretrained}): the transformer
+encoder is initialised from a transformer of the same size that was trained
+to predict the engine's win probability for positions from the Lichess
+evaluation database~\cite{lichessdb}. The piece and square embeddings and all
+transformer layers are copied. The prediction head is initialised randomly,
+as are the projections of the auxiliary planes that the pretraining task does
+not have and, unless the two tasks have the same context features, the
+projection of the context features. Training then follows the standard
+schedule.
+\fi
+\ifchangeattacks
+\item \textbf{Attack-aware attention bias} (suffix \code{-attacks}): the
+relative position bias encodes where two squares lie and not what stands
+between them. With this modification each attention head learns four
+additional biases for a pair of squares, applied when the piece on one square
+attacks the other, when it is attacked from the other, and for the same two
+relations through exactly one intervening piece, as in a pin or a skewer. The
+relations are computed from the tokens without search, and the biases are
+initialised to zero.
+\fi
+\ifchangegeometry
+\item \textbf{No relative position bias} (suffix \code{-no-geometry}): the
+relative position bias is removed. This configuration measures the
+contribution of the bias and is not a candidate model.
+\fi
+\ifchangeconv
+\item \textbf{ResNet encoder} (prefix \code{conv-medium}): a ResNet with
+squeeze-and-excitation in place of the transformer, trained at the higher
+peak learning rate used for the convolutional models.
+\fi
+\ifchangehybrid
+\item \textbf{Hybrid encoder} (prefix \code{hybrid-medium}): a few residual
+convolutional blocks followed by transformer layers over the resulting
+square representations.
+\fi
+\ifchangelarger
+\item \textbf{Larger transformer} (prefix \code{transformer-large}): more layers and
+a larger width, with the training schedule unchanged.
+\fi
+\ifgames
+\item \textbf{Training-set size}: the same model trained on a fraction or a
+multiple of the training games (Section~\ref{sec:training-size}).
+\fi
+\iffeatures
+\item \textbf{Feature groups}: a model trained without one group of
+hand-crafted features at a time (Section~\ref{sec:feature-groups}).
+\fi
+\end{itemize}
+
+\longblock{pairs}{Paired comparisons. Each row compares a model with a
+baseline, in most rows the model it modifies. \emph{Change} states how the
+two differ. The gain is that of the model over the baseline and is positive
+when the model is better. On
+the validation set it is the difference between the two scores. On the test
+set it is the paired gain, with its 95\% CI, and is set in bold when
+statistically significant.}{tab:pairs}
+\fi
+
+\ifvariants
+Figure~\ref{fig:variants} shows the validation curves of each model of the
+fixed sequence whose training schedule or initialisation was modified,
+together with the modified models. A modified model has the colour of its
+base and a broken line: long dashes for a longer schedule and dots for a
+pretrained encoder.
+
+\begin{figure}[htbp]\centering
+\block{variants}
+\caption{Validation curves of a model of the fixed sequence (solid line) and
+of the models that modify its training schedule or initialisation (broken
+lines), after every epoch. One panel per base model, on a common scale. The
+dashed horizontal line is the GBDT baseline's validation score.}
+\label{fig:variants}
+\end{figure}
+\fi
+
+\ifshapes
+Figure~\ref{fig:shapes} shows the validation curves of the models that
+change the architecture and nothing about the training data, each in its own
+panel beside its base.
+
+\begin{figure}[htbp]\centering
+\block{shapes}
+\caption{Validation curves of a model with a modified architecture (broken
+line) and of its base (solid line), after every epoch. One panel per modified
+model, on a common scale. The dashed horizontal line is the GBDT baseline's
+validation score.}
+\label{fig:shapes}
+\end{figure}
+\fi

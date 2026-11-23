@@ -56,7 +56,8 @@ def generate(model: str, *, smoke: bool = False) -> tuple[Sources, tex.Generated
 
 def switches(src: Sources, out: tex.Generated) -> dict[str, bool]:
     """What a paper may ask before it reads: each is ``\\if<name>`` in its prose, on when the model's files give
-    what the name stands for."""
+    what the name stands for. ``contextgbdt`` is on when the model has GBDT on the context features alone, and
+    ``change<kind>`` when a pair of that kind of change is measured (``changes.KINDS``)."""
     found = {
         "pairs": "pairs" in out.files,
         "variants": "variants" in out.files,
@@ -65,12 +66,15 @@ def switches(src: Sources, out: tex.Generated) -> dict[str, bool]:
         "features": "study-features" in out.files,
     }
     beside = {"shown": "shown" in out.files, "shownpaired": bool(shown.measured(src))}
+    measured = changes.kinds(src)
     return {
         "look": src.closer,
         "chance": src.task.kind == "binary",
         "sequence": src.sequence,
+        "contextgbdt": any(run["run"] == "gbm-context" for run in src.runs),
         **found,
         "changes": any(found.values()),
+        **{f"change{name}": name in measured for name in changes.KINDS},
         "more": bool(changes.more(src)),
         **beside,
     }

@@ -1,0 +1,43 @@
+% Training-set size: the same ablation for every task, so a model paper
+% inputs this file inside its ablation section and then reports its own
+% findings. It appears once the task has the runs.
+% The prose follows docs/writing.md.
+\ifgames
+\subsection{Training-set size}
+\label{sec:training-size}
+
+To estimate how much a model's accuracy depends on the amount of training
+data, we retrain it on a half and on a quarter of the training games and
+evaluate it on the full test set (Table~\ref{tab:games},
+Figure~\ref{fig:games}). The subsets are selected by a hash of the game
+identifier and are nested, so the quarter is contained in the half. A network
+is given twice the epochs on half the games and four times the epochs on a
+quarter, so the number of optimisation steps is constant and only the amount
+of data varies.
+\ifmore
+We also train on more data. A larger sample of the same source is split in
+the same way as the standard dataset, so the validation and test sets are
+unchanged and no test game appears in the larger training set. A network
+trained on a larger set is given proportionally fewer epochs, so that it
+again takes the same number of optimisation steps as its base. Unlike a model
+trained on a subset, a model trained on more data is a candidate model, and
+the acceptance criterion applies to it.
+\fi
+
+\begin{table}[htbp]\centering\footnotesize
+\block{study-games}
+\caption{Training-set size. Each model is trained on a fraction of the
+training games\ifmore, or on a multiple of them from the larger sample,\fi{}
+and evaluated on the full test set. The gain is paired with the same model
+trained on the standard training set. A negative gain means that the model is
+worse, and bold marks statistical significance.}
+\label{tab:games}
+\end{table}
+
+\begin{figure}[htbp]\centering
+\block{study-games-figure}
+\caption{Test score as a function of the number of training games. Each step
+to the right doubles the training set.}
+\label{fig:games}
+\end{figure}
+\fi

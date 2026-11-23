@@ -1236,7 +1236,7 @@ def test_a_model_whose_rows_are_sequences_runs_scores_and_ranks(players_lab):
     text = (paths.results(model, smoke=True) / "leaderboard.md").read_text()
     assert "for each position, then 1 transformer layer over the positions in order" in text
     # A row is shown by the position before the player's costliest move, with that move on the board.
-    assert "The player's costliest move:" in out.files["examples-typical"] and "encoding" in out.files
+    assert "The player's most costly move:" in out.files["examples-typical"] and "encoding" in out.files
 
 
 def test_a_network_over_a_game_scores_a_row_the_same_whatever_it_is_scored_with(players_lab):

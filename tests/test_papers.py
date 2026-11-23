@@ -786,7 +786,7 @@ def test_an_example_s_board_shows_the_move_its_row_is_about():
     # A game: the board is the position before the player's costliest move, and that move is the one shown.
     game = {"last_move": "b2b4", "worst_move": "f5f4"}
     assert closer._arrows(game) == [("b2b4", grey), ("f5f4", blue)]
-    assert closer._subject(game) == ("The player's costliest move", "f5f4")
+    assert closer._subject(game) == ("The player's most costly move", "f5f4")
     assert set(closer.READ_MOVES) <= set(closer.SUBJECT_MOVES)
 
 
@@ -837,6 +837,55 @@ def test_every_switch_a_build_sets_is_one_the_preamble_declares():
     src = _longer("puzzle-difficulty", (0.1, -0.2, 0.4))
     assert set(overview.switches(overview.Lab({"puzzle-difficulty": src}, {}, {}))) <= declared
     assert set(build.switches(src, tex.Generated("a test"))) <= declared
+
+
+def test_a_model_s_paper_has_a_switch_for_each_kind_of_change_it_measured():
+    level, ahead, behind = (0.1, -0.2, 0.4), (0.3, 0.1, 0.5), (-0.3, -0.5, -0.1)
+    shaped = _shaped("puzzle-difficulty", {"conv-medium-hand": behind, "transformer-medium-hand-attacks": ahead})
+    assert changes.kinds(shaped) == {"conv", "attacks"}
+    on = build.switches(shaped, tex.Generated("a test"))
+    assert on["changeconv"] and on["changeattacks"] and not on["changehybrid"] and not on["changeepochs"]
+    # A kind is every kind a pair can be of, in the order a paper lists them, and each has its switch.
+    assert changes.KINDS == ("hand", "epochs", "start", "attacks", "geometry", "conv", "hybrid", "larger")
+    assert all(f"change{name}" in on for name in changes.KINDS)
+    # The trees on the context features alone are a run some models have and others do not.
+    longer = _longer("puzzle-difficulty", level)
+    assert changes.kinds(longer) == {"epochs"}
+    assert build.switches(longer, tex.Generated("a test"))["contextgbdt"] and not on["contextgbdt"]
+
+
+def test_the_pairs_stand_by_the_kind_of_their_change_in_the_order_a_paper_lists_the_kinds():
+    ahead, behind = (0.3, 0.1, 0.5), (-0.3, -0.5, -0.1)
+    names = ("transformer-large-hand", "hybrid-medium-hand", "conv-medium-hand", "transformer-medium-hand-no-geometry", "transformer-medium-hand-attacks")
+    table = changes.pairs_table(_shaped("puzzle-difficulty", dict(zip(names, (behind, behind, ahead, behind, ahead)))))
+    listed = ("transformer-medium-hand-attacks", "transformer-medium-hand-no-geometry", "conv-medium-hand", "hybrid-medium-hand", "transformer-large-hand")
+    places = [table.index(f"\\run{{{name}}} &") for name in listed]
+    assert places == sorted(places)
+
+
+def test_a_hand_feature_the_task_gives_as_context_is_counted_once():
+    task = tasks.get("puzzle-difficulty")
+    assert "solver_moves" in task.context and "solver_moves" in GROUPS["line"]
+    hand = ("material_count", "solver_moves", "line_quiet", "ends_in_mate")
+    src = sources.Sources("puzzle-difficulty", False, task, [], [], {}, {}, None, (), hand)
+    # A run that leaves the line's group out keeps the context feature, so it loses two features, not three.
+    assert src.extra == ["material_count", "line_quiet", "ends_in_mate"]
+    assert src.group_size("line") == 2 and src.group_size("material") == 1 and src.group_size("kings") == 0
+
+
+def test_a_plan_s_titles_stand_in_place_of_the_ones_an_analysis_was_written_with():
+    look = {
+        "slices": [{"key": "band", "title": "Old band"}, {"key": "moves", "title": "Old moves"}, {"key": "themes", "title": "Theme"}],
+        "grids": [{"key": "moves-pieces", "rows": {"title": "Old rows"}, "columns": {"title": "Old columns"}}],
+    }
+    plan = {
+        "band": {"title": "Puzzle rating"},
+        "slices": [{"key": "moves", "title": "Solution length"}],
+        "grids": [{"key": "moves-pieces", "rows": {"title": "Solution length"}, "columns": {"column": "phase_piece_count"}}],
+    }
+    read = sources.retitled(look, plan)
+    assert [one["title"] for one in read["slices"]] == ["Puzzle rating", "Solution length", "Theme"]
+    assert read["grids"][0]["rows"]["title"] == "Solution length" and read["grids"][0]["columns"]["title"] == "Old columns"
 
 
 def test_a_run_that_was_filed_keeps_its_pair_and_its_place_beside_the_run_it_changed():
@@ -1083,9 +1132,9 @@ def test_the_glossary_has_words_for_every_name_a_paper_can_show(model):
 
 
 def test_a_feature_of_one_end_of_a_move_is_worded_from_the_square_s_own():
-    assert glossary.label("to_last_to") == "where the move ends: square the last move reached"
-    assert glossary.says("from_square_pinned") == "Of the square the move leaves: whether the piece on the square is pinned to its own king."
-    assert glossary.label("move_piece") == "piece that moves"
+    assert glossary.label("to_last_to") == "destination square: destination of the last move"
+    assert glossary.says("from_square_pinned") == "Of the move's origin square: whether the piece on the square is pinned to its own king."
+    assert glossary.label("move_piece") == "piece moved"
     with pytest.raises(KeyError):
         glossary.label("to_nothing_known")
 

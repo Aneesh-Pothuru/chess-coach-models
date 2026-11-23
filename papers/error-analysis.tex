@@ -1,0 +1,44 @@
+% Error analysis: what the analysis is and how it is computed, the same for
+% every task. A model paper inputs this file at the start of its error
+% analysis, before the subgroups that are specific to its task.
+% The prose follows docs/writing.md.
+\iflook
+The main results identify the best model. They do not show where a model is
+accurate and where it is not, which determines how it can be used. We
+therefore analyse the test predictions of every model by subgroup. All
+results in this section are computed from the \V{look.test-rows} test
+examples (analysis of \V{look.date}).
+
+\paragraph{Subgroups.}
+We partition the test set by one variable at a time. For each subgroup we
+report the number of test examples, the mean observed target, the mean
+prediction of a model and the model's score. Two models are compared:
+\V{challenger.name}, the best model other than the GBDT baseline, and the
+GBDT baseline itself. The gain of the first over the second is computed
+within each subgroup as for the whole test set, as a paired difference over
+resampled games (\V{look.resamples} resamples), and is omitted for subgroups
+with fewer than \V{look.smallest-compared} test examples. A subgroup whose
+interval contains zero provides no evidence in either direction. A numeric
+variable is divided into ranges, and a range written $a$-$b$ includes $a$ and
+excludes $b$.
+
+\paragraph{Two-way tables.}
+For a pair of variables we show the mean observed target and the mean
+prediction in each cell, on a common colour scale. Cells with fewer than
+\V{grid.smallest-cell} test examples are left empty.
+
+\paragraph{Examples.}
+Example \ifsequence games\else positions\fi{} are selected by fixed rules and
+not by inspection: typical examples chosen by a hash of their key, the
+examples with the best model's most extreme predictions in each direction,
+and its largest errors in each direction, \V{examples.count} of each. They
+illustrate the quantities under discussion and are not evidence of how often
+a pattern occurs.
+\else
+\emph{This version of the paper was built before the error analysis was run.
+The analysis partitions the test set by rating, clock and properties of the
+position, measures calibration, and shows example positions. It is produced
+by \texttt{lab analyse} on the machine that holds the dataset and the test
+predictions of every model, and this section appears once its output is
+committed.}
+\fi

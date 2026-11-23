@@ -1,0 +1,57 @@
+% Evaluation protocol: the same for every task. Each model paper names its
+% own metrics under its section heading and inputs the rest from here.
+% The prose follows docs/writing.md.
+\paragraph{Confidence intervals.}
+Examples from the same game are not independent, so we resample whole games.
+The test games are drawn with replacement \V{method.resamples} times, the
+metric is computed each time on the examples of the games drawn, and the
+2.5th and 97.5th percentiles of these values form the 95\% confidence
+interval (CI) that we report with every score.
+
+\paragraph{Paired comparisons.}
+To compare two models we compute both scores on the same resampled games and
+take their difference. We call this difference the \emph{gain} of the first
+model over the second, and sign it so that a positive gain means that the
+first model is better. A gain is \emph{statistically significant} when its
+95\% CI excludes zero, and is then set in bold in the tables. Unless stated
+otherwise, the second model is the GBDT baseline. Two models tend to do well
+and badly on the same games, so a paired gain can be significant even when
+the two models' separate intervals overlap. These intervals reflect the
+sampling of test games only. Each network was trained with a single random
+seed, and the variation between training runs is not included.
+
+\paragraph{Model selection.}
+\ifchance
+The number of trees, the training epoch whose weights are kept and the
+calibration parameters are chosen on the validation set.
+\else
+The number of trees and the training epoch whose weights are kept are chosen
+on the validation set.
+\fi
+The test set is used once per model, for the scores reported here.
+
+\ifchance
+\paragraph{Calibration.}
+Before a model is scored, its predicted probabilities are rescaled by Platt
+scaling~\cite{platt}: a logistic function of the log-odds whose slope and
+intercept are fitted on the validation set. The transformation is monotone,
+so it leaves a model's ranking of the examples unchanged and affects only its
+log loss and its calibration. What remains of a model's miscalibration after
+this step cannot be removed by a linear correction of its log-odds.
+\fi
+
+\ifpairs
+\paragraph{Acceptance criterion.}
+Section~\ref{sec:ablations} evaluates modifications of the models. A
+modification is \emph{accepted} only if the modified model is better than the
+unmodified one on the validation set and its paired gain on the test set is
+statistically significant. A modification that is not accepted is still
+reported, as a measurement of its effect.
+\fi
+
+\paragraph{Tables and figures.}
+A model has the same colour and marker in every figure, and the GBDT baseline
+is always drawn in orange. The values plotted in a figure are also given in a
+table, in the text or in the appendix. All numbers, tables and figures are
+generated from the committed result files by the command that builds the
+paper.

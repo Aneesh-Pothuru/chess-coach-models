@@ -3,38 +3,38 @@
 \toprule
 Feature & Description \\
 \midrule
-\texttt{material\_count} & Both sides' material added up, a pawn as 1, a knight 3, a bishop 3.25, a rook 5, a queen 9. \\
-\texttt{material\_imbalance} & The mover's material less the opponent's, on the same scale. \\
-\texttt{phase\_piece\_count} & Knights, bishops, rooks and queens still on the board, both sides. \\
+\texttt{material\_count} & The total material of both sides, counting a pawn as 1, a knight as 3, a bishop as 3.25, a rook as 5 and a queen as 9. \\
+\texttt{material\_imbalance} & The mover's material minus the opponent's, on the same scale. \\
+\texttt{phase\_piece\_count} & The number of knights, bishops, rooks and queens on the board, both sides together. \\
 \texttt{in\_check} & Whether the mover is in check. \\
-\texttt{legal\_moves} & How many legal moves the mover has. \\
-\texttt{legal\_captures} & How many of the mover's legal moves take something. \\
-\texttt{legal\_checks} & How many of the mover's legal moves give check. \\
-\texttt{hanging\_own} & The mover's pieces that something cheaper attacks, or that anything attacks while nothing defends them. \\
-\texttt{hanging\_opponent} & The opponent's pieces that something cheaper attacks, or that anything attacks while nothing defends them. \\
-\texttt{passed\_pawns\_own} & The mover's pawns with no enemy pawn ahead of them on their file or a neighbouring one. \\
-\texttt{passed\_pawns\_opponent} & The opponent's pawns with no enemy pawn ahead of them on their file or a neighbouring one. \\
-\texttt{attackers\_near\_own\_king} & How many attacks the opponent has on the squares around the mover's king. \\
-\texttt{attackers\_near\_opponent\_king} & How many attacks the mover has on the squares around the opponent's king. \\
-\texttt{first\_piece} & Which piece makes the line's first move, from pawn (1) to king (6). \\
-\texttt{first\_capture} & Whether the line's first move takes something. \\
-\texttt{first\_captured\_value} & The value of what the line's first move takes. \\
-\texttt{first\_check} & Whether the line's first move gives check. \\
-\texttt{first\_promotion} & Whether the line's first move promotes a pawn. \\
-\texttt{first\_distance} & How many squares the first move travels, counted as a king would walk it. \\
-\texttt{first\_backward} & Whether the first move goes back toward the mover's own side. \\
-\texttt{first\_to\_attacked} & Whether the opponent attacks the square the first move lands on. \\
-\texttt{first\_sacrifice} & Whether the piece that moves first can be taken where it lands, having won less than it is worth. \\
-\texttt{line\_checks} & How many of the solver's moves give check. \\
-\texttt{line\_captures} & How many of the solver's moves take something. \\
-\texttt{line\_quiet} & How many of the solver's moves neither take nor check. \\
-\texttt{line\_promotions} & How many of the solver's moves promote a pawn. \\
-\texttt{line\_pieces\_moved} & How many different pieces the solver moves. \\
-\texttt{line\_sacrifices} & How many of the solver's moves give up material. \\
-\texttt{line\_max\_distance} & The longest distance one of the solver's moves travels. \\
+\texttt{legal\_moves} & The number of legal moves the mover has. \\
+\texttt{legal\_captures} & The number of the mover's legal moves that are captures. \\
+\texttt{legal\_checks} & The number of the mover's legal moves that give check. \\
+\texttt{hanging\_own} & The number of the mover's pieces that are attacked by a less valuable piece, or attacked and not defended. \\
+\texttt{hanging\_opponent} & The number of the opponent's pieces that are attacked by a less valuable piece, or attacked and not defended. \\
+\texttt{passed\_pawns\_own} & The number of the mover's pawns with no enemy pawn ahead of them on their own or an adjacent file. \\
+\texttt{passed\_pawns\_opponent} & The number of the opponent's pawns with no enemy pawn ahead of them on their own or an adjacent file. \\
+\texttt{attackers\_near\_own\_king} & The number of attacks by the opponent on the squares adjacent to the mover's king. \\
+\texttt{attackers\_near\_opponent\_king} & The number of attacks by the mover on the squares adjacent to the opponent's king. \\
+\texttt{first\_piece} & The piece that makes the first move of the line, from pawn (1) to king (6). \\
+\texttt{first\_capture} & Whether the first move of the line is a capture. \\
+\texttt{first\_captured\_value} & The value of the piece captured by the first move of the line. \\
+\texttt{first\_check} & Whether the first move of the line gives check. \\
+\texttt{first\_promotion} & Whether the first move of the line promotes a pawn. \\
+\texttt{first\_distance} & The distance covered by the first move, in king moves (Chebyshev distance). \\
+\texttt{first\_backward} & Whether the first move goes backward, towards the mover's own side of the board. \\
+\texttt{first\_to\_attacked} & Whether the destination square of the first move is attacked by the opponent. \\
+\texttt{first\_sacrifice} & Whether the piece moved first can be captured on its destination square, by a less valuable piece or while undefended, having captured less than its own value. \\
+\texttt{line\_checks} & The number of the solver's moves that give check. \\
+\texttt{line\_captures} & The number of the solver's moves that are captures. \\
+\texttt{line\_quiet} & The number of the solver's moves that are neither captures nor checks. \\
+\texttt{line\_promotions} & The number of the solver's moves that promote a pawn. \\
+\texttt{line\_pieces\_moved} & The number of different pieces the solver moves. \\
+\texttt{line\_sacrifices} & The number of the solver's moves that sacrifice material. \\
+\texttt{line\_max\_distance} & The largest distance covered by one of the solver's moves. \\
 \texttt{ends\_in\_mate} & Whether the line ends in checkmate. \\
-\texttt{reply\_captures} & How many of the opponent's replies in the line take something. \\
-\texttt{setup\_capture} & Whether the opponent's move that set the position up took something. \\
-\texttt{final\_material\_gain} & The material balance after the line, less the balance before it. \\
+\texttt{reply\_captures} & The number of the opponent's replies in the line that are captures. \\
+\texttt{setup\_capture} & Whether the opponent's move that leads to the position was a capture. \\
+\texttt{final\_material\_gain} & The material balance after the line minus the balance before it. \\
 \bottomrule
 \end{tabularx}

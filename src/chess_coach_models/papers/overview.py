@@ -803,7 +803,8 @@ def features_table(lab: Lab) -> str | None:
     rows = []
     for group, entries in found.items():
         words = glossary.group(group)
-        rows.append([words[:1].upper() + words[1:], str(len(GROUP_FEATURES[group])), *[_cell(lab, name, entries.get(name)) for name in models]])
+        sizes = sorted({lab.models[name].group_size(group) for name in entries})
+        rows.append([words[:1].upper() + words[1:], " or ".join(str(size) for size in sizes), *[_cell(lab, name, entries.get(name)) for name in models]])
     head = ["Removed group", "Features", *[wide_head(titled(name), 1, "1.9cm") for name in models]]
     return tex.tabular(f">{{\\raggedright\\arraybackslash}}p{{4.3cm}}r{'r' * len(models)}", head, rows)
 

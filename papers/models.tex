@@ -1,0 +1,114 @@
+% Models and training: the same sequence of models for every task, so each
+% model paper inputs this file under its own heading.
+% The prose follows docs/writing.md.
+Every task is given the same sequence of models, so that each step of the
+sequence measures the contribution of one component. A model is fitted on the
+training set, selected on the validation set and scored once on the test set.
+Table~\ref{tab:runs} lists the models of this task.
+
+\paragraph{Constant baseline.}
+\run{constant} predicts the same value for every example: the mean of the
+training targets (for a binary target, the base rate), or their median when
+the primary metric is an absolute error. A useful model has to improve on it.
+
+\paragraph{Gradient-boosted decision trees.}
+\ifcontextgbdt
+\run{gbm-context} is a gradient-boosted decision tree model (GBDT), trained
+with LightGBM~\cite{lightgbm} on the scalar context features alone. It never
+sees the board, and so measures how much of the target the context already
+determines. \run{gbm-hand} adds the hand-crafted features.
+\else
+\run{gbm-hand} is a gradient-boosted decision tree model (GBDT), trained with
+LightGBM~\cite{lightgbm} on the scalar context features and the hand-crafted
+features.
+\fi
+We refer to \run{gbm-hand} as \emph{the GBDT baseline}: every other model is
+compared with it on the same test examples. GBDT is trained for at most
+\V{method.gbm.rounds} boosting rounds with up to \V{method.gbm.leaves} leaves
+per tree and a learning rate of \V{method.gbm.rate}. Each tree is fitted on a
+random \V{method.gbm.rows.percent}\% of the examples and
+\V{method.gbm.features.percent}\% of the features, and boosting stops when the
+validation score has not improved for \V{method.gbm.patience} rounds.
+
+\paragraph{Neural networks.}
+A network consists of an encoder, which maps the square tokens, the auxiliary
+planes and the context features to a vector, and a prediction head, a
+two-layer perceptron that maps this vector to the output. We use two encoder
+architectures, so that the results show how much the architecture matters for
+the task.
+
+The \emph{transformer} encoder~\cite{attention} treats each square as a token.
+The embedding of a token is the sum of a learned embedding of its piece, a
+learned embedding of its square and a linear projection of the square's
+auxiliary planes. The context features are projected by a small perceptron
+and enter as one additional token. Every token attends to every other token
+in every layer, so distant squares interact from the first layer on. To give
+attention the geometry of the board, each attention head adds a learned bias
+that depends on the file and rank offset between two
+squares~\cite{relative}: files, ranks, diagonals and knight moves all
+correspond to fixed offsets. The layers use pre-layer normalisation, and the
+encoder outputs the context token concatenated with the mean of the 64 square
+tokens.
+
+The \emph{residual convolutional network} (ResNet) is a stack of residual
+blocks of $3\times3$ convolutions over the $8\times8$ board, the architecture
+that AlphaZero introduced for chess~\cite{alphazero}. Its input is one binary
+plane per token value together with the auxiliary planes. A linear projection
+of the context features is added at every square after the first convolution,
+and the encoder outputs the mean and the maximum over the squares of the
+final feature map. Unlike attention, a convolution relates only neighbouring
+squares, so the receptive field grows with depth.
+
+\ifsequence
+\paragraph{Sequence model.}
+An example of this task is a sequence of positions, so a network has two
+stages below its prediction head. One of the two encoders above is applied to
+every position of the sequence, with the position's per-move features in
+place of the context features, and produces one vector per position. A
+two-layer transformer then operates on these vectors in the order in which
+the moves were played: each vector is a token, a learned positional embedding
+is added to it, and the game-level context features enter as one additional
+token. The prediction head receives that token concatenated with the mean of
+the position tokens. Sequences in a batch are padded to the length of the
+longest, and padded elements are masked: they are not encoded and no token
+attends to them, so a prediction does not depend on the other examples in
+the batch.
+
+Model sizes are hyperparameters. \run{conv-small} is small enough to train
+on a CPU. An example consists of tens of positions, so
+\run{transformer-small} and \run{transformer-medium} are trained on a GPU.
+\run{transformer-medium-hand} is \run{transformer-medium} with the
+hand-crafted features added to its context features.
+Table~\ref{tab:settings} in the appendix lists the hyperparameters.
+\else
+Model sizes are hyperparameters. \run{conv-small} and \run{transformer-small}
+are small enough to train on a CPU. \run{transformer-medium} is trained on a
+GPU, and \run{transformer-medium-hand} is the same network with the
+hand-crafted features added to its context features.
+Table~\ref{tab:settings} in the appendix lists the hyperparameters.
+\fi
+
+\paragraph{Training.}
+All networks are trained in the same way: with AdamW~\cite{adamw}, a learning
+rate that increases linearly over the first \V{networks.warmup.percent}\% of
+the optimisation steps and then follows a cosine schedule to zero, gradient
+clipping, and mixed precision on a GPU. The loss matches the primary metric:
+mean squared error for a target scored by RMSE, a Huber loss for a target
+scored by MAE, and binary cross-entropy for a probability. A regression
+target is standardised with the mean and standard deviation of the training
+set. After every epoch the network is evaluated on the validation set. We
+keep the weights of the best epoch, and stop training when
+\V{networks.patience} consecutive epochs have not improved on it.
+\ifmore
+A model trained on a larger training set is given proportionally fewer
+epochs, and a correspondingly shorter patience
+(Section~\ref{sec:ablations}).
+\fi
+
+\begin{table}[htbp]\centering\footnotesize
+\block{runs}
+\caption{The models, best first. \emph{Selected} is the number of trees or
+the training epoch chosen on the validation set. \emph{Time} is the total
+wall-clock time for training and evaluation.}
+\label{tab:runs}
+\end{table}

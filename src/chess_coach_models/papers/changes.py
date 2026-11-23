@@ -275,6 +275,20 @@ def kind(run: dict[str, Any], over: dict[str, Any]) -> str | None:
     return "larger" if run["learner"]["parameters"] > over["learner"]["parameters"] else None
 
 
+def kinds(src: Sources) -> set[str]:
+    """The kinds of change (``KIND_OF``, ``SHAPES``) this model has a measured pair of."""
+    found = records(src)
+    made = (
+        kind(found[entry["run"]], found[entry["over"]])
+        for entry in pairs(src)
+        if entry["run"] in found and entry["over"] in found
+    )
+    return {one for one in made if one}
+
+
+# Every kind of change, in the order a paper lists them.
+KINDS = (*KIND_OF.values(), *(shape for shape in SHAPES if shape not in KIND_OF.values()))
+
 # A network's body as a table says it.
 BODIES = {"transformer": "transformer", "conv": "ResNet", "hybrid": "CNN-transformer hybrid"}
 
@@ -395,6 +409,13 @@ def more_values(src: Sources, out: tex.Generated) -> None:
             out.set(f"{prefix}.most.kept", "accepted" if kept(entry, ahead) else "not accepted")
 
 
+def _place(run: dict[str, Any], over: dict[str, Any]) -> tuple[int, str, str]:
+    """Where a pair stands in the table of pairs: by the kind of its change, in the order a paper lists the
+    kinds, then by the run it changes. A pair of no listed kind (a run on more training games) comes last."""
+    made = kind(run, over)
+    return (KINDS.index(made) if made in KINDS else len(KINDS), over["run"], run["run"])
+
+
 def pairs_table(src: Sources) -> str | None:
     """The runs set against the run each changed or has to beat: what differs between the two, and the first's
     paired gain over the second. The runs of the games and the features study have tables of their own."""
@@ -403,10 +424,9 @@ def pairs_table(src: Sources) -> str | None:
     measured = {(entry["run"], entry["over"]): entry for entry in pairs(src) if not tabled(entry)}
     listed = [(entry["run"], entry["over"]) for entry in asked]
     listed += [names for names in measured if names not in listed]
+    listed = [(run, over) for run, over in listed if run in known and over in known]
     rows = []
-    for run, over in listed:
-        if run not in known or over not in known:
-            continue
+    for run, over in sorted(listed, key=lambda names: _place(known[names[0]], known[names[1]])):
         ahead = valid_gain(src, known[run], known[over])
         on_valid = "" if ahead is None else tex.sig(ahead, 3, sign=True)
         rows.append([run_tex(run), run_tex(over), differs(known[run], known[over]), on_valid, *_gain_cells(measured.get((run, over)))])
@@ -567,7 +587,7 @@ def features_table(src: Sources) -> str | None:
         measured = [(run, pair(src, run["run"], base)) for run in runs]
         for run, entry in sorted(measured, key=lambda item: (item[1] is None, item[1]["gain"] if item[1] else 0.0)):
             groups = _left_out(run)
-            count = sum(len(glossary.GROUP_FEATURES[name]) for name in groups)
+            count = sum(src.group_size(name) for name in groups)
             rows.append(
                 [run_tex(run["run"]), " and ".join(glossary.group(name) for name in groups), str(count), _score(src, run), *_gain_cells(entry)]
             )

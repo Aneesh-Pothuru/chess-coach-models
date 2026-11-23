@@ -1,0 +1,128 @@
+% Input representation: identical for every task, so each model paper inputs
+% this file under its own heading and then adds what is specific to its task.
+% The prose follows docs/writing.md.
+All tasks in this project share one input representation, so two tasks differ
+in their target and in the information a model is given, and not in how a
+position is encoded.
+
+\paragraph{Square tokens.}
+A position is encoded as 64 tokens, one per square. Token 0 denotes an empty
+square, tokens 1 to 6 the pawn, knight, bishop, rook, queen and king of the
+side to move, which we call the \emph{mover}, and tokens 7 to 12 the
+opponent's pieces. When Black is to move, the board is flipped vertically and
+the colours are swapped, so that the mover always plays up the board. A
+position with White to move and the corresponding colour-reversed position
+with Black to move therefore have the same encoding, and a model does not
+have to learn the two cases separately.
+
+\paragraph{Auxiliary input planes.}
+Information about individual squares is supplied as binary planes over the 64
+squares, which a network receives together with the tokens. This task uses
+\V{task.marks.count} planes (Table~\ref{tab:marks}). The first marks the en
+passant target square, and the others mark the origin and destination squares
+of moves. A plane identifies the squares of a move and carries no other
+information about it, such as whether the move is a capture or a check.
+
+\begin{table}[htbp]\centering\small
+\block{marks}
+\caption{Auxiliary input planes. Squares are given from the mover's point of
+view, after the board has been flipped.}
+\label{tab:marks}
+\end{table}
+
+\ifsequence
+\paragraph{Sequences of positions.}
+An example of this task is not a single position. It is the sequence of one
+player's moves in a game, and each element of the sequence is a position
+encoded as above: the board before the move, with the opponent's preceding
+move and the move played marked in the auxiliary planes. Scalar inputs
+therefore come at two levels, one for each move and one for the game.
+
+\paragraph{Per-move features.}
+Each position of the sequence has \V{task.steps.count} scalar features of its
+own (Table~\ref{tab:steps}): the four castling rights and the task's
+information about that move. A network receives them together with the
+position they belong to.
+
+\begin{table}[htbp]\centering\small
+\block{steps}
+\caption{Per-move features: the scalar inputs attached to each position of a
+sequence.}
+\label{tab:steps}
+\end{table}
+
+\paragraph{Scalar context features.}
+Information about the game as a whole is given as \V{task.context.count}
+scalar context features (Table~\ref{tab:reads}). Every model receives them,
+including the gradient-boosted trees, which never see a board. For a network,
+both kinds of scalar feature are standardised with the mean and standard
+deviation of the training set.
+
+\begin{table}[htbp]\centering\small
+\block{reads}
+\caption{Scalar context features: the game-level inputs given to every
+model.}
+\label{tab:reads}
+\end{table}
+
+\paragraph{Hand-crafted features.}
+Gradient-boosted trees cannot take a sequence of boards as input, so we also
+compute \V{task.hand.count} aggregate features over the player's moves
+(Table~\ref{tab:hand} in the appendix): how much win probability the moves
+lost on average, at worst and how often beyond fixed thresholds, how the clock
+was used, and how many moves were available. These features have two roles.
+They are the inputs of the GBDT baseline, and so define the level that a
+network reading every position has to exceed. They can also be given to a
+network as additional context features, which tests whether the network
+already extracts the same information from the sequence.
+
+\else
+\paragraph{Scalar context features.}
+Information that does not belong to a square is given as scalar context
+features: the four castling rights and the scalar inputs specific to the
+task. This task uses \V{task.context.count} (Table~\ref{tab:reads}). Every
+model receives them, including the gradient-boosted trees, which never see
+the board. For a network they are standardised with the mean and standard
+deviation of the training set.
+
+\begin{table}[htbp]\centering\small
+\block{reads}
+\caption{Scalar context features: the inputs given to every model in addition
+to the board.}
+\label{tab:reads}
+\end{table}
+
+\paragraph{Hand-crafted features.}
+Gradient-boosted trees cannot take 64 tokens as input, so we also compute
+\V{task.hand.count} hand-crafted features of the position
+(Table~\ref{tab:hand} in the appendix): material, mobility, available checks
+and captures, hanging pieces, passed pawns and attacks near each king, and,
+where the task gives a line of moves, features of that line. These features
+have two roles. They are the inputs of the GBDT baseline, and so define the
+level that a network reading the board has to exceed. They can also be given
+to a network as additional context features, which tests whether the network
+already extracts the same information from the board.
+
+\fi
+
+\iflook
+\begin{figure}[htbp]\centering
+\block{encoding}
+\ifsequence
+\caption{One position of one example, shown twice: the position before the
+player's most costly move of the game. Left: as played, with arrows for the
+opponent's preceding move (grey) and the player's move (blue). Right: as
+encoded, oriented so that the mover plays up the board, with the squares set
+in an auxiliary plane shaded grey for the opponent's move and blue for the
+player's move. Every position of the sequence is encoded in this way.}
+\else
+\caption{One example from the dataset, shown twice. Left: as played, with
+arrows for the opponent's preceding move (grey) and the move the example
+concerns (blue). Right: as encoded, oriented so that the mover plays up the
+board, with the squares set in an auxiliary plane shaded grey for the
+opponent's move and, where the task marks a line of moves, blue for the
+mover's moves and orange for the replies.}
+\fi
+\label{fig:encoding}
+\end{figure}
+\fi

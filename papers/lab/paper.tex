@@ -672,9 +672,11 @@ compared with \V{position-evaluation.reference.score} for GBDT with
 hand-crafted features and \V{position-evaluation.floor.score} for the
 constant baseline. Pretraining took \V{position-evaluation.best.seconds} on
 one GPU and was done once. A pretrained model copies the piece and square
-embeddings and all transformer blocks; the projection of the task's context
-features and the prediction head are initialised randomly. The model is then
-trained on its task with the standard schedule.
+embeddings and all transformer blocks. The prediction head is initialised
+randomly, and so is the projection of the context features, except in puzzle
+difficulty unsolved, whose context features are those of the pretraining
+task (the castling rights). The model is then trained on its task with the
+standard schedule.
 
 With a pretrained encoder, the transformer without hand-crafted features is
 \V{lab.change.start.over.transformer-medium.said}, and the transformer with

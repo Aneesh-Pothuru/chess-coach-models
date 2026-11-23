@@ -708,7 +708,7 @@ def label_figure(src: Sources) -> str | None:
         edges,
         histogram["counts"],
         xlabel="Seconds spent on the move" if log else _axis(src),
-        ylabel="Rows",
+        ylabel="Examples",
         extra=_seconds_axis("x", edges[0], edges[-1]) if log else (),
     )
 
@@ -769,7 +769,7 @@ def _shown(column: str, value: Any) -> str:
 # The move a row is about, by the column an example holds it under, and what the example calls it. Of a
 # row that is one position it is the move that was played there. Of a row that is a game the board is the
 # position before the player's costliest move, and that move is the one shown.
-SUBJECT_MOVES = {"move": "Played", "worst_move": "The player's costliest move"}
+SUBJECT_MOVES = {"move": "Played", "worst_move": "The player's most costly move"}
 # The moves among them that a network is told the squares of, as it is told the opponent's last move: a
 # game's network reads each of the player's moves with its position.
 READ_MOVES = ("worst_move",)
@@ -810,9 +810,9 @@ def example_block(src: Sources, name: str, number: int, example: dict[str, Any])
     told = []
     context = moves.get("setup") or moves.get("last_move")
     if context:
-        told.append(f"The opponent's move: {_squares(context)}.")
+        told.append(f"Opponent's last move: {_squares(context)}.")
     if moves.get("line"):
-        told.append(f"The line: {boards.moves(fen, moves['line'].split())}.")
+        told.append(f"Solution: {boards.moves(fen, moves['line'].split())}.")
     named = ("Played", moves["played"]) if moves.get("played") else _subject(moves)
     if named:
         told.append(f"{named[0]}: {boards.moves(fen, [named[1]])}.")
@@ -825,7 +825,7 @@ def example_block(src: Sources, name: str, number: int, example: dict[str, Any])
         happened = f"{truth}: {src.example_text(example['label'])}{_unit(spec)}."
     runs = [src.best] + [run for run in _pair(src) if run is not src.best]
     said = "; ".join(
-        f"{run_tex(run['run'])} said {src.example_text(example['predicted'][run['run']])}{'' if binary else _unit(spec)}"
+        f"{run_tex(run['run'])} predicted {src.example_text(example['predicted'][run['run']])}{'' if binary else _unit(spec)}"
         for run in runs
         if run["run"] in example["predicted"]
     )

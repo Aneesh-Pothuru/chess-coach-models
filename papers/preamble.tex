@@ -49,6 +49,9 @@
 % through a game) and not one position: the shared sections say what a
 % learner reads of such a row, and what a network over it is.
 \newif\ifsequence
+% \ifcontextgbdt is true when the model has GBDT on the context features
+% alone (\run{gbm-context}).
+\newif\ifcontextgbdt
 % What a model may not have yet: runs set against the run each changed
 % (\ifpairs), a run of the ladder trained longer or started elsewhere
 % (\ifvariants), a run of another shape than the network of the ladder it
@@ -250,6 +253,12 @@
 % line is set loose and no word runs past the margin. A paragraph that already
 % fits is never tried again, so it stays exactly as it was.
 \emergencystretch=2em
+% No page begins with the last line of a paragraph or ends with its first: a
+% single line between two floats reads as a stray fragment. LaTeX restores
+% \clubpenalty from \@clubpenalty after every heading, so both are set.
+\clubpenalty=10000
+\widowpenalty=10000
+\makeatletter\@clubpenalty=\clubpenalty\makeatother
 \captionsetup{font=small, labelfont=bf}
 \setlist{itemsep=0.15em, topsep=0.2em}
 

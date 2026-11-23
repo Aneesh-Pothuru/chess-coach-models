@@ -71,6 +71,17 @@ class Sources:
         return bool(self.steps)
 
     @property
+    def extra(self) -> list[str]:
+        """The hand features a learner reads beside the context features. A feature the task gives every
+        learner as context is in a group of hand features too, and is counted once, as context."""
+        return [name for name in self.hand if name not in self.task.context]
+
+    def group_size(self, group: str) -> int:
+        """How many features a run loses when it leaves a group of hand features out: a context feature of
+        the group stays (``train/learners/base.py``)."""
+        return sum(1 for name in self.extra if group_of(name) == group)
+
+    @property
     def metrics(self) -> list[str]:
         """The task's metrics, the one its runs are ranked by first."""
         return [self.primary, *(name for name in METRICS[self.task.kind] if name != self.primary)]
@@ -243,6 +254,24 @@ def run_head(name: str, span: int, width: str) -> str:
     return wide_head(run_tex(name), span, width)
 
 
+def retitled(look: dict[str, Any], plan: dict[str, Any]) -> dict[str, Any]:
+    """An error analysis under the titles its plan gives its subgroups today. A title is a paper's wording and
+    changes nothing that was measured, so the plan's title wins over the one the analysis was written with, and
+    rewording a title needs no second analysis."""
+    titles = {spec["key"]: spec["title"] for spec in plan.get("slices") or [] if "title" in spec}
+    if "title" in (plan.get("band") or {}):
+        titles["band"] = plan["band"]["title"]
+    for one in look.get("slices") or []:
+        one["title"] = titles.get(one["key"], one["title"])
+    grids = {spec["key"]: spec for spec in plan.get("grids") or []}
+    for one in look.get("grids") or []:
+        for side in ("rows", "columns"):
+            title = (grids.get(one["key"], {}).get(side) or {}).get("title")
+            if title:
+                one[side]["title"] = title
+    return look
+
+
 def read(model: str, *, smoke: bool = False) -> Sources:
     """A model's files as a paper reads them. The records are ranked best first, as on its leaderboard, and
     the study runs, which no leaderboard ranks, are kept apart. The marks, the hand features and, where a row
@@ -276,6 +305,7 @@ def read(model: str, *, smoke: bool = False) -> Sources:
                 f"{path} looks at {', '.join(gone)}, which the leaderboard no longer ranks: run `lab analyse {model}` "
                 "again where the predictions are, so the paper's closer look is of the runs as they are filed now"
             )
+    plan = analysis.plan(model)
     return Sources(
         model=model,
         smoke=smoke,
@@ -283,8 +313,8 @@ def read(model: str, *, smoke: bool = False) -> Sources:
         runs=runs,
         studies=[run for run in ranked if run["config"].get("study") is not None],
         recipe=recipe,
-        plan=analysis.plan(model),
-        look=look,
+        plan=plan,
+        look=retitled(look, plan) if look is not None else None,
         marks=tuple(name for name in builder.MARKS if task.marks is None or name in task.marks),
         hand=tuple(name for name in builder.HAND if task.hand is None or group_of(name) in task.hand),
         steps=tuple(name for name in getattr(builder, "STEPS", ()) if task.steps is None or name in task.steps),

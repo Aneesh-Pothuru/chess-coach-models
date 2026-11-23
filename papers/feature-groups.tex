@@ -1,0 +1,44 @@
+% Feature-group ablation: the same ablation for every task, so a model paper
+% inputs this file inside its ablation section and then reports its own
+% findings. It appears once the task has the runs.
+% The prose follows docs/writing.md.
+\iffeatures
+\subsection{Feature groups}
+\label{sec:feature-groups}
+
+\ifsequence
+The hand-crafted features fall into three groups: move accuracy, clock use
+and the number of available moves.
+\else
+The hand-crafted features fall into groups: material, mobility, hanging
+pieces, passed pawns and king safety, and, where the task gives a line of
+moves, the opponent's last move, the first move of the line and the line as a
+whole.
+\fi
+We retrain a model with one group removed at a time
+(Table~\ref{tab:features}, Figure~\ref{fig:features}). A significant loss
+shows that the model used the group and that no other input provides the same
+information. The absence of a loss has two possible explanations: the group
+is uninformative, or the same information is available from another group or
+from the other inputs. The ablation therefore measures the marginal
+contribution of a group given everything else the model receives, which can
+be much smaller than the information the group carries on its own.
+
+\begin{table}[htbp]\centering\footnotesize
+\block{study-features}
+\caption{Feature-group ablation. Each model is trained on all hand-crafted
+features except one group. The gain is paired with the model trained on all
+features. A negative gain means that the model is worse without the group,
+and bold marks statistical significance. Groups are ordered by the size of
+the loss.}
+\label{tab:features}
+\end{table}
+
+\begin{figure}[htbp]\centering
+\block{study-features-figure}
+\caption{Paired gain of the GBDT baseline without one feature group over the
+GBDT baseline with all features, with 95\% CIs. Left of the vertical line,
+the model is worse without the group.}
+\label{fig:features}
+\end{figure}
+\fi

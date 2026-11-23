@@ -116,7 +116,7 @@ def run_values(src: Sources, out: tex.Generated, prefix: str, run: dict[str, Any
         out.set(f"{prefix}.temperature", tex.fixed(calibration["temperature"], 2))
         if calibration.get("log_loss_before"):
             out.set(f"{prefix}.log-loss.before", tex.score(calibration["log_loss_before"]["test"]))
-    for name in ("dim", "depth", "heads", "dropout"):
+    for name in ("dim", "depth", "heads", "dropout", "convs"):
         if name in learner:
             out.set(f"{prefix}.{name}", tex.plain(learner[name]))
     schedule = run["config"].get("train", {})
@@ -185,7 +185,7 @@ def values(src: Sources, out: tex.Generated) -> None:
     out.set("task.better", "lower" if task.lower_is_better else "higher")
     out.set("task.reference", run_tex(task.reference))
     out.set("task.context.count", tex.word(len(task.context)))
-    out.set("task.hand.count", tex.count(len(src.hand)))
+    out.set("task.hand.count", tex.count(len(src.extra)))
     out.set("task.marks.count", tex.word(len(src.marks)))
     if src.sequence:
         out.set("task.steps.count", tex.word(len(src.steps)))
@@ -465,9 +465,12 @@ def _over(run: dict[str, Any], setting: str) -> str:
     return str(run["config"]["learner"].get("over", {}).get(setting, ""))
 
 
+# An encoder as the settings table names it.
+ENCODERS = {"transformer": "Transformer", "conv": "ResNet", "hybrid": "Hybrid"}
+
 # A network's settings as the settings table heads them, and how each is read from a run's config.
 SETTINGS = (
-    ("Encoder", "l", lambda run: tex.esc(run["config"]["learner"]["body"])),
+    ("Encoder", "l", lambda run: ENCODERS.get(run["config"]["learner"]["body"], tex.esc(run["config"]["learner"]["body"]))),
     ("Width", "r", lambda run: str(run["config"]["learner"]["dim"])),
     ("Layers", "r", lambda run: str(run["config"]["learner"]["depth"])),
     ("Heads", "r", lambda run: str(run["config"]["learner"].get("heads", ""))),
@@ -478,7 +481,7 @@ SETTINGS = (
     ("Epochs", "r", lambda run: str(run["config"]["train"]["epochs"])),
     ("Batch", "r", lambda run: tex.count(run["config"]["train"]["batch"])),
     ("LR", "r", lambda run: tex.plain(float(run["config"]["train"]["lr"]))),
-    ("Decay", "r", lambda run: tex.plain(float(run["config"]["train"].get("weight_decay", 0.05)))),
+    ("Weight decay", "r", lambda run: tex.plain(float(run["config"]["train"].get("weight_decay", 0.05)))),
     ("Patience", "r", lambda run: str(run["config"]["train"].get("patience", ""))),
 )
 
@@ -503,7 +506,7 @@ def settings_table(src: Sources) -> str | None:
     spec = "l" + "".join(align for _, align, _ in columns)
     table = "{\\setlength{\\tabcolsep}{4.5pt}%\n" + tex.tabular(spec, ["Model", *(name for name, _, _ in columns)], rows) + "}"
     if shared:
-        table += f"\n\n\\smallskip\n{{\\footnotesize Every one of them: {', '.join(shared)}.}}"
+        table += f"\n\n\\smallskip\n{{\\footnotesize Shared by all of them: {', '.join(shared)}.}}"
     return table
 
 
@@ -523,7 +526,7 @@ def data_table(src: Sources) -> str:
     if by_split:
         look = src.look["label"]
         foot.append(src.label_text(look["rate" if binary else "mean"]))
-        head.append("Positive rate" if binary else "Label mean")
+        head.append("Positive rate" if binary else "Mean target")
     return tex.tabular("lrr" + ("r" if by_split else ""), head, rows, foot=[foot])
 
 
@@ -591,7 +594,7 @@ def bands_figure(src: Sources) -> str | None:
     return charts.lines(
         series,
         xlabel=tex.esc(band_title(src)),
-        ylabel=f"Lead in {METRIC_WORDS[src.primary]}",
+        ylabel=f"Difference in {METRIC_WORDS[src.primary]}",
         tick_labels=names,
         level=(0.0, run_tex(reference["run"]), charts.run_colour(reference["run"])),
         legend_columns=2,
@@ -733,8 +736,7 @@ def steps_table(src: Sources) -> str | None:
 
 def hand_table(src: Sources) -> str:
     """The hand features the tree baseline reads, and a network when its run asks for them."""
-    extra = [name for name in src.hand if name not in src.task.context]
-    rows = [[f"\\texttt{{{tex.esc(name)}}}", glossary.says(name)] for name in extra]
+    rows = [[f"\\texttt{{{tex.esc(name)}}}", glossary.says(name)] for name in src.extra]
     return tex.tabular("lL", ["Feature", "Description"], rows, width="\\textwidth")
 
 
