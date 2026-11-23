@@ -1,0 +1,196 @@
+{
+  "model": "puzzle-difficulty",
+  "run": "transformer-medium-hand-quadruple",
+  "task": {
+    "label": "rating",
+    "kind": "regression",
+    "unit": "Lichess puzzle rating points",
+    "primary": "rmse",
+    "lower_is_better": true,
+    "context": [
+      "solver_moves",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "puzzles-v1",
+    "source": "https://database.lichess.org/lichess_db_puzzle.csv.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 1127915,
+    "splits": {
+      "test": 112450,
+      "train": 958941,
+      "valid": 56524
+    },
+    "fingerprint": "d14731fa4425fc6efdadb45c94ee53e07f5afe9151992b690b81edc71064cd5d",
+    "built": "2026-11-23T05:20:51Z",
+    "code": "173dddec7ab54890785803c32f46679fd53b0c40"
+  },
+  "train_dataset": {
+    "dataset": "puzzles-all-v1",
+    "rows": 4513767,
+    "splits": {
+      "test": 450852,
+      "train": 3837994,
+      "valid": 224921
+    },
+    "fingerprint": "10f0fea8eb2c651349d586b9ff8df4574a86f6d71365a8e3781a227437ca716d",
+    "built": "2026-11-23T05:37:27Z",
+    "code": "173dddec7ab54890785803c32f46679fd53b0c40"
+  },
+  "config": {
+    "needs": "cuda",
+    "learner": {
+      "kind": "net",
+      "body": "transformer",
+      "features": "hand",
+      "dim": 256,
+      "depth": 8,
+      "heads": 8,
+      "dropout": 0.1
+    },
+    "train": {
+      "epochs": 3,
+      "batch": 1024,
+      "lr": 0.0006,
+      "weight_decay": 0.05,
+      "warmup": 0.05,
+      "patience": 1
+    },
+    "base": "transformer-medium-hand",
+    "data": {
+      "train_on": "puzzles-all"
+    }
+  },
+  "learner": {
+    "features": 38,
+    "parameters": 6563649,
+    "device": "NVIDIA A100-SXM4-40GB",
+    "best_epoch": 3,
+    "fit_seconds": 829.3,
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.37482,
+        "valid_rmse": 291.07018,
+        "rows_a_second": 13986
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.31826,
+        "valid_rmse": 276.43593,
+        "rows_a_second": 13977
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.29271,
+        "valid_rmse": 269.35002,
+        "rows_a_second": 13997
+      }
+    ]
+  },
+  "calibration": null,
+  "machine": {
+    "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "threads": 12,
+    "system": "Linux"
+  },
+  "software": {
+    "python": "3.13.16",
+    "numpy": "2.4.6",
+    "polars": "2.1.0",
+    "lightgbm": "4.6.0",
+    "torch": "2.14.1+cu130"
+  },
+  "code": "173dddec7ab54890785803c32f46679fd53b0c40",
+  "trained": "2026-11-23T06:19:30Z",
+  "seconds": 866.8,
+  "train_rows": 3837994,
+  "train_groups": 3837994,
+  "valid": {
+    "rmse": 269.350019484309,
+    "mae": 205.04489562266969,
+    "r2": 0.7123578123186066,
+    "spearman": 0.8479334739831795
+  },
+  "test": {
+    "rmse": {
+      "value": 268.96221801138626,
+      "low": 267.46402935424055,
+      "high": 270.18801633604346
+    },
+    "mae": {
+      "value": 204.58419756653998,
+      "low": 203.4451693869286,
+      "high": 205.58789751959802
+    },
+    "r2": {
+      "value": 0.713939088763182,
+      "low": 0.7109406565582942,
+      "high": 0.7173344947281153
+    },
+    "spearman": {
+      "value": 0.8493021433345471,
+      "low": 0.8474541984994601,
+      "high": 0.8513275928612827
+    }
+  },
+  "test_rows": 112450,
+  "test_groups": 112450,
+  "test_by_band": {
+    "1000-1399": {
+      "rows": 31846,
+      "rmse": 244.44190587176374,
+      "mae": 186.73519274574994,
+      "r2": -3.8434594972381726,
+      "spearman": 0.41909447496135055
+    },
+    "1400-1799": {
+      "rows": 28501,
+      "rmse": 248.58673203696299,
+      "mae": 196.01890758895726,
+      "r2": -3.826424131278471,
+      "spearman": 0.3194392708120748
+    },
+    "1800-2199": {
+      "rows": 19518,
+      "rmse": 294.8179800287437,
+      "mae": 230.52470182021483,
+      "r2": -5.573321299292242,
+      "spearman": 0.25394133912412986
+    },
+    "2200+": {
+      "rows": 9834,
+      "rmse": 437.2412609279374,
+      "mae": 367.2018910024572,
+      "r2": -6.1196065747364266,
+      "spearman": 0.31490739155370867
+    },
+    "<1000": {
+      "rows": 22751,
+      "rmse": 198.2407012225177,
+      "mae": 147.75371002322012,
+      "r2": -0.60083468513712,
+      "spearman": 0.6835844434370679
+    }
+  },
+  "weights": [
+    {
+      "file": "model.pt",
+      "bytes": 26285279,
+      "sha256": "b629a81354146183e2f665a0ec31c932bb5ac903277218b6e3de6663278318d5"
+    }
+  ],
+  "gain": {
+    "gain": 25.960519397236396,
+    "low": 25.183032487111184,
+    "high": 26.81459679387865,
+    "beyond_noise": true,
+    "reference": "gbm-hand",
+    "reference_trained": "2026-11-23T05:39:30Z",
+    "reference_value": 294.92273740862265
+  }
+}

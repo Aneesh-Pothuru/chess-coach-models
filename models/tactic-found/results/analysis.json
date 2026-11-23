@@ -1,8 +1,8 @@
 {
  "model": "tactic-found",
  "written_by": "lab analyse tactic-found",
- "written": "2026-11-23T05:18:33Z",
- "code": "df29ac9036a3db5d5089df1f968ec4ab00921ab4",
+ "written": "2026-11-23T08:07:01Z",
+ "code": "3e28f55802efe9d575948e2bfea580e1e13868a5",
  "dataset": {
   "dataset": "tactics-v1",
   "builder": "tactics",
@@ -110,9 +110,11 @@
   "transformer-medium-hand-pretrained",
   "transformer-medium-pretrained",
   "conv-medium-hand",
+  "transformer-medium-hand-double",
   "transformer-medium-hand",
   "transformer-medium-hand-attacks",
   "transformer-medium-hand-long",
+  "gbm-hand-double",
   "hybrid-medium-hand",
   "gbm-hand",
   "transformer-medium-long",
@@ -419,6 +421,58 @@
     "observed": 0.958955
    }
   ],
+  "transformer-medium-hand-double": [
+   {
+    "n": 8114,
+    "predicted": 0.323732,
+    "observed": 0.321913
+   },
+   {
+    "n": 8114,
+    "predicted": 0.489006,
+    "observed": 0.494208
+   },
+   {
+    "n": 8114,
+    "predicted": 0.572719,
+    "observed": 0.573577
+   },
+   {
+    "n": 8114,
+    "predicted": 0.635833,
+    "observed": 0.625339
+   },
+   {
+    "n": 8114,
+    "predicted": 0.688598,
+    "observed": 0.679196
+   },
+   {
+    "n": 8113,
+    "predicted": 0.73655,
+    "observed": 0.733144
+   },
+   {
+    "n": 8113,
+    "predicted": 0.781729,
+    "observed": 0.784297
+   },
+   {
+    "n": 8113,
+    "predicted": 0.828223,
+    "observed": 0.832861
+   },
+   {
+    "n": 8113,
+    "predicted": 0.880856,
+    "observed": 0.883397
+   },
+   {
+    "n": 8113,
+    "predicted": 0.9564,
+    "observed": 0.95649
+   }
+  ],
   "transformer-medium-hand": [
    {
     "n": 8114,
@@ -573,6 +627,58 @@
     "n": 8113,
     "predicted": 0.955497,
     "observed": 0.95612
+   }
+  ],
+  "gbm-hand-double": [
+   {
+    "n": 8114,
+    "predicted": 0.330129,
+    "observed": 0.332512
+   },
+   {
+    "n": 8114,
+    "predicted": 0.489788,
+    "observed": 0.498644
+   },
+   {
+    "n": 8114,
+    "predicted": 0.571543,
+    "observed": 0.566428
+   },
+   {
+    "n": 8114,
+    "predicted": 0.63416,
+    "observed": 0.628297
+   },
+   {
+    "n": 8114,
+    "predicted": 0.687313,
+    "observed": 0.687577
+   },
+   {
+    "n": 8113,
+    "predicted": 0.735285,
+    "observed": 0.725872
+   },
+   {
+    "n": 8113,
+    "predicted": 0.781006,
+    "observed": 0.786269
+   },
+   {
+    "n": 8113,
+    "predicted": 0.827642,
+    "observed": 0.823
+   },
+   {
+    "n": 8113,
+    "predicted": 0.879602,
+    "observed": 0.878713
+   },
+   {
+    "n": 8113,
+    "predicted": 0.951683,
+    "observed": 0.957106
    }
   ],
   "hybrid-medium-hand": [
@@ -1112,6 +1218,11 @@
    "closer_share": 0.539533,
    "tied_share": 0.0
   },
+  "transformer-medium-hand-double": {
+   "correlation": 0.913498,
+   "closer_share": 0.541677,
+   "tied_share": 0.0
+  },
   "transformer-medium-hand": {
    "correlation": 0.903748,
    "closer_share": 0.521772,
@@ -1125,6 +1236,11 @@
   "transformer-medium-hand-long": {
    "correlation": 0.89202,
    "closer_share": 0.524274,
+   "tied_share": 0.0
+  },
+  "gbm-hand-double": {
+   "correlation": 0.974305,
+   "closer_share": 0.541788,
    "tied_share": 0.0
   },
   "hybrid-medium-hand": {
@@ -1201,6 +1317,11 @@
        "bias": -0.016534,
        "log_loss": 0.545625
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.651336,
+       "bias": -0.00890534,
+       "log_loss": 0.547227
+      },
       "transformer-medium-hand": {
        "mean": 0.652907,
        "bias": -0.00733448,
@@ -1215,6 +1336,11 @@
        "mean": 0.65248,
        "bias": -0.0077618,
        "log_loss": 0.550068
+      },
+      "gbm-hand-double": {
+       "mean": 0.651599,
+       "bias": -0.00864261,
+       "log_loss": 0.551503
       },
       "hybrid-medium-hand": {
        "mean": 0.653704,
@@ -1296,6 +1422,11 @@
        "bias": 0.00125268,
        "log_loss": 0.540875
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.685568,
+       "bias": 0.00504904,
+       "log_loss": 0.543231
+      },
       "transformer-medium-hand": {
        "mean": 0.686684,
        "bias": 0.00616466,
@@ -1310,6 +1441,11 @@
        "mean": 0.68567,
        "bias": 0.00515075,
        "log_loss": 0.545267
+      },
+      "gbm-hand-double": {
+       "mean": 0.684925,
+       "bias": 0.00440599,
+       "log_loss": 0.546347
       },
       "hybrid-medium-hand": {
        "mean": 0.68658,
@@ -1391,6 +1527,11 @@
        "bias": 0.00364633,
        "log_loss": 0.522254
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.706706,
+       "bias": 0.00401805,
+       "log_loss": 0.521165
+      },
       "transformer-medium-hand": {
        "mean": 0.706736,
        "bias": 0.0040475,
@@ -1405,6 +1546,11 @@
        "mean": 0.706754,
        "bias": 0.00406616,
        "log_loss": 0.524322
+      },
+      "gbm-hand-double": {
+       "mean": 0.7041,
+       "bias": 0.0014118,
+       "log_loss": 0.525779
       },
       "hybrid-medium-hand": {
        "mean": 0.705437,
@@ -1486,6 +1632,11 @@
        "bias": 0.0026818,
        "log_loss": 0.517935
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.713095,
+       "bias": -0.00233719,
+       "log_loss": 0.518487
+      },
       "transformer-medium-hand": {
        "mean": 0.711933,
        "bias": -0.00349965,
@@ -1500,6 +1651,11 @@
        "mean": 0.712521,
        "bias": -0.00291193,
        "log_loss": 0.519356
+      },
+      "gbm-hand-double": {
+       "mean": 0.713806,
+       "bias": -0.00162617,
+       "log_loss": 0.517626
       },
       "hybrid-medium-hand": {
        "mean": 0.708723,
@@ -1581,6 +1737,11 @@
        "bias": 0.0213045,
        "log_loss": 0.530607
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.705495,
+       "bias": 0.00147971,
+       "log_loss": 0.531544
+      },
       "transformer-medium-hand": {
        "mean": 0.704397,
        "bias": 0.000381849,
@@ -1595,6 +1756,11 @@
        "mean": 0.704819,
        "bias": 0.000803238,
        "log_loss": 0.53496
+      },
+      "gbm-hand-double": {
+       "mean": 0.706708,
+       "bias": 0.00269284,
+       "log_loss": 0.535318
       },
       "hybrid-medium-hand": {
        "mean": 0.700706,
@@ -1683,6 +1849,11 @@
        "bias": -0.0354704,
        "log_loss": 0.385012
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.810873,
+       "bias": -0.0292415,
+       "log_loss": 0.38429
+      },
       "transformer-medium-hand": {
        "mean": 0.808388,
        "bias": -0.0317266,
@@ -1697,6 +1868,11 @@
        "mean": 0.803737,
        "bias": -0.0363781,
        "log_loss": 0.386757
+      },
+      "gbm-hand-double": {
+       "mean": 0.808759,
+       "bias": -0.0313556,
+       "log_loss": 0.386077
       },
       "hybrid-medium-hand": {
        "mean": 0.802979,
@@ -1778,6 +1954,11 @@
        "bias": -0.0415538,
        "log_loss": 0.444108
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.761242,
+       "bias": -0.0377424,
+       "log_loss": 0.448006
+      },
       "transformer-medium-hand": {
        "mean": 0.758873,
        "bias": -0.0401112,
@@ -1792,6 +1973,11 @@
        "mean": 0.756094,
        "bias": -0.0428906,
        "log_loss": 0.450243
+      },
+      "gbm-hand-double": {
+       "mean": 0.757744,
+       "bias": -0.0412405,
+       "log_loss": 0.452885
       },
       "hybrid-medium-hand": {
        "mean": 0.75631,
@@ -1873,6 +2059,11 @@
        "bias": -0.0428548,
        "log_loss": 0.488968
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.724118,
+       "bias": -0.0400739,
+       "log_loss": 0.491599
+      },
       "transformer-medium-hand": {
        "mean": 0.72351,
        "bias": -0.0406809,
@@ -1887,6 +2078,11 @@
        "mean": 0.722343,
        "bias": -0.0418482,
        "log_loss": 0.491687
+      },
+      "gbm-hand-double": {
+       "mean": 0.721022,
+       "bias": -0.0431698,
+       "log_loss": 0.494087
       },
       "hybrid-medium-hand": {
        "mean": 0.721298,
@@ -1968,6 +2164,11 @@
        "bias": -0.0279237,
        "log_loss": 0.541728
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.681921,
+       "bias": -0.0290327,
+       "log_loss": 0.543418
+      },
       "transformer-medium-hand": {
        "mean": 0.683759,
        "bias": -0.0271952,
@@ -1982,6 +2183,11 @@
        "mean": 0.68397,
        "bias": -0.0269833,
        "log_loss": 0.545102
+      },
+      "gbm-hand-double": {
+       "mean": 0.683024,
+       "bias": -0.0279297,
+       "log_loss": 0.546372
       },
       "hybrid-medium-hand": {
        "mean": 0.68341,
@@ -2063,6 +2269,11 @@
        "bias": -0.00655064,
        "log_loss": 0.587155
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.645665,
+       "bias": -0.00851581,
+       "log_loss": 0.589148
+      },
       "transformer-medium-hand": {
        "mean": 0.64828,
        "bias": -0.00590125,
@@ -2077,6 +2288,11 @@
        "mean": 0.649438,
        "bias": -0.00474294,
        "log_loss": 0.592079
+      },
+      "gbm-hand-double": {
+       "mean": 0.647424,
+       "bias": -0.00675692,
+       "log_loss": 0.593014
       },
       "hybrid-medium-hand": {
        "mean": 0.648251,
@@ -2158,6 +2374,11 @@
        "bias": 0.0397916,
        "log_loss": 0.623622
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.625522,
+       "bias": 0.0366282,
+       "log_loss": 0.623648
+      },
       "transformer-medium-hand": {
        "mean": 0.627466,
        "bias": 0.0385714,
@@ -2172,6 +2393,11 @@
        "mean": 0.630664,
        "bias": 0.0417699,
        "log_loss": 0.626168
+      },
+      "gbm-hand-double": {
+       "mean": 0.626775,
+       "bias": 0.0378812,
+       "log_loss": 0.627048
       },
       "hybrid-medium-hand": {
        "mean": 0.627438,
@@ -2253,6 +2479,11 @@
        "bias": 0.0713212,
        "log_loss": 0.638372
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.606971,
+       "bias": 0.0652746,
+       "log_loss": 0.641362
+      },
       "transformer-medium-hand": {
        "mean": 0.608948,
        "bias": 0.0672517,
@@ -2267,6 +2498,11 @@
        "mean": 0.611234,
        "bias": 0.069538,
        "log_loss": 0.645396
+      },
+      "gbm-hand-double": {
+       "mean": 0.610944,
+       "bias": 0.0692478,
+       "log_loss": 0.643716
       },
       "hybrid-medium-hand": {
        "mean": 0.613032,
@@ -2348,6 +2584,11 @@
        "bias": 0.107858,
        "log_loss": 0.648982
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.58924,
+       "bias": 0.102377,
+       "log_loss": 0.644255
+      },
       "transformer-medium-hand": {
        "mean": 0.591277,
        "bias": 0.104413,
@@ -2362,6 +2603,11 @@
        "mean": 0.59282,
        "bias": 0.105957,
        "log_loss": 0.649383
+      },
+      "gbm-hand-double": {
+       "mean": 0.587745,
+       "bias": 0.100882,
+       "log_loss": 0.649088
       },
       "hybrid-medium-hand": {
        "mean": 0.592522,
@@ -2450,6 +2696,11 @@
        "bias": 0.0239229,
        "log_loss": 0.601738
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.588772,
+       "bias": 0.00872236,
+       "log_loss": 0.595252
+      },
       "transformer-medium-hand": {
        "mean": 0.592549,
        "bias": 0.0124993,
@@ -2464,6 +2715,11 @@
        "mean": 0.588351,
        "bias": 0.00830133,
        "log_loss": 0.600633
+      },
+      "gbm-hand-double": {
+       "mean": 0.587397,
+       "bias": 0.00734681,
+       "log_loss": 0.593269
       },
       "hybrid-medium-hand": {
        "mean": 0.574501,
@@ -2545,6 +2801,11 @@
        "bias": 0.00777217,
        "log_loss": 0.560885
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.652636,
+       "bias": 0.00117713,
+       "log_loss": 0.560442
+      },
       "transformer-medium-hand": {
        "mean": 0.650388,
        "bias": -0.00107017,
@@ -2559,6 +2820,11 @@
        "mean": 0.652745,
        "bias": 0.00128603,
        "log_loss": 0.565002
+      },
+      "gbm-hand-double": {
+       "mean": 0.650011,
+       "bias": -0.00144744,
+       "log_loss": 0.565996
       },
       "hybrid-medium-hand": {
        "mean": 0.641536,
@@ -2640,6 +2906,11 @@
        "bias": 0.00558428,
        "log_loss": 0.530239
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.689889,
+       "bias": 0.000564098,
+       "log_loss": 0.532536
+      },
       "transformer-medium-hand": {
        "mean": 0.688948,
        "bias": -0.000376796,
@@ -2654,6 +2925,11 @@
        "mean": 0.691714,
        "bias": 0.00238938,
        "log_loss": 0.536949
+      },
+      "gbm-hand-double": {
+       "mean": 0.691478,
+       "bias": 0.00215339,
+       "log_loss": 0.538215
       },
       "hybrid-medium-hand": {
        "mean": 0.683846,
@@ -2735,6 +3011,11 @@
        "bias": 0.00709458,
        "log_loss": 0.532895
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.690164,
+       "bias": 0.00302859,
+       "log_loss": 0.534496
+      },
       "transformer-medium-hand": {
        "mean": 0.689345,
        "bias": 0.00220906,
@@ -2749,6 +3030,11 @@
        "mean": 0.691033,
        "bias": 0.00389722,
        "log_loss": 0.53643
+      },
+      "gbm-hand-double": {
+       "mean": 0.68946,
+       "bias": 0.00232459,
+       "log_loss": 0.53778
       },
       "hybrid-medium-hand": {
        "mean": 0.689273,
@@ -2830,6 +3116,11 @@
        "bias": -0.00186963,
        "log_loss": 0.532665
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.691557,
+       "bias": 0.000817609,
+       "log_loss": 0.534903
+      },
       "transformer-medium-hand": {
        "mean": 0.692817,
        "bias": 0.00207708,
@@ -2844,6 +3135,11 @@
        "mean": 0.691494,
        "bias": 0.00075474,
        "log_loss": 0.536539
+      },
+      "gbm-hand-double": {
+       "mean": 0.69059,
+       "bias": -0.00014947,
+       "log_loss": 0.537624
       },
       "hybrid-medium-hand": {
        "mean": 0.694621,
@@ -2925,6 +3221,11 @@
        "bias": -0.0120629,
        "log_loss": 0.513061
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.719708,
+       "bias": -0.00459224,
+       "log_loss": 0.509986
+      },
       "transformer-medium-hand": {
        "mean": 0.721302,
        "bias": -0.00299869,
@@ -2939,6 +3240,11 @@
        "mean": 0.717954,
        "bias": -0.0063465,
        "log_loss": 0.513895
+      },
+      "gbm-hand-double": {
+       "mean": 0.720985,
+       "bias": -0.00331534,
+       "log_loss": 0.514056
       },
       "hybrid-medium-hand": {
        "mean": 0.718288,
@@ -3027,6 +3333,11 @@
        "bias": -0.0108601,
        "log_loss": 0.450957
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.738763,
+       "bias": -0.0144179,
+       "log_loss": 0.452527
+      },
       "transformer-medium-hand": {
        "mean": 0.737671,
        "bias": -0.01551,
@@ -3041,6 +3352,11 @@
        "mean": 0.735608,
        "bias": -0.0175729,
        "log_loss": 0.454766
+      },
+      "gbm-hand-double": {
+       "mean": 0.735029,
+       "bias": -0.0181523,
+       "log_loss": 0.456027
       },
       "hybrid-medium-hand": {
        "mean": 0.728289,
@@ -3122,6 +3438,11 @@
        "bias": -0.0428738,
        "log_loss": 0.465571
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.715269,
+       "bias": -0.0438858,
+       "log_loss": 0.466716
+      },
       "transformer-medium-hand": {
        "mean": 0.71394,
        "bias": -0.0452152,
@@ -3136,6 +3457,11 @@
        "mean": 0.713621,
        "bias": -0.0455337,
        "log_loss": 0.468844
+      },
+      "gbm-hand-double": {
+       "mean": 0.71297,
+       "bias": -0.0461855,
+       "log_loss": 0.470672
       },
       "hybrid-medium-hand": {
        "mean": 0.713418,
@@ -3217,6 +3543,11 @@
        "bias": -0.00704379,
        "log_loss": 0.553364
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.67701,
+       "bias": -0.00683198,
+       "log_loss": 0.552823
+      },
       "transformer-medium-hand": {
        "mean": 0.677366,
        "bias": -0.0064759,
@@ -3231,6 +3562,11 @@
        "mean": 0.677321,
        "bias": -0.00652093,
        "log_loss": 0.555434
+      },
+      "gbm-hand-double": {
+       "mean": 0.676827,
+       "bias": -0.00701477,
+       "log_loss": 0.554392
       },
       "hybrid-medium-hand": {
        "mean": 0.678003,
@@ -3312,6 +3648,11 @@
        "bias": 0.0441661,
        "log_loss": 0.613972
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.655314,
+       "bias": 0.0471654,
+       "log_loss": 0.615943
+      },
       "transformer-medium-hand": {
        "mean": 0.657247,
        "bias": 0.0490988,
@@ -3326,6 +3667,11 @@
        "mean": 0.656621,
        "bias": 0.0484728,
        "log_loss": 0.617712
+      },
+      "gbm-hand-double": {
+       "mean": 0.656045,
+       "bias": 0.047897,
+       "log_loss": 0.618088
       },
       "hybrid-medium-hand": {
        "mean": 0.658018,
@@ -3407,6 +3753,11 @@
        "bias": 0.0861509,
        "log_loss": 0.656028
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.630375,
+       "bias": 0.0876222,
+       "log_loss": 0.661107
+      },
       "transformer-medium-hand": {
        "mean": 0.634941,
        "bias": 0.0921887,
@@ -3421,6 +3772,11 @@
        "mean": 0.635704,
        "bias": 0.0929511,
        "log_loss": 0.663845
+      },
+      "gbm-hand-double": {
+       "mean": 0.634908,
+       "bias": 0.0921551,
+       "log_loss": 0.663967
       },
       "hybrid-medium-hand": {
        "mean": 0.637249,
@@ -3502,6 +3858,11 @@
        "bias": 0.115695,
        "log_loss": 0.707942
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.6321,
+       "bias": 0.117543,
+       "log_loss": 0.703506
+      },
       "transformer-medium-hand": {
        "mean": 0.638675,
        "bias": 0.124118,
@@ -3516,6 +3877,11 @@
        "mean": 0.641617,
        "bias": 0.12706,
        "log_loss": 0.71159
+      },
+      "gbm-hand-double": {
+       "mean": 0.639394,
+       "bias": 0.124836,
+       "log_loss": 0.716696
       },
       "hybrid-medium-hand": {
        "mean": 0.638343,
@@ -3604,6 +3970,11 @@
        "bias": -0.00645405,
        "log_loss": 0.339293
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.867444,
+       "bias": 0.000475135,
+       "log_loss": 0.338771
+      },
       "transformer-medium-hand": {
        "mean": 0.86147,
        "bias": -0.00549923,
@@ -3618,6 +3989,11 @@
        "mean": 0.863493,
        "bias": -0.0034757,
        "log_loss": 0.338793
+      },
+      "gbm-hand-double": {
+       "mean": 0.872882,
+       "bias": 0.00591286,
+       "log_loss": 0.339603
       },
       "hybrid-medium-hand": {
        "mean": 0.854339,
@@ -3699,6 +4075,11 @@
        "bias": -0.000563086,
        "log_loss": 0.529286
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.713856,
+       "bias": 0.00143744,
+       "log_loss": 0.530915
+      },
       "transformer-medium-hand": {
        "mean": 0.714556,
        "bias": 0.00213744,
@@ -3713,6 +4094,11 @@
        "mean": 0.712702,
        "bias": 0.000283457,
        "log_loss": 0.532153
+      },
+      "gbm-hand-double": {
+       "mean": 0.714058,
+       "bias": 0.0016398,
+       "log_loss": 0.532707
       },
       "hybrid-medium-hand": {
        "mean": 0.711585,
@@ -3794,6 +4180,11 @@
        "bias": 0.0036722,
        "log_loss": 0.579093
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.61005,
+       "bias": -0.00185248,
+       "log_loss": 0.578899
+      },
       "transformer-medium-hand": {
        "mean": 0.611256,
        "bias": -0.000645505,
@@ -3808,6 +4199,11 @@
        "mean": 0.612864,
        "bias": 0.000962372,
        "log_loss": 0.584131
+      },
+      "gbm-hand-double": {
+       "mean": 0.607511,
+       "bias": -0.00439061,
+       "log_loss": 0.586332
       },
       "hybrid-medium-hand": {
        "mean": 0.615592,
@@ -3889,6 +4285,11 @@
        "bias": 0.0085708,
        "log_loss": 0.587866
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.599422,
+       "bias": 0.00108935,
+       "log_loss": 0.58795
+      },
       "transformer-medium-hand": {
        "mean": 0.600717,
        "bias": 0.00238354,
@@ -3903,6 +4304,11 @@
        "mean": 0.605145,
        "bias": 0.00681233,
        "log_loss": 0.592862
+      },
+      "gbm-hand-double": {
+       "mean": 0.594607,
+       "bias": -0.00372603,
+       "log_loss": 0.591658
       },
       "hybrid-medium-hand": {
        "mean": 0.60306,
@@ -3984,6 +4390,11 @@
        "bias": 0.0206471,
        "log_loss": 0.582004
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.613695,
+       "bias": 0.0235198,
+       "log_loss": 0.589669
+      },
       "transformer-medium-hand": {
        "mean": 0.614857,
        "bias": 0.024682,
@@ -3998,6 +4409,11 @@
        "mean": 0.616299,
        "bias": 0.026124,
        "log_loss": 0.596974
+      },
+      "gbm-hand-double": {
+       "mean": 0.607269,
+       "bias": 0.0170939,
+       "log_loss": 0.594612
       },
       "hybrid-medium-hand": {
        "mean": 0.617825,
@@ -4086,6 +4502,11 @@
        "bias": -0.00057494,
        "log_loss": 0.529288
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.713857,
+       "bias": 0.00142234,
+       "log_loss": 0.530924
+      },
       "transformer-medium-hand": {
        "mean": 0.714557,
        "bias": 0.00212211,
@@ -4100,6 +4521,11 @@
        "mean": 0.712704,
        "bias": 0.000269145,
        "log_loss": 0.53217
+      },
+      "gbm-hand-double": {
+       "mean": 0.714068,
+       "bias": 0.00163323,
+       "log_loss": 0.532698
       },
       "hybrid-medium-hand": {
        "mean": 0.711595,
@@ -4181,6 +4607,11 @@
        "bias": 0.00511701,
        "log_loss": 0.540424
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.680837,
+       "bias": 0.000857293,
+       "log_loss": 0.54174
+      },
       "transformer-medium-hand": {
        "mean": 0.680999,
        "bias": 0.00101887,
@@ -4195,6 +4626,11 @@
        "mean": 0.683558,
        "bias": 0.00357803,
        "log_loss": 0.544713
+      },
+      "gbm-hand-double": {
+       "mean": 0.678801,
+       "bias": -0.00117919,
+       "log_loss": 0.547397
       },
       "hybrid-medium-hand": {
        "mean": 0.682406,
@@ -4276,6 +4712,11 @@
        "bias": 0.00947142,
        "log_loss": 0.557905
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.675488,
+       "bias": 0.00802175,
+       "log_loss": 0.558898
+      },
       "transformer-medium-hand": {
        "mean": 0.676053,
        "bias": 0.00858618,
@@ -4290,6 +4731,11 @@
        "mean": 0.674663,
        "bias": 0.00719639,
        "log_loss": 0.562777
+      },
+      "gbm-hand-double": {
+       "mean": 0.674324,
+       "bias": 0.00685712,
+       "log_loss": 0.56191
       },
       "hybrid-medium-hand": {
        "mean": 0.673977,
@@ -4371,6 +4817,11 @@
        "bias": -0.00120505,
        "log_loss": 0.523739
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.705015,
+       "bias": 0.0011817,
+       "log_loss": 0.523685
+      },
       "transformer-medium-hand": {
        "mean": 0.705636,
        "bias": 0.00180229,
@@ -4385,6 +4836,11 @@
        "mean": 0.702366,
        "bias": -0.00146752,
        "log_loss": 0.525822
+      },
+      "gbm-hand-double": {
+       "mean": 0.706747,
+       "bias": 0.00291402,
+       "log_loss": 0.524698
       },
       "hybrid-medium-hand": {
        "mean": 0.700649,
@@ -4466,6 +4922,11 @@
        "bias": -0.0101518,
        "log_loss": 0.572864
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.639283,
+       "bias": -0.0106619,
+       "log_loss": 0.573981
+      },
       "transformer-medium-hand": {
        "mean": 0.641233,
        "bias": -0.00871201,
@@ -4480,6 +4941,11 @@
        "mean": 0.641775,
        "bias": -0.00816957,
        "log_loss": 0.575167
+      },
+      "gbm-hand-double": {
+       "mean": 0.637374,
+       "bias": -0.0125712,
+       "log_loss": 0.579336
       },
       "hybrid-medium-hand": {
        "mean": 0.646502,
@@ -4561,6 +5027,11 @@
        "bias": 0.00371719,
        "log_loss": 0.579119
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.610034,
+       "bias": -0.0018114,
+       "log_loss": 0.57893
+      },
       "transformer-medium-hand": {
        "mean": 0.611247,
        "bias": -0.000598145,
@@ -4575,6 +5046,11 @@
        "mean": 0.612857,
        "bias": 0.00101148,
        "log_loss": 0.584149
+      },
+      "gbm-hand-double": {
+       "mean": 0.607499,
+       "bias": -0.0043466,
+       "log_loss": 0.586359
       },
       "hybrid-medium-hand": {
        "mean": 0.615581,
@@ -4656,6 +5132,11 @@
        "bias": 0.00077033,
        "log_loss": 0.420994
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.797556,
+       "bias": 0.0041688,
+       "log_loss": 0.422118
+      },
       "transformer-medium-hand": {
        "mean": 0.795334,
        "bias": 0.0019472,
@@ -4670,6 +5151,11 @@
        "mean": 0.795976,
        "bias": 0.0025894,
        "log_loss": 0.423665
+      },
+      "gbm-hand-double": {
+       "mean": 0.800484,
+       "bias": 0.00709699,
+       "log_loss": 0.422837
       },
       "hybrid-medium-hand": {
        "mean": 0.786861,
@@ -4751,6 +5237,11 @@
        "bias": -0.00999358,
        "log_loss": 0.545771
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.665597,
+       "bias": -0.00786654,
+       "log_loss": 0.547925
+      },
       "transformer-medium-hand": {
        "mean": 0.66572,
        "bias": -0.00774296,
@@ -4765,6 +5256,11 @@
        "mean": 0.66246,
        "bias": -0.0110031,
        "log_loss": 0.550159
+      },
+      "gbm-hand-double": {
+       "mean": 0.665679,
+       "bias": -0.00778407,
+       "log_loss": 0.551298
       },
       "hybrid-medium-hand": {
        "mean": 0.668236,
@@ -4846,6 +5342,11 @@
        "bias": 8.80977e-05,
        "log_loss": 0.432568
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.799509,
+       "bias": 0.00499585,
+       "log_loss": 0.434114
+      },
       "transformer-medium-hand": {
        "mean": 0.79871,
        "bias": 0.00419716,
@@ -4860,6 +5361,11 @@
        "mean": 0.797375,
        "bias": 0.0028617,
        "log_loss": 0.436453
+      },
+      "gbm-hand-double": {
+       "mean": 0.80051,
+       "bias": 0.00599665,
+       "log_loss": 0.435527
       },
       "hybrid-medium-hand": {
        "mean": 0.789995,
@@ -4941,6 +5447,11 @@
        "bias": 0.0245398,
        "log_loss": 0.547968
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.690393,
+       "bias": 0.00577295,
+       "log_loss": 0.548296
+      },
       "transformer-medium-hand": {
        "mean": 0.689397,
        "bias": 0.0047769,
@@ -4955,6 +5466,11 @@
        "mean": 0.689627,
        "bias": 0.0050074,
        "log_loss": 0.550381
+      },
+      "gbm-hand-double": {
+       "mean": 0.690232,
+       "bias": 0.00561251,
+       "log_loss": 0.552955
       },
       "hybrid-medium-hand": {
        "mean": 0.684828,
@@ -5036,6 +5552,11 @@
        "bias": 0.0325804,
        "log_loss": 0.589787
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.50185,
+       "bias": 0.0198121,
+       "log_loss": 0.582177
+      },
       "transformer-medium-hand": {
        "mean": 0.509845,
        "bias": 0.0278071,
@@ -5050,6 +5571,11 @@
        "mean": 0.512778,
        "bias": 0.0307401,
        "log_loss": 0.592041
+      },
+      "gbm-hand-double": {
+       "mean": 0.509998,
+       "bias": 0.0279602,
+       "log_loss": 0.590923
       },
       "hybrid-medium-hand": {
        "mean": 0.514772,
@@ -5131,6 +5657,11 @@
        "bias": 0.00557086,
        "log_loss": 0.495649
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.694639,
+       "bias": -0.00429866,
+       "log_loss": 0.498919
+      },
       "transformer-medium-hand": {
        "mean": 0.696617,
        "bias": -0.00231993,
@@ -5145,6 +5676,11 @@
        "mean": 0.699757,
        "bias": 0.000819718,
        "log_loss": 0.501748
+      },
+      "gbm-hand-double": {
+       "mean": 0.689593,
+       "bias": -0.00934381,
+       "log_loss": 0.503795
       },
       "hybrid-medium-hand": {
        "mean": 0.696661,
@@ -5226,6 +5762,11 @@
        "bias": 0.0115459,
        "log_loss": 0.586428
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.603059,
+       "bias": 0.00667101,
+       "log_loss": 0.588428
+      },
       "transformer-medium-hand": {
        "mean": 0.604307,
        "bias": 0.00791909,
@@ -5240,6 +5781,11 @@
        "mean": 0.607991,
        "bias": 0.0116035,
        "log_loss": 0.593929
+      },
+      "gbm-hand-double": {
+       "mean": 0.597812,
+       "bias": 0.00142428,
+       "log_loss": 0.592405
       },
       "hybrid-medium-hand": {
        "mean": 0.606794,
@@ -5321,6 +5867,11 @@
        "bias": -0.00395067,
        "log_loss": 0.568386
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.648167,
+       "bias": -0.00100955,
+       "log_loss": 0.574412
+      },
       "transformer-medium-hand": {
        "mean": 0.650381,
        "bias": 0.00120421,
@@ -5335,6 +5886,11 @@
        "mean": 0.65022,
        "bias": 0.00104286,
        "log_loss": 0.578717
+      },
+      "gbm-hand-double": {
+       "mean": 0.647504,
+       "bias": -0.00167317,
+       "log_loss": 0.57559
       },
       "hybrid-medium-hand": {
        "mean": 0.651617,
@@ -5416,6 +5972,11 @@
        "bias": -0.00645405,
        "log_loss": 0.339293
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.867444,
+       "bias": 0.000475135,
+       "log_loss": 0.338771
+      },
       "transformer-medium-hand": {
        "mean": 0.86147,
        "bias": -0.00549923,
@@ -5430,6 +5991,11 @@
        "mean": 0.863493,
        "bias": -0.0034757,
        "log_loss": 0.338793
+      },
+      "gbm-hand-double": {
+       "mean": 0.872882,
+       "bias": 0.00591286,
+       "log_loss": 0.339603
       },
       "hybrid-medium-hand": {
        "mean": 0.854339,
@@ -5511,6 +6077,11 @@
        "bias": 0.000779889,
        "log_loss": 0.57695
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.63686,
+       "bias": -0.00944364,
+       "log_loss": 0.577377
+      },
       "transformer-medium-hand": {
        "mean": 0.640677,
        "bias": -0.0056266,
@@ -5525,6 +6096,11 @@
        "mean": 0.638683,
        "bias": -0.00762117,
        "log_loss": 0.579249
+      },
+      "gbm-hand-double": {
+       "mean": 0.644147,
+       "bias": -0.00215687,
+       "log_loss": 0.581332
       },
       "hybrid-medium-hand": {
        "mean": 0.644765,
@@ -5606,6 +6182,11 @@
        "bias": -0.0157844,
        "log_loss": 0.550844
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.647265,
+       "bias": -0.000369365,
+       "log_loss": 0.55752
+      },
       "transformer-medium-hand": {
        "mean": 0.648556,
        "bias": 0.00092213,
@@ -5620,6 +6201,11 @@
        "mean": 0.646178,
        "bias": -0.00145554,
        "log_loss": 0.558621
+      },
+      "gbm-hand-double": {
+       "mean": 0.642518,
+       "bias": -0.00511598,
+       "log_loss": 0.558617
       },
       "hybrid-medium-hand": {
        "mean": 0.65667,
@@ -5701,6 +6287,11 @@
        "bias": -0.00161089,
        "log_loss": 0.542782
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.688495,
+       "bias": 0.00966539,
+       "log_loss": 0.544816
+      },
       "transformer-medium-hand": {
        "mean": 0.689265,
        "bias": 0.010436,
@@ -5715,6 +6306,11 @@
        "mean": 0.686544,
        "bias": 0.00771513,
        "log_loss": 0.547552
+      },
+      "gbm-hand-double": {
+       "mean": 0.684329,
+       "bias": 0.00550001,
+       "log_loss": 0.547012
       },
       "hybrid-medium-hand": {
        "mean": 0.681315,
@@ -5796,6 +6392,11 @@
        "bias": -0.00338889,
        "log_loss": 0.310713
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.885636,
+       "bias": 0.000883901,
+       "log_loss": 0.309311
+      },
       "transformer-medium-hand": {
        "mean": 0.87904,
        "bias": -0.00571236,
@@ -5810,6 +6411,11 @@
        "mean": 0.880761,
        "bias": -0.00399202,
        "log_loss": 0.310074
+      },
+      "gbm-hand-double": {
+       "mean": 0.891185,
+       "bias": 0.00643252,
+       "log_loss": 0.309497
       },
       "hybrid-medium-hand": {
        "mean": 0.870071,
@@ -5891,6 +6497,11 @@
        "bias": 0.00854987,
        "log_loss": 0.560688
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.68519,
+       "bias": 0.0116134,
+       "log_loss": 0.556643
+      },
       "transformer-medium-hand": {
        "mean": 0.683413,
        "bias": 0.00983695,
@@ -5905,6 +6516,11 @@
        "mean": 0.677296,
        "bias": 0.00371966,
        "log_loss": 0.561412
+      },
+      "gbm-hand-double": {
+       "mean": 0.679491,
+       "bias": 0.0059143,
+       "log_loss": 0.554249
       },
       "hybrid-medium-hand": {
        "mean": 0.676248,
@@ -5986,6 +6602,11 @@
        "bias": 0.02347,
        "log_loss": 0.578779
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.614914,
+       "bias": 0.0151811,
+       "log_loss": 0.580514
+      },
       "transformer-medium-hand": {
        "mean": 0.623198,
        "bias": 0.0234651,
@@ -6000,6 +6621,11 @@
        "mean": 0.620446,
        "bias": 0.0207138,
        "log_loss": 0.585737
+      },
+      "gbm-hand-double": {
+       "mean": 0.623971,
+       "bias": 0.0242385,
+       "log_loss": 0.58482
       },
       "hybrid-medium-hand": {
        "mean": 0.623018,
@@ -6081,6 +6707,11 @@
        "bias": 0.00246065,
        "log_loss": 0.579438
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.517904,
+       "bias": 0.00120379,
+       "log_loss": 0.573552
+      },
       "transformer-medium-hand": {
        "mean": 0.528032,
        "bias": 0.0113316,
@@ -6095,6 +6726,11 @@
        "mean": 0.529612,
        "bias": 0.012911,
        "log_loss": 0.585527
+      },
+      "gbm-hand-double": {
+       "mean": 0.523193,
+       "bias": 0.0064927,
+       "log_loss": 0.575401
       },
       "hybrid-medium-hand": {
        "mean": 0.52378,
@@ -6176,6 +6812,11 @@
        "bias": -0.000587476,
        "log_loss": 0.542757
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.687786,
+       "bias": 0.00441786,
+       "log_loss": 0.540614
+      },
       "transformer-medium-hand": {
        "mean": 0.685105,
        "bias": 0.00173605,
@@ -6190,6 +6831,11 @@
        "mean": 0.679391,
        "bias": -0.00397787,
        "log_loss": 0.544486
+      },
+      "gbm-hand-double": {
+       "mean": 0.685058,
+       "bias": 0.0016898,
+       "log_loss": 0.544266
       },
       "hybrid-medium-hand": {
        "mean": 0.679728,
@@ -6271,6 +6917,11 @@
        "bias": -0.0133789,
        "log_loss": 0.442476
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.802172,
+       "bias": -0.00459023,
+       "log_loss": 0.444369
+      },
       "transformer-medium-hand": {
        "mean": 0.794491,
        "bias": -0.0122712,
@@ -6285,6 +6936,11 @@
        "mean": 0.799024,
        "bias": -0.00773742,
        "log_loss": 0.447359
+      },
+      "gbm-hand-double": {
+       "mean": 0.810466,
+       "bias": 0.00370371,
+       "log_loss": 0.441494
       },
       "hybrid-medium-hand": {
        "mean": 0.793338,
@@ -6366,6 +7022,11 @@
        "bias": 0.00335213,
        "log_loss": 0.522561
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.690906,
+       "bias": 0.00120167,
+       "log_loss": 0.526293
+      },
       "transformer-medium-hand": {
        "mean": 0.692565,
        "bias": 0.00286044,
@@ -6380,6 +7041,11 @@
        "mean": 0.695447,
        "bias": 0.00574305,
        "log_loss": 0.527833
+      },
+      "gbm-hand-double": {
+       "mean": 0.696847,
+       "bias": 0.00714224,
+       "log_loss": 0.525929
       },
       "hybrid-medium-hand": {
        "mean": 0.683391,
@@ -6461,6 +7127,11 @@
        "bias": 0.0255918,
        "log_loss": 0.612546
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.611194,
+       "bias": 0.0177703,
+       "log_loss": 0.611586
+      },
       "transformer-medium-hand": {
        "mean": 0.617598,
        "bias": 0.0241744,
@@ -6475,6 +7146,11 @@
        "mean": 0.608748,
        "bias": 0.0153244,
        "log_loss": 0.6123
+      },
+      "gbm-hand-double": {
+       "mean": 0.613322,
+       "bias": 0.0198987,
+       "log_loss": 0.610342
       },
       "hybrid-medium-hand": {
        "mean": 0.618113,
@@ -6556,6 +7232,11 @@
        "bias": -0.00939268,
        "log_loss": 0.396503
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.822616,
+       "bias": -0.003318,
+       "log_loss": 0.402175
+      },
       "transformer-medium-hand": {
        "mean": 0.818745,
        "bias": -0.00718945,
@@ -6570,6 +7251,11 @@
        "mean": 0.814371,
        "bias": -0.0115635,
        "log_loss": 0.398205
+      },
+      "gbm-hand-double": {
+       "mean": 0.824252,
+       "bias": -0.00168237,
+       "log_loss": 0.394726
       },
       "hybrid-medium-hand": {
        "mean": 0.814816,
@@ -6651,6 +7337,11 @@
        "bias": 0.00344131,
        "log_loss": 0.57427
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.611012,
+       "bias": -0.0108643,
+       "log_loss": 0.572961
+      },
       "transformer-medium-hand": {
        "mean": 0.613459,
        "bias": -0.00841716,
@@ -6665,6 +7356,11 @@
        "mean": 0.614947,
        "bias": -0.00692935,
        "log_loss": 0.577945
+      },
+      "gbm-hand-double": {
+       "mean": 0.610416,
+       "bias": -0.0114602,
+       "log_loss": 0.573728
       },
       "hybrid-medium-hand": {
        "mean": 0.617211,
@@ -6746,6 +7442,11 @@
        "bias": -0.0249256,
        "log_loss": 0.507678
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.712315,
+       "bias": -0.000934212,
+       "log_loss": 0.515266
+      },
       "transformer-medium-hand": {
        "mean": 0.714069,
        "bias": 0.00081932,
@@ -6760,6 +7461,11 @@
        "mean": 0.691167,
        "bias": -0.0220828,
        "log_loss": 0.517025
+      },
+      "gbm-hand-double": {
+       "mean": 0.71347,
+       "bias": 0.00022087,
+       "log_loss": 0.505742
       },
       "hybrid-medium-hand": {
        "mean": 0.693576,
@@ -6841,6 +7547,11 @@
        "bias": 0.00200906,
        "log_loss": 0.562821
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.653343,
+       "bias": -0.00436752,
+       "log_loss": 0.562171
+      },
       "transformer-medium-hand": {
        "mean": 0.651408,
        "bias": -0.00630295,
@@ -6855,6 +7566,11 @@
        "mean": 0.655902,
        "bias": -0.00180927,
        "log_loss": 0.566633
+      },
+      "gbm-hand-double": {
+       "mean": 0.653665,
+       "bias": -0.00404578,
+       "log_loss": 0.562788
       },
       "hybrid-medium-hand": {
        "mean": 0.653441,
@@ -6943,6 +7659,11 @@
        "bias": 0.012908,
        "log_loss": 0.543796
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.665838,
+       "bias": 0.00377904,
+       "log_loss": 0.54571
+      },
       "transformer-medium-hand": {
        "mean": 0.665162,
        "bias": 0.00310341,
@@ -6957,6 +7678,11 @@
        "mean": 0.666121,
        "bias": 0.00406161,
        "log_loss": 0.5488
+      },
+      "gbm-hand-double": {
+       "mean": 0.664891,
+       "bias": 0.00283173,
+       "log_loss": 0.549574
       },
       "hybrid-medium-hand": {
        "mean": 0.663089,
@@ -7038,6 +7764,11 @@
        "bias": -0.00380467,
        "log_loss": 0.533555
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.694074,
+       "bias": -0.000170305,
+       "log_loss": 0.534722
+      },
       "transformer-medium-hand": {
        "mean": 0.694824,
        "bias": 0.000580251,
@@ -7052,6 +7783,11 @@
        "mean": 0.694152,
        "bias": -9.18009e-05,
        "log_loss": 0.536586
+      },
+      "gbm-hand-double": {
+       "mean": 0.69315,
+       "bias": -0.00109451,
+       "log_loss": 0.53753
       },
       "hybrid-medium-hand": {
        "mean": 0.69555,
@@ -7133,6 +7869,11 @@
        "bias": -0.00998931,
        "log_loss": 0.505473
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.734628,
+       "bias": -0.00204321,
+       "log_loss": 0.503454
+      },
       "transformer-medium-hand": {
        "mean": 0.736747,
        "bias": 7.5288e-05,
@@ -7147,6 +7888,11 @@
        "mean": 0.734469,
        "bias": -0.00220263,
        "log_loss": 0.507232
+      },
+      "gbm-hand-double": {
+       "mean": 0.737057,
+       "bias": 0.000386049,
+       "log_loss": 0.507755
       },
       "hybrid-medium-hand": {
        "mean": 0.730609,
@@ -7235,6 +7981,11 @@
        "bias": 0.00453999,
        "log_loss": 0.539877
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.708399,
+       "bias": 0.006093,
+       "log_loss": 0.540773
+      },
       "transformer-medium-hand": {
        "mean": 0.706549,
        "bias": 0.00424332,
@@ -7249,6 +8000,11 @@
        "mean": 0.705338,
        "bias": 0.00303192,
        "log_loss": 0.541884
+      },
+      "gbm-hand-double": {
+       "mean": 0.708583,
+       "bias": 0.00627701,
+       "log_loss": 0.540879
       },
       "hybrid-medium-hand": {
        "mean": 0.702019,
@@ -7330,6 +8086,11 @@
        "bias": -0.00214306,
        "log_loss": 0.560771
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.665274,
+       "bias": -0.00385919,
+       "log_loss": 0.55934
+      },
       "transformer-medium-hand": {
        "mean": 0.665519,
        "bias": -0.00361446,
@@ -7344,6 +8105,11 @@
        "mean": 0.665037,
        "bias": -0.00409637,
        "log_loss": 0.563796
+      },
+      "gbm-hand-double": {
+       "mean": 0.666112,
+       "bias": -0.00302162,
+       "log_loss": 0.565726
       },
       "hybrid-medium-hand": {
        "mean": 0.667,
@@ -7425,6 +8191,11 @@
        "bias": 0.000102669,
        "log_loss": 0.56266
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.653889,
+       "bias": 0.000515255,
+       "log_loss": 0.565683
+      },
       "transformer-medium-hand": {
        "mean": 0.655569,
        "bias": 0.00219458,
@@ -7439,6 +8210,11 @@
        "mean": 0.655701,
        "bias": 0.00232749,
        "log_loss": 0.567624
+      },
+      "gbm-hand-double": {
+       "mean": 0.651407,
+       "bias": -0.00196682,
+       "log_loss": 0.571087
       },
       "hybrid-medium-hand": {
        "mean": 0.658804,
@@ -7520,6 +8296,11 @@
        "bias": 0.00270861,
        "log_loss": 0.539664
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.690123,
+       "bias": 0.00258764,
+       "log_loss": 0.541327
+      },
       "transformer-medium-hand": {
        "mean": 0.690597,
        "bias": 0.0030622,
@@ -7534,6 +8315,11 @@
        "mean": 0.690404,
        "bias": 0.00286877,
        "log_loss": 0.543869
+      },
+      "gbm-hand-double": {
+       "mean": 0.689625,
+       "bias": 0.00208988,
+       "log_loss": 0.542648
       },
       "hybrid-medium-hand": {
        "mean": 0.687208,
@@ -7615,6 +8401,11 @@
        "bias": 0.00726298,
        "log_loss": 0.401966
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.830755,
+       "bias": 0.0044022,
+       "log_loss": 0.395821
+      },
       "transformer-medium-hand": {
        "mean": 0.830285,
        "bias": 0.00393297,
@@ -7629,6 +8420,11 @@
        "mean": 0.826586,
        "bias": 0.000233069,
        "log_loss": 0.394486
+      },
+      "gbm-hand-double": {
+       "mean": 0.827951,
+       "bias": 0.0015989,
+       "log_loss": 0.392766
       },
       "hybrid-medium-hand": {
        "mean": 0.820054,
@@ -7710,6 +8506,11 @@
        "bias": -0.0017974,
        "log_loss": 0.245445
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.899432,
+       "bias": -0.00226885,
+       "log_loss": 0.243164
+      },
       "transformer-medium-hand": {
        "mean": 0.899252,
        "bias": -0.00244956,
@@ -7724,6 +8525,11 @@
        "mean": 0.899513,
        "bias": -0.00218854,
        "log_loss": 0.245828
+      },
+      "gbm-hand-double": {
+       "mean": 0.903521,
+       "bias": 0.00181999,
+       "log_loss": 0.243759
       },
       "hybrid-medium-hand": {
        "mean": 0.888853,
@@ -7812,6 +8618,11 @@
        "bias": -0.0023318,
        "log_loss": 0.547211
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.671599,
+       "bias": 0.00619764,
+       "log_loss": 0.549488
+      },
       "transformer-medium-hand": {
        "mean": 0.672203,
        "bias": 0.00680229,
@@ -7826,6 +8637,11 @@
        "mean": 0.676389,
        "bias": 0.0109875,
        "log_loss": 0.552259
+      },
+      "gbm-hand-double": {
+       "mean": 0.66911,
+       "bias": 0.00370842,
+       "log_loss": 0.551161
       },
       "hybrid-medium-hand": {
        "mean": 0.669986,
@@ -7907,6 +8723,11 @@
        "bias": 0.00428934,
        "log_loss": 0.556634
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.67132,
+       "bias": -0.000795576,
+       "log_loss": 0.560398
+      },
       "transformer-medium-hand": {
        "mean": 0.674699,
        "bias": 0.00258354,
@@ -7921,6 +8742,11 @@
        "mean": 0.672086,
        "bias": -2.97315e-05,
        "log_loss": 0.561672
+      },
+      "gbm-hand-double": {
+       "mean": 0.67166,
+       "bias": -0.000455125,
+       "log_loss": 0.565605
       },
       "hybrid-medium-hand": {
        "mean": 0.672152,
@@ -8002,6 +8828,11 @@
        "bias": -0.00309016,
        "log_loss": 0.563041
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.667592,
+       "bias": -0.00122415,
+       "log_loss": 0.562894
+      },
       "transformer-medium-hand": {
        "mean": 0.668947,
        "bias": 0.000130095,
@@ -8016,6 +8847,11 @@
        "mean": 0.675688,
        "bias": 0.00687123,
        "log_loss": 0.567128
+      },
+      "gbm-hand-double": {
+       "mean": 0.664852,
+       "bias": -0.00396414,
+       "log_loss": 0.56482
       },
       "hybrid-medium-hand": {
        "mean": 0.674438,
@@ -8097,6 +8933,11 @@
        "bias": -0.00179724,
        "log_loss": 0.522552
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.688258,
+       "bias": -0.00177137,
+       "log_loss": 0.521126
+      },
       "transformer-medium-hand": {
        "mean": 0.692174,
        "bias": 0.00214477,
@@ -8111,6 +8952,11 @@
        "mean": 0.690175,
        "bias": 0.000146133,
        "log_loss": 0.525126
+      },
+      "gbm-hand-double": {
+       "mean": 0.68812,
+       "bias": -0.00190875,
+       "log_loss": 0.529061
       },
       "hybrid-medium-hand": {
        "mean": 0.684429,
@@ -8192,6 +9038,11 @@
        "bias": 0.00271237,
        "log_loss": 0.514557
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.709193,
+       "bias": 0.00159483,
+       "log_loss": 0.516097
+      },
       "transformer-medium-hand": {
        "mean": 0.704799,
        "bias": -0.00279912,
@@ -8206,6 +9057,11 @@
        "mean": 0.702469,
        "bias": -0.00512865,
        "log_loss": 0.517526
+      },
+      "gbm-hand-double": {
+       "mean": 0.709128,
+       "bias": 0.00153026,
+       "log_loss": 0.517356
       },
       "hybrid-medium-hand": {
        "mean": 0.708787,
@@ -8287,6 +9143,11 @@
        "bias": 0.0183313,
        "log_loss": 0.502245
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.763197,
+       "bias": 0.0125675,
+       "log_loss": 0.505037
+      },
       "transformer-medium-hand": {
        "mean": 0.758758,
        "bias": 0.00812869,
@@ -8301,6 +9162,11 @@
        "mean": 0.755027,
        "bias": 0.00439682,
        "log_loss": 0.50324
+      },
+      "gbm-hand-double": {
+       "mean": 0.76634,
+       "bias": 0.0157104,
+       "log_loss": 0.494722
       },
       "hybrid-medium-hand": {
        "mean": 0.754664,
@@ -8389,6 +9255,11 @@
        "bias": 0.00902244,
        "log_loss": 0.562659
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.668586,
+       "bias": 0.00313003,
+       "log_loss": 0.56492
+      },
       "transformer-medium-hand": {
        "mean": 0.671368,
        "bias": 0.00591149,
@@ -8403,6 +9274,11 @@
        "mean": 0.668666,
        "bias": 0.00321003,
        "log_loss": 0.566551
+      },
+      "gbm-hand-double": {
+       "mean": 0.668206,
+       "bias": 0.00274971,
+       "log_loss": 0.566234
       },
       "hybrid-medium-hand": {
        "mean": 0.671463,
@@ -8484,6 +9360,11 @@
        "bias": -0.00989407,
        "log_loss": 0.494313
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.717675,
+       "bias": -0.00208714,
+       "log_loss": 0.493715
+      },
       "transformer-medium-hand": {
        "mean": 0.71491,
        "bias": -0.00485233,
@@ -8498,6 +9379,11 @@
        "mean": 0.717847,
        "bias": -0.00191522,
        "log_loss": 0.49737
+      },
+      "gbm-hand-double": {
+       "mean": 0.716895,
+       "bias": -0.00286768,
+       "log_loss": 0.499787
       },
       "hybrid-medium-hand": {
        "mean": 0.712458,
@@ -8586,6 +9472,11 @@
        "bias": 0.00210433,
        "log_loss": 0.567928
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.652658,
+       "bias": 0.000565752,
+       "log_loss": 0.569983
+      },
       "transformer-medium-hand": {
        "mean": 0.653421,
        "bias": 0.0013284,
@@ -8600,6 +9491,11 @@
        "mean": 0.65468,
        "bias": 0.00258717,
        "log_loss": 0.571734
+      },
+      "gbm-hand-double": {
+       "mean": 0.650458,
+       "bias": -0.00163415,
+       "log_loss": 0.574501
       },
       "hybrid-medium-hand": {
        "mean": 0.655016,
@@ -8681,6 +9577,11 @@
        "bias": 8.98969e-05,
        "log_loss": 0.504482
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.720765,
+       "bias": 0.00122815,
+       "log_loss": 0.504673
+      },
       "transformer-medium-hand": {
        "mean": 0.720919,
        "bias": 0.00138212,
@@ -8695,6 +9596,11 @@
        "mean": 0.719256,
        "bias": -0.000281358,
        "log_loss": 0.507792
+      },
+      "gbm-hand-double": {
+       "mean": 0.721628,
+       "bias": 0.00209096,
+       "log_loss": 0.506982
       },
       "hybrid-medium-hand": {
        "mean": 0.71773,
@@ -8783,6 +9689,11 @@
        "bias": -0.000921029,
        "log_loss": 0.52128
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.721237,
+       "bias": 0.000907532,
+       "log_loss": 0.52323
+      },
       "transformer-medium-hand": {
        "mean": 0.719682,
        "bias": -0.000647259,
@@ -8797,6 +9708,11 @@
        "mean": 0.71964,
        "bias": -0.000688929,
        "log_loss": 0.525095
+      },
+      "gbm-hand-double": {
+       "mean": 0.721886,
+       "bias": 0.00155698,
+       "log_loss": 0.525688
       },
       "hybrid-medium-hand": {
        "mean": 0.719107,
@@ -8878,6 +9794,11 @@
        "bias": 0.0118527,
        "log_loss": 0.603338
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.511314,
+       "bias": 0.00100715,
+       "log_loss": 0.59937
+      },
       "transformer-medium-hand": {
        "mean": 0.522859,
        "bias": 0.0125522,
@@ -8892,6 +9813,11 @@
        "mean": 0.521012,
        "bias": 0.0107055,
        "log_loss": 0.605333
+      },
+      "gbm-hand-double": {
+       "mean": 0.504068,
+       "bias": -0.00623894,
+       "log_loss": 0.607553
       },
       "hybrid-medium-hand": {
        "mean": 0.519597,
@@ -8980,6 +9906,11 @@
        "bias": 5.33976e-05,
        "log_loss": 0.5326
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.690048,
+       "bias": 0.00181994,
+       "log_loss": 0.534159
+      },
       "transformer-medium-hand": {
        "mean": 0.690286,
        "bias": 0.00205795,
@@ -8994,6 +9925,11 @@
        "mean": 0.690674,
        "bias": 0.00244576,
        "log_loss": 0.536581
+      },
+      "gbm-hand-double": {
+       "mean": 0.689328,
+       "bias": 0.00109992,
+       "log_loss": 0.537893
       },
       "hybrid-medium-hand": {
        "mean": 0.68937,
@@ -9075,6 +10011,11 @@
        "bias": 0.0115112,
        "log_loss": 0.54615
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.681826,
+       "bias": -0.00882808,
+       "log_loss": 0.541686
+      },
       "transformer-medium-hand": {
        "mean": 0.684398,
        "bias": -0.00625613,
@@ -9089,6 +10030,11 @@
        "mean": 0.676436,
        "bias": -0.0142181,
        "log_loss": 0.544887
+      },
+      "gbm-hand-double": {
+       "mean": 0.683127,
+       "bias": -0.00752634,
+       "log_loss": 0.540593
       },
       "hybrid-medium-hand": {
        "mean": 0.682693,
@@ -9177,6 +10123,11 @@
        "bias": -0.00184887,
        "log_loss": 0.504412
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.720153,
+       "bias": -6.83275e-05,
+       "log_loss": 0.505441
+      },
       "transformer-medium-hand": {
        "mean": 0.719144,
        "bias": -0.00107712,
@@ -9191,6 +10142,11 @@
        "mean": 0.719534,
        "bias": -0.00068789,
        "log_loss": 0.507633
+      },
+      "gbm-hand-double": {
+       "mean": 0.721114,
+       "bias": 0.000892076,
+       "log_loss": 0.509326
       },
       "hybrid-medium-hand": {
        "mean": 0.71664,
@@ -9272,6 +10228,11 @@
        "bias": 0.00764701,
        "log_loss": 0.588029
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.634526,
+       "bias": 0.00193861,
+       "log_loss": 0.590192
+      },
       "transformer-medium-hand": {
        "mean": 0.637514,
        "bias": 0.00492644,
@@ -9286,6 +10247,11 @@
        "mean": 0.638647,
        "bias": 0.00606012,
        "log_loss": 0.592226
+      },
+      "gbm-hand-double": {
+       "mean": 0.631348,
+       "bias": -0.00123891,
+       "log_loss": 0.59226
       },
       "hybrid-medium-hand": {
        "mean": 0.641801,
@@ -9367,6 +10333,11 @@
        "bias": 0.00518442,
        "log_loss": 0.59348
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.620295,
+       "bias": 0.00519681,
+       "log_loss": 0.591021
+      },
       "transformer-medium-hand": {
        "mean": 0.622862,
        "bias": 0.00776426,
@@ -9381,6 +10352,11 @@
        "mean": 0.616425,
        "bias": 0.00132666,
        "log_loss": 0.597154
+      },
+      "gbm-hand-double": {
+       "mean": 0.61599,
+       "bias": 0.000891497,
+       "log_loss": 0.593497
       },
       "hybrid-medium-hand": {
        "mean": 0.620365,
@@ -9462,6 +10438,11 @@
        "bias": -0.00267753,
        "log_loss": 0.581384
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.636961,
+       "bias": 0.00383405,
+       "log_loss": 0.58268
+      },
       "transformer-medium-hand": {
        "mean": 0.643542,
        "bias": 0.0104147,
@@ -9476,6 +10457,11 @@
        "mean": 0.628439,
        "bias": -0.00468808,
        "log_loss": 0.586342
+      },
+      "gbm-hand-double": {
+       "mean": 0.634391,
+       "bias": 0.00126455,
+       "log_loss": 0.586563
       },
       "hybrid-medium-hand": {
        "mean": 0.634293,
@@ -9564,6 +10550,11 @@
        "bias": 0.00110378,
        "log_loss": 0.56425
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.660086,
+       "bias": 5.86185e-05,
+       "log_loss": 0.565288
+      },
       "transformer-medium-hand": {
        "mean": 0.661239,
        "bias": 0.00121156,
@@ -9578,6 +10569,11 @@
        "mean": 0.660665,
        "bias": 0.000638199,
        "log_loss": 0.568028
+      },
+      "gbm-hand-double": {
+       "mean": 0.6586,
+       "bias": -0.00142751,
+       "log_loss": 0.569315
       },
       "hybrid-medium-hand": {
        "mean": 0.662286,
@@ -9659,6 +10655,11 @@
        "bias": 0.000705156,
        "log_loss": 0.420955
       },
+      "transformer-medium-hand-double": {
+       "mean": 0.797564,
+       "bias": 0.00411698,
+       "log_loss": 0.422054
+      },
       "transformer-medium-hand": {
        "mean": 0.795343,
        "bias": 0.00189632,
@@ -9673,6 +10674,11 @@
        "mean": 0.79598,
        "bias": 0.00253273,
        "log_loss": 0.423611
+      },
+      "gbm-hand-double": {
+       "mean": 0.800476,
+       "bias": 0.00702943,
+       "log_loss": 0.422796
       },
       "hybrid-medium-hand": {
        "mean": 0.786857,
@@ -9771,9 +10777,11 @@
        "transformer-medium-hand-pretrained": 0.798063,
        "transformer-medium-pretrained": 0.795616,
        "conv-medium-hand": 0.783631,
+       "transformer-medium-hand-double": 0.790859,
        "transformer-medium-hand": 0.793851,
        "transformer-medium-hand-attacks": 0.794256,
        "transformer-medium-hand-long": 0.786678,
+       "gbm-hand-double": 0.790968,
        "hybrid-medium-hand": 0.787427,
        "gbm-hand": 0.788113,
        "transformer-medium-long": 0.778213,
@@ -9795,9 +10803,11 @@
        "transformer-medium-hand-pretrained": 0.713696,
        "transformer-medium-pretrained": 0.713726,
        "conv-medium-hand": 0.70267,
+       "transformer-medium-hand-double": 0.71224,
        "transformer-medium-hand": 0.711743,
        "transformer-medium-hand-attacks": 0.711996,
        "transformer-medium-hand-long": 0.709166,
+       "gbm-hand-double": 0.710748,
        "hybrid-medium-hand": 0.709989,
        "gbm-hand": 0.708965,
        "transformer-medium-long": 0.705484,
@@ -9819,9 +10829,11 @@
        "transformer-medium-hand-pretrained": 0.610504,
        "transformer-medium-pretrained": 0.60834,
        "conv-medium-hand": 0.604132,
+       "transformer-medium-hand-double": 0.609642,
        "transformer-medium-hand": 0.613403,
        "transformer-medium-hand-attacks": 0.613708,
        "transformer-medium-hand-long": 0.61515,
+       "gbm-hand-double": 0.612357,
        "hybrid-medium-hand": 0.614723,
        "gbm-hand": 0.614653,
        "transformer-medium-long": 0.618658,
@@ -9843,9 +10855,11 @@
        "transformer-medium-hand-pretrained": 0.551693,
        "transformer-medium-pretrained": 0.555012,
        "conv-medium-hand": 0.547261,
+       "transformer-medium-hand-double": 0.555429,
        "transformer-medium-hand": 0.55581,
        "transformer-medium-hand-attacks": 0.555983,
        "transformer-medium-hand-long": 0.561177,
+       "gbm-hand-double": 0.558001,
        "hybrid-medium-hand": 0.563002,
        "gbm-hand": 0.562027,
        "transformer-medium-long": 0.576993,
@@ -9867,9 +10881,11 @@
        "transformer-medium-hand-pretrained": 0.52727,
        "transformer-medium-pretrained": 0.52861,
        "conv-medium-hand": 0.525148,
+       "transformer-medium-hand-double": 0.531949,
        "transformer-medium-hand": 0.534168,
        "transformer-medium-hand-attacks": 0.534214,
        "transformer-medium-hand-long": 0.534787,
+       "gbm-hand-double": 0.527704,
        "hybrid-medium-hand": 0.541105,
        "gbm-hand": 0.532041,
        "transformer-medium-long": 0.546083,
@@ -9893,9 +10909,11 @@
        "transformer-medium-hand-pretrained": 0.813794,
        "transformer-medium-pretrained": 0.810082,
        "conv-medium-hand": 0.801863,
+       "transformer-medium-hand-double": 0.811979,
        "transformer-medium-hand": 0.808467,
        "transformer-medium-hand-attacks": 0.808635,
        "transformer-medium-hand-long": 0.802659,
+       "gbm-hand-double": 0.810106,
        "hybrid-medium-hand": 0.805206,
        "gbm-hand": 0.806544,
        "transformer-medium-long": 0.799158,
@@ -9917,9 +10935,11 @@
        "transformer-medium-hand-pretrained": 0.736633,
        "transformer-medium-pretrained": 0.734903,
        "conv-medium-hand": 0.730738,
+       "transformer-medium-hand-double": 0.736357,
        "transformer-medium-hand": 0.736496,
        "transformer-medium-hand-attacks": 0.736582,
        "transformer-medium-hand-long": 0.733209,
+       "gbm-hand-double": 0.733692,
        "hybrid-medium-hand": 0.735064,
        "gbm-hand": 0.732006,
        "transformer-medium-long": 0.728357,
@@ -9941,9 +10961,11 @@
        "transformer-medium-hand-pretrained": 0.650569,
        "transformer-medium-pretrained": 0.650823,
        "conv-medium-hand": 0.651726,
+       "transformer-medium-hand-double": 0.654236,
        "transformer-medium-hand": 0.656694,
        "transformer-medium-hand-attacks": 0.656568,
        "transformer-medium-hand-long": 0.656732,
+       "gbm-hand-double": 0.655657,
        "hybrid-medium-hand": 0.657521,
        "gbm-hand": 0.655985,
        "transformer-medium-long": 0.659839,
@@ -9965,9 +10987,11 @@
        "transformer-medium-hand-pretrained": 0.597228,
        "transformer-medium-pretrained": 0.600986,
        "conv-medium-hand": 0.602712,
+       "transformer-medium-hand-double": 0.602368,
        "transformer-medium-hand": 0.606427,
        "transformer-medium-hand-attacks": 0.606417,
        "transformer-medium-hand-long": 0.608727,
+       "gbm-hand-double": 0.604445,
        "hybrid-medium-hand": 0.608111,
        "gbm-hand": 0.605662,
        "transformer-medium-long": 0.618863,
@@ -9989,9 +11013,11 @@
        "transformer-medium-hand-pretrained": 0.571367,
        "transformer-medium-pretrained": 0.575139,
        "conv-medium-hand": 0.575227,
+       "transformer-medium-hand-double": 0.574928,
        "transformer-medium-hand": 0.576962,
        "transformer-medium-hand-attacks": 0.576823,
        "transformer-medium-hand-long": 0.581323,
+       "gbm-hand-double": 0.57172,
        "hybrid-medium-hand": 0.579928,
        "gbm-hand": 0.572363,
        "transformer-medium-long": 0.590506,
@@ -10015,9 +11041,11 @@
        "transformer-medium-hand-pretrained": 0.836468,
        "transformer-medium-pretrained": 0.829928,
        "conv-medium-hand": 0.825742,
+       "transformer-medium-hand-double": 0.833777,
        "transformer-medium-hand": 0.828389,
        "transformer-medium-hand-attacks": 0.82843,
        "transformer-medium-hand-long": 0.825572,
+       "gbm-hand-double": 0.829905,
        "hybrid-medium-hand": 0.824863,
        "gbm-hand": 0.825662,
        "transformer-medium-long": 0.819304,
@@ -10039,9 +11067,11 @@
        "transformer-medium-hand-pretrained": 0.76149,
        "transformer-medium-pretrained": 0.757055,
        "conv-medium-hand": 0.757996,
+       "transformer-medium-hand-double": 0.761507,
        "transformer-medium-hand": 0.758312,
        "transformer-medium-hand-attacks": 0.758295,
        "transformer-medium-hand-long": 0.757292,
+       "gbm-hand-double": 0.755853,
        "hybrid-medium-hand": 0.756537,
        "gbm-hand": 0.755087,
        "transformer-medium-long": 0.748489,
@@ -10063,9 +11093,11 @@
        "transformer-medium-hand-pretrained": 0.685685,
        "transformer-medium-pretrained": 0.682322,
        "conv-medium-hand": 0.689711,
+       "transformer-medium-hand-double": 0.689347,
        "transformer-medium-hand": 0.692165,
        "transformer-medium-hand-attacks": 0.692053,
        "transformer-medium-hand-long": 0.692704,
+       "gbm-hand-double": 0.688391,
        "hybrid-medium-hand": 0.690961,
        "gbm-hand": 0.689748,
        "transformer-medium-long": 0.688211,
@@ -10087,9 +11119,11 @@
        "transformer-medium-hand-pretrained": 0.625997,
        "transformer-medium-pretrained": 0.630769,
        "conv-medium-hand": 0.636035,
+       "transformer-medium-hand-double": 0.630624,
        "transformer-medium-hand": 0.633006,
        "transformer-medium-hand-attacks": 0.63291,
        "transformer-medium-hand-long": 0.635069,
+       "gbm-hand-double": 0.63216,
        "hybrid-medium-hand": 0.632981,
        "gbm-hand": 0.634962,
        "transformer-medium-long": 0.642634,
@@ -10111,9 +11145,11 @@
        "transformer-medium-hand-pretrained": 0.593307,
        "transformer-medium-pretrained": 0.602015,
        "conv-medium-hand": 0.606468,
+       "transformer-medium-hand-double": 0.602269,
        "transformer-medium-hand": 0.605644,
        "transformer-medium-hand-attacks": 0.605427,
        "transformer-medium-hand-long": 0.606639,
+       "gbm-hand-double": 0.597526,
        "hybrid-medium-hand": 0.605588,
        "gbm-hand": 0.600919,
        "transformer-medium-long": 0.613913,
@@ -10137,9 +11173,11 @@
        "transformer-medium-hand-pretrained": 0.836179,
        "transformer-medium-pretrained": 0.826912,
        "conv-medium-hand": 0.820324,
+       "transformer-medium-hand-double": 0.825815,
        "transformer-medium-hand": 0.820938,
        "transformer-medium-hand-attacks": 0.820991,
        "transformer-medium-hand-long": 0.820299,
+       "gbm-hand-double": 0.820107,
        "hybrid-medium-hand": 0.813816,
        "gbm-hand": 0.816614,
        "transformer-medium-long": 0.812907,
@@ -10161,9 +11199,11 @@
        "transformer-medium-hand-pretrained": 0.77699,
        "transformer-medium-pretrained": 0.769664,
        "conv-medium-hand": 0.774161,
+       "transformer-medium-hand-double": 0.772329,
        "transformer-medium-hand": 0.767908,
        "transformer-medium-hand-attacks": 0.767934,
        "transformer-medium-hand-long": 0.767503,
+       "gbm-hand-double": 0.768331,
        "hybrid-medium-hand": 0.763765,
        "gbm-hand": 0.765743,
        "transformer-medium-long": 0.758032,
@@ -10185,9 +11225,11 @@
        "transformer-medium-hand-pretrained": 0.699903,
        "transformer-medium-pretrained": 0.700365,
        "conv-medium-hand": 0.70601,
+       "transformer-medium-hand-double": 0.697713,
        "transformer-medium-hand": 0.697411,
        "transformer-medium-hand-attacks": 0.697279,
        "transformer-medium-hand-long": 0.698834,
+       "gbm-hand-double": 0.702251,
        "hybrid-medium-hand": 0.696819,
        "gbm-hand": 0.701781,
        "transformer-medium-long": 0.698541,
@@ -10209,9 +11251,11 @@
        "transformer-medium-hand-pretrained": 0.656573,
        "transformer-medium-pretrained": 0.659557,
        "conv-medium-hand": 0.668587,
+       "transformer-medium-hand-double": 0.663056,
        "transformer-medium-hand": 0.663813,
        "transformer-medium-hand-attacks": 0.663882,
        "transformer-medium-hand-long": 0.666252,
+       "gbm-hand-double": 0.664753,
        "hybrid-medium-hand": 0.66037,
        "gbm-hand": 0.665187,
        "transformer-medium-long": 0.667422,
@@ -10233,9 +11277,11 @@
        "transformer-medium-hand-pretrained": 0.60944,
        "transformer-medium-pretrained": 0.626357,
        "conv-medium-hand": 0.629638,
+       "transformer-medium-hand-double": 0.617117,
        "transformer-medium-hand": 0.620399,
        "transformer-medium-hand-attacks": 0.620223,
        "transformer-medium-hand-long": 0.619288,
+       "gbm-hand-double": 0.622818,
        "hybrid-medium-hand": 0.617405,
        "gbm-hand": 0.62348,
        "transformer-medium-long": 0.632053,
@@ -10259,9 +11305,11 @@
        "transformer-medium-hand-pretrained": 0.807611,
        "transformer-medium-pretrained": 0.800859,
        "conv-medium-hand": 0.798113,
+       "transformer-medium-hand-double": 0.785958,
        "transformer-medium-hand": 0.78457,
        "transformer-medium-hand-attacks": 0.784743,
        "transformer-medium-hand-long": 0.781558,
+       "gbm-hand-double": 0.785432,
        "hybrid-medium-hand": 0.771313,
        "gbm-hand": 0.78314,
        "transformer-medium-long": 0.775713,
@@ -10283,9 +11331,11 @@
        "transformer-medium-hand-pretrained": 0.770472,
        "transformer-medium-pretrained": 0.763477,
        "conv-medium-hand": 0.772467,
+       "transformer-medium-hand-double": 0.758121,
        "transformer-medium-hand": 0.755218,
        "transformer-medium-hand-attacks": 0.755212,
        "transformer-medium-hand-long": 0.755775,
+       "gbm-hand-double": 0.754749,
        "hybrid-medium-hand": 0.748149,
        "gbm-hand": 0.751777,
        "transformer-medium-long": 0.745293,
@@ -10307,9 +11357,11 @@
        "transformer-medium-hand-pretrained": 0.713733,
        "transformer-medium-pretrained": 0.708834,
        "conv-medium-hand": 0.725371,
+       "transformer-medium-hand-double": 0.704866,
        "transformer-medium-hand": 0.704982,
        "transformer-medium-hand-attacks": 0.704829,
        "transformer-medium-hand-long": 0.705272,
+       "gbm-hand-double": 0.705913,
        "hybrid-medium-hand": 0.701676,
        "gbm-hand": 0.704729,
        "transformer-medium-long": 0.699006,
@@ -10331,9 +11383,11 @@
        "transformer-medium-hand-pretrained": 0.669467,
        "transformer-medium-pretrained": 0.672644,
        "conv-medium-hand": 0.687808,
+       "transformer-medium-hand-double": 0.661401,
        "transformer-medium-hand": 0.660772,
        "transformer-medium-hand-attacks": 0.660602,
        "transformer-medium-hand-long": 0.663089,
+       "gbm-hand-double": 0.667032,
        "hybrid-medium-hand": 0.66433,
        "gbm-hand": 0.667958,
        "transformer-medium-long": 0.667961,
@@ -10355,9 +11409,11 @@
        "transformer-medium-hand-pretrained": 0.632265,
        "transformer-medium-pretrained": 0.64551,
        "conv-medium-hand": 0.655462,
+       "transformer-medium-hand-double": 0.632342,
        "transformer-medium-hand": 0.631424,
        "transformer-medium-hand-attacks": 0.63123,
        "transformer-medium-hand-long": 0.631805,
+       "gbm-hand-double": 0.635485,
        "hybrid-medium-hand": 0.629007,
        "gbm-hand": 0.636311,
        "transformer-medium-long": 0.648282,
@@ -10408,9 +11464,11 @@
        "transformer-medium-hand-pretrained": 0.768328,
        "transformer-medium-pretrained": 0.750424,
        "conv-medium-hand": 0.726886,
+       "transformer-medium-hand-double": 0.728809,
        "transformer-medium-hand": 0.727727,
        "transformer-medium-hand-attacks": 0.727747,
        "transformer-medium-hand-long": 0.727916,
+       "gbm-hand-double": 0.725538,
        "hybrid-medium-hand": 0.707808,
        "gbm-hand": 0.721973,
        "transformer-medium-long": 0.721509,
@@ -10432,9 +11490,11 @@
        "transformer-medium-hand-pretrained": 0.712504,
        "transformer-medium-pretrained": 0.698292,
        "conv-medium-hand": 0.681695,
+       "transformer-medium-hand-double": 0.679733,
        "transformer-medium-hand": 0.67629,
        "transformer-medium-hand-attacks": 0.676498,
        "transformer-medium-hand-long": 0.681008,
+       "gbm-hand-double": 0.671417,
        "hybrid-medium-hand": 0.661587,
        "gbm-hand": 0.670841,
        "transformer-medium-long": 0.674941,
@@ -10456,9 +11516,11 @@
        "transformer-medium-hand-pretrained": 0.645986,
        "transformer-medium-pretrained": 0.634159,
        "conv-medium-hand": 0.6275,
+       "transformer-medium-hand-double": 0.616967,
        "transformer-medium-hand": 0.616094,
        "transformer-medium-hand-attacks": 0.615876,
        "transformer-medium-hand-long": 0.618042,
+       "gbm-hand-double": 0.616255,
        "hybrid-medium-hand": 0.60666,
        "gbm-hand": 0.615079,
        "transformer-medium-long": 0.623041,
@@ -10480,9 +11542,11 @@
        "transformer-medium-hand-pretrained": 0.598084,
        "transformer-medium-pretrained": 0.595877,
        "conv-medium-hand": 0.59483,
+       "transformer-medium-hand-double": 0.575988,
        "transformer-medium-hand": 0.577079,
        "transformer-medium-hand-attacks": 0.577043,
        "transformer-medium-hand-long": 0.576598,
+       "gbm-hand-double": 0.58112,
        "hybrid-medium-hand": 0.571066,
        "gbm-hand": 0.582795,
        "transformer-medium-long": 0.588586,
@@ -10504,9 +11568,11 @@
        "transformer-medium-hand-pretrained": 0.562628,
        "transformer-medium-pretrained": 0.564868,
        "conv-medium-hand": 0.565623,
+       "transformer-medium-hand-double": 0.545802,
        "transformer-medium-hand": 0.549642,
        "transformer-medium-hand-attacks": 0.549182,
        "transformer-medium-hand-long": 0.541337,
+       "gbm-hand-double": 0.54401,
        "hybrid-medium-hand": 0.544646,
        "gbm-hand": 0.545582,
        "transformer-medium-long": 0.565043,
@@ -10530,9 +11596,11 @@
        "transformer-medium-hand-pretrained": 0.816923,
        "transformer-medium-pretrained": 0.805197,
        "conv-medium-hand": 0.793119,
+       "transformer-medium-hand-double": 0.798248,
        "transformer-medium-hand": 0.798441,
        "transformer-medium-hand-attacks": 0.798298,
        "transformer-medium-hand-long": 0.797841,
+       "gbm-hand-double": 0.797822,
        "hybrid-medium-hand": 0.784874,
        "gbm-hand": 0.793595,
        "transformer-medium-long": 0.789712,
@@ -10554,9 +11622,11 @@
        "transformer-medium-hand-pretrained": 0.762559,
        "transformer-medium-pretrained": 0.748354,
        "conv-medium-hand": 0.743094,
+       "transformer-medium-hand-double": 0.745734,
        "transformer-medium-hand": 0.743345,
        "transformer-medium-hand-attacks": 0.743624,
        "transformer-medium-hand-long": 0.745656,
+       "gbm-hand-double": 0.747725,
        "hybrid-medium-hand": 0.735857,
        "gbm-hand": 0.742936,
        "transformer-medium-long": 0.735656,
@@ -10578,9 +11648,11 @@
        "transformer-medium-hand-pretrained": 0.682723,
        "transformer-medium-pretrained": 0.673848,
        "conv-medium-hand": 0.677088,
+       "transformer-medium-hand-double": 0.669778,
        "transformer-medium-hand": 0.668279,
        "transformer-medium-hand-attacks": 0.668309,
        "transformer-medium-hand-long": 0.672845,
+       "gbm-hand-double": 0.671748,
        "hybrid-medium-hand": 0.663725,
        "gbm-hand": 0.671222,
        "transformer-medium-long": 0.669129,
@@ -10602,9 +11674,11 @@
        "transformer-medium-hand-pretrained": 0.62396,
        "transformer-medium-pretrained": 0.622266,
        "conv-medium-hand": 0.632609,
+       "transformer-medium-hand-double": 0.616081,
        "transformer-medium-hand": 0.616001,
        "transformer-medium-hand-attacks": 0.616054,
        "transformer-medium-hand-long": 0.621664,
+       "gbm-hand-double": 0.620832,
        "hybrid-medium-hand": 0.618891,
        "gbm-hand": 0.622656,
        "transformer-medium-long": 0.630594,
@@ -10626,9 +11700,11 @@
        "transformer-medium-hand-pretrained": 0.610273,
        "transformer-medium-pretrained": 0.605151,
        "conv-medium-hand": 0.618538,
+       "transformer-medium-hand-double": 0.608378,
        "transformer-medium-hand": 0.608903,
        "transformer-medium-hand-attacks": 0.608545,
        "transformer-medium-hand-long": 0.60869,
+       "gbm-hand-double": 0.606024,
        "hybrid-medium-hand": 0.604842,
        "gbm-hand": 0.606374,
        "transformer-medium-long": 0.618582,
@@ -10652,9 +11728,11 @@
        "transformer-medium-hand-pretrained": 0.832096,
        "transformer-medium-pretrained": 0.827066,
        "conv-medium-hand": 0.819798,
+       "transformer-medium-hand-double": 0.825766,
        "transformer-medium-hand": 0.822751,
        "transformer-medium-hand-attacks": 0.823008,
        "transformer-medium-hand-long": 0.820663,
+       "gbm-hand-double": 0.824024,
        "hybrid-medium-hand": 0.816169,
        "gbm-hand": 0.821636,
        "transformer-medium-long": 0.814363,
@@ -10676,9 +11754,11 @@
        "transformer-medium-hand-pretrained": 0.764034,
        "transformer-medium-pretrained": 0.756661,
        "conv-medium-hand": 0.75713,
+       "transformer-medium-hand-double": 0.758238,
        "transformer-medium-hand": 0.755409,
        "transformer-medium-hand-attacks": 0.755493,
        "transformer-medium-hand-long": 0.755094,
+       "gbm-hand-double": 0.755512,
        "hybrid-medium-hand": 0.753027,
        "gbm-hand": 0.753308,
        "transformer-medium-long": 0.746324,
@@ -10700,9 +11780,11 @@
        "transformer-medium-hand-pretrained": 0.667881,
        "transformer-medium-pretrained": 0.661144,
        "conv-medium-hand": 0.669988,
+       "transformer-medium-hand-double": 0.66455,
        "transformer-medium-hand": 0.665056,
        "transformer-medium-hand-attacks": 0.665056,
        "transformer-medium-hand-long": 0.66753,
+       "gbm-hand-double": 0.665384,
        "hybrid-medium-hand": 0.66622,
        "gbm-hand": 0.665969,
        "transformer-medium-long": 0.664965,
@@ -10724,9 +11806,11 @@
        "transformer-medium-hand-pretrained": 0.618182,
        "transformer-medium-pretrained": 0.617423,
        "conv-medium-hand": 0.629153,
+       "transformer-medium-hand-double": 0.618705,
        "transformer-medium-hand": 0.618838,
        "transformer-medium-hand-attacks": 0.618829,
        "transformer-medium-hand-long": 0.623347,
+       "gbm-hand-double": 0.620191,
        "hybrid-medium-hand": 0.622774,
        "gbm-hand": 0.62207,
        "transformer-medium-long": 0.627697,
@@ -10748,9 +11832,11 @@
        "transformer-medium-hand-pretrained": 0.583065,
        "transformer-medium-pretrained": 0.591157,
        "conv-medium-hand": 0.600559,
+       "transformer-medium-hand-double": 0.589414,
        "transformer-medium-hand": 0.590502,
        "transformer-medium-hand-attacks": 0.590412,
        "transformer-medium-hand-long": 0.593832,
+       "gbm-hand-double": 0.587324,
        "hybrid-medium-hand": 0.59263,
        "gbm-hand": 0.590023,
        "transformer-medium-long": 0.602752,
@@ -10774,9 +11860,11 @@
        "transformer-medium-hand-pretrained": 0.818525,
        "transformer-medium-pretrained": 0.815443,
        "conv-medium-hand": 0.81331,
+       "transformer-medium-hand-double": 0.820118,
        "transformer-medium-hand": 0.816917,
        "transformer-medium-hand-attacks": 0.817185,
        "transformer-medium-hand-long": 0.809754,
+       "gbm-hand-double": 0.817684,
        "hybrid-medium-hand": 0.816543,
        "gbm-hand": 0.813847,
        "transformer-medium-long": 0.804983,
@@ -10798,9 +11886,11 @@
        "transformer-medium-hand-pretrained": 0.735217,
        "transformer-medium-pretrained": 0.735347,
        "conv-medium-hand": 0.735927,
+       "transformer-medium-hand-double": 0.739535,
        "transformer-medium-hand": 0.739086,
        "transformer-medium-hand-attacks": 0.739087,
        "transformer-medium-hand-long": 0.735535,
+       "gbm-hand-double": 0.735914,
        "hybrid-medium-hand": 0.740356,
        "gbm-hand": 0.734685,
        "transformer-medium-long": 0.730508,
@@ -10822,9 +11912,11 @@
        "transformer-medium-hand-pretrained": 0.658275,
        "transformer-medium-pretrained": 0.659544,
        "conv-medium-hand": 0.663626,
+       "transformer-medium-hand-double": 0.664479,
        "transformer-medium-hand": 0.668091,
        "transformer-medium-hand-attacks": 0.668026,
        "transformer-medium-hand-long": 0.668178,
+       "gbm-hand-double": 0.665887,
        "hybrid-medium-hand": 0.670046,
        "gbm-hand": 0.667147,
        "transformer-medium-long": 0.669597,
@@ -10846,9 +11938,11 @@
        "transformer-medium-hand-pretrained": 0.607138,
        "transformer-medium-pretrained": 0.613246,
        "conv-medium-hand": 0.614353,
+       "transformer-medium-hand-double": 0.616215,
        "transformer-medium-hand": 0.619445,
        "transformer-medium-hand-attacks": 0.619434,
        "transformer-medium-hand-long": 0.621459,
+       "gbm-hand-double": 0.617826,
        "hybrid-medium-hand": 0.622228,
        "gbm-hand": 0.619716,
        "transformer-medium-long": 0.631552,
@@ -10870,9 +11964,11 @@
        "transformer-medium-hand-pretrained": 0.579368,
        "transformer-medium-pretrained": 0.590284,
        "conv-medium-hand": 0.589318,
+       "transformer-medium-hand-double": 0.590281,
        "transformer-medium-hand": 0.592484,
        "transformer-medium-hand-attacks": 0.592451,
        "transformer-medium-hand-long": 0.595576,
+       "gbm-hand-double": 0.587807,
        "hybrid-medium-hand": 0.596586,
        "gbm-hand": 0.588819,
        "transformer-medium-long": 0.60401,
@@ -10896,9 +11992,11 @@
        "transformer-medium-hand-pretrained": 0.824552,
        "transformer-medium-pretrained": 0.829827,
        "conv-medium-hand": 0.820176,
+       "transformer-medium-hand-double": 0.82954,
        "transformer-medium-hand": 0.827778,
        "transformer-medium-hand-attacks": 0.827813,
        "transformer-medium-hand-long": 0.820153,
+       "gbm-hand-double": 0.8278,
        "hybrid-medium-hand": 0.824481,
        "gbm-hand": 0.824544,
        "transformer-medium-long": 0.814115,
@@ -10920,9 +12018,11 @@
        "transformer-medium-hand-pretrained": 0.75667,
        "transformer-medium-pretrained": 0.763304,
        "conv-medium-hand": 0.756678,
+       "transformer-medium-hand-double": 0.766403,
        "transformer-medium-hand": 0.765258,
        "transformer-medium-hand-attacks": 0.765443,
        "transformer-medium-hand-long": 0.759352,
+       "gbm-hand-double": 0.763563,
        "hybrid-medium-hand": 0.760546,
        "gbm-hand": 0.761972,
        "transformer-medium-long": 0.75313,
@@ -10944,9 +12044,11 @@
        "transformer-medium-hand-pretrained": 0.680304,
        "transformer-medium-pretrained": 0.688382,
        "conv-medium-hand": 0.688713,
+       "transformer-medium-hand-double": 0.694999,
        "transformer-medium-hand": 0.699284,
        "transformer-medium-hand-attacks": 0.699283,
        "transformer-medium-hand-long": 0.695556,
+       "gbm-hand-double": 0.698558,
        "hybrid-medium-hand": 0.696885,
        "gbm-hand": 0.69904,
        "transformer-medium-long": 0.693601,
@@ -10968,9 +12070,11 @@
        "transformer-medium-hand-pretrained": 0.636956,
        "transformer-medium-pretrained": 0.650722,
        "conv-medium-hand": 0.644999,
+       "transformer-medium-hand-double": 0.649306,
        "transformer-medium-hand": 0.652711,
        "transformer-medium-hand-attacks": 0.65265,
        "transformer-medium-hand-long": 0.654851,
+       "gbm-hand-double": 0.65414,
        "hybrid-medium-hand": 0.651029,
        "gbm-hand": 0.656665,
        "transformer-medium-long": 0.665122,
@@ -10992,9 +12096,11 @@
        "transformer-medium-hand-pretrained": 0.60781,
        "transformer-medium-pretrained": 0.621214,
        "conv-medium-hand": 0.607999,
+       "transformer-medium-hand-double": 0.614838,
        "transformer-medium-hand": 0.618714,
        "transformer-medium-hand-attacks": 0.61854,
        "transformer-medium-hand-long": 0.620935,
+       "gbm-hand-double": 0.620617,
        "hybrid-medium-hand": 0.617483,
        "gbm-hand": 0.626106,
        "transformer-medium-long": 0.634121,
@@ -11026,9 +12132,11 @@
      "transformer-medium-hand-pretrained": 0.619481,
      "transformer-medium-pretrained": 0.426316,
      "conv-medium-hand": 0.575983,
+     "transformer-medium-hand-double": 0.798073,
      "transformer-medium-hand": 0.74236,
      "transformer-medium-hand-attacks": 0.74331,
      "transformer-medium-hand-long": 0.781086,
+     "gbm-hand-double": 0.697062,
      "hybrid-medium-hand": 0.823667,
      "gbm-hand": 0.749285,
      "transformer-medium-long": 0.674562,
@@ -11063,9 +12171,11 @@
      "transformer-medium-hand-pretrained": 0.629738,
      "transformer-medium-pretrained": 0.725223,
      "conv-medium-hand": 0.56079,
+     "transformer-medium-hand-double": 0.369691,
      "transformer-medium-hand": 0.38821,
      "transformer-medium-hand-attacks": 0.383264,
      "transformer-medium-hand-long": 0.475156,
+     "gbm-hand-double": 0.661926,
      "hybrid-medium-hand": 0.641068,
      "gbm-hand": 0.739041,
      "transformer-medium-long": 0.643194,
@@ -11100,9 +12210,11 @@
      "transformer-medium-hand-pretrained": 0.813742,
      "transformer-medium-pretrained": 0.782206,
      "conv-medium-hand": 0.712756,
+     "transformer-medium-hand-double": 0.707746,
      "transformer-medium-hand": 0.801624,
      "transformer-medium-hand-attacks": 0.797249,
      "transformer-medium-hand-long": 0.741488,
+     "gbm-hand-double": 0.706791,
      "hybrid-medium-hand": 0.668455,
      "gbm-hand": 0.710359,
      "transformer-medium-long": 0.708562,
@@ -11139,9 +12251,11 @@
      "transformer-medium-hand-pretrained": 0.998752,
      "transformer-medium-pretrained": 0.998523,
      "conv-medium-hand": 0.999996,
+     "transformer-medium-hand-double": 0.998223,
      "transformer-medium-hand": 0.996769,
      "transformer-medium-hand-attacks": 0.996714,
      "transformer-medium-hand-long": 0.997366,
+     "gbm-hand-double": 0.999571,
      "hybrid-medium-hand": 0.996715,
      "gbm-hand": 0.999222,
      "transformer-medium-long": 0.998445,
@@ -11176,9 +12290,11 @@
      "transformer-medium-hand-pretrained": 0.998734,
      "transformer-medium-pretrained": 0.99866,
      "conv-medium-hand": 0.999996,
+     "transformer-medium-hand-double": 0.998249,
      "transformer-medium-hand": 0.996497,
      "transformer-medium-hand-attacks": 0.996375,
      "transformer-medium-hand-long": 0.997375,
+     "gbm-hand-double": 0.999701,
      "hybrid-medium-hand": 0.996611,
      "gbm-hand": 0.999192,
      "transformer-medium-long": 0.998612,
@@ -11213,9 +12329,11 @@
      "transformer-medium-hand-pretrained": 0.998716,
      "transformer-medium-pretrained": 0.998544,
      "conv-medium-hand": 0.999996,
+     "transformer-medium-hand-double": 0.998058,
      "transformer-medium-hand": 0.996296,
      "transformer-medium-hand-attacks": 0.996233,
      "transformer-medium-hand-long": 0.996237,
+     "gbm-hand-double": 0.999193,
      "hybrid-medium-hand": 0.996658,
      "gbm-hand": 0.998337,
      "transformer-medium-long": 0.998503,
@@ -11252,9 +12370,11 @@
      "transformer-medium-hand-pretrained": 0.0337802,
      "transformer-medium-pretrained": 0.0301396,
      "conv-medium-hand": 0.0370185,
+     "transformer-medium-hand-double": 0.0444249,
      "transformer-medium-hand": 0.050613,
      "transformer-medium-hand-attacks": 0.0504852,
      "transformer-medium-hand-long": 0.0585753,
+     "gbm-hand-double": 0.0887879,
      "hybrid-medium-hand": 0.0904214,
      "gbm-hand": 0.112014,
      "transformer-medium-long": 0.238366,
@@ -11289,9 +12409,11 @@
      "transformer-medium-hand-pretrained": 0.0382858,
      "transformer-medium-pretrained": 0.0751508,
      "conv-medium-hand": 0.0315249,
+     "transformer-medium-hand-double": 0.040074,
      "transformer-medium-hand": 0.0479788,
      "transformer-medium-hand-attacks": 0.0483382,
      "transformer-medium-hand-long": 0.0888322,
+     "gbm-hand-double": 0.0609566,
      "hybrid-medium-hand": 0.0905639,
      "gbm-hand": 0.105187,
      "transformer-medium-long": 0.127128,
@@ -11326,9 +12448,11 @@
      "transformer-medium-hand-pretrained": 0.039431,
      "transformer-medium-pretrained": 0.0563977,
      "conv-medium-hand": 0.0458909,
+     "transformer-medium-hand-double": 0.0793905,
      "transformer-medium-hand": 0.101112,
      "transformer-medium-hand-attacks": 0.101886,
      "transformer-medium-hand-long": 0.0805177,
+     "gbm-hand-double": 0.0781225,
      "hybrid-medium-hand": 0.0974935,
      "gbm-hand": 0.0863053,
      "transformer-medium-long": 0.163145,
@@ -11365,9 +12489,11 @@
      "transformer-medium-hand-pretrained": 0.996665,
      "transformer-medium-pretrained": 0.966311,
      "conv-medium-hand": 0.993214,
+     "transformer-medium-hand-double": 0.992207,
      "transformer-medium-hand": 0.979972,
      "transformer-medium-hand-attacks": 0.979751,
      "transformer-medium-hand-long": 0.982523,
+     "gbm-hand-double": 0.98829,
      "hybrid-medium-hand": 0.986688,
      "gbm-hand": 0.984558,
      "transformer-medium-long": 0.97331,
@@ -11402,9 +12528,11 @@
      "transformer-medium-hand-pretrained": 0.995922,
      "transformer-medium-pretrained": 0.985435,
      "conv-medium-hand": 0.991756,
+     "transformer-medium-hand-double": 0.997502,
      "transformer-medium-hand": 0.996497,
      "transformer-medium-hand-attacks": 0.996585,
      "transformer-medium-hand-long": 0.994814,
+     "gbm-hand-double": 0.994868,
      "hybrid-medium-hand": 0.993995,
      "gbm-hand": 0.993883,
      "transformer-medium-long": 0.989452,
@@ -11439,9 +12567,11 @@
      "transformer-medium-hand-pretrained": 0.995102,
      "transformer-medium-pretrained": 0.994153,
      "conv-medium-hand": 0.993822,
+     "transformer-medium-hand-double": 0.985614,
      "transformer-medium-hand": 0.990119,
      "transformer-medium-hand-attacks": 0.989768,
      "transformer-medium-hand-long": 0.991826,
+     "gbm-hand-double": 0.98586,
      "hybrid-medium-hand": 0.994056,
      "gbm-hand": 0.983412,
      "transformer-medium-long": 0.990715,
@@ -11478,9 +12608,11 @@
      "transformer-medium-hand-pretrained": 0.0497624,
      "transformer-medium-pretrained": 0.123176,
      "conv-medium-hand": 0.104463,
+     "transformer-medium-hand-double": 0.136259,
      "transformer-medium-hand": 0.156421,
      "transformer-medium-hand-attacks": 0.163764,
      "transformer-medium-hand-long": 0.159683,
+     "gbm-hand-double": 0.11949,
      "hybrid-medium-hand": 0.158709,
      "gbm-hand": 0.149236,
      "transformer-medium-long": 0.120555,
@@ -11515,9 +12647,11 @@
      "transformer-medium-hand-pretrained": 0.0665463,
      "transformer-medium-pretrained": 0.17576,
      "conv-medium-hand": 0.0843275,
+     "transformer-medium-hand-double": 0.144657,
      "transformer-medium-hand": 0.139283,
      "transformer-medium-hand-attacks": 0.139916,
      "transformer-medium-hand-long": 0.180499,
+     "gbm-hand-double": 0.140634,
      "hybrid-medium-hand": 0.159869,
      "gbm-hand": 0.142923,
      "transformer-medium-long": 0.123804,
@@ -11552,9 +12686,11 @@
      "transformer-medium-hand-pretrained": 0.0682469,
      "transformer-medium-pretrained": 0.0787433,
      "conv-medium-hand": 0.0569524,
+     "transformer-medium-hand-double": 0.095326,
      "transformer-medium-hand": 0.0917791,
      "transformer-medium-hand-attacks": 0.0895727,
      "transformer-medium-hand-long": 0.088543,
+     "gbm-hand-double": 0.124489,
      "hybrid-medium-hand": 0.0917112,
      "gbm-hand": 0.139207,
      "transformer-medium-long": 0.141308,
@@ -11609,6 +12745,14 @@
    "gain": 0.00318172,
    "low": 0.001855,
    "high": 0.00439834,
+   "beyond_noise": true
+  },
+  {
+   "run": "gbm-hand-double",
+   "over": "gbm-hand",
+   "gain": 0.00324598,
+   "low": 0.00261774,
+   "high": 0.00386058,
    "beyond_noise": true
   },
   {
@@ -11724,6 +12868,14 @@
    "low": -0.000138885,
    "high": 4.39162e-05,
    "beyond_noise": false
+  },
+  {
+   "run": "transformer-medium-hand-double",
+   "over": "transformer-medium-hand",
+   "gain": 0.00213069,
+   "low": 0.00130575,
+   "high": 0.00292649,
+   "beyond_noise": true
   },
   {
    "run": "transformer-medium-hand-half",
@@ -12055,6 +13207,96 @@
     }
    ]
   },
+  "transformer-medium-hand-double": {
+   "top": [
+    {
+     "share": 0.01,
+     "rows": 811,
+     "precision": 0.995068,
+     "recall": 0.0144479,
+     "lift": 1.44541
+    },
+    {
+     "share": 0.02,
+     "rows": 1623,
+     "precision": 0.993222,
+     "recall": 0.0288599,
+     "lift": 1.44273
+    },
+    {
+     "share": 0.05,
+     "rows": 4057,
+     "precision": 0.980527,
+     "recall": 0.0712188,
+     "lift": 1.42429
+    },
+    {
+     "share": 0.1,
+     "rows": 8114,
+     "precision": 0.956618,
+     "recall": 0.138964,
+     "lift": 1.38956
+    },
+    {
+     "share": 0.2,
+     "rows": 16227,
+     "precision": 0.919948,
+     "recall": 0.267259,
+     "lift": 1.33629
+    },
+    {
+     "share": 0.5,
+     "rows": 40568,
+     "precision": 0.838,
+     "recall": 0.608636,
+     "lift": 1.21726
+    }
+   ],
+   "bottom": [
+    {
+     "share": 0.01,
+     "rows": 811,
+     "precision": 0.860666,
+     "recall": 0.0276119,
+     "lift": 2.76238
+    },
+    {
+     "share": 0.02,
+     "rows": 1623,
+     "precision": 0.820702,
+     "recall": 0.052692,
+     "lift": 2.63411
+    },
+    {
+     "share": 0.05,
+     "rows": 4057,
+     "precision": 0.750555,
+     "recall": 0.120456,
+     "lift": 2.40897
+    },
+    {
+     "share": 0.1,
+     "rows": 8114,
+     "precision": 0.678087,
+     "recall": 0.217651,
+     "lift": 2.17638
+    },
+    {
+     "share": 0.2,
+     "rows": 16227,
+     "precision": 0.591976,
+     "recall": 0.379999,
+     "lift": 1.9
+    },
+    {
+     "share": 0.5,
+     "rows": 40568,
+     "precision": 0.461152,
+     "recall": 0.740061,
+     "lift": 1.4801
+    }
+   ]
+  },
   "transformer-medium-hand": {
    "top": [
     {
@@ -12322,6 +13564,96 @@
      "precision": 0.458588,
      "recall": 0.735947,
      "lift": 1.47188
+    }
+   ]
+  },
+  "gbm-hand-double": {
+   "top": [
+    {
+     "share": 0.01,
+     "rows": 811,
+     "precision": 0.997534,
+     "recall": 0.0144837,
+     "lift": 1.44899
+    },
+    {
+     "share": 0.02,
+     "rows": 1623,
+     "precision": 0.993222,
+     "recall": 0.0288599,
+     "lift": 1.44273
+    },
+    {
+     "share": 0.05,
+     "rows": 4057,
+     "precision": 0.978556,
+     "recall": 0.0710756,
+     "lift": 1.42142
+    },
+    {
+     "share": 0.1,
+     "rows": 8114,
+     "precision": 0.957111,
+     "recall": 0.139036,
+     "lift": 1.39028
+    },
+    {
+     "share": 0.2,
+     "rows": 16227,
+     "precision": 0.917915,
+     "recall": 0.266668,
+     "lift": 1.33334
+    },
+    {
+     "share": 0.5,
+     "rows": 40568,
+     "precision": 0.834204,
+     "recall": 0.605879,
+     "lift": 1.21174
+    }
+   ],
+   "bottom": [
+    {
+     "share": 0.01,
+     "rows": 811,
+     "precision": 0.84217,
+     "recall": 0.0270185,
+     "lift": 2.70301
+    },
+    {
+     "share": 0.02,
+     "rows": 1623,
+     "precision": 0.810844,
+     "recall": 0.052059,
+     "lift": 2.60247
+    },
+    {
+     "share": 0.05,
+     "rows": 4057,
+     "precision": 0.742174,
+     "recall": 0.119111,
+     "lift": 2.38207
+    },
+    {
+     "share": 0.1,
+     "rows": 8114,
+     "precision": 0.667488,
+     "recall": 0.214249,
+     "lift": 2.14236
+    },
+    {
+     "share": 0.2,
+     "rows": 16227,
+     "precision": 0.584396,
+     "recall": 0.375134,
+     "lift": 1.87567
+    },
+    {
+     "share": 0.5,
+     "rows": 40568,
+     "precision": 0.457331,
+     "recall": 0.733929,
+     "lift": 1.46784
     }
    ]
   },

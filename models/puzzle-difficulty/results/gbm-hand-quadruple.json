@@ -1,0 +1,202 @@
+{
+  "model": "puzzle-difficulty",
+  "run": "gbm-hand-quadruple",
+  "task": {
+    "label": "rating",
+    "kind": "regression",
+    "unit": "Lichess puzzle rating points",
+    "primary": "rmse",
+    "lower_is_better": true,
+    "context": [
+      "solver_moves",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "puzzles-v1",
+    "source": "https://database.lichess.org/lichess_db_puzzle.csv.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 1127915,
+    "splits": {
+      "test": 112450,
+      "train": 958941,
+      "valid": 56524
+    },
+    "fingerprint": "d14731fa4425fc6efdadb45c94ee53e07f5afe9151992b690b81edc71064cd5d",
+    "built": "2026-11-23T05:20:51Z",
+    "code": "173dddec7ab54890785803c32f46679fd53b0c40"
+  },
+  "train_dataset": {
+    "dataset": "puzzles-all-v1",
+    "rows": 4513767,
+    "splits": {
+      "test": 450852,
+      "train": 3837994,
+      "valid": 224921
+    },
+    "fingerprint": "10f0fea8eb2c651349d586b9ff8df4574a86f6d71365a8e3781a227437ca716d",
+    "built": "2026-11-23T05:37:27Z",
+    "code": "173dddec7ab54890785803c32f46679fd53b0c40"
+  },
+  "config": {
+    "learner": {
+      "kind": "gbm",
+      "features": "hand"
+    },
+    "base": "gbm-hand",
+    "data": {
+      "train_on": "puzzles-all"
+    }
+  },
+  "learner": {
+    "features": 38,
+    "trees": 4000,
+    "fit_seconds": 347.5,
+    "leans_on": [
+      {
+        "feature": "line_quiet",
+        "share_of_gain": 0.2325
+      },
+      {
+        "feature": "ends_in_mate",
+        "share_of_gain": 0.1183
+      },
+      {
+        "feature": "line_pieces_moved",
+        "share_of_gain": 0.1014
+      },
+      {
+        "feature": "solver_moves",
+        "share_of_gain": 0.0946
+      },
+      {
+        "feature": "legal_checks",
+        "share_of_gain": 0.0753
+      },
+      {
+        "feature": "final_material_gain",
+        "share_of_gain": 0.0576
+      },
+      {
+        "feature": "first_check",
+        "share_of_gain": 0.0352
+      },
+      {
+        "feature": "legal_captures",
+        "share_of_gain": 0.0302
+      },
+      {
+        "feature": "first_piece",
+        "share_of_gain": 0.0264
+      },
+      {
+        "feature": "line_checks",
+        "share_of_gain": 0.0248
+      }
+    ]
+  },
+  "calibration": null,
+  "machine": {
+    "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "threads": 12,
+    "system": "Linux"
+  },
+  "software": {
+    "python": "3.13.16",
+    "numpy": "2.4.6",
+    "polars": "2.1.0",
+    "lightgbm": "4.6.0",
+    "torch": "2.14.1+cu130"
+  },
+  "code": "173dddec7ab54890785803c32f46679fd53b0c40",
+  "trained": "2026-11-23T05:50:03Z",
+  "seconds": 384.7,
+  "train_rows": 3837994,
+  "train_groups": 3837994,
+  "valid": {
+    "rmse": 289.81406412326476,
+    "mae": 224.68697503567327,
+    "r2": 0.6669898469321485,
+    "spearman": 0.8197968979470807
+  },
+  "test": {
+    "rmse": {
+      "value": 289.823471683784,
+      "low": 288.4014406827298,
+      "high": 291.1048690857655
+    },
+    "mae": {
+      "value": 224.58895598799427,
+      "low": 223.4705702036001,
+      "high": 225.6120519552085
+    },
+    "r2": {
+      "value": 0.6678432584498419,
+      "low": 0.6646767356257648,
+      "high": 0.6712425328992495
+    },
+    "spearman": {
+      "value": 0.8207125897551623,
+      "low": 0.8185310075707697,
+      "high": 0.8229936064124546
+    }
+  },
+  "test_rows": 112450,
+  "test_groups": 112450,
+  "test_by_band": {
+    "1000-1399": {
+      "rows": 31846,
+      "rmse": 265.97764782339374,
+      "mae": 206.22592499264826,
+      "r2": -4.734487785447579,
+      "spearman": 0.37373205805807597
+    },
+    "1400-1799": {
+      "rows": 28501,
+      "rmse": 247.4170291372114,
+      "mae": 195.40046045524784,
+      "r2": -3.78111036817777,
+      "spearman": 0.28584819722851823
+    },
+    "1800-2199": {
+      "rows": 19518,
+      "rmse": 305.58640572935025,
+      "mae": 242.4087827738049,
+      "r2": -6.06228092501467,
+      "spearman": 0.2288956538250289
+    },
+    "2200+": {
+      "rows": 9834,
+      "rmse": 485.6974812017177,
+      "mae": 422.71082362494224,
+      "r2": -7.785073954526908,
+      "spearman": 0.2708535480470604
+    },
+    "<1000": {
+      "rows": 22751,
+      "rmse": 239.53762769344516,
+      "mae": 185.933625264483,
+      "r2": -1.3372669787015585,
+      "spearman": 0.6458814848817105
+    }
+  },
+  "weights": [
+    {
+      "file": "model.txt",
+      "bytes": 45077018,
+      "sha256": "3d6eb21948180c49dd336ca9bcafeefd9796c71bc8b9e1662e0ef848062864e5"
+    }
+  ],
+  "gain": {
+    "gain": 5.099265724838631,
+    "low": 4.795418443270213,
+    "high": 5.388255699412356,
+    "beyond_noise": true,
+    "reference": "gbm-hand",
+    "reference_trained": "2026-11-23T05:39:30Z",
+    "reference_value": 294.92273740862265
+  }
+}

@@ -17,11 +17,15 @@ Written by `lab eval puzzle-difficulty` from the run records in this folder.
 | `transformer-medium-pretrained` | transformer, 8 layers of width 256, started from `position-evaluation/transformer-medium` | 262.0 (260.5 to 263.5) | 194.8 | 0.7285 | 0.8627 | **+32.91 (+31.67 to +34.17)** | 6,555,201 | NVIDIA A100-SXM4-40GB | 14 min |
 | `transformer-medium-long` | transformer, 8 layers of width 256 | 264.4 (262.9 to 265.9) | 195.9 | 0.7235 | 0.8599 | **+30.48 (+29.11 to +31.85)** | 6,555,201 | NVIDIA A100-SXM4-80GB | 23 min |
 | `conv-medium-hand` | conv, 10 layers of width 192, each block weighing its channels by the whole board, with hand features | 265.7 (264.2 to 267.0) | 200.3 | 0.7208 | 0.8560 | **+29.23 (+28.14 to +30.4)** | 6,958,369 | NVIDIA A100-SXM4-80GB | 7 min |
+| `transformer-medium-hand-double` | transformer, 8 layers of width 256, with hand features; trained on 1,918,903 rows of the larger build `puzzles-all-v1` | 267.5 (266.0 to 268.8) | 203.2 | 0.7170 | 0.8512 | **+27.4 (+26.47 to +28.34)** | 6,563,649 | NVIDIA A100-SXM4-40GB | 14 min |
+| `transformer-medium-hand-quadruple` | transformer, 8 layers of width 256, with hand features; trained on 3,837,994 rows of the larger build `puzzles-all-v1` | 269.0 (267.5 to 270.2) | 204.6 | 0.7139 | 0.8493 | **+25.96 (+25.18 to +26.81)** | 6,563,649 | NVIDIA A100-SXM4-40GB | 14 min |
 | `transformer-medium-hand` | transformer, 8 layers of width 256, with hand features | 270.2 (268.8 to 271.6) | 204.8 | 0.7112 | 0.8484 | **+24.68 (+23.79 to +25.62)** | 6,563,649 | NVIDIA A100-SXM4-80GB | 13 min |
 | `hybrid-medium-hand` | hybrid, 2 conv blocks then 5 transformer layers of width 256, with hand features | 274.8 (273.3 to 276.3) | 206.8 | 0.7014 | 0.8449 | **+20.11 (+19.02 to +21.17)** | 6,615,849 | NVIDIA A100-SXM4-80GB | 11 min |
 | `transformer-large-hand` | transformer, 12 layers of width 384, with hand features | 278.1 (276.5 to 279.4) | 212.4 | 0.6943 | 0.8373 | **+16.87 (+16.09 to +17.61)** | 21,809,377 | NVIDIA A100-SXM4-80GB | 27 min |
 | `transformer-medium` | transformer, 8 layers of width 256 | 284.0 (282.4 to 285.4) | 214.5 | 0.6810 | 0.8320 | **+10.91 (+9.73 to +12.14)** | 6,555,201 | NVIDIA A100-SXM4-80GB | 13 min |
+| `gbm-hand-quadruple` | LightGBM, context and hand features; trained on 3,837,994 rows of the larger build `puzzles-all-v1` | 289.8 (288.4 to 291.1) | 224.6 | 0.6678 | 0.8207 | **+5.099 (+4.795 to +5.388)** |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 6 min |
 | `conv-small` | conv, 6 layers of width 96 | 290.8 (289.3 to 292.3) | 221.8 | 0.6656 | 0.8213 | **+4.105 (+2.851 to +5.371)** | 1,040,257 | NVIDIA A100-SXM4-80GB | 3 min |
+| `gbm-hand-double` | LightGBM, context and hand features; trained on 1,918,903 rows of the larger build `puzzles-all-v1` | 291.7 (290.3 to 293.0) | 226.2 | 0.6634 | 0.8180 | **+3.173 (+2.832 to +3.488)** |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 4 min |
 | `transformer-small` | transformer, 4 layers of width 128 | 293.1 (291.5 to 294.4) | 224.2 | 0.6603 | 0.8178 | **+1.847 (+0.7441 to +3.053)** | 862,497 | NVIDIA A100-SXM4-80GB | 5 min |
 | `gbm-hand` | LightGBM, context and hand features | 294.9 (293.5 to 296.2) | 229.0 | 0.6561 | 0.8133 | reference |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 2 min |
 | `gbm-context` | LightGBM, context numbers only | 428.8 (427.2 to 430.5) | 348.4 | 0.2731 | 0.5022 | **-133.8 (-135.4 to -132.2)** |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 4 s |
@@ -38,11 +42,15 @@ Written by `lab eval puzzle-difficulty` from the run records in this folder.
 | `transformer-medium-pretrained` | 179.0 | 226.5 | 247.6 | 301.2 | 432.3 |
 | `transformer-medium-long` | 181.1 | 225.0 | 251.3 | 307.4 | 435.1 |
 | `conv-medium-hand` | 191.6 | 244.9 | 255.8 | 289.9 | 414.3 |
+| `transformer-medium-hand-double` | 198.0 | 244.4 | 250.5 | 292.7 | 427.2 |
+| `transformer-medium-hand-quadruple` | 198.2 | 244.4 | 248.6 | 294.8 | 437.2 |
 | `transformer-medium-hand` | 196.5 | 247.3 | 254.8 | 297.6 | 428.9 |
 | `hybrid-medium-hand` | 191.1 | 247.9 | 261.2 | 305.1 | 444.5 |
 | `transformer-large-hand` | 212.7 | 252.9 | 252.1 | 300.9 | 456.5 |
 | `transformer-medium` | 209.8 | 250.6 | 263.6 | 317.4 | 464.6 |
+| `gbm-hand-quadruple` | 239.5 | 266.0 | 247.4 | 305.6 | 485.7 |
 | `conv-small` | 227.1 | 264.5 | 262.6 | 312.6 | 477.0 |
+| `gbm-hand-double` | 241.6 | 267.8 | 249.3 | 307.5 | 487.9 |
 | `transformer-small` | 228.2 | 268.7 | 271.0 | 315.4 | 466.4 |
 | `gbm-hand` | 245.3 | 270.2 | 250.6 | 311.4 | 494.4 |
 | `gbm-context` | 515.7 | 321.9 | 243.7 | 450.5 | 759.1 |

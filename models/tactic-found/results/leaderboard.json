@@ -306,6 +306,94 @@
       }
     },
     {
+      "run": "transformer-medium-hand-double",
+      "learner": "transformer, 8 layers of width 256, with hand features; trained on 1,377,614 rows of the larger build `tactics-all-v1`",
+      "test": {
+        "pr_auc": {
+          "value": 0.8616243420744822,
+          "low": 0.8585257385262847,
+          "high": 0.8645135227803312
+        },
+        "roc_auc": {
+          "value": 0.742773263881244,
+          "low": 0.7391476529283775,
+          "high": 0.7463511403468506
+        },
+        "brier": {
+          "value": 0.18020571669002886,
+          "low": 0.1788522496026318,
+          "high": 0.1815812189484036
+        },
+        "log_loss": {
+          "value": 0.5347930792123492,
+          "low": 0.5316065780302663,
+          "high": 0.5380832516910784
+        },
+        "calibration_error": {
+          "value": 0.0041016707171860935,
+          "low": 0.0031775216114503296,
+          "high": 0.007892166942631357
+        }
+      },
+      "test_by_band": {
+        "1700-1899": {
+          "rows": 28346,
+          "pr_auc": 0.8531355226326136,
+          "roc_auc": 0.738665099435435,
+          "brier": 0.1833694266119797,
+          "log_loss": 0.5432312895537368,
+          "calibration_error": 0.007321768505854167
+        },
+        "1900-2099": {
+          "rows": 18674,
+          "pr_auc": 0.8737968944422723,
+          "roc_auc": 0.7477322592083075,
+          "brier": 0.1750073300632544,
+          "log_loss": 0.5211646113107633,
+          "calibration_error": 0.00916593767079683
+        },
+        "2100-2299": {
+          "rows": 8845,
+          "pr_auc": 0.8762156040674781,
+          "roc_auc": 0.7397553149330445,
+          "brier": 0.17381696353865567,
+          "log_loss": 0.5184866413605835,
+          "calibration_error": 0.010236857070801464
+        },
+        "2300+": {
+          "rows": 9862,
+          "pr_auc": 0.867548235667253,
+          "roc_auc": 0.7334739932175163,
+          "brier": 0.17932152611124696,
+          "log_loss": 0.5315438520273116,
+          "calibration_error": 0.011993426709135615
+        },
+        "<1700": {
+          "rows": 15408,
+          "pr_auc": 0.8471493022905489,
+          "roc_auc": 0.7488659091696459,
+          "brier": 0.18491914864307998,
+          "log_loss": 0.5472270628932258,
+          "calibration_error": 0.008905336886645358
+        }
+      },
+      "parameters": 6565953,
+      "device": "NVIDIA A100-SXM4-40GB",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 632.2,
+      "code": "173dddec7ab54890785803c32f46679fd53b0c40",
+      "trained": "2026-11-23T07:55:29Z",
+      "gain": {
+        "gain": 0.006573519454424193,
+        "low": 0.005468111334209028,
+        "high": 0.007825121775006508,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-23T07:43:06Z",
+        "reference_value": 0.5413665986667734
+      }
+    },
+    {
       "run": "transformer-medium-hand",
       "learner": "transformer, 8 layers of width 256, with hand features",
       "test": {
@@ -570,6 +658,94 @@
       }
     },
     {
+      "run": "gbm-hand-double",
+      "learner": "LightGBM, context and hand features; trained on 1,377,614 rows of the larger build `tactics-all-v1`",
+      "test": {
+        "pr_auc": {
+          "value": 0.8590493231385385,
+          "low": 0.8560308155699243,
+          "high": 0.8618620800315975
+        },
+        "roc_auc": {
+          "value": 0.7380890080225169,
+          "low": 0.7342922250072428,
+          "high": 0.7416736836142565
+        },
+        "brier": {
+          "value": 0.18156760448554896,
+          "low": 0.18022640278724802,
+          "high": 0.18293872393168098
+        },
+        "log_loss": {
+          "value": 0.5381206188481128,
+          "low": 0.534868878748402,
+          "high": 0.5416198108701022
+        },
+        "calibration_error": {
+          "value": 0.0048110363953184345,
+          "low": 0.003739301284209307,
+          "high": 0.008564365371160456
+        }
+      },
+      "test_by_band": {
+        "1700-1899": {
+          "rows": 28346,
+          "pr_auc": 0.8507859632004686,
+          "roc_auc": 0.7344538939324831,
+          "brier": 0.18467088452977912,
+          "log_loss": 0.546347374965362,
+          "calibration_error": 0.010392744202831804
+        },
+        "1900-2099": {
+          "rows": 18674,
+          "pr_auc": 0.8703679594184963,
+          "roc_auc": 0.7402365222933349,
+          "brier": 0.17692303796633713,
+          "log_loss": 0.5257789577321293,
+          "calibration_error": 0.009594042579268948
+        },
+        "2100-2299": {
+          "rows": 8845,
+          "pr_auc": 0.8771392674470306,
+          "roc_auc": 0.741663640468581,
+          "brier": 0.17345825247240268,
+          "log_loss": 0.5176263318443328,
+          "calibration_error": 0.007983421706389396
+        },
+        "2300+": {
+          "rows": 9862,
+          "pr_auc": 0.8637685342023441,
+          "roc_auc": 0.726237190943116,
+          "brier": 0.1809113526320049,
+          "log_loss": 0.5353175808639546,
+          "calibration_error": 0.007162434297796551
+        },
+        "<1700": {
+          "rows": 15408,
+          "pr_auc": 0.8434921889239329,
+          "roc_auc": 0.7443674479264221,
+          "brier": 0.18656281693245605,
+          "log_loss": 0.5515025035786768,
+          "calibration_error": 0.010839820034483255
+        }
+      },
+      "parameters": null,
+      "device": "cpu",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 102.5,
+      "code": "173dddec7ab54890785803c32f46679fd53b0c40",
+      "trained": "2026-11-23T07:44:50Z",
+      "gain": {
+        "gain": 0.0032459798186605937,
+        "low": 0.002617743304145431,
+        "high": 0.0038605793413411223,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-23T07:43:06Z",
+        "reference_value": 0.5413665986667734
+      }
+    },
+    {
       "run": "hybrid-medium-hand",
       "learner": "hybrid, 2 conv blocks then 5 transformer layers of width 256, with hand features",
       "test": {
@@ -732,9 +908,9 @@
       "parameters": null,
       "device": "cpu",
       "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
-      "seconds": 68.2,
+      "seconds": 65.2,
       "code": "173dddec7ab54890785803c32f46679fd53b0c40",
-      "trained": "2026-11-23T03:35:10Z",
+      "trained": "2026-11-23T07:43:06Z",
       "gain": null
     },
     {

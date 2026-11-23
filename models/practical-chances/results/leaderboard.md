@@ -3,16 +3,20 @@
 Written by `lab eval practical-chances` from the run records in this folder.
 
 - **Predicts:** expected score of the mover in the game (a win 1, a draw 0.5, a loss 0).
-- **Data:** `game-positions-2026-10`, 698,013 rows (test 68,579, train 594,940, valid 34,494) from https://database.lichess.org/standard/lichess_db_standard_rated_2026-10.pgn.zst (CC0 1.0, database.lichess.org), built 2026-11-22T05:45:24Z at lab commit `3a74aa4`.
+- **Data:** `game-positions-2026-10`, 698,013 rows (test 68,579, train 594,940, valid 34,494) from https://database.lichess.org/standard/lichess_db_standard_rated_2026-10.pgn.zst (CC0 1.0, database.lichess.org), built 2026-11-23T02:45:49Z at lab commit `173ddde`.
 - **Test set:** 68,579 rows from 2,944 games, never seen in training or in choosing an epoch.
 - **Ranked by:** RMSE (lower is better), with its 95% interval over resampled games.
 - **Gain:** how much better than `gbm-hand` on the same resampled test games, measured when the run was trained; **bold** when the interval leaves zero out.
 
 | Run | Learner | RMSE | MAE | R² | Spearman | Gain over `gbm-hand` | Parameters | Trained on | Time |
 |---|---|---|---|---|---|---|---|---|---|
+| `gbm-hand-quadruple` | LightGBM, context and hand features; trained on 2,371,230 rows of the larger build `game-positions-2026-10-120k` | 0.4223 (0.4169 to 0.4281) | 0.3596 | 0.2619 | 0.5063 | **+0.001353 (+0.0004687 to +0.002213)** |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 42 s |
+| `transformer-medium-hand-quadruple` | transformer, 8 layers of width 256, with hand features; trained on 2,371,230 rows of the larger build `game-positions-2026-10-120k` | 0.4225 (0.4172 to 0.4284) | 0.3565 | 0.2614 | 0.5063 | +0.00121 (-2.479e-05 to +0.002466) | 6,557,505 | NVIDIA A100-SXM4-40GB | 9 min |
+| `gbm-hand-double` | LightGBM, context and hand features; trained on 1,189,017 rows of the larger build `game-positions-2026-10-120k` | 0.4232 (0.4178 to 0.4288) | 0.3627 | 0.2590 | 0.5029 | +0.0005213 (-0.0003543 to +0.001437) |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 22 s |
+| `transformer-medium-hand-double` | transformer, 8 layers of width 256, with hand features; trained on 1,189,017 rows of the larger build `game-positions-2026-10-120k` | 0.4235 (0.4183 to 0.4294) | 0.3574 | 0.2579 | 0.5028 | +0.0001825 (-0.00105 to +0.00143) | 6,557,505 | NVIDIA A100-SXM4-40GB | 7 min |
 | `conv-small` | conv, 6 layers of width 96 | 0.4235 (0.4183 to 0.4291) | 0.3639 | 0.2578 | 0.5025 | +0.0001616 (-0.001151 to +0.001411) | 1,031,425 | NVIDIA A100-SXM4-80GB | 2 min |
 | `transformer-small` | transformer, 4 layers of width 128 | 0.4235 (0.4181 to 0.4294) | 0.3586 | 0.2578 | 0.5024 | +0.0001574 (-0.001199 to +0.001565) | 861,985 | NVIDIA A100-SXM4-80GB | 3 min |
-| `gbm-hand` | LightGBM, context and hand features | 0.4237 (0.4184 to 0.4294) | 0.3618 | 0.2572 | 0.5016 | reference |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 11 s |
+| `gbm-hand` | LightGBM, context and hand features | 0.4237 (0.4184 to 0.4294) | 0.3618 | 0.2572 | 0.5016 | reference |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 22 s |
 | `transformer-medium` | transformer, 8 layers of width 256 | 0.4244 (0.4193 to 0.4300) | 0.3670 | 0.2546 | 0.4995 | -0.0007413 (-0.002056 to +0.0005804) | 6,554,177 | NVIDIA A100-SXM4-80GB | 5 min |
 | `transformer-medium-hand` | transformer, 8 layers of width 256, with hand features | 0.4249 (0.4200 to 0.4303) | 0.3703 | 0.2529 | 0.4986 | -0.00122 (-0.002381 to +7.052e-06) | 6,557,505 | NVIDIA A100-SXM4-80GB | 5 min |
 | `gbm-context` | LightGBM, context numbers only | 0.4260 (0.4206 to 0.4319) | 0.3650 | 0.2492 | 0.4936 | **-0.002288 (-0.003088 to -0.001502)** |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 4 s |
@@ -26,6 +30,10 @@ Written by `lab eval practical-chances` from the run records in this folder.
 
 | Run | <1100 | 1100-1400 | 1400-1700 | 1700-2000 | 2000+ |
 |---|---|---|---|---|---|
+| `gbm-hand-quadruple` | 0.4238 | 0.4256 | 0.4252 | 0.4304 | 0.3864 |
+| `transformer-medium-hand-quadruple` | 0.4233 | 0.4264 | 0.4261 | 0.4298 | 0.3855 |
+| `gbm-hand-double` | 0.4251 | 0.4266 | 0.4261 | 0.4299 | 0.3889 |
+| `transformer-medium-hand-double` | 0.4247 | 0.4271 | 0.4266 | 0.4315 | 0.3867 |
 | `conv-small` | 0.4247 | 0.4268 | 0.4272 | 0.4308 | 0.3875 |
 | `transformer-small` | 0.4241 | 0.4263 | 0.4279 | 0.4308 | 0.3877 |
 | `gbm-hand` | 0.4269 | 0.4269 | 0.4260 | 0.4306 | 0.3895 |

@@ -12,9 +12,13 @@ Written by `lab eval blunder-hazard` from the run records in this folder.
 |---|---|---|---|---|---|---|---|---|---|---|
 | `transformer-medium-hand-pretrained` | transformer, 8 layers of width 256, with hand features, started from `position-evaluation/transformer-medium` | 0.2776 (0.2643 to 0.2921) | 0.8403 | 0.0558 | 0.1959 | 0.0023 | **+0.02429 (+0.01473 to +0.03381)** | 6,557,505 | NVIDIA A100-SXM4-40GB | 9 min |
 | `transformer-medium-pretrained` | transformer, 8 layers of width 256, started from `position-evaluation/transformer-medium` | 0.2747 (0.2611 to 0.2895) | 0.8411 | 0.0558 | 0.1956 | 0.0022 | **+0.02142 (+0.01202 to +0.03066)** | 6,554,177 | NVIDIA A100-SXM4-40GB | 9 min |
+| `transformer-medium-hand-quadruple` | transformer, 8 layers of width 256, with hand features; trained on 2,371,230 rows of the larger build `game-positions-2026-10-120k` | 0.2711 (0.2568 to 0.2861) | 0.8329 | 0.0562 | 0.1980 | 0.0040 | **+0.01777 (+0.01167 to +0.02392)** | 6,557,505 | NVIDIA A100-SXM4-40GB | 9 min |
+| `transformer-medium-hand-double` | transformer, 8 layers of width 256, with hand features; trained on 1,189,017 rows of the larger build `game-positions-2026-10-120k` | 0.2679 (0.2539 to 0.2828) | 0.8320 | 0.0563 | 0.1984 | 0.0031 | **+0.01457 (+0.008358 to +0.0212)** | 6,557,505 | NVIDIA A100-SXM4-40GB | 9 min |
 | `transformer-medium-hand` | transformer, 8 layers of width 256, with hand features | 0.2666 (0.2526 to 0.2822) | 0.8279 | 0.0565 | 0.2000 | 0.0032 | **+0.01331 (+0.007014 to +0.01978)** | 6,557,505 | NVIDIA A100-SXM4-80GB | 8 min |
 | `conv-medium-hand` | conv, 10 layers of width 192, each block weighing its channels by the whole board, with hand features | 0.2664 (0.2529 to 0.2813) | 0.8305 | 0.0563 | 0.1994 | 0.0031 | **+0.0131 (+0.005994 to +0.01972)** | 6,936,865 | NVIDIA A100-SXM4-80GB | 4 min |
+| `gbm-hand-quadruple` | LightGBM, context and hand features; trained on 2,371,230 rows of the larger build `game-positions-2026-10-120k` | 0.2658 (0.2515 to 0.2812) | 0.8281 | 0.0564 | 0.1994 | 0.0027 | **+0.01256 (+0.007808 to +0.01691)** |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 69 s |
 | `transformer-medium-hand-attacks` | transformer, 8 layers of width 256, attention told what each piece attacks, with hand features | 0.2648 (0.2514 to 0.2802) | 0.8276 | 0.0565 | 0.2000 | 0.0044 | **+0.01147 (+0.005065 to +0.01755)** | 6,557,761 | NVIDIA A100-SXM4-80GB | 10 min |
+| `gbm-hand-double` | LightGBM, context and hand features; trained on 1,189,017 rows of the larger build `game-positions-2026-10-120k` | 0.2635 (0.2488 to 0.2784) | 0.8270 | 0.0565 | 0.1999 | 0.0040 | **+0.01017 (+0.005232 to +0.01499)** |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 46 s |
 | `transformer-medium-hand-long` | transformer, 8 layers of width 256, with hand features | 0.2628 (0.2491 to 0.2780) | 0.8266 | 0.0565 | 0.2002 | 0.0023 | **+0.009522 (+0.002803 to +0.01715)** | 6,557,505 | NVIDIA A100-SXM4-80GB | 11 min |
 | `hybrid-medium-hand` | hybrid, 2 conv blocks then 5 transformer layers of width 256, with hand features | 0.2622 (0.2485 to 0.2770) | 0.8262 | 0.0566 | 0.2005 | 0.0025 | **+0.008934 (+0.001925 to +0.01603)** | 6,583,849 | NVIDIA A100-SXM4-80GB | 7 min |
 | `gbm-hand` | LightGBM, context and hand features | 0.2533 (0.2396 to 0.2681) | 0.8232 | 0.0569 | 0.2013 | 0.0042 | reference |  | Intel(R) Xeon(R) CPU @ 2.20GHz | 38 s |
@@ -32,9 +36,13 @@ Written by `lab eval blunder-hazard` from the run records in this folder.
 |---|---|---|---|---|---|
 | `transformer-medium-hand-pretrained` | 0.3799 | 0.2850 | 0.2343 | 0.2057 | 0.1590 |
 | `transformer-medium-pretrained` | 0.3728 | 0.2752 | 0.2296 | 0.2201 | 0.1606 |
+| `transformer-medium-hand-quadruple` | 0.3694 | 0.2793 | 0.2289 | 0.1871 | 0.1453 |
+| `transformer-medium-hand-double` | 0.3697 | 0.2719 | 0.2216 | 0.1904 | 0.1439 |
 | `transformer-medium-hand` | 0.3666 | 0.2730 | 0.2218 | 0.1882 | 0.1375 |
 | `conv-medium-hand` | 0.3607 | 0.2784 | 0.2218 | 0.1898 | 0.1364 |
+| `gbm-hand-quadruple` | 0.3592 | 0.2737 | 0.2272 | 0.1891 | 0.1427 |
 | `transformer-medium-hand-attacks` | 0.3629 | 0.2690 | 0.2242 | 0.1851 | 0.1416 |
+| `gbm-hand-double` | 0.3624 | 0.2696 | 0.2224 | 0.1837 | 0.1357 |
 | `transformer-medium-hand-long` | 0.3611 | 0.2730 | 0.2150 | 0.1868 | 0.1287 |
 | `hybrid-medium-hand` | 0.3588 | 0.2683 | 0.2222 | 0.1865 | 0.1334 |
 | `gbm-hand` | 0.3426 | 0.2593 | 0.2160 | 0.1794 | 0.1293 |

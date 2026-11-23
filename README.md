@@ -52,7 +52,7 @@ The best run of each model on the harness, beside the tree baseline it is compar
 | [`game-rating`](models/game-rating/) | Lichess rapid rating points | `conv-small` | MAE 204.1 (200.2 to 208.2) | `gbm-hand` | 242.7 | +38.56 | 9,974 |
 | [`human-move`](models/human-move/) | the chance that each legal move is the one the player makes | `maia2` | First right 0.5172 (0.5133 to 0.5212) | `gbm-hand` | 0.3980 | +0.1192 | 68,579 |
 | [`position-evaluation`](models/position-evaluation/) | the mover's chance of winning by the engine's evaluation (percent) | `transformer-medium` | RMSE 12.963 (12.859 to 13.070) | `gbm-hand` | 16.449 | +3.486 | 120,035 |
-| [`practical-chances`](models/practical-chances/) | expected score of the mover in the game (a win 1, a draw 0.5, a loss 0) | `conv-small` | RMSE 0.4235 (0.4183 to 0.4291) | `gbm-hand` | 0.4237 | +0.0001616 (within noise) | 68,579 |
+| [`practical-chances`](models/practical-chances/) | expected score of the mover in the game (a win 1, a draw 0.5, a loss 0) | `gbm-hand-quadruple` | RMSE 0.4223 (0.4169 to 0.4281) | `gbm-hand` | 0.4237 | +0.001353 | 68,579 |
 | [`puzzle-difficulty`](models/puzzle-difficulty/) | Lichess puzzle rating points | `transformer-medium-hand-pretrained` | RMSE 251.7 (250.3 to 253.1) | `gbm-hand` | 294.9 | +43.22 | 112,450 |
 | [`puzzle-difficulty-unsolved`](models/puzzle-difficulty-unsolved/) | Lichess puzzle rating points | `transformer-medium-hand-pretrained` | RMSE 373.8 (371.9 to 375.5) | `gbm-hand` | 456.8 | +83.03 | 112,450 |
 | [`puzzle-themes`](models/puzzle-themes/) | the chance that a puzzle carries a theme | `transformer-medium-hand` | Average precision 0.9828 (0.9821 to 0.9834) | `gbm-hand` | 0.8702 | +0.1126 | 112,450 |
