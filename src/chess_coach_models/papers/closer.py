@@ -19,6 +19,7 @@ that fits nothing, such as an engine's number read as it stands, reads those.
 from __future__ import annotations
 
 import math
+from collections.abc import Sequence
 from typing import Any
 
 from ..evals import analysis
@@ -534,6 +535,15 @@ def _axis(src: Sources) -> str:
     return tex.esc(tex_free(unit if len(unit) <= LONGEST_AXIS_UNIT else glossary.label(src.task.label)))
 
 
+def _cell_decimals(tenths: bool, values: Sequence[float]) -> int:
+    """How many decimals a two-way table's cells print: one for a share in percent or a time in seconds, none
+    for a quantity in the tens or more, such as a rating, and two for one that stays below ten, such as an
+    expected score between zero and one, which whole numbers would not tell apart."""
+    if tenths:
+        return 1
+    return 2 if max(map(abs, values)) < 10 else 0
+
+
 def grid_figures(src: Sources, one: dict[str, Any]) -> dict[str, str]:
     """A grid twice on one scale of colour: what happened in each cell, and what the challenger said there."""
     challenger = src.challenger
@@ -543,11 +553,6 @@ def grid_figures(src: Sources, one: dict[str, Any]) -> dict[str, str]:
         if not tex.known(value):
             return None
         return 100.0 * value if binary else src.plain(value)
-
-    def text(value: float | None) -> str:
-        if value is None:
-            return ""
-        return tex.fixed(value, 1) if binary or src.task.scale == "log1p" else tex.fixed(value, 0)
 
     happened = [
         [number(cell["label_mean"]) if cell["rows"] >= SMALLEST_CELL else None for cell in line] for line in one["cells"]
@@ -563,6 +568,11 @@ def grid_figures(src: Sources, one: dict[str, Any]) -> dict[str, str]:
     if not known:
         return {}
     low, high = min(known), max(known)
+    decimals = _cell_decimals(binary or src.task.scale == "log1p", known)
+
+    def text(value: float | None) -> str:
+        return "" if value is None else tex.fixed(value, decimals)
+
     made = {}
     for name, table in (("", happened), ("-said", said)):
         made[f"grid-{one['key']}{name}"] = charts.grid(

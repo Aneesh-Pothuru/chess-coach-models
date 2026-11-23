@@ -154,6 +154,19 @@ def test_a_grid_of_differences_is_two_colours_that_meet_in_grey():
     assert "labOrange" not in plain and "labBlue!8!white" in plain and "labBlue!90!white" in plain
 
 
+def test_a_two_way_table_prints_a_quantity_below_ten_to_two_decimals():
+    # An expected score lies between zero and one: whole numbers would print every cell as 0 or 1.
+    assert closer._cell_decimals(False, [0.09, 0.488, 0.901]) == 2
+    # A rating keeps whole numbers, and a share in percent or a time in seconds keeps its tenth.
+    assert closer._cell_decimals(False, [812.4, 1523.0, 2210.6]) == 0
+    assert closer._cell_decimals(True, [3.4, 41.0]) == 1 and closer._cell_decimals(True, [0.2, 0.9]) == 1
+    src = sources.read("practical-chances")
+    one = next(grid for grid in src.look["grids"] if grid["key"] == "rating-win")
+    drawn = closer.grid_figures(src, one)["grid-rating-win"]
+    cells = [line.rsplit("{", 1)[1].rstrip("};") for line in drawn.splitlines() if "minimum width" in line]
+    assert cells and all(len(cell.split(".")[-1]) == 2 for cell in cells if cell)
+
+
 def test_rows_in_groups_stand_under_their_group_s_name_on_one_axis():
     drawn = charts.grouped_intervals(
         [
