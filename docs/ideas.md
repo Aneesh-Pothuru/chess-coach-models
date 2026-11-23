@@ -132,15 +132,29 @@ difficulty the trees were held too: on four times the puzzles they used every ro
 allowed, and on twice they came within a few of it.
 
 The runs on four times the games are kept, so by what was written the next builds are larger
-still. What the runs found puts three things before that:
+still. What the runs found puts four things before that. Their runs are written and wait for their
+GPU (the plan `more-next` in [`colab/plans/`](../colab/plans/)):
 
-- **More games and more steps together**, the one case neither study has: the network on the
-  larger build with twice the steps, which is as many steps as the run with twice the epochs took
-  on today's games.
-- **The best run on the larger build**: in four models that is the transformer that starts from
-  the body, which is measured on today's games only.
-- **A higher round limit for the trees** in puzzle difficulty, before a still larger build of its
-  dataset is read.
+- **The best run on the larger build** (`transformer-medium-hand-pretrained-quadruple`, and
+  `-double` in tactic found): in four models the best run is the transformer that starts from the
+  body, which is measured on today's games only.
+- **More games and more steps together** (`transformer-medium-hand-quadruple-long`, and
+  `-double-long` in tactic found), the one case neither study has: the network on the larger
+  build with twice the steps, which is as many steps as the run with twice the epochs took on
+  today's games.
+- **The tower on the larger build** (`conv-medium-hand-quadruple`, and `-double` in tactic
+  found), in the three models that keep the tower.
+- **A higher round limit for the trees** in puzzle difficulty (`gbm-hand-quadruple-long`), before
+  a still larger build of its dataset is read.
+
+What is expected, written before any of them ran. From the body, more games still pay, by less
+than they paid the network that starts from nothing, since the body has read six million
+positions already: the run is kept in puzzle difficulty, think time and tactic found, and stays
+inside the noise in blunder hazard. With twice the steps the network on the larger build is kept
+in every model, by more than the longer schedule gave on today's games, and in practical chances
+it passes the trees on as many games. The tower gains from more games about what the transformer
+gained, and is kept in all three models. The trees gain a little from the higher limit, less than
+the step from twice the puzzles to four times gave them.
 
 What is left:
 

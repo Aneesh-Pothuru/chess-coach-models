@@ -1,0 +1,16 @@
+# What the runs on more games point to, in one pass. The best run on the larger build: the transformer
+# started from the body that learned an engine's evaluations, on four times the training games at the
+# steps it took on today's (twice in tactic found, whose source has no more). More games and more steps
+# together: the transformer on the larger build with twice the epochs, the one case the games study and
+# the longer schedule leave out. The tower on the larger build, in the three models that keep it. And
+# puzzle difficulty's trees on four times the puzzles with twice the rounds, since the round limit
+# stopped them there. `lab all` builds the three larger builds before the runs that train on them. The
+# body is not trained here: it is fetched from where the lab published it
+# (models/position-evaluation/published.yaml) and held to its hash. Each model's gbm-hand is trained
+# again first, since every run is compared with the one trained on its own machine. About three and three
+# quarter hours on an A100.
+puzzle-difficulty: gbm-hand,gbm-hand-quadruple-long,transformer-medium-hand-pretrained-quadruple,transformer-medium-hand-quadruple-long,conv-medium-hand-quadruple
+blunder-hazard: gbm-hand,transformer-medium-hand-pretrained-quadruple,transformer-medium-hand-quadruple-long
+think-time: gbm-hand,transformer-medium-hand-pretrained-quadruple,transformer-medium-hand-quadruple-long,conv-medium-hand-quadruple
+practical-chances: gbm-hand,transformer-medium-hand-quadruple-long
+tactic-found: gbm-hand,transformer-medium-hand-pretrained-double,transformer-medium-hand-double-long,conv-medium-hand-double

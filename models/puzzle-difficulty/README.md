@@ -87,6 +87,10 @@ beats that run on valid and on test beyond the noise:
 | `transformer-medium-attacks-pretrained` | `transformer-medium-pretrained` with its attention told what each piece attacks and what it stands behind |
 | `transformer-medium-hand-attacks-pretrained` | `transformer-medium-hand-pretrained` told the same |
 | `conv-medium-hand-pretrained` | `conv-medium-hand` started from the tower of [position evaluation](../position-evaluation/) (`conv-medium` there) |
+| `transformer-medium-hand-pretrained-quadruple` | `transformer-medium-hand-pretrained` on four times the training games, at the steps it took on today's |
+| `transformer-medium-hand-quadruple-long` | `transformer-medium-hand-quadruple` with twice the epochs: four times the training games and twice the steps |
+| `conv-medium-hand-quadruple` | `conv-medium-hand` on four times the training games, at the steps it took on today's |
+| `gbm-hand-quadruple-long` | `gbm-hand-quadruple` with twice the rounds its trees may grow: on four times the puzzles they used every one |
 
 ### Studies
 

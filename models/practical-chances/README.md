@@ -72,6 +72,15 @@ They are the `games` study below turned round, and
 they ran. Each is kept only if it beats the run it changes on valid and on test
 beyond the noise.
 
+Runs that are written and wait for their GPU
+([`docs/ideas.md`](../../docs/ideas.md) says what is expected of them, written
+before they run). Each changes one thing in a run above, and is kept only if it
+beats that run on valid and on test beyond the noise:
+
+| Run | Learner |
+|---|---|
+| `transformer-medium-hand-quadruple-long` | `transformer-medium-hand-quadruple` with twice the epochs: four times the training games and twice the steps |
+
 ### Studies
 
 Runs that change one thing in a run above, to say what that thing is worth

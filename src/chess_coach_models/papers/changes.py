@@ -196,6 +196,8 @@ def _change(block: str, key: str, new: Any, old: Any) -> str:
         return "trains on the dataset's own rows" if new is None else f"trains on the larger build \\code{{{tex.esc(new)}}}"
     if (block, key) == ("train", "seed"):
         return "is trained a second time, with another seed"
+    if (block, key) == ("learner", "rounds"):
+        return "may grow as many trees as any run" if new is None else f"may grow {tex.count(new)} trees"
     names = {"epochs": ("epoch", "epochs"), "patience": ("epoch of patience", "epochs of patience")}
     name = names[key][new != 1] if key in names else {"lr": "peak learning rate", "batch": "rows a batch"}.get(key)
     if block == "train" and name is not None and new is not None:

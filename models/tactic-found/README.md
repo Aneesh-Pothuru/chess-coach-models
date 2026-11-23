@@ -102,6 +102,9 @@ beats that run on valid and on test beyond the noise:
 | Run | Learner |
 |---|---|
 | `conv-medium-hand-pretrained` | `conv-medium-hand` started from the tower of [position evaluation](../position-evaluation/) (`conv-medium` there) |
+| `transformer-medium-hand-pretrained-double` | `transformer-medium-hand-pretrained` on twice the training games, at the steps it took on today's |
+| `transformer-medium-hand-double-long` | `transformer-medium-hand-double` with twice the epochs: twice the training games and twice the steps |
+| `conv-medium-hand-double` | `conv-medium-hand` on twice the training games, at the steps it took on today's |
 
 ### Studies
 

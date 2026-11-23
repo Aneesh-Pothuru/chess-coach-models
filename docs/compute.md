@@ -70,16 +70,17 @@ answer that is a move"): each run set against the run it changed.
 
 [`colab/lab.ipynb`](../colab/lab.ipynb) clones this repository, installs it, and runs the same
 commands on the notebook's GPU. Its first cell names the models and the runs, or a plan kept in
-[`colab/plans/`](../colab/plans/): `all` is every model's own runs, `studies` the study runs of
-the models that have results, `pretrain` the body trained on engine evaluations and the runs that
-start from it, `sets` the two models whose answer is a set, `games` the first pass of game rating,
+[`colab/plans/`](../colab/plans/): `all` is every model's own runs, `studies` the study runs of the
+models that have results, `pretrain` the body trained on engine evaluations and the runs that start
+from it, `sets` the two models whose answer is a set, `games` the first pass of game rating,
 `moves` the first pass of human moves beside Maia-2, `bodies-first` and `bodies-rest` the
 architecture test in two passes, `more` the runs on twice and four times the training games, which
 build a larger build of each dataset first, `told-start` the attention that is told the attacks
-started from the body, and `shapes-start` that with a tower that has a body of its own and the
-second trainings of the study `seed`. A plan whose runs start from a body it does not train reads
-the body from where the lab published it. Names joined with `+` are read into one pass
-(`sets+games+moves`): a model that two of them name is given the runs of both.
+started from the body, `shapes-start` that with a tower that has a body of its own and the second
+trainings of the study `seed`, and `more-next` what the runs on more games point to: the best
+start, the tower and twice the steps on the larger builds. A plan whose runs start from a body it
+does not train reads the body from where the lab published it. Names joined with `+` are read into
+one pass (`sets+games+moves`): a model that two of them name is given the runs of both.
 
 1. Open the notebook in Colab and choose a GPU runtime.
 2. Run every cell.

@@ -943,6 +943,7 @@ def test_a_run_on_a_larger_build_is_read_by_how_many_of_the_games_it_was_given()
     )
     assert changes._change("train", "patience", 1, 3) == "1 epoch of patience for 3"
     assert changes._change("train", "epochs", 3, 12) == "3 epochs for 12"
+    assert changes._change("learner", "rounds", 8000, None) == "may grow 8{,}000 trees"
 
     written = tex.Generated("a test")
     changes.values(src, written)

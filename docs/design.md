@@ -242,7 +242,9 @@ The record's `dataset` is the build the run is scored on, and `train_dataset` na
 one by its fingerprint. `train_share` takes its share of the larger build's training games, so
 half of a build four times the size is twice the games. A network on more games is given fewer
 epochs, so that it takes as many steps as the run it changes and only the games differ. Such a
-run names the run it changes as its `base` and is a candidate, kept by the rule below. `lab all`
+run names the run it changes as its `base` and is a candidate, kept by the rule below. A run can
+also name a run on a larger build as its `base` and change one thing in it (twice the epochs): it
+trains on the same larger build, and what it measures is that change on more games. `lab all`
 builds the larger build its runs name before the first of them.
 
 **A run that was tried and not kept.** A candidate is kept as a run of the model's own only when
