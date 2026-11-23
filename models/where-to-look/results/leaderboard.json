@@ -1,0 +1,589 @@
+{
+  "model": "where-to-look",
+  "task": {
+    "label": [
+      "solver1_from",
+      "solver1_to",
+      "reply1_from",
+      "reply1_to",
+      "solver2_from",
+      "solver2_to",
+      "reply2_from",
+      "reply2_to",
+      "solver3_from",
+      "solver3_to",
+      "later"
+    ],
+    "kind": "squares",
+    "unit": "the chance that a square is one the tactic's line leaves or lands on",
+    "primary": "ap",
+    "lower_is_better": false,
+    "context": [
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ],
+    "marks": [
+      "en_passant",
+      "setup_from",
+      "setup_to"
+    ],
+    "hand": [
+      "material_count",
+      "material_imbalance",
+      "phase_piece_count",
+      "in_check",
+      "legal_moves",
+      "legal_captures",
+      "legal_checks",
+      "hanging_own",
+      "hanging_opponent",
+      "passed_pawns_own",
+      "passed_pawns_opponent",
+      "attackers_near_own_king",
+      "attackers_near_opponent_king",
+      "setup_capture"
+    ],
+    "candidates": [
+      "a1",
+      "b1",
+      "c1",
+      "d1",
+      "e1",
+      "f1",
+      "g1",
+      "h1",
+      "a2",
+      "b2",
+      "c2",
+      "d2",
+      "e2",
+      "f2",
+      "g2",
+      "h2",
+      "a3",
+      "b3",
+      "c3",
+      "d3",
+      "e3",
+      "f3",
+      "g3",
+      "h3",
+      "a4",
+      "b4",
+      "c4",
+      "d4",
+      "e4",
+      "f4",
+      "g4",
+      "h4",
+      "a5",
+      "b5",
+      "c5",
+      "d5",
+      "e5",
+      "f5",
+      "g5",
+      "h5",
+      "a6",
+      "b6",
+      "c6",
+      "d6",
+      "e6",
+      "f6",
+      "g6",
+      "h6",
+      "a7",
+      "b7",
+      "c7",
+      "d7",
+      "e7",
+      "f7",
+      "g7",
+      "h7",
+      "a8",
+      "b8",
+      "c8",
+      "d8",
+      "e8",
+      "f8",
+      "g8",
+      "h8"
+    ]
+  },
+  "dataset": {
+    "dataset": "puzzles-v1",
+    "source": "https://database.lichess.org/lichess_db_puzzle.csv.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 1127915,
+    "splits": {
+      "test": 112450,
+      "train": 958941,
+      "valid": 56524
+    },
+    "fingerprint": "d14731fa4425fc6efdadb45c94ee53e07f5afe9151992b690b81edc71064cd5d",
+    "built": "2026-11-22T20:55:15Z",
+    "code": "8c771617309d36154b1c85abcbbff500fafea271"
+  },
+  "test_rows": 112450,
+  "test_groups": 112450,
+  "reference": "gbm-hand",
+  "runs": [
+    {
+      "run": "transformer-medium",
+      "learner": "transformer, 8 layers of width 256",
+      "test": {
+        "ap": {
+          "value": 0.9022357676079206,
+          "low": 0.9014309050891852,
+          "high": 0.9031341559262609
+        },
+        "top1": {
+          "value": 0.9719341929746554,
+          "low": 0.9710002223210316,
+          "high": 0.9729215206758559
+        },
+        "log_loss": {
+          "value": 0.08842955132302595,
+          "low": 0.08785263853235604,
+          "high": 0.08896642228106079
+        }
+      },
+      "test_by_band": {
+        "1000-1399": {
+          "rows": 31846,
+          "ap": 0.9566228616405852,
+          "top1": 0.9940651887207185,
+          "log_loss": 0.049836275757469774
+        },
+        "1400-1799": {
+          "rows": 28501,
+          "ap": 0.9007647157888922,
+          "top1": 0.97970246658012,
+          "log_loss": 0.09397215570120061
+        },
+        "1800-2199": {
+          "rows": 19518,
+          "ap": 0.8074669968217061,
+          "top1": 0.934521979711036,
+          "log_loss": 0.15542646750796849
+        },
+        "2200+": {
+          "rows": 9834,
+          "ap": 0.7272068751413976,
+          "top1": 0.8917531014846451,
+          "log_loss": 0.22521121343496317
+        },
+        "<1000": {
+          "rows": 22751,
+          "ap": 0.9849066852845151,
+          "top1": 0.9979781108522703,
+          "log_loss": 0.018907992313390548
+        }
+      },
+      "parameters": 6486593,
+      "device": "NVIDIA A100-SXM4-80GB",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 812.0,
+      "code": "8c771617309d36154b1c85abcbbff500fafea271",
+      "trained": "2026-11-22T23:47:34Z",
+      "gain": {
+        "gain": 0.15476606590385922,
+        "low": 0.15384377482180064,
+        "high": 0.1557527798219397,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-22T23:28:04Z",
+        "reference_value": 0.7474697017041271
+      }
+    },
+    {
+      "run": "transformer-small",
+      "learner": "transformer, 4 layers of width 128",
+      "test": {
+        "ap": {
+          "value": 0.8701905048780317,
+          "low": 0.8692435971640899,
+          "high": 0.871170533573515
+        },
+        "top1": {
+          "value": 0.9535437972432192,
+          "low": 0.952347598932859,
+          "high": 0.9548468208092485
+        },
+        "log_loss": {
+          "value": 0.10667743043971491,
+          "low": 0.106094154024489,
+          "high": 0.10724347947441187
+        }
+      },
+      "test_by_band": {
+        "1000-1399": {
+          "rows": 31846,
+          "ap": 0.9311552268694346,
+          "top1": 0.9872825472586824,
+          "log_loss": 0.06923448337283308
+        },
+        "1400-1799": {
+          "rows": 28501,
+          "ap": 0.8535417331974923,
+          "top1": 0.952949019332655,
+          "log_loss": 0.11829323556878721
+        },
+        "1800-2199": {
+          "rows": 19518,
+          "ap": 0.7582553548573671,
+          "top1": 0.8953530074802746,
+          "log_loss": 0.17641516822997558
+        },
+        "2200+": {
+          "rows": 9834,
+          "ap": 0.6958280692116151,
+          "top1": 0.8631787675411836,
+          "log_loss": 0.23841593626277752
+        },
+        "<1000": {
+          "rows": 22751,
+          "ap": 0.9771068846232596,
+          "top1": 0.9960441299283548,
+          "log_loss": 0.027766103370750438
+        }
+      },
+      "parameters": 844577,
+      "device": "NVIDIA A100-SXM4-80GB",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 292.9,
+      "code": "8c771617309d36154b1c85abcbbff500fafea271",
+      "trained": "2026-11-22T23:52:34Z",
+      "gain": {
+        "gain": 0.1227208031739575,
+        "low": 0.12185080797300223,
+        "high": 0.12367509279828481,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-22T23:28:04Z",
+        "reference_value": 0.7474697017041271
+      }
+    },
+    {
+      "run": "conv-small",
+      "learner": "conv, 6 layers of width 96",
+      "test": {
+        "ap": {
+          "value": 0.8575648763057433,
+          "low": 0.8565707808476898,
+          "high": 0.8585294138130969
+        },
+        "top1": {
+          "value": 0.9401600711427301,
+          "low": 0.9387369942196532,
+          "high": 0.9415563583815029
+        },
+        "log_loss": {
+          "value": 0.11193031463086477,
+          "low": 0.11134952983351655,
+          "high": 0.11251377227677177
+        }
+      },
+      "test_by_band": {
+        "1000-1399": {
+          "rows": 31846,
+          "ap": 0.9178181349629319,
+          "top1": 0.9769672800351693,
+          "log_loss": 0.07462461645088828
+        },
+        "1400-1799": {
+          "rows": 28501,
+          "ap": 0.8357673938081803,
+          "top1": 0.934686502227992,
+          "log_loss": 0.12467215244216065
+        },
+        "1800-2199": {
+          "rows": 19518,
+          "ap": 0.7436875983203227,
+          "top1": 0.8765242340403729,
+          "log_loss": 0.18219984897418512
+        },
+        "2200+": {
+          "rows": 9834,
+          "ap": 0.6843944765271395,
+          "top1": 0.8390278625177954,
+          "log_loss": 0.2452592056542009
+        },
+        "<1000": {
+          "rows": 22751,
+          "ap": 0.9730780052502225,
+          "top1": 0.9938024702210891,
+          "log_loss": 0.03027258789987912
+        }
+      },
+      "parameters": 1021441,
+      "device": "NVIDIA A100-SXM4-80GB",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 185.7,
+      "code": "8c771617309d36154b1c85abcbbff500fafea271",
+      "trained": "2026-11-22T23:31:35Z",
+      "gain": {
+        "gain": 0.1100951746016634,
+        "low": 0.10910826524736279,
+        "high": 0.11108554941214405,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-22T23:28:04Z",
+        "reference_value": 0.7474697017041271
+      }
+    },
+    {
+      "run": "gbm-hand",
+      "learner": "LightGBM on a row a square: the piece on it, context and hand features and what a person would count on the square",
+      "test": {
+        "ap": {
+          "value": 0.7474697017041052,
+          "low": 0.7463716426835748,
+          "high": 0.7485204710998399
+        },
+        "top1": {
+          "value": 0.8827034237438862,
+          "low": 0.880738105824811,
+          "high": 0.88452690084482
+        },
+        "log_loss": {
+          "value": 0.16224080527993923,
+          "low": 0.16173334661196373,
+          "high": 0.16275618516970844
+        }
+      },
+      "test_by_band": {
+        "1000-1399": {
+          "rows": 31846,
+          "ap": 0.7860486776089545,
+          "top1": 0.9122024744080889,
+          "log_loss": 0.13360087677277635
+        },
+        "1400-1799": {
+          "rows": 28501,
+          "ap": 0.7109404554150699,
+          "top1": 0.8553384091786254,
+          "log_loss": 0.17364942280526738
+        },
+        "1800-2199": {
+          "rows": 19518,
+          "ap": 0.6540437357570951,
+          "top1": 0.8119172046316221,
+          "log_loss": 0.21723566778700595
+        },
+        "2200+": {
+          "rows": 9834,
+          "ap": 0.6232681699843471,
+          "top1": 0.8059792556436852,
+          "log_loss": 0.27138123839569706
+        },
+        "<1000": {
+          "rows": 22751,
+          "ap": 0.8730650534735793,
+          "top1": 0.9695837545602392,
+          "log_loss": 0.093682650011002
+        }
+      },
+      "parameters": null,
+      "device": "cpu",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 457.2,
+      "code": "8c771617309d36154b1c85abcbbff500fafea271",
+      "trained": "2026-11-22T23:28:04Z",
+      "gain": null
+    },
+    {
+      "run": "gbm-context",
+      "learner": "LightGBM on a row a square: the piece on it, context numbers only",
+      "test": {
+        "ap": {
+          "value": 0.5546994152636925,
+          "low": 0.5536015112677823,
+          "high": 0.5557368157030312
+        },
+        "top1": {
+          "value": 0.7574833259226322,
+          "low": 0.7549928857269897,
+          "high": 0.7598241440640284
+        },
+        "log_loss": {
+          "value": 0.2202428214162367,
+          "low": 0.21977457783364457,
+          "high": 0.22074153693419904
+        }
+      },
+      "test_by_band": {
+        "1000-1399": {
+          "rows": 31846,
+          "ap": 0.567858127830765,
+          "top1": 0.7764868429316084,
+          "log_loss": 0.1991581988285803
+        },
+        "1400-1799": {
+          "rows": 28501,
+          "ap": 0.5558565742032262,
+          "top1": 0.7394477386758359,
+          "log_loss": 0.2266707620497595
+        },
+        "1800-2199": {
+          "rows": 19518,
+          "ap": 0.5309748177475161,
+          "top1": 0.7176964852956246,
+          "log_loss": 0.26330503224550433
+        },
+        "2200+": {
+          "rows": 9834,
+          "ap": 0.5160243567533682,
+          "top1": 0.7239170225747407,
+          "log_loss": 0.31403282049203346
+        },
+        "<1000": {
+          "rows": 22751,
+          "ap": 0.5719010623283536,
+          "top1": 0.8021185881939256,
+          "log_loss": 0.16422062780072358
+        }
+      },
+      "parameters": null,
+      "device": "cpu",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 128.7,
+      "code": "8c771617309d36154b1c85abcbbff500fafea271",
+      "trained": "2026-11-22T23:33:55Z",
+      "gain": {
+        "gain": -0.19277028644041005,
+        "low": -0.19378820007531694,
+        "high": -0.19169713705401104,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-22T23:28:04Z",
+        "reference_value": 0.7474697017041271
+      }
+    },
+    {
+      "run": "constant",
+      "learner": "each square's share of the training rows, for every row",
+      "test": {
+        "ap": {
+          "value": 0.22820270655611452,
+          "low": 0.22729333850439723,
+          "high": 0.22911263818316252
+        },
+        "top1": {
+          "value": 0.18566473988439305,
+          "low": 0.18335215651400621,
+          "high": 0.18791507336594043
+        },
+        "log_loss": {
+          "value": 0.2874953334055564,
+          "low": 0.2869971201234639,
+          "high": 0.2879929034753437
+        }
+      },
+      "test_by_band": {
+        "1000-1399": {
+          "rows": 31846,
+          "ap": 0.2361290395670728,
+          "top1": 0.20746718583181561,
+          "log_loss": 0.2685774602664788
+        },
+        "1400-1799": {
+          "rows": 28501,
+          "ap": 0.22634684451611597,
+          "top1": 0.18553734956668186,
+          "log_loss": 0.29981883722924924
+        },
+        "1800-2199": {
+          "rows": 19518,
+          "ap": 0.23404181861860945,
+          "top1": 0.18767291730710114,
+          "log_loss": 0.3321967781883937
+        },
+        "2200+": {
+          "rows": 9834,
+          "ap": 0.2477058285592618,
+          "top1": 0.19534268863127924,
+          "log_loss": 0.3755974340383459
+        },
+        "<1000": {
+          "rows": 22751,
+          "ap": 0.20599315233520651,
+          "top1": 0.14940002637246713,
+          "log_loss": 0.22210689107834186
+        }
+      },
+      "parameters": null,
+      "device": "cpu",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 16.2,
+      "code": "8c771617309d36154b1c85abcbbff500fafea271",
+      "trained": "2026-11-22T23:28:23Z",
+      "gain": {
+        "gain": -0.5192669951480142,
+        "low": -0.5205403263854971,
+        "high": -0.5179678812668341,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-22T23:28:04Z",
+        "reference_value": 0.7474697017041271
+      }
+    }
+  ],
+  "calibration": {
+    "run": "transformer-medium",
+    "bins": [
+      {
+        "n": 719680,
+        "predicted": 5.95601574690781e-06,
+        "observed": 2.779012894619831e-06
+      },
+      {
+        "n": 719680,
+        "predicted": 1.9434500206046584e-05,
+        "observed": 1.9453090262338817e-05
+      },
+      {
+        "n": 719680,
+        "predicted": 9.312334409095852e-05,
+        "observed": 0.00013895064473099154
+      },
+      {
+        "n": 719680,
+        "predicted": 0.0003658137413594303,
+        "observed": 0.0005057803468208092
+      },
+      {
+        "n": 719680,
+        "predicted": 0.0011356636317024092,
+        "observed": 0.0012713983992885727
+      },
+      {
+        "n": 719680,
+        "predicted": 0.003043572415300148,
+        "observed": 0.003225044464206314
+      },
+      {
+        "n": 719680,
+        "predicted": 0.008028901032516151,
+        "observed": 0.007667296576256114
+      },
+      {
+        "n": 719680,
+        "predicted": 0.02391044607456065,
+        "observed": 0.023056080480213428
+      },
+      {
+        "n": 719680,
+        "predicted": 0.10714612166827665,
+        "observed": 0.10532875722543353
+      },
+      {
+        "n": 719680,
+        "predicted": 0.734188161215405,
+        "observed": 0.7383434304135171
+      }
+    ]
+  }
+}

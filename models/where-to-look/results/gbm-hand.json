@@ -1,0 +1,326 @@
+{
+  "model": "where-to-look",
+  "run": "gbm-hand",
+  "task": {
+    "label": [
+      "solver1_from",
+      "solver1_to",
+      "reply1_from",
+      "reply1_to",
+      "solver2_from",
+      "solver2_to",
+      "reply2_from",
+      "reply2_to",
+      "solver3_from",
+      "solver3_to",
+      "later"
+    ],
+    "kind": "squares",
+    "unit": "the chance that a square is one the tactic's line leaves or lands on",
+    "primary": "ap",
+    "lower_is_better": false,
+    "context": [
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ],
+    "marks": [
+      "en_passant",
+      "setup_from",
+      "setup_to"
+    ],
+    "hand": [
+      "material_count",
+      "material_imbalance",
+      "phase_piece_count",
+      "in_check",
+      "legal_moves",
+      "legal_captures",
+      "legal_checks",
+      "hanging_own",
+      "hanging_opponent",
+      "passed_pawns_own",
+      "passed_pawns_opponent",
+      "attackers_near_own_king",
+      "attackers_near_opponent_king",
+      "setup_capture"
+    ],
+    "candidates": [
+      "a1",
+      "b1",
+      "c1",
+      "d1",
+      "e1",
+      "f1",
+      "g1",
+      "h1",
+      "a2",
+      "b2",
+      "c2",
+      "d2",
+      "e2",
+      "f2",
+      "g2",
+      "h2",
+      "a3",
+      "b3",
+      "c3",
+      "d3",
+      "e3",
+      "f3",
+      "g3",
+      "h3",
+      "a4",
+      "b4",
+      "c4",
+      "d4",
+      "e4",
+      "f4",
+      "g4",
+      "h4",
+      "a5",
+      "b5",
+      "c5",
+      "d5",
+      "e5",
+      "f5",
+      "g5",
+      "h5",
+      "a6",
+      "b6",
+      "c6",
+      "d6",
+      "e6",
+      "f6",
+      "g6",
+      "h6",
+      "a7",
+      "b7",
+      "c7",
+      "d7",
+      "e7",
+      "f7",
+      "g7",
+      "h7",
+      "a8",
+      "b8",
+      "c8",
+      "d8",
+      "e8",
+      "f8",
+      "g8",
+      "h8"
+    ]
+  },
+  "dataset": {
+    "dataset": "puzzles-v1",
+    "source": "https://database.lichess.org/lichess_db_puzzle.csv.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 1127915,
+    "splits": {
+      "test": 112450,
+      "train": 958941,
+      "valid": 56524
+    },
+    "fingerprint": "d14731fa4425fc6efdadb45c94ee53e07f5afe9151992b690b81edc71064cd5d",
+    "built": "2026-11-22T20:55:15Z",
+    "code": "8c771617309d36154b1c85abcbbff500fafea271"
+  },
+  "config": {
+    "learner": {
+      "kind": "gbm",
+      "features": "hand",
+      "learning_rate": 0.1,
+      "rounds": 1000
+    },
+    "data": {
+      "train_share": 0.1
+    }
+  },
+  "learner": {
+    "features": 38,
+    "trees": 1000,
+    "fit_seconds": 438.8,
+    "leans_on": [
+      {
+        "feature": "square_value",
+        "share_of_gain": 0.1735
+      },
+      {
+        "feature": "square_piece",
+        "share_of_gain": 0.17
+      },
+      {
+        "feature": "square_to_opponent_king",
+        "share_of_gain": 0.1264
+      },
+      {
+        "feature": "square_checks_to",
+        "share_of_gain": 0.0658
+      },
+      {
+        "feature": "square_checks_from",
+        "share_of_gain": 0.0479
+      },
+      {
+        "feature": "square_moves_from",
+        "share_of_gain": 0.0438
+      },
+      {
+        "feature": "legal_checks",
+        "share_of_gain": 0.0406
+      },
+      {
+        "feature": "phase_piece_count",
+        "share_of_gain": 0.031
+      },
+      {
+        "feature": "material_count",
+        "share_of_gain": 0.0306
+      },
+      {
+        "feature": "square_moves_to",
+        "share_of_gain": 0.0292
+      }
+    ]
+  },
+  "calibration": {
+    "platt_slope": 1.0167734474316148,
+    "platt_intercept": 0.02430605506118052,
+    "fitted_on": "valid"
+  },
+  "machine": {
+    "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "threads": 12,
+    "system": "Linux"
+  },
+  "software": {
+    "python": "3.13.16",
+    "numpy": "2.4.6",
+    "polars": "2.1.0",
+    "lightgbm": "4.6.0",
+    "torch": "2.14.1+cu130"
+  },
+  "code": "8c771617309d36154b1c85abcbbff500fafea271",
+  "trained": "2026-11-22T23:28:04Z",
+  "seconds": 457.2,
+  "train_rows": 95740,
+  "train_groups": 95740,
+  "valid": {
+    "ap": 0.746488285601366,
+    "top1": 0.8832885146132616,
+    "log_loss": 0.16212886455902759
+  },
+  "test": {
+    "ap": {
+      "value": 0.7474697017041052,
+      "low": 0.7463716426835748,
+      "high": 0.7485204710998399
+    },
+    "top1": {
+      "value": 0.8827034237438862,
+      "low": 0.880738105824811,
+      "high": 0.88452690084482
+    },
+    "log_loss": {
+      "value": 0.16224080527993923,
+      "low": 0.16173334661196373,
+      "high": 0.16275618516970844
+    }
+  },
+  "test_rows": 112450,
+  "test_groups": 112450,
+  "test_by_band": {
+    "1000-1399": {
+      "rows": 31846,
+      "ap": 0.7860486776089545,
+      "top1": 0.9122024744080889,
+      "log_loss": 0.13360087677277635
+    },
+    "1400-1799": {
+      "rows": 28501,
+      "ap": 0.7109404554150699,
+      "top1": 0.8553384091786254,
+      "log_loss": 0.17364942280526738
+    },
+    "1800-2199": {
+      "rows": 19518,
+      "ap": 0.6540437357570951,
+      "top1": 0.8119172046316221,
+      "log_loss": 0.21723566778700595
+    },
+    "2200+": {
+      "rows": 9834,
+      "ap": 0.6232681699843471,
+      "top1": 0.8059792556436852,
+      "log_loss": 0.27138123839569706
+    },
+    "<1000": {
+      "rows": 22751,
+      "ap": 0.8730650534735793,
+      "top1": 0.9695837545602392,
+      "log_loss": 0.093682650011002
+    }
+  },
+  "test_calibration": [
+    {
+      "n": 719680,
+      "predicted": 0.0011491060997705237,
+      "observed": 0.0007531124944419742
+    },
+    {
+      "n": 719680,
+      "predicted": 0.0028895733163420514,
+      "observed": 0.0023427078701645176
+    },
+    {
+      "n": 719680,
+      "predicted": 0.005000725309974049,
+      "observed": 0.0044422521120498
+    },
+    {
+      "n": 719680,
+      "predicted": 0.007774115605981487,
+      "observed": 0.007424132947976878
+    },
+    {
+      "n": 719680,
+      "predicted": 0.011761908209159073,
+      "observed": 0.011820531347265451
+    },
+    {
+      "n": 719680,
+      "predicted": 0.01810609686269841,
+      "observed": 0.018648566029346378
+    },
+    {
+      "n": 719680,
+      "predicted": 0.02975069309412378,
+      "observed": 0.031034626500666962
+    },
+    {
+      "n": 719680,
+      "predicted": 0.05889395417628033,
+      "observed": 0.060089206313917294
+    },
+    {
+      "n": 719680,
+      "predicted": 0.16405483166120916,
+      "observed": 0.16480797020898177
+    },
+    {
+      "n": 719680,
+      "predicted": 0.5792605698553319,
+      "observed": 0.5781958648288128
+    }
+  ],
+  "weights": [
+    {
+      "file": "model.txt",
+      "bytes": 13876996,
+      "sha256": "fff15169bf43df39c0f83cba312660a882e69ba4d4d18311375f91abdf2ddcf7"
+    }
+  ],
+  "gain": null
+}

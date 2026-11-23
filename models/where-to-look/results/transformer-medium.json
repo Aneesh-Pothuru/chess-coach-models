@@ -1,0 +1,376 @@
+{
+  "model": "where-to-look",
+  "run": "transformer-medium",
+  "task": {
+    "label": [
+      "solver1_from",
+      "solver1_to",
+      "reply1_from",
+      "reply1_to",
+      "solver2_from",
+      "solver2_to",
+      "reply2_from",
+      "reply2_to",
+      "solver3_from",
+      "solver3_to",
+      "later"
+    ],
+    "kind": "squares",
+    "unit": "the chance that a square is one the tactic's line leaves or lands on",
+    "primary": "ap",
+    "lower_is_better": false,
+    "context": [
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ],
+    "marks": [
+      "en_passant",
+      "setup_from",
+      "setup_to"
+    ],
+    "hand": [
+      "material_count",
+      "material_imbalance",
+      "phase_piece_count",
+      "in_check",
+      "legal_moves",
+      "legal_captures",
+      "legal_checks",
+      "hanging_own",
+      "hanging_opponent",
+      "passed_pawns_own",
+      "passed_pawns_opponent",
+      "attackers_near_own_king",
+      "attackers_near_opponent_king",
+      "setup_capture"
+    ],
+    "candidates": [
+      "a1",
+      "b1",
+      "c1",
+      "d1",
+      "e1",
+      "f1",
+      "g1",
+      "h1",
+      "a2",
+      "b2",
+      "c2",
+      "d2",
+      "e2",
+      "f2",
+      "g2",
+      "h2",
+      "a3",
+      "b3",
+      "c3",
+      "d3",
+      "e3",
+      "f3",
+      "g3",
+      "h3",
+      "a4",
+      "b4",
+      "c4",
+      "d4",
+      "e4",
+      "f4",
+      "g4",
+      "h4",
+      "a5",
+      "b5",
+      "c5",
+      "d5",
+      "e5",
+      "f5",
+      "g5",
+      "h5",
+      "a6",
+      "b6",
+      "c6",
+      "d6",
+      "e6",
+      "f6",
+      "g6",
+      "h6",
+      "a7",
+      "b7",
+      "c7",
+      "d7",
+      "e7",
+      "f7",
+      "g7",
+      "h7",
+      "a8",
+      "b8",
+      "c8",
+      "d8",
+      "e8",
+      "f8",
+      "g8",
+      "h8"
+    ]
+  },
+  "dataset": {
+    "dataset": "puzzles-v1",
+    "source": "https://database.lichess.org/lichess_db_puzzle.csv.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 1127915,
+    "splits": {
+      "test": 112450,
+      "train": 958941,
+      "valid": 56524
+    },
+    "fingerprint": "d14731fa4425fc6efdadb45c94ee53e07f5afe9151992b690b81edc71064cd5d",
+    "built": "2026-11-22T20:55:15Z",
+    "code": "8c771617309d36154b1c85abcbbff500fafea271"
+  },
+  "config": {
+    "needs": "cuda",
+    "learner": {
+      "kind": "net",
+      "body": "transformer",
+      "dim": 256,
+      "depth": 8,
+      "heads": 8,
+      "dropout": 0.1
+    },
+    "train": {
+      "epochs": 12,
+      "batch": 1024,
+      "lr": 0.0006,
+      "weight_decay": 0.05,
+      "warmup": 0.05,
+      "patience": 3
+    }
+  },
+  "learner": {
+    "features": 4,
+    "parameters": 6486593,
+    "device": "NVIDIA A100-SXM4-80GB",
+    "best_epoch": 12,
+    "fit_seconds": 794.9,
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.2154,
+        "valid_ap": 0.68089,
+        "rows_a_second": 14790
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.16234,
+        "valid_ap": 0.79598,
+        "rows_a_second": 14816
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.13442,
+        "valid_ap": 0.84372,
+        "rows_a_second": 14812
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.11961,
+        "valid_ap": 0.86313,
+        "rows_a_second": 14803
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.11078,
+        "valid_ap": 0.87505,
+        "rows_a_second": 14816
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.10457,
+        "valid_ap": 0.8836,
+        "rows_a_second": 14837
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.09986,
+        "valid_ap": 0.88991,
+        "rows_a_second": 14815
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.09606,
+        "valid_ap": 0.89371,
+        "rows_a_second": 14797
+      },
+      {
+        "epoch": 9,
+        "train_loss": 0.09303,
+        "valid_ap": 0.89712,
+        "rows_a_second": 14829
+      },
+      {
+        "epoch": 10,
+        "train_loss": 0.09057,
+        "valid_ap": 0.89955,
+        "rows_a_second": 14807
+      },
+      {
+        "epoch": 11,
+        "train_loss": 0.08903,
+        "valid_ap": 0.90044,
+        "rows_a_second": 14822
+      },
+      {
+        "epoch": 12,
+        "train_loss": 0.08818,
+        "valid_ap": 0.90047,
+        "rows_a_second": 14805
+      }
+    ]
+  },
+  "calibration": {
+    "platt_slope": 0.90931196119116,
+    "platt_intercept": -0.04084463364620774,
+    "fitted_on": "valid"
+  },
+  "machine": {
+    "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "threads": 12,
+    "system": "Linux"
+  },
+  "software": {
+    "python": "3.13.16",
+    "numpy": "2.4.6",
+    "polars": "2.1.0",
+    "lightgbm": "4.6.0",
+    "torch": "2.14.1+cu130"
+  },
+  "code": "8c771617309d36154b1c85abcbbff500fafea271",
+  "trained": "2026-11-22T23:47:34Z",
+  "seconds": 812.0,
+  "train_rows": 958941,
+  "train_groups": 958941,
+  "valid": {
+    "ap": 0.9004653809856207,
+    "top1": 0.9705700233529121,
+    "log_loss": 0.0887419301948534
+  },
+  "test": {
+    "ap": {
+      "value": 0.9022357676079206,
+      "low": 0.9014309050891852,
+      "high": 0.9031341559262609
+    },
+    "top1": {
+      "value": 0.9719341929746554,
+      "low": 0.9710002223210316,
+      "high": 0.9729215206758559
+    },
+    "log_loss": {
+      "value": 0.08842955132302595,
+      "low": 0.08785263853235604,
+      "high": 0.08896642228106079
+    }
+  },
+  "test_rows": 112450,
+  "test_groups": 112450,
+  "test_by_band": {
+    "1000-1399": {
+      "rows": 31846,
+      "ap": 0.9566228616405852,
+      "top1": 0.9940651887207185,
+      "log_loss": 0.049836275757469774
+    },
+    "1400-1799": {
+      "rows": 28501,
+      "ap": 0.9007647157888922,
+      "top1": 0.97970246658012,
+      "log_loss": 0.09397215570120061
+    },
+    "1800-2199": {
+      "rows": 19518,
+      "ap": 0.8074669968217061,
+      "top1": 0.934521979711036,
+      "log_loss": 0.15542646750796849
+    },
+    "2200+": {
+      "rows": 9834,
+      "ap": 0.7272068751413976,
+      "top1": 0.8917531014846451,
+      "log_loss": 0.22521121343496317
+    },
+    "<1000": {
+      "rows": 22751,
+      "ap": 0.9849066852845151,
+      "top1": 0.9979781108522703,
+      "log_loss": 0.018907992313390548
+    }
+  },
+  "test_calibration": [
+    {
+      "n": 719680,
+      "predicted": 5.95601574690781e-06,
+      "observed": 2.779012894619831e-06
+    },
+    {
+      "n": 719680,
+      "predicted": 1.9434500206046584e-05,
+      "observed": 1.9453090262338817e-05
+    },
+    {
+      "n": 719680,
+      "predicted": 9.312334409095852e-05,
+      "observed": 0.00013895064473099154
+    },
+    {
+      "n": 719680,
+      "predicted": 0.0003658137413594303,
+      "observed": 0.0005057803468208092
+    },
+    {
+      "n": 719680,
+      "predicted": 0.0011356636317024092,
+      "observed": 0.0012713983992885727
+    },
+    {
+      "n": 719680,
+      "predicted": 0.003043572415300148,
+      "observed": 0.003225044464206314
+    },
+    {
+      "n": 719680,
+      "predicted": 0.008028901032516151,
+      "observed": 0.007667296576256114
+    },
+    {
+      "n": 719680,
+      "predicted": 0.02391044607456065,
+      "observed": 0.023056080480213428
+    },
+    {
+      "n": 719680,
+      "predicted": 0.10714612166827665,
+      "observed": 0.10532875722543353
+    },
+    {
+      "n": 719680,
+      "predicted": 0.734188161215405,
+      "observed": 0.7383434304135171
+    }
+  ],
+  "weights": [
+    {
+      "file": "model.pt",
+      "bytes": 25976415,
+      "sha256": "f69a861e2c4c0d603f8b0e893c9854880e0baf9c56688260bc7a9120e95fcdfb"
+    }
+  ],
+  "gain": {
+    "gain": 0.15476606590385922,
+    "low": 0.15384377482180064,
+    "high": 0.1557527798219397,
+    "beyond_noise": true,
+    "reference": "gbm-hand",
+    "reference_trained": "2026-11-22T23:28:04Z",
+    "reference_value": 0.7474697017041271
+  }
+}

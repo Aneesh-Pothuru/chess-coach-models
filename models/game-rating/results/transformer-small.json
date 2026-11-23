@@ -1,0 +1,227 @@
+{
+  "model": "game-rating",
+  "run": "transformer-small",
+  "task": {
+    "label": "player_elo",
+    "kind": "regression",
+    "unit": "Lichess rapid rating points",
+    "primary": "mae",
+    "lower_is_better": true,
+    "context": [
+      "log_base",
+      "increment",
+      "plies"
+    ],
+    "steps": [
+      "ply",
+      "log_clock",
+      "log_opponent_clock",
+      "log_spent",
+      "win_before",
+      "loss",
+      "legal_moves",
+      "capture",
+      "check",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "games-2026-10",
+    "source": "https://database.lichess.org/standard/lichess_db_standard_rated_2026-10.pgn.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 99699,
+    "splits": {
+      "test": 9974,
+      "train": 84672,
+      "valid": 5053
+    },
+    "fingerprint": "e08251266d6e000b045fb61541289218368848966797a0d9f5225bb7ee9ec58f",
+    "built": "2026-11-22T23:18:23Z",
+    "code": "8c771617309d36154b1c85abcbbff500fafea271",
+    "positions": 2762344
+  },
+  "config": {
+    "needs": "cuda",
+    "learner": {
+      "kind": "net",
+      "body": "transformer",
+      "dim": 128,
+      "depth": 4,
+      "heads": 8,
+      "dropout": 0.1,
+      "over": {
+        "depth": 2,
+        "heads": 4
+      }
+    },
+    "train": {
+      "epochs": 8,
+      "batch": 64,
+      "lr": 0.0006,
+      "weight_decay": 0.05,
+      "warmup": 0.05,
+      "patience": 3
+    }
+  },
+  "learner": {
+    "features": 3,
+    "parameters": 2094753,
+    "device": "NVIDIA A100-SXM4-80GB",
+    "best_epoch": 8,
+    "fit_seconds": 589.3,
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.62347,
+        "valid_mae": 234.64232,
+        "rows_a_second": 1190
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.56016,
+        "valid_mae": 221.12323,
+        "rows_a_second": 1178
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.53706,
+        "valid_mae": 223.82411,
+        "rows_a_second": 1180
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.52135,
+        "valid_mae": 211.51068,
+        "rows_a_second": 1166
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.50842,
+        "valid_mae": 208.28657,
+        "rows_a_second": 1182
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.49538,
+        "valid_mae": 207.75819,
+        "rows_a_second": 1186
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.48391,
+        "valid_mae": 204.0933,
+        "rows_a_second": 1175
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.47692,
+        "valid_mae": 203.92126,
+        "rows_a_second": 1181
+      }
+    ]
+  },
+  "calibration": null,
+  "machine": {
+    "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "threads": 12,
+    "system": "Linux"
+  },
+  "software": {
+    "python": "3.13.16",
+    "numpy": "2.4.6",
+    "polars": "2.1.0",
+    "lightgbm": "4.6.0",
+    "torch": "2.14.1+cu130"
+  },
+  "code": "8c771617309d36154b1c85abcbbff500fafea271",
+  "trained": "2026-11-23T00:54:19Z",
+  "seconds": 592.9,
+  "train_rows": 84672,
+  "train_groups": 42466,
+  "valid": {
+    "rmse": 257.1899775480474,
+    "mae": 203.92126261916653,
+    "r2": 0.5492250509823025,
+    "spearman": 0.7385697545127664
+  },
+  "test": {
+    "rmse": {
+      "value": 259.01700635390563,
+      "low": 254.22281124877168,
+      "high": 263.75909110810835
+    },
+    "mae": {
+      "value": 204.90642455663044,
+      "low": 200.88126422965172,
+      "high": 208.7610012369682
+    },
+    "r2": {
+      "value": 0.5397261412285812,
+      "low": 0.5195051413206248,
+      "high": 0.5594911934438622
+    },
+    "spearman": {
+      "value": 0.72980197103379,
+      "low": 0.7158631716008007,
+      "high": 0.7435772983706141
+    }
+  },
+  "test_rows": 9974,
+  "test_groups": 4999,
+  "test_by_band": {
+    "1100-1400": {
+      "rows": 2411,
+      "rmse": 249.09293558356362,
+      "mae": 198.7656965663155,
+      "r2": -7.702644621668922,
+      "spearman": 0.21355111603728857
+    },
+    "1400-1700": {
+      "rows": 2827,
+      "rmse": 219.08279704189516,
+      "mae": 175.7035441066336,
+      "r2": -5.911774450598478,
+      "spearman": 0.18863500679793763
+    },
+    "1700-2000": {
+      "rows": 2140,
+      "rmse": 231.2715380927969,
+      "mae": 179.8000512809397,
+      "r2": -6.6589580645647555,
+      "spearman": 0.2362363301218597
+    },
+    "2000+": {
+      "rows": 1027,
+      "rmse": 331.649951011698,
+      "mae": 279.03710949386107,
+      "r2": -5.946525523153706,
+      "spearman": 0.34589158474878284
+    },
+    "<1100": {
+      "rows": 1569,
+      "rmse": 315.770757427464,
+      "mae": 252.68033379578455,
+      "r2": -4.078132348731291,
+      "spearman": 0.382084361987797
+    }
+  },
+  "weights": [
+    {
+      "file": "model.pt",
+      "bytes": 8404215,
+      "sha256": "f2ed792409262087233ecc5ba2d96867df0c9dba6495dc8ddbec156a288df7c0"
+    }
+  ],
+  "gain": {
+    "gain": 37.80101713736363,
+    "low": 34.076972362140474,
+    "high": 41.23621925154722,
+    "beyond_noise": true,
+    "reference": "gbm-hand",
+    "reference_trained": "2026-11-23T00:39:34Z",
+    "reference_value": 242.70744169399407
+  }
+}

@@ -1,0 +1,172 @@
+{
+  "model": "game-rating",
+  "run": "gbm-context",
+  "task": {
+    "label": "player_elo",
+    "kind": "regression",
+    "unit": "Lichess rapid rating points",
+    "primary": "mae",
+    "lower_is_better": true,
+    "context": [
+      "log_base",
+      "increment",
+      "plies"
+    ],
+    "steps": [
+      "ply",
+      "log_clock",
+      "log_opponent_clock",
+      "log_spent",
+      "win_before",
+      "loss",
+      "legal_moves",
+      "capture",
+      "check",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "games-2026-10",
+    "source": "https://database.lichess.org/standard/lichess_db_standard_rated_2026-10.pgn.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 99699,
+    "splits": {
+      "test": 9974,
+      "train": 84672,
+      "valid": 5053
+    },
+    "fingerprint": "e08251266d6e000b045fb61541289218368848966797a0d9f5225bb7ee9ec58f",
+    "built": "2026-11-22T23:18:23Z",
+    "code": "8c771617309d36154b1c85abcbbff500fafea271",
+    "positions": 2762344
+  },
+  "config": {
+    "learner": {
+      "kind": "gbm",
+      "features": "context"
+    }
+  },
+  "learner": {
+    "features": 3,
+    "trees": 65,
+    "fit_seconds": 0.6,
+    "leans_on": [
+      {
+        "feature": "plies",
+        "share_of_gain": 0.6479
+      },
+      {
+        "feature": "log_base",
+        "share_of_gain": 0.2802
+      },
+      {
+        "feature": "increment",
+        "share_of_gain": 0.0719
+      }
+    ]
+  },
+  "calibration": null,
+  "machine": {
+    "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "threads": 12,
+    "system": "Linux"
+  },
+  "software": {
+    "python": "3.13.16",
+    "numpy": "2.4.6",
+    "polars": "2.1.0",
+    "lightgbm": "4.6.0",
+    "torch": "2.14.1+cu130"
+  },
+  "code": "8c771617309d36154b1c85abcbbff500fafea271",
+  "trained": "2026-11-23T00:39:40Z",
+  "seconds": 2.9,
+  "train_rows": 84672,
+  "train_groups": 42466,
+  "valid": {
+    "rmse": 375.9824819371645,
+    "mae": 306.11798155515737,
+    "r2": 0.03664376466137498,
+    "spearman": 0.1774602617946005
+  },
+  "test": {
+    "rmse": {
+      "value": 376.1223582438642,
+      "low": 369.31692549644373,
+      "high": 382.6548746199292
+    },
+    "mae": {
+      "value": 306.9100871428638,
+      "low": 300.85533543005124,
+      "high": 312.8107456035776
+    },
+    "r2": {
+      "value": 0.029449692610869493,
+      "low": 0.01965732414801798,
+      "high": 0.039519466402244754
+    },
+    "spearman": {
+      "value": 0.16071723976876387,
+      "low": 0.13586857725162965,
+      "high": 0.18748086279341544
+    }
+  },
+  "test_rows": 9974,
+  "test_groups": 4999,
+  "test_by_band": {
+    "1100-1400": {
+      "rows": 2411,
+      "rmse": 276.82883921549086,
+      "mae": 256.6602840044247,
+      "r2": -9.748579939827987,
+      "spearman": 0.057129501977598196
+    },
+    "1400-1700": {
+      "rows": 2827,
+      "rmse": 112.10344653378876,
+      "mae": 89.68914976137143,
+      "r2": -0.8097181136854759,
+      "spearman": 0.005890149817794676
+    },
+    "1700-2000": {
+      "rows": 2140,
+      "rmse": 325.6146487501524,
+      "mae": 306.6550674244165,
+      "r2": -14.182146700815766,
+      "spearman": 0.03961423364976151
+    },
+    "2000+": {
+      "rows": 1027,
+      "rmse": 627.815331912048,
+      "mae": 611.6833333668998,
+      "r2": -23.892676527406024,
+      "spearman": 0.11691356367782049
+    },
+    "<1100": {
+      "rows": 1569,
+      "rmse": 596.9019955363359,
+      "mae": 576.3680117251761,
+      "r2": -17.14538801372063,
+      "spearman": 0.053151021452490864
+    }
+  },
+  "weights": [
+    {
+      "file": "model.txt",
+      "bytes": 490994,
+      "sha256": "a5cddafc8e39152c6be71065749f157d0598e96dd4959ea523375d6acd5f2962"
+    }
+  ],
+  "gain": {
+    "gain": -64.20264544886973,
+    "low": -69.09673403423922,
+    "high": -59.24435557884603,
+    "beyond_noise": true,
+    "reference": "gbm-hand",
+    "reference_trained": "2026-11-23T00:39:34Z",
+    "reference_value": 242.70744169399407
+  }
+}
