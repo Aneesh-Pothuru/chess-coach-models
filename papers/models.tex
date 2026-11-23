@@ -74,12 +74,11 @@ longest, and padded elements are masked: they are not encoded and no token
 attends to them, so a prediction does not depend on the other examples in
 the batch.
 
-Model sizes are hyperparameters. \run{conv-small} is small enough to train
-on a CPU. An example consists of tens of positions, so
-\run{transformer-small} and \run{transformer-medium} are trained on a GPU.
-\run{transformer-medium-hand} is \run{transformer-medium} with the
-hand-crafted features added to its context features.
-Table~\ref{tab:settings} in the appendix lists the hyperparameters.
+Model sizes are hyperparameters. An example consists of tens of positions,
+each of which is encoded, and all networks of this task were trained on a GPU
+(Table~\ref{tab:runs}). \run{transformer-medium-hand} is
+\run{transformer-medium} with the hand-crafted features added to its context
+features. Table~\ref{tab:settings} in the appendix lists the hyperparameters.
 \else
 Model sizes are hyperparameters. \run{conv-small} and \run{transformer-small}
 are small enough to train on a CPU. \run{transformer-medium} is trained on a

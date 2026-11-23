@@ -1,0 +1,23 @@
+% Written by `lab paper game-rating`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{groupplot}[
+  lab,
+  group style={group size=1 by 1, horizontal sep=0.5cm, ylabels at=edge left, yticklabels at=edge left},
+  width=0.52\textwidth,
+  height=5.4cm,
+  ymajorgrids,
+  ymin=207.135, ymax=257.049,
+  xlabel={Epoch},
+  ylabel={MAE on the validation set},
+  yticklabel style={/pgf/number format/precision=1},
+]
+\nextgroupplot[xmin=0.5, xmax=8.5, xtick distance=1, legend columns=1]
+\draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:0.5,242.404) -- (axis cs:8.5,242.404) node[anchor=west, font=\sffamily\scriptsize, text=labSecondary, inner sep=2pt] {\run{gbm-hand}};
+\addplot[color=labAqua, mark=triangle*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labAqua}] coordinates {(1,245.028) (2,228.796) (3,234.14) (4,228.466) (5,215.794) (6,212.082) (7,210.765) (8,209.809)};
+\addlegendentry{\texttt{transformer-medium}}
+\addplot[color=labBlue, mark=*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labBlue}] coordinates {(1,254.375) (2,246.655) (3,244.242) (4,235.952) (5,231.953) (6,227.848) (7,223.901) (8,223.978)};
+\addlegendentry{\texttt{transformer-medium-hand}}
+\end{groupplot}
+\end{tikzpicture}%
+}

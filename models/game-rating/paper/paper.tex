@@ -1,810 +1,1293 @@
-% Game rating: the paper. What is typed here says what the numbers mean.
-% Every number, table, figure and board is written by `lab paper game-rating`
-% into generated/, from the model's committed results, and read back with
-% \V{key} and \block{name}.
+% Game rating: the paper. The prose follows docs/writing.md. Every number,
+% table, figure and board is written by `lab paper game-rating` into
+% generated/, from the model's committed results, and read back with \V{key}
+% and \block{name}.
 \documentclass[11pt]{article}
 \input{../../../papers/preamble}
 \input{generated/values}
 
 \begin{document}
 
-\labtitle{Game rating}
-  {What rating does a player's play in one game look like?}
-  {Results of \V{results.date}\quad\textperiodcentered\quad dataset \V{data.name},
+\papertitle{Estimating a Player's Rating from a Single Game}
+  {Results as of \V{results.date}\quad\textperiodcentered\quad dataset \V{data.name},
    build \V{data.fingerprint}\quad\textperiodcentered\quad code \V{code.commit}}
 
-\begin{summary}
-A rating is earned over many games, and one game is a single reading of it.
-This paper trains models that take that reading. A model is given a player's
-moves through one game, in order: the position before each, both clocks, the
-seconds the move took and what an engine says it lost. It says the player's
-rating, and reads neither player's rating nor the result. The data is
-\V{data.rows} players of \V{recipe.games} rated rapid games on Lichess, split
-by game, and the score is the mean absolute error in rating points. The best
-of \V{runs.count} runs, \V{best.name}, is off by \V{best.score} points on a
-typical game (95\% interval \V{best.score.low} to \V{best.score.high}),
-against \V{reference.score} for gradient-boosted trees on
-\V{task.hand.count} counts over the player's moves and \V{floor.score} for
-one rating said for every player.
+\begin{abstract}
+A chess rating summarises a player's results over many games. We study how
+much of it can be estimated from the play in a single game. An example is one
+player's side of a rated rapid game on Lichess: the positions in which the
+player moved, each with the move played, the engine-derived win probability
+before the move, the win probability that the move lost, and the clock times.
+The target is the player's rating. The ratings of the two players and the
+result of the game are not inputs. The dataset contains \V{data.rows} examples from
+\V{recipe.games} games, split by game, and the primary metric is the mean
+absolute error (MAE) in rating points. On the \V{data.rows.test} test
+examples a constant prediction has an MAE of \V{floor.score}, and
+gradient-boosted decision trees (GBDT) on \V{task.hand.count} aggregate
+features of the player's moves reach \V{reference.score}. Networks that
+encode every position and read the sequence of encodings with a transformer
+are more accurate: compared with the GBDT baseline, \V{networks.ahead.of} are
+significantly better, and the best of them, a small residual convolutional
+network, has an MAE of \V{best.score} (95\% CI \V{best.score.low} to
+\V{best.score.high}), a paired gain of \V{best.gain} (95\% CI
+\V{best.gain.low} to \V{best.gain.high}). On the validation set
+\V{ladder.at-last-epoch.of} had their lowest error in the final epoch of
+training, so a longer schedule may reduce their errors, and the order among
+the networks is not established. An estimate from one game is imprecise: the coefficient
+of determination of the best model is \V{best.r2}\iflook, and
+\V{best.close.within.200}\% of its predictions are within 200 points of the
+player's rating\fi.\iflook{} The predictions are unbiased given their value,
+to within \V{best.reliability.widest-gap} points in each of
+\V{best.reliability.groups} bins, and compressed towards the mean given the
+player's rating: the mean prediction minus the mean rating is
+\V{slice.band.-1100.challenger.off} points for players rated below 1100 and
+\V{slice.band.2000+.challenger.off} points for players rated 2000 and above.
+The prediction also depends on the opponent. For players rated between 1400
+and 1700, the mean prediction falls from
+\V{grid.rating-gap.1400-1700.--200.said} against opponents rated more than
+200 points higher to \V{grid.rating-gap.1400-1700.200+.said} against
+opponents rated at least 200 points lower. An estimate from one game
+therefore describes mainly the level at which the game was played, and it
+distinguishes the two players of a game only weakly.\fi
+\end{abstract}
 
-Three things follow. A network that reads the game move by move finds more
-in it than the counts hold: \V{ladder.ahead.of} beat the trees beyond the
-noise, and the best of them has \V{best.parameters.millions} million
-parameters and trained in \V{best.seconds}. One reading is loose all the
-same. It lands within two hundred points of the player's rating for
-\V{best.close.within.200}\% of the test rows, and it pulls toward the
-middle: players rated \V{band.1.name} are read
-\V{slice.band.-1100.challenger.off} points from their rating on average,
-and players rated \V{band.5.name} \V{slice.band.2000+.challenger.off}. And
-much of what is read is the game and not the player. Players rated
-\V{band.3.name} are read as \V{grid.rating-gap.1400-1700.--200.said} when
-the opponent is two hundred points or more above them and as
-\V{grid.rating-gap.1400-1700.200+.said} when the opponent is as far below,
-though their own ratings average
-\V{grid.rating-gap.1400-1700.--200.happened} and
-\V{grid.rating-gap.1400-1700.200+.happened}. So a review can take from this
-model what a game looked like, and not yet how the player did in it.
-\end{summary}
+\section{Introduction}
+\label{sec:intro}
 
-\section{The question}
+A rating is the most familiar measure of chess skill. It is computed from
+results: a player's rating rises after a win and falls after a loss, by an
+amount that depends on the opponent's rating, and it becomes reliable only
+after many games~\cite{glicko2}. The moves of a game carry information about
+skill as well. Stronger players lose less to errors, use their time
+differently and reach different positions. This paper measures how much of a
+player's rating can be estimated from a single game, which inputs and models
+the estimate requires, and what it describes.
 
-A rating is a summary of many games. One game is a single reading of it, and
-a noisy one: a player rated 1500 has games that look like 1300 and games that
-look like 1700. A review of one game can still use the reading. What an
-engine says of a game is measured against perfect play, as so many points of
-winning chances lost or an accuracy in percent~\cite{lichessaccuracy}, and a
-player has no scale for either. A rating is the scale a player already has.
-``You played this game like a player two hundred points above you'' is read
-at once.
+The work supports a chess coaching application that reviews a player's games.
+A rating is a scale that every player understands, so a statement of the form
+``this game was played at about 1600'' is an attractive summary of a game.
+Before such a number is shown, three things have to be known: how accurate an
+estimate from one game is; which information carries it, the engine's
+judgement of the moves, the clock or the positions themselves; and whose
+level it describes, given that both players shape a game.
 
-The coaching app this lab works for reviews a player's games one at a time.
-A reading of one game in rating points would let a review say what the game
-looked like beside the player's usual level: a good day, a bad one, or a
-game that was played well on the board and lost on the clock. Before the app
-says any of that, three things have to be measured, and this paper is about
-them. How far off is one game's reading? What in a game gives the rating
-away: what the moves lost, how the clock was used, or the positions
-themselves? And whose level is being read? Lichess pairs players of like
-rating and every position of a game is made by both of them, so a model can
-read the level of the game and never tell its two players apart.
+We study the following prediction task. An example is one player's side of a
+game: the sequence of positions in which the player moved, from the player's
+sixth move on, with the move played in each. For every move a model is given
+the engine-derived win probability before the move, the win probability that
+the move lost, the time remaining on both clocks and the time spent on the
+move. For the game it is given the time control and the length of the game.
+The target is the player's rating as recorded for the game. Neither player's
+rating and not the result is an input.
 
-Reading a player's strength off the moves is an old idea. Intrinsic ratings
-fit a model of a fallible player to the moves of many games, as an engine
-judges them, and place the player on the rating scale~\cite{intrinsic}. A
-study of human error against perfect play relates how often a move is a
-mistake to the player's rating, the time left and how hard the position
-is~\cite{humanerror}. Models of human play run the other way: Maia-2 is told
-a rating and says what such a player moves~\cite{maia2}, and Allie reads a
-game as a sequence of moves and of the time each took~\cite{allie}. This
-paper asks a narrow question with the lab's common tools: one game, one
-player, one number.
+We evaluate a fixed sequence of models on \V{data.rows} examples from
+\V{recipe.games} rated rapid games on Lichess: a constant baseline, GBDT on
+the time control and the length of the game, GBDT with \V{task.hand.count}
+aggregate features of the player's moves, and neural networks that encode
+every position of the sequence and combine the encodings with a transformer.
+Our main findings are the following.
+\begin{itemize}
+\item \textbf{Networks that read the sequence of positions are significantly
+more accurate than GBDT on aggregate features.} The GBDT baseline has an MAE
+of \V{reference.score} rating points, \V{reference.lift.percent}\% below the
+\V{floor.score} of the constant baseline. Compared with it,
+\V{networks.ahead.of} are significantly better. The best model,
+\V{best.name}, has an MAE of \V{best.score} (95\% CI \V{best.score.low} to
+\V{best.score.high}). Its paired gain of \V{best.gain} (95\% CI
+\V{best.gain.low} to \V{best.gain.high}) is \V{best.gain.of-lift}\% of the
+baseline's improvement over the constant baseline
+(Section~\ref{sec:results}).
+\item \textbf{The networks were still improving when training ended, and
+their order is not established.} On the validation set
+\V{ladder.at-last-epoch.of} had their lowest MAE in the final epoch of
+training. The two small networks have test MAEs of \V{run.conv-small.score}
+and \V{run.transformer-small.score}, and on the validation set their order is
+the reverse. A longer schedule may reduce the errors reported here. We have
+not tested this (Section~\ref{sec:curves}).
+\ifchangehand
+\item \textbf{The aggregate features do not help a network.} Given the
+hand-crafted features as additional inputs, the medium transformer is
+significantly worse than without them. For this task the features are
+functions of the per-move inputs that the network already receives, so they
+add no information (Section~\ref{sec:ablations}).
+\fi
+\iffeatures
+\item \textbf{The engine's judgement of the moves is the most informative
+group of features.} Without the features derived from the engine
+evaluations, the paired gain of the GBDT baseline is
+\V{pair.gbm-hand-no-accuracy.gbm-hand.gain} points, compared with
+\V{pair.gbm-hand-no-choices.gbm-hand.gain} without the features of the
+available moves and \V{pair.gbm-hand-no-tempo.gbm-hand.gain} without the
+features of clock use (Section~\ref{sec:feature-groups}).
+\fi
+\item \textbf{An estimate from one game is imprecise.} The coefficient of
+determination (R\textsuperscript{2}) of the best model is
+\V{best.r2}.\iflook{} Its median absolute error is \V{best.close.median}
+rating points, \V{best.close.within.200}\% of its predictions are within 200
+points of the player's rating, and for a given prediction the central 80\% of
+the players' ratings span about \V{best.reliability.spread} points
+(Section~\ref{sec:error}).\fi
+\iflook
+\item \textbf{The predictions are unbiased given their value and compressed
+towards the mean given the player's rating.} Players who receive a given
+prediction have that rating on average, to within
+\V{best.reliability.widest-gap} points. Nevertheless the mean prediction
+minus the mean rating is \V{slice.band.-1100.challenger.off} points for
+players rated below 1100 and \V{slice.band.2000+.challenger.off} points for
+players rated 2000 and above. This compression follows from the size of the
+prediction error and cannot be removed by recalibration
+(Section~\ref{sec:calibration}).
+\item \textbf{The prediction depends on the opponent.} Within a band of the
+player's rating, the mean prediction is lower against weaker opponents than
+against stronger ones. For players rated between 1400 and 1700 it falls from
+\V{grid.rating-gap.1400-1700.--200.said} where the opponent is rated more
+than 200 points higher to \V{grid.rating-gap.1400-1700.200+.said} where the
+opponent is rated at least 200 points lower, although the mean rating of
+these players is nearly the same in both cases. In games between players
+whose ratings differ by 200 points or more, the mean predictions for the two
+players differ far less than their ratings do. An estimate from one game thus
+reflects the level at which the game was played more than the difference
+between its two players (Section~\ref{sec:gap}).
+\fi
+\end{itemize}
+
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{Rating systems.}
+The Elo system and its successors estimate a player's strength from the
+results of games. Lichess rates its players with Glicko-2~\cite{glicko2},
+which keeps a rating deviation with each rating as a measure of its
+uncertainty. A rating of this kind uses no information about the moves and
+needs many games to become reliable. We estimate the same quantity from the
+moves and the clock times of one game, without its result.
+
+\paragraph{Skill estimated from the quality of moves.}
+Regan and Haworth~\cite{intrinsic} fit a model of a fallible player to the
+engine evaluations of the moves available in each position and map its
+parameters to the rating scale, which yields an \emph{intrinsic} rating from
+the moves of a set of games. Lichess reports an accuracy percentage for each
+player of an analysed game, computed from the win probability that each move
+lost~\cite{lichessaccuracy}. Anderson et al.~\cite{humanerror} relate the
+errors of human players to the player's skill, the time available and the
+difficulty of the position. The GBDT baseline of this paper uses features of
+this kind: statistics of the win probability lost per move, together with
+statistics of the time spent.
+
+\paragraph{Rating estimation from a single game.}
+Tijhuis et al.~\cite{singlegame} extract 30 features related to opening
+theory and engine evaluations from a single game and classify the player's
+rating bracket. The work of Omori and Tadepalli~\cite{ratingnet} is closest
+to ours. Their model encodes each position of a game with a convolutional
+network and reads the sequence, together with the clock times, with a
+bidirectional LSTM. It predicts the ratings of both players after every move
+and uses no engine evaluations. On a sample of 1.2 million Lichess games of
+all time controls, split at random into a training and a test set, it has an
+MAE of 182 rating points on rapid games, where predicting the mean rating has
+an MAE of 305. The best model of
+this paper, trained on far fewer games, has an MAE of \V{best.score} against
+\V{floor.score} for the constant baseline. The two evaluations differ in the
+months covered, the selection of games and the split, so the values are not
+directly comparable, but the comparison indicates that the accuracy reported
+here is not the limit of the task. Our contribution is of a different kind.
+We compare sequence models with a baseline of aggregate features on the same
+games with paired confidence intervals, we measure the contribution of the
+engine-derived, clock and position features separately, and we analyse what
+the estimate describes: its compression towards the mean rating and its
+dependence on the opponent.
+
+\paragraph{Models of human play.}
+Maia~\cite{maia} and Maia-2~\cite{maia2} predict the move that a player of a
+given rating plays, and show that play differs systematically with rating.
+Allie~\cite{allie}, a transformer trained on sequences of moves from human
+games, also predicts the time that a player spends on a move. In these models
+the rating is given and the behaviour is predicted. Our task is the inverse:
+the behaviour is the input and the rating is the target.
+
+\section{Task and Data}
+\label{sec:data}
+
+\subsection{Task}
+
+An example is one player's side of one game: the positions in which the
+player was to move, in the order played, with the move played in each. The
+target is the player's rating. Table~\ref{tab:brief} summarises the task.
 
 \begin{table}[htbp]\centering\small
 \begin{tabularx}{\textwidth}{lL}
 \toprule
-Reads & Each of the player's moves from the sixth on, in order, up to
-\V{recipe.most-moves} of them: the position before the move, the opponent's
-last move, the move played, both clocks, the seconds the move took, the
-player's winning chances before it and what it lost, the number of legal
-moves, whether it took or gave check, and the castling rights. Beside the
-moves, the time control and the game's length. Neither player's rating and
-not the result. \\
-Predicts & The player's Lichess rapid rating when the game was played. \\
-Data & Rated Lichess rapid games of \V{data.month} (\V{data.licence}) with
-engine evaluations and clocks. A row is one player in one game, and both
-players of a game are rows. \\
-Split & By game: \V{data.share.train}\% train, \V{data.share.valid}\% valid,
-\V{data.share.test}\% test, so both players of a game are in the same
-part. \\
-Score & Mean absolute error in rating points on the test rows. Lower is
-better. \\
+Input & For each of the player's moves from the sixth on: the position, the
+opponent's preceding move, the move played, the engine-derived win
+probability before the move, the win probability lost by the move, both clock
+times and the time spent. For the game: the time control and the length of
+the game. \\
+Target & The player's Lichess rapid rating as recorded for the game, in
+rating points. \\
+Data & Rated rapid games from the Lichess database (\V{data.licence}) for
+\V{data.month} that carry engine evaluations and clock times:
+\V{recipe.games} games, each of which contributes up to two examples, one per
+player. \\
+Split & By game: \V{data.share.train}\% training, \V{data.share.valid}\%
+validation, \V{data.share.test}\% test. \\
+Primary metric & MAE of the predicted rating on the test set, in rating
+points (lower is better). \\
 \bottomrule
 \end{tabularx}
-\caption{The model in brief.}
+\caption{Summary of the task.}
 \label{tab:brief}
 \end{table}
 
-\section{The data}
+\paragraph{Definition of the target.}
+The target is the rating that the record of the game gives for the player, on
+Lichess's rating scale for rapid games. Lichess computes ratings with
+Glicko-2~\cite{glicko2}, which keeps a rating deviation with every rating.
+The database gives the rating without its deviation. The rating of a player
+who has played few rated games, which can be far from the player's strength,
+is therefore used as a target like any other, and the target contains error
+of this kind. A reliable rating would not be determined by one game either:
+it describes a player's results over many games, and a player's play varies
+from game to game. What a model can estimate from one game is the typical
+rating of the players who produce such a game.
 
-The source is the Lichess database of rated games for
-\V{data.month}~\cite{lichessdb}. The builder reads the month as a stream from
-its start and stops once \V{recipe.games} games have given rows, so the
-sample is the first games of the month and not a draw from all of it. A game
-gives rows when it is rated, played at rapid speed between two rated humans,
-ended over the board or on time, and carries Lichess's engine analysis and
-both clocks.
+\paragraph{Win probability and the loss of a move.}
+Let $c$ be the engine evaluation of a position in centipawns from the mover's
+side, limited to the range from $-1000$ to $1000$, with a forced mate counted
+as the corresponding limit. Lichess maps the evaluation to a win probability
+in percent~\cite{lichessaccuracy},
+\[
+W(c) = 50 + 50\left(\frac{2}{1 + e^{-0.00368208\,c}} - 1\right).
+\]
+The curve is symmetric, $W(-c) = 100 - W(c)$, so the win probabilities of the
+two players sum to 100\%. Let $b$ be the mover's win probability before a
+move and $a$ the mover's win probability after it, computed from the
+evaluation of the resulting position. The \emph{win probability lost} by the
+move is $l = b - a$, in percentage points. It is zero for a move that
+preserves the evaluation, and it can be negative, because the two evaluations
+come from separate searches of limited size. The evaluations are those that
+Lichess attaches to a game when a user requests computer analysis. The
+coaching application uses the same curve, and a parity check in the
+repository verifies that the two implementations agree.
 
-A row is one player in one game. A move of the player counts from ply
-\V{recipe.min-ply} on, which is each side's sixth move, after the opening
-moves players know by heart, and it counts when the evaluation before and
-after it and the clocks around it are all known. A player with fewer than
-\V{recipe.least-moves} such moves gives no row, and a row keeps the first
-\V{recipe.most-moves} of them at most. Where both players have enough moves,
-both are rows. That gives \V{data.rows} rows that hold \V{data.positions}
-positions between them, \V{data.positions.a-row} a row on average
-(Table~\ref{tab:data}). The split is a hash of the game, so both players of
-a game are on the same side of it. The hash is the one the lab's dataset of
-single positions uses, so a game falls in the same part there and here.
+\paragraph{Time spent on a move.}
+The record of a game gives each player's remaining time after every move. The
+time spent on a move is the player's remaining time after the player's
+previous move minus the remaining time after this move, plus the increment.
+It is set to zero if this value is negative.
 
-\paragraph{The rating.}
-The label is the rating the game's record gives the player: their Lichess
-rapid rating when the game was played. Lichess keeps its ratings with
-Glicko-2~\cite{glicko2}, in which the rating of a new player is still
-unsettled. A game's record does not say outright how settled a rating is.
-It does say by how many points the game moved each player's rating, and a
-rating that one game moves far has not settled. The builder does not read
-that yet, so every rated player counts alike here.
+\subsection{Dataset}
 
-\paragraph{What a move lost.}
-An engine's evaluation is turned into the mover's chance of winning by the
-curve Lichess publishes~\cite{lichessaccuracy}, which the app uses as well; a
-parity check in this repository holds the lab's curve to the app's. What a
-move lost is the mover's chance before it less the chance after it, in points
-of a percent. The evaluations are the ones Lichess's own analysis attached to
-the game. Lichess runs that analysis when somebody asks for it, so these are
-games somebody wanted to look at again.
+The source is the Lichess database of rated games~\cite{lichessdb} for
+\V{data.month}. A game is included when it is rated, both players have a
+rating and neither is a bot, the time control is rapid by Lichess's
+definition (an estimated duration of 8 to 25 minutes, where the estimate is
+the initial time of the time control, called the base time, plus 40 times the
+increment), the game ended on the board
+or on time, and its record carries engine evaluations and clock times.
+Lichess computes evaluations for a game only when a user requests an
+analysis, so the analysed games are a self-selected subset of all games.
 
-\paragraph{The seconds a move took.}
-Lichess records each player's clock after every move. The time spent on a
-move is the mover's clock before it, less the clock after it, plus the
-increment the time control adds.
+A move is \emph{eligible} from ply \V{recipe.min-ply} on, that is after each
+side's first five moves, the opening cut used by Maia~\cite{maia}, provided
+that the evaluations before and after the move and the clock times around
+the move are available. A player's eligible moves form the sequence of an
+example. A player with fewer than \V{recipe.least-moves} eligible moves
+contributes no example, and a sequence is truncated after its first
+\V{recipe.most-moves} moves. Each game therefore contributes at most two
+examples.
+
+The monthly file is read from its beginning until \V{recipe.games} games have
+contributed examples, and \V{manifest.games-read} games were read to find
+them. The dataset therefore consists of the first qualifying games of the
+month in file order. It is not a random sample of the month. The resulting
+dataset has \V{data.rows} examples with \V{data.positions} positions in
+total, on average \V{data.positions.a-row} per example
+(Table~\ref{tab:data}).
+
+The split is determined by a hash of the game identifier, so both players of
+a game fall in the same set, and the test set contains the examples of
+\V{data.games.test} games. The two examples of a game describe the same game
+and are not independent, which the bootstrap takes into account by resampling
+games (Section~\ref{sec:protocol}). The split is by game and not by player:
+the dataset does not keep the players' names, and a player who appears in
+several games can have games in more than one set. The hash is the one used
+for the dataset of single positions in the companion papers of this
+repository, so a game is assigned to the same set in both datasets. The
+dataset is not stored in the repository. Its recipe is, and a build of the
+dataset is identified by a fingerprint, a hash of its contents. All models in
+this paper were trained and evaluated on build \V{data.fingerprint}. The
+evaluation code refuses to rank models evaluated on different builds.
 
 \begin{table}[htbp]\centering\small
 \block{data}
-\caption{The dataset's rows by split. A row is one player in one game.}
+\caption{Dataset statistics by split. The mean target is the mean rating of
+the players.}
 \label{tab:data}
 \end{table}
 
 \iflook
-The builder read \V{manifest.games-read} games of the month to find the
-\V{manifest.games-kept} that gave rows. The ratings run from
-\V{describe.player-elo.min} to \V{describe.player-elo.max} around a mean of
-\V{describe.player-elo.mean}, and half of them lie between
-\V{describe.player-elo.q25} and \V{describe.player-elo.q75}
-(Figure~\ref{fig:label}). The two players of
-a game are close: the player's rating less the opponent's lies between
-\V{describe.elo-gap.q25} and \V{describe.elo-gap.q75} for half of the rows,
-and between \V{describe.elo-gap.q5} and \V{describe.elo-gap.q95} for nine in
-ten. A row holds \V{describe.steps.q50} of the player's moves at the median,
-and one row in four holds \V{describe.steps.q75} or more
-(Table~\ref{tab:describe}).
+\paragraph{Distribution of the target.}
+The ratings have a mean of \V{label.mean} and a standard deviation of
+\V{label.sd} rating points (Figure~\ref{fig:label}). Half of the examples
+have a rating between \V{describe.player-elo.q25} and
+\V{describe.player-elo.q75}, and nine in ten between
+\V{describe.player-elo.q5} and \V{describe.player-elo.q95}.
+Table~\ref{tab:describe} summarises further variables. The two players of a
+game usually have similar ratings. The player's rating minus the opponent's
+lies between \V{describe.elo-gap.q25} and \V{describe.elo-gap.q75} points in
+half of the examples, and outside the range from \V{describe.elo-gap.q5} to
+\V{describe.elo-gap.q95} points in one example in ten. This pairing matters
+for the interpretation of the results (Section~\ref{sec:gap}). A sequence has
+a median of \V{describe.steps.q50} moves, and at least one sequence in twenty
+has the maximum of \V{describe.steps.q95}. The mean win probability lost per
+move has a median of \V{describe.loss-mean.q50} percentage points over the
+examples, and the mean time per move a median of \V{describe.spent-mean.q50}
+seconds.
 
 \begin{figure}[htbp]\centering
 \block{label}
-\caption{The player's rating over every row of the dataset.}
+\caption{Distribution of the players' ratings over all examples of the
+dataset.}
 \label{fig:label}
 \end{figure}
 
 \begin{table}[htbp]\centering\small
 \block{describe}
-\caption{The spread of a few columns over every row of the dataset: the mean,
-five quantiles, and the least and the most. Times are in seconds, and what
-the moves lost is in points of winning chances.}
+\caption{Summary statistics of selected variables over the whole dataset:
+the mean, five quantiles, the minimum and the maximum. The rating difference
+is the player's rating minus the opponent's. Neither rating is an input.}
 \label{tab:describe}
 \end{table}
 \fi
 
-\section{What a model reads}
-\label{sec:reads}
+\section{Methods}
+\label{sec:methods}
 
-\input{../../../papers/reading}
+\subsection{Input representation}
+\label{sec:input}
 
-\paragraph{This model reads what an engine said of each move, and neither
-rating.}
-The marks are the squares of the opponent's last move and of the player's own
-move, so a network sees what was played in a position and not only where the
-player stood. A move's numbers are of three kinds. The clock: both clocks and
-the seconds the move took, as logarithms, and the ply. The engine: the
-player's winning chances before the move and what the move lost. The board:
-how many legal moves there were, whether the move took or gave check, and the
-castling rights. The context numbers are the time control's starting time as
-a logarithm, its increment, and the length of the game in plies.
+\input{../../../papers/input-representation}
 
-The engine is read on purpose, where the lab's model of think time leaves it
-out. That model is a yardstick of what a player can see during a game. This
-one is for a review after it, when the analysis is there to be read.
+\paragraph{Inputs of this task.}
+The auxiliary planes mark the en passant square and the origin and
+destination squares of two moves: the opponent's preceding move and the move
+that the player made in the position. The move played is thus an input. The
+per-move features are the ply, three durations, each encoded as the logarithm
+of one plus the number of seconds (the time remaining on the player's clock
+before the move, the time remaining on the opponent's clock and the time
+spent on the move),
+the win probability before the move, the win probability lost by the move,
+the number of legal moves, whether the move is a capture, whether it gives
+check, and the four castling rights. The context features are the initial
+time of the time control, as the logarithm of one plus the number of seconds,
+the increment and the length of the game in plies. The length of the game is
+known only when the game is over, so the models apply to completed games.
+Neither player's rating is an input. The result of the game is not an input
+either, although the evaluations of the last positions carry information
+about it.
 
-Neither player's rating is read. The pairing would give the answer away,
-since the opponent's rating alone lands close to the player's. The result is
-not read either: the reading is meant to be of the play.
+The \V{task.hand.count} hand-crafted features are aggregates of the same
+per-move quantities (Table~\ref{tab:hand}): statistics of the win probability
+lost per move and the mean win probability before a move, statistics of the
+time spent and of the clock, and the mean number of legal moves with the
+shares of captures and checks. Every one of them is a function of the
+per-move features and the initial time. For this task the hand-crafted
+features therefore contain no information that a network reading the sequence
+does not also receive. This distinguishes the task from those on single
+positions, where the hand-crafted features state properties of a position,
+such as mobility or hanging pieces, that a network has to learn to compute
+from the board.
 
-\section{The learners}
-\label{sec:learners}
+\subsection{Models and training}
+\label{sec:models}
 
-\input{../../../papers/learners}
+\input{../../../papers/models}
 
-\section{How a result is scored}
-\label{sec:scoring}
+\section{Evaluation Protocol}
+\label{sec:protocol}
 
-The model's card named its score before the first full run: the mean
-absolute error on the test rows, in rating points, where lower is better. A
-run beats the reference when its paired gain has a 95\% interval above zero.
-Three more scores are reported beside it: the root mean squared error, which
-a few large misses move more, R\textsuperscript{2}, the share of the
-ratings' variance a run explains, and Spearman's rank correlation, which asks
-only whether the players come out in the right order.
+\paragraph{Metrics.}
+The primary metric, fixed before the first full training run, is the mean
+absolute error of the predicted rating on the test set, in rating points;
+lower is better. We report three secondary metrics: the root mean squared
+error (RMSE), the coefficient of determination R\textsuperscript{2}, which is
+the share of the variance of the ratings that a model explains, and
+Spearman's rank correlation between the predicted and the true rating, which
+measures only whether the players are ordered correctly. We also report
+results separately for \V{bands.count} bands of the player's rating. These
+bands are defined by the target, which has to be kept in mind when their
+errors are read (Section~\ref{sec:bands}).
 
-Results are also given by the player's rating in \V{bands.count} bands. The
-bands are bands of the label itself, so they show whom a run reads well: a
-run that pulls every reading toward the middle has an error that grows
-toward both ends.
-
-Both players of a game are test rows, and what a model says of one is not
-independent of what it says of the other: the two shared every position. The
-intervals allow for that.
-
-\input{../../../papers/scoring}
+\input{../../../papers/evaluation}
 
 \section{Results}
 \label{sec:results}
 
-\subsection{The leaderboard}
+\subsection{Main results}
 
-Read from the bottom up, Table~\ref{tab:leaderboard} is a ladder. The floor
-says \V{floor.constant} for every player, the median rating of the train
-rows, and is off by \V{floor.score} points. Trees that read only the time
-control and the game's length, \V{run.gbm-context.name}, reach
-\V{run.gbm-context.score}, which is \V{context.lift.share}\% of what the
-reference takes off the floor. The reference, which also reads the counts
-over the player's moves, reaches \V{reference.score}, which is
-\V{reference.lift.percent}\% under the floor, and the best run
-\V{best.score} (Figure~\ref{fig:scores}).
+Table~\ref{tab:leaderboard} and Figure~\ref{fig:scores} give the main
+results. The constant baseline predicts \V{floor.constant}, the median rating
+of the training set, for every example and has an MAE of \V{floor.score}
+rating points. GBDT on the context features alone, that is on the time
+control and the length of the game, reaches \V{run.gbm-context.score} and
+achieves \V{context.lift.share}\% of the improvement of the GBDT baseline
+over the constant baseline. The time control and the length of a game thus
+say little about the players' ratings. The GBDT baseline, with the
+\V{task.hand.count} aggregate features of the player's moves, reaches
+\V{reference.score}, which is \V{reference.lift.percent}\% below the constant
+baseline.
 
 \begin{table}[htbp]\centering\small
 \block{leaderboard}
-\caption{The runs on the \V{data.rows.test} test rows, from
-\V{data.games.test} games, best first. The gain is paired with
-\V{task.reference} on the same resampled games, positive when the run is
-better, and bold when its interval leaves zero out.}
+\caption{Main results on the \V{data.rows.test} test examples, from
+\V{data.games.test} games, best first. The gain is the paired difference in
+MAE from \V{task.reference} on the same resampled games. It is positive when
+the model is better, and bold when statistically significant.}
 \label{tab:leaderboard}
 \end{table}
 
 \begin{figure}[htbp]\centering
 \block{scores}
-\caption{Every run's MAE with its 95\% interval. The vertical line is the
-reference's score.}
+\caption{Test MAE of every model with its 95\% CI. The vertical line marks
+the GBDT baseline.}
 \label{fig:scores}
 \end{figure}
 
-\subsection{What a network adds}
-
-Beyond the noise, \V{ladder.ahead.of} beat the trees and
-\V{ladder.behind.of} fell short of them (Figure~\ref{fig:gains}). The best
-run's step is \V{best.gain} points, \V{best.gain.percent}\% of the trees'
-error. The trees are handed \V{task.hand.count} counts over the player's
-moves. A network reads the moves themselves, in order, and finds more in
-them than the counts hold.
+Compared with the GBDT baseline, \V{networks.ahead.of} are significantly
+better (Figure~\ref{fig:gains}). The best model is \V{best.name}, the small
+ResNet, with an MAE of \V{best.score} (95\% CI \V{best.score.low} to
+\V{best.score.high}). Its gain over the GBDT baseline is \V{best.gain} rating
+points (95\% CI \V{best.gain.low} to \V{best.gain.high}), which is
+\V{best.gain.percent}\% of the baseline's MAE and \V{best.gain.of-lift}\% of
+the baseline's improvement over the constant baseline. The small transformer
+gains \V{run.transformer-small.gain} (95\% CI
+\V{run.transformer-small.gain.low} to \V{run.transformer-small.gain.high})
+and the medium transformer \V{run.transformer-medium.gain}
+(\V{run.transformer-medium.gain.low} to
+\V{run.transformer-medium.gain.high}). A network that reads every position
+and every move in order thus uses information about the player's rating that
+the aggregate features do not contain. The results do not show which
+information this is: the positions, the order of the moves, or the values of
+the per-move features that the aggregates summarise.
 
 \begin{figure}[htbp]\centering
 \block{gains}
-\caption{Each network's paired gain in MAE over the reference, with its 95\%
-interval. Right of the line a network is ahead of the trees, left of it
-behind.}
+\caption{Paired gain in MAE of each network over the GBDT baseline, with its
+95\% CI. A model whose interval lies entirely to the right of the line is
+significantly better than the baseline.}
 \label{fig:gains}
 \end{figure}
 
-The order of the networks is the reverse of their sizes. The two small
-ones, \V{run.conv-small.name} at \V{run.conv-small.score} and
-\V{run.transformer-small.name} at \V{run.transformer-small.score}, each lie
-inside the other's interval. \V{run.transformer-medium.name}, with
-\V{run.transformer-medium.parameters.millions} million parameters to their
-\V{run.conv-small.parameters.millions} and
-\V{run.transformer-small.parameters.millions}, is behind both at
-\V{run.transformer-medium.score}. That order is read off the leaderboard:
-these runs were each paired with the trees and not with one another.
-\ifchanges
-One pair was made (Table~\ref{tab:pairs}). Handed the counts beside the
-moves, the larger transformer is worse: \V{run.transformer-medium-hand.name}
-against \V{run.transformer-medium.name} has a paired gain of
-\V{pair.transformer-medium-hand.transformer-medium.gain}
-(\V{pair.transformer-medium-hand.transformer-medium.gain.low} to
-\V{pair.transformer-medium-hand.transformer-medium.gain.high}), which is
-\V{pair.transformer-medium-hand.transformer-medium.verdict}, so it is
-\V{pair.transformer-medium-hand.transformer-medium.kept}. The counts hold it
-back here, and Section~\ref{sec:curves} looks at how.
-\fi
+The order among the three networks is not established. The two small
+networks have test MAEs of \V{run.conv-small.score} (small ResNet) and
+\V{run.transformer-small.score} (small transformer), and on the validation
+set their order is the reverse (\V{run.conv-small.valid.score} and
+\V{run.transformer-small.valid.score}). The medium transformer, with
+\V{run.transformer-medium.parameters.millions} million parameters compared
+with \V{run.conv-small.parameters.millions} and
+\V{run.transformer-small.parameters.millions} million, has a higher MAE than
+both on the validation set and on the test set
+(\V{run.transformer-medium.score}). We did not compare the networks with one
+another by a paired test, and their training ended while they were still
+improving (Section~\ref{sec:curves}).
 
-\subsection{The order and the number}
+\subsection{Secondary metrics}
 
-The best run's rank correlation with the player's rating is
-\V{best.spearman}, and it explains a share of \V{best.r2} of the ratings'
-variance (Table~\ref{tab:metrics}).
+Table~\ref{tab:metrics} gives all metrics for every model. The
+R\textsuperscript{2} of the best model is \V{best.r2} (95\% CI
+\V{best.r2.low} to \V{best.r2.high}), compared with \V{reference.r2} for the
+GBDT baseline and \V{run.gbm-context.r2} for GBDT on the context features
+alone. The rank correlations with the player's rating are \V{best.spearman},
+\V{reference.spearman} and \V{run.gbm-context.spearman}. The secondary
+metrics do not separate the two small networks either: the small ResNet has
+the lower MAE and the higher rank correlation, and the small transformer the
+lower RMSE (\V{run.transformer-small.rmse} against \V{run.conv-small.rmse})
+and the higher R\textsuperscript{2} (\V{run.transformer-small.r2} against
+\V{run.conv-small.r2}).
 
 \begin{table}[htbp]\centering\small
 \block{metrics}
-\caption{Every score of every run on the test rows. MAE and RMSE are in
-rating points and lower is better; for R\textsuperscript{2} and Spearman's
-rank correlation higher is better. The floor says one number, so it has no
-rank correlation.}
+\caption{All metrics for every model on the test set. MAE and RMSE are in
+rating points (lower is better); for R\textsuperscript{2} and Spearman's rank
+correlation higher is better. The constant baseline has no rank
+correlation.}
 \label{tab:metrics}
 \end{table}
 
-\subsection{By the player's rating}
+\subsection{Results by rating band}
+\label{sec:bands}
 
-A band rewards hedging. The bands are cut by the player's own rating, so the
-floor, which says one rating for every player, has the smallest error of all
-in the band that rating lies in and the largest at both ends
-(Table~\ref{tab:bands}). A model that leans toward the middle looks good in
-the middle for the same reason. So a band's column is read from the top
-down, run against run, and never across.
+Table~\ref{tab:bands} gives the MAE by band of the player's rating. Because
+the bands are defined by the target, they favour predictions near the mean.
+The constant baseline, which predicts \V{floor.constant} for every player,
+has an MAE of \V{band.3.floor} in the band \V{band.3.name}, lower than that
+of any other model, and of \V{band.1.floor} and \V{band.5.floor} in the two
+extreme bands. Errors should therefore be compared between models within a
+band, and not between bands.
 
 \begin{table}[htbp]\centering\small
 \block{bands-table}
-\caption{MAE by the player's rating band. Read a column from the top down:
-the bands are cut by the truth, so one band cannot be compared with another.}
+\caption{Test MAE by band of the player's rating. The bands are defined by
+the target, so values are comparable within a column and not between
+columns.}
 \label{tab:bands}
 \end{table}
 
+The best model has a lower MAE than the GBDT baseline in
+\V{bands.best-ahead.of} (Figure~\ref{fig:bands}). The difference is largest
+in the two extreme bands: \V{band.1.best} against \V{band.1.reference} for
+players rated below 1100, and \V{band.5.best} against \V{band.5.reference}
+for players rated 2000 and above. In the band \V{bands.lead.narrowest.name}
+the best model has the higher MAE (\V{band.3.best} against
+\V{band.3.reference})\iflook, and the difference is statistically significant
+(gain \V{slice.band.1400-1700.gain}; 95\% CI \V{slice.band.1400-1700.gain.low}
+to \V{slice.band.1400-1700.gain.high})\fi. This does not show that the
+baseline estimates the ratings of average players better. A model whose
+predictions lie closer to the mean rating has smaller errors in the middle
+band whether or not it distinguishes the players within it, and the constant
+baseline, which distinguishes no players at all, has the smallest error
+there.\iflook{} The predictions of the GBDT baseline are more compressed
+towards the mean than those of the best model
+(Section~\ref{sec:calibration}).\fi
+
 \begin{figure}[htbp]\centering
 \block{bands}
-\caption{Each network's lead over the reference in MAE, band by band: the
-differences of the scores in Table~\ref{tab:bands}, without intervals. Above
-the dashed line a network is ahead of the trees.}
+\caption{Difference in MAE between the GBDT baseline and each network, by
+band of the player's rating (the differences of the values in
+Table~\ref{tab:bands}, without intervals). Above the dashed line the network
+is better.}
 \label{fig:bands}
 \end{figure}
 
-\subsection{How the networks learned}
+\subsection{Training curves}
 \label{sec:curves}
 
-Figure~\ref{fig:curves} follows each network of the ladder on the valid rows
-after every epoch. By that score, \V{ladder.at-last-epoch.of} peaked at the
-last epoch given, so no line turns upward before its schedule ends: nothing
-here says a network fitted its training rows too closely.
+Figure~\ref{fig:curves} shows the validation MAE of each network after every
+epoch. In this task \V{ladder.at-last-epoch.of} had their best validation MAE
+in the final epoch, epoch \V{run.conv-small.best-epoch} of
+\V{run.conv-small.epochs}, so their training ended while they were still
+improving. The learning rate decreases to zero over the schedule
+(Section~\ref{sec:models}), so the flattening of the curves in the last
+epochs reflects the schedule as well as the models, and a longer schedule may
+reduce the errors reported here. We have not trained any of the networks for
+longer. The medium transformer has a higher validation
+MAE than both small networks after every epoch, and its validation MAE
+decreased more over the final epoch than that of either small network.
+Whether a longer schedule would bring it level with the small networks is an
+open question.
 
 \begin{figure}[htbp]\centering
 \block{curves}
-\caption{Each ladder network's MAE on the valid rows after every epoch. The
-dashed line is the reference's score on the same rows.}
+\caption{Validation MAE of each network after every epoch. The dashed line
+is the GBDT baseline's validation MAE.}
 \label{fig:curves}
 \end{figure}
 
-The figure also says how the larger transformer comes to be behind. It is
-behind both small networks after every epoch, and its line falls further in
-the last epoch than theirs do. So it learns more slowly on this schedule, at
-the lower rate its config gives it (Table~\ref{tab:settings}), and nothing
-here shows a ceiling: a longer schedule for it is the first run to add. With
-the counts it is behind its twin after every epoch as well. The two runs'
-records add something no table of this paper holds: its loss on its own
-training rows is the higher of the two after every epoch but the first. So
-the counts do not help it fit even the rows it has seen. A reading of why:
-the counts already say a good part of the answer, and a network that can
-lean on them may be slower to learn what the moves hold beyond them.
+\subsection{Feature importance of the GBDT baseline}
+\label{sec:importance}
 
-\subsection{What the trees lean on}
-
-The reference grew \V{reference.trees} trees over \V{reference.features}
-features (Figure~\ref{fig:leans}). The three it leans on most are:
+The GBDT baseline consists of \V{reference.trees} trees over
+\V{reference.features} features. Figure~\ref{fig:leans} shows each feature's
+share of the total split gain. The most important feature is the
 \V{reference.leans.1.feature} (\V{reference.leans.1.share}\% of the gain),
-\V{reference.leans.2.feature} (\V{reference.leans.2.share}\%) and
-\V{reference.leans.3.feature} (\V{reference.leans.3.share}\%). A share of
-gain says what the trees used. It does not say what makes a player strong.
+followed by the \V{reference.leans.2.feature}
+(\V{reference.leans.2.share}\%) and the \V{reference.leans.3.feature}
+(\V{reference.leans.3.share}\%). Split gain shows which features the model
+used. It does not show why they are informative, because correlated features
+divide the credit between them arbitrarily.
+
+The most important feature is not a measure of the player's accuracy. Let
+$b_k$ be the player's win probability before the player's $k$-th move, $l_k$
+the win probability lost by that move and $o_k$ the win probability lost by
+the opponent's reply. After the player's move the player's win probability is
+$b_k - l_k$, and the opponent's reply raises it by what the reply loses,
+because the win probabilities of the two players sum to 100\%. Hence
+\[
+b_{k+1} = b_k - l_k + o_k .
+\]
+The player's win probability before a move is the win probability at the
+start of the sequence, plus the sum of the opponent's losses up to that move,
+minus the sum of the player's own. The mean win probability over a player's
+moves therefore measures how the game went for the player. It depends on the
+opponent's errors as much as on the player's own. That the GBDT baseline uses
+this feature most is a first indication that the models estimate the rating
+from properties of the game as a whole and not only from the player's own
+moves\iflook{} (Section~\ref{sec:gap})\fi.
 
 \begin{figure}[htbp]\centering
 \block{leans}
-\caption{The ten features the reference's trees gained most from: each
-feature's share of the total gain of the splits made on it.}
+\caption{The ten most important features of the GBDT baseline, by share of
+the total split gain.}
 \label{fig:leans}
 \end{figure}
 
 \ifchanges
-\section{One change at a time}
-\label{sec:changes}
+\section{Ablations}
+\label{sec:ablations}
 
-\input{../../../papers/changes}
+\input{../../../papers/ablations}
 
-\input{../../../papers/studies}
+\ifchangehand
+\subsection{Hand-crafted features}
+\label{sec:hand}
+
+The hand-crafted features do not help a network on this task.
+\ifpairs
+Compared with \run{transformer-medium}, \run{transformer-medium-hand} is
+\V{pair.transformer-medium-hand.transformer-medium.valid.verdict} than its
+base on the validation set and
+\V{pair.transformer-medium-hand.transformer-medium.verdict} on the test set
+(gain \V{pair.transformer-medium-hand.transformer-medium.gain}; 95\% CI
+\V{pair.transformer-medium-hand.transformer-medium.gain.low} to
+\V{pair.transformer-medium-hand.transformer-medium.gain.high}), so the
+modification is \V{pair.transformer-medium-hand.transformer-medium.kept}.
+\fi
+The modified model has a test MAE of \V{run.transformer-medium-hand.score}
+and remains significantly better than the GBDT baseline (gain
+\V{run.transformer-medium-hand.gain}; 95\% CI
+\V{run.transformer-medium-hand.gain.low} to
+\V{run.transformer-medium-hand.gain.high}).
+
+This result differs from the tasks on single positions. In the companion
+papers of this repository the same modification improves the medium
+transformer significantly or makes no significant difference. One difference
+between the tasks is what the features contain. For a single position the
+hand-crafted features state properties that a network has to learn to compute
+from the board. Here every hand-crafted feature is a function of inputs that
+the network already receives for every move (Section~\ref{sec:input}), so the
+features add no information. They could help only by making the aggregates
+easier to learn.
+
+That the features are redundant explains why they do not help. It does not
+explain why the model is worse with them, and we have not identified the
+cause. Two observations from the training records narrow it down. First, the
+model with the features has the higher validation MAE after every
+epoch\ifvariants{} (Figure~\ref{fig:variants})\fi, and its best epoch is
+epoch \V{run.transformer-medium-hand.best-epoch} of
+\V{run.transformer-medium-hand.epochs}. Second, it also has the higher loss
+on its own training set after every epoch but the first. The model with the
+features thus fits its training data less well, so the difference is not one
+of overfitting. Each configuration was trained once, so the comparison does
+not include the variation between training runs
+(Section~\ref{sec:protocol}).
+\fi
+
+\input{../../../papers/training-set-size}
 
 \ifgames
-\paragraph{What more games are worth here.}
-Against the trees trained on every training game, the trees on half of them
-have a paired gain of \V{pair.gbm-hand-half.gbm-hand.gain}, which is
-\V{pair.gbm-hand-half.gbm-hand.verdict}, and the trees on a quarter one of
-\V{pair.gbm-hand-quarter.gbm-hand.gain}, which is
-\V{pair.gbm-hand-quarter.gbm-hand.verdict} (Table~\ref{tab:games}). Both
-are small beside the trees' error of \V{reference.score}, so more games of
-the same kind would add little to the trees. The study has no network in
-it. What more games are worth to the networks, which lead here, is not
-measured yet.
+\paragraph{The GBDT baseline gains little from more games.}
+Trained on half of the training games, the GBDT baseline is
+\V{pair.gbm-hand-half.gbm-hand.verdict} (gain
+\V{pair.gbm-hand-half.gbm-hand.gain}; 95\% CI
+\V{pair.gbm-hand-half.gbm-hand.gain.low} to
+\V{pair.gbm-hand-half.gbm-hand.gain.high}), and trained on a quarter it is
+\V{pair.gbm-hand-quarter.gbm-hand.verdict} as well (gain
+\V{pair.gbm-hand-quarter.gbm-hand.gain}; 95\% CI
+\V{pair.gbm-hand-quarter.gbm-hand.gain.low} to
+\V{pair.gbm-hand-quarter.gbm-hand.gain.high}). Both losses are small: they
+are \V{pair.gbm-hand-half.gbm-hand.gain.percent}\% and
+\V{pair.gbm-hand-quarter.gbm-hand.gain.percent}\% of the baseline's MAE. A
+larger sample of the same kind would therefore improve GBDT on these
+\V{reference.features} features only slightly.
+
+The ablation contains no network, and its result does not extend to the
+networks. A network has \V{data.positions.a-row} positions per example to
+learn from, and the networks were still improving when their training ended
+(Section~\ref{sec:curves}). Omori and Tadepalli~\cite{ratingnet} report a
+lower MAE on rapid games for a sequence model trained on far more games
+(Section~\ref{sec:related}), which is consistent with the networks of this
+paper being limited by the amount of training data. The two studies differ in
+other respects as well, and we have not tested this explanation.
 \fi
+
+\input{../../../papers/feature-groups}
 
 \iffeatures
-\paragraph{Which counts the trees need here.}
-In \V{study.features.gbm-hand.worse.of} the trees are worse beyond the noise
-without the group. The group that costs most is
-\V{study.features.gbm-hand.most.group}, at
-\V{study.features.gbm-hand.most.gain}, which is
-\V{study.features.gbm-hand.most.verdict}. Without what the moves lost the
-paired gain is \V{pair.gbm-hand-no-accuracy.gbm-hand.gain}, without how the
-clock was used \V{pair.gbm-hand-no-tempo.gbm-hand.gain}, and without what
-there was to choose from \V{pair.gbm-hand-no-choices.gbm-hand.gain}. So an
-engine's verdict on the moves is most of what the counts know of a player's
-level, and the clock and the choices each add something the verdict does
-not hold.
+\paragraph{Move accuracy is the most important group.}
+The GBDT baseline is significantly worse in
+\V{study.features.gbm-hand.worse.of}. The loss is largest without the
+features of \V{study.features.gbm-hand.most.group} (gain
+\V{pair.gbm-hand-no-accuracy.gbm-hand.gain}; 95\% CI
+\V{pair.gbm-hand-no-accuracy.gbm-hand.gain.low} to
+\V{pair.gbm-hand-no-accuracy.gbm-hand.gain.high}), followed by the features
+of the available moves (\V{pair.gbm-hand-no-choices.gbm-hand.gain}; 95\% CI
+\V{pair.gbm-hand-no-choices.gbm-hand.gain.low} to
+\V{pair.gbm-hand-no-choices.gbm-hand.gain.high}) and the features of
+\V{study.features.gbm-hand.least.group}
+(\V{pair.gbm-hand-no-tempo.gbm-hand.gain}; 95\% CI
+\V{pair.gbm-hand-no-tempo.gbm-hand.gain.low} to
+\V{pair.gbm-hand-no-tempo.gbm-hand.gain.high}). The three losses are smaller
+in total than the loss from removing all \V{task.hand.count} features, which
+is the gain of \run{gbm-context} (\V{run.gbm-context.gain}). The groups
+therefore overlap: part of what one group provides is available from the
+others when it is removed.
+
+The move-accuracy group contains all features that are derived from the
+engine evaluations: the statistics of the win probability lost per move and
+the mean win probability before a move. The model without this group is
+therefore a baseline that needs no engine. Its inputs are the clock use, the
+numbers of legal moves, the shares of captures and checks, the time control
+and the length of the game, and its MAE is
+\V{run.gbm-hand-no-accuracy.score}, compared with \V{reference.score} with
+all features and \V{floor.score} for the constant baseline. The group also
+contains the mean win probability, which depends on the opponent's errors as
+much as on the player's (Section~\ref{sec:importance}), so its contribution
+is not that of the player's own accuracy alone.
 \fi
 \fi
 
-\section{A closer look}
-\label{sec:closer}
+\section{Error Analysis}
+\label{sec:error}
 
-\input{../../../papers/closer}
+\input{../../../papers/error-analysis}
 
 \iflook
-\subsection{How close a reading lands}
+\subsection{Distribution of the errors}
 
-An average error hides how the misses are spread. The best run's median miss
-is \V{best.close.median} points, and nine in ten of its readings fall within
-\V{best.close.p90}. It is within a hundred points of the player's rating for
-\V{best.close.within.100}\% of the test rows, within two hundred for
-\V{best.close.within.200}\%, and within three hundred for
-\V{best.close.within.300}\% (Table~\ref{tab:closeness}).
+The median absolute error of the best model is \V{best.close.median} rating
+points, and 90\% of its predictions are within \V{best.close.p90} points of
+the player's rating. Of its predictions, \V{best.close.within.100}\% are
+within 100 points, \V{best.close.within.200}\% within 200 points and
+\V{best.close.within.300}\% within 300 points (Table~\ref{tab:closeness}).
+For the GBDT baseline these shares are \V{reference.close.within.100}\%,
+\V{reference.close.within.200}\% and \V{reference.close.within.300}\%. Chess
+players are conventionally grouped into rating classes 200 points wide. An
+estimate from one game thus places a player within one class of the player's
+rating in \V{best.close.within.200}\% of the cases, and it is wrong by more
+than \V{best.close.p90} points in one case in ten.
 
 \begin{table}[htbp]\centering\small
 \block{closeness}
-\caption{How close each run's readings land on the test rows: the median
-miss, the distance nine in ten readings fall within, and the share within
-one, two and three hundred points of the player's rating.}
+\caption{Distribution of the absolute errors on the test set: the median,
+the 90th percentile, and the share of predictions within 100, 200 and 300
+rating points of the player's rating.}
 \label{tab:closeness}
 \end{table}
 
-\subsection{What a stated rating is worth}
+\subsection{Calibration and regression towards the mean}
+\label{sec:calibration}
 
-Figure~\ref{fig:reliability} asks whether a stated rating means what it says.
-The test rows are put in \V{best.reliability.groups} equal groups by what the
-best run said. The group it rates lowest it calls
-\V{best.reliability.lowest.said} on average, and those players' ratings
-average \V{best.reliability.lowest.happened}. The group it rates highest it
-calls \V{best.reliability.highest.said}, against
-\V{best.reliability.highest.happened}. In no group are the two further apart
-than \V{best.reliability.widest-gap} points. Around one stated number, the
-middle four fifths of the players' ratings span about
-\V{best.reliability.spread} points.
+The predictions of the best model are accurate on average at every level of
+the prediction. In Figure~\ref{fig:reliability} the test examples are divided
+into \V{best.reliability.groups} bins of equal size by the model's
+prediction. In the lowest bin the mean prediction is
+\V{best.reliability.lowest.said} and the mean rating is
+\V{best.reliability.lowest.happened}. In the highest bin they are
+\V{best.reliability.highest.said} and \V{best.reliability.highest.happened}.
+The largest difference in any bin is \V{best.reliability.widest-gap} points.
+The deviations at the two ends have opposite signs: the lowest predictions
+are too low and the highest too high, so the predictions are slightly more
+spread out than the ratings of the players who receive them. For the GBDT
+baseline the largest difference is \V{reference.reliability.widest-gap}
+points. Over the whole test set the mean prediction minus the mean rating is
+\V{overall.conv-small.off} points for \run{conv-small} and
+\V{overall.gbm-hand.off} points for the GBDT baseline.
+
+Predictions for individual players are much less precise. For a given
+prediction of the best model, the central 80\% of the players' ratings span
+about \V{best.reliability.spread} points (shaded band in
+Figure~\ref{fig:reliability}). For the GBDT baseline the span is
+\V{reference.reliability.spread} points.
 
 \begin{figure}[htbp]\centering
 \block{reliability}
-\caption{What a run said against the player's rating. The test rows are put
-in equal groups by what the run said; each point is one group's average
-reading against its players' average rating. The wash is the middle four
-fifths of the ratings in each group of the first run. On the diagonal a run
-is right on average at that level.}
+\caption{Mean rating against mean predicted rating. The test examples are
+divided into bins of equal size by a model's prediction, and each point is
+one bin. The shaded band is the central 80\% of the ratings in each bin of
+the first model. Points on the diagonal are unbiased.}
 \label{fig:reliability}
 \end{figure}
 
-Turned around, the looseness of one reading is a pull toward the middle.
-Figure~\ref{fig:band-bias} groups the test rows by the player's own rating
-instead. Players rated \V{band.1.name} are read
-\V{slice.band.-1100.challenger.off} points from their rating on average by
-\V{challenger.name}, and players rated \V{band.5.name}
-\V{slice.band.2000+.challenger.off}. For the trees the two figures are
-\V{slice.band.-1100.reference.off} and \V{slice.band.2000+.reference.off}.
-Every model with error does this, since what it cannot tell apart it places
-near the average. A better model does it less.
+Conditioning on the player's rating instead of the prediction gives a
+different result (Figure~\ref{fig:band-bias}). For players rated below 1100,
+the mean prediction of \V{challenger.name} minus the mean rating is
+\V{slice.band.-1100.challenger.off} points, and for players rated 2000 and
+above it is \V{slice.band.2000+.challenger.off} points. In the three bands
+between them the values are \V{slice.band.1100-1400.challenger.off},
+\V{slice.band.1400-1700.challenger.off} and
+\V{slice.band.1700-2000.challenger.off}. Weak players are thus predicted too
+high and strong players too low. The GBDT baseline deviates further in both
+extreme bands (\V{slice.band.-1100.reference.off} and
+\V{slice.band.2000+.reference.off}).
+
+The two results are compatible, and the second follows from the size of the
+prediction error. A model gives the players that it cannot distinguish a
+prediction near their common mean. Among the players who receive a prediction
+of, say, 1300, some are rated 1000 and some 1600, and their mean can be 1300.
+Among the players rated 1000, however, most receive a prediction above 1000,
+because a prediction far from the mean requires evidence that few games
+provide. For a model whose predictions are unbiased given their value, the
+least-squares slope of the prediction as a function of the true rating equals
+R\textsuperscript{2}: on average such a model predicts the fraction
+R\textsuperscript{2} of a player's distance from the mean rating. With an
+R\textsuperscript{2} of \V{best.r2}, a large part of the distance of a strong
+or a weak player from the mean rating is therefore missing from the mean
+prediction, for any such model of this accuracy. The compression is not a
+calibration error. A transformation that stretched the predictions until they
+were unbiased given the player's rating would make them too extreme given
+their value, and would increase the squared error.
+
+The two analyses answer different questions. When a predicted rating is shown
+to a user, the first applies: players for whom the model predicts 1800 are
+rated 1800 on average. When the question is whether the model recognises a
+strong player from one game, the second applies: it rates the player above
+average, but on average well below the player's rating. A more accurate model
+shows less compression, and the GBDT baseline, which is less accurate, shows
+more.
 
 \begin{figure}[htbp]\centering
 \block{slice-band-bias}
-\caption{What the two runs said on average, less the players' average
-rating, by the player's rating band. Above the line a run reads a band's
-players as stronger than they are, and below it as weaker.}
+\caption{Mean prediction minus mean rating, by band of the player's rating,
+for the two models compared. Above the line a model predicts the players of
+the band too high, and below it too low.}
 \label{fig:band-bias}
 \end{figure}
 
-\subsection{Whose level is read}
+\subsection{Dependence on the opponent}
 \label{sec:gap}
 
-Lichess pairs players of like rating, and every position of a game is made
-by both of them. A model can therefore read the level of the game and say it
-for both players. Such a model is right on average and wrong for each player
-by half the gap between the two: too low for the stronger player, too high
-for the weaker one.
+The models are given neither rating. Their inputs describe a game, however,
+and both players shape a game. We therefore examine whether the prediction
+for a player depends on the rating of the opponent.
 
-Table~\ref{tab:gap} groups the test rows by the player's rating less the
-opponent's. Players rated two hundred points or more above their opponent
-are read \V{slice.gap.200+.challenger.off} points from their rating on
-average by \V{challenger.name}, and players rated two hundred or more below
-theirs \V{slice.gap.--200.challenger.off}. For the trees the two figures are
-\V{slice.gap.200+.reference.off} and \V{slice.gap.--200.reference.off}
-(Figure~\ref{fig:gap-bias}).
+Table~\ref{tab:gap} gives the results by the difference between the player's
+rating and the opponent's. Where the opponent is rated more than 200 points
+higher, the mean prediction of \V{challenger.name} minus the mean rating is
+\V{slice.gap.--200.challenger.off} points, and where the opponent is rated at
+least 200 points lower it is \V{slice.gap.200+.challenger.off} points. From
+the first of the \V{slice.gap.groups} groups to the last this value falls
+with every group (Figure~\ref{fig:gap-bias}). The GBDT baseline shows the
+same pattern (\V{slice.gap.--200.reference.off} and
+\V{slice.gap.200+.reference.off} points in the two outer groups).
 
 \begin{table}[htbp]\centering\footnotesize
 \block{slice-gap}
-\caption{The test rows by the player's rating less the opponent's. For each
-group: its test rows, the players' average rating, what each of the two runs
-said on average and its MAE there, and the first run's paired gain over the
-second.}
+\caption{Test-set results by the player's rating minus the opponent's
+rating. For each group: the number of test examples, the mean rating, the
+mean prediction and MAE of each of the two models, and the paired gain of the
+first model over the second.}
 \label{tab:gap}
 \end{table}
 
 \begin{figure}[htbp]\centering
 \block{slice-gap-bias}
-\caption{What the two runs said on average, less the players' average
-rating, by the player's rating less the opponent's. Above the line a run
-reads a group's players as stronger than they are, and below it as weaker.}
+\caption{Mean prediction minus mean rating, by the player's rating minus the
+opponent's rating, for the two models compared.}
 \label{fig:gap-bias}
 \end{figure}
 
-That cut alone does not settle whose level is read, because the pull toward
-the middle leans the same way. A player far above the opponent is more often
-a strong player, and a pull toward the middle reads a strong player too low
-whoever the opponent is. Figure~\ref{fig:rating-gap} holds the two apart.
-Each row of it is one band of the player's own rating, and along a row only
-the opponent changes. A run that reads the player and nothing else says the
-same along a row. A run that reads the level of the game says less from left
-to right, as the opponent gets weaker. The opposite lean is possible too: a
-stronger opponent sets harder problems, and a player who loses more to them
-looks weaker than against an easier one.
+The two outer groups consist largely of the same games, seen from the two
+sides. The lower-rated players of these games have a mean rating of
+\V{slice.gap.--200.happened} and the higher-rated players of
+\V{slice.gap.200+.happened}. Their mean predictions are
+\V{slice.gap.--200.challenger.said} and \V{slice.gap.200+.challenger.said}
+for \V{challenger.name}, and \V{slice.gap.--200.reference.said} and
+\V{slice.gap.200+.reference.said} for the GBDT baseline. In these games the
+models thus place the two players at nearly the same level on average,
+although their ratings are far apart.
+
+Table~\ref{tab:gap} alone does not establish a dependence on the opponent,
+because the rating difference is correlated with the player's own rating: a
+player rated far above the opponent is more often a strong player, and strong
+players are predicted too low in any case (Section~\ref{sec:calibration}).
+Figure~\ref{fig:grid} separates the two effects. Each row is one band of the
+player's rating, and along a row only the opponent's rating changes relative
+to the player's. In the band from 1400 to 1700 the mean rating lies between
+\V{grid.rating-gap.1400-1700.--200.happened} and
+\V{grid.rating-gap.1400-1700.200+.happened} in all six cells. The mean
+prediction of \V{challenger.name} nevertheless falls from
+\V{grid.rating-gap.1400-1700.--200.said} against opponents rated more than
+200 points higher, through \V{grid.rating-gap.1400-1700.-200-to--100.said},
+\V{grid.rating-gap.1400-1700.-100-to-0.said},
+\V{grid.rating-gap.1400-1700.0-100.said} and
+\V{grid.rating-gap.1400-1700.100-200.said}, to
+\V{grid.rating-gap.1400-1700.200+.said} against opponents rated at least 200
+points lower. In each of the other four bands the mean prediction is likewise
+lower at the right end of the row than at the left, and in the bands from
+1100 to 1400 and from 1700 to 2000 it falls with every cell. The GBDT
+baseline behaves in the same way: in the band from 1400 to 1700 its mean
+prediction falls from \V{grid.rating-gap.1400-1700.--200.gbm-hand.said} to
+\V{grid.rating-gap.1400-1700.200+.gbm-hand.said}. For GBDT on the context
+features alone the corresponding values are
+\V{grid.rating-gap.1400-1700.--200.gbm-context.said} and
+\V{grid.rating-gap.1400-1700.200+.gbm-context.said}, so the dependence arises
+from the inputs that describe the moves, and hardly from the time control
+and the length of the game.
 
 \begin{figure}[htbp]\centering
 \block{grid-rating-gap}
 
 \medskip
 \block{grid-rating-gap-said}
-\caption{The players' average rating, by the player's rating band and the
-player's rating less the opponent's. Above: the ratings themselves. Below:
-what the best run that is not the reference said. Both grids share one scale
-of colour, and a cell with too few test rows is left empty.}
-\label{fig:rating-gap}
+\caption{Mean rating by band of the player's rating (rows) and by the
+player's rating minus the opponent's rating (columns). Top: true ratings.
+Bottom: predictions of the best model other than the GBDT baseline. Both
+panels use the same colour scale, and cells with too few test examples are
+left empty. Along a row the true rating changes little, and the prediction
+is lower at the right end than at the left.}
+\label{fig:grid}
 \end{figure}
 
-The lower grid answers. In every band of the player's rating the best run
-says less at the right end of the row than at the left, and in the three
-middle bands it says less with every step. Players rated \V{band.3.name}
-are the plainest case, because that band holds the middle of the scale,
-where the pull toward the middle is smallest. The best run reads them as
-\V{grid.rating-gap.1400-1700.--200.said} when the opponent is two hundred
-points or more above them, as \V{grid.rating-gap.1400-1700.-100-to-0.said}
-and \V{grid.rating-gap.1400-1700.0-100.said} when the two are within a
-hundred points of each other, and as \V{grid.rating-gap.1400-1700.200+.said}
-when the opponent is two hundred or more below. In every one of those cells
-their own ratings average between
-\V{grid.rating-gap.1400-1700.--200.happened} and
-\V{grid.rating-gap.1400-1700.200+.happened}.
+The prediction for a player thus depends on the opponent: against a stronger
+opponent a player is predicted higher, and against a weaker opponent lower.
+The errors are affected accordingly. The MAE of \V{challenger.name} is lowest
+where the two ratings are within 50 points of each other
+(\V{slice.gap.-50-to-0.challenger} and \V{slice.gap.0-50.challenger}) and
+highest in the two outer groups (\V{slice.gap.--200.challenger} and
+\V{slice.gap.200+.challenger}). In the last group its gain over the GBDT
+baseline is not statistically significant (\V{slice.gap.200+.gain}; 95\% CI
+\V{slice.gap.200+.gain.low} to \V{slice.gap.200+.gain.high}).
 
-The two ends of Table~\ref{tab:gap} say the same of whole games. But for a
-game that gave only one row, they hold the two sides of the same games:
-those whose players are two hundred points or more apart. The stronger
-players of those games average \V{slice.gap.200+.happened} and are read as
-\V{slice.gap.200+.challenger.said}. The weaker ones average
-\V{slice.gap.--200.happened} and are read as
-\V{slice.gap.--200.challenger.said}. The trees read the two sides as
-\V{slice.gap.200+.reference.said} and \V{slice.gap.--200.reference.said}. So
-of the distance between the two players of such a game a reading keeps
-little. It is, to a large part, a reading of the game.
+\paragraph{Possible causes.}
+We have not identified how the dependence arises. We see two possible
+explanations, which do not exclude each other. The first is that the models
+use the opponent's play as evidence. A network that reads the sequence is
+given the opponent's play in several forms. The opponent's preceding move is
+marked in every position, the opponent's clock is a per-move feature, and the
+per-move features of consecutive moves determine the win probability that the
+opponent's move between them lost, since $o_k = b_{k+1} - b_k + l_k$
+(Section~\ref{sec:importance}). The aggregate features of the GBDT baseline
+describe the player's own moves, with one exception: the mean win
+probability, its most important feature, rises with the opponent's losses.
+Players are paired with opponents of similar rating, so in the training data
+the quality of the opponent's play is informative about the player's rating,
+and a model that minimises the prediction error is expected to use it. Under
+this explanation a model estimates the level of the game, and the dependence
+on the opponent is a consequence of the pairing. The second explanation is
+that the measured accuracy of a player's own moves depends on the opponent.
+An opponent who makes more errors offers more opportunities, and each
+opportunity that the player does not take is counted as win probability lost.
+Neither explanation has been tested. The first could be tested by removing
+the inputs that describe the opponent's play, and the second by comparing the
+win probability lost per move by players of the same rating against opponents
+of different ratings.
 
-It does not take a network that reads the opponent's moves off the board.
-The trees read only counts over the player's own moves, and in the middle
-band they say \V{grid.rating-gap.1400-1700.--200.gbm-hand.said} against the
-stronger opponents and \V{grid.rating-gap.1400-1700.200+.gbm-hand.said}
-against the weaker. Trees that read only the time control and the game's
-length say \V{grid.rating-gap.1400-1700.--200.gbm-context.said} and
-\V{grid.rating-gap.1400-1700.200+.gbm-context.said}. So the lean comes in
-through the counts: a player's own counts are not the same against a
-stronger opponent as against a weaker one. A reading of why, for what the
-moves lost: a weaker opponent leaves more chances on the board, a chance
-that is missed counts as a loss, and so the same player's moves lose more
-against a weaker opponent than against a stronger one.
+\subsection{Move accuracy and time per move}
+\label{sec:accuracy}
 
-This costs little where the pairing keeps the two players close, which is
-most games: half of the rows have a gap between \V{describe.elo-gap.q25} and
-\V{describe.elo-gap.q75} points. It matters in the game a review would most
-like a reading of, the one against a much stronger or a much weaker
-opponent, where a player wants to know whether they held their own. There a
-reading says mostly who the opponent was. The opposite lean, a player
-looking weaker against stronger opposition, is not what the figure shows.
-
-\subsection{By what the moves lost and how long they took}
-
-Table~\ref{tab:loss} groups the test rows by what the player's moves lost on
-average. Players whose moves lost under two points of winning chances a move
-are rated \V{slice.loss.-2.happened} on average, and players whose moves
-lost twelve or more \V{slice.loss.12+.happened}. By the seconds a move took
-on average, the players' ratings run from \V{slice.pace.-5.happened} for
-under five seconds a move to \V{slice.pace.30+.happened} for thirty or more
-(Table~\ref{tab:pace}).
+Table~\ref{tab:loss} gives the results by the mean win probability that the
+player's moves lost. The mean rating falls from \V{slice.loss.2-4.happened}
+for players who lost between 2 and 4 percentage points per move to
+\V{slice.loss.12+.happened} for players who lost 12 points or more. At the
+accurate end the relation is flat: players who lost less than 2 points per
+move have a mean rating of \V{slice.loss.-2.happened}, which is no higher
+than that of the next group. A low mean loss in a single game therefore does
+not identify a strong player. A plausible explanation is that this group
+contains many one-sided games. Once a position is clearly won or lost, the
+win probability is close to its limit and most moves change it little,
+whatever their quality. We have not tested this explanation.
 
 \begin{table}[htbp]\centering\footnotesize
 \block{slice-loss}
-\caption{The test rows by the points of winning chances the player's moves
-lost on average.}
+\caption{Test-set results by the mean win probability lost per move, in
+percentage points. For each group: the number of test examples, the mean
+rating, the mean prediction and MAE of each of the two models, and the paired
+gain of the first model over the second.}
 \label{tab:loss}
 \end{table}
 
-\begin{table}[htbp]\centering\footnotesize
-\block{slice-pace}
-\caption{The test rows by the seconds the player's moves took on average.}
-\label{tab:pace}
-\end{table}
+The mean time per move carries little information by itself. Over the six
+groups of Table~\ref{tab:slice-pace} in the appendix the mean rating lies
+between \V{slice.pace.-5.happened}, for players who spent less than 5 seconds
+per move, and \V{slice.pace.30+.happened}, for players who spent 30 seconds
+or more. \V{challenger.name} is significantly better than the GBDT baseline
+in \V{slice.loss.ahead.of} by mean loss and in \V{slice.pace.ahead.of} by
+time per move.
 
-Figure~\ref{fig:grid} crosses the two. The upper grid is the players'
-average rating and the lower one what the run said. If the lower grid looks
-like the upper one, the run has the joint pattern and not only each margin.
+Figure~\ref{fig:grid-loss} shows the mean rating by both variables. The
+predictions of \run{conv-small} reproduce the joint pattern: the largest
+difference between the mean prediction and the mean rating in any cell is
+\V{grid.loss-pace.conv-small.widest-off} points.
 
 \begin{figure}[htbp]\centering
 \block{grid-loss-pace}
 
 \medskip
 \block{grid-loss-pace-said}
-\caption{The players' average rating, by the points of winning chances their
-moves lost on average and the seconds a move took on average. Above: the
-ratings themselves. Below: what the best run that is not the reference said.
-Both grids share one scale of colour, and a cell with too few test rows is
-left empty.}
-\label{fig:grid}
+\caption{Mean rating by the mean win probability lost per move (rows) and by
+the mean time per move (columns). Top: true ratings. Bottom: predictions of
+the best model other than the GBDT baseline. Both panels use the same colour
+scale, and cells with too few test examples are left empty.}
+\label{fig:grid-loss}
 \end{figure}
 
-\subsection{By the game}
+\subsection{Number of moves}
+\label{sec:moves}
 
-A row can hold as few as \V{recipe.least-moves} of the player's moves and as
-many as \V{recipe.most-moves}, and a reading has more to go on in a long
-game. Table~\ref{tab:moves} groups the test rows by how many moves were
-read. The other cuts of the game are in the appendix: how it ended for the
-player (Table~\ref{tab:slice-result}), the player's colour
-(Table~\ref{tab:slice-side}), the time control
-(Tables~\ref{tab:slice-start} and~\ref{tab:slice-increment}) and what the
-player's costliest move lost (Table~\ref{tab:slice-worst}).
+Table~\ref{tab:moves} gives the results by the number of the player's moves
+in the sequence. The MAE of \V{challenger.name} falls with every group, from
+\V{slice.moves.-15.challenger} for fewer than 15 moves to
+\V{slice.moves.48+.challenger} for sequences of the maximal length of
+\V{recipe.most-moves} moves. The MAE of the GBDT baseline falls less, from
+\V{slice.moves.-15.reference} to \V{slice.moves.48+.reference}, and not with
+every group. The gain of the network is largest in the two groups with the
+most moves (\V{slice.moves.40-48.gain} and \V{slice.moves.48+.gain}) and
+smallest for fewer than 15 moves (\V{slice.moves.-15.gain}). More moves give
+a model more evidence about the player. The groups also differ in who plays
+such games: the mean rating rises with every group, from
+\V{slice.moves.-15.happened} to \V{slice.moves.48+.happened}. The comparison
+between the groups therefore does not isolate the effect of the number of
+moves.
 
 \begin{table}[htbp]\centering\footnotesize
 \block{slice-moves}
-\caption{The test rows by how many of the player's moves the row holds.}
+\caption{Test-set results by the number of the player's moves in the
+sequence. A sequence is truncated after \V{recipe.most-moves} moves, so the
+last group contains the sequences of exactly that length. For each group: the
+number of test examples, the mean rating, the mean prediction and MAE of each
+of the two models, and the paired gain of the first model over the second.}
 \label{tab:moves}
 \end{table}
 
-\subsection{Beside the reference}
+\subsection{Other subgroups}
 
-Table~\ref{tab:beside} sets each run's readings beside the reference's on
-the same test rows: their correlation, and how often the run is the closer
-of the two to the player's rating.
+The appendix gives the results for the remaining subgroups. Of the
+\V{slices.compared} subgroups in which the two models are compared,
+\V{challenger.name} is significantly better than the GBDT baseline in
+\V{slices.ahead} and significantly worse in \V{slices.behind}, the band
+\V{bands.lead.narrowest.name} discussed in Section~\ref{sec:bands}. The
+subgroups without a significant difference are the players rated at least
+200 points above their opponents (Section~\ref{sec:gap}) and the games with
+an initial time below 600 seconds, a group of \V{slice.start.-600.rows} test
+examples (gain \V{slice.start.-600.gain}; 95\% CI
+\V{slice.start.-600.gain.low} to \V{slice.start.-600.gain.high}).
+
+By the result of the game, the mean prediction of \V{challenger.name} minus
+the mean rating is \V{slice.result.won.challenger.off} points for players who
+won and \V{slice.result.lost.challenger.off} points for players who lost
+(Table~\ref{tab:slice-result}). The model thus places the winner of a game
+slightly higher and the loser slightly lower than their ratings are on
+average. The result is not an input, but the evaluations of the positions
+indicate it. The mean ratings of the two groups are nearly equal
+(\V{slice.result.won.happened} and \V{slice.result.lost.happened}), as
+expected when players are paired by rating. By colour the corresponding
+values are \V{slice.side.white.challenger.off} points for White and
+\V{slice.side.black.challenger.off} points for Black
+(Table~\ref{tab:slice-side}).
+
+\subsection{Agreement with the GBDT baseline}
+
+Two models can have different scores and still each be the more accurate on
+many examples, in which case an average of their predictions may be more
+accurate than either. Table~\ref{tab:beside} gives, for each model, the
+correlation of its predictions with those of the GBDT baseline and the share
+of test examples on which it is the closer of the two to the player's
+rating. The best model is closer than the GBDT baseline on
+\V{best.beside.closer}\% of the test examples, and the correlation between
+the two sets of predictions is \V{best.beside.correlation}. The GBDT baseline
+is thus the closer of the two on a substantial minority of the examples,
+which suggests that an ensemble of the two could improve on both. We have not
+evaluated one.
 
 \begin{table}[htbp]\centering\small
 \block{beside}
-\caption{Each run's readings beside the reference's on the same test rows:
-their correlation, and how often the run is the closer of the two to the
-player's rating.}
+\caption{Agreement with the GBDT baseline on the test set: the correlation
+between the two models' predictions, and the share of examples on which the
+model is closer to the player's rating than the baseline.}
 \label{tab:beside}
 \end{table}
 
-\section{Games}
+\subsection{Example games}
 \label{sec:positions}
 
-The rows below were chosen by rule from the test games. A row is a whole
-game of one player, and one board stands for it: the position before the
-player's costliest move, seen from the player's side. The grey arrow is the
-opponent's last move and the blue arrow is the move the player made. Beside
-each board are those two moves, the player's rating, what the best run and
-the reference said, and what the game came with. The games are public
-Lichess games; no game is named.
+The following examples were selected from the test set by the fixed rules
+described above. An example is a whole sequence of moves, of which one
+position is shown: the position before the player's most costly move, that
+is the move that lost the most win probability, seen from the player's side.
+The grey arrow is the opponent's preceding move and the blue arrow is the
+player's move. Next to each board we give the player's rating, the
+predictions of the best model and of the GBDT baseline, the opponent's
+rating, the number of moves in the sequence, the base time and the increment
+of the time control, the result of the game for the player (1 for a win, 0.5
+for a draw and 0 for a loss), the player's mean win probability lost per
+move, the win probability lost by the most costly move, and the mean time per
+move.
 
-\examples{examples-typical}{Ordinary rows: the first \V{examples.count} test
-rows in the order of a hash of their key, so nothing about them picked
-them.}{fig:typical}
+The largest errors are the most informative
+(Figures~\ref{fig:over} and~\ref{fig:under}). In each of the six games the
+ratings of the two players differ by more than 600 points, and the prediction
+is closer to the opponent's rating than to the player's. Differences of this
+size are rare: in 98\% of the examples the difference between the two ratings
+is between \V{describe.elo-gap.q1} and \V{describe.elo-gap.q99} points. The
+six games are consistent with the dependence on the opponent described in
+Section~\ref{sec:gap}. They also suggest a second factor, which the dataset
+cannot confirm: that one of the two ratings does not describe its holder's
+strength. The lower-rated player won two of the three games with the largest
+overestimates, and the higher-rated player lost one of the three games with
+the largest underestimates. In such a game the recorded rating, and not the
+prediction, may be the value that is far from the strength shown in the game.
+The
+examples with the highest and the lowest predictions are shown in the
+appendix (Figures~\ref{fig:highest} and~\ref{fig:lowest}).
 
-\examples{examples-over}{The best run's largest misses upward: the test rows
-where it said the highest rating against the player's own.}{fig:over}
+\examples{examples-typical}{Typical examples: the first \V{examples.count}
+test examples in the order of a hash of their key.}{fig:typical}
 
-\examples{examples-under}{The best run's largest misses downward: the test
-rows where it said the lowest rating against the player's own.}{fig:under}
+\examples{examples-over}{The largest overestimates: the test examples for
+which the best model's prediction exceeds the player's rating by the
+most.}{fig:over}
 
-The largest misses are games the pairing would seldom make. In each of the
-games of Figures~\ref{fig:over} and~\ref{fig:under} the two players are
-several hundred points apart, and what the best run said lies nearer the
-opponent's rating than the player's. A reading: some of these ratings had
-not settled. Two players that far apart are seldom paired, and where they
-are, one of the two ratings is often a new account's and not a level earned
-over many games. The dataset cannot yet tell the two apart.
+\examples{examples-under}{The largest underestimates: the test examples for
+which the best model's prediction falls below the player's rating by the
+most.}{fig:under}
 \fi
 
-\section{What the app can use today}
+\section{Practical Use}
 \label{sec:use}
 
 \begin{itemize}
-\item \textbf{What the game looked like, in rating points.} A reading says
-at what level a game was played, on the scale a player already has. That is
-a fair line for a review of an ordinary game, where the two players are
-close.
-\item \textbf{Not yet how the player did.} Against a much stronger or a much
-weaker opponent a reading says mostly who the opponent was
-(Section~\ref{sec:gap}). ``You played above your rating today'' cannot stand
-on it until a reading holds still when only the opponent changes.
-\item \textbf{A wide band, never a number.}
+\item \textbf{An estimate of the level of a game.} For a game between
+players of similar rating, which is the usual case where players are paired
+by rating, the prediction of the best model can be shown as an estimate of
+the level at which the game was played, on the scale of Lichess rapid
+ratings.\iflook{} Players who receive a given prediction have that rating on
+average, to within \V{best.reliability.widest-gap} points.\fi
 \iflook
-The best run is within two hundred points for \V{best.close.within.200}\% of
-the test rows and within three hundred for \V{best.close.within.300}\%, and
-one reading in ten misses by more than \V{best.close.p90} points. A review
-that states one would say ``around'', and would say more from a player's
-last twenty games than from one.
-\else
-The best run is off by \V{best.score} points on a typical game. A review
-that states a reading would say ``around'', and would say more from a
-player's last twenty games than from one.
+\item \textbf{The estimate should be shown as a range.} For a given
+prediction the central 80\% of the players' ratings span about
+\V{best.reliability.spread} points, and \V{best.close.within.200}\% of the
+predictions are within 200 points of the player's rating. A single number
+suggests a precision that one game does not provide.
+\item \textbf{The estimate does not show that a player played above or below
+the player's own rating.} The mean prediction minus the mean rating is
+\V{slice.band.2000+.challenger.off} points for players rated 2000 and above
+and \V{slice.band.-1100.challenger.off} points for players rated below 1100.
+An ordinary game of a strong player is therefore predicted below the player's
+rating, and an ordinary game of a weak player above it. The difference
+between a prediction and the player's rating shows mainly this compression.
+\item \textbf{The estimate depends on the opponent.} Against an opponent
+rated more than 200 points higher, the mean prediction minus the mean rating
+is \V{slice.gap.--200.challenger.off} points, and against an opponent rated
+at least 200 points lower it is \V{slice.gap.200+.challenger.off} points. A
+high estimate after a game against a much stronger opponent is therefore not
+evidence that the player performed well in that game, and a low estimate
+after a game against a much weaker opponent is not evidence of the opposite.
+\item \textbf{Several games of one player.} The average of the predictions
+for several games of a player is less noisy than one prediction, but it
+remains compressed towards the mean rating, because every prediction is. How
+far such an average should be moved away from the mean cannot be determined
+from this dataset, in which the games of a player are not linked.
 \fi
-\item \textbf{Not at the ends of the scale.} A reading pulls toward the
-middle, so the weakest players are read too high and the strongest too low.
-A fit of what was said to what was true, by level, has to come first.
-\item \textbf{A small network is enough.} The best run has
-\V{best.parameters.millions} million parameters, its weights are
-\V{best.weights.megabytes} megabytes, and it reads the engine analysis a
-review already has. The counts alone give less: \V{task.reference} is off by
-\V{reference.score} points against the best run's \V{best.score}.
+\item \textbf{Cost.} The best model has \V{best.parameters.millions} million
+parameters, and its weights occupy \V{best.weights.megabytes}~MB. It requires
+an engine evaluation of every position of the game and the clock times, which
+an application that reviews games with an engine already has.
+\iffeatures
+Without engine evaluations, GBDT on the remaining features has an MAE of
+\V{run.gbm-hand-no-accuracy.score} (Section~\ref{sec:feature-groups}).
+\fi
+\item \textbf{Scale.} The target is the Lichess rating for rapid games.
+Ratings on other sites and for other time controls are on different scales,
+and a prediction cannot be read as one of them without a conversion that we
+have not estimated.
 \end{itemize}
 
-\section{What the model does not say yet}
+\section{Limitations}
 \label{sec:limits}
 
 \begin{itemize}
-\item \textbf{One game is a noisy reading.} A player rated 1500 has games
-that look like 1300 and games that look like 1700. The error left after the
-best run is partly the model's and partly the game's, and nothing here
-separates the two. Several games of one player would.
-\item \textbf{The pairing shows through.} A position is made by both
-players, and Section~\ref{sec:gap} shows that a reading moves with the
-opponent's rating while the player's stays where it was. It does not say by
-how much for each point of the opponent's rating. A fit of the readings on
-both ratings would, and so would the same model asked for the opponent's
-rating. Neither is made yet.
-\item \textbf{Every rating counts alike.} A new account's rating has not
-settled, and the model is trained on it and scored against it as on any
-other. Some of the largest misses may be the label's and not the model's.
-\item \textbf{One number for the game.} A player can open like a master and
-finish like a beginner. A reading for the opening, the middlegame and the
-ending needs a label for each part, and a rating is a label for none of them.
-\item \textbf{The engine is read.} What a move lost comes from the
-evaluations Lichess attached. A rating read from the moves and the clock
-alone is a different run.
-\item \textbf{Which games.} Only analysed games give a row, and players
-choose which games to analyse. The evaluation is as deep as Lichess's own
-analysis goes. A long game is cut at the player's \V{recipe.most-moves}th
-counted move, and the opening is not read at all.
-\item \textbf{Whose scale.} The ratings are Lichess rapid's. A reading is on
-that scale, which is not the scale of the player's own site, and a fit of
-one to the other is a private check.
+\item \textbf{Selection of games.} The dataset contains rapid games from one
+month, the first qualifying games of the monthly file, and only games for
+which a user requested computer analysis. The results may differ for other
+time controls and for games that nobody chose to analyse.
+\item \textbf{Split by game.} The split is by game and not by player, and the
+dataset does not keep the players' names. A player can therefore have games
+in the training set and in the test set, and a network that recognised a
+player's habitual positions would benefit from it. We have not measured how
+many players are affected, so the accuracy for a player whom the model has
+never seen may be lower than reported.
+\item \textbf{Uncertain ratings.} Ratings that are not yet reliable are used
+as targets like any other, because the database does not give the rating
+deviation. The record of a game also gives each player's rating change, which
+is large when a rating is uncertain. The dataset builder does not read it.
+\item \textbf{Training.} The validation MAE of \V{ladder.at-last-epoch.of}
+was lowest in the final epoch, no network was trained for longer, and each
+configuration was trained with a single random seed. No hyperparameters were
+tuned beyond the configurations reported. The order among the networks is not
+established.
+\item \textbf{Dependence on the opponent.} We establish that the predictions
+depend on the opponent and do not identify the cause. No model was trained
+without the inputs that describe the opponent's play.
+\item \textbf{Ablations.} The training-set-size and feature-group ablations
+use GBDT only. How the accuracy of the networks depends on the amount of
+training data and on each kind of input was not measured.
+\item \textbf{Inputs.} The models require engine evaluations of the depth
+that Lichess provides, and the length of the game, which is known only
+afterwards. A player's first five moves are not used, a sequence is truncated
+after \V{recipe.most-moves} moves, and a player with fewer than
+\V{recipe.least-moves} eligible moves has no example, so very short games are
+not covered.
 \end{itemize}
 
-\section{Cost and how to draw this again}
+\section{Reproducibility}
 \label{sec:cost}
 
-The \V{runs.count} runs took \V{cost.seconds} in all: \V{cost.seconds.networks}
-for the networks, which trained on a rented GPU, and \V{cost.seconds.others}
-for the floor and the trees. Table~\ref{tab:runs} has every run's time and
-Table~\ref{tab:settings} the networks' settings.
+Training the \V{runs.count} models on the leaderboard took \V{cost.seconds}
+in total: \V{cost.seconds.networks} for the networks, each trained on a
+single cloud GPU, and \V{cost.seconds.others} for the constant baseline and
+GBDT on a CPU. The ablation models are not included in this total. The best
+model has \V{best.parameters} parameters and was trained for
+\V{best.epochs.run} epochs in \V{best.seconds} on an \V{best.device}, at
+about \V{best.rows-a-second} examples per second. Table~\ref{tab:runs} lists
+the hardware and training time of every model, and Table~\ref{tab:settings}
+the hyperparameters of the networks.
 
-Everything is drawn from committed files. The dataset is built by
-\texttt{lab data games} from the recipe, the runs are trained by
-\texttt{lab all game-rating}, each run writes its record under the model's
-\texttt{results/} folder, and \texttt{lab paper game-rating} writes every
-number, table and figure of this paper from those records and compiles it. A
-record names the build of the data it read (\V{data.fingerprint}) and the
-commit of the code that trained it (\V{code.commit}). Weights and test
-predictions are not committed. They are kept on the owner's machine.
+All results are generated from committed files. The dataset is built from
+its recipe by \texttt{lab data games}, the models are trained by
+\texttt{lab all game-rating}, each training run writes a record to the
+model's \texttt{results/} directory, and \texttt{lab paper game-rating}
+generates every number, table and figure of this paper from those records
+and compiles it. A record names the build of the dataset it used
+(\V{data.fingerprint}) and the commit of the code that produced it
+(\V{code.commit}). Model weights and test predictions are not stored in the
+repository. The model's card states where they are kept and gives the hash
+of the best model's weights.
 
-\section{What comes next}
+\section{Conclusion and Future Work}
+\label{sec:conclusion}
 
+A player's rating can be estimated from one rapid game with a mean absolute
+error of \V{best.score} rating points, compared with \V{floor.score} for a
+constant prediction and \V{reference.score} for GBDT on aggregate features of
+the player's moves. Networks that read every position of the player's
+sequence are significantly more accurate than the aggregate features, the
+engine's judgement of the moves is the most informative group of features,
+and every network was still improving when its training ended.\iflook{} The
+estimate
+is unbiased given its value, compressed towards the mean rating given the
+player's rating, and dependent on the opponent. It describes the level at
+which a game was played more than the difference between its two
+players.\fi{} We see the following directions for future work.
 \begin{itemize}
-\item \textbf{The opponent's rating as the label.} The same rows and the
-same learners, asked for the other player: how well a run does there is how
-much of a reading is the game's and not the player's. Beside it, a fit of
-each run's readings on the two ratings, which the closer look can make from
-the predictions it already has.
-\item \textbf{A longer schedule.} Most of the networks were still at their
-best in the last epoch they were given, and the larger transformer was
-still gaining. More epochs for it come before any larger network.
-\item \textbf{Settled ratings only.} The record of a game says by how many
-points it moved each rating. Read by the builder, that tells a new account
-from a settled one, to leave the unsettled out of the training rows or out
-of the score.
-\item \textbf{Several games of one player.} One game is a noisy reading,
-and a review would read a player's last twenty. How fast the error falls
-with the number of games needs rows that say which games one player played,
-which this dataset does not keep.
-\item \textbf{A reading for each part of the game.} The idea behind this
-model is a rating for the opening, the middlegame and the ending.
-\item \textbf{Without the engine.} The moves and the clocks alone, to say
-how much of the reading the engine's judgement is.
-\item \textbf{A body that has read boards before.} In most of the lab's
-models of one position, a network that starts from a body trained on engine
-evaluations is ahead of the same network started from nothing, and the
-lab's own paper says in which. A network over a game cannot start from one
-yet.
-\item \textbf{The player's own games.} A fit of this model's readings to the
-player's rating on the player's own site, kept private, before the app
-states a reading.
+\item \textbf{Longer training and more data for the networks.} All networks
+were still improving when their training ended, and published work with far
+more training games reports a lower error on its own test
+set~\cite{ratingnet}.
+\item \textbf{Targets that match the inputs.} A model could predict the
+ratings of both players, or their mean and their difference. The level of the
+game and the difference between the players would then be estimated
+separately, and the dependence on the opponent would be explicit.
+\item \textbf{The cause of the dependence on the opponent.} The two
+explanations of Section~\ref{sec:gap} can be tested with a model that does
+not receive the opponent's move, clock and losses, and with an analysis of
+the win probability lost per move by the opponent's rating.
+\item \textbf{Reliable targets.} The rating change recorded with a game can
+be used to exclude ratings that are still uncertain, from training, from
+evaluation or from both.
+\item \textbf{Several games per player.} With an anonymous key for each
+player the dataset could be split by player, and a model could be fitted to
+several games of a player, which is the setting of the coaching application.
+\item \textbf{A model without engine evaluations.} The moves and the clock
+times alone carry information about the rating~\cite{ratingnet}. A network
+without the engine-derived inputs would show how much of the accuracy
+reported here depends on them.
+\item \textbf{Pretraining.} In most of the companion tasks, initialising the
+medium transformer with a position encoder pretrained on engine evaluations
+improves it significantly. The training code cannot yet initialise the
+position encoder of a sequence model in this way, so the modification was not
+tested on this task.
+\item \textbf{An estimate per phase of the game.} A review could report
+separate estimates for the opening, the middlegame and the endgame of a game,
+which requires a model that predicts from a part of the sequence.
 \end{itemize}
 
 \bibliographystyle{unsrt}
@@ -813,42 +1296,43 @@ states a reading.
 \clearpage
 \appendix
 
-\section{Sizes, schedules and features}
+\section{Hyperparameters and Features}
 
 \begin{table}[htbp]\centering\footnotesize
 \block{settings}
-\caption{The ladder networks' sizes and schedules, from their run configs.
-\emph{Layers over} and \emph{heads over} are those of the transformer that
-reads a row's positions in order, above the body that reads each one.
-\emph{Rate} is the peak learning rate. A setting they all share is in the
-line under the table.}
+\caption{Hyperparameters of the networks, from their configuration files.
+\emph{Encoder}, \emph{Width}, \emph{Layers} and \emph{Heads} describe the
+position encoder. \emph{Seq.\ heads} and \emph{seq.\ layers} are the
+attention heads and the layers of the transformer over the sequence.
+\emph{LR} is the peak learning rate. Values shared by all of them are given
+below the table.}
 \label{tab:settings}
 \end{table}
 
 \begin{table}[htbp]\centering\footnotesize
 \block{hand}
-\caption{The hand features: counts over the player's moves, which
-\V{task.reference} reads beside the context numbers, and a network when its
-run asks for them.}
+\caption{Hand-crafted features: the inputs of \V{task.reference} in addition
+to the scalar context features, and of a network whose configuration includes
+them.}
 \label{tab:hand}
 \end{table}
 
 \iflook
-\section{The extremes of what the model says}
+\section{Examples with Extreme Predictions}
 
-\examples{examples-highest}{The test rows for which the best run said the
-highest rating.}{fig:highest}
+\examples{examples-highest}{The test examples with the highest predictions of
+the best model.}{fig:highest}
 
-\examples{examples-lowest}{The test rows for which the best run said the
-lowest rating.}{fig:lowest}
+\examples{examples-lowest}{The test examples with the lowest predictions of
+the best model.}{fig:lowest}
 
-\section{Every cut of the test rows}
+\section{Subgroup Tables}
 
-Each table below groups the test rows by one column. The columns are the
-group, its test rows, the players' average rating, then for each of the two
-runs the rating it said on average and its MAE, and the paired gain of the
-first run over the second with its 95\% interval, bold when the interval
-leaves zero out.
+Each table below partitions the test examples by one variable. The columns
+are the group, the number of test examples, the mean rating, the mean
+prediction and MAE of each of the two models compared, and the paired gain of
+the first model over the second with its 95\% CI, in bold when statistically
+significant.
 
 \block{slices}
 \fi

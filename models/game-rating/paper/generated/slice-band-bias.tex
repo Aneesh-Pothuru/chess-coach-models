@@ -6,8 +6,8 @@
   width=0.66\textwidth,
   height=5.2cm,
   ymajorgrids,
-  xlabel={The player's rating},
-  ylabel={Said less what happened\\(Lichess rapid rating points)},
+  xlabel={Player's rating},
+  ylabel={Predicted minus observed\\(Lichess rapid rating points)},
   legend columns=-1,
   xtick={0,1,2,3,4},
   xticklabels={{\textless{}1100},{1100-1400},{1400-1700},{1700-2000},{2000+}},
@@ -16,7 +16,7 @@
   ylabel style={align=center},
 ]
 \addplot[draw=none, mark=none, forget plot] coordinates {(0,0)};
-\draw[labGray, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:-0.5,0) -- (axis cs:4.5,0) node[anchor=west, font=\sffamily\scriptsize, text=labSecondary, inner sep=2pt] {right on average};
+\draw[labGray, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:-0.5,0) -- (axis cs:4.5,0) node[anchor=west, font=\sffamily\scriptsize, text=labSecondary, inner sep=2pt] {unbiased};
 \addplot[color=labMagenta, mark=pentagon*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labMagenta}] coordinates {(0,220.109) (1,97.01) (2,-21.83) (3,-126.91) (4,-264.23)};
 \addlegendentry{\texttt{conv-small}}
 \addplot[color=labOrange, mark=square*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labOrange}] coordinates {(0,348.829) (1,166.63) (2,-23.21) (3,-199.75) (4,-390.19)};

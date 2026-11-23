@@ -82,18 +82,24 @@ statistically significant.}{tab:pairs}
 \fi
 
 \ifvariants
-Figure~\ref{fig:variants} shows the validation curves of each model of the
-fixed sequence whose training schedule or initialisation was modified,
-together with the modified models. A modified model has the colour of its
-base and a broken line: long dashes for a longer schedule and dots for a
-pretrained encoder.
+Figure~\ref{fig:variants} shows the validation curves of each modified model
+that keeps the architecture and the training set of its base, next to those
+of the base.
+\ifchangeepochs
+A model with a longer training schedule has the colour of its base and a line
+of long dashes.
+\fi
+\ifchangestart
+A model with a pretrained encoder has the colour of its base and a dotted
+line.
+\fi
 
 \begin{figure}[htbp]\centering
 \block{variants}
-\caption{Validation curves of a model of the fixed sequence (solid line) and
-of the models that modify its training schedule or initialisation (broken
-lines), after every epoch. One panel per base model, on a common scale. The
-dashed horizontal line is the GBDT baseline's validation score.}
+\caption{Validation curves, after every epoch, of a model of the fixed
+sequence and of the modified models that keep its architecture and its
+training set. One panel per base model, on a common scale. The dashed
+horizontal line is the GBDT baseline's validation score.}
 \label{fig:variants}
 \end{figure}
 \fi

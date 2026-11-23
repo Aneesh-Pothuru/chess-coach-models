@@ -2,15 +2,14 @@
 \fit{%
 \begin{tabular}{l>{\raggedright\arraybackslash}p{5.1cm}l>{\raggedright\arraybackslash}p{3.9cm}r}
 \toprule
-Run & Learner & Kept & Trained on & Time \\
+Model & Description & Selected & Hardware & Time \\
 \midrule
-\run{conv-small} & conv, 6 layers of width 96 for each position, then 2 transformer layers over the positions in order & epoch 8 of 8 & NVIDIA A100-SXM4-80GB & 5 min \\
-\run{transformer-small} & transformer, 4 layers of width 128 for each position, then 2 transformer layers over the positions in order & epoch 8 of 8 & NVIDIA A100-SXM4-80GB & 10 min \\
-\run{transformer-medium} & transformer, 8 layers of width 256 for each position, then 2 transformer layers over the positions in order & epoch 8 of 8 & NVIDIA A100-SXM4-80GB & 28 min \\
-\run{transformer-medium-hand} & transformer, 8 layers of width 256 for each position, then 2 transformer layers over the positions in order, with hand features & epoch 7 of 8 & NVIDIA A100-SXM4-80GB & 28 min \\
-\run{gbm-hand} & LightGBM, context and hand features & 315 trees & Intel Xeon CPU @ 2.20GHz & 8 s \\
-\run{gbm-context} & LightGBM, context numbers only & 65 trees & Intel Xeon CPU @ 2.20GHz & 3 s \\
-\run{constant} & one number for every row &  & Intel Xeon CPU @ 2.20GHz & 2 s \\
+\run{conv-small} & ResNet, 6 blocks, width 96 per position, then 2 transformer layers over the sequence & epoch 8 of 8 & NVIDIA A100-SXM4-80GB & 5 min \\
+\run{transformer-small} & Transformer, 4 layers, width 128 per position, then 2 transformer layers over the sequence & epoch 8 of 8 & NVIDIA A100-SXM4-80GB & 10 min \\
+\run{transformer-medium} & Transformer, 8 layers, width 256 per position, then 2 transformer layers over the sequence & epoch 8 of 8 & NVIDIA A100-SXM4-80GB & 28 min \\
+\run{gbm-hand} & GBDT, context and hand-crafted features & 315 trees & Intel Xeon CPU @ 2.20GHz & 8 s \\
+\run{gbm-context} & GBDT, context features & 65 trees & Intel Xeon CPU @ 2.20GHz & 3 s \\
+\run{constant} & Constant prediction &  & Intel Xeon CPU @ 2.20GHz & 2 s \\
 \bottomrule
 \end{tabular}%
 }

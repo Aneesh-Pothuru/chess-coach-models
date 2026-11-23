@@ -116,7 +116,7 @@ COLUMNS: dict[str, tuple[str, str]] = {
     "spent_under_2": ("share of moves under 2 seconds", "The share of the player's moves that took less than 2 seconds."),
     "spent_over_30": ("share of moves over 30 seconds", "The share of the player's moves that took more than 30 seconds."),
     "clock_lowest": ("lowest clock", "The lowest time on the player's clock before any of the moves, in seconds."),
-    "clock_used": ("share of the clock used", "The share of the initial time that had elapsed when the player made the last of the moves; an increment can make it negative."),
+    "clock_used": ("share of the clock used", "The share of the initial time that had elapsed before the last of the moves; an increment can make it negative."),
     "legal_moves_mean": ("mean number of legal moves", "The number of legal moves the player had, averaged over the moves."),
     "capture_share": ("share of captures", "The share of the player's moves that were captures."),
     "check_share": ("share of checks", "The share of the player's moves that gave check."),

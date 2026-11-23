@@ -1,37 +1,37 @@
 # How game-rating's paper looks at its results (src/chess_coach_models/evals/analysis.py).
-band: {title: The player's rating}
+band: {title: Player's rating}
 describe: [player_elo, elo_gap, steps, plies, base, increment, loss_mean, spent_mean]
 label: {low: 400, high: 2800, bins: 24}
-# A reading within 100, 200 and 300 rating points of the player's rating.
+# A prediction within 100, 200 and 300 rating points of the player's rating.
 within: {"100": 100, "200": 200, "300": 300}
 slices:
-  # Lichess pairs players of like rating. A run that reads the level of the game and not the player
-  # is wrong by half the gap between the two: too low for the stronger player, too high for the
-  # weaker. Each group's bias says how much of that a run does.
-  - {key: gap, column: elo_gap, title: The player's rating less the opponent's, edges: [-200, -100, -50, 0, 50, 100, 200]}
-  - {key: moves, column: steps, title: Moves of the player that were read, edges: [15, 20, 30, 40, 48]}
-  - {key: result, column: player_score, title: How the game ended for the player, values: [0, 0.5, 1], labels: [lost, drew, won]}
-  - {key: side, column: side, title: The player's colour, values: [white, black]}
-  - {key: start, column: base, title: Seconds on the clock at the start, edges: [600, 900]}
-  - {key: increment, column: increment, title: Seconds added a move, values: [0, 5, 10], rest: other}
-  - {key: loss, column: loss_mean, title: Points of winning chances the player's moves lost on average, edges: [2, 4, 6, 8, 12]}
-  - {key: pace, column: spent_mean, title: Seconds the player's moves took on average, edges: [5, 10, 15, 20, 30]}
-  - {key: worst, column: loss_worst, title: Points of winning chances the player's costliest move lost, edges: [10, 20, 40, 60]}
+  # Lichess pairs players of similar rating. A model that predicts the level of the game and not the
+  # player's is wrong by half the difference between the two ratings: too low for the stronger
+  # player, too high for the weaker. Each group's bias shows how far a model does that.
+  - {key: gap, column: elo_gap, title: Player's rating minus opponent's rating, edges: [-200, -100, -50, 0, 50, 100, 200]}
+  - {key: moves, column: steps, title: Number of the player's moves in the sequence, edges: [15, 20, 30, 40, 48]}
+  - {key: result, column: player_score, title: Result of the game for the player, values: [0, 0.5, 1], labels: [lost, drew, won]}
+  - {key: side, column: side, title: Player's colour, values: [white, black]}
+  - {key: start, column: base, title: Initial time of the time control (seconds), edges: [600, 900]}
+  - {key: increment, column: increment, title: Increment (seconds), values: [0, 5, 10], rest: other}
+  - {key: loss, column: loss_mean, title: Mean win probability lost per move (percentage points), edges: [2, 4, 6, 8, 12]}
+  - {key: pace, column: spent_mean, title: Mean time per move (seconds), edges: [5, 10, 15, 20, 30]}
+  - {key: worst, column: loss_worst, title: Win probability lost by the most costly move (percentage points), edges: [10, 20, 40, 60]}
 grids:
   - key: loss-pace
-    rows: {column: loss_mean, title: Points lost a move, edges: [2, 4, 6, 8]}
-    columns: {column: spent_mean, title: Seconds a move, edges: [5, 10, 15, 20]}
-  # The gap slice cannot tell a run that reads the level of the game from one that pulls every
-  # reading toward the middle: a player far above the opponent is more often a strong player.
-  # Here a row is one band of the player's own rating, and along it only the opponent changes. A
-  # run that reads the player says the same along a row. One that reads the level of the game
-  # says less from left to right, as the opponent gets weaker.
+    rows: {column: loss_mean, title: Mean win probability lost per move, edges: [2, 4, 6, 8]}
+    columns: {column: spent_mean, title: Mean time per move (seconds), edges: [5, 10, 15, 20]}
+  # The gap slice cannot tell a model that predicts the level of the game from one whose
+  # predictions regress towards the mean: a player far above the opponent is more often a strong
+  # player. Here a row is one band of the player's own rating, and along it only the opponent
+  # changes. A model that predicts the player's level predicts the same along a row. One that
+  # predicts the level of the game predicts less from left to right, as the opponent gets weaker.
   - key: rating-gap
-    rows: {column: player_elo, title: The player's rating, edges: [1100, 1400, 1700, 2000]}
-    columns: {column: elo_gap, title: The player's rating less the opponent's, edges: [-200, -100, 0, 100, 200]}
+    rows: {column: player_elo, title: Player's rating, edges: [1100, 1400, 1700, 2000]}
+    columns: {column: elo_gap, title: Player's rating minus opponent's rating, edges: [-200, -100, 0, 100, 200]}
 examples:
   count: 3
-  truth: The player's rating
-  # The board is the position before the player's costliest move, with the opponent's last move.
+  truth: Player's rating
+  # The board is the position before the player's most costly move, with the opponent's preceding move.
   moves: [last_move, worst_move]
   show: [opponent_elo, steps, base, increment, player_score, loss_mean, loss_worst, spent_mean]
