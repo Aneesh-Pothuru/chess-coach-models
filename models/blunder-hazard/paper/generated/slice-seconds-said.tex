@@ -1,0 +1,24 @@
+% Written by `lab paper blunder-hazard`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.66\textwidth,
+  height=5.2cm,
+  ymajorgrids,
+  xlabel={Time spent on the move (seconds)},
+  ylabel={Share (percent)},
+  legend columns=-1,
+  xtick={0,1,2,3,4,5},
+  xticklabels={{\textless{}2},{2-5},{5-10},{10-20},{20-40},{40+}},
+  xmin=-0.5, xmax=5.5,
+]
+\addplot[color=labInk, mark=o, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labInk}] coordinates {(0,3.12165) (1,4.78462) (2,6.8095) (3,8.8087) (4,9.4295) (5,11.5667)};
+\addlegendentry{observed}
+\addplot[color=labBlue, dash pattern=on 1pt off 2pt, mark=*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labBlue}] coordinates {(0,4.02417) (1,5.47266) (2,6.90551) (3,7.65204) (4,8.34859) (5,8.54987)};
+\addlegendentry{\texttt{transformer-medium-hand-pretrained}}
+\addplot[color=labOrange, mark=square*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labOrange}] coordinates {(0,4.3866) (1,5.64728) (2,6.7718) (3,7.55536) (4,8.11912) (5,8.21831)};
+\addlegendentry{\texttt{gbm-hand}}
+\end{axis}
+\end{tikzpicture}%
+}

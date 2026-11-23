@@ -908,6 +908,14 @@ def test_the_board_as_encoded_shades_only_the_moves_the_task_lets_a_network_read
     assert "markfields=" not in figure(("en_passant",))
 
 
+def test_a_ranking_table_s_head_names_the_end_it_is_taken_from():
+    src = sources.read("blunder-hazard")
+    top, bottom = closer.ranking_table(src, "top"), closer.ranking_table(src, "bottom")
+    # From the bottom the precision is of the examples that were not hits, so each table says which end it reads.
+    assert "Top share of test set" in top and "Bottom share of test set" not in top
+    assert "Bottom share of test set" in bottom and "Top share of test set" not in bottom
+
+
 def test_a_run_that_was_filed_keeps_its_pair_and_its_place_beside_the_run_it_changed():
     tried = _longer("puzzle-difficulty", (0.1, -0.2, 0.4))
     longer, base = tried.runs[0], tried.runs[1]

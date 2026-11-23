@@ -1,0 +1,32 @@
+% Written by `lab paper blunder-hazard`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.5\textwidth,
+  height=3.90cm,
+  y dir=reverse,
+  ymin=-0.6, ymax=4.6,
+  ytick={0,1,2,3,4},
+  yticklabels={{material},{hanging pieces},{mobility},{king safety},{passed pawns}},
+  ytick style={draw=none},
+  y axis line style={draw=none},
+  xmajorgrids,
+  xlabel={Gain in PR-AUC without the group (left of the line: worse without it)},
+  xmin=-0.0378662, xmax=0.00848108,
+]
+\draw[labAxis, line width=0.6pt] (axis cs:0,-0.6) -- (axis cs:0,4.6);
+\node[anchor=south, font=\sffamily\scriptsize, text=labSecondary, inner sep=1.5pt] at (axis cs:0,-0.6) {\run{transformer-medium-hand}};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-0.0346698,0) -- (axis cs:-0.0199662,0);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-0.027227,0)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-0.015733,1) -- (axis cs:-0.00469731,1);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-0.0101948,1)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-0.0142282,2) -- (axis cs:-0.00438131,2);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(-0.00948215,2)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-0.00534528,3) -- (axis cs:0.00528472,3);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(5.18491e-05,3)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:-0.00273524,4) -- (axis cs:0.00506314,4);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(0.00107646,4)};
+\end{axis}
+\end{tikzpicture}%
+}

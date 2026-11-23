@@ -614,7 +614,8 @@ def grid_off_figure(src: Sources, one: dict[str, Any], named: str) -> str | None
 
 
 def ranking_table(src: Sources, end: str) -> str | None:
-    """What a chance is worth as a flag from one end of its ranking, for the challenger and the reference."""
+    """What a chance is worth as a flag from one end of its ranking, for the challenger and the reference. From
+    the bottom the three columns are about the examples that were not hits, so the head says which end it is."""
     pair = [run for run in _pair(src) if run["run"] in src.look.get("ranking", {})]
     if not pair:
         return None
@@ -626,7 +627,7 @@ def ranking_table(src: Sources, end: str) -> str | None:
             row = table[index]
             cells += [tex.percent(row["precision"]) + "\\%", tex.percent(row["recall"]) + "\\%", tex.fixed(row["lift"], 2)]
         rows.append(cells)
-    head = ["Top share of test set", "Examples"]
+    head = [f"{'Top' if end == 'top' else 'Bottom'} share of test set", "Examples"]
     top = ["", ""]
     for run in pair:
         head += ["precision", "recall", "lift"]

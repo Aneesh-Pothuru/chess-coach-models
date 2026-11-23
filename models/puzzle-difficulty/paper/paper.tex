@@ -176,8 +176,11 @@ puzzles to more than one of the training, validation and test sets. The same
 grouping is used for the bootstrap (Section~\ref{sec:protocol}). The dataset
 is not stored in the repository. Its recipe is, and a build of the dataset is
 identified by a fingerprint, a hash of its contents. All models in this paper
-were trained on build \V{data.fingerprint}, and the evaluation code refuses
-to rank models trained on different builds.
+were trained and evaluated on build \V{data.fingerprint}\ifmore; the models
+of Section~\ref{sec:training-size} that use more training puzzles were
+trained on a larger build and evaluated on the validation and test sets of
+this one\fi. The evaluation code refuses to rank models evaluated on
+different builds.
 
 \begin{table}[htbp]\centering\small
 \block{data}

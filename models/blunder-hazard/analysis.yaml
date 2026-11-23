@@ -1,25 +1,25 @@
 # How blunder-hazard's paper looks at its results (src/chess_coach_models/evals/analysis.py).
-band: {title: The mover's rating}
+band: {title: Mover's rating}
 describe: [mover_elo, clock, spent, ply, win_before, loss, legal_moves, base, increment]
 slices:
-  - {key: clock, column: clock, title: Seconds on the mover's clock, edges: [30, 60, 120, 300, 480]}
-  - {key: seconds, column: spent, title: Seconds the move took, edges: [2, 5, 10, 20, 40]}
-  - {key: win, column: win_before, title: The mover's winning chances before the move (percent), edges: [10, 20, 40, 60, 80, 90]}
+  - {key: clock, column: clock, title: Time remaining on the mover's clock (seconds), edges: [30, 60, 120, 300, 480]}
+  - {key: seconds, column: spent, title: Time spent on the move (seconds), edges: [2, 5, 10, 20, 40]}
+  - {key: win, column: win_before, title: Mover's win probability before the move (percent), edges: [10, 20, 40, 60, 80, 90]}
   # Below 20 no move loses 20 more points: the group 20+ is every position that can still be blundered.
-  - {key: open, column: win_before, title: "The mover's winning chances before the move (percent): from 20 up, a blunder is possible", edges: [20]}
-  - {key: ply, column: ply, title: Ply of the game, edges: [20, 30, 40, 60, 80]}
-  - {key: hanging, column: hanging_own, title: The mover's pieces that can be taken, values: [0, 1, 2], rest: 3+}
-  - {key: opponent-hanging, column: hanging_opponent, title: The opponent's pieces that can be taken, values: [0, 1, 2], rest: 3+}
-  - {key: check, column: in_check, title: The mover is in check, values: [0, 1], labels: ["no", "yes"]}
-  - {key: moves, column: legal_moves, title: Legal moves, edges: [5, 15, 25, 35, 45]}
-  - {key: pieces, column: phase_piece_count, title: "Knights, bishops, rooks and queens on the board", edges: [3, 6, 9, 12]}
+  - {key: open, column: win_before, title: "Mover's win probability before the move (percent), split at the blunder threshold", edges: [20]}
+  - {key: ply, column: ply, title: Ply, edges: [20, 30, 40, 60, 80]}
+  - {key: hanging, column: hanging_own, title: Number of the mover's hanging pieces, values: [0, 1, 2], rest: 3+}
+  - {key: opponent-hanging, column: hanging_opponent, title: Number of the opponent's hanging pieces, values: [0, 1, 2], rest: 3+}
+  - {key: check, column: in_check, title: Whether the mover is in check, values: [0, 1], labels: ["no", "yes"]}
+  - {key: moves, column: legal_moves, title: Number of legal moves, edges: [5, 15, 25, 35, 45]}
+  - {key: pieces, column: phase_piece_count, title: Minor and major pieces on the board, edges: [3, 6, 9, 12]}
 grids:
   - key: rating-clock
-    rows: {column: mover_elo, title: The mover's rating, edges: [1100, 1400, 1700, 2000]}
-    columns: {column: clock, title: Seconds on the mover's clock, edges: [30, 60, 120, 300]}
+    rows: {column: mover_elo, title: Mover's rating, edges: [1100, 1400, 1700, 2000]}
+    columns: {column: clock, title: Time remaining on the mover's clock (seconds), edges: [30, 60, 120, 300]}
   - key: rating-win
-    rows: {column: mover_elo, title: The mover's rating, edges: [1100, 1400, 1700, 2000]}
-    columns: {column: win_before, title: The mover's winning chances before the move (percent), edges: [20, 40, 60, 80]}
+    rows: {column: mover_elo, title: Mover's rating, edges: [1100, 1400, 1700, 2000]}
+    columns: {column: win_before, title: Mover's win probability before the move (percent), edges: [20, 40, 60, 80]}
 examples:
   count: 3
   # What a paper calls the two things that can happen, the one the model gives the chance of last.
