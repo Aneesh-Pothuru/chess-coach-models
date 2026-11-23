@@ -1,0 +1,20 @@
+% Written by `lab paper practical-chances`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.55\textwidth,
+  height=6.6cm,
+  ymajorgrids,
+  xlabel={Predicted},
+  ylabel={Observed},
+  legend columns=-1,
+]
+\addplot[labAxis, line width=0.6pt, mark=none, forget plot] coordinates {(0.0303295,0.0303295) (0.967255,0.967255)};
+\addplot[color=labOrange, dash pattern=on 3pt off 1.5pt, mark=square*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labOrange}] coordinates {(0.0304992,0.0303295) (0.0955571,0.0918635) (0.164499,0.17352) (0.232039,0.252698) (0.291107,0.30315) (0.343227,0.354768) (0.385875,0.407262) (0.422314,0.434092) (0.455651,0.462234) (0.486732,0.498104) (0.517519,0.515894) (0.549132,0.537329) (0.581505,0.551764) (0.617495,0.60907) (0.66091,0.648731) (0.712659,0.708807) (0.772418,0.753281) (0.83913,0.836541) (0.904104,0.900992) (0.967255,0.965723)};
+\addlegendentry{\texttt{gbm-hand-quadruple}}
+\addplot[color=labOrange, mark=square*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labOrange}] coordinates {(0.0352164,0.0339749) (0.0985484,0.0993001) (0.164899,0.174832) (0.232909,0.240741) (0.294458,0.320647) (0.346925,0.355789) (0.389867,0.407991) (0.426115,0.429134) (0.459157,0.4704) (0.488901,0.494167) (0.517094,0.516185) (0.547063,0.530184) (0.578499,0.557889) (0.612865,0.604258) (0.657394,0.651794) (0.711483,0.701516) (0.771829,0.760426) (0.835625,0.824584) (0.899766,0.902012) (0.962959,0.960327)};
+\addlegendentry{\texttt{gbm-hand}}
+\end{axis}
+\end{tikzpicture}%
+}

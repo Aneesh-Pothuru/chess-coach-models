@@ -6,15 +6,15 @@
   width=0.66\textwidth,
   height=5.2cm,
   ymajorgrids,
-  xlabel={Seconds on the mover's clock},
-  ylabel={The mover's result},
+  xlabel={Time remaining on the mover's clock (seconds)},
+  ylabel={Mover's result},
   legend columns=-1,
   xtick={0,1,2,3,4,5},
   xticklabels={{\textless{}30},{30-60},{60-120},{120-300},{300-480},{480+}},
   xmin=-0.5, xmax=5.5,
 ]
 \addplot[color=labInk, mark=o, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labInk}] coordinates {(0,0.383008) (1,0.388031) (2,0.452953) (3,0.509287) (4,0.505918) (5,0.504665)};
-\addlegendentry{what happened}
+\addlegendentry{observed}
 \addplot[color=labSecondary, mark=diamond*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labSecondary}] coordinates {(0,0.480125) (1,0.515126) (2,0.526166) (3,0.528168) (4,0.518981) (5,0.527894)};
 \addlegendentry{\texttt{engine-curve}}
 \addplot[color=labOrange, mark=square*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labOrange}] coordinates {(0,0.357921) (1,0.420832) (2,0.466063) (3,0.507793) (4,0.507501) (5,0.503122)};

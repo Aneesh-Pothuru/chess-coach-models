@@ -2,14 +2,14 @@
 {\setlength{\tabcolsep}{4.5pt}%
 \begin{tabular}{llrrrrrrr}
 \toprule
-Run & Body & Width & Layers & Heads & Epochs & Batch & Rate & Parameters \\
+Model & Encoder & Width & Layers & Heads & Epochs & Batch & LR & Parameters \\
 \midrule
-\run{conv-small} & conv & 96 & 6 &  & 8 & 512 & 0.002 & 1{,}031{,}425 \\
-\run{transformer-small} & transformer & 128 & 4 & 8 & 8 & 512 & 0.001 & 861{,}985 \\
-\run{transformer-medium} & transformer & 256 & 8 & 8 & 12 & 1{,}024 & 0.0006 & 6{,}554{,}177 \\
-\run{transformer-medium-hand} & transformer & 256 & 8 & 8 & 12 & 1{,}024 & 0.0006 & 6{,}557{,}505 \\
+\run{conv-small} & ResNet & 96 & 6 &  & 8 & 512 & 0.002 & 1{,}031{,}425 \\
+\run{transformer-small} & Transformer & 128 & 4 & 8 & 8 & 512 & 0.001 & 861{,}985 \\
+\run{transformer-medium} & Transformer & 256 & 8 & 8 & 12 & 1{,}024 & 0.0006 & 6{,}554{,}177 \\
+\run{transformer-medium-hand} & Transformer & 256 & 8 & 8 & 12 & 1{,}024 & 0.0006 & 6{,}557{,}505 \\
 \bottomrule
 \end{tabular}}
 
 \smallskip
-{\footnotesize Every one of them: dropout 0.1, decay 0.05, patience 3.}
+{\footnotesize Shared by all of them: dropout 0.1, weight decay 0.05, patience 3.}

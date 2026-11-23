@@ -1,1035 +1,1458 @@
-% Practical chances: the paper. What is typed here says what the numbers mean.
-% Every number, table, figure and board is written by `lab paper
-% practical-chances` into generated/, from the model's committed results, and
-% read back with \V{key} and \block{name}.
+% Practical chances: the paper. The prose follows docs/writing.md. Every
+% number, table, figure and board is written by `lab paper practical-chances`
+% into generated/, from the model's committed results, and read back with
+% \V{key} and \block{name}.
 \documentclass[11pt]{article}
 \input{../../../papers/preamble}
 \input{generated/values}
 
 \begin{document}
 
-\labtitle{Practical chances}
-  {Between two people at these ratings, with these clocks, who wins from here?}
-  {Results of \V{results.date}\quad\textperiodcentered\quad dataset \V{data.name},
+\papertitle{Predicting the Results of Human Chess Games from Engine
+  Evaluations, Ratings and Clocks}
+  {Results as of \V{results.date}\quad\textperiodcentered\quad dataset \V{data.name},
    build \V{data.fingerprint}\quad\textperiodcentered\quad code \V{code.commit}}
 
-\begin{summary}
-An engine's evaluation says what a position is worth with best play. A review
-turns it into a chance of winning and shows it beside the position, and a
-player reads that number as a forecast of the game. This paper measures the
-forecast against the results of \V{recipe.games} rated rapid games on
-Lichess, \V{data.rows} positions split by game, and trains models that read
-the same evaluation together with both ratings, both clocks and the board.
-The score is the root mean squared error of the expected score. The engine's
-number as it stands reaches \V{run.engine-curve.score}. Trees that read it
-beside the ratings, the clocks and the move number, and never see the board,
-reach \V{run.gbm-context.score}, better by
-\V{pair.gbm-context.engine-curve.gain} on the same resampled games
-(\V{pair.gbm-context.engine-curve.gain.low} to
-\V{pair.gbm-context.engine-curve.gain.high}). The reference, trees that also
-read \V{task.hand.count} hand-made counts of the position, reaches
-\V{reference.score}, and \V{ladder.ahead.of} beat it beyond the noise.
-\ifmore
-Trained on \V{more.gbm-hand.most} the games, the same trees reach
-\V{run.gbm-hand-quadruple.score},
-\V{pair.gbm-hand-quadruple.gbm-hand.verdict} than on today's, and are the
-best run.
-\fi
+\begin{abstract}
+A chess engine evaluates a position under best play by both sides, and chess
+software commonly converts the evaluation into a win probability. We measure
+how well this win probability predicts the results of games between human
+players, and we train models that predict the expected score of the player to
+move, where a win counts 1, a draw one half and a loss 0, from the position,
+the engine-derived win probability, both players' ratings, both clocks and
+the time control. The dataset contains \V{data.rows} positions from
+\V{recipe.games} rated rapid games played on Lichess, split by game, and the
+primary metric is the root mean squared error (RMSE) of the predicted score.
+Used directly as a prediction, the win probability has an RMSE of
+\V{run.engine-curve.score} on \V{data.rows.test} test positions, compared
+with \V{floor.score} for a constant prediction. Gradient-boosted decision
+trees (GBDT) on the win probability, the ratings, the clocks and the ply
+reach \V{run.gbm-context.score}, a paired gain of
+\V{pair.gbm-context.engine-curve.gain} (95\% CI
+\V{pair.gbm-context.engine-curve.gain.low} to
+\V{pair.gbm-context.engine-curve.gain.high}), and GBDT that also receives
+hand-crafted features of the position reaches \V{reference.score}. None of
+the convolutional and transformer networks that read the board is
+significantly better than this GBDT baseline, and pretraining a transformer's
+encoder on engine evaluations makes it significantly worse. The best of
+\V{runs.count} models is the GBDT baseline trained on \V{more.gbm-hand.most}
+as many games, with an RMSE of \V{best.score} (95\% CI \V{best.score.low} to
+\V{best.score.high}).\iflook{} The engine-derived win probability is
+overconfident at both ends of its range, most for lower-rated players: from
+positions that it rates at 80\% or more, movers rated below 1100 score
+\V{grid.rating-win.-1100.80+.happened} and movers rated 2000 and above score
+\V{grid.rating-win.2000+.80+.happened}. It also takes no account of the
+clock: with less than 30 seconds remaining, movers score
+\V{slice.clock.-30.happened}, where it gives them
+\V{slice.clock.-30.engine-curve.said} on average.\fi{} The Elo formula applied
+to the two ratings alone predicts the results less accurately than a
+constant. The coefficient of determination of the best model is \V{best.r2}:
+a single position, even with its evaluation, leaves most of the variation in
+the result of a game unexplained.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+
+A chess engine assigns every position an evaluation: the value of the
+position if both sides play the best moves from then on. Analysis software
+converts this evaluation into a win probability with a fixed curve and
+displays it next to the position~\cite{lichessaccuracy}. A player who reads
+``85\%'' takes it as a statement about the game: I should have won this.
+Whether that reading is justified depends on who is playing. A winning
+position must still be won and a lost one can still be saved, and how often
+this happens depends on the players and on their clocks.
+
+This work supports a chess coaching application that reviews a player's
+games. Its feedback refers to how the player stood, and for that it needs the
+result that players of a given rating actually obtain from a position, next
+to the result under best play. Where the two agree, the engine's verdict can
+be reported as it is. Where they differ, the difference is informative: a
+position that the engine considers won and that players of the user's rating
+often fail to win is a position worth studying.
+
+We study the following prediction task. Before a move is played, given the
+position, the engine-derived win probability of the player to move (the
+\emph{mover}), both players' ratings, both clock times and the time control,
+predict the mover's expected score in the game: the mean result, with a win
+counted as 1, a draw as one half and a loss as 0. The win probability used
+directly as a prediction is one baseline, and the Elo expected score computed
+from the two ratings is another. Neither has a fitted parameter.
+
+We evaluate a fixed sequence of models on \V{data.rows} positions from rated
+rapid games on Lichess: a constant baseline, the two baselines without fitted
+parameters, GBDT on scalar context features, which include the win
+probability, GBDT with hand-crafted features of the position, and neural
+networks that read the board directly, with and without the hand-crafted
+features. Our main findings are the following.
+\begin{itemize}
+\item \textbf{A fitted model is significantly more accurate than the
+engine-derived win probability.} Used as a prediction, the win probability
+has an RMSE of \V{run.engine-curve.score}. GBDT on the win probability, the
+ratings, the clocks, the time control and the ply, without the board, reaches
+\V{run.gbm-context.score}, a paired gain of
+\V{pair.gbm-context.engine-curve.gain} (95\% CI
+\V{pair.gbm-context.engine-curve.gain.low} to
+\V{pair.gbm-context.engine-curve.gain.high}), which is
+\V{pair.gbm-context.engine-curve.gain.percent}\% of the RMSE of the win
+probability (Section~\ref{sec:results}).
 \iflook
-The engine's number is too sure at both ends. Where it gives the mover 80 to
-90\%, movers score \V{slice.win.80-90.happened}, and where it gives 10 to
-20\% they score \V{slice.win.10-20.happened}. It is furthest off for weaker
-players: from positions it rates at 80\% or more, movers under 1100 score
-\V{grid.rating-win.-1100.80+.happened} and movers at 2000 and over
-\V{grid.rating-win.2000+.80+.happened}. And it does not see the clock: with
-under thirty seconds left a mover scores \V{slice.clock.-30.happened} where
-the engine says \V{slice.clock.-30.engine-curve.said}.
+\item \textbf{The win probability is overconfident, most for lower-rated
+players and under time pressure.} Where it gives the mover 80\% to 90\%,
+movers score \V{slice.win.80-90.happened}, and where it gives 10\% to 20\%
+they score \V{slice.win.10-20.happened}. From positions that it rates at 80\%
+or more, movers rated below 1100 score \V{grid.rating-win.-1100.80+.happened}
+and movers rated 2000 and above score \V{grid.rating-win.2000+.80+.happened}.
+With less than 30 seconds on the mover's clock, movers score
+\V{slice.clock.-30.happened}, where the win probability averages
+\V{slice.clock.-30.engine-curve.said}. The mean prediction of the GBDT
+baseline is within \V{reference.reliability.widest-gap} of the mean result
+over the whole range of its predictions (Section~\ref{sec:error}).
 \fi
-The model to carry to the app is the trees, which train in seconds. What they
-change in a review is the number beside a position: the result two players at
-these ratings and clocks get from it, in place of the result best play gets.
-\end{summary}
+\item \textbf{The position adds little to its evaluation.} The hand-crafted
+features improve GBDT by a paired gain of \V{pair.gbm-hand.gbm-context.gain}
+(95\% CI \V{pair.gbm-hand.gbm-context.gain.low} to
+\V{pair.gbm-hand.gbm-context.gain.high}), and none of the \V{ladder.count}
+networks of the fixed sequence differs significantly from the GBDT baseline.
+GBDT on the context features alone achieves \V{context.lift.share}\% of the
+GBDT baseline's improvement over the constant baseline, and the win
+probability alone achieves \V{run.engine-curve.lift.share}\%.
+\ifchangestart
+\item \textbf{Pretraining on engine evaluations does not help.} A transformer
+whose encoder is initialised from a model trained on engine evaluations is
+significantly worse than the same transformer trained from random
+initialisation, with and without the hand-crafted features
+(Section~\ref{sec:ablations}).
+\fi
+\ifmore
+\item \textbf{More training data improves both model classes.} With
+\V{more.gbm-hand.most} the training games, the paired gain is
+\V{pair.gbm-hand-quadruple.gbm-hand.gain} for GBDT and
+\V{pair.transformer-medium-hand-quadruple.transformer-medium-hand.gain} for
+the medium transformer, and the two models then have almost the same RMSE
+(\V{run.gbm-hand-quadruple.score} and
+\V{run.transformer-medium-hand-quadruple.score};
+Section~\ref{sec:training-size}).
+\fi
+\item \textbf{The two ratings alone do not predict the results of these
+games.} The Elo expected score computed from the two ratings has an RMSE of
+\V{run.elo-gap.score}, higher than the \V{floor.score} of the constant
+baseline, although the fitted models use both ratings
+(Section~\ref{sec:rating-baseline}).
+\item \textbf{Most of the variation is not predictable from one position.}
+The coefficient of determination (R\textsuperscript{2}) of the best model is
+\V{best.r2}. A prediction describes the mean result of many comparable games
+and says little about a single game.
+\end{itemize}
 
-\section{The question}
+\section{Related Work}
+\label{sec:related}
 
-A review of a game shows a number beside every position: the engine's
-evaluation, turned by a fixed curve into the mover's chance of
-winning~\cite{lichessaccuracy}. The engine's side of that number is exact in
-its own terms. It is what the position is worth if both sides find the best
-moves from here on. The reader's side is not exact. A player sees 85\% and
-reads ``I should have won this'', and a coach who repeats the number repeats
-that reading.
+\paragraph{Engine evaluations as win probabilities.}
+Lichess converts an engine evaluation into a win probability with a logistic
+curve~\cite{lichessaccuracy}, whose single coefficient was fitted to
+positions from rapid games between players rated 2300 and
+above~\cite{lilawinchances}. The curve depends on the evaluation alone. We
+measure how well it predicts the results of games across the whole range of
+ratings, and how much the ratings, the clocks and the position add to it.
 
-Whether the reading is fair depends on who is playing. A winning position
-still has to be won, and a lost one is often saved, more often the weaker the
-players and the shorter the clocks. The curve was not drawn for club players
-either. Its one multiplier was fitted to positions from rapid games between
-players rated 2300 and over, with the games lost on time left
-out~\cite{lilawinchances}. So this paper asks the practical question. Between
-two people at these ratings, with these clocks, what result does the mover
-get from here on average, and how far is that from the number the review
-shows?
+\paragraph{Predicting the outcome of a game.}
+AlphaZero~\cite{alphazero} trains a network with a value head that predicts
+the outcome of its own games. Allie~\cite{allie}, a transformer trained on
+sequences of moves from human games, has a value head trained on the outcomes
+of those games, and its authors report that the outcome becomes more
+predictable as a game progresses. Maia~\cite{maia} and Maia-2~\cite{maia2}
+predict the move that a player of a given rating plays. Our setting differs
+in that every model is given an engine evaluation of the position, and the
+question is what the ratings, the clocks and the board add to it.
 
-The answer serves a coach in both directions. Where the two numbers agree,
-the engine's verdict can be said as it stands. Where they part, the
-difference is itself the lesson: the level positions that players at a
-rating do not hold, the lost ones that were still a game, and the won ones
-that a short clock turns into a coin toss.
+\paragraph{Rating systems.}
+The Elo formula gives the expected score of a game from the difference
+between two ratings. Lichess rates its players with
+Glicko-2~\cite{glicko2}, which keeps a rating deviation next to each rating
+as a measure of its uncertainty. We apply the Elo formula to the two Lichess
+ratings as a baseline that ignores the position.
 
-The lab's blunder model asks a neighbouring question of the same positions:
-how likely is the next move to throw away a large part of the engine's
-number? This model asks for the game's result, which adds up every move
-still to come from both players.
+\paragraph{Human error and time.}
+Anderson et al.~\cite{humanerror} relate the errors of human players to the
+difficulty of the position, the player's skill and the time available.
+Companion papers of this repository model the risk of a blunder and the time
+spent on a move for the positions used here. The present task concerns the
+sum of all later errors of both players, as it appears in the result of the
+game.
+
+\paragraph{Pretraining on engine evaluations.}
+Ruoss et al.~\cite{searchless} show that a large transformer trained by
+supervised learning on engine evaluations plays strongly without search. We
+use a far smaller model of this kind only as a source of pretrained weights
+(Section~\ref{sec:ablations}).
+
+\section{Task and Data}
+\label{sec:data}
+
+\subsection{Task}
+
+An example is one position of a game, immediately before a move is played.
+The input is the position, the opponent's preceding move, both players'
+ratings, both clock times, the time control, the ply and the mover's
+engine-derived win probability. The target is the result of the game for the
+mover. Table~\ref{tab:brief} summarises the task.
 
 \begin{table}[htbp]\centering\small
 \begin{tabularx}{\textwidth}{lL}
 \toprule
-Reads & The position, the opponent's last move, both ratings, both clocks,
-the time control, the move number, and the mover's chance of winning by the
-engine before the move. \\
-Predicts & The mover's expected score in the game: a win 1, a draw a half, a
-loss 0. \\
-Data & Rated Lichess rapid games of \V{data.month} (\V{data.licence}) with
-engine analysis and clocks: up to \V{recipe.per-game} positions a game, each
-with its game's result. \\
-Split & By game: \V{data.share.train}\% train, \V{data.share.valid}\% valid,
-\V{data.share.test}\% test. \\
-Score & Root mean squared error of the expected score against the result on
-the test positions. Lower is better. \\
+Input & The position before the move, the opponent's preceding move, both
+players' ratings, both clock times, the time control, the ply and the mover's
+win probability before the move. \\
+Target & The result of the game for the mover: 1 for a win, 0.5 for a draw
+and 0 for a loss. A model predicts its expected value, the expected score. \\
+Data & Rated rapid games from the Lichess database (\V{data.licence}) for
+\V{data.month} that carry engine evaluations and clock times:
+\V{recipe.games} games and up to \V{recipe.per-game} positions per game. \\
+Split & By game: \V{data.share.train}\% training, \V{data.share.valid}\%
+validation, \V{data.share.test}\% test. \\
+Primary metric & RMSE of the predicted score on the test set (lower is
+better). \\
 \bottomrule
 \end{tabularx}
-\caption{The model in brief.}
+\caption{Summary of the task.}
 \label{tab:brief}
 \end{table}
 
-\section{The data}
+\paragraph{Definition of the target.}
+Let $r$ be the result of a game for White: 1 for a win, $\tfrac{1}{2}$ for a
+draw and 0 for a loss. The target of a position is $y = r$ when White is to
+move and $y = 1 - r$ when Black is to move. A game that was decided on time
+has the result that was recorded for it. The target does not describe the
+position. It is a single outcome of everything that both players did
+afterwards, and all positions of a game share it up to the side to move. What
+a model can estimate from an input $x$ is the expected score
+$\mathrm{E}[y \mid x]$, the mean result of movers in comparable situations.
 
-The positions are the ones the lab's blunder model and its think-time model
-read. The source is the Lichess database of rated games for
-\V{data.month}~\cite{lichessdb}. The builder reads the month as a stream from
-its start and stops once \V{recipe.games} games have given rows, so the
-sample is the first games of the month and not a draw from all of it. A game
-gives rows when it is rated, played at rapid speed between two rated humans,
-ended over the board or on time, and carries Lichess's engine analysis and
-both clocks.
+\paragraph{Win probability.}
+Let $c$ be the engine evaluation of a position in centipawns from the mover's
+side, limited to the range from $-1000$ to $1000$, with a forced mate counted
+as the corresponding limit. Lichess maps the evaluation to a win probability
+in percent~\cite{lichessaccuracy},
+\[
+W(c) = 50 + 50\left(\frac{2}{1 + e^{-0.00368208\,c}} - 1\right).
+\]
+The win probability of an example is computed from the evaluation of the
+position before the mover's move. The evaluations are those that Lichess
+attaches to a game when a user requests computer analysis.\iflook{} Because
+$c$ is limited, the win probability lies between
+\V{describe.win-before.min}\% and \V{describe.win-before.max}\%.\fi{} The
+curve is symmetric, $W(-c) = 100 - W(c)$, so the win probabilities of the two
+players sum to 100\% and no probability is assigned to a draw. We therefore
+read $W(c)/100$ as an expected score when we use it as a prediction. The
+coaching application uses the same curve, and a parity check in the
+repository verifies that the two implementations agree.
 
-From each such game up to \V{recipe.per-game} positions are kept, chosen by a
-hash of the game and the ply. None comes before ply \V{recipe.min-ply}, each
-side's sixth move. That gives \V{data.rows} positions (Table~\ref{tab:data}).
-The split is a hash of the game, so no game has positions on both sides of
-it.
+\subsection{Dataset}
+
+The source is the Lichess database of rated games~\cite{lichessdb} for
+\V{data.month}. A game is included when it is rated, both players have a
+rating and neither is a bot, the time control is rapid by Lichess's
+definition (an estimated duration of 8 to 25 minutes, where the estimate is
+the initial time plus 40 times the increment), the game ended on the board
+or on time, and its record carries engine evaluations and clock times.
+Lichess computes evaluations for a game only when a user requests an
+analysis, so the analysed games are a self-selected subset of all games.
+
+The monthly file is read from its beginning until \V{recipe.games} games have
+contributed positions, and \V{manifest.games-read} games were read to find
+them. The dataset therefore consists of the first qualifying games of the
+month in file order. It is not a random sample of the month.
+
+From each game we take up to \V{recipe.per-game} positions, selected among
+the eligible plies by a hash of the game identifier and the ply. A ply is
+eligible from ply \V{recipe.min-ply} on, that is after each side's first five
+moves, the opening cut used by Maia~\cite{maia}, provided that the
+evaluations before and after the move and the clock times around the move are
+all available. The dataset is shared with the blunder-risk and move-time
+tasks of this repository, which is why the evaluation after the move is
+required although no model of this paper uses it. The resulting dataset has
+\V{data.rows} positions (Table~\ref{tab:data}).
+
+The split is determined by a hash of the game identifier, so all positions
+of a game fall in the same set, and the test set contains positions from
+\V{data.games.test} games. All positions of a game share one result, so the
+number of games, and not the number of positions, determines how precisely a
+score can be estimated. The same grouping is used for the bootstrap
+(Section~\ref{sec:protocol}). The dataset is not stored in the repository.
+Its recipe is, and a build of the dataset is identified by a fingerprint, a
+hash of its contents. All models in this paper were trained and evaluated on
+build \V{data.fingerprint}\ifmore; the models of
+Section~\ref{sec:training-size} that use more training games were trained on
+a larger build and evaluated on the validation and test sets of this
+one\fi. The evaluation code refuses to rank models evaluated on different
+builds.
 
 \begin{table}[htbp]\centering\small
 \block{data}
-\caption{The dataset's rows by split.}
+\caption{Dataset statistics by split. The mean target is the mean result for
+the mover.}
 \label{tab:data}
 \end{table}
 
-\paragraph{The label is the game's result.}
-Each position carries how its game ended for the player to move: 1 for a
-win, a half for a draw, 0 for a loss. A game lost on time is a loss, as it is
-for the player. The label says nothing about the position by itself. It is
-one outcome of everything both players did afterwards, and every position of
-a game carries the same one. So a single row teaches little. The average over
-many rows of a kind is the expected score this paper is after, and the test
-set is only as large as its games: \V{data.games.test} of them, for
-\V{data.rows.test} rows. Every interval below resamples whole games for that
-reason.
-
-\paragraph{The engine's number.}
-Lichess's analysis gives each position an evaluation, and the curve Lichess
-publishes turns it into the mover's chance of
-winning~\cite{lichessaccuracy}. The app uses the same curve, and a parity
-check in this repository holds the lab's curve to the app's. The number a row
-carries is taken from the evaluation of the position before the mover's
-move, so it is the engine's verdict with the mover still to play.
-
 \iflook
-The builder read \V{manifest.games-read} games of the month to find the
-\V{manifest.games-kept} that gave rows. Wins and losses are near equal, as
-they have to be when both players' moves give rows, and draws are few
-(Figure~\ref{fig:label}). The engine's number averages
-\V{describe.win-before.mean}\% over the rows and not 50, and
-Section~\ref{sec:half} says why. Half of the positions come with
-\V{describe.clock.q50} seconds or more on the mover's clock and one in twenty
-with under \V{describe.clock.q5}, so short clocks are scarce here
-(Table~\ref{tab:describe}).
+\paragraph{Distribution of the target.}
+The mean result is \V{label.mean}. It is close to one half because the
+positions of both players are included, and one player's win is the other's
+loss. Draws are rare (Figure~\ref{fig:label}), so the standard deviation of
+the result, \V{label.sd}, is close to the 0.5 that it would be without draws.
+The standard deviation is the RMSE of the best constant prediction and sets
+the scale for every RMSE in this paper. Table~\ref{tab:describe} summarises
+the main variables. Half of the positions have a win probability between
+\V{describe.win-before.q25}\% and \V{describe.win-before.q75}\%. Its mean is
+\V{describe.win-before.mean}\% and not 50\%, which
+Section~\ref{sec:engine-baseline} explains. Time pressure is uncommon: the
+median time remaining on the mover's clock is \V{describe.clock.q50} seconds,
+and it is below \V{describe.clock.q5} seconds in one position in twenty and
+below \V{describe.clock.q1} seconds in one in a hundred.
 
 \begin{figure}[htbp]\centering
 \block{label}
-\caption{The label over every row of the dataset: a loss, a draw or a win
-for the player to move.}
+\caption{Distribution of the target over all positions of the dataset: a
+loss, a draw or a win for the mover.}
 \label{fig:label}
 \end{figure}
 
 \begin{table}[htbp]\centering\small
 \block{describe}
-\caption{The spread of a few columns over every row of the dataset: the mean,
-five quantiles, and the least and the most. Clocks are in seconds and the
-winning chances in percent.}
+\caption{Summary statistics of selected variables over the whole dataset:
+the mean, five quantiles, the minimum and the maximum. Clock times are in
+seconds and win probabilities in percent. The win probability lost by the
+move and the length of the game are known only afterwards and are not
+inputs.}
 \label{tab:describe}
 \end{table}
 \fi
 
-\section{What a model reads}
-\label{sec:reads}
+\section{Methods}
+\label{sec:methods}
 
-\input{../../../papers/reading}
+\subsection{Input representation}
+\label{sec:input}
 
-\paragraph{This model reads the engine's verdict, and what the engine cannot
-see.}
-The marks carry only the squares of the opponent's last move. The context
-numbers are both ratings, both clocks and the time control's starting time
-as logarithms, the increment, the ply, and the mover's chance of winning by
-the engine before the move. That last number is the engine's whole verdict
-on the position. The question is what the rest adds to it: who is playing,
-how much time each has, and what the board looks like to a person.
+\input{../../../papers/input-representation}
 
-\section{The learners}
-\label{sec:learners}
+\paragraph{Inputs of this task.}
+The auxiliary planes mark the en passant square and the origin and
+destination squares of the opponent's preceding move. Besides the castling
+rights, the scalar context features are the two ratings, the increment, the
+ply, three times, each as the logarithm of one plus the number of seconds
+(the time remaining on the mover's clock, the time remaining on the
+opponent's clock and the initial time of the time control), and the mover's
+win probability before the move. The win probability is the engine's
+assessment of the position under best play. It is the one input that is
+itself an estimate of the target, and this paper asks what the other inputs
+add to it. No input describes the move that is played or anything that
+happens after it.\iflook{} In Figure~\ref{fig:encoding} the move played is
+drawn on the left board for the reader, and it is not marked on the encoded
+board.\fi
 
-\input{../../../papers/learners}
+\subsection{Models and training}
+\label{sec:models}
 
-\paragraph{Two runs that fit nothing.}
-This model has two runs beside the ladder that train on no rows.
-\run{engine-curve} reads the engine's number as the expected score, as it
-stands: the mover's chance of winning, as a share. It is what a review shows
-today, and the first thing a model here has to beat. \run{elo-gap} is the
-rating formula on the two ratings, the expected score a rating system
-promises a game between them, with no view of the position.
+\input{../../../papers/models}
 
-\section{How a result is scored}
-\label{sec:scoring}
+\paragraph{Baselines without fitted parameters.}
+Two further baselines are computed from the inputs without any training.
+\run{engine-curve} is the engine-derived win probability used directly as
+the prediction, $\hat{y} = W(c)/100$. It is the value that analysis software
+displays, and the first model that a fitted model has to improve on.
+\run{elo-gap} uses only the mover's rating $r_m$ and the opponent's rating
+$r_o$. Its prediction is the expected score of the Elo formula,
+\[
+\hat{y} = \frac{1}{1 + 10^{-(r_m - r_o)/400}},
+\]
+and it shows how much of the result the two ratings predict without any
+knowledge of the position.
 
-The model's card named its score before the first full run: the root mean
-squared error of the expected score against the game's result on the test
-positions, where lower is better. The choice matters more here than in the
-lab's other models, because the label has three values. The squared error is
-lowest for the true expected score and for nothing else. A run that says
-0.7 for positions whose movers score 0.7 on average cannot be beaten on them.
+\section{Evaluation Protocol}
+\label{sec:protocol}
 
-The mean absolute error is reported beside it and must not be read as a
-ranking. On a result that is nearly always 0 or 1, the absolute error is
-lowest for a run that says 1 whenever the mover is the likelier winner and 0
-otherwise, so it rewards a run for being sure, right or wrong. The engine's
-curve shows it: its mean absolute error, \V{run.engine-curve.mae}, is lower
-than the reference's \V{reference.mae}, while its squared error is the worse
-of the two. The curve is the surer of the two runs and the less true, and
-Section~\ref{sec:closer} shows where.
+\paragraph{Metrics.}
+The primary metric, fixed before the first full training run, is the root
+mean squared error of the predicted score on the test set, where lower is
+better. We chose it because the squared error is a proper scoring rule for an
+expectation: its expected value is smallest for the expected score and for no
+other prediction. A model that predicts 0.7 for positions from which movers
+score 0.7 on average cannot be improved on those positions. We report three
+secondary metrics. The coefficient of determination R\textsuperscript{2} is
+the share of the variance of the result that a model explains, and
+Spearman's rank correlation between the predicted score and the result
+measures only how well a model orders the positions. The mean absolute error
+(MAE) is reported for completeness and should not be used to rank models of
+an expected score. The expected absolute error is smallest for the median of
+the result, which is 1 whenever the mover wins more than half of such games
+and 0 whenever the mover loses more than half, and not for the expected
+score. The MAE therefore favours predictions that are more extreme than the
+expected score. We also report results separately for \V{bands.count} bands
+of the mover's rating.
 
-R\textsuperscript{2}, the share of the variance of the result a run
-explains, and Spearman's rank correlation are also reported. A run beats the
-reference when its paired gain in RMSE has a 95\% interval above zero.
-Results are also given by the mover's rating in \V{bands.count} bands.
-
-\input{../../../papers/scoring}
+\input{../../../papers/evaluation}
 
 \section{Results}
 \label{sec:results}
 
-\subsection{The leaderboard}
+\subsection{Main results}
 
-Read from the bottom up, Table~\ref{tab:leaderboard} is a ladder with one
-surprise on its lowest rung. The rating formula, \run{elo-gap}, scores
-\V{run.elo-gap.score}, worse than the floor's \V{floor.score}, and the floor
-says one number for every position. Games are paired by rating, so the gap
-between two players is small, and Section~\ref{sec:formula} shows that where
-the gap is large the formula is far too sure of it.
-
-The engine's number as it stands, \run{engine-curve}, scores
-\V{run.engine-curve.score}. That is \V{run.engine-curve.lift.share}\% of the
-step the reference takes from the floor, with nothing fitted: the engine's
-verdict is most of what can be said about a result from one position. Trees
-on the context numbers, \V{run.gbm-context.name}, read that verdict beside
-the ratings, the clocks and the move number and reach
-\V{run.gbm-context.score}. The reference, which also reads the hand features
-of the position, reaches \V{reference.score}, and the best run,
-\V{best.name}, \V{best.score} (Figure~\ref{fig:scores}).
+Table~\ref{tab:leaderboard} and Figure~\ref{fig:scores} give the main
+results. The constant baseline predicts the mean result of the training set,
+\V{floor.constant}, for every position and has an RMSE of \V{floor.score}.
+The engine-derived win probability, used directly as a prediction, reaches
+\V{run.engine-curve.score}. Without any fitted parameter it achieves
+\V{run.engine-curve.lift.share}\% of the improvement of the GBDT baseline
+over the constant baseline, so the evaluation of the position carries most of
+what the models predict. GBDT on the context features alone, which are the
+win probability, the ratings, the clocks, the time control, the ply and the
+castling rights, reaches \V{run.gbm-context.score} and achieves
+\V{context.lift.share}\% of that improvement. The GBDT baseline, with the
+hand-crafted features of the position, reaches \V{reference.score}. The Elo
+expected score computed from the two ratings has an RMSE of
+\V{run.elo-gap.score} and is the only model that is less accurate than the
+constant baseline. Sections~\ref{sec:engine-baseline}
+and~\ref{sec:rating-baseline} examine the two baselines without fitted
+parameters.
 
 \begin{table}[htbp]\centering\small
 \block{leaderboard}
-\caption{The runs on the \V{data.rows.test} test positions, from
-\V{data.games.test} games, best first. The gain is paired with
-\V{task.reference} on the same resampled games, positive when the run is
-better, and bold when its interval leaves zero out.}
+\caption{Main results on the \V{data.rows.test} test positions, from
+\V{data.games.test} games, best first. The gain is the paired difference in
+RMSE from \V{task.reference} on the same resampled games. It is positive when
+the model is better, and bold when statistically significant.}
 \label{tab:leaderboard}
 \end{table}
 
 \begin{figure}[htbp]\centering
 \block{scores}
-\caption{Every run's RMSE with its 95\% interval. The vertical line is the
-reference's score.}
+\caption{Test RMSE of every model with its 95\% CI. The vertical line marks
+the GBDT baseline.}
 \label{fig:scores}
 \end{figure}
 
-\subsection{A fitted model against the engine's number}
-
-This comparison is the model's reason to exist, so the card named it before
-the runs.
+The networks of the fixed sequence do not improve on the GBDT baseline. None
+of the \V{ladder.count} differs significantly from it
+(Figure~\ref{fig:gains}). The gains are \V{run.conv-small.gain} for the small
+ResNet (95\% CI \V{run.conv-small.gain.low} to \V{run.conv-small.gain.high}),
+\V{run.transformer-small.gain} for the small transformer
+(\V{run.transformer-small.gain.low} to \V{run.transformer-small.gain.high}),
+\V{run.transformer-medium.gain} for the medium transformer
+(\V{run.transformer-medium.gain.low} to \V{run.transformer-medium.gain.high})
+and \V{run.transformer-medium-hand.gain} for the medium transformer with the
+hand-crafted features (\V{run.transformer-medium-hand.gain.low} to
+\V{run.transformer-medium-hand.gain.high}). Each of these intervals is wider
+than the largest of the four gains in absolute value, so the test set does
+not show whether any of these networks is better or worse than GBDT.
 \ifpairs
-Set against the curve on the same resampled test games, the trees that never
-see the board are \V{pair.gbm-context.engine-curve.verdict}: a gain of
-\V{pair.gbm-context.engine-curve.gain}
-(\V{pair.gbm-context.engine-curve.gain.low} to
-\V{pair.gbm-context.engine-curve.gain.high}), which is
-\V{pair.gbm-context.engine-curve.gain.percent}\% of the curve's error. The
-largest network against the curve is
-\V{pair.transformer-medium-hand.engine-curve.verdict}, at
-\V{pair.transformer-medium-hand.engine-curve.gain}
-(Table~\ref{tab:pairs}). The hand features add a little on top of the
-context numbers: \V{pair.gbm-hand.gbm-context.gain}
-(\V{pair.gbm-hand.gbm-context.gain.low} to
-\V{pair.gbm-hand.gbm-context.gain.high}),
-\V{pair.gbm-hand.gbm-context.verdict}.
-\fi
-In the leaderboard's own terms the curve stands \V{run.engine-curve.gain}
-from the reference, with an interval that leaves zero far out
-(\V{run.engine-curve.gain.low} to \V{run.engine-curve.gain.high}).
-
-The gain is small beside the error it is taken from, and it could not be
-large. From one position most of a result is still to be decided, and no run
-here explains more than a share of \V{best.r2} of its variance
-(Table~\ref{tab:metrics}). What the fitted runs gain is not a sharper guess
-at single games. It is a truer average: Section~\ref{sec:closer} shows the
-curve is off by a wide margin in particular kinds of position, and that a
-fitted run is not.
-
-\begin{table}[htbp]\centering\small
-\block{metrics}
-\caption{Every score of every run on the test positions. For RMSE lower is
-better and it is the score the runs are ranked by; MAE is printed for
-completeness and rewards a run for being sure
-(Section~\ref{sec:scoring}). For R\textsuperscript{2} and Spearman's rank
-correlation higher is better. The floor says one number, so it has no rank
-correlation.}
-\label{tab:metrics}
-\end{table}
-
-\subsection{What a network adds}
-
-Nothing that the intervals can see. Beyond the noise, \V{ladder.ahead.of}
-beat the trees and \V{ladder.behind.of} fell short of them
-(Figure~\ref{fig:gains}). Handed the hand features, the medium transformer
-does no better than without them: \V{run.transformer-medium-hand.over-twin}
-against its twin.
-\ifpairs
-Set against each other on the same resampled games, the one that reads them
-is \V{pair.transformer-medium-hand.transformer-medium.verdict}.
-\fi
-The network of the ladder furthest from the trees,
-\run{transformer-medium-hand}, stands
-\V{run.transformer-medium-hand.gain} from them
-(\V{run.transformer-medium-hand.gain.low} to
-\V{run.transformer-medium-hand.gain.high}), which is
-\V{run.transformer-medium-hand.gain.percent}\% of the reference's error.
-\ifmore
-The figure also holds the network's runs on more games, set there against
-the trees on today's games. Section~\ref{sec:changes} sets them beside the
-trees on as many.
+The hand-crafted features do not improve the medium transformer: compared
+with \run{transformer-medium}, \run{transformer-medium-hand} is
+\V{pair.transformer-medium-hand.transformer-medium.verdict} on the test set
+(gain \V{pair.transformer-medium-hand.transformer-medium.gain}; 95\% CI
+\V{pair.transformer-medium-hand.transformer-medium.gain.low} to
+\V{pair.transformer-medium-hand.transformer-medium.gain.high}).
 \fi
 
 \begin{figure}[htbp]\centering
 \block{gains}
-\caption{Each network's paired gain in RMSE over the reference, with its
-95\% interval. Right of the line a network is ahead of the trees, left of it
-behind.}
+\caption{Paired gain in RMSE of each network over the GBDT baseline, with its
+95\% CI. A model whose interval lies entirely to the right of the line is
+significantly better than the baseline, and one whose interval lies entirely
+to the left is significantly worse.}
 \label{fig:gains}
 \end{figure}
 
-That is the expected answer for this label, not a failure of the networks.
-What a board holds beyond the engine's verdict is how hard the position is
-to play, and a game's result is a noisy witness to that: it arrives once a
-game, after dozens of further moves by both players. The trees find most of
-what there is in the verdict, the ratings and the clocks
-(Figure~\ref{fig:leans}), and \V{data.games.test} test games cannot tell
-apart the runs that find a little more.
+The remaining models in Table~\ref{tab:leaderboard} are modifications that
+passed the acceptance criterion of Section~\ref{sec:protocol}\ifmore: GBDT
+and the medium transformer trained on larger training sets
+(Section~\ref{sec:training-size})\fi. The best model is \V{best.name}, the
+GBDT baseline trained on \V{more.gbm-hand.most} the training games, with an
+RMSE of \V{best.score} (95\% CI \V{best.score.low} to \V{best.score.high}).
+Its gain over the GBDT baseline is \V{best.gain} (95\% CI \V{best.gain.low}
+to \V{best.gain.high}), which is \V{best.gain.percent}\% of the baseline's
+RMSE and \V{best.gain.of-lift}\% of the baseline's improvement over the
+constant baseline. The best network, \V{network.name}, has an RMSE of
+\V{network.score} and does not differ significantly from the GBDT baseline
+(gain \V{network.gain}; 95\% CI \V{network.gain.low} to
+\V{network.gain.high}). Compared with the GBDT baseline,
+\V{networks.ahead.of} on the leaderboard are significantly better and
+\V{networks.behind.of} are significantly worse.
 
-\subsection{By the mover's rating}
+\subsection{The engine-derived win probability as a predictor}
+\label{sec:engine-baseline}
 
-Every run scores best in the top band (Table~\ref{tab:bands}), where
-results follow the engine's verdict most closely
-(Section~\ref{sec:closer}). The floor's error in a band is the spread of
-that band's own results, so a column is read from the top down, run against
-run, and never across.
-\iflook
-Read that way, the reference leads the curve in every band, by most for
-movers rated \V{slice.band.engine-curve.behind.most.group}
-(\V{slice.band.engine-curve.behind.most}) and by least for those rated
-\V{slice.band.engine-curve.behind.least.group}
-(\V{slice.band.engine-curve.behind.least}). These are differences of the two
-scores on the same rows, with no interval of their own.
+\run{engine-curve} has an RMSE of \V{run.engine-curve.score} (95\% CI
+\V{run.engine-curve.score.low} to \V{run.engine-curve.score.high}).
+\ifpairs
+\run{gbm-context} receives the same win probability together with the
+ratings, the clocks, the time control and the ply, and does not see the
+board. Compared with \run{engine-curve} it is
+\V{pair.gbm-context.engine-curve.verdict} on the test set (gain
+\V{pair.gbm-context.engine-curve.gain}; 95\% CI
+\V{pair.gbm-context.engine-curve.gain.low} to
+\V{pair.gbm-context.engine-curve.gain.high}), and the gain is
+\V{pair.gbm-context.engine-curve.gain.percent}\% of the RMSE of the win
+probability. The medium transformer with hand-crafted features is
+\V{pair.transformer-medium-hand.engine-curve.verdict} as well (gain
+\V{pair.transformer-medium-hand.engine-curve.gain}; 95\% CI
+\V{pair.transformer-medium-hand.engine-curve.gain.low} to
+\V{pair.transformer-medium-hand.engine-curve.gain.high};
+Table~\ref{tab:pairs}).
 \fi
+Relative to the GBDT baseline, the gain of \run{engine-curve} is
+\V{run.engine-curve.gain} (95\% CI \V{run.engine-curve.gain.low} to
+\V{run.engine-curve.gain.high}).
+
+The gains of the fitted models are small relative to the error from which
+they are taken, and they cannot be large. From a single position most of the
+result is still undecided, and no model in this paper explains more than
+\V{best.r2} of the variance of the result (Table~\ref{tab:metrics}). The
+fitted models do not predict individual games much better than the win
+probability does. Their advantage is calibration: their predictions agree
+with the mean result over the range of predictions and across ratings and
+clocks, and the win probability does not.
+
+\iflook
+\paragraph{Calibration.}
+In Figure~\ref{fig:reliability} the test positions are divided into
+\V{reference.reliability.groups} bins of equal size by a model's prediction,
+and the mean result of each bin is plotted against the mean prediction. For
+the GBDT baseline the two differ by at most
+\V{reference.reliability.widest-gap} in any bin. The win probability deviates
+at both ends. In its lowest bin it gives the mover
+\V{run.engine-curve.reliability.lowest.said} on average and movers score
+\V{run.engine-curve.reliability.lowest.happened}. In its highest bin it gives
+\V{run.engine-curve.reliability.highest.said} and movers score
+\V{run.engine-curve.reliability.highest.happened}. The largest difference,
+\V{run.engine-curve.reliability.widest-gap}, occurs in a bin in which it
+gives \V{run.engine-curve.reliability.widest-gap.said} and movers score
+\V{run.engine-curve.reliability.widest-gap.happened}. The win probability is
+thus overconfident in both directions: movers who stand badly score more than
+it indicates, and movers who stand well score less.
+Section~\ref{sec:error} shows how these deviations depend on the rating and
+on the clock.
+
+\begin{figure}[htbp]\centering
+\block{reliability-engine-curve}
+\caption{Mean result against mean prediction for the engine-derived win
+probability and the GBDT baseline. The test positions are divided into bins
+of equal size by a model's prediction, and each point is one bin. Points on
+the diagonal are unbiased.}
+\label{fig:reliability}
+\end{figure}
+
+\paragraph{Offset of an evaluation taken before the move.}
+The deviations are not symmetric. Over the whole test set the mean of the win
+probability is \V{overall.engine-curve.said} and the mean result is
+\V{overall.happened}, so the mean prediction minus the mean result is
+\V{overall.engine-curve.off}. For the GBDT baseline this difference is
+\V{overall.gbm-hand.off}. The offset follows from the moment at which the
+evaluation is taken. Let $b_k$ be the mover's win probability before move $k$
+of a game, in percent, and $l_k$ the win probability that the move loses.
+After the move the mover's win probability is $b_k - l_k$, and the opponent's
+win probability before the next move is $b_{k+1} = 100 - (b_k - l_k)$. Hence
+$l_k = b_k + b_{k+1} - 100$, and averaged over the moves of a game the mean
+win probability before a move is 50\% plus half the mean loss per move. An
+engine evaluation assumes best play by both sides, so the moves that players
+actually make lose win probability on average. In the dataset the mean loss
+is \V{describe.loss.mean} percentage points and the mean win probability
+before the move is \V{describe.win-before.mean}\%, in agreement with this
+relation (Table~\ref{tab:describe}).
+
+The win probability before a move therefore overstates the mover's expected
+score on average, by half of what a move loses. When the evaluation is taken,
+the opponent has just made a move that was not perfect on average, and the
+mover has not yet made one. An application that displays the win probability
+before a move shows a value that is too favourable to the player to move by
+this amount on average.
+\fi
+
+\subsection{The two ratings as a predictor}
+\label{sec:rating-baseline}
+
+The Elo expected score computed from the two ratings, \run{elo-gap}, has an
+RMSE of \V{run.elo-gap.score} (95\% CI \V{run.elo-gap.score.low} to
+\V{run.elo-gap.score.high}), which is higher than the \V{floor.score} of the
+constant baseline. Its R\textsuperscript{2} is negative (\V{run.elo-gap.r2};
+95\% CI \V{run.elo-gap.r2.low} to \V{run.elo-gap.r2.high}), which means that
+its squared error is larger than that of predicting the mean result of the
+test set for every position. Its rank correlation with the result is
+\V{run.elo-gap.spearman} (Table~\ref{tab:metrics}).
+\ifpairs
+\run{gbm-context}, whose inputs include the two ratings, is
+\V{pair.gbm-context.elo-gap.verdict} than \run{elo-gap} on the test set (gain
+\V{pair.gbm-context.elo-gap.gain}; 95\% CI
+\V{pair.gbm-context.elo-gap.gain.low} to
+\V{pair.gbm-context.elo-gap.gain.high}).
+\fi
+
+\iflook
+Figure~\ref{fig:formula} shows the reason. Across the bins the mean result
+rises with the formula's prediction, but far less steeply than the diagonal. In the lowest
+of the \V{reference.reliability.groups} bins the formula gives the mover
+\V{run.elo-gap.reliability.lowest.said} on average and movers score
+\V{run.elo-gap.reliability.lowest.happened}. In the highest bin it gives
+\V{run.elo-gap.reliability.highest.said} and movers score
+\V{run.elo-gap.reliability.highest.happened}. The higher-rated player thus
+scores more than one half, but much less than the formula predicts, and the
+squared error of the formula's confident predictions outweighs what its
+ordering of the positions gains.
+
+\begin{figure}[htbp]\centering
+\block{reliability-elo-gap}
+\caption{Mean result against mean prediction for the Elo expected score and
+the GBDT baseline, in bins of equal size by a model's prediction. Points on
+the diagonal are unbiased.}
+\label{fig:formula}
+\end{figure}
+\fi
+
+The formula is not equally inaccurate at all ratings. Its RMSE is higher than
+that of the constant baseline in each of the four bands of the mover's rating
+below 2000, and lower in the band \V{band.5.name} (\V{run.elo-gap.band.5}
+against \V{band.5.floor}; Table~\ref{tab:bands}).
+
+We have not identified the cause of the miscalibration. That a position is
+more informative than the ratings does not explain it. The formula describes the result of a game,
+and every position of a game has the result of that game, so the calibration
+of the formula on these positions is its calibration on the games themselves,
+up to the weighting of a game by its number of positions. Two explanations
+are possible, and the dataset does not contain the variables needed to test
+them. First, a large rating difference may often involve a rating that is not
+yet reliable, such as that of a new account.\iflook{} Most games in the
+dataset are between players of similar rating: only in the lowest and the
+highest bin of Figure~\ref{fig:formula} is the formula's prediction far from
+one half.\fi{} Glicko-2 records the uncertainty of a rating separately, as
+the rating deviation, and the Elo formula applied to the rating alone ignores
+it. Second, the dataset contains only games for which a user requested
+computer analysis, and games with an unexpected result may be analysed more
+often.\iflook{} The largest errors of the best model are consistent with the
+first explanation without establishing it. They include a game in which a
+player rated exactly 1500, the rating that Lichess assigns to a new account,
+defeated an opponent rated more than 900 points higher
+(Section~\ref{sec:positions}).\fi
+
+This result does not mean that the ratings are uninformative. The
+opponent's rating and the mover's rating are the second and third most
+important features of the GBDT baseline
+(Section~\ref{sec:importance})\iflook, and the relation between the win
+probability and the result depends strongly on the mover's rating
+(Section~\ref{sec:error})\fi.
+
+\subsection{Secondary metrics}
+
+Table~\ref{tab:metrics} gives all metrics for every model. The
+R\textsuperscript{2} of the best model is \V{best.r2}, compared with
+\V{reference.r2} for the GBDT baseline, \V{run.gbm-context.r2} for GBDT on
+the context features alone and \V{run.engine-curve.r2} for the engine-derived
+win probability. The rank correlations with the result are \V{best.spearman},
+\V{reference.spearman}, \V{run.gbm-context.spearman} and
+\V{run.engine-curve.spearman}. RMSE, R\textsuperscript{2} and the rank
+correlation order these four models in the same way.
+
+\begin{table}[htbp]\centering\small
+\block{metrics}
+\caption{All metrics for every model on the test set. RMSE and MAE are errors
+of the predicted score and lower is better. The models are ranked by RMSE;
+the MAE favours extreme predictions (Section~\ref{sec:protocol}). For
+R\textsuperscript{2} and Spearman's rank correlation higher is better. The
+constant baseline predicts a single value and has no rank correlation.}
+\label{tab:metrics}
+\end{table}
+
+The MAE orders the models differently. The engine-derived win probability has
+the lowest MAE of all models (\V{run.engine-curve.mae}, compared with
+\V{reference.mae} for the GBDT baseline), although every fitted model has a
+lower RMSE. This is the property of the absolute error described in
+Section~\ref{sec:protocol}. The win probability is more extreme than the
+expected score, which lowers its absolute error and raises its squared
+error.\iflook{} For the same reason its prediction is closer to the result
+than that of the GBDT baseline on \V{run.engine-curve.beside.closer}\% of the
+test positions (Section~\ref{sec:error}).\fi
+
+\subsection{Results by rating band}
+
+Table~\ref{tab:bands} gives the RMSE by band of the mover's rating. The RMSE
+of the constant baseline is between \V{band.4.floor} and \V{band.2.floor} in
+the four bands below 2000 and \V{band.5.floor} in the band \V{band.5.name}.
+It measures the spread of the results in a band, so scores should be compared
+between models within a band and not between bands. Every model has its
+lowest RMSE in the highest band.
 
 \begin{table}[htbp]\centering\small
 \block{bands-table}
-\caption{RMSE by the mover's rating band. Read a column from the top down:
-the spread of the results differs from band to band, and every run's error
-with it.}
+\caption{Test RMSE by band of the mover's rating. The spread of the results
+differs between bands, so values are comparable within a column and not
+between columns.}
 \label{tab:bands}
 \end{table}
 
-\subsection{How the networks learned}
+The best model has a lower RMSE than the GBDT baseline in
+\V{bands.best-ahead.of}. The difference is largest in the band
+\V{bands.lead.widest.name} (\V{bands.lead.widest}) and smallest in the band
+\V{bands.lead.narrowest.name} (\V{bands.lead.narrowest}).\iflook{} With a
+paired comparison within each band, the gain is statistically significant in
+\V{slice.band.ahead.of} (Table~\ref{tab:slice-band} in the appendix). The
+engine-derived win probability has a higher RMSE than the GBDT baseline in
+every band. The difference is largest in the band
+\V{slice.band.engine-curve.behind.most.group}
+(\V{slice.band.engine-curve.behind.most}) and smallest in the band
+\V{slice.band.engine-curve.behind.least.group}
+(\V{slice.band.engine-curve.behind.least}). These are differences between two
+scores on the same positions, without confidence intervals.\fi
 
-Figure~\ref{fig:curves} follows each network of the ladder on the valid
-positions after every epoch. By that score, \V{ladder.at-last-epoch.of}
-peaked at the last epoch given: each found its best weights earlier and was
-stopped once \V{networks.patience} epochs passed without better ones. So a
-longer schedule is not the run to add here.
+\subsection{Training curves}
+
+Figure~\ref{fig:curves} shows the validation RMSE of each network of the
+fixed sequence after every epoch. By this measure
+\V{ladder.at-last-epoch.of} were still improving when training ended.
+\run{conv-small} had its best validation RMSE at epoch
+\V{run.conv-small.best-epoch} of \V{run.conv-small.epochs} and
+\run{transformer-small} at epoch \V{run.transformer-small.best-epoch} of
+\V{run.transformer-small.epochs}. \run{transformer-medium} had it at epoch
+\V{run.transformer-medium.best-epoch} of \V{run.transformer-medium.epochs}
+and \run{transformer-medium-hand} at epoch
+\V{run.transformer-medium-hand.best-epoch}, and early stopping ended the
+training of both after epoch \V{run.transformer-medium.epochs.run}.
 \ifmore
-On four times the games it is: there the network's best epoch was its last
-(Section~\ref{sec:changes}).
+The medium transformer trained on \V{more.transformer-medium-hand.most} the
+games is the exception among the networks of this paper: its best epoch was
+its last (Section~\ref{sec:training-size}).
 \fi
 
 \begin{figure}[htbp]\centering
 \block{curves}
-\caption{Each ladder network's RMSE on the valid positions after every
-epoch. The dashed line is the reference's score on the same rows.}
+\caption{Validation RMSE of each network of the fixed sequence after every
+epoch. The dashed line is the GBDT baseline's validation RMSE.}
 \label{fig:curves}
 \end{figure}
 
-\subsection{What the trees lean on}
+\subsection{Feature importance of the GBDT baseline}
+\label{sec:importance}
 
-The reference grew \V{reference.trees} trees over \V{reference.features}
-features (Figure~\ref{fig:leans}). The engine's number comes first by a wide
-margin: \V{reference.leans.1.feature}, with \V{reference.leans.1.share}\% of
-the gain. After it come \V{reference.leans.2.feature}
-(\V{reference.leans.2.share}\%), \V{reference.leans.3.feature}
-(\V{reference.leans.3.share}\%), \V{reference.leans.4.feature}
-(\V{reference.leans.4.share}\%), \V{reference.leans.5.feature}
-(\V{reference.leans.5.share}\%) and \V{reference.leans.6.feature}
-(\V{reference.leans.6.share}\%). A share of gain says what the trees used. It
-does not say what decides a game.
+The GBDT baseline consists of \V{reference.trees} trees over
+\V{reference.features} features. Figure~\ref{fig:leans} shows the ten
+features with the largest shares of the total split gain. The win probability
+before the move accounts for \V{reference.leans.1.share}\% of the gain. It is
+followed by the \V{reference.leans.2.feature}
+(\V{reference.leans.2.share}\%), the \V{reference.leans.3.feature}
+(\V{reference.leans.3.share}\%), the \V{reference.leans.4.feature}
+(\V{reference.leans.4.share}\%), the \V{reference.leans.5.feature}
+(\V{reference.leans.5.share}\%) and the \V{reference.leans.6.feature}
+(\V{reference.leans.6.share}\%). The model thus relies mainly on the engine's
+assessment and adjusts it for the ratings, the material and the clocks. Split
+gain shows which features the model used. It does not identify what decides a
+game, because correlated features divide the credit between them arbitrarily.
 
 \begin{figure}[htbp]\centering
 \block{leans}
-\caption{The ten features the reference's trees gained most from: each
-feature's share of the total gain of the splits made on it.}
+\caption{The ten most important features of the GBDT baseline, by share of
+the total split gain.}
 \label{fig:leans}
 \end{figure}
 
 \ifchanges
-\section{One change at a time}
-\label{sec:changes}
+\section{Ablations}
+\label{sec:ablations}
 
-\input{../../../papers/changes}
+\input{../../../papers/ablations}
 
-\ifpairs
-\paragraph{What a start from engine evaluations was worth here.}
-The lab's position-evaluation model trains the same medium transformer on
-positions from the open Lichess evaluations file, to say the mover's winning
-chances as an engine sees them. The model is there for its body: a run of
-this model can start from it. The embeddings and the blocks are copied in,
-the head starts new, and the run then trains on this model's games on the
-ladder's schedule, with nothing else changed.
+\ifchangehand
+\subsection{Hand-crafted features}
 
-Here the start did not help. On the board alone,
-\V{run.transformer-medium-pretrained.name} is
-\V{pair.transformer-medium-pretrained.transformer-medium.valid.verdict} than
-the run it changed on the valid positions and
-\V{pair.transformer-medium-pretrained.transformer-medium.verdict} on the
-test positions (\V{pair.transformer-medium-pretrained.transformer-medium.gain},
-\V{pair.transformer-medium-pretrained.transformer-medium.gain.low} to
-\V{pair.transformer-medium-pretrained.transformer-medium.gain.high}): it is
-\V{pair.transformer-medium-pretrained.transformer-medium.kept}. With the
-hand features, \V{run.transformer-medium-hand-pretrained.name} is
-\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.valid.verdict}
-than the run it changed on the valid positions and
-\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.verdict}
-on the test positions
-(\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain},
-\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.low}
-to
-\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.high}):
-it is
-\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.kept}
-either. Both peaked sooner than the runs they changed, at epoch
-\V{run.transformer-medium-pretrained.best-epoch} and
-\V{run.transformer-medium-hand-pretrained.best-epoch} against
-\V{run.transformer-medium.best-epoch} and
-\V{run.transformer-medium-hand.best-epoch}, and the trainer stopped each
-\V{networks.patience} epochs after its best.
-
-A reading: what the body learned first is the engine's verdict on a
-position, and every learner of this model is handed that verdict as a
-number. The start brings nothing this model lacks, and a body that arrives
-fitted to one reading of the board goes on to fit the training games
-sooner. A run that is not kept leaves the leaderboard when it is filed, and
-its row stays in Table~\ref{tab:pairs} as the measurement of what the start
-is worth here. The lab's own paper sets this beside the other models, where
-the same start is kept.
+The hand-crafted features give GBDT a small, significant gain and give the
+medium transformer none. Compared with \run{gbm-context}, \run{gbm-hand} is
+\V{pair.gbm-hand.gbm-context.valid.verdict} than its base on the validation
+set and \V{pair.gbm-hand.gbm-context.verdict} on the test set (gain
+\V{pair.gbm-hand.gbm-context.gain} RMSE; 95\% CI
+\V{pair.gbm-hand.gbm-context.gain.low} to
+\V{pair.gbm-hand.gbm-context.gain.high}), so the modification is
+\V{pair.gbm-hand.gbm-context.kept}. Compared with \run{transformer-medium},
+\run{transformer-medium-hand} is
+\V{pair.transformer-medium-hand.transformer-medium.valid.verdict} than its
+base on the validation set and
+\V{pair.transformer-medium-hand.transformer-medium.verdict} on the test set
+(gain \V{pair.transformer-medium-hand.transformer-medium.gain}; 95\% CI
+\V{pair.transformer-medium-hand.transformer-medium.gain.low} to
+\V{pair.transformer-medium-hand.transformer-medium.gain.high}), so the
+modification is \V{pair.transformer-medium-hand.transformer-medium.kept}.
+\iffeatures
+Section~\ref{sec:feature-groups} shows which groups of features GBDT uses.
+\fi
 \fi
 
-\input{../../../papers/studies}
+\ifchangestart
+\subsection{Pretraining}
+
+A pretrained encoder makes both medium transformers worse. Without
+hand-crafted features, \run{transformer-medium-pretrained} is
+\V{pair.transformer-medium-pretrained.transformer-medium.valid.verdict} than
+its base on the validation set and
+\V{pair.transformer-medium-pretrained.transformer-medium.verdict} on the
+test set (gain \V{pair.transformer-medium-pretrained.transformer-medium.gain}
+RMSE; 95\% CI
+\V{pair.transformer-medium-pretrained.transformer-medium.gain.low} to
+\V{pair.transformer-medium-pretrained.transformer-medium.gain.high}), and
+the modification is
+\V{pair.transformer-medium-pretrained.transformer-medium.kept}. With
+hand-crafted features, \run{transformer-medium-hand-pretrained} is
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.valid.verdict}
+than its base on the validation set and
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.verdict}
+on the test set (gain
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain};
+95\% CI
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.low}
+to
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.high}),
+and the modification is
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.kept}.
+
+Both pretrained models had their best validation RMSE earlier than their
+bases: \run{transformer-medium-pretrained} at epoch
+\V{run.transformer-medium-pretrained.best-epoch} and
+\run{transformer-medium-hand-pretrained} at epoch
+\V{run.transformer-medium-hand-pretrained.best-epoch} of
+\V{run.transformer-medium-pretrained.epochs}, compared with epoch
+\V{run.transformer-medium.best-epoch} for both of their bases
+(Figure~\ref{fig:variants}). Each was stopped \V{networks.patience} epochs
+after its best epoch by early stopping.
+
+Pretraining with the same encoder is accepted in the puzzle-difficulty,
+blunder-risk, move-time and tactic-found tasks of this repository. In two of
+them, blunder risk and tactics found, the models also receive an
+engine-derived win probability as an input, so receiving the evaluation does
+not by itself explain the result. What distinguishes the present task is that
+the evaluation is close to the target itself: used directly as a prediction,
+it achieves \V{run.engine-curve.lift.share}\% of the GBDT baseline's
+improvement over the constant baseline. We hypothesise that an encoder
+trained to reproduce the engine's evaluation adds little to a model that
+already receives this evaluation and predicts a closely related quantity, and
+that it then fits the training games sooner than an encoder trained from
+random initialisation, as the earlier best epochs suggest. We have not tested
+this hypothesis.
+\fi
+
+\input{../../../papers/training-set-size}
 
 \ifgames
-\paragraph{What more games are worth here.}
-The trees do not need all the games they have. Trained on half of them and
-on a quarter, they are worse beyond the noise in
-\V{study.games.gbm-hand.worse.of}: the paired gains are
-\V{pair.gbm-hand-half.gbm-hand.gain} and
-\V{pair.gbm-hand-quarter.gbm-hand.gain}. The network does lose, in
-\V{study.games.transformer-medium-hand.worse.of}: \V{pair.transformer-medium-hand-half.transformer-medium-hand.gain} on half the games
-and \V{pair.transformer-medium-hand-quarter.transformer-medium-hand.gain} on a quarter. It is behind the trees on every
-share of the games, by less as the games are added
-(Table~\ref{tab:games}). A reading: what this model can say is set by what
-it reads, the engine's evaluation and the two ratings, and not by how many
-games it has seen. On that reading a larger dataset would at most bring the
-network level with the trees.
+\paragraph{Smaller training sets.}
+GBDT loses little on smaller training sets, and the transformer loses more.
+Relative to the same model trained on the full training set, \run{gbm-hand}
+has a paired gain of \V{pair.gbm-hand-half.gbm-hand.gain} RMSE on half of the
+training games (\V{pair.gbm-hand-half.gbm-hand.verdict}) and of
+\V{pair.gbm-hand-quarter.gbm-hand.gain} on a quarter
+(\V{pair.gbm-hand-quarter.gbm-hand.verdict}). For
+\run{transformer-medium-hand} the gains are
+\V{pair.transformer-medium-hand-half.transformer-medium-hand.gain} and
+\V{pair.transformer-medium-hand-quarter.transformer-medium-hand.gain}, and it
+is significantly worse in \V{study.games.transformer-medium-hand.worse.of}.
+On both subsets the transformer has the higher RMSE of the two models
+(Table~\ref{tab:games}).
 \fi
 
 \ifmore
-\paragraph{What more games were worth.}
-That reading was then checked on a larger build of the dataset, which holds
-\V{more.gbm-hand.most} the training games and every row these runs are
-scored on. Against the run trained on today's games,
-\V{run.transformer-medium-hand.name} has a paired gain of
-\V{pair.transformer-medium-hand-double.transformer-medium-hand.gain} on twice the games and of
-\V{pair.transformer-medium-hand-quadruple.transformer-medium-hand.gain} on four times, which is
-\V{pair.transformer-medium-hand-quadruple.transformer-medium-hand.verdict}. The trees' gains are
-\V{pair.gbm-hand-double.gbm-hand.gain} and
-\V{pair.gbm-hand-quadruple.gbm-hand.gain}, the second
-\V{pair.gbm-hand-quadruple.gbm-hand.verdict}. By the lab's rule the
-network on four times the games is \V{more.transformer-medium-hand.most.kept} and the trees
-on four times the games are \V{more.gbm-hand.most.kept}. On twice the games
-the network is
-\V{pair.transformer-medium-hand-double.transformer-medium-hand.kept}, and
-the trees are \V{pair.gbm-hand-double.gbm-hand.kept}: they are
-\V{pair.gbm-hand-double.gbm-hand.valid.verdict} on the valid positions and
-\V{pair.gbm-hand-double.gbm-hand.verdict} on the test positions.
+\paragraph{Larger training sets.}
+The larger sample contains up to \V{more.gbm-hand.most} the training games,
+with the validation and test sets unchanged. Relative to the same model on
+the standard training set, \run{transformer-medium-hand} has a paired gain of
+\V{pair.transformer-medium-hand-double.transformer-medium-hand.gain} RMSE on
+twice the training games
+(\V{pair.transformer-medium-hand-double.transformer-medium-hand.verdict};
+\V{pair.transformer-medium-hand-double.transformer-medium-hand.kept}) and of
+\V{pair.transformer-medium-hand-quadruple.transformer-medium-hand.gain} on
+four times
+(\V{pair.transformer-medium-hand-quadruple.transformer-medium-hand.verdict};
+\V{pair.transformer-medium-hand-quadruple.transformer-medium-hand.kept}).
+For GBDT the gains are \V{pair.gbm-hand-double.gbm-hand.gain}
+(\V{pair.gbm-hand-double.gbm-hand.verdict};
+\V{pair.gbm-hand-double.gbm-hand.kept}) and
+\V{pair.gbm-hand-quadruple.gbm-hand.gain}
+(\V{pair.gbm-hand-quadruple.gbm-hand.verdict};
+\V{pair.gbm-hand-quadruple.gbm-hand.kept}).
 
-The check bore out half of the reading. The network did come level with the
-trees: on four times the games it scores
-\V{run.transformer-medium-hand-quadruple.score} to their
-\V{run.gbm-hand-quadruple.score}, and its gain over the reference is
-\V{run.transformer-medium-hand-quadruple.gain}
-(\V{run.transformer-medium-hand-quadruple.gain.low} to
-\V{run.transformer-medium-hand-quadruple.gain.high}). The other half did
-not hold. The trees were read as needing no more games, and on four times
-as many they are better beyond the noise, by a little: \V{best.name} is
-the best run, and the runs on more games lie inside each other's
-intervals (Table~\ref{tab:leaderboard}). The intervals of the two learners'
-gains on four times the games overlap.
+The RMSE of both models decreases with every doubling of the training set,
+from a quarter of the games to four times (Figure~\ref{fig:games}). More data
+helps the transformer more than GBDT: its paired gain is the larger one at
+both larger sizes, although the intervals of the two models' gains overlap
+(Table~\ref{tab:games}). With four times the games the two models have almost
+the same RMSE, \V{run.gbm-hand-quadruple.score} for GBDT and
+\V{run.transformer-medium-hand-quadruple.score} for the transformer.
+\run{gbm-hand-quadruple} is the best model of this task, and the transformer
+on four times the games does not differ significantly from the GBDT baseline
+on the standard training set (gain
+\V{run.transformer-medium-hand-quadruple.gain}; 95\% CI
+\V{run.transformer-medium-hand-quadruple.gain.low} to
+\V{run.transformer-medium-hand-quadruple.gain.high}).
 
-On four times the games the network was still getting better on the valid
-positions when its schedule ended. On today's games it had its best valid epoch at
-\V{run.transformer-medium-hand.best-epoch} of
-\V{run.transformer-medium-hand.epochs} and was stopped after
-\V{run.transformer-medium-hand.epochs.run}. On twice the games it still
-turned, with its best at \V{run.transformer-medium-hand-double.best-epoch}
-of \V{run.transformer-medium-hand-double.epochs} and a stop after
-\V{run.transformer-medium-hand-double.epochs.run}, and on four times its
-best was \V{run.transformer-medium-hand-quadruple.best-epoch} of
-\V{run.transformer-medium-hand-quadruple.epochs}, its last. A reading: on
-its own games the network fits them too closely within a few epochs, on four
-times as many it no longer does within these steps, and what holds it there
-is its steps. Each run was trained once.
+The schedules of the three transformer models have the same number of
+optimisation steps. On
+the standard training set the transformer had its best validation RMSE at
+epoch \V{run.transformer-medium-hand.best-epoch} of
+\V{run.transformer-medium-hand.epochs}. On twice the games it had it at epoch
+\V{run.transformer-medium-hand-double.best-epoch} of
+\V{run.transformer-medium-hand-double.epochs}, and on four times in the final
+epoch, \V{run.transformer-medium-hand-quadruple.best-epoch} of
+\V{run.transformer-medium-hand-quadruple.epochs}, so its validation RMSE was
+still decreasing when its schedule ended. We hypothesise that with four times
+the data the transformer is limited by its number of optimisation steps, in
+which case its gain is a lower bound. GBDT was not limited in this way: on
+four times the games it used \V{run.gbm-hand-quadruple.trees} of the
+\V{method.gbm.rounds} boosting rounds it was allowed.
+
+These results are consistent with models that are limited by the number of
+games. All positions of a game share one result, so the training set
+contains far fewer independent outcomes than positions, and what the board
+adds to the evaluation has to be learned from them.
 \fi
+
+\input{../../../papers/feature-groups}
 
 \iffeatures
-\paragraph{Which counts the trees need here.}
-The trees are worse beyond the noise without the group in
-\V{study.features.gbm-hand.worse.of}. The group that costs most is
-\V{study.features.gbm-hand.most.group}, at
-\V{study.features.gbm-hand.most.gain}, and the moves on offer cost
-\V{pair.gbm-hand-no-mobility.gbm-hand.gain}. Without loose pieces the trees
-are \V{pair.gbm-hand-no-hanging.gbm-hand.verdict}, without the
-attackers near the kings \V{pair.gbm-hand-no-kings.gbm-hand.verdict},
-and without the passed pawns
-\V{pair.gbm-hand-no-pawns.gbm-hand.verdict}. Every one of these is
-small beside what the trees gain over the engine's curve alone
-(Table~\ref{tab:pairs}): the counts of the position add little to an
-evaluation that has already weighed it.
+\paragraph{Material and mobility are the groups that GBDT uses.}
+The ablation was run for the GBDT baseline. It is significantly worse in
+\V{study.features.gbm-hand.worse.of}. The largest loss follows the removal of
+the \V{study.features.gbm-hand.most.group} group, which consists of the total
+material, the material balance and the number of minor and major pieces
+(paired gain \V{study.features.gbm-hand.most.gain}). Without the mobility
+features, which are the numbers of legal moves, legal captures and legal
+checks and whether the mover is in check, the paired gain is
+\V{pair.gbm-hand-no-mobility.gbm-hand.gain}
+(\V{pair.gbm-hand-no-mobility.gbm-hand.verdict}). Without the hanging-piece
+features it is \V{pair.gbm-hand-no-hanging.gbm-hand.gain}
+(\V{pair.gbm-hand-no-hanging.gbm-hand.verdict}), without the passed-pawn
+features \V{pair.gbm-hand-no-pawns.gbm-hand.gain}
+(\V{pair.gbm-hand-no-pawns.gbm-hand.verdict}), and without the two features
+that count attacks near the kings \V{pair.gbm-hand-no-kings.gbm-hand.gain}
+(\V{pair.gbm-hand-no-kings.gbm-hand.verdict}). Removing all hand-crafted
+features gives \run{gbm-context}, whose gain relative to the GBDT baseline is
+\V{run.gbm-context.gain} (Table~\ref{tab:leaderboard}).
+
+The engine evaluation already reflects the material on the board, and yet
+the material balance has the largest share of the split gain among the
+hand-crafted features (\V{reference.leans.4.share}\%;
+Figure~\ref{fig:leans}). We have not determined what the material features
+add to the evaluation. Three explanations are possible. First, the win
+probability is limited: at least one position in twenty has its maximum of
+\V{describe.win-before.max}\% (Table~\ref{tab:describe}), and among such
+positions the material balance may still distinguish a larger advantage from
+a smaller one. Second, at the same evaluation, an advantage that consists of
+extra material may be converted more reliably than one that depends on
+finding particular moves. Third, the total material and the number of pieces
+describe the phase of the game\iflook, and the RMSE falls with the number of
+pieces on the board (Section~\ref{sec:phase})\fi. The ablation removes the
+three features together and does not distinguish between these
+explanations.
 \fi
 \fi
 
-\section{A closer look}
-\label{sec:closer}
+\section{Error Analysis}
+\label{sec:error}
 
-\input{../../../papers/closer}
+\input{../../../papers/error-analysis}
 
 \iflook
-\paragraph{A third run in every cut.}
-This paper's question is about a run that fits nothing, so the cuts below
-set \run{engine-curve} beside the reference: what the engine's number said
-on average in each group, what happened there, and what the reference said.
-Where a table gives the reference's lead over the curve in a group, it is
-the difference of the two scores on that group's rows. Only the gain of
-\V{challenger.name} over the reference was resampled group by group, so a
-lead over the curve has no interval, and a small group's lead is a
-direction, not a finding. The interval for the whole test set is in
-Section~\ref{sec:results}.
+\paragraph{Models compared in this section.}
+In this task the best model and the GBDT baseline are the same model trained
+on different amounts of data, and their predictions are almost identical
+(correlation \V{best.beside.correlation}). The comparison of interest is the
+one between the engine-derived win probability and a fitted model. The tables
+and figures of this section therefore show \run{engine-curve} next to the
+GBDT baseline. Their last column, \emph{Baseline's lead}, is the RMSE of
+\run{engine-curve} minus the RMSE of the GBDT baseline on the positions of
+the subgroup. This difference was not resampled within subgroups and has no
+confidence interval, so in a small subgroup it indicates a direction and is
+not a significant result. The interval for the whole test set is given in
+Section~\ref{sec:engine-baseline}. The subgroup tables for the best model,
+with paired gains, are in the appendix.
 
-\subsection{What the engine's number is worth as a forecast}
+\subsection{Win probability before the move}
 
-Figure~\ref{fig:reliability} sorts the test positions by what a run said and
-cuts them into \V{reference.reliability.groups} groups of equal size. A
-forecast that can be taken at its word lies on the diagonal. The reference
-does: the widest gap between what it said in a group and what happened there
-is \V{reference.reliability.widest-gap}. The engine's curve bends away from
-the diagonal at both ends. Where it says
-\V{run.engine-curve.reliability.lowest.said}, movers score
-\V{run.engine-curve.reliability.lowest.happened}, and where it says
-\V{run.engine-curve.reliability.highest.said} they score
-\V{run.engine-curve.reliability.highest.happened}. Its widest gap is
-\V{run.engine-curve.reliability.widest-gap}, in a group it gives
-\V{run.engine-curve.reliability.widest-gap.said} whose movers score
-\V{run.engine-curve.reliability.widest-gap.happened}.
-
-\begin{figure}[htbp]\centering
-\block{reliability-engine-curve}
-\caption{What a run said against what happened, in
-\V{reference.reliability.groups} groups of equal size by what the run said.
-On the diagonal a stated score is the score movers got.}
-\label{fig:reliability}
-\end{figure}
-
-Table~\ref{tab:win} cuts the same way by the engine's number itself, in
-tenths, and Figure~\ref{fig:win-bias} draws how far each run is from what
-happened. Where the engine gives the mover under 10\%, movers score
-\V{slice.win.-10.happened} and the curve says
-\V{slice.win.-10.engine-curve.said}. At 10 to 20\% they score
-\V{slice.win.10-20.happened} against \V{slice.win.10-20.engine-curve.said}.
-On the winning side the curve errs the other way: at 80 to 90\% movers score
-\V{slice.win.80-90.happened} where it says
-\V{slice.win.80-90.engine-curve.said}, and at 90\% and over
-\V{slice.win.90+.happened} against \V{slice.win.90+.engine-curve.said}. The
-widest gap of the table, \V{slice.win.engine-curve.widest-off}, is in the
-group \V{slice.win.engine-curve.widest-off.group}. The reference's widest is
-\V{slice.win.reference.widest-off}, in the group
-\V{slice.win.reference.widest-off.group}.
+Table~\ref{tab:win} divides the test positions by the mover's win probability
+before the move, in steps of ten percentage points, and
+Figure~\ref{fig:win-bias} shows the mean prediction minus the mean result for
+the two models. In the four groups below 40\% the mean result is higher than
+the mean win probability, and in the six groups from 40\% on it is lower. The
+deviations are largest in the second group from each end. Between 10\% and
+20\%, movers score \V{slice.win.10-20.happened}, where the win probability
+averages \V{slice.win.10-20.engine-curve.said}, and between 80\% and 90\%
+they score \V{slice.win.80-90.happened}, where it averages
+\V{slice.win.80-90.engine-curve.said}. The largest deviation,
+\V{slice.win.engine-curve.widest-off}, occurs in the group
+\V{slice.win.engine-curve.widest-off.group}. From positions that the engine
+rates between 80\% and 90\%, movers obtain a lower mean result than the
+\V{slice.win.70-80.engine-curve.said} that the win probability averages over
+the positions that it rates between 70\% and 80\%. In the outermost groups
+the deviations are smaller: movers score \V{slice.win.-10.happened} against a
+mean win probability of \V{slice.win.-10.engine-curve.said} below 10\%, and
+\V{slice.win.90+.happened} against \V{slice.win.90+.engine-curve.said} at
+90\% and above.
 
 \begin{table}[htbp]\centering\footnotesize
 \block{slice-win-engine-curve}
-\caption{The test positions by the mover's chance of winning by the engine,
-in percent. \emph{Happened} is the movers' mean result; \emph{said} is a
-run's mean prediction. The last column is the reference's lead over the
-curve in RMSE on the group's rows, which has no interval.}
+\caption{Test-set results by the mover's win probability before the move, in
+percent. For each group: the number of test positions, the mean result, and
+the mean prediction and RMSE of the engine-derived win probability and of the
+GBDT baseline. \emph{Baseline's lead} is the difference between the two RMSE
+values, without a confidence interval.}
 \label{tab:win}
 \end{table}
 
 \begin{figure}[htbp]\centering
 \block{slice-win-bias-engine-curve}
-\caption{What each run said on average less what happened, by the mover's
-chance of winning by the engine. Above the dashed line a run promises the
-mover more than movers got.}
+\caption{Mean prediction minus mean result by the mover's win probability
+before the move, for the engine-derived win probability and the GBDT
+baseline. Above the line a model predicts a higher score than movers
+obtained.}
 \label{fig:win-bias}
 \end{figure}
 
-So a position the engine calls nearly lost is lost less often than it says,
-and one it calls nearly won is won less often. That is what a person would
-guess, and the size of it is the news. A position the engine rates between
-80\% and 90\% is worth less to its mover in these games than the curve says
-of one it rates between 70\% and 80\%
-(\V{slice.win.70-80.engine-curve.said}).
+The pattern is not symmetric about 50\%. In the two groups between 40\% and
+60\% the win probability is above the mean result, by
+\V{slice.win.40-50.engine-curve.off} and \V{slice.win.50-60.engine-curve.off},
+and each deviation above 60\% is larger in absolute value than the one in the
+mirrored group below 40\%. This asymmetry is consistent with the offset
+described in Section~\ref{sec:engine-baseline}, which adds to the
+overconfidence where the mover stands well and compensates part of it where
+the mover stands badly.
 
-\subsection{Half a move}
-\label{sec:half}
+The GBDT baseline has the lower RMSE in every group. Its lead is smallest in
+the group \V{slice.win.engine-curve.behind.least.group}
+(\V{slice.win.engine-curve.behind.least}) and largest in the group
+\V{slice.win.engine-curve.behind.most.group}
+(\V{slice.win.engine-curve.behind.most}). Its own largest deviation from the
+mean result is \V{slice.win.reference.widest-off}, in the group
+\V{slice.win.reference.widest-off.group}, and its deviation in the group
+80-90 is \V{slice.win.80-90.reference.off}. The best model, which was trained
+on \V{more.gbm-hand.most} the games, deviates by almost the same amounts in
+these two groups (\V{slice.win.10-20.challenger.off} and
+\V{slice.win.80-90.challenger.off}), so a larger training set does not remove
+them. The two groups are related. When one player has between 10\% and 20\%,
+the opponent has between 80\% and 90\%, so both groups come from games in
+which one side had such an advantage, seen from the two sides, and the two
+deviations are not independent. We have not determined whether they reflect
+the sampling of the \V{data.games.test} test games or a property of the
+models.
 
-The two ends are not mirror images: the curve's gaps are wider on the
-winning side. The reason is a shift that sits under the whole table. Over
-all the test positions the curve gives the mover
-\V{overall.engine-curve.said} on average, and the mover scores
-\V{overall.happened}. The second number has to be near a half, since both
-players' moves give rows and one player's win is the other's loss. The first
-would be a half as well if the engine's number were read at a random moment.
-It is read just before the mover moves. The opponent has just moved, and a
-move by a person gives something away on average. The mover's own move will
-give something away too, and it has not been played yet.
+\subsection{Rating}
 
-The arithmetic is short. If a move costs $d$ points of winning chances on
-average, the number before a move stands half of $d$ above an even split. So
-the gap of \V{overall.engine-curve.off} is not the engine misjudging
-anything. It is what a mean loss of about twice that on every move looks
-like from the mover's chair, and it is in any review that shows the number
-before a move: on average it flatters whoever is to move. It widens the
-curve's gap on the winning side and narrows it on the losing side. The
-fitted runs have no such shift: the reference is off by
-\V{overall.gbm-hand.off} over all the test positions.
-
-One cut fits this reading. A mover in check has few moves to choose from and
-often one, so less to give away. There the curve says
-\V{slice.check.yes.engine-curve.said} and movers score
-\V{slice.check.yes.happened}, while out of check it says
-\V{slice.check.no.engine-curve.said} against \V{slice.check.no.happened}.
-
-\subsection{By the mover's rating}
-
-Figure~\ref{fig:grid-rating} crosses the mover's rating with the engine's
-number. Each cell is what a run said on average less what happened there,
-for the curve above and the reference below, on one scale of colour.
+Figure~\ref{fig:grid-rating} gives the mean result by the mover's rating and
+the win probability, and Figure~\ref{fig:grid-rating-off} the deviations of
+the two models from it. From positions that the engine rates at 80\% or more,
+movers rated below 1100 score \V{grid.rating-win.-1100.80+.happened}, where
+the win probability averages
+\V{grid.rating-win.-1100.80+.engine-curve.said}. The mean result rises with
+every rating band, to \V{grid.rating-win.2000+.80+.happened} for movers rated
+2000 and above, where the win probability averages
+\V{grid.rating-win.2000+.80+.engine-curve.said}. At the other end, from
+positions rated below 20\%, movers rated below 1100 score
+\V{grid.rating-win.-1100.-20.happened}, where the win probability averages
+\V{grid.rating-win.-1100.-20.engine-curve.said}, and the mean result falls
+with every band, to \V{grid.rating-win.2000+.-20.happened} for movers rated
+2000 and above (\V{grid.rating-win.2000+.-20.engine-curve.said}). From
+positions rated between 60\% and 80\%, movers rated below 1100 score
+\V{grid.rating-win.-1100.60-80.happened} and movers rated 2000 and above
+\V{grid.rating-win.2000+.60-80.happened}.
 
 \begin{figure}[htbp]\centering
-\block{grid-rating-win-off-engine-curve}
-\caption{What a run said on average less the movers' mean result, by the
-mover's rating and the mover's chance of winning by the engine. Above: the
-engine's curve. Below: the reference. Orange is a run that promises the mover
-more than movers got, blue one that promises less, and both grids share one
-scale. A cell with fewer than \V{grid.smallest-cell} test positions is left
-empty.}
+\block{grid-rating-win}
+\caption{Mean result by the mover's rating and the mover's win probability
+before the move. Cells with too few test positions are left empty.}
 \label{fig:grid-rating}
 \end{figure}
 
-The curve's grid is coloured most strongly along its top row. From positions
-the engine rates at 80\% or more, movers under 1100 score
-\V{grid.rating-win.-1100.80+.happened}, where the curve says
-\V{grid.rating-win.-1100.80+.engine-curve.said}. Movers at 2000 and over
-score \V{grid.rating-win.2000+.80+.happened} against
-\V{grid.rating-win.2000+.80+.engine-curve.said}. At the other end, a mover
-under 1100 whom the engine gives under 20\% scores
-\V{grid.rating-win.-1100.-20.happened} where the curve says
-\V{grid.rating-win.-1100.-20.engine-curve.said}; at 2000 and over the two
-numbers are \V{grid.rating-win.2000+.-20.happened} and
-\V{grid.rating-win.2000+.-20.engine-curve.said}. The column of clear edges
-that are not yet decisive, 60 to 80\%, puts it in a coach's terms: under 1100
-such a position is worth \V{grid.rating-win.-1100.60-80.happened} to the
-mover, and at 2000 and over \V{grid.rating-win.2000+.60-80.happened}.
+\begin{figure}[htbp]\centering
+\block{grid-rating-win-off-engine-curve}
+\caption{Mean prediction minus mean result by the mover's rating and the
+mover's win probability before the move. Top: the engine-derived win
+probability. Bottom: the GBDT baseline. Orange cells mark a prediction above
+the mean result and blue cells one below it, and both panels use the same
+colour scale.}
+\label{fig:grid-rating-off}
+\end{figure}
 
-The rows in between fall in order, and the order is the one the curve's own
-making predicts. It was fitted to games between players rated 2300 and over,
-and the note beside the fit says a lower multiplier suits lower-rated
-games~\cite{lilawinchances}. The bottom row of the grid is the nearest this
-dataset comes to those players, and there the curve stays close in every
-column. The reference's grid is pale throughout: it reads the ratings, and it
-has learned what the verdict is worth at each.
+The win probability is thus close to the mean result for the strongest
+players and increasingly overconfident for weaker ones. This agrees with the
+origin of the curve: its coefficient was fitted to games between players
+rated 2300 and above~\cite{lilawinchances}, and the band of movers rated 2000
+and above is the closest that this dataset comes to those players. The
+largest deviation of the win probability in any cell is
+\V{grid.rating-win.engine-curve.widest-off}, for movers rated
+\V{grid.rating-win.engine-curve.widest-off.row} and a win probability of
+\V{grid.rating-win.engine-curve.widest-off.column}, compared with
+\V{grid.rating-win.gbm-hand.widest-off} for the GBDT baseline, which receives
+both ratings.
 
-A weak mover's lost positions are saved more often for the same reason a
-weak mover's won positions are lost: games are paired by rating, so the
-opponent is about as weak. The grid is a statement about a pairing, not
-about one player.
+These values describe games and not individual players. Most games in the
+dataset are between players of similar rating
+(Section~\ref{sec:rating-baseline}), so the two ends of the range show the
+same games from the two sides: among lower-rated players the side with the
+advantage wins less often, which lowers the result of the mover who stands
+well and raises that of the mover who stands badly.
 
-\subsection{By the clock}
+\subsection{Clock}
 
-The engine has no view of the clock, and the clock decides games. With under
-thirty seconds left the mover scores \V{slice.clock.-30.happened}, and with
-thirty to sixty \V{slice.clock.30-60.happened} (Table~\ref{tab:clock},
-Figure~\ref{fig:clock}). The engine's number in those two groups averages
+The engine evaluation takes no account of the clock, and the clock affects
+the result. With less than 30 seconds remaining on the mover's clock, movers
+score \V{slice.clock.-30.happened}, and with 30 to 60 seconds
+\V{slice.clock.30-60.happened} (Table~\ref{tab:clock},
+Figure~\ref{fig:clock}). The win probability averages
 \V{slice.clock.-30.engine-curve.said} and
-\V{slice.clock.30-60.engine-curve.said}: on the board these movers stand
-about level. From two minutes up the clock makes little difference to the
-result, which is \V{slice.clock.120-300.happened} with two to five minutes
-left and \V{slice.clock.480+.happened} with eight or more.
+\V{slice.clock.30-60.engine-curve.said} in these two groups, so by the
+evaluation these movers stand about level. With one to two minutes remaining
+the mean result is \V{slice.clock.60-120.happened}, and from two minutes on
+it is close to one half: \V{slice.clock.120-300.happened},
+\V{slice.clock.300-480.happened} and \V{slice.clock.480+.happened} in the
+three remaining groups.
 
 \begin{table}[htbp]\centering\footnotesize
 \block{slice-clock-engine-curve}
-\caption{The test positions by the seconds on the mover's clock. The last
-column is the reference's lead over the curve in RMSE on the group's rows,
-which has no interval.}
+\caption{Test-set results by the time remaining on the mover's clock, in
+seconds. \emph{Baseline's lead} is the difference between the two RMSE
+values, without a confidence interval.}
 \label{tab:clock}
 \end{table}
 
 \begin{figure}[htbp]\centering
 \block{slice-clock-said-engine-curve}
-\caption{The movers' mean result by the seconds on the mover's clock, beside
-what the engine's curve and the reference said on average.}
+\caption{Mean result and mean prediction of the engine-derived win
+probability and of the GBDT baseline, by the time remaining on the mover's
+clock.}
 \label{fig:clock}
 \end{figure}
 
-The same holds from the other chair (Figure~\ref{fig:opponent-clock}). A
-mover whose opponent has under thirty seconds scores
-\V{slice.opponent-clock.-30.happened}, where the curve says
-\V{slice.opponent-clock.-30.engine-curve.said}. The reference reads both
-clocks and follows both lines: it says \V{slice.clock.-30.reference.said}
-for a mover under thirty seconds and
-\V{slice.opponent-clock.-30.reference.said} for a mover whose opponent is.
+The time remaining on the opponent's clock has the opposite effect
+(Figure~\ref{fig:opponent-clock}). A mover whose opponent has less than 30
+seconds remaining scores \V{slice.opponent-clock.-30.happened}, where the win
+probability averages \V{slice.opponent-clock.-30.engine-curve.said}. The GBDT
+baseline receives both clocks. Its mean prediction is
+\V{slice.clock.-30.reference.said} for movers with less than 30 seconds and
+\V{slice.opponent-clock.-30.reference.said} for movers whose opponent has
+less than 30 seconds.
 
 \begin{figure}[htbp]\centering
 \block{slice-opponent-clock-said-engine-curve}
-\caption{The movers' mean result by the seconds on the opponent's clock,
-beside what the engine's curve and the reference said on average.}
+\caption{Mean result and mean prediction of the engine-derived win
+probability and of the GBDT baseline, by the time remaining on the opponent's
+clock.}
 \label{fig:opponent-clock}
 \end{figure}
 
-The reference's lead over the curve is widest in the group
-\V{slice.clock.engine-curve.behind.most.group}
-(\V{slice.clock.engine-curve.behind.most}) and narrowest in
-\V{slice.clock.engine-curve.behind.least.group}
-(\V{slice.clock.engine-curve.behind.least}). The short-clock groups are
-small, \V{slice.clock.-30.rows} and \V{slice.clock.30-60.rows} positions of
-\V{look.test-rows}, so those leads are a direction. The direction is the
-same in each of the three groups under two minutes, on the mover's clock and
-on the opponent's (Table~\ref{tab:slice-opponent-clock-engine-curve} in the
+The lead of the GBDT baseline over the win probability is largest under time
+pressure: between \V{slice.clock.60-120.engine-curve.behind} and
+\V{slice.clock.30-60.engine-curve.behind} in the three groups below two
+minutes on the mover's clock, compared with
+\V{slice.clock.480+.engine-curve.behind} with eight minutes or more. These
+groups are small. They contain \V{slice.clock.-30.rows},
+\V{slice.clock.30-60.rows} and \V{slice.clock.60-120.rows} of the
+\V{look.test-rows} test positions, because most of a rapid game is played
+with ample time, and the deviation of the GBDT baseline itself reaches
+\V{slice.clock.reference.widest-off} in the group
+\V{slice.clock.reference.widest-off.group}. The lead is positive in all
+three groups, and also in the three groups below two minutes on the
+opponent's clock (Table~\ref{tab:slice-opponent-clock-engine-curve} in the
 appendix).
 
-Figure~\ref{fig:grid-clock} crosses the clock with the engine's number. With
-under thirty seconds, positions the engine calls level, 40 to 60\%, are worth
-\V{grid.clock-win.-30.40-60.happened} to the mover
-(\V{grid.clock-win.-30.40-60.rows} positions), and positions it rates at
-80\% or more are worth \V{grid.clock-win.-30.80+.happened}, where the curve
-says \V{grid.clock-win.-30.80+.engine-curve.said}. The widest gap of the
-curve's grid, \V{grid.clock-win.engine-curve.widest-off}, is in the row
-\V{grid.clock-win.engine-curve.widest-off.row} and the column
-\V{grid.clock-win.engine-curve.widest-off.column}, a cell of few positions.
-And time in hand does not close the gap: with five minutes or more, a
-position rated 80\% or more is worth \V{grid.clock-win.300+.80+.happened},
-against the curve's \V{grid.clock-win.300+.80+.engine-curve.said}.
+Figure~\ref{fig:grid-clock} combines the clock with the win probability.
+With less than 30 seconds remaining, positions that the engine rates as
+balanced, between 40\% and 60\%, yield \V{grid.clock-win.-30.40-60.happened}
+for the mover (\V{grid.clock-win.-30.40-60.rows} test positions), and
+positions that it rates at 80\% or more yield
+\V{grid.clock-win.-30.80+.happened}, where the win probability averages
+\V{grid.clock-win.-30.80+.engine-curve.said}. Ample time does not remove the
+overconfidence: with five minutes or more, positions rated at 80\% or more
+yield \V{grid.clock-win.300+.80+.happened}, where the win probability
+averages \V{grid.clock-win.300+.80+.engine-curve.said}. The largest deviation
+of the win probability in any cell, \V{grid.clock-win.engine-curve.widest-off},
+occurs in a cell with \V{grid.clock-win.30-60.60-80.rows} test positions
+(\V{grid.clock-win.engine-curve.widest-off.row} seconds, win probability
+\V{grid.clock-win.engine-curve.widest-off.column}).
 
 \begin{figure}[htbp]\centering
+\block{grid-clock-win}
+
+\medskip
 \block{grid-clock-win-off-engine-curve}
-\caption{What a run said on average less the movers' mean result, by the
-seconds on the mover's clock and the mover's chance of winning by the
-engine. Above: the engine's curve. Below: the reference. Colours as in
-Figure~\ref{fig:grid-rating}.}
+\caption{Results by the time remaining on the mover's clock and the mover's
+win probability before the move. Top: mean result. Middle and bottom: mean
+prediction minus mean result for the engine-derived win probability and for
+the GBDT baseline, with colours as in Figure~\ref{fig:grid-rating-off}. Cells
+with too few test positions are left empty.}
 \label{fig:grid-clock}
 \end{figure}
 
-\subsection{By the stage of the game}
+\subsection{Phase of the game}
+\label{sec:phase}
 
-Every run's error falls as the game goes on (Table~\ref{tab:ply}). Before ply
-20 the reference scores \V{slice.ply.-20.reference}, and one number for
-every position \V{slice.ply.-20.constant}: early in a game the result is
-open, and no reading of the position narrows it much. From ply 80 on the
-reference scores \V{slice.ply.80+.reference} against the floor's
-\V{slice.ply.80+.constant}. The later the position, the more of the result
-is already on the board.
+The RMSE of both models falls with every group of plies
+(Table~\ref{tab:ply}). Before ply 20 the RMSE of the GBDT baseline is
+\V{slice.ply.-20.reference} and that of the constant baseline
+\V{slice.ply.-20.constant}: early in a game the result is open, and the
+position, the ratings and the clocks reduce the error only slightly. From ply
+80 on, the RMSE of the GBDT baseline is \V{slice.ply.80+.reference},
+compared with \V{slice.ply.80+.constant} for the constant baseline. The same
+pattern appears by the number of minor and major pieces on the board: the
+fewer pieces remain, the lower the RMSE
+(Table~\ref{tab:slice-pieces-engine-curve} in the appendix). The authors of
+Allie likewise report that the outcome of a game becomes more predictable as
+the game progresses, for a value head trained on human
+games~\cite{allie}.
 
 \begin{table}[htbp]\centering\footnotesize
 \block{slice-ply-engine-curve}
-\caption{The test positions by the ply of the game. The last column is the
-reference's lead over the curve in RMSE on the group's rows, which has no
-interval.}
+\caption{Test-set results by ply. \emph{Baseline's lead} is the difference
+between the two RMSE values, without a confidence interval.}
 \label{tab:ply}
 \end{table}
 
-The reference's lead over the curve is narrowest in the group
-\V{slice.ply.engine-curve.behind.least.group}
-(\V{slice.ply.engine-curve.behind.least}) and widest in
-\V{slice.ply.engine-curve.behind.most.group}
-(\V{slice.ply.engine-curve.behind.most}). Late positions are where clocks
-have run down and verdicts have become extreme, the two places the curve is
-furthest off, so this table most likely repeats the last two subsections
-more than it adds to them. The cut by the pieces left on the board says the
-same (Table~\ref{tab:slice-pieces-engine-curve} in the appendix).
+The lead of the GBDT baseline over the win probability grows with every
+group, from \V{slice.ply.-20.engine-curve.behind} before ply 20 to
+\V{slice.ply.80+.engine-curve.behind} from ply 80 on. A plausible explanation
+is that late positions more often have little time on the clock and an
+extreme evaluation, the two conditions under which the win probability
+deviates most. The tables do not separate these factors, so this analysis may
+repeat the two preceding ones.
 
-\subsection{What the board adds}
+\subsection{Hanging pieces}
 
-The hand features count what can be taken. A mover with none of their own
-pieces hanging scores \V{slice.hanging.0.happened} and one with two hanging
-\V{slice.hanging.2.happened}; a mover whose opponent has two pieces hanging
-scores \V{slice.opponent-hanging.2.happened}
+The hand-crafted features include the number of hanging pieces of each side,
+that is pieces attacked by a less valuable piece or attacked and not
+defended. A mover with no hanging piece scores \V{slice.hanging.0.happened}
+and a mover with two \V{slice.hanging.2.happened}, and a mover whose opponent
+has two hanging pieces scores \V{slice.opponent-hanging.2.happened}
 (Tables~\ref{tab:slice-hanging-engine-curve}
-and~\ref{tab:slice-opponent-hanging-engine-curve} in the appendix). The
-engine's number moves with these counts as well, since a piece that can be
-taken is already in its verdict, and in every group but the smallest the
-curve stays about as far above what happened as it does over all the test
-positions. So the counts tell the trees little that the verdict has not
-told them, which is why they add so little to the score.
+and~\ref{tab:slice-opponent-hanging-engine-curve} in the appendix). The win
+probability follows these differences, because the engine's evaluation
+already reflects a piece that can be captured: its means in the three groups
+are \V{slice.hanging.0.engine-curve.said},
+\V{slice.hanging.2.engine-curve.said} and
+\V{slice.opponent-hanging.2.engine-curve.said}. The counts therefore add
+little to the evaluation, in agreement with the feature-group ablation, in
+which the GBDT baseline without the hanging-piece features is
+\V{pair.gbm-hand-no-hanging.gbm-hand.verdict}.
 
-\subsection{The rating formula}
-\label{sec:formula}
+\subsection{Agreement with the GBDT baseline}
 
-Figure~\ref{fig:formula} is the picture behind the leaderboard's lowest
-rung. The formula's groups lie on a line much flatter than the diagonal.
-Where it gives the mover \V{run.elo-gap.reliability.lowest.said}, the
-lowest twentieth of what it says, movers score
-\V{run.elo-gap.reliability.lowest.happened}. Where it gives
-\V{run.elo-gap.reliability.highest.said}, they score
-\V{run.elo-gap.reliability.highest.happened}.
-
-\begin{figure}[htbp]\centering
-\block{reliability-elo-gap}
-\caption{What the rating formula said against what happened, in
-\V{reference.reliability.groups} groups of equal size by what it said, with
-the reference beside it.}
-\label{fig:formula}
-\end{figure}
-
-That the position says more than the ratings from the sixth move on does
-not explain a line this flat. The formula was made for whole games, and a
-position's result is its game's, so on these rows it should hold as well as
-it does on the games. Why it does not is not something this dataset can say
-yet, and two readings are open. One is the pairing. Most games here are
-between players close in rating, so a large gap is unusual, and an unusual
-pairing may more often involve a rating that is not settled, such as a new
-account's, which says less than the formula assumes. The other is the
-sample: only analysed games give rows, players choose which games to
-analyse, and an upset may be chosen more often. The games' headers carry
-each player's rating change, which is large for an unsettled rating, and a
-column of it would test the first reading. Until then the plain finding
-stands: in these games the rating gap alone forecasts a result worse than
-one number does.
-
-\subsection{Beside the reference}
-
-Table~\ref{tab:beside} sets each run's predictions beside the reference's,
-row by row. The engine's curve is closer to the result than the reference on
-\V{run.engine-curve.beside.closer}\% of the test positions and has the worse
-score all the same. That is the mean absolute error's lesson again
-(Section~\ref{sec:scoring}): the curve is surer, so it is a little closer
-whenever the likelier result comes in and far off whenever it does not.
+Table~\ref{tab:beside} gives, for each model, the correlation of its
+predictions with those of the GBDT baseline on the test set and the share of
+test positions on which its prediction is closer to the result. The
+correlation is \V{run.engine-curve.beside.correlation} for the engine-derived
+win probability and \V{run.elo-gap.beside.correlation} for the Elo expected
+score. The win probability is closer to the result than the GBDT baseline on
+\V{run.engine-curve.beside.closer}\% of the positions and has the higher RMSE
+nevertheless. On average it is the more extreme of the two predictions, so
+it is slightly closer whenever the more likely result occurs and much further
+away whenever it does not, and the squared error gives the large errors more
+weight.
 
 \begin{table}[htbp]\centering\small
 \block{beside}
-\caption{Each run beside the reference on the test positions: the
-correlation of the two runs' predictions, and the share of positions on
-which the run's prediction lies closer to the result than the reference's.}
+\caption{Agreement with the GBDT baseline on the test set: the correlation
+between the two models' predictions, and the share of positions on which the
+model's prediction is closer to the result than the baseline's.}
 \label{tab:beside}
 \end{table}
 
-\section{Positions}
+\subsection{Example positions}
 \label{sec:positions}
 
-The positions below were chosen by rule from the test games. Each board is
-seen from the side to move. The grey arrow is the opponent's last move and
-the blue arrow is the move that was played. Beside each board are the move,
-the game's result for the mover, what the best run and the reference said,
-and what the position came with, the engine's number among it. The games are
-public Lichess games; no game is named.
+The following examples were selected from the test set by the fixed rules
+described above. Each board is shown from the mover's side. The grey arrow is
+the opponent's preceding move and the blue arrow is the move that was played.
+Next to each board we give the move, the result of the game for the mover,
+the predictions of the best model and of the GBDT baseline, and the context
+of the position, which includes the mover's win probability before the move
+and the length of the game. The games are public Lichess games.
 
-A miss means something else here than in the lab's other papers. The label
-is one game's result, so a run that says 0.9 is wrong on a tenth of such
-positions by its own account, and its largest misses are those games. In
-this build the largest misses upward (Figure~\ref{fig:over}) are positions
-the best run called won, in games the mover lost: an ending with a piece and
-two pawns more against an opponent with a few seconds left, which went on
-for many moves more and was lost; a position far ahead on the board in a
-game lost not long after; and an early position of a game in which the mover
-was rated far above the opponent. The largest misses downward
-(Figure~\ref{fig:under}) are the first and the last of those games seen
-from the other chair, and a third game the engine called lost, which the
-mover won. An upset is a large miss from both chairs. Neither set shows a
-fault of the model. They show what the average is made of. The positions
-the best run is surest of are in the appendix (Figures~\ref{fig:highest}
-and~\ref{fig:lowest}): the highest are won positions for the higher-rated
-player, two of them in one game against an opponent rated far lower, and the
-lowest are that game from the other chair and a lost position with the
-mover's own clock nearly gone.
+Figure~\ref{fig:typical} shows three typical positions. The predictions of
+the best model lie between 0.2 and 0.52, and the results are a win, a loss
+and a win. For most positions the prediction is far from every possible
+result, which is why the RMSE of every model is large.
 
-\examples{examples-typical}{Ordinary positions: the first \V{examples.count}
-test positions in the order of a hash of their key, so nothing about them
-picked them.}{fig:typical}
+An error has a different meaning in this task than in the companion papers.
+The target is the result of one game, so a model that predicts 0.9 for a
+group of positions expects the mover to lose some of these games, and its
+largest errors are those games. The largest overestimates
+(Figure~\ref{fig:over}) are positions with a win probability of more than
+75\% in games that the mover lost, and the largest underestimates
+(Figure~\ref{fig:under}) are positions with a win probability below 10\% in
+games that the mover won. Two of the three games in Figure~\ref{fig:over}
+appear in Figure~\ref{fig:under} from the opponent's side. In one of them the
+mover had more than six minutes on the clock and the opponent nine seconds,
+in a game that lasted 157 plies. In the other, a player rated 2467 lost to an
+opponent rated 1500. These examples show what a mean result consists of. They
+do not indicate a defect of the model. The positions with the highest and the
+lowest predictions are shown in the appendix (Figures~\ref{fig:highest}
+and~\ref{fig:lowest}).
 
-\examples{examples-over}{The best run's largest misses upward: the test
-positions where it said the highest score for a mover who
+\examples{examples-typical}{Typical positions: the first \V{examples.count}
+test positions in the order of a hash of their key.}{fig:typical}
+
+\examples{examples-over}{The largest overestimates: the test positions with
+the highest predictions of the best model among the games that the mover
 lost.}{fig:over}
 
-\examples{examples-under}{The best run's largest misses downward: the test
-positions where it said the lowest score for a mover who
+\examples{examples-under}{The largest underestimates: the test positions with
+the lowest predictions of the best model among the games that the mover
 won.}{fig:under}
 \fi
 
-\section{What the app can use today}
+\section{Practical Use}
 \label{sec:use}
 
 \begin{itemize}
-\item \textbf{A second number beside the engine's.} The engine says what the
-position is worth. The trees say what players at these ratings and clocks
-score from it. A review can show both, and the second is right on average
-across its whole range.
-\item \textbf{The difference is the lesson.} Where the two numbers part, the
-position is harder for the mover than the engine's verdict says, or easier:
-a won game that is routinely not won at the player's level, a lost one that
-is routinely saved. Those are the positions a coach would stop at.
-\item \textbf{A table is nearly enough.} Trees that read only the engine's
-number, the ratings, the clocks and the move number make
-\V{context.lift.share}\% of the reference's step from the floor, and the
-engine's number alone \V{run.engine-curve.lift.share}\%. A table by rating
-and engine's number, with a term for a short clock, needs no model in the
-app at all, and the refitted curve named in the last section measures how
-much of the correction it carries.
-\item \textbf{The number before a move flatters the mover.} Read before the
-mover's own move, the engine's chance stands above the result by half a
-typical move's loss. A review that compares the number before and after a
-move is not touched by this. One that says ``you stood at 60\% here'' is.
-\item \textbf{The trees are the model.} \V{task.reference} trains in
-\V{reference.seconds} on a CPU, and \V{ladder.ahead.of} beat it.
-\ifmore
-On \V{more.gbm-hand.most} the games the same trees train in
-\V{run.gbm-hand-quadruple.seconds} and are the best run.
-\fi
-\item \textbf{Never a verdict on one game.} No run explains more than a
-share of \V{best.r2} of the variance of a result. The number is an average
-over many games of a kind, and one game says nothing against it.
+\item \textbf{An expected score next to the engine's evaluation.} The
+engine-derived win probability describes the position under best play. A
+fitted model gives the mean result that players with these ratings and clocks
+obtain from such a position. An application can display both.\iflook{} The
+fitted value is accurate on average: the mean prediction of the GBDT baseline
+is within \V{reference.reliability.widest-gap} of the mean result in every
+bin of its predictions.\fi
+\item \textbf{The difference between the two is informative.} Where the two
+values differ, players of the user's rating obtain a different result from
+the position than best play would: a winning position that is often not won,
+or a lost position that is often saved. Such positions are candidates for a
+review.
+\item \textbf{GBDT is sufficient.} The GBDT baseline is trained in
+\V{reference.seconds} on a CPU, and no network is significantly better.\ifmore{}
+Trained on \V{more.gbm-hand.most} the games, in \V{best.seconds}, it is the
+best model.\fi
+\item \textbf{Most of the correction does not need the board.} GBDT on the
+context features alone achieves \V{context.lift.share}\% of the GBDT
+baseline's improvement over the constant baseline. Where the application
+cannot run a model, a table of the mean result by rating and win probability,
+with a correction for a low clock, is a possible substitute. We have not
+evaluated such a table.
+\item \textbf{The win probability before a move favours the mover.} An
+evaluation taken before a player's move overstates that player's expected
+score, on average by half the mean loss of a move
+(Section~\ref{sec:engine-baseline}). A statement about how a player stood
+should allow for this.
+\item \textbf{Not a verdict on a single game.} No model explains more than
+\V{best.r2} of the variance of the result. A prediction is the mean of many
+comparable games, and the result of one game is not evidence against it.
 \end{itemize}
 
-\section{What the model does not say yet}
+\section{Limitations}
 \label{sec:limits}
 
 \begin{itemize}
-\item \textbf{One result a game.} Every position of a game carries the same
-result, so the test set is as large as its games. The intervals resample
-whole games for that reason\ifmore. The runs on more games added training
-games and no test games, so the intervals are as wide as they were, and a
-larger test set is what would tell the runs at the top apart\else, and more
-games is the first thing to add\fi.
-\item \textbf{No intervals for the curve, group by group.} The reference's
-lead over the engine's curve is resampled over all the test positions. In
-the cuts it is a difference of two scores.
-\item \textbf{A lost position won on the clock is a win.} The label counts
-it as the player does. The data does not yet say which results were flags.
-\item \textbf{A pairing, not a player.} Games are paired by rating, so what
-a weak mover saves is also what a weak opponent lets slip.
-\item \textbf{Only analysed games.} Only games with Lichess's engine
-analysis give a row, and players choose which games to analyse.
-\item \textbf{The evaluation is as deep as Lichess's server analysis.} A
-deeper search would move some verdicts.
-\item \textbf{Lichess rapid players.} The ratings are Lichess's, and another
-site's need mapping first.
-\item \textbf{A score that can leave the scale.} A fitted run is not held
-between 0 and 1, and at the ends it says less than 0 or more than 1
-(Figures~\ref{fig:highest} and~\ref{fig:lowest} show by how much). The app
-would clip it.
-\item \textbf{What happens, not what would.} The model says what players at
-a level score from a kind of position. It does not say what this player
-would have scored by playing differently.
+\item \textbf{One result per game.} All positions of a game share one result,
+so the precision of every score depends on the number of test games,
+\V{data.games.test}. The confidence intervals allow for this by resampling
+whole games, and they are wide relative to the differences between the best
+models.\ifmore{} The larger training sets added training games and no test
+games.\fi
+\item \textbf{No confidence intervals for the win probability within
+subgroups.} The difference between the engine-derived win probability and the
+GBDT baseline was resampled for the whole test set. Within subgroups it is a
+difference between two scores.
+\item \textbf{Games decided on time.} A game lost on time counts as a loss,
+whatever the position. The dataset does not record how a game ended, so the
+effect of the clock on the result cannot be divided into worse moves under
+time pressure and losses on time.
+\item \textbf{A pairing, not a player.} The mean result of a kind of position
+depends on both players. A prediction for a mover of a given rating describes
+games against the opponents whom such players meet, who mostly have a similar
+rating.
+\item \textbf{Only analysed games.} Lichess analyses a game only when a user
+requests it, so the games are a self-selected subset.
+\item \textbf{The depth of the evaluations.} The evaluations are those of
+Lichess's server analysis. A deeper search would change some of them.
+\item \textbf{One site, one time control, one month.} The games are the first
+qualifying rapid games of one month on Lichess. Ratings from another site are
+on a different scale and have to be mapped first.
+\item \textbf{Predictions outside the range from 0 to 1.} The fitted models
+are regression models without a constraint on their output.\iflook{} The
+most extreme predictions of the best model are below 0 and above 1
+(Figures~\ref{fig:highest} and~\ref{fig:lowest}).\fi{} An application would
+limit them to this range.
+\item \textbf{Observed results, not counterfactual ones.} A model predicts
+what players of a given rating score from a kind of position. It does not
+predict what a particular player would have scored after a different move.
+\item \textbf{Single training runs.} Each network was trained with one
+random seed. The confidence intervals reflect the sampling of test games and
+not the variation between training runs.
 \end{itemize}
 
-\section{Cost and how to draw this again}
+\section{Reproducibility}
 \label{sec:cost}
 
-The \V{runs.count} runs took \V{cost.seconds} in all: \V{cost.seconds.networks}
-for the networks, each trained on a rented GPU, and
-\V{cost.seconds.others} for the floor, the two runs that fit nothing and the
-trees. The best network, \V{network.name}, has \V{network.parameters}
-parameters and trained for
-\V{network.epochs.run} epochs in \V{network.seconds} on an
-\V{network.device}, at about
-\V{network.rows-a-second} positions a second. Table~\ref{tab:runs} has every
-run's processor and time, and Table~\ref{tab:settings} the ladder networks'
-settings.
+Training the \V{runs.count} models on the leaderboard took \V{cost.seconds}
+in total: \V{cost.seconds.networks} for the networks, each trained on a
+single cloud GPU, and \V{cost.seconds.others} for the constant baseline, the
+two baselines without fitted parameters and GBDT on a CPU. The ablation
+models that are not on the leaderboard are not included in this total. The
+best model consists of \V{best.trees} trees and was trained in
+\V{best.seconds}. The best network, \V{network.name}, has
+\V{network.parameters} parameters and was trained for \V{network.epochs.run}
+epochs in \V{network.seconds} on an \V{network.device}, at about
+\V{network.rows-a-second} positions per second. Table~\ref{tab:runs} lists
+the hardware and training time of every model, and Table~\ref{tab:settings}
+the hyperparameters of the networks of the fixed sequence.
 
-Everything is drawn from committed files. The dataset is built by
-\texttt{lab data game-positions} from the recipe, the runs are trained by
-\texttt{lab all practical-chances}, each run writes its record under the
-model's \texttt{results/} folder, and \texttt{lab paper practical-chances}
-writes every number, table and figure of this paper from those records and
-compiles it. A record names the build of the data it read
-(\V{data.fingerprint}) and the commit of the code that trained it
-(\V{code.commit}). Weights and test predictions are not committed. They are
-kept on the owner's machine, and the model's card says where and gives the
-hashes of the best run's trees and the reference's.
+All results are generated from committed files. The dataset is built from
+its recipe by \texttt{lab data game-positions}, the models are trained by
+\texttt{lab all practical-chances}, each training run writes a record to the
+model's \texttt{results/} directory, and \texttt{lab paper practical-chances}
+generates every number, table and figure of this paper from those records and
+compiles it. A record names the build of the dataset it used
+(\V{data.fingerprint}) and the commit of the code that produced it
+(\V{code.commit}). Model weights and test predictions are not stored in the
+repository. The model's card states where they are kept and gives the hashes
+of the best model and of the GBDT baseline.
 
-\section{What comes next}
+\section{Conclusion and Future Work}
+\label{sec:conclusion}
 
+The result of a rated rapid game can be predicted from a single position with
+an RMSE of \V{best.score}, compared with \V{floor.score} for a constant
+prediction. Most of this improvement comes from the engine evaluation of the
+position. Used directly, the engine-derived win probability reaches
+\V{run.engine-curve.score}, but it is overconfident, most for lower-rated
+players and when little time remains, and before a move it overstates the
+mover's expected score, on average by half the mean loss of a move. GBDT on
+the win probability, the ratings and the clocks removes most of these
+deviations.
+Hand-crafted features of the position add a small further gain, and networks
+that read the board add nothing that the test set can detect. Every model
+leaves most of the variance of the result unexplained. The following
+experiments are the natural next steps.
 \begin{itemize}
-\ifgames\else
-\item \textbf{More games, or fewer.} A run on half and on a quarter of the
-training games says what a larger build would buy, and for a label that
-arrives once a game it may buy a good deal.
-\fi
+\item \textbf{A recalibrated curve.} A logistic curve with one coefficient
+per rating band and a term for the clock, fitted to these games, is the
+smallest model that could replace the fixed curve. Its RMSE relative to
+\run{engine-curve} and \run{gbm-context} would show how much of the
+improvement such a curve provides.
+\item \textbf{Confidence intervals within subgroups.} Resampling the
+comparison between the GBDT baseline and the engine-derived win probability
+within each subgroup would show which of the differences reported here are
+significant.
+\item \textbf{Win, draw and loss probabilities.} A model with three outputs
+would show how often a balanced position is drawn at each rating, which a
+single expected score does not.
+\item \textbf{How the game ended.} A variable for the termination of the game
+would separate losses on time from the effect of the clock on the quality of
+the moves.
+\item \textbf{The reliability of a rating.} The record of a game gives each
+player's rating change, which is large for a new account. With this variable,
+the Elo formula can be evaluated on games between players with established
+ratings.
 \ifmore
-\item \textbf{More games and more steps together.} On four times the games
-the network was still getting better when its schedule ended. The run on
-four times the games with twice the steps says whether it passes the trees
-there.
+\item \textbf{More data together with more optimisation steps.} On
+\V{more.transformer-medium-hand.most} the games the transformer had its best
+validation RMSE in the final epoch. A longer schedule on that training set,
+and still larger training sets for both model classes, are the missing cases.
 \fi
-\item \textbf{The curve, refitted.} One multiplier for each rating band and
-a term for the clock, fitted to these games. It is the smallest thing that
-could be carried to the app, and where it lands between \run{engine-curve}
-and \run{gbm-context} says how much of the trees' lead is a curve away.
-\item \textbf{Intervals for the curve in every cut.} The closer look
-resamples one pair of runs group by group. Resampling the reference against
-the curve the same way would turn this paper's directions into findings.
-\item \textbf{Three chances, not one score.} A head that gives a win, a
-draw and a loss says how often a level position is drawn at a rating, which
-one expected score hides.
-\item \textbf{The flag apart from the board.} A column for how the game
-ended would say how much of the clock's effect is the flag itself.
-\item \textbf{The unsettled rating.} A column for each player's rating
-change, to say what the rating formula is worth once new accounts are set
-aside.
-\item \textbf{The player's own scale.} A check, kept private, of whether
-the fitted number forecasts the player's own results better than the
-engine's does, after the ratings are mapped.
+\item \textbf{A larger test set.} The confidence intervals depend on the
+number of test games. More test games are needed to distinguish the best
+models from one another.
+\item \textbf{A player's own games.} Before the application displays an
+expected score to a player, the predictions should be compared with the
+results of that player's own games, after the ratings of the player's site
+have been mapped to the Lichess scale.
 \end{itemize}
 
 \bibliographystyle{unsrt}
@@ -1038,50 +1461,79 @@ engine's does, after the ratings are mapped.
 \clearpage
 \appendix
 
-\section{Sizes, schedules and features}
+\section{Hyperparameters and Features}
 
 \begin{table}[htbp]\centering\footnotesize
 \block{settings}
-\caption{The ladder networks' sizes and schedules, from their run configs.
-\emph{Rate} is the peak learning rate. A setting they all share is in the
-line under the table.}
+\caption{Hyperparameters of the networks of the fixed sequence, from their
+configuration files. \emph{LR} is the peak learning rate. Values shared by
+all of them are given below the table.}
 \label{tab:settings}
 \end{table}
 
 \begin{table}[htbp]\centering\footnotesize
 \block{hand}
-\caption{The hand features: what \V{task.reference} reads beside the context
-numbers, and a network when its run asks for them.}
+\caption{Hand-crafted features: the inputs of \V{task.reference} in addition
+to the scalar context features, and of a network whose configuration includes
+them.}
 \label{tab:hand}
 \end{table}
 
 \iflook
-\section{The extremes of what the model says}
+\section{Calibration of the Best Model}
 
-\examples{examples-highest}{The test positions for which the best run said
-the highest score.}{fig:highest}
+Figure~\ref{fig:reliability-best} shows the calibration of the best model
+next to that of the GBDT baseline. In the lowest of the
+\V{best.reliability.groups} bins the mean prediction of the best model is
+\V{best.reliability.lowest.said} and the mean result is
+\V{best.reliability.lowest.happened}. In the highest bin they are
+\V{best.reliability.highest.said} and \V{best.reliability.highest.happened}.
+The largest difference in any bin is \V{best.reliability.widest-gap},
+compared with \V{reference.reliability.widest-gap} for the GBDT baseline.
 
-\examples{examples-lowest}{The test positions for which the best run said
-the lowest score.}{fig:lowest}
+\begin{figure}[htbp]\centering
+\block{reliability}
+\caption{Mean result against mean prediction for the best model and the GBDT
+baseline, in bins of equal size by a model's prediction. Points on the
+diagonal are unbiased.}
+\label{fig:reliability-best}
+\end{figure}
 
-\section{Every cut of the test positions, for the engine's curve}
+\section{Examples with Extreme Predictions}
 
-Each table below groups the test positions by one column. The columns are the
-group, its test rows, the movers' mean result, then for the engine's curve
-and for the reference what the run said on average and its RMSE, and the
-reference's lead over the curve in RMSE on the group's rows, which has no
-interval.
+The three positions with the highest predictions have a win probability of
+more than 94\%, and in each of them the mover is rated at least 389 points
+above the opponent and won the game (Figure~\ref{fig:highest}). Two of them
+come from one game, and two of the three positions with the lowest
+predictions come from the same game with the other player to move. In the
+third, the mover has seven seconds left against more than four minutes for
+the opponent (Figure~\ref{fig:lowest}). All six predictions of the best model
+lie outside the range from 0 to 1.
+
+\examples{examples-highest}{The test positions with the highest predictions
+of the best model.}{fig:highest}
+
+\examples{examples-lowest}{The test positions with the lowest predictions of
+the best model.}{fig:lowest}
+
+\section{Subgroup Tables for the Engine-Derived Win Probability}
+
+Each table below partitions the test positions by one variable. The columns
+are the group, the number of test positions, the mean result
+(\emph{Observed}), the mean prediction and the RMSE of the engine-derived win
+probability and of the GBDT baseline, and the difference between the two RMSE
+values (\emph{Baseline's lead}), which has no confidence interval.
 
 \block{slices-engine-curve}
 
-\section{Every cut of the test positions, for the best run beside the reference}
+\section{Subgroup Tables for the Best Model}
 
-The same cuts for the pair of runs whose gain was resampled group by group:
-\V{challenger.name}, the best run that is not the reference, and the
-reference. The last two columns are the paired gain of the first over the
-second with its 95\% interval, bold when the interval leaves zero out. Of
-the \V{slices.compared} groups compared across the \V{slices.count} cuts,
-the first run is ahead beyond the noise in \V{slices.ahead} and behind in
+The same partitions for the two models whose gain was resampled within each
+subgroup: \V{challenger.name}, the best model other than the GBDT baseline,
+and the GBDT baseline. The last two columns are the paired gain of the first
+model over the second with its 95\% CI, in bold when statistically
+significant. Of the \V{slices.compared} subgroups, the gain is significantly
+positive in \V{slices.ahead} and significantly negative in
 \V{slices.behind}.
 
 \block{slices}

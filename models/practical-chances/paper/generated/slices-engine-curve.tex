@@ -5,7 +5,7 @@
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{engine-curve}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Reference's lead \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Baseline's lead \\
 \midrule
 \textless{}1100 & 10{,}712 & 0.5006 & 0.5329 & 0.4524 & 0.4950 & 0.4269 & +0.0255 \\
 1100-1400 & 16{,}674 & 0.4987 & 0.5235 & 0.4401 & 0.4982 & 0.4269 & +0.0132 \\
@@ -15,7 +15,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Reference's lead \\
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the mover's rating.}
+\caption{Test-set results by mover's rating.}
 \label{tab:slice-band-engine-curve}
 \end{table}
 
@@ -25,7 +25,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Reference's lead \\
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{engine-curve}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Reference's lead \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Baseline's lead \\
 \midrule
 \textless{}10 & 9{,}442 & 0.1087 & 0.0498 & 0.3062 & 0.1110 & 0.2904 & +0.0158 \\
 10-20 & 4{,}367 & 0.2656 & 0.1437 & 0.4500 & 0.2305 & 0.4279 & +0.0221 \\
@@ -40,7 +40,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Reference's lead \\
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the mover's winning chances by the engine (percent).}
+\caption{Test-set results by mover's win probability before the move (percent).}
 \label{tab:slice-win-engine-curve}
 \end{table}
 
@@ -50,7 +50,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Reference's lead \\
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{engine-curve}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Reference's lead \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Baseline's lead \\
 \midrule
 \textless{}30 & 718 & 0.3830 & 0.4801 & 0.4070 & 0.3579 & 0.3489 & +0.0581 \\
 30-60 & 777 & 0.3880 & 0.5151 & 0.4305 & 0.4208 & 0.3674 & +0.0631 \\
@@ -61,7 +61,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Reference's lead \\
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: seconds on the mover's clock.}
+\caption{Test-set results by time remaining on the mover's clock (seconds).}
 \label{tab:slice-clock-engine-curve}
 \end{table}
 
@@ -71,7 +71,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Reference's lead \\
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{engine-curve}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Reference's lead \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Baseline's lead \\
 \midrule
 \textless{}30 & 829 & 0.6665 & 0.5857 & 0.3885 & 0.6804 & 0.3357 & +0.0528 \\
 30-60 & 857 & 0.6009 & 0.5297 & 0.4093 & 0.5859 & 0.3643 & +0.0449 \\
@@ -82,7 +82,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Reference's lead \\
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: seconds on the opponent's clock.}
+\caption{Test-set results by time remaining on the opponent's clock (seconds).}
 \label{tab:slice-opponent-clock-engine-curve}
 \end{table}
 
@@ -92,7 +92,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Reference's lead \\
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{engine-curve}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Reference's lead \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Baseline's lead \\
 \midrule
 \textless{}20 & 13{,}950 & 0.5012 & 0.5257 & 0.4863 & 0.5012 & 0.4775 & +0.0088 \\
 20-30 & 14{,}918 & 0.5012 & 0.5277 & 0.4731 & 0.4997 & 0.4607 & +0.0125 \\
@@ -103,7 +103,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Reference's lead \\
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: ply of the game.}
+\caption{Test-set results by ply.}
 \label{tab:slice-ply-engine-curve}
 \end{table}
 
@@ -113,7 +113,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Reference's lead \\
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{engine-curve}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Reference's lead \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Baseline's lead \\
 \midrule
 \textless{}3 & 4{,}148 & 0.5092 & 0.5218 & 0.2944 & 0.5135 & 0.2817 & +0.0127 \\
 3-6 & 7{,}579 & 0.5041 & 0.5117 & 0.3338 & 0.4995 & 0.3207 & +0.0131 \\
@@ -123,7 +123,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Reference's lead \\
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: knights, bishops, rooks and queens on the board.}
+\caption{Test-set results by minor and major pieces on the board.}
 \label{tab:slice-pieces-engine-curve}
 \end{table}
 
@@ -133,7 +133,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Reference's lead \\
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{engine-curve}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Reference's lead \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Baseline's lead \\
 \midrule
 0 & 41{,}279 & 0.5142 & 0.5360 & 0.4442 & 0.5115 & 0.4321 & +0.0121 \\
 1 & 21{,}433 & 0.4891 & 0.5156 & 0.4301 & 0.4930 & 0.4148 & +0.0153 \\
@@ -142,7 +142,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Reference's lead \\
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the mover's pieces that can be taken.}
+\caption{Test-set results by number of the mover's hanging pieces.}
 \label{tab:slice-hanging-engine-curve}
 \end{table}
 
@@ -152,7 +152,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Reference's lead \\
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{engine-curve}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Reference's lead \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Baseline's lead \\
 \midrule
 0 & 47{,}113 & 0.4880 & 0.5104 & 0.4471 & 0.4885 & 0.4347 & +0.0124 \\
 1 & 17{,}063 & 0.5279 & 0.5498 & 0.4213 & 0.5255 & 0.4048 & +0.0165 \\
@@ -161,7 +161,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Reference's lead \\
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the opponent's pieces that can be taken.}
+\caption{Test-set results by number of the opponent's hanging pieces.}
 \label{tab:slice-opponent-hanging-engine-curve}
 \end{table}
 
@@ -171,13 +171,13 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Reference's lead \\
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{engine-curve}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Reference's lead \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Baseline's lead \\
 \midrule
 no & 63{,}024 & 0.5146 & 0.5406 & 0.4413 & 0.5150 & 0.4280 & +0.0133 \\
 yes & 5{,}555 & 0.3564 & 0.3456 & 0.3902 & 0.3497 & 0.3713 & +0.0189 \\
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the mover is in check.}
+\caption{Test-set results by whether the mover is in check.}
 \label{tab:slice-check-engine-curve}
 \end{table}

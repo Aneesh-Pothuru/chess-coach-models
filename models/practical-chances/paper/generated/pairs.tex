@@ -3,7 +3,7 @@
 \toprule
  &  &  & \multicolumn{3}{c}{Gain in RMSE} \\
 \cmidrule(lr){4-6}
-Run & Set against & What the run changes & Valid rows & Test rows & 95\% interval \\
+Model & Baseline & Change & Validation & Test & 95\% CI \\
 \midrule
 \endhead
 \bottomrule
@@ -11,15 +11,14 @@ Run & Set against & What the run changes & Valid rows & Test rows & 95\% interva
 \bottomrule
 \lablongcaption
 \endlastfoot
-\run{gbm-context} & \run{engine-curve} & another learner & +0.0129 & \textbf{+0.01136} & +0.00892 to +0.01369 \\
-\run{gbm-context} & \run{elo-gap} & another learner & +0.0715 & \textbf{+0.07069} & +0.06454 to +0.07692 \\
-\run{gbm-hand} & \run{gbm-context} & reads the hand features & +0.000407 & \textbf{+0.002288} & +0.001502 to +0.003088 \\
-\run{transformer-medium-hand} & \run{engine-curve} & another learner & +0.0121 & \textbf{+0.01243} & +0.00992 to +0.01502 \\
-\run{transformer-medium-hand} & \run{transformer-medium} & reads the hand features & $-$0.000913 & $-$0.000479 & $-$0.001288 to +0.000368 \\
-\run{gbm-hand-double} & \run{gbm-hand} & trains on twice the training games, from the larger build \code{game-positions-120k} & $-$0.000925 & +0.000521 & $-$0.000354 to +0.001437 \\
-\run{gbm-hand-quadruple} & \run{gbm-hand} & trains on four times the training games, from the larger build \code{game-positions-120k} & +0.000109 & \textbf{+0.001353} & +0.000469 to +0.002213 \\
-\run{transformer-medium-hand-double} & \run{transformer-medium-hand} & trains on twice the training games, from the larger build \code{game-positions-120k}; 6 epochs for 12; 2 epochs of patience for 3 & +0.000665 & \textbf{+0.001403} & +0.000507 to +0.002307 \\
-\run{transformer-medium-hand-pretrained} & \run{transformer-medium-hand} & starts from the body of \run{position-evaluation/transformer-medium} & $-$0.000714 & \textbf{$-$0.001252} & $-$0.002356 to $-$0.000165 \\
-\run{transformer-medium-hand-quadruple} & \run{transformer-medium-hand} & trains on four times the training games, from the larger build \code{game-positions-120k}; 3 epochs for 12; 1 epoch of patience for 3 & +0.00182 & \textbf{+0.002430} & +0.001459 to +0.003379 \\
-\run{transformer-medium-pretrained} & \run{transformer-medium} & starts from the body of \run{position-evaluation/transformer-medium} & $-$0.00252 & \textbf{$-$0.002151} & $-$0.003404 to $-$0.000856 \\
+\run{gbm-hand} & \run{gbm-context} & with hand-crafted features & +0.000407 & \textbf{+0.002288} & +0.001502 to +0.003088 \\
+\run{transformer-medium-hand} & \run{transformer-medium} & with hand-crafted features & $-$0.000913 & $-$0.000479 & $-$0.001288 to +0.000368 \\
+\run{transformer-medium-pretrained} & \run{transformer-medium} & encoder initialised from \run{position-evaluation/transformer-medium} & $-$0.00252 & \textbf{$-$0.002151} & $-$0.003404 to $-$0.000856 \\
+\run{transformer-medium-hand-pretrained} & \run{transformer-medium-hand} & encoder initialised from \run{position-evaluation/transformer-medium} & $-$0.000714 & \textbf{$-$0.001252} & $-$0.002356 to $-$0.000165 \\
+\run{gbm-context} & \run{elo-gap} & a different model class & +0.0715 & \textbf{+0.07069} & +0.06454 to +0.07692 \\
+\run{gbm-context} & \run{engine-curve} & a different model class & +0.0129 & \textbf{+0.01136} & +0.00892 to +0.01369 \\
+\run{transformer-medium-hand} & \run{engine-curve} & a different model class & +0.0121 & \textbf{+0.01243} & +0.00992 to +0.01502 \\
+\run{gbm-hand-quadruple} & \run{gbm-hand} & trained on four times the training games (\code{game-positions-120k}) & +0.000109 & \textbf{+0.001353} & +0.000469 to +0.002213 \\
+\run{transformer-medium-hand-double} & \run{transformer-medium-hand} & trained on twice the training games (\code{game-positions-120k}); 6 epochs in place of 12; 2 epochs of patience in place of 3 & +0.000665 & \textbf{+0.001403} & +0.000507 to +0.002307 \\
+\run{transformer-medium-hand-quadruple} & \run{transformer-medium-hand} & trained on four times the training games (\code{game-positions-120k}); 3 epochs in place of 12; 1 epoch of patience in place of 3 & +0.00182 & \textbf{+0.002430} & +0.001459 to +0.003379 \\
 \end{xltabular}

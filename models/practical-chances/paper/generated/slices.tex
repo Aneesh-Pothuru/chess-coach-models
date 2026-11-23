@@ -5,7 +5,7 @@
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand-quadruple}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Gain & 95\% CI \\
 \midrule
 \textless{}1100 & 10{,}712 & 0.5006 & 0.4960 & 0.4238 & 0.4950 & 0.4269 & \textbf{+0.003097} & +0.000538 to +0.005758 \\
 1100-1400 & 16{,}674 & 0.4987 & 0.4972 & 0.4256 & 0.4982 & 0.4269 & \textbf{+0.001286} & +0.000110 to +0.002586 \\
@@ -15,7 +15,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the mover's rating.}
+\caption{Test-set results by mover's rating.}
 \label{tab:slice-band}
 \end{table}
 
@@ -25,7 +25,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand-quadruple}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Gain & 95\% CI \\
 \midrule
 \textless{}10 & 9{,}442 & 0.1087 & 0.1095 & 0.2882 & 0.1110 & 0.2904 & \textbf{+0.002206} & +0.000654 to +0.003616 \\
 10-20 & 4{,}367 & 0.2656 & 0.2292 & 0.4275 & 0.2305 & 0.4279 & +0.000428 & $-$0.001411 to +0.002312 \\
@@ -40,7 +40,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the mover's winning chances by the engine (percent).}
+\caption{Test-set results by mover's win probability before the move (percent).}
 \label{tab:slice-win}
 \end{table}
 
@@ -50,7 +50,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand-quadruple}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Gain & 95\% CI \\
 \midrule
 \textless{}30 & 718 & 0.3830 & 0.3481 & 0.3394 & 0.3579 & 0.3489 & \textbf{+0.00957} & +0.00386 to +0.01630 \\
 30-60 & 777 & 0.3880 & 0.4140 & 0.3620 & 0.4208 & 0.3674 & \textbf{+0.00543} & +0.00006 to +0.01061 \\
@@ -61,7 +61,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: seconds on the mover's clock.}
+\caption{Test-set results by time remaining on the mover's clock (seconds).}
 \label{tab:slice-clock}
 \end{table}
 
@@ -71,7 +71,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand-quadruple}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Gain & 95\% CI \\
 \midrule
 \textless{}30 & 829 & 0.6665 & 0.6902 & 0.3318 & 0.6804 & 0.3357 & +0.00391 & $-$0.00234 to +0.01082 \\
 30-60 & 857 & 0.6009 & 0.5923 & 0.3610 & 0.5859 & 0.3643 & +0.00338 & $-$0.00401 to +0.01083 \\
@@ -82,7 +82,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: seconds on the opponent's clock.}
+\caption{Test-set results by time remaining on the opponent's clock (seconds).}
 \label{tab:slice-opponent-clock}
 \end{table}
 
@@ -92,7 +92,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand-quadruple}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Gain & 95\% CI \\
 \midrule
 \textless{}20 & 13{,}950 & 0.5012 & 0.5023 & 0.4768 & 0.5012 & 0.4775 & +0.000638 & $-$0.000506 to +0.001953 \\
 20-30 & 14{,}918 & 0.5012 & 0.4996 & 0.4593 & 0.4997 & 0.4607 & \textbf{+0.001338} & +0.000511 to +0.002608 \\
@@ -103,7 +103,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: ply of the game.}
+\caption{Test-set results by ply.}
 \label{tab:slice-ply}
 \end{table}
 
@@ -113,7 +113,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand-quadruple}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Gain & 95\% CI \\
 \midrule
 \textless{}3 & 4{,}148 & 0.5092 & 0.5127 & 0.2765 & 0.5135 & 0.2817 & \textbf{+0.005186} & +0.002119 to +0.007781 \\
 3-6 & 7{,}579 & 0.5041 & 0.4992 & 0.3186 & 0.4995 & 0.3207 & \textbf{+0.002085} & +0.000499 to +0.003688 \\
@@ -123,7 +123,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: knights, bishops, rooks and queens on the board.}
+\caption{Test-set results by minor and major pieces on the board.}
 \label{tab:slice-pieces}
 \end{table}
 
@@ -133,7 +133,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand-quadruple}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Gain & 95\% CI \\
 \midrule
 0 & 41{,}279 & 0.5142 & 0.5124 & 0.4307 & 0.5115 & 0.4321 & \textbf{+0.001357} & +0.000450 to +0.002284 \\
 1 & 21{,}433 & 0.4891 & 0.4918 & 0.4134 & 0.4930 & 0.4148 & \textbf{+0.001410} & +0.000426 to +0.002391 \\
@@ -142,7 +142,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the mover's pieces that can be taken.}
+\caption{Test-set results by number of the mover's hanging pieces.}
 \label{tab:slice-hanging}
 \end{table}
 
@@ -152,7 +152,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand-quadruple}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Gain & 95\% CI \\
 \midrule
 0 & 47{,}113 & 0.4880 & 0.4879 & 0.4334 & 0.4885 & 0.4347 & \textbf{+0.001279} & +0.000478 to +0.002301 \\
 1 & 17{,}063 & 0.5279 & 0.5256 & 0.4033 & 0.5255 & 0.4048 & \textbf{+0.001480} & +0.000561 to +0.002386 \\
@@ -161,7 +161,7 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the opponent's pieces that can be taken.}
+\caption{Test-set results by number of the opponent's hanging pieces.}
 \label{tab:slice-opponent-hanging}
 \end{table}
 
@@ -171,13 +171,13 @@ Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval 
 \toprule
  &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand-quadruple}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
-Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+Group & Test examples & Observed & Predicted & RMSE & Predicted & RMSE & Gain & 95\% CI \\
 \midrule
 no & 63{,}024 & 0.5146 & 0.5146 & 0.4266 & 0.5150 & 0.4280 & \textbf{+0.001370} & +0.000628 to +0.002339 \\
 yes & 5{,}555 & 0.3564 & 0.3528 & 0.3702 & 0.3497 & 0.3713 & +0.001142 & $-$0.000222 to +0.002437 \\
 \bottomrule
 \end{tabular}%
 }
-\caption{The test rows by: the mover is in check.}
+\caption{Test-set results by whether the mover is in check.}
 \label{tab:slice-check}
 \end{table}

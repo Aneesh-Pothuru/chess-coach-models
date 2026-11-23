@@ -8,12 +8,13 @@
   y dir=reverse,
   ymin=-0.6, ymax=4.6,
   ytick={0,1,2,3,4},
-  yticklabels={{material},{the moves on offer},{pieces that can be taken},{passed pawns},{attacks near the kings}},
+  yticklabels={{material},{mobility},{hanging pieces},{passed pawns},{king safety}},
   ytick style={draw=none},
   y axis line style={draw=none},
   xmajorgrids,
   xlabel={Gain in RMSE without the group (left of the line: worse without it)},
   xmin=-0.0025757, xmax=0.000480235,
+  xtick distance=0.001,
 ]
 \draw[labAxis, line width=0.6pt] (axis cs:0,-0.6) -- (axis cs:0,4.6);
 \node[anchor=south, font=\sffamily\scriptsize, text=labSecondary, inner sep=1.5pt] at (axis cs:0,-0.6) {\run{gbm-hand}};
