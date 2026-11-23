@@ -167,6 +167,56 @@ def test_rows_in_groups_stand_under_their_group_s_name_on_one_axis():
     assert "(axis cs:0,-0.6) -- (axis cs:0,4.6)" in drawn and "{reference}" in drawn
 
 
+def test_rows_in_panels_have_a_scale_each_and_share_a_page_in_columns():
+    def rows(count, at):
+        return [(f"run-{index}", at + index, at + index - 0.5, at + index + 0.5, "labBlue") for index in range(count)]
+
+    drawn = charts.interval_panels([("first", rows(6, 0.0)), ("second", rows(2, 100.0)), ("third", rows(3, -50.0))], xlabel="Gain", reference=0.0)
+    # A picture a group, with the group's name over its rows, on the scale the group's own rows span.
+    pictures = drawn.split("\\begin{tikzpicture}[trim axis right]")[1:]
+    assert len(pictures) == 3 and all("scale only axis" in picture for picture in pictures)
+    assert "xmin=-1.1, xmax=6.1" in pictures[0] and "xmin=-10.15, xmax=111.65" in pictures[1] and "xmin=-55.55, xmax=5.05" in pictures[2]
+    assert ["ytick={0,1,2,3,4,5,6}" in pictures[0], "ytick={0,1,2}" in pictures[1], "ytick={0,1,2,3}" in pictures[2]] == [True] * 3
+    assert all(picture.count("\\addplot[only marks") == count for picture, count in zip(pictures, (6, 2, 3)))
+    # The line every row is read against stands in each panel, under the group's name.
+    assert "(axis cs:0,0.4) -- (axis cs:0,6.6)" in pictures[0] and "(axis cs:0,0.4) -- (axis cs:0,2.6)" in pictures[1]
+    # Two columns as even as whole panels allow, in their order, and the scale named once under them.
+    left, right = drawn.split("\\hfill")
+    assert drawn.count("\\begin{minipage}") == 2 and "first" in left and "second" in right and "third" in right
+    assert left.count("\\begin{tikzpicture}") == 1 and drawn.rstrip().endswith("Gain}")
+    # One group stands alone in the middle of the page.
+    alone = charts.interval_panels([("first", rows(2, 0.0)), ("empty", [])], xlabel="Gain")
+    assert alone.count("\\begin{minipage}") == 1 and "\\centering" in alone and "empty" not in alone
+
+    def heights(figure):
+        return [float(line.split("height=")[1].split("cm")[0]) for line in figure.splitlines() if "height=" in line]
+
+    # More rows than a page holds at their usual height are set closer, and a column's panels then fit it.
+    roomy, tight = [(f"model {index}", rows(4, 0.0)) for index in range(4)], [(f"model {index}", rows(12, 0.0)) for index in range(8)]
+    assert heights(charts.interval_panels(roomy, xlabel="Gain")) == [pytest.approx(5 * 0.34)] * 4
+    close = heights(charts.interval_panels(tight, xlabel="Gain"))
+    assert len(close) == 8 and max(close) < 13 * 0.34 and sum(close[:4]) + 4 * 0.75 <= charts.TALLEST + 0.05
+    # Rows that would have to run into each other are refused: the figure has to be split.
+    with pytest.raises(ValueError, match="split the figure"):
+        charts.interval_panels([(f"model {index}", rows(40, 0.0)) for index in range(4)], xlabel="Gain")
+
+    # A column gives its longest name its room and the scale the rest: short names leave the scale its
+    # full five centimetres, long ones are set smaller, and names no size can fit beside a scale are refused.
+    def named(letters):
+        return [("first", [("n" * letters, 1.0, 0.5, 1.5, "labBlue")]), ("second", rows(2, 0.0))]
+
+    assert "width=142.0pt" in drawn and "\\fontsize{7}{8}" in drawn
+    usual, long = charts.interval_panels(named(34), xlabel="Gain"), charts.interval_panels(named(42), xlabel="Gain")
+    assert "width=84.3pt" in usual and "\\fontsize{7}{8}" in usual
+    assert "width=76.6pt" in long and "\\fontsize{6}{7}" in long
+    with pytest.raises(ValueError, match="split the figure"):
+        charts.interval_panels(named(60), xlabel="Gain")
+    assert heights(charts.grouped_intervals([("one", rows(20, 0.0))], xlabel="Gain")) == [pytest.approx(21 * 0.42 + 1.7)]
+    assert heights(charts.grouped_intervals([("one", rows(50, 0.0))], xlabel="Gain")) == [pytest.approx(charts.TALLEST, abs=0.01)]
+    with pytest.raises(ValueError, match="split the figure"):
+        charts.grouped_intervals([("one", rows(70, 0.0))], xlabel="Gain")
+
+
 def test_a_block_that_is_one_table_or_one_picture_is_drawn_no_wider_than_the_text():
     table = tex.tabular("lr", ["Run", "Score"], [["a", "1"]])
     fitted = tex.fit(table)
@@ -512,9 +562,19 @@ def test_a_network_of_another_shape_is_a_kind_of_change_with_a_table_of_its_own(
         "inside the noise in one of the two models (blunder hazard) and worse beyond the noise in one of the two models (puzzle difficulty)"
     )
     assert written.values["lab.change.larger.over.transformer-medium-hand.said"] == "better beyond the noise in the one model (puzzle difficulty)"
+    # The shapes as a whole: the models where none of them leaves the noise, and in how many one of them is
+    # the best run. A list of no model is not set, so a sentence that names its models cannot be built.
+    overview.shapes_values(lab, written)
+    assert written.values["lab.shapes.models.count"] == "two"
+    assert written.values["lab.shapes.models.names"] == "blunder hazard and puzzle difficulty"
+    assert written.values["lab.shapes.still.of"] == "one of the two models" and written.values["lab.shapes.still.names"] == "blunder hazard"
+    assert written.values["lab.shapes.best.of"] == "neither of the two models" and "lab.shapes.best.names" not in written.values
     # A lab with no pair of these kinds asks for none of what is said of them.
     plain = overview.Lab({"puzzle-difficulty": _longer("puzzle-difficulty", level)}, {}, {})
     assert not overview.switches(plain)["shapes"] and overview.changes_table(plain, changes.SHAPES) is None
+    unshaped = tex.Generated("a test")
+    overview.shapes_values(plain, unshaped)
+    assert not unshaped.values
 
 
 def test_a_model_s_paper_draws_a_run_of_another_shape_in_a_panel_of_its_own():

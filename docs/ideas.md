@@ -65,6 +65,16 @@ found, where the hand features that count attackers and loose pieces are what th
 networks lack; little from any shape on think time, which leans on the clock; and more from size
 on puzzle difficulty than on the models that read 30,000 games.
 
+The first two models have their runs (puzzle difficulty and blunder hazard, the plan
+`bodies-first`), and neither expectation about them held. On blunder hazard no shape leaves the
+noise of the transformer it changes, the attention told the attacks among them. On puzzle
+difficulty that attention is the largest gain any one change has made to a network that starts
+from nothing, the tower is a small gain from a cheaper network, the hybrid is worse, and the
+transformer three times larger is worse than the medium one on the same rows. The best run of both
+models is still the transformer that started from the body trained on an engine's evaluations.
+Each model's card says what it found, and the lab's paper sets the two side by side. Think time,
+tactic found and human-move come next (`bodies-rest`).
+
 What is left:
 
 - **Larger builds of the datasets.** The games study says each doubling still pays, and pays a
@@ -102,6 +112,13 @@ some two hundred million positions), and each model has two runs that start from
 model only where it beats the same run started from nothing there. What is left to try once
 those say whether it pays: more of the file, more epochs, a larger body, and a lower learning rate
 for the run that starts from it.
+
+The architecture test adds one run to that list, ahead of the rest: the attention that is told
+what each piece attacks, started from that body. On puzzle difficulty the two are the largest
+gains measured, each made alone, and they can be made together without a new body: what the
+attention is told enters with weights that start at nothing ([`design.md`](design.md), "Bodies
+and a head"), so such a network takes the body as it is and begins as that body does. A tower
+cannot, until a tower has learned the same evaluations.
 
 ### More published models on the human-move rows
 

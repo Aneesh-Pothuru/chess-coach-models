@@ -572,6 +572,28 @@ test positions (\V{pair.transformer-medium-hand-no-geometry.transformer-medium-h
 \V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain.low} to
 \V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain.high}).
 \end{itemize}
+
+No run of another shape is kept. On the test positions every one of them is
+inside the noise of the transformer it changes, so the model's runs stand as
+they did and its best run is still \V{best.name}. The tower, and the
+attention that is told the attacks on the board alone, pass the first half
+of the lab's rule, on the valid positions, and not the second.
+
+A reading: what this model's transformer lacks is not a way of reading the
+board. Told what each piece attacks, the transformer on the board alone
+still trails the trees, with a gain over the reference of
+\V{run.transformer-medium-attacks.gain}
+(\V{run.transformer-medium-attacks.gain.low} to
+\V{run.transformer-medium-attacks.gain.high}). The lab's own paper sets
+this beside puzzle difficulty, where the same change is kept.
+\iffeatures
+The features study below says where the difference may lie. What the counts
+give this network is mostly the material group, three sums over the whole
+board, and which piece attacks which is not what those turn on.
+\fi
+It fits the reading of the longer schedule as well: this model is short of
+games, and of the changes made to its transformer the one that moved it is
+the start from a body that had read many more positions elsewhere.
 \fi
 
 \input{../../../papers/studies}

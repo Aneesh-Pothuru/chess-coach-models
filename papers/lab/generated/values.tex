@@ -9,12 +9,12 @@
 \changehandtrue
 \changeepochstrue
 \changestarttrue
-\changeconvfalse
-\changehybridfalse
-\changelargerfalse
-\changeattacksfalse
-\changegeometryfalse
-\shapesfalse
+\changeconvtrue
+\changehybridtrue
+\changelargertrue
+\changeattackstrue
+\changegeometrytrue
+\shapestrue
 \gamestrue
 \featurestrue
 \studiestrue
@@ -37,11 +37,17 @@
 \setvalue{blunder-hazard.reference.score}{0.2533}
 \setvalue{lab.board.ahead.names}{blunder hazard, puzzle difficulty, puzzle difficulty unsolved, tactic found and think time}
 \setvalue{lab.board.ahead.of}{five of the six models}
-\setvalue{lab.board.ahead.runs}{\run{transformer-medium-pretrained}}
+\setvalue{lab.board.ahead.run.transformer-medium-attacks.names}{puzzle difficulty}
+\setvalue{lab.board.ahead.runs}{\run{transformer-medium-pretrained} and \run{transformer-medium-attacks}}
 \setvalue{lab.board.behind.of}{none of the six models}
 \setvalue{lab.board.level.names}{practical chances}
 \setvalue{lab.board.level.of}{one of the six models}
 \setvalue{lab.bodies.names}{position evaluation}
+\setvalue{lab.change.attacks.net.kept.of}{two of the four pairs}
+\setvalue{lab.change.attacks.over.transformer-medium-hand.said}{better beyond the noise in one of the two models (puzzle difficulty) and inside the noise in one of the two models (blunder hazard)}
+\setvalue{lab.change.attacks.over.transformer-medium.said}{better beyond the noise in one of the two models (puzzle difficulty) and inside the noise in one of the two models (blunder hazard)}
+\setvalue{lab.change.conv.net.kept.of}{one of the two pairs}
+\setvalue{lab.change.conv.over.transformer-medium-hand.said}{better beyond the noise in one of the two models (puzzle difficulty) and inside the noise in one of the two models (blunder hazard)}
 \setvalue{lab.change.epochs.net.kept.of}{five of the eight pairs}
 \setvalue{lab.change.epochs.net.kept.whole.models}{puzzle difficulty and think time}
 \setvalue{lab.change.epochs.net.level}{three}
@@ -50,11 +56,18 @@
 \setvalue{lab.change.epochs.over.transformer-medium.count}{four}
 \setvalue{lab.change.epochs.over.transformer-medium.gain.most}{+9.4}
 \setvalue{lab.change.epochs.over.transformer-medium.said}{better beyond the noise in three of the four models (puzzle difficulty, tactic found and think time) and inside the noise in one of the four models (blunder hazard)}
+\setvalue{lab.change.geometry.over.transformer-medium-hand.gain.least}{$-$1.8}
+\setvalue{lab.change.geometry.over.transformer-medium-hand.gain.least.model}{puzzle difficulty}
+\setvalue{lab.change.geometry.over.transformer-medium-hand.said}{inside the noise in one of the two models (blunder hazard) and worse beyond the noise in one of the two models (puzzle difficulty)}
 \setvalue{lab.change.hand.over.gbm-context.said}{better beyond the noise in all five models (blunder hazard, practical chances, puzzle difficulty, tactic found and think time)}
 \setvalue{lab.change.hand.over.transformer-medium-long.models}{puzzle difficulty and think time}
 \setvalue{lab.change.hand.over.transformer-medium-long.said}{better beyond the noise in both models (puzzle difficulty and think time)}
 \setvalue{lab.change.hand.over.transformer-medium.models}{blunder hazard, practical chances, puzzle difficulty, puzzle difficulty unsolved, tactic found and think time}
 \setvalue{lab.change.hand.over.transformer-medium.said}{better beyond the noise in five of the six models (blunder hazard, puzzle difficulty, puzzle difficulty unsolved, tactic found and think time) and inside the noise in one of the six models (practical chances)}
+\setvalue{lab.change.hybrid.net.kept}{zero}
+\setvalue{lab.change.hybrid.over.transformer-medium-hand.said}{inside the noise in one of the two models (blunder hazard) and worse beyond the noise in one of the two models (puzzle difficulty)}
+\setvalue{lab.change.larger.net.kept}{zero}
+\setvalue{lab.change.larger.over.transformer-medium-hand.said}{worse beyond the noise in the one model (puzzle difficulty)}
 \setvalue{lab.change.start.net.better.of}{ten of the twelve pairs}
 \setvalue{lab.change.start.net.kept.of}{ten of the twelve pairs}
 \setvalue{lab.change.start.net.kept.whole.models}{blunder hazard, puzzle difficulty, puzzle difficulty unsolved, tactic found and think time}
@@ -65,9 +78,9 @@
 \setvalue{lab.context.share.least.model}{tactic found}
 \setvalue{lab.context.share.most}{97}
 \setvalue{lab.context.share.most.model}{practical chances}
-\setvalue{lab.cost.seconds.networks}{7.2 h}
-\setvalue{lab.cost.seconds.others}{6 min}
-\setvalue{lab.cost.seconds.studies}{2.1 h}
+\setvalue{lab.cost.seconds.networks}{9.1 h}
+\setvalue{lab.cost.seconds.others}{7 min}
+\setvalue{lab.cost.seconds.studies}{2.5 h}
 \setvalue{lab.features.in.blunder-hazard.most.gain}{$-$18.7}
 \setvalue{lab.features.in.blunder-hazard.most.group}{material}
 \setvalue{lab.features.in.practical-chances.most.gain}{$-$2.5}
@@ -103,10 +116,13 @@
 \setvalue{lab.network.gain.whole.most.model}{puzzle difficulty}
 \setvalue{lab.network.level.names}{practical chances}
 \setvalue{lab.network.level.of}{one of the six models}
-\setvalue{lab.networks.count}{45}
+\setvalue{lab.networks.count}{54}
+\setvalue{lab.networks.largest.parameters.millions}{21.8}
 \setvalue{lab.paperless.names}{none}
 \setvalue{lab.results.date}{22 November 2026}
-\setvalue{lab.runs.count}{67}
+\setvalue{lab.runs.count}{76}
+\setvalue{lab.shapes.best.of}{neither of the two models}
+\setvalue{lab.shapes.still.names}{blunder hazard}
 \setvalue{lab.side.count}{six}
 \setvalue{lab.small.ahead.of}{two of the six models}
 \setvalue{lab.small.behind.of}{two of the six models}
@@ -116,7 +132,8 @@
 \setvalue{lab.split.apart.valid.percent}{1}
 \setvalue{lab.split.test.percent}{10}
 \setvalue{lab.split.valid.percent}{5}
-\setvalue{lab.studies.count}{56}
+\setvalue{lab.started.board.ahead.of}{five of the six models}
+\setvalue{lab.studies.count}{58}
 \setvalue{lab.waiting.names}{game rating, human move, puzzle themes and where to look}
 \setvalue{lab.whole.count}{five}
 \setvalue{method.blunder-bar}{20}
@@ -176,12 +193,26 @@
 \setvalue{puzzle-difficulty.floor.score}{502.9}
 \setvalue{puzzle-difficulty.ladder.ahead.of}{all four networks}
 \setvalue{puzzle-difficulty.ladder.count}{four}
+\setvalue{puzzle-difficulty.pair.transformer-medium-attacks.transformer-medium.gain}{+25.49}
+\setvalue{puzzle-difficulty.pair.transformer-medium-hand-attacks.transformer-medium-hand.gain}{+12.10}
+\setvalue{puzzle-difficulty.pair.transformer-medium-hand-long.transformer-medium-hand.gain}{+8.297}
 \setvalue{puzzle-difficulty.pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain}{+18.54}
+\setvalue{puzzle-difficulty.pair.transformer-medium-hand.transformer-medium.gain}{+13.77}
+\setvalue{puzzle-difficulty.pair.transformer-medium-long.transformer-medium.gain}{+19.57}
 \setvalue{puzzle-difficulty.pair.transformer-medium-pretrained.transformer-medium.gain}{+22.00}
 \setvalue{puzzle-difficulty.recipe.sample.percent}{25}
 \setvalue{puzzle-difficulty.reference.score}{294.9}
+\setvalue{puzzle-difficulty.run.conv-medium-hand.best-epoch}{9}
+\setvalue{puzzle-difficulty.run.conv-medium-hand.epochs}{12}
+\setvalue{puzzle-difficulty.run.conv-medium-hand.seconds}{7 min}
 \setvalue{puzzle-difficulty.run.conv-small.parameters.millions}{1.0}
+\setvalue{puzzle-difficulty.run.transformer-large-hand.parameters.millions}{21.8}
+\setvalue{puzzle-difficulty.run.transformer-medium-attacks.best-epoch}{12}
+\setvalue{puzzle-difficulty.run.transformer-medium-attacks.epochs}{12}
+\setvalue{puzzle-difficulty.run.transformer-medium-attacks.score}{258.5}
+\setvalue{puzzle-difficulty.run.transformer-medium-hand-attacks.score}{258.1}
 \setvalue{puzzle-difficulty.run.transformer-medium-hand.parameters.millions}{6.6}
+\setvalue{puzzle-difficulty.run.transformer-medium-hand.seconds}{13 min}
 \setvalue{puzzle-difficulty.run.transformer-medium-long.epochs}{24}
 \setvalue{puzzle-difficulty.run.transformer-medium.epochs}{12}
 \setvalue{puzzle-difficulty.run.transformer-medium.parameters.millions}{6.6}

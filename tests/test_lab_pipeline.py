@@ -770,6 +770,26 @@ def test_a_network_starts_from_the_body_another_run_trained(lab, temp_lab):
     assert torch.equal(reordered.state_dict()["body.mark.weight"][:, 0], saved["state"]["body.mark.weight"][:, 2])
     assert torch.equal(reordered.state_dict()["body.context.0.weight"], saved["state"]["body.context.0.weight"])
 
+    # A transformer whose attention is told what each piece attacks is the same body at the same size. It
+    # takes every tensor of the body it starts from, and what it is told is weighed by weights that start at
+    # nothing, so it begins as that body does, answer for answer.
+    attacks = {**small["learner"], "attacks": True}
+    marks = ["en_passant", "setup_from", "setup_to"]
+    told_more = build_net(attacks, marks=3, context=len(saved["context"])).eval()
+    plain = build_net(small["learner"], marks=3, context=len(saved["context"])).eval()
+    said = start_from(told_more, saved, learner=attacks, marks=marks, numbers=saved["context"])
+    same = start_from(plain, saved, learner=small["learner"], marks=marks, numbers=saved["context"])
+    assert said["new"] == ["body.blocks.told_bias", "head"] and same["new"] == ["head"]
+    assert said["tensors_taken"] == same["tensors_taken"] > 10
+    assert not any(block.told_bias.any() for block in told_more.body.blocks)
+    told_more.head.load_state_dict(plain.head.state_dict())
+    generator = torch.Generator().manual_seed(0)
+    tokens = torch.randint(0, 13, (4, 64), generator=generator)
+    squares = torch.randint(0, 2, (4, 64, 3), generator=generator).float()
+    numbers = torch.randn(4, len(saved["context"]), generator=generator)
+    with torch.no_grad():
+        assert torch.allclose(told_more(tokens, squares, numbers), plain(tokens, squares, numbers), atol=1e-6)
+
     with pytest.raises(ValueError, match="differ in dim"):
         runs.run(model, "transformer-wide-pretrained", smoke=True, log=lambda _: None)
     with pytest.raises(ValueError, match="only a network starts"):

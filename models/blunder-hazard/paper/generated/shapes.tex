@@ -1,0 +1,46 @@
+% Written by `lab paper blunder-hazard`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{groupplot}[
+  lab,
+  group style={group size=2 by 3, horizontal sep=0.5cm, vertical sep=1.9cm, xlabels at=edge bottom, ylabels at=edge left, yticklabels at=edge left},
+  width=0.52\textwidth,
+  height=4.5cm,
+  ymajorgrids,
+  ymin=0.188602, ymax=0.258758,
+  xlabel={Epoch},
+  ylabel={PR-AUC on the valid rows},
+]
+\nextgroupplot[xmin=0.5, xmax=12.5, xtick distance=2, legend columns=1]
+\draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:0.5,0.233336) -- (axis cs:12.5,0.233336);
+\addplot[color=labBlue, mark=*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labBlue}] coordinates {(1,0.20899) (2,0.22617) (3,0.23038) (4,0.23571) (5,0.23298) (6,0.24173) (7,0.24494) (8,0.24529) (9,0.24893) (10,0.24703) (11,0.24764) (12,0.2476)};
+\addlegendentry{\texttt{transformer-medium-hand}}
+\addplot[color=labBlue, dash pattern=on 9pt off 3pt, mark=*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labBlue}] coordinates {(1,0.22003) (2,0.22881) (3,0.23708) (4,0.23892) (5,0.24397) (6,0.2471) (7,0.24845) (8,0.25072) (9,0.255) (10,0.25431) (11,0.25349) (12,0.25339)};
+\addlegendentry{\texttt{conv-medium-hand}}
+\nextgroupplot[xmin=0.5, xmax=12.5, xtick distance=2, legend columns=1]
+\draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:0.5,0.233336) -- (axis cs:12.5,0.233336);
+\addplot[color=labBlue, mark=*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labBlue}] coordinates {(1,0.20899) (2,0.22617) (3,0.23038) (4,0.23571) (5,0.23298) (6,0.24173) (7,0.24494) (8,0.24529) (9,0.24893) (10,0.24703) (11,0.24764) (12,0.2476)};
+\addlegendentry{\texttt{transformer-medium-hand}}
+\addplot[color=labBlue, dash pattern=on 9pt off 2pt on 1pt off 2pt, mark=*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labBlue}] coordinates {(1,0.21374) (2,0.22433) (3,0.23101) (4,0.2359) (5,0.24034) (6,0.24018) (7,0.24112) (8,0.24234) (9,0.24231) (10,0.2453) (11,0.24567) (12,0.2451)};
+\addlegendentry{\texttt{hybrid-medium-hand}}
+\nextgroupplot[xmin=0.5, xmax=12.5, xtick distance=2, legend columns=1]
+\draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:0.5,0.233336) -- (axis cs:12.5,0.233336);
+\addplot[color=labBlue, mark=*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labBlue}] coordinates {(1,0.20899) (2,0.22617) (3,0.23038) (4,0.23571) (5,0.23298) (6,0.24173) (7,0.24494) (8,0.24529) (9,0.24893) (10,0.24703) (11,0.24764) (12,0.2476)};
+\addlegendentry{\texttt{transformer-medium-hand}}
+\addplot[color=labBlue, dash pattern=on 5pt off 2pt on 1pt off 2pt on 1pt off 2pt, mark=*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labBlue}] coordinates {(1,0.20872) (2,0.22599) (3,0.22986) (4,0.23887) (5,0.23365) (6,0.24001) (7,0.24279) (8,0.24304) (9,0.24697) (10,0.24591) (11,0.24655) (12,0.24651)};
+\addlegendentry{\texttt{transformer-medium-hand-attacks}}
+\nextgroupplot[xmin=0.5, xmax=12.5, xtick distance=2, legend columns=1]
+\draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:0.5,0.233336) -- (axis cs:12.5,0.233336);
+\addplot[color=labBlue, mark=*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labBlue}] coordinates {(1,0.20899) (2,0.22617) (3,0.23038) (4,0.23571) (5,0.23298) (6,0.24173) (7,0.24494) (8,0.24529) (9,0.24893) (10,0.24703) (11,0.24764) (12,0.2476)};
+\addlegendentry{\texttt{transformer-medium-hand}}
+\addplot[color=labBlue, dash pattern=on 3pt off 2pt on 1pt off 2pt on 1pt off 2pt on 1pt off 2pt, mark=*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labBlue}] coordinates {(1,0.20843) (2,0.22529) (3,0.22779) (4,0.23299) (5,0.23345) (6,0.24216) (7,0.24454) (8,0.2429) (9,0.24897) (10,0.24672) (11,0.24668) (12,0.24701)};
+\addlegendentry{\texttt{transformer-medium-hand-no-geometry}}
+\nextgroupplot[xmin=0.5, xmax=12.5, xtick distance=2, legend columns=1]
+\draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:0.5,0.233336) -- (axis cs:12.5,0.233336) node[anchor=west, font=\sffamily\scriptsize, text=labSecondary, inner sep=2pt] {\run{gbm-hand}};
+\addplot[color=labAqua, mark=triangle*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labAqua}] coordinates {(1,0.19467) (2,0.19817) (3,0.20818) (4,0.20841) (5,0.21087) (6,0.21394) (7,0.21678) (8,0.21804) (9,0.2213) (10,0.22002) (11,0.22268) (12,0.2231)};
+\addlegendentry{\texttt{transformer-medium}}
+\addplot[color=labAqua, dash pattern=on 5pt off 2pt on 1pt off 2pt on 1pt off 2pt, mark=triangle*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labAqua}] coordinates {(1,0.19236) (2,0.20136) (3,0.20876) (4,0.20918) (5,0.20864) (6,0.21564) (7,0.21818) (8,0.22011) (9,0.22308) (10,0.22334) (11,0.2237) (12,0.22391)};
+\addlegendentry{\texttt{transformer-medium-attacks}}
+\end{groupplot}
+\end{tikzpicture}%
+}

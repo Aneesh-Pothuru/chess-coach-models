@@ -554,6 +554,71 @@ test puzzles (\V{pair.transformer-medium-hand-no-geometry.transformer-medium-han
 \V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain.low} to
 \V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain.high}).
 \end{itemize}
+
+Four things follow. The first is that what each piece attacks was worth more
+to this model than anything else tried from nothing. On the board alone the
+attention that is told it gains
+\V{pair.transformer-medium-attacks.transformer-medium.gain} points, where
+twice the epochs gave the same transformer
+\V{pair.transformer-medium-long.transformer-medium.gain} and the start from
+the body \V{pair.transformer-medium-pretrained.transformer-medium.gain}, and
+in Table~\ref{tab:pairs} the three intervals do not touch.
+\V{run.transformer-medium-attacks.name} starts from nothing and scores
+\V{run.transformer-medium-attacks.score}. That is ahead of
+\V{run.transformer-medium-pretrained.name}, which starts from the body and
+scores \V{run.transformer-medium-pretrained.score}, and the intervals of
+their gains over the reference do not touch (Table~\ref{tab:leaderboard}).
+With the hand features the change is worth
+\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.gain}:
+more than the epochs gave that run
+(\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain}) and
+less than the start did
+(\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain}).
+
+The second is that the features add next to nothing once the attention is
+told the attacks. \V{run.transformer-medium-hand-attacks.name} scores
+\V{run.transformer-medium-hand-attacks.over-twin} points better than
+\V{run.transformer-medium-attacks.name}, where the ladder's difference was
+\V{run.transformer-medium-hand.over-twin}, and the two runs' gains over the
+reference lie inside each other's intervals (Table~\ref{tab:leaderboard}).
+The two were not set against each other on resampled games, so that is a
+reading of the leaderboard. It is what the longer schedule showed from
+another side: most of what the counts hold, eight layers can work out from
+the squares. A reading: told which piece attacks which square, they work it
+out within the ladder's epochs.
+
+The third is that neither of those runs had finished learning, and neither
+is the model's best run. Both had their best valid epoch at the last,
+\V{run.transformer-medium-attacks.best-epoch} of
+\V{run.transformer-medium-attacks.epochs} (Figure~\ref{fig:shapes}). The
+best run is still \V{best.name}, at \V{best.score}, and it starts from the
+body. The attention that is told the attacks can start from the same body as
+it is: the weights on what it is told start at nothing, so the network
+begins as the body does. That run changes one thing in the model's best run,
+and it is the next to make.
+
+The fourth is what did not pay. Convolutions under the transformer's layers
+and a larger transformer both left the network worse on the same puzzles and
+epochs, and Figure~\ref{fig:shapes} shows two ways of losing. The larger one
+took \V{run.transformer-large-hand.seconds} of the GPU for the medium one's
+\V{run.transformer-medium-hand.seconds}. On the valid puzzles it is behind
+the medium one after every epoch, and its curve ends flat without turning up,
+so it has not fitted its training puzzles too closely. A reading: at the
+medium one's learning rate and epochs it learns more slowly, and whether a
+rate or a schedule of its own would take it past the smaller one is not
+measured. The hybrid is the other way round. It is ahead of the transformer
+for most of the schedule, has its best valid epoch at
+\V{run.hybrid-medium-hand.best-epoch} of \V{run.hybrid-medium-hand.epochs},
+and loses ground after it while the transformer goes on gaining. The tower
+does the same from further ahead, with its best epoch at
+\V{run.conv-medium-hand.best-epoch}, and the epoch it keeps is its small
+gain. A reading: the networks with convolutions learn these puzzles sooner
+and fit them too closely sooner, so more puzzles are likelier to help them
+than more epochs are. The tower is the cheap one, at
+\V{run.conv-medium-hand.seconds}. It changes its learning rate with its
+body, so the gain is the tower's as trained and cannot be given to the
+convolutions alone. The offsets are worth less to the transformer than the
+attacks are. Each of these runs was trained once.
 \fi
 
 \input{../../../papers/studies}
@@ -996,6 +1061,12 @@ puzzles say what a larger sample would be worth.
 \iffeatures\else
 \item \textbf{Which hand features a network is missing.} Leaving out one
 group of features at a time says which counts a learner cannot do without.
+\fi
+\ifshapes
+\item \textbf{The attention that is told the attacks, from the body.}
+\V{run.transformer-medium-hand-pretrained.name} with its attention told what
+each piece attacks: one change in the model's best run, and the two largest
+gains measured here in one network.
 \fi
 \item \textbf{A longer schedule from the start.}
 \V{run.transformer-medium-hand-pretrained.name} had its best valid epoch at

@@ -197,6 +197,51 @@ run it changed among the `pairs` of
   epoch was its last. A longer schedule from the body is the cheapest run to
   add, and more puzzles from the same start the next after it.
 
+What the architecture test says (commit `d552817`: the five runs of another
+shape and the `geometry` study, each trained once from nothing and set
+against the run it changed among the `pairs` of
+[`results/analysis.json`](results/analysis.json)):
+
+- **Telling the attention what each piece attacks is kept, on the board alone
+  and with the features.** Both runs are better than the run they changed on
+  the valid rows, and on the test rows beyond the noise. On the board alone
+  it is the largest gain this model has had from one change made from
+  nothing: more than twice the epochs gave the same transformer, and more
+  than the start from the body did (the three intervals do not touch).
+  `transformer-medium-attacks`, started from nothing, is ahead of
+  `transformer-medium-pretrained`: the intervals of their gains over the
+  reference do not touch.
+- **Told the attacks, the features add next to nothing.** The two runs' gains
+  over the reference lie inside each other's intervals, where on the ladder
+  the features were worth a clear step. The two were not set against each
+  other on resampled games, so this is a reading of the leaderboard. It is
+  what the longer schedule showed from another side: most of what the
+  features count, eight layers can work out from the board.
+- **Neither had finished learning, and neither is the best run.** Both had
+  their best valid epoch at the last. `transformer-medium-hand-pretrained` is
+  still the model's best run, and it starts from the body. The attention that
+  is told the attacks can start from the same body as it is, since its new
+  weights start at nothing. That run changes one thing in the best run, and
+  it is the next to make.
+- **The convolutional tower is kept, by a small margin, and is the cheapest
+  to train.** It also changes its learning rate, so the gain is the tower's
+  as trained and cannot be given to the convolutions alone.
+- **The hybrid and the larger transformer are not kept.** Each is worse than
+  `transformer-medium-hand` on the valid rows, and on the test rows beyond
+  the noise. Both stay on the leaderboard until they are filed.
+- **They lose in two ways** (each record's `learner.history`, drawn in the
+  paper). The larger transformer is behind the medium one on the valid rows
+  after every epoch and on its training rows too, and its curve ends flat:
+  at the medium one's learning rate and epochs it learns more slowly, and a
+  rate or a schedule of its own is not measured. The hybrid and the tower are
+  ahead of the transformer for most of the schedule, have their best valid
+  epoch well before the last, and lose ground after it while the transformer
+  goes on gaining: they fit the training puzzles too closely sooner, so more
+  puzzles are likelier to help them than more epochs are.
+- **The offsets between squares are worth a little.** Without them (the
+  `geometry` study) the transformer is worse beyond the noise, by less than
+  the attacks are worth to it.
+
 **Weights.** Every run's weights and test predictions are on the owner's
 machine, under `artifacts/runs/puzzle-difficulty/<run>/`, as the GPU session
 packed them; none is published. The best run's `model.pt` is

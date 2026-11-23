@@ -52,13 +52,22 @@ transformer started from nothing, beyond the noise, in
 \V{lab.change.start.net.better.of}, and worse in
 \V{lab.change.start.net.worse.of}. It is the best run of every model where
 a network leads the trees. From the board alone, without the hand-made
-counts, it is ahead of the trees in \V{lab.board.ahead.of}, where the same
-transformer started from nothing was ahead in
+counts, it is ahead of the trees in \V{lab.started.board.ahead.of}, where
+the same transformer started from nothing was ahead in
 \V{lab.ladder.board.ahead.of}.
 \else
 Third, from the board alone, without the hand-made counts, the best network
 is ahead of the trees in \V{lab.board.ahead.of} and behind them in
 \V{lab.board.behind.of}.
+\fi
+\ifchangeattacks
+What its attention is told matters in places (Section~\ref{sec:shapes}):
+told what each piece attacks, the transformer that reads the board alone is
+\V{lab.change.attacks.over.transformer-medium.said}.
+\ifchangelarger
+A larger transformer is
+\V{lab.change.larger.over.transformer-medium-hand.said}.
+\fi
 \fi
 \ifgames
 A network's place also rises with the data: on half of a model's training
@@ -418,7 +427,7 @@ board at all.
 \subsection{What a network adds to the trees}
 
 Figure~\ref{fig:networks} sets each network on a model's leaderboard
-against the reference: the networks of the ladder, and under each of them
+against the reference: the networks of the ladder, and with each of them
 any run that changed one thing in it.
 \ifchangeepochs
 A run whose name ends in \texttt{-long} is the run its name starts with on
@@ -429,13 +438,18 @@ A run whose name ends in \texttt{-pretrained} is the run its name starts
 with, started from a body that had first learned an engine's evaluations
 (Section~\ref{sec:start}).
 \fi
+\ifshapes
+The other names are networks of another shape, each drawn in the colour of
+the transformer it changes (Section~\ref{sec:shapes}).
+\fi
 
 \begin{figure}[htbp]\centering
 \block{lab-networks}
 \caption{Each network's paired gain over the reference with its 95\%
-interval, in hundredths of the reference's step from the floor. Right of the
-line a network is better than the trees with the hand-made counts, and an
-interval that does not cross the line is beyond the noise.}
+interval, in hundredths of the reference's step from the floor. A panel is a
+model and has the scale its own networks span. Right of a panel's line a
+network is better than the trees with the hand-made counts, and an interval
+that does not cross the line is beyond the noise.}
 \label{fig:networks}
 \end{figure}
 
@@ -476,9 +490,14 @@ reads no hand-made count is ahead of the trees in \V{lab.board.ahead.of}
 (\V{lab.board.ahead.names}), level with them in \V{lab.board.level.of}
 (\V{lab.board.level.names}) and behind them in \V{lab.board.behind.of}.
 \ifchangestart
-Where it is ahead that network is \V{lab.board.ahead.runs}: the start of
+Where it is ahead that network is \V{lab.board.ahead.runs}. The start of
 Section~\ref{sec:start} puts it ahead in every model where the ladder's
 transformer was behind.
+\fi
+\ifchangeattacks
+In \V{lab.board.ahead.run.transformer-medium-attacks.names} it starts from
+nothing: it is the transformer whose attention is told what each piece
+attacks (Section~\ref{sec:shapes}).
 \fi
 
 The two models of puzzle difficulty are where the board alone is enough to
@@ -812,6 +831,112 @@ the model's own units.}
 interval.}
 \label{fig:shapes}
 \end{figure}
+
+A change of shape is kept as any other change is, on both halves of the
+lab's rule.
+\ifchangeattacks
+Where the attention is told the attacks the rule keeps
+\V{lab.change.attacks.net.kept.of}.
+\fi
+\ifchangeconv
+Where the body is a tower it keeps \V{lab.change.conv.net.kept.of}.
+\fi
+\ifchangehybrid
+It keeps \V{lab.change.hybrid.net.kept} of the hybrid's
+pairs\ifchangelarger{} and \V{lab.change.larger.net.kept} of the larger
+transformer's\fi.
+\fi
+What can be read off Table~\ref{tab:shapes} so far is this.
+
+\ifchangeattacks
+\emph{What a piece attacks is worth telling, where the question is a
+tactic.} In puzzle difficulty the transformer that reads the board alone
+gains
+\V{puzzle-difficulty.pair.transformer-medium-attacks.transformer-medium.gain}
+rating points from it.
+\ifchangestart\ifchangeepochs
+The start of Section~\ref{sec:start} gave the same transformer
+\V{puzzle-difficulty.pair.transformer-medium-pretrained.transformer-medium.gain}
+and twice the epochs
+\V{puzzle-difficulty.pair.transformer-medium-long.transformer-medium.gain},
+and the three intervals stand apart.
+\fi\fi
+With the hand-made counts beside the board the gain is
+\V{puzzle-difficulty.pair.transformer-medium-hand-attacks.transformer-medium-hand.gain}%
+\ifchangestart\ifchangeepochs
+, less than the start gave that run
+(\V{puzzle-difficulty.pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain})
+and more than the epochs did
+(\V{puzzle-difficulty.pair.transformer-medium-hand-long.transformer-medium-hand.gain})%
+\fi\fi
+. Told the attacks, the transformer has little use left for the counts: with
+them it scores \V{puzzle-difficulty.run.transformer-medium-hand-attacks.score}
+and without them \V{puzzle-difficulty.run.transformer-medium-attacks.score},
+each inside the other's interval, where on the ladder the counts were worth
+\V{puzzle-difficulty.pair.transformer-medium-hand.transformer-medium.gain}
+points to it. Those two runs were not set against each other on resampled
+games, so that much is a reading of the leaderboard. A reading of the whole:
+what the counts gave this network it can add up for itself once it is told
+which piece attacks which square. Both runs had their best epoch at the last
+of their schedule, epoch
+\V{puzzle-difficulty.run.transformer-medium-attacks.best-epoch} of
+\V{puzzle-difficulty.run.transformer-medium-attacks.epochs}, so neither had
+finished learning.
+\fi
+
+\emph{No shape moves \V{lab.shapes.still.names}.} No pair of
+Table~\ref{tab:shapes} leaves the noise there.
+\ifchangeepochs\ifgames
+A reading: that is what the longer schedule and the games study said of
+blunder hazard from two other sides (Sections~\ref{sec:epochs}
+and~\ref{sec:games}). Its transformer is short of games, and neither a
+shape nor more steps makes up for them.
+\ifchangestart
+What moved it was the start of Section~\ref{sec:start}, which brings boards
+from elsewhere.
+\fi
+\fi\fi
+
+\ifchangelarger
+\emph{More parameters did not pay.} The transformer of
+\V{puzzle-difficulty.run.transformer-large-hand.parameters.millions} million
+parameters is \V{lab.change.larger.over.transformer-medium-hand.said}, on the
+same rows and as many epochs. On the valid puzzles it is behind the smaller
+one after every epoch, and its curve ends flat without turning up (that
+model's paper draws both), so it has not fitted its training puzzles too
+closely. A reading: at the smaller one's learning rate and epochs it learns
+more slowly, and whether a rate or a schedule of its own would take it past
+the smaller one is not measured.
+\fi
+\ifchangeconv
+The tower is the cheap one. In puzzle difficulty it took
+\V{puzzle-difficulty.run.conv-medium-hand.seconds} of the GPU for the
+transformer's \V{puzzle-difficulty.run.transformer-medium-hand.seconds}. It
+changes its learning rate with its body, so its gain is the tower's as
+trained and cannot be given to the convolutions alone. Its best epoch on the
+valid puzzles was \V{puzzle-difficulty.run.conv-medium-hand.best-epoch} of
+\V{puzzle-difficulty.run.conv-medium-hand.epochs}, and it lost ground after
+it while the transformer went on gaining\ifchangehybrid, as the hybrid
+did\fi. A reading: the networks with convolutions learn these puzzles sooner
+and fit them too closely sooner, so more puzzles are likelier to help them
+than more epochs are.
+\fi
+\ifchangegeometry
+And the offsets are worth less to the transformer than the attacks: without
+them its gain is at the lowest
+\V{lab.change.geometry.over.transformer-medium-hand.gain.least} hundredths of
+the step, in
+\V{lab.change.geometry.over.transformer-medium-hand.gain.least.model}.
+\fi
+
+Two things this section does not say. Every run in it starts from nothing,
+and a run of another shape is the best run in \V{lab.shapes.best.of}%
+\ifchangestart
+: the best run of each is still the transformer started from the body of
+Section~\ref{sec:start} (Table~\ref{tab:scores})%
+\fi
+. And each run was trained once. Section~\ref{sec:next} names the run that
+sets the best of these shapes against the best start.
 \fi
 
 \ifgames
@@ -1302,14 +1427,18 @@ in both datasets is a test game in both.
 see the tactics Lichess made puzzles of. A tactic nobody made a puzzle of
 may be another kind of tactic.
 \item \textbf{Small networks, by today's measure.} The largest network here
-has \V{puzzle-difficulty.run.transformer-medium.parameters.millions} million
-parameters, and the largest set about people it was trained on has
+has \V{lab.networks.largest.parameters.millions} million parameters, and the
+largest set about people a network was trained on has
 \V{puzzle-difficulty.data.rows.train} rows\ifbodies{} (the body's set of
 engine evaluations has \V{position-evaluation.data.rows.train})\fi. How far
 a network stands from trees that are handed the right counts is a statement
 about networks of this size on this much data\ifgames, and
 Section~\ref{sec:games} says more data would move it\fi\ifchangestart, as
 the start of Section~\ref{sec:start} already did\fi.
+\ifchangelarger
+Size alone was tried: the larger transformer of Section~\ref{sec:shapes} is
+\V{lab.change.larger.over.transformer-medium-hand.said}, on the same rows.
+\fi
 \item \textbf{One training of each run.} Every run was trained once, from
 one seed. An interval here is over the test games, and says nothing of how
 far a second training of the same run would land from the first. A gain of
@@ -1370,8 +1499,17 @@ transformer it changes does.
 \ifchangestart
 Where a model's best network started from the body of
 Section~\ref{sec:start}, a shape that is ahead of the ladder's transformer
-has still to be set against that run, and for that it needs a body of its
-own shape that has learned the same evaluations.
+has still to be set against that run.
+\ifchangeattacks
+A transformer whose attention is told what each piece attacks can start from
+that body as it is. The weights on what it is told start at nothing, so it
+begins as the body does, and the run changes one thing in the model's best
+run.
+\fi
+\ifchangeconv
+A tower needs a body of its own shape that has learned the same evaluations
+first.
+\fi
 \fi
 \else
 \paragraph{Other shapes of network.}

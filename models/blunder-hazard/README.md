@@ -179,6 +179,35 @@ run it changed among the `pairs` of
   leaves zero out by little, and each run was trained once. A second seed is
   the cheap run to add before this one is leaned on.
 
+What the architecture test says (commit `d552817`: the four runs of another
+shape and the `geometry` study, each trained once from nothing and set
+against the run it changed among the `pairs` of
+[`results/analysis.json`](results/analysis.json)):
+
+- **No shape is kept.** On the test rows every one of them is inside the
+  noise of the transformer it changed: the convolutional tower, the hybrid,
+  and the attention that is told what each piece attacks, on the board alone
+  and with the features. The tower and the board-alone run that is told the
+  attacks are better on the valid rows, which is half of the rule. The four
+  stay on the leaderboard until they are filed, and
+  `transformer-medium-hand-pretrained` is still the model's best run.
+- **Told what each piece attacks, the board alone is still behind the
+  trees.** In [puzzle difficulty](../puzzle-difficulty/) the same change is
+  kept and is that model's largest gain from nothing. A reading: what this
+  model's transformer lacks is not a way of reading the board. The features
+  study says the counts give it mostly the material group, three sums over
+  the whole board, and which piece attacks which is not what those turn on.
+  The records agree from another side (`learner.history`): told the attacks,
+  the transformer's loss on its own training positions is the same epoch for
+  epoch, where in puzzle difficulty it falls well below. Here the attacks do
+  not help it fit even the positions it trains on.
+- **The offsets between squares cannot be shown to matter here.** Without
+  them (the `geometry` study) the transformer is inside the noise of the one
+  that has them.
+- **It fits what the epochs and the games said.** This model is short of
+  games. Of the changes made to its transformer, the one that moved it is
+  the start from a body that had read many more positions elsewhere.
+
 **Weights.** Every run's weights and test predictions are on the owner's
 machine, under `artifacts/runs/blunder-hazard/<run>/`, as the GPU session
 packed them; none is published. The best run's `model.pt` is 26,260,127

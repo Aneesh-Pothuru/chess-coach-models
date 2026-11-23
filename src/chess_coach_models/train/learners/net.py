@@ -25,6 +25,11 @@ def start_from(model, saved: dict[str, Any], *, learner: dict[str, Any], marks: 
     one for every dataset) and a mark only the new task has starts new. The layers that read the numbers
     beside the board carry over only when both tasks read the same numbers. The head never does: it is the
     task's own.
+
+    What a transformer's attention is told is no part of its size. One told what each piece attacks takes
+    the body of one told nothing, and since its weights on what it is told start at nothing it begins as
+    that body does. What started new is named by its part of the network (``body.context``, ``head``), and
+    by its own name too where the rest of its part carried over (``body.blocks.told_bias``).
     """
     from ...encode.board import TOKENS
 
@@ -57,10 +62,15 @@ def start_from(model, saved: dict[str, Any], *, learner: dict[str, Any], marks: 
         else:
             fresh.append(name)
     model.load_state_dict(own)
+    carried = {".".join(name.split(".")[:2]) for name in taken}
+    new = set()
+    for name in fresh:
+        part = ".".join(name.split(".")[:2]) if name.startswith("body.") else name.split(".")[0]
+        new.add(f"{part}.{name.rsplit('.', 1)[-1]}" if part in carried else part)
     return {
         "tensors_taken": len(taken),
         "marks_taken": [marks[ours] for ours, _ in shared],
-        "new": sorted({".".join(name.split(".")[:2]) if name.startswith("body.") else name.split(".")[0] for name in fresh}),
+        "new": sorted(new),
     }
 
 

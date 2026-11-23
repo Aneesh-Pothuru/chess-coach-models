@@ -238,8 +238,8 @@ def grouped_intervals(
     """Named values with their intervals on one axis, in named groups, each group's name over its rows.
 
     ``groups`` are ``(title, rows)`` and a row is ``(name, value, low, high, colour)``. For one kind of row
-    measured in several places: each network's gain in each model, one change's gain in each model.
-    ``reference`` is the line every row is read against, as in ``intervals``.
+    measured in several places: one change's gain in each model. ``reference`` is the line every row is
+    read against, as in ``intervals``. Rows that would run off the page are set closer (``_pitch``).
     """
     labels, body, shown = [], [], []
     slot = 0
@@ -268,7 +268,7 @@ def grouped_intervals(
     span = (max(shown) - min(shown)) or 1.0
     options = [
         f"width={width}",
-        f"height={row_height * slot + 1.7:.2f}cm",
+        f"height={_pitch(row_height, [slot], 1.7) * slot + 1.7:.2f}cm",
         "y dir=reverse",
         f"ymin=-0.6, ymax={slot - 0.4}",
         f"ytick={{{','.join(str(index) for index in range(slot))}}}",
@@ -280,6 +280,137 @@ def grouped_intervals(
         f"xmin={_number(min(shown) - 0.08 * span)}, xmax={_number(max(shown) + 0.08 * span)}",
     ]
     return _picture(options, body)
+
+
+# What a page holds of one figure under its caption, and the closest two rows of names can stand, in centimetres.
+TALLEST = 19.5
+CLOSEST = 0.3
+# The width of a page's text in points (``papers/preamble.tex`` sets an inch of margin on a letter page), and
+# the narrowest a panel's scale may be drawn, in points.
+TEXT_WIDTH = 469.75
+NARROWEST = 57.0
+
+
+def _pitch(row_height: float, slots: Sequence[int], around: float, closest: float = CLOSEST) -> float:
+    """The height of a row in a figure of rows: ``row_height``, or less when the figure would not fit its page.
+
+    ``slots`` are the rows of each picture that stands in the one column, and ``around`` is what each picture
+    needs beside its rows. A column taller than ``TALLEST`` runs off the page and takes its caption with it,
+    so its rows are set closer until it fits. Rows closer than ``closest`` run into each other, and no figure
+    is drawn that way: the caller has to split it.
+    """
+    room = TALLEST - around * len(slots)
+    pitch = min(row_height, room / max(1, sum(slots)))
+    if pitch < closest:
+        raise ValueError(f"{sum(slots)} rows are more than one column of a figure holds on a page: split the figure")
+    return pitch
+
+
+def _columns(heights: Sequence[float], columns: int) -> list[list[int]]:
+    """Pictures in their order, dealt into columns without splitting one, so that the tallest column is as
+    short as it can be: the indexes of the pictures in each column."""
+    if columns <= 1 or len(heights) <= 1:
+        return [list(range(len(heights)))]
+    best: list[list[int]] | None = None
+    for cut in range(1, len(heights)):
+        rest = [[cut + index for index in column] for column in _columns(heights[cut:], columns - 1)]
+        dealt = [list(range(cut)), *rest]
+        if best is None or max(sum(heights[i] for i in column) for column in dealt) < max(
+            sum(heights[i] for i in column) for column in best
+        ):
+            best = dealt
+    return best or [list(range(len(heights)))]
+
+
+def interval_panels(
+    groups: Sequence[tuple[str, Sequence[tuple[str, float | None, float | None, float | None, str]]]],
+    *,
+    xlabel: str,
+    reference: float | None = None,
+    code: bool = True,
+    columns: int = 2,
+    row_height: float = 0.34,
+) -> str:
+    """Named values with their intervals, a panel a group, each panel on its own scale, the panels in columns.
+
+    ``groups`` are as in ``grouped_intervals``. For rows that are read inside their group: each network's
+    gain inside its model. One scale for every group is as wide as the widest group needs and leaves the
+    others a few points of it, so here a panel has the scale its own rows span. The panels keep their order,
+    down one column and then the next, and none is split, so more rows than one column holds still share a
+    page. ``reference`` is the line every row is read against, and ``xlabel`` names every panel's scale, once,
+    under the panels. A column gives the longest name its room and the scale the rest, with the names set
+    smaller when that leaves the scale too little, and a figure whose names leave it too little even then
+    is refused.
+    """
+    groups = [(title, rows) for title, rows in groups if rows]
+    slots = [len(rows) + 1 for _, rows in groups]
+    # Beside its rows a panel has its scale's numbers under it and the gap to the next panel.
+    around = 0.75
+    dealt = _columns([count + around / row_height for count in slots], columns)
+    pitch = min(_pitch(row_height, [slots[index] for index in column], around, closest=0.28) for column in dealt)
+    # A name set as code is this wide at most for each letter, as a share of its size, and a group's name
+    # in bold a little narrower at its own size. Twelve points stand between a name and the scale.
+    share = 0.98 / len(dealt)
+    longest = max((len(name) for _, rows in groups for name, *_ in rows), default=0)
+    titles = 12.0 + 0.52 * 9.0 * max((len(title) for title, _ in groups), default=0)
+    size, room = 7, 0.0
+    for size in (7, 6):
+        room = share * TEXT_WIDTH - 3.0 - max(12.0 + 0.55 * size * longest, titles)
+        if room >= 74.0:
+            break
+    if room < NARROWEST:
+        raise ValueError(f"names of {longest} letters leave a panel's scale {room:.0f} points in {len(dealt)} columns: split the figure")
+    # A scale wider than five centimetres says no more, and a lone column would be given most of the page.
+    plot_width = f"{min(room, 142.0):.1f}pt"
+    pictures = []
+    for (title, rows), count in zip(groups, slots):
+        labels = [f"{{\\sffamily\\footnotesize\\bfseries\\color{{labInk}}{esc(title)}}}"]
+        body, shown = [], []
+        for slot, (name, value, low, high, colour) in enumerate(rows, start=1):
+            labels.append(f"{{{_name(name, code)}}}")
+            if known(low) and known(high):
+                body.append(
+                    f"\\draw[{colour}, line width=1pt, line cap=round] (axis cs:{_number(low)},{slot}) -- (axis cs:{_number(high)},{slot});"
+                )
+            if known(value):
+                body.append(
+                    f"\\addplot[only marks, mark=*, mark size=1.8pt, color={colour}, mark options={{draw=white, line width=0.5pt}}] coordinates {{({_number(value)},{slot})}};"
+                )
+            shown += [part for part in (value, low, high) if known(part)]
+        if reference is not None:
+            shown.append(reference)
+            body.insert(
+                0,
+                f"\\draw[labAxis, line width=0.6pt] (axis cs:{_number(reference)},0.4) -- (axis cs:{_number(reference)},{count - 0.4});",
+            )
+        span = (max(shown) - min(shown)) or 1.0
+        options = [
+            "scale only axis",
+            f"width={plot_width}",
+            f"height={pitch * count:.2f}cm",
+            "y dir=reverse",
+            f"ymin=-0.6, ymax={count - 0.4}",
+            f"ytick={{{','.join(str(index) for index in range(count))}}}",
+            f"yticklabels={{{','.join(labels)}}}",
+            f"tick label style={{font=\\sansmath\\sffamily\\fontsize{{{size}}}{{{size + 1}}}\\selectfont}}",
+            "ytick style={draw=none}",
+            "y axis line style={draw=none}",
+            "xmajorgrids",
+            f"xmin={_number(min(shown) - 0.1 * span)}, xmax={_number(max(shown) + 0.1 * span)}",
+        ]
+        # pgfplots: with this the picture ends at the axis's right edge, so pictures set flush right in a
+        # column have their scales under one another whatever the widths of their rows' names.
+        pictures.append(_picture(options, body).replace("\\begin{tikzpicture}", "\\begin{tikzpicture}[trim axis right]", 1))
+    width = f"{share:.3f}\\textwidth"
+    # One column stands in the middle of the page. Two or more are set flush right, scale under scale.
+    side = "\\raggedleft" if len(dealt) > 1 else "\\centering"
+    stacks = [
+        f"\\begin{{minipage}}[t]{{{width}}}\\vspace{{0pt}}{side}\n"
+        + "\\par\\vspace{0.1cm}\n".join(f"{pictures[index]}\\hspace*{{3pt}}" for index in column)
+        + "\n\\end{minipage}"
+        for column in dealt
+    ]
+    return "\\hfill\n".join(stacks) + f"\n\n\\smallskip\n{{\\sffamily\\footnotesize\\color{{labSecondary}}{xlabel}}}"
 
 
 def strips(

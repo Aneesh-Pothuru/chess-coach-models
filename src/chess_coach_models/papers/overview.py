@@ -192,6 +192,12 @@ def _largest_board(src: Sources) -> dict[str, Any] | None:
     return max(plain, key=lambda run: run["learner"]["parameters"], default=None)
 
 
+def _started_board(src: Sources) -> dict[str, Any] | None:
+    """The best network of a model that started from another run's body and reads no hand feature."""
+    learners = ((run, run["config"]["learner"]) for run in src.networks)
+    return next((run for run, learner in learners if learner.get("init") and learner.get("features") != "hand"), None)
+
+
 def _kept(src: Sources, entry: dict[str, Any]) -> bool:
     """Whether a pair's first run is kept by the lab's rule for a change: better than the run it changed on the
     valid rows, and on the test rows beyond the noise."""
@@ -343,6 +349,9 @@ def values(lab: Lab, out: tex.Generated) -> None:
     out.set("lab.paperless.names", _listed([said(name) for name in paperless(lab)]))
     out.set("lab.runs.count", tex.count(sum(len(src.runs) for src in every)))
     out.set("lab.networks.count", tex.count(sum(len(src.networks) for src in every)))
+    sizes = [run["learner"]["parameters"] for src in every for run in src.networks if run["learner"].get("parameters")]
+    if sizes:
+        out.set("lab.networks.largest.parameters.millions", tex.fixed(max(sizes) / 1e6, 1))
     out.set("lab.studies.count", tex.count(sum(len(src.studies) for src in every)))
     out.set("lab.cost.seconds", tex.duration(sum(run["seconds"] for src in every for run in src.runs)))
     out.set("lab.cost.seconds.networks", tex.duration(sum(run["seconds"] for src in every for run in src.networks)))
@@ -378,6 +387,9 @@ def values(lab: Lab, out: tex.Generated) -> None:
         # The ladder's largest network that reads no hand feature: where the board alone stood before any
         # run changed a thing in it, so prose can say what a change to that network turned round.
         "ladder.board": _largest_board,
+        # The best network that reads no hand feature among those that started from another run's body, so
+        # prose can say what the start did from the board alone whatever other run is ahead of it there.
+        "started.board": _started_board,
     }
     for part, pick in picks.items():
         ahead, level, behind = _verdicts(lab, pick)
@@ -386,9 +398,13 @@ def values(lab: Lab, out: tex.Generated) -> None:
             out.set(f"lab.{part}.{word}", tex.word(len(group)))
             out.set(f"lab.{part}.{word}.of", _of(len(group), compared, "model"))
             out.set(f"lab.{part}.{word}.names", _listed([said(name) for name in group]))
-            # Which runs they are, so prose can say what kind of network is ahead without naming one.
+            # Which runs they are, so prose can say what kind of network is ahead without naming one, and
+            # in which models each of them is, for a sentence about one kind of run among them.
             runs = list(dict.fromkeys(pick(lab.models[name])["run"] for name in group))
             out.set(f"lab.{part}.{word}.runs", _listed([run_tex(run) for run in runs]))
+            for run in runs:
+                where = [said(name) for name in group if pick(lab.models[name])["run"] == run]
+                out.set(f"lab.{part}.{word}.run.{tex.key(run)}.names", _listed(where))
     ladder = [run for src in lab.models.values() for run in src.ladder]
     last = [run for run in ladder if run["learner"]["best_epoch"] == run["config"]["train"]["epochs"]]
     out.set("lab.ladder.count", tex.count(len(ladder)))
@@ -444,6 +460,7 @@ def values(lab: Lab, out: tex.Generated) -> None:
         out.set(f"{prefix}.kept.of", _of(len(passed), len(found), "pair"))
         out.set(f"{prefix}.kept.models", _listed(list(dict.fromkeys(said(name) for name in passed))))
         out.set(f"{prefix}.kept.whole.models", _listed([said(name) for name in whole]))
+    shapes_values(lab, out)
     # The same by the run the change was made in, where a model has one pair: a clause prose can read whole.
     for key, bases in by_base(lab).items():
         for run, entries in bases.items():
@@ -489,6 +506,29 @@ def _across(lab: Lab, out: tex.Generated, prefix: str, entries: dict[str, dict[s
         for end, name in (("most", max(amounts, key=amounts.get)), ("least", min(amounts, key=amounts.get))):
             out.set(f"{prefix}.gain.{end}", tex.fixed(amounts[name], 1, sign=True))
             out.set(f"{prefix}.gain.{end}.model", said(name))
+
+
+def shapes_values(lab: Lab, out: tex.Generated) -> None:
+    """The runs of another shape as a whole, model by model, under ``lab.shapes``: the models that have any,
+    those where none of them leaves the noise of the run it changes (``still``), and those where one of them
+    is the model's best run (``best``). A list of no model is not set, so a sentence that names the models
+    stops the build when there is none left to name."""
+    shaped: dict[str, list[dict[str, Any]]] = {}
+    for (key, _), found in kinds(lab).items():
+        if key in changes.SHAPES:
+            for name, entry in found:
+                shaped.setdefault(name, []).append(entry)
+    if not shaped:
+        return
+    tried = [name for name in lab.models if name in shaped]
+    still = [name for name in tried if not any(entry["beyond_noise"] for entry in shaped[name])]
+    best = [name for name in tried if lab.models[name].best["run"] in {entry["run"] for entry in shaped[name]}]
+    out.set("lab.shapes.models.count", tex.word(len(tried)))
+    out.set("lab.shapes.models.names", _listed([said(name) for name in tried]))
+    for word, group in (("still", still), ("best", best)):
+        out.set(f"lab.shapes.{word}.of", _of(len(group), len(tried), "model"))
+        if group:
+            out.set(f"lab.shapes.{word}.names", _listed([said(name) for name in group]))
 
 
 def models_table(lab: Lab) -> str:
@@ -559,8 +599,10 @@ def shares_figure(lab: Lab) -> str | None:
 
 
 def networks_figure(lab: Lab) -> str | None:
-    """Each network on a model's leaderboard against the reference, model by model, on the one scale: the
-    ladder's, and under each of them the runs that changed one thing in it and stand on the leaderboard."""
+    """Each network on a model's leaderboard against the reference, a panel a model, in the one scale's
+    units: the ladder's, and with each of them the runs that changed one thing in it and stand on the
+    leaderboard. A panel has the scale its own networks span, since one model's gains can be ten times
+    another's, and the panels stand in two columns so that every network of every model shares a page."""
     groups = []
     for name, src in lab.models.items():
         rows = [
@@ -572,11 +614,10 @@ def networks_figure(lab: Lab) -> str | None:
             groups.append((said(name), rows))
     if not groups:
         return None
-    return charts.grouped_intervals(
+    return charts.interval_panels(
         groups,
-        xlabel="Gain over the reference, in hundredths of its step from the floor (right of the line is better)",
+        xlabel="Gain over the reference, in hundredths of its step from the floor (right of a panel's line is better)",
         reference=0.0,
-        reference_label="reference",
     )
 
 

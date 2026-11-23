@@ -199,14 +199,17 @@ hash, so a card can say which file a score belongs to.
 body at the same size. The piece and square embeddings, every block and the last norm carry over;
 a mark on squares both tasks know keeps its weights and one only the new task has starts new; the
 layers that read the numbers beside the board carry over only when both tasks read the same
-numbers; the head never does (`start_from` in `train/learners/net.py`). The weights are read from
-this machine's `artifacts/runs/`, so the run they come from is trained first, and `lab all` skips
-a run whose start is not there yet. The record names the file it started from by its hash and
-says what was taken. [`position-evaluation`](../models/position-evaluation/) exists to be started
-from: its label is an engine's evaluation, which says nothing about people, and its body is the
-one every other model's `transformer-medium` has. Its task says so with `purpose: body`. Such a
-model is built, trained, scored and ranked like any other, and the lab's paper lists it apart
-from the models it sets side by side.
+numbers; the head never does (`start_from` in `train/learners/net.py`). What a transformer's
+attention is told is no part of its size: one told what each piece attacks takes the body of one
+told nothing and begins as that body does, since its weights on what it is told start at nothing.
+The weights are read from this machine's `artifacts/runs/`, so the run they come from is trained
+first, and `lab all` skips a run whose start is not there yet. The record names the file it
+started from by its hash and says what was taken.
+[`position-evaluation`](../models/position-evaluation/) exists to be started from: its label is an
+engine's evaluation, which says nothing about people, and its body is the one every other model's
+`transformer-medium` has. Its task says so with `purpose: body`. Such a model is built, trained,
+scored and ranked like any other, and the lab's paper lists it apart from the models it sets side
+by side.
 
 **A run that changes another.** A run that changes one thing in another names that run as its
 `base` and writes only the change; its config is the base's with its own blocks laid over it
@@ -533,7 +536,9 @@ the model's committed files, on any machine, and compiles `models/<model>/paper/
   and a paper says so where it shows one.
 - **One look for every figure** (`papers/charts.py`). A run keeps its colour and its mark in every
   figure of every paper, a run that changes another is drawn as that run with a broken line, and
-  every figure has its numbers in a table.
+  every figure has its numbers in a table. A figure of rows fits its page however many runs it
+  comes to hold: rows that would run off the page are set closer, and where they cannot be the
+  build stops and says to split the figure.
 
 `lab paper <model> --smoke` draws the same prose from the small check's records, under
 `artifacts/smoke-papers/`. It proves the paper compiles and is never a result. A machine without
@@ -563,6 +568,20 @@ read.
   divided by the step. The step is a measured number too and its noise is left out, so the scale
   is for setting models side by side, and a claim about one model rests on the paired gain in
   that model's own units.
+- **Every network, a panel a model.** The figure of every network (`lab-networks`) gives each
+  model a panel with the scale its own networks span, since one model's gains can be ten times
+  another's, and sets the panels in two columns so that every network of every model shares a
+  page (`charts.interval_panels`). A panel's scale is as wide as its column's longest run name
+  leaves room for. Names are set smaller before a scale is too narrow to read, and names that
+  leave no scale stop the build.
+- **Which network, and in which models.** The prose reads in how many models a network is ahead
+  of the reference, level with it or behind it, for a few picks of network: the best one
+  (`lab.network.ahead.of`), the best that reads the board alone (`lab.board`), the best of those
+  that started from another run's body (`lab.started.board`), the ladder's largest that reads the
+  board alone (`lab.ladder.board`) and the best that a CPU trains (`lab.small`). With each count
+  come the runs that are picked (`lab.board.ahead.runs`) and, run by run, the models each is the
+  pick of (`lab.board.ahead.run.<run>.names`), so a sentence about one kind of run among them
+  takes its models from the records.
 - **One change, the run it was made in, model by model.** A pair of runs that differ in exactly
   one setting is a change of one kind: the hand features, the epochs, the start. The table of
   changes has a kind a block, the run the change was made in a pair of columns and a model a
@@ -602,7 +621,12 @@ read.
   from the runs that change how a network is trained: the block `variants` follows a ladder
   network and those runs in one panel, epoch by epoch on the valid rows, and the block `shapes`
   gives each run of another shape a panel of its own beside the network it changes, since five
-  broken lines of one colour cannot be told apart in one panel.
+  broken lines of one colour cannot be told apart in one panel. What the runs of these kinds say
+  of a model as a whole is under `lab.shapes`: the models that have any
+  (`lab.shapes.models.names`), those where none of them leaves the noise of the run it changes
+  (`lab.shapes.still.names`), and those where one of them is the model's best run
+  (`lab.shapes.best.of`). A list of no model is not set, so a sentence that names the models
+  stops the build when there is none left to name.
 - **Kept or not, by both halves of the rule.** For each kind of change the prose reads how many
   pairs are better on the test rows beyond the noise (`lab.change.<kind>.net.better.of`) and how
   many also pass on the valid rows, which is the lab's rule for keeping a change
