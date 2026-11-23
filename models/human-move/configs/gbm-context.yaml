@@ -1,0 +1,13 @@
+# Trees that read a row a legal move with no chess in it: who is playing, the clocks, where the move
+# leaves and lands, the piece that moves, what stands where it lands, and whether either square is one
+# the opponent's last move touched. Each position is about thirty rows to them, so they train on a
+# quarter of the training games, and at twice the usual learning rate.
+learner:
+  kind: gbm
+  features: context
+  learning_rate: 0.1
+  rounds: 1500
+data:
+  train_share: 0.25
+smoke:
+  learner: {rounds: 30}

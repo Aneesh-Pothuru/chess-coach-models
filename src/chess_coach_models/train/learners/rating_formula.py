@@ -14,10 +14,14 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device=None) -> Fitt
 
     Nothing is fitted: this is what two ratings alone say. The two may sit on different scales (a game rating and
     a puzzle rating do). The formula's log-odds are the rating gap times a constant, so the slope and the
-    intercept a run fits on valid rows before it is scored are exactly the stretch and the shift between them.
+    intercept a run fits on valid rows before a chance is scored are exactly the stretch and the shift between
+    them. A task whose label is a score from 0 to 1 (a game's result) is given the expected score as it is.
     """
-    if prepared.task.kind != "binary":
-        raise ValueError("the rating formula gives a chance, so its task needs a yes-or-no label")
+    labels = prepared.y[prepared.train]
+    if prepared.task.kind != "binary" and not (len(labels) and labels.min() >= 0.0 and labels.max() <= 1.0):
+        raise ValueError(
+            "the rating formula gives an expected score, so its task needs a yes-or-no label or a score from 0 to 1"
+        )
     learner = config["learner"]
     rows = prepared.dataset.rows
     gap = (

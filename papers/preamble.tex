@@ -1,8 +1,15 @@
 % The preamble every paper of the lab shares: \input{../../../papers/preamble}
-% from models/<model>/paper/, \input{../preamble} from papers/<name>/.
-% Boards come from chessboard and xskak, plots from pgfplots. A paper prints no
-% number by hand: `lab paper` writes every number, table and figure under the
-% paper's generated/ folder, and paper.tex says what they mean.
+% from models/<model>/paper/. Boards come from chessboard and xskak, plots from
+% pgfplots. A paper prints no number by hand: `lab paper` writes every number,
+% table and figure under the paper's generated/ folder, and paper.tex says
+% what they mean.
+
+% The same files give the same PDF, byte for byte: no date, no build
+% information and a fixed trailer id, so a rebuilt paper shows no change that
+% is not one.
+\pdfinfoomitdate=1
+\pdfsuppressptexinfo=-1
+\pdftrailerid{}
 \usepackage[LSBC4,T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{lmodern}
@@ -16,6 +23,7 @@
 \usepackage[obeyspaces,spaces]{url}
 \usepackage{xskak}
 \usepackage{pgfplots}
+\usepackage{sansmath}
 \usepgfplotslibrary{groupplots}
 \usetikzlibrary{positioning,arrows.meta,calc,fit}
 \pgfplotsset{compat=1.18}
@@ -26,13 +34,113 @@
 \usepackage[hidelinks]{hyperref}
 
 % A generated value by its key: generated/values.tex sets them, \V{key} prints
-% one, and a key nobody set stops the build.
+% one, and a key nobody set stops the build. \block{name} places a generated
+% table, figure or board. \iflook is true when the model's closer look was
+% there to draw from, so a paper can hold sections that wait for it. A smoke
+% build sets \iflablenient, and prints a mark where a value or a block is not
+% in it, since a small check has fewer runs than the paper names.
+\newif\iflook
+\newif\iflablenient
+% \ifchance is true when the model gives a chance, false when it gives a
+% quantity: the shared sections say what differs between the two.
+\newif\ifchance
+% \ifsequence is true when a row is a sequence of positions (a player's moves
+% through a game) and not one position: the shared sections say what a
+% learner reads of such a row, and what a network over it is.
+\newif\ifsequence
+% What a model may not have yet: runs set against the run each changed
+% (\ifpairs), a run of the ladder trained longer or started elsewhere
+% (\ifvariants), a run of another shape than the network of the ladder it
+% changes (\ifshapes, declared below with the lab's own), and the two
+% studies (\ifgames, \iffeatures). \ifchanges is true when any of the five
+% is. A paper holds what it says about each inside its switch, and it appears
+% once the runs do. \ifmore is true when a run trained on more games than
+% the run it changes, from a larger build of the dataset, has been set
+% against that run.
+\newif\ifpairs
+\newif\ifvariants
+\newif\ifgames
+\newif\iffeatures
+\newif\ifchanges
+\newif\ifmore
+% A model that asks another model's question with something hidden is read
+% against that model: \ifshown is true when the other model has runs to set
+% beside this one's, and \ifshownpaired when the closer look has measured
+% each pair on the same test rows.
+\newif\ifshown
+\newif\ifshownpaired
+% The lab's own paper asks its own: whether a model has a task and no run
+% yet (\ifwaiting), and whether a kind of change has a pair measured in some
+% model: the hand features (\ifchangehand), more epochs (\ifchangeepochs), a
+% start from another run's body (\ifchangestart), whether any model has
+% a study run (\ifstudies), whether some model's dataset is split by
+% other shares than most (\ifsplitapart), and whether a model with full
+% runs is one the lab has for its body, not for its answer (\ifbodies).
+% A network of another shape than the run it changes is a kind of change
+% too: a convolutional tower or a hybrid for the transformer (\ifchangeconv,
+% \ifchangehybrid), the same body larger (\ifchangelarger), attention told
+% what each piece attacks (\ifchangeattacks) or not told the offsets between
+% squares (\ifchangegeometry). \ifshapes is true when any of those five is
+% measured in some model, and in a model's own paper when the model has a
+% run of one of them to draw.
+\newif\ifwaiting
+\newif\ifchangehand
+\newif\ifchangeepochs
+\newif\ifchangestart
+\newif\ifchangeattacks
+\newif\ifchangegeometry
+\newif\ifchangeconv
+\newif\ifchangehybrid
+\newif\ifchangelarger
+\newif\ifshapes
+\newif\ifstudies
+\newif\ifsplitapart
+\newif\ifbodies
+% And whether a model of another kind than one number for a row of one
+% position has full runs: an answer that is a set (\ifanswersets), which is
+% a chance for each square (\ifanswersquares) or for each tag
+% (\ifanswertags), an answer that is a move (\ifanswermoves), a row that is
+% a sequence of positions (\ifrowsequences).
+\newif\ifanswersets
+\newif\ifanswersquares
+\newif\ifanswertags
+\newif\ifanswermoves
+\newif\ifrowsequences
+% And whether a model that is set side by side has no paper of its own yet.
+\newif\ifpaperless
 \makeatletter
 \newcommand{\setvalue}[2]{\expandafter\gdef\csname labvalue@#1\endcsname{#2}}
-\newcommand{\V}[1]{\@ifundefined{labvalue@#1}%
-  {\PackageError{lab}{No generated value named '#1'}{Run `lab paper` for this model again.}}%
+\DeclareRobustCommand{\V}[1]{\@ifundefined{labvalue@#1}%
+  {\iflablenient\textit{n/a}\else
+    \PackageError{lab}{No generated value named '#1'}{Run `lab paper` for this model again.}\fi}%
   {\csname labvalue@#1\endcsname}}
+\newcommand{\block}[1]{\IfFileExists{generated/#1.tex}{\input{generated/#1}}%
+  {\iflablenient\fbox{\footnotesize\texttt{#1}: not in a smoke build}\else
+    \PackageError{lab}{No generated block named '#1'}{Run `lab paper` for this model again.}\fi}}
+% Code in running text or in a table's cell: a run's name, a dataset's, a path. A line may end after
+% one of its hyphens or slashes, with nothing added: a name such as transformer-medium-hand-pretrained
+% is wider than many a column and has no other place to break. A value read with \V inside it is
+% broken the same way, so \V is read here as its text.
+\newcommand{\labvalueof}[1]{\csname labvalue@#1\endcsname}
+\def\labcodeslash#1/#2\labcodeend{#1\if\relax\detokenize{#2}\relax\else/\allowbreak\labcodeslash#2\labcodeend\fi}
+\def\labcodesplit#1-#2\labcodeend{\labcodeslash#1/\labcodeend\if\relax\detokenize{#2}\relax\else-\allowbreak\labcodesplit#2\labcodeend\fi}
+\DeclareRobustCommand{\code}[1]{{\ttfamily\let\V\labvalueof
+  \protected@edef\labcodetext{#1}\expandafter\labcodesplit\labcodetext-\labcodeend}}
+\DeclareRobustCommand{\run}[1]{\code{#1}}
+\pdfstringdefDisableCommands{\def\code#1{#1}\def\run#1{#1}}
 \makeatother
+
+% A table or a picture wider than the text is drawn smaller, at the text's
+% width, so a row of long numbers never runs into the margin. One that fits
+% is left exactly as it is. `lab paper` wraps every block that is one table
+% or one picture in it.
+\newsavebox{\labfitbox}
+\newcommand{\fit}[1]{\sbox{\labfitbox}{#1}%
+  \ifdim\wd\labfitbox>\linewidth
+    \resizebox{\linewidth}{!}{\usebox{\labfitbox}}%
+  \else
+    \usebox{\labfitbox}%
+  \fi}
 
 % Chart colours. A run keeps its colour in every figure of every paper.
 \definecolor{labBlue}{HTML}{2A78D6}
@@ -54,7 +162,8 @@
     font=\sffamily\footnotesize,
     axis line style={labAxis},
     tick style={labAxis},
-    tick label style={labSecondary},
+    tick label style={labSecondary, font=\sansmath\sffamily\footnotesize, /pgf/number format/fixed,
+      /pgf/number format/precision=4},
     label style={labSecondary},
     title style={labInk, font=\sffamily\small\bfseries, align=left},
     grid style={labGrid, line width=0.3pt},
@@ -66,22 +175,65 @@
       cells={anchor=west}, legend columns=-1, column sep=6pt, at={(0,1.03)}, anchor=south west},
     every axis plot/.append style={line width=1.1pt, line join=round, line cap=round},
     scaled ticks=false,
-    /pgf/number format/1000 sep={,},
+    /pgf/number format/1000 sep={},
   },
+  % The upright axis of a chart of counts marks its thousands; an axis of ratings does not.
+  lab counts/.style={yticklabel style={/pgf/number format/1000 sep={{,}}}},
   lab marks/.style={mark=*, mark size=1.9pt, mark options={draw=white, line width=0.6pt}},
 }
 
-\setchessboard{boardfontencoding=LSBC4, boardfontfamily=skaknew, blackfieldcolor=black!18,
-  whitefieldcolor=white, setfontcolors, showmover=false, label=true, labelfontsize=6pt,
-  boardfontsize=12pt}
+% With this board font a dark square is a mask under a hatch, so both take the colour.
+\setchessboard{boardfontencoding=LSBC4, boardfontfamily=skaknew, blackfieldmaskcolor=black!14,
+  blackfieldcolor=black!14, whitefieldmaskcolor=white, whitefieldcolor=white, setfontcolors,
+  showmover=false, label=true, labelfontsize=6pt, boardfontsize=12pt}
 
 % A move or line in UCI, a position in FEN (breakable at a slash), and a run's name.
 \newcommand{\uci}[1]{\texttt{#1}}
 \newcommand{\fen}[1]{{\footnotesize\path{#1}}}
-\newcommand{\run}[1]{\texttt{#1}}
 \newcolumntype{L}{>{\raggedright\arraybackslash}X}
 \newcolumntype{R}{>{\raggedleft\arraybackslash}X}
 
+% A set of example positions under its caption: \examples{block}{caption}{label}.
+% It is no float. The boards follow the text they belong to and may run over a
+% page, each board kept whole with its words, so a set of boards never waits
+% alone on a page of its own.
+\newcommand{\examples}[3]{%
+  \par\addvspace{\bigskipamount}%
+  \noindent\begin{minipage}{\textwidth}\captionsetup{type=figure}\caption{#2}\label{#3}\end{minipage}%
+  \par\nobreak\smallskip
+  \block{#1}\par\addvspace{\medskipamount}}
+
+% A page may be mostly floats before LaTeX gives them a page of their own, so
+% a figure stays near the words about it.
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.08}
+\renewcommand{\floatpagefraction}{0.75}
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{5}
+
 \setlength{\parskip}{0.4em}
 \setlength{\parindent}{0pt}
+% A paragraph TeX cannot break within its tolerance (a run's long name where a
+% line would end) is tried once more with this much give in every line, so the
+% line is set loose and no word runs past the margin. A paragraph that already
+% fits is never tried again, so it stays exactly as it was.
+\emergencystretch=2em
 \captionsetup{font=small, labelfont=bf}
+\setlist{itemsep=0.15em, topsep=0.2em}
+
+% A paper's head: its name, the question it answers, and the line that says
+% which results it was drawn from. Then its summary, set apart.
+\newcommand{\labtitle}[3]{%
+  \hypersetup{pdftitle={#1: #2}, pdfauthor={Chess Coach Models}}%
+  \begin{center}
+  {\sffamily\small\color{labSecondary}Chess Coach Models\quad\textperiodcentered\quad a paper of the model lab\par}
+  \medskip
+  {\LARGE\bfseries #1\par}
+  \smallskip
+  {\large #2\par}
+  \medskip
+  {\small\color{labSecondary}#3\par}
+  \end{center}}
+\newenvironment{summary}{\begin{quote}\small\textbf{Summary.}}{\end{quote}}

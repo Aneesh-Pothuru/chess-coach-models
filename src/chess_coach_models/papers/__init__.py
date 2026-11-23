@@ -1,1 +1,1 @@
-"""A model's paper: every number, table, figure and board in it written from the model's records."""
+"""A model's paper, and the lab's own: every number, table, figure and board in them written from the models' records."""

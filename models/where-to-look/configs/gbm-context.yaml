@@ -1,0 +1,12 @@
+# Trees that read a row a square with no chess in it: where the square is, the piece on it, the
+# opponent's last move, and the castling rights. Each position is 64 rows to them, so they train on
+# a tenth of the training games, and at twice the usual learning rate.
+learner:
+  kind: gbm
+  features: context
+  learning_rate: 0.1
+  rounds: 1000
+data:
+  train_share: 0.1
+smoke:
+  learner: {rounds: 30}

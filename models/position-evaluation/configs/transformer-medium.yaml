@@ -1,0 +1,19 @@
+# The GPU-sized transformer of every other model, on the board alone. Its body is what a run
+# elsewhere starts from (`learner.init`), so its size is theirs.
+needs: cuda
+learner:
+  kind: net
+  body: transformer
+  dim: 256
+  depth: 8
+  heads: 8
+  dropout: 0.1
+train:
+  epochs: 6
+  batch: 1024
+  lr: 0.0006
+  weight_decay: 0.05
+  warmup: 0.05
+  patience: 3
+smoke:
+  train: {epochs: 1}

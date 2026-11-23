@@ -1,0 +1,31 @@
+% Written by `lab paper puzzle-difficulty-unsolved`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.5\textwidth,
+  height=4.20cm,
+  y dir=reverse,
+  ymin=-0.6, ymax=4.6,
+  ytick={0,1,2,3,4},
+  yticklabels={{1},{2},{3},{4},{5+}},
+  ytick style={draw=none},
+  y axis line style={draw=none},
+  xmajorgrids,
+  xlabel={Gain in RMSE from being shown more (right of the line is better)},
+  xmin=-25.9965, xmax=350.952,
+]
+\draw[labAxis, line width=0.6pt] (axis cs:0,-0.6) -- (axis cs:0,4.6);
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:78.9246,0) -- (axis cs:87.6168,0);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(83.3128,0)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:109.416,1) -- (axis cs:113.859,1);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(111.781,1)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:121.606,2) -- (axis cs:128.367,2);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(124.497,2)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:172.499,3) -- (axis cs:189.598,3);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(181.986,3)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:292.661,4) -- (axis cs:324.956,4);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(308.18,4)};
+\end{axis}
+\end{tikzpicture}%
+}

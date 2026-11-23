@@ -1,0 +1,21 @@
+% Written by `lab paper puzzle-difficulty`; do not edit by hand.
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.45cm}>{\raggedright\arraybackslash}p{2.45cm}Lrrr}
+\toprule
+ &  &  & \multicolumn{3}{c}{Gain in RMSE} \\
+\cmidrule(lr){4-6}
+Run & Set against & What the run changes & Valid rows & Test rows & 95\% interval \\
+\midrule
+\run{transformer-medium-long} & \run{transformer-medium} & 24 epochs for 12 & +18.4 & \textbf{+19.57} & +18.58 to +20.49 \\
+\run{transformer-medium-hand-long} & \run{transformer-medium-hand} & 24 epochs for 12 & +8.95 & \textbf{+8.297} & +7.576 to +9.072 \\
+\run{transformer-medium-hand} & \run{transformer-medium} & reads the hand features & +12.5 & \textbf{+13.77} & +12.69 to +14.79 \\
+\run{transformer-medium-hand-long} & \run{transformer-medium-long} & reads the hand features & +3.08 & \textbf{+2.497} & +1.234 to +3.678 \\
+\run{conv-medium-hand} & \run{transformer-medium-hand} & its body is a convolutional tower for a transformer; 0.002 peak learning rate for 0.0006 & +5.10 & \textbf{+4.543} & +3.602 to +5.488 \\
+\run{hybrid-medium-hand} & \run{transformer-medium-hand} & its body is convolutions under a transformer for a transformer & $-$3.12 & \textbf{$-$4.577} & $-$5.477 to $-$3.622 \\
+\run{transformer-large-hand} & \run{transformer-medium-hand} & 12 layers of width 384 for 8 of width 256 & $-$7.42 & \textbf{$-$7.811} & $-$8.446 to $-$7.153 \\
+\run{transformer-medium-attacks} & \run{transformer-medium} & its attention is told what each piece attacks & +25.2 & \textbf{+25.49} & +24.54 to +26.46 \\
+\run{transformer-medium-hand-attacks} & \run{transformer-medium-hand} & its attention is told what each piece attacks & +12.7 & \textbf{+12.10} & +11.38 to +12.87 \\
+\run{transformer-medium-hand-no-geometry} & \run{transformer-medium-hand} & its attention is not told the offsets between squares & $-$2.60 & \textbf{$-$3.724} & $-$4.293 to $-$3.194 \\
+\run{transformer-medium-hand-pretrained} & \run{transformer-medium-hand} & starts from the body of \run{position-evaluation/transformer-medium} & +19.7 & \textbf{+18.54} & +17.50 to +19.49 \\
+\run{transformer-medium-pretrained} & \run{transformer-medium} & starts from the body of \run{position-evaluation/transformer-medium} & +21.6 & \textbf{+22.00} & +21.02 to +22.95 \\
+\bottomrule
+\end{tabularx}

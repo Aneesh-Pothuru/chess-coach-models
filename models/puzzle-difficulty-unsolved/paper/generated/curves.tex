@@ -1,0 +1,27 @@
+% Written by `lab paper puzzle-difficulty-unsolved`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.66\textwidth,
+  height=5.2cm,
+  ymajorgrids,
+  xlabel={Epoch},
+  ylabel={RMSE on the valid rows},
+  legend columns=2,
+  xtick distance=1,
+  xmin=0.5, xmax=12.5,
+]
+\addplot[draw=none, mark=none, forget plot] coordinates {(1,456.764)};
+\draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:1,456.764) -- (axis cs:12,456.764) node[anchor=west, font=\sffamily\scriptsize, text=labSecondary, inner sep=2pt] {\run{gbm-hand}};
+\addplot[color=labMagenta, mark=pentagon*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labMagenta}] coordinates {(1,469.411) (2,451.779) (3,446.029) (4,427.152) (5,419.094) (6,415.657) (7,412.411) (8,412.839)};
+\addlegendentry{\texttt{conv-small}}
+\addplot[color=labBlue, mark=*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labBlue}] coordinates {(1,454.208) (2,447.693) (3,439.556) (4,437.239) (5,432.421) (6,427.56) (7,423.602) (8,422.091) (9,418.954) (10,417.198) (11,416.72) (12,416.535)};
+\addlegendentry{\texttt{transformer-medium-hand}}
+\addplot[color=labAqua, mark=triangle*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labAqua}] coordinates {(1,467.959) (2,462.055) (3,454.684) (4,454.268) (5,446.12) (6,442.315) (7,437.041) (8,433.151) (9,430.832) (10,428.829) (11,426.189) (12,426.131)};
+\addlegendentry{\texttt{transformer-medium}}
+\addplot[color=labYellow, mark=diamond*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labYellow}] coordinates {(1,468.299) (2,462.165) (3,448.176) (4,443.764) (5,437.01) (6,432.289) (7,432.367) (8,430.411)};
+\addlegendentry{\texttt{transformer-small}}
+\end{axis}
+\end{tikzpicture}%
+}

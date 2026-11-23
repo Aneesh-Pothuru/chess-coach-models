@@ -1,0 +1,32 @@
+% Written by `lab paper blunder-hazard`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.5\textwidth,
+  height=3.90cm,
+  y dir=reverse,
+  ymin=-0.6, ymax=4.6,
+  ytick={0,1,2,3,4},
+  yticklabels={{material},{attacks near the kings},{pieces that can be taken},{the moves on offer},{passed pawns}},
+  ytick style={draw=none},
+  y axis line style={draw=none},
+  xmajorgrids,
+  xlabel={Gain in PR-AUC without the group (left of the line: worse without it)},
+  xmin=-0.0446577, xmax=0.00681728,
+]
+\draw[labAxis, line width=0.6pt] (axis cs:0,-0.6) -- (axis cs:0,4.6);
+\node[anchor=south, font=\sffamily\scriptsize, text=labSecondary, inner sep=1.5pt] at (axis cs:0,-0.6) {\run{gbm-hand}};
+\draw[labOrange, line width=1pt, line cap=round] (axis cs:-0.0411077,0) -- (axis cs:-0.027625,0);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labOrange, mark options={draw=white, line width=0.6pt}] coordinates {(-0.0345148,0)};
+\draw[labOrange, line width=1pt, line cap=round] (axis cs:-0.0154458,1) -- (axis cs:-0.00452561,1);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labOrange, mark options={draw=white, line width=0.6pt}] coordinates {(-0.0101359,1)};
+\draw[labOrange, line width=1pt, line cap=round] (axis cs:-0.0132363,2) -- (axis cs:-0.00458088,2);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labOrange, mark options={draw=white, line width=0.6pt}] coordinates {(-0.00880204,2)};
+\draw[labOrange, line width=1pt, line cap=round] (axis cs:-0.0090088,3) -- (axis cs:-0.000286349,3);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labOrange, mark options={draw=white, line width=0.6pt}] coordinates {(-0.00500055,3)};
+\draw[labOrange, line width=1pt, line cap=round] (axis cs:-0.00393512,4) -- (axis cs:0.00326728,4);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labOrange, mark options={draw=white, line width=0.6pt}] coordinates {(-0.000487553,4)};
+\end{axis}
+\end{tikzpicture}%
+}

@@ -60,6 +60,11 @@ def mirrored(fen: str) -> str:
     return fen if board.turn == chess.WHITE else board.mirror().fen()
 
 
+def mirror_square(name: str) -> str:
+    """A square as the networks see it when Black is to move: the same file, the rank counted from the other side."""
+    return f"{name[0]}{9 - int(name[1])}"
+
+
 def board(
     fen: str,
     *,
@@ -81,8 +86,8 @@ def board(
             options.append(f"pgfstyle=color, opacity=0.45, color={colour}, markfields={{{','.join(squares)}}}")
     for uci, colour in arrows:
         options.append(
-            f"pgfstyle=straightmove, opacity=1, arrow=to, linewidth=0.08em, color={colour}, "
-            f"markmoves={{{uci[0:2]}-{uci[2:4]}}}"
+            f"pgfstyle=straightmove, opacity=1, arrow=stealth, linewidth=0.13em, shortenstart=0.2em, "
+            f"shortenend=0.3em, color={colour}, markmoves={{{uci[0:2]}-{uci[2:4]}}}"
         )
     return f"\\chessboard[{', '.join(options)}]"
 

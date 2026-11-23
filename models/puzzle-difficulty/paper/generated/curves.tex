@@ -1,0 +1,27 @@
+% Written by `lab paper puzzle-difficulty`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.66\textwidth,
+  height=5.2cm,
+  ymajorgrids,
+  xlabel={Epoch},
+  ylabel={RMSE on the valid rows},
+  legend columns=2,
+  xtick distance=1,
+  xmin=0.5, xmax=12.5,
+]
+\addplot[draw=none, mark=none, forget plot] coordinates {(1,295.047)};
+\draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:1,295.047) -- (axis cs:12,295.047) node[anchor=west, font=\sffamily\scriptsize, text=labSecondary, inner sep=2pt] {\run{gbm-hand}};
+\addplot[color=labBlue, mark=*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labBlue}] coordinates {(1,315.846) (2,298.824) (3,294.291) (4,288.347) (5,285.505) (6,281.175) (7,279.346) (8,276.233) (9,273.625) (10,272.576) (11,272.047) (12,271.807)};
+\addlegendentry{\texttt{transformer-medium-hand}}
+\addplot[color=labAqua, mark=triangle*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labAqua}] coordinates {(1,345.557) (2,327.694) (3,319.651) (4,311.097) (5,306.661) (6,299.445) (7,295.557) (8,292.316) (9,287.058) (10,286.952) (11,284.766) (12,284.29)};
+\addlegendentry{\texttt{transformer-medium}}
+\addplot[color=labMagenta, mark=pentagon*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labMagenta}] coordinates {(1,338.681) (2,320.591) (3,305.456) (4,301.182) (5,297.961) (6,291.733) (7,289.178) (8,289.459)};
+\addlegendentry{\texttt{conv-small}}
+\addplot[color=labYellow, mark=diamond*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labYellow}] coordinates {(1,340.852) (2,324.021) (3,314.96) (4,308.512) (5,300.809) (6,295.386) (7,292.378) (8,292.351)};
+\addlegendentry{\texttt{transformer-small}}
+\end{axis}
+\end{tikzpicture}%
+}

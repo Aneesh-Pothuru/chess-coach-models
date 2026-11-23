@@ -1,0 +1,16 @@
+% Written by `lab paper puzzle-difficulty`; do not edit by hand.
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.7cm}Lrrrr}
+\toprule
+Run & Left out & Features & RMSE & Gain & 95\% interval \\
+\midrule
+\run{gbm-hand} & nothing &  & 294.9 &  &  \\
+\run{gbm-hand-no-line} & the line & 11 & 338.5 & \textbf{$-$43.58} & $-$44.61 to $-$42.57 \\
+\run{gbm-hand-no-mobility} & the moves on offer & 4 & 310.3 & \textbf{$-$15.33} & $-$15.93 to $-$14.63 \\
+\run{gbm-hand-no-first-move} & the first move & 9 & 307.0 & \textbf{$-$12.08} & $-$12.62 to $-$11.57 \\
+\run{gbm-hand-no-material} & material & 3 & 297.9 & \textbf{$-$2.932} & $-$3.343 to $-$2.488 \\
+\run{gbm-hand-no-kings} & attacks near the kings & 2 & 297.2 & \textbf{$-$2.236} & $-$2.615 to $-$1.898 \\
+\run{gbm-hand-no-hanging} & pieces that can be taken & 2 & 296.1 & \textbf{$-$1.188} & $-$1.498 to $-$0.889 \\
+\run{gbm-hand-no-pawns} & passed pawns & 2 & 295.3 & \textbf{$-$0.3739} & $-$0.6781 to $-$0.0579 \\
+\run{gbm-hand-no-setup} & the opponent's move & 1 & 294.5 & \textbf{+0.3899} & +0.1321 to +0.6536 \\
+\bottomrule
+\end{tabularx}

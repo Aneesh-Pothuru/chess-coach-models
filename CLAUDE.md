@@ -13,18 +13,24 @@ engine, a human-move model, board code or data.
 
 ## What lives here
 
-- `models/<model>/`: one model each. `README.md` is its card (the question, the
-  data, the rule, what the results say), `configs/<run>.yaml` its runs, and
-  `results/` what the runs wrote. [`README.md`](README.md) lists the models.
-- `src/chess_coach_models/`: the shared harness (`data/`, `encode/`, `nets/`,
-  `train/`, `evals/`, `tasks/`, the `lab` command in `cli.py`), beside the first
-  pipeline's modules. [`docs/design.md`](docs/design.md) explains it.
+- `models/<model>/`: one model each, and everything about it. `README.md` is
+  its card (the question, the data, the rule, what the results say),
+  `task.yaml` what it is asked, `configs/<run>.yaml` its runs, `results/` what
+  the runs wrote, `analysis.yaml` how its results are cut for a closer look,
+  and `paper/` its paper: the typed prose (`paper.tex`), what the prose reads
+  (`generated/`) and the PDF. A model has no code of its own.
+  [`README.md`](README.md) lists the models.
+- `src/chess_coach_models/`: the harness every model shares (`data/`,
+  `encode/`, `nets/`, `train/`, `evals/`, `tasks.py`, `paths.py`, the `lab`
+  command in `cli.py`). [`docs/design.md`](docs/design.md) explains it.
 - `datasets/<name>.yaml`: recipes for datasets built from open sources.
-- `docs/`: the design, the idea list ([`docs/ideas.md`](docs/ideas.md)) and
-  where runs go ([`docs/compute.md`](docs/compute.md)).
+- `papers/`: what every model's paper shares: the preamble, the sections that
+  are the same for all of them, and the references. `papers/lab/` is the lab's
+  own paper, which sets the models side by side.
+- `docs/`: the design, the idea list ([`docs/ideas.md`](docs/ideas.md)), where
+  runs go ([`docs/compute.md`](docs/compute.md)) and what the lab was before
+  ([`docs/history.md`](docs/history.md)).
 - `bridge/`: the way to the app's own code, for scripts that need it.
-- `scripts/`, `configs/config.yaml`, `reports/`: the first pipeline (the 2019
-  models), kept as it ran.
 - `projects/learner-solve-chance/`: the one study of the app's code still
   waiting on data. It leaves when it reports; start no new study there.
 
@@ -33,31 +39,82 @@ engine, a human-move model, board code or data.
 1. Write its card first: the question, what it reads, what it predicts, the
    open data, the metric, the split, and what counts as better. Take the idea
    from `docs/ideas.md`, or add it there.
-2. Add a `Task` in `src/chess_coach_models/tasks/__init__.py`: its dataset, its
-   label, the context numbers a learner may read, its primary metric, its
-   reference run.
+2. Write `models/<model>/task.yaml`: its dataset, its label, the context
+   numbers a learner may read, its primary metric, its reference run
+   (`src/chess_coach_models/tasks.py` says what each line means).
 3. If no dataset has its rows, add a builder under `data/` and a recipe under
    `datasets/`. A dataset splits by game and writes a manifest.
 4. Copy the run configs from another model: the floor (`constant`), the tree
    baselines (`gbm-context`, `gbm-hand`) and the networks.
 5. `lab all <model> --smoke` until it runs, then the full run where
    `docs/compute.md` says, then commit the results the run wrote.
+6. Write `analysis.yaml`, run `lab analyse <model>` where the dataset and the
+   predictions are, commit `results/analysis.json`, and say on the card what
+   the results mean.
+7. Write its paper: `models/<model>/paper/paper.tex`, from another model's as
+   the pattern, then `lab paper <model>`, and commit the prose, `generated/`
+   and `paper.pdf`.
 
-A new kind of input or output (a whole game as a sequence, a label per square,
-a move) is a new body or head in `nets/`, with a test, and a line in
-`docs/design.md`.
+A new kind of input or output (a label for each position of a game, a
+published body under a new head) is a new body or head in `nets/`, with a
+test, and a line in `docs/design.md`.
+
+A model whose answer is a set (a chance for each square, a chance for each
+tag) or a move (a chance for each legal move) has no paper of its own for
+now, and needs no `analysis.yaml`: the closer look's tables and a model's
+paper read one number a row (`docs/design.md`, "An answer that is a set" and
+"An answer that is a move"). `lab analyse` writes its pairs alone, each run
+set against the run it changed, so run it and commit `results/analysis.json`
+whenever such a model has a run that names a `base`. Its card says so.
 
 ## Running a model
 
 - A report is written by its script, never typed. A run writes
   `results/<run>.json`; `lab eval <model>` writes the leaderboard from the
-  records; `lab report` writes the README's table from the leaderboards. A
-  card's prose may say what the numbers mean, with the numbers left in the
-  generated files it links.
+  records; `lab analyse <model>` writes the closer look from the dataset and
+  the test predictions; `lab report` writes the README's table from the
+  leaderboards. A card's prose may say what the numbers mean, with the numbers
+  left in the generated files it links.
+- A paper types no number either. `lab paper <model>` writes every value,
+  table, figure and board from the committed results, and the prose reads
+  them back with `\V{key}` and `\block{name}` (`lab paper <model> --list`
+  shows what there is; `docs/design.md`, "The paper"). A build stops on a
+  value the files cannot give. It cannot catch a sentence that stopped being
+  true, so when a model's runs change, rebuild its paper and read its prose
+  again against the new tables. A claim about something no generated file
+  holds (why a number is what it is) is marked as a reading.
+- `lab paper` with no model writes the lab's own paper (`papers/lab/`) the
+  same way. It reads every model's values under the model's name
+  (`puzzle-difficulty.best.score`) and the lab's own under `lab`, and it sets
+  models side by side on one scale: a run's share of the reference's step from
+  the floor. When any model's runs change, rebuild it and read its prose again
+  too. A model the lab has for its body and not for its answer (`purpose:
+  body` in its task: `position-evaluation`) is listed there apart, and
+  counted in no statement of how the models compare.
 - Before a run, the card names the metric, the split and what counts as
   better. Change one thing a run, and keep it only when it beats the run it
   changed on valid and on test beyond the noise (the paired gain's interval
   leaves zero out).
+- A run that was tried and is not kept stays as a measurement of what its
+  change is worth. Give its config the run it changed as its `base` and what
+  it measured as its `study` (`epochs`, `start`), run `lab file <model> <run>`
+  so its record and the leaderboard say the same, then `lab analyse <model>`
+  where the predictions are, `lab report`, and the model's paper. The card
+  says what was tried and what it found.
+- A run that changes one thing in another names that run as its `base` and
+  writes only the change. One that is there to measure something, not to be
+  kept (fewer training games, a group of hand features left out), also names
+  its `study`: it stays off the ranking and out of the README's table, and
+  `lab analyse` sets it against its base.
+- A run can train on a larger build of its task's dataset
+  (`data: {train_on: puzzles-all}`, a recipe that is `of` the task's own and
+  keeps more of the same source). It is scored on the task's own valid and
+  test rows, so it is a candidate like any other, and a network on it is given
+  fewer epochs so that it takes as many steps as the run it changes. One that
+  is not kept is filed under the `games` study.
+- A network that starts from another run's body (`learner.init`) is trained
+  on the machine that trained that run, after it: the weights are read from
+  `artifacts/runs/`, and `lab all` skips the run until they are there.
 - Every model keeps its `constant` and `gbm-hand` runs, and every other run is
   compared with `gbm-hand` on the same test rows. The comparison is made when
   a run is trained and written into its record, so `gbm-hand` is trained
@@ -140,10 +197,13 @@ win probability behind the blunder label to the app's.
 |---|---|
 | `make setup` | The environment in `.venv` (Torch, LightGBM, the `lab` command) |
 | `make test` | Every test; CI runs only those that need no Torch or data |
-| `make smoke` | Every starter model end to end on a small sample |
-| `make starters` | The full datasets, every run this machine can train, the leaderboards, the README table |
-| `lab data|train|eval|all|report` | One step of the harness (`lab --help`) |
+| `make smoke` | Every model on the harness end to end on a small sample |
+| `make models` | The full datasets, every run this machine can train, the leaderboards, the README table |
+| `lab data|train|eval|all|analyse|report` | One step of the harness (`lab --help`) |
+| `lab file <model> <run>` | Files a trained run's record as its config files it now (under a study, against its base), then writes the leaderboard |
+| `lab paper <model>` | The model's paper from its committed results: `paper/generated/`, then `paper/paper.pdf` (`--list` prints every value and block, `--no-pdf` leaves LaTeX out) |
+| `lab paper` | The lab's own paper from every model's committed results: `papers/lab/generated/`, then `papers/lab/paper.pdf` (the same flags) |
+| `make papers` | Every model's paper that has its prose, then the lab's own |
 | `make chess` | Fetches the pinned app and the research records (`bridge/checkout.sh`) |
 | `make parity` | The win% parity check against the app (`bridge/winprob-parity/results/`) |
-| `make reports` | The first pipeline's reports, from its committed metrics |
 | `python scripts/check_private.py` | The data rule's check |

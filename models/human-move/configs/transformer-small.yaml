@@ -1,0 +1,18 @@
+# A small square-token transformer under the move head.
+needs: cuda
+learner:
+  kind: net
+  body: transformer
+  dim: 128
+  depth: 4
+  heads: 8
+  dropout: 0.1
+train:
+  epochs: 12
+  batch: 512
+  lr: 0.001
+  weight_decay: 0.05
+  warmup: 0.05
+  patience: 3
+smoke:
+  train: {epochs: 1}

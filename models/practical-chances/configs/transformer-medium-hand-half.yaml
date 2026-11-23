@@ -1,0 +1,9 @@
+# The best network on half of the training games. It goes through them twice as often, so it takes
+# as many steps as the run it changes and only the number of games differs.
+base: transformer-medium-hand
+study: games
+data:
+  train_share: 0.5
+train:
+  epochs: 24
+  patience: 6

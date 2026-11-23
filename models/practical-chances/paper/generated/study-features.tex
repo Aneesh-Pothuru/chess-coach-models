@@ -1,0 +1,13 @@
+% Written by `lab paper practical-chances`; do not edit by hand.
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.7cm}Lrrrr}
+\toprule
+Run & Left out & Features & RMSE & Gain & 95\% interval \\
+\midrule
+\run{gbm-hand} & nothing &  & 0.4237 &  &  \\
+\run{gbm-hand-no-material} & material & 3 & 0.4254 & \textbf{$-$0.001706} & $-$0.002365 to $-$0.001093 \\
+\run{gbm-hand-no-mobility} & the moves on offer & 4 & 0.4242 & \textbf{$-$0.000550} & $-$0.001078 to $-$0.000043 \\
+\run{gbm-hand-no-hanging} & pieces that can be taken & 2 & 0.4239 & $-$0.0002129 & $-$0.0005567 to +0.0001509 \\
+\run{gbm-hand-no-pawns} & passed pawns & 2 & 0.4238 & $-$0.0001402 & $-$0.0005229 to +0.0002233 \\
+\run{gbm-hand-no-kings} & attacks near the kings & 2 & 0.4238 & $-$0.0001212 & $-$0.0005159 to +0.0002695 \\
+\bottomrule
+\end{tabularx}

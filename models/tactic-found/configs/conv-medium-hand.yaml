@@ -1,0 +1,11 @@
+# The body changed: a convolutional tower at the size of the medium transformer (ten residual blocks
+# of width 192), each block weighing its channels by the whole board (squeeze-and-excitation), at the
+# learning rate this lab's tower trains at. It reads the hand features, as the run it changes does.
+base: transformer-medium-hand
+learner:
+  body: conv
+  dim: 192
+  depth: 10
+  squeeze: 4
+train:
+  lr: 0.002

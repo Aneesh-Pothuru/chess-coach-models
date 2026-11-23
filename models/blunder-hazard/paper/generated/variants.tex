@@ -1,0 +1,32 @@
+% Written by `lab paper blunder-hazard`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{groupplot}[
+  lab,
+  group style={group size=2 by 1, horizontal sep=0.5cm, ylabels at=edge left, yticklabels at=edge left},
+  width=0.49\textwidth,
+  height=5.4cm,
+  ymajorgrids,
+  ymin=0.183581, ymax=0.267929,
+  xlabel={Epoch},
+  ylabel={PR-AUC on the valid rows},
+]
+\nextgroupplot[xmin=0.5, xmax=17.5, xtick distance=3, legend columns=1]
+\draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:0.5,0.233336) -- (axis cs:17.5,0.233336);
+\addplot[color=labBlue, mark=*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labBlue}] coordinates {(1,0.20899) (2,0.22617) (3,0.23038) (4,0.23571) (5,0.23298) (6,0.24173) (7,0.24494) (8,0.24529) (9,0.24893) (10,0.24703) (11,0.24764) (12,0.2476)};
+\addlegendentry{\texttt{transformer-medium-hand}}
+\addplot[color=labBlue, dash pattern=on 1pt off 2pt, mark=*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labBlue}] coordinates {(1,0.23139) (2,0.24366) (3,0.25133) (4,0.24735) (5,0.24618) (6,0.25417) (7,0.26122) (8,0.25908) (9,0.26341) (10,0.25984) (11,0.26022) (12,0.26019)};
+\addlegendentry{\texttt{transformer-medium-hand-pretrained}}
+\addplot[color=labBlue, dash pattern=on 5pt off 2pt, mark=*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labBlue}] coordinates {(1,0.20903) (2,0.22441) (3,0.2256) (4,0.23336) (5,0.23091) (6,0.2365) (7,0.23847) (8,0.23869) (9,0.24245) (10,0.23961) (11,0.24263) (12,0.2382) (13,0.24281) (14,0.24787) (15,0.24324) (16,0.24566) (17,0.24362)};
+\addlegendentry{\texttt{transformer-medium-hand-long}}
+\nextgroupplot[xmin=0.5, xmax=17.5, xtick distance=3, legend columns=1]
+\draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:0.5,0.233336) -- (axis cs:17.5,0.233336) node[anchor=west, font=\sffamily\scriptsize, text=labSecondary, inner sep=2pt] {\run{gbm-hand}};
+\addplot[color=labAqua, mark=triangle*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labAqua}] coordinates {(1,0.19467) (2,0.19817) (3,0.20818) (4,0.20841) (5,0.21087) (6,0.21394) (7,0.21678) (8,0.21804) (9,0.2213) (10,0.22002) (11,0.22268) (12,0.2231)};
+\addlegendentry{\texttt{transformer-medium}}
+\addplot[color=labAqua, dash pattern=on 1pt off 2pt, mark=triangle*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labAqua}] coordinates {(1,0.22048) (2,0.23054) (3,0.23602) (4,0.23685) (5,0.24043) (6,0.24068) (7,0.25099) (8,0.25409) (9,0.25403) (10,0.2546) (11,0.25427) (12,0.25409)};
+\addlegendentry{\texttt{transformer-medium-pretrained}}
+\addplot[color=labAqua, dash pattern=on 5pt off 2pt, mark=triangle*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labAqua}] coordinates {(1,0.1881) (2,0.1996) (3,0.2036) (4,0.20464) (5,0.20585) (6,0.21074) (7,0.21704) (8,0.21844) (9,0.21638) (10,0.20859) (11,0.21915) (12,0.21593) (13,0.21799) (14,0.22392) (15,0.22144) (16,0.22226) (17,0.22319)};
+\addlegendentry{\texttt{transformer-medium-long}}
+\end{groupplot}
+\end{tikzpicture}%
+}

@@ -25,6 +25,7 @@ def lab(tmp_path, monkeypatch) -> Path:
         "src/chess_coach_models/cli.py",
         "datasets/puzzles.yaml",
         "models/blunder-hazard/task.yaml",
+        "models/blunder-hazard/analysis.yaml",
         "models/blunder-hazard/configs/gbm-hand.yaml",
         "models/blunder-hazard/results/gbm-hand.json",
         "models/blunder-hazard/paper/paper.tex",
@@ -46,6 +47,7 @@ def test_results_and_docs_a_session_writes_are_not_changes_to_the_code(lab):
     (lab / "models/blunder-hazard/results/gbm-hand.json").write_text("a new record\n")
     (lab / "models/blunder-hazard/results/conv-small.json").write_text("another record\n")
     (lab / "models/blunder-hazard/results/analysis.json").write_text("a paper's numbers\n")
+    (lab / "models/blunder-hazard/analysis.yaml").write_text("another way to cut the results\n")
     (lab / "models/blunder-hazard/paper/paper.tex").write_text("a paper's words\n")
     (lab / "README.md").write_text("a new table\n")
     assert store.code_commit() == commit

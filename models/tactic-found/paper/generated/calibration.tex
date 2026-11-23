@@ -1,0 +1,20 @@
+% Written by `lab paper tactic-found`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.5\textwidth,
+  height=6.2cm,
+  ymajorgrids,
+  xlabel={Stated chance (percent)},
+  ylabel={Share that happened (percent)},
+  legend columns=-1,
+]
+\addplot[labAxis, line width=0.6pt, mark=none, forget plot] coordinates {(30.155,30.155) (96.1483,96.1483)};
+\addplot[color=labBlue, dash pattern=on 1pt off 2pt, mark=*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labBlue}] coordinates {(30.155,30.8109) (48.313,47.6707) (57.1872,56.9756) (63.7805,63.6801) (69.1567,67.8703) (74.0097,74.1033) (78.6097,78.2818) (83.3469,83.434) (88.7347,89.7449) (96.1483,95.8708)};
+\addlegendentry{\texttt{transformer-medium-hand-pretrained}}
+\addplot[color=labOrange, mark=square*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labOrange}] coordinates {(33.795,33.9044) (49.4945,49.6672) (57.4301,57.8013) (63.5001,62.9159) (68.6295,67.8334) (73.3306,73.7705) (77.8001,78.1462) (82.3437,81.4619) (87.5135,87.7974) (94.792,95.1436)};
+\addlegendentry{\texttt{gbm-hand}}
+\end{axis}
+\end{tikzpicture}%
+}

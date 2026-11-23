@@ -1,0 +1,16 @@
+% Written by `lab paper practical-chances`; do not edit by hand.
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.45cm}>{\raggedright\arraybackslash}p{2.45cm}Lrrr}
+\toprule
+ &  &  & \multicolumn{3}{c}{Gain in RMSE} \\
+\cmidrule(lr){4-6}
+Run & Set against & What the run changes & Valid rows & Test rows & 95\% interval \\
+\midrule
+\run{gbm-context} & \run{engine-curve} & another learner & +0.0129 & \textbf{+0.01136} & +0.00892 to +0.01369 \\
+\run{gbm-context} & \run{elo-gap} & another learner & +0.0715 & \textbf{+0.07069} & +0.06454 to +0.07692 \\
+\run{gbm-hand} & \run{gbm-context} & reads the hand features & +0.000407 & \textbf{+0.002288} & +0.001502 to +0.003088 \\
+\run{transformer-medium-hand} & \run{engine-curve} & another learner & +0.0121 & \textbf{+0.01243} & +0.00992 to +0.01502 \\
+\run{transformer-medium-hand} & \run{transformer-medium} & reads the hand features & $-$0.000913 & $-$0.000479 & $-$0.001288 to +0.000368 \\
+\run{transformer-medium-hand-pretrained} & \run{transformer-medium-hand} & starts from the body of \run{position-evaluation/transformer-medium} & $-$0.000714 & \textbf{$-$0.001252} & $-$0.002356 to $-$0.000165 \\
+\run{transformer-medium-pretrained} & \run{transformer-medium} & starts from the body of \run{position-evaluation/transformer-medium} & $-$0.00252 & \textbf{$-$0.002151} & $-$0.003404 to $-$0.000856 \\
+\bottomrule
+\end{tabularx}

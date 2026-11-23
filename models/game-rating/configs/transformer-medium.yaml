@@ -1,0 +1,21 @@
+# The GPU-sized square-token transformer reads each of the player's positions, and two transformer
+# layers read them in order. A batch is 32 rows, about as many boards as a batch of the models that
+# read one position.
+needs: cuda
+learner:
+  kind: net
+  body: transformer
+  dim: 256
+  depth: 8
+  heads: 8
+  dropout: 0.1
+  over: {depth: 2, heads: 8}
+train:
+  epochs: 8
+  batch: 32
+  lr: 0.0003
+  weight_decay: 0.05
+  warmup: 0.05
+  patience: 3
+smoke:
+  train: {epochs: 1, batch: 8}

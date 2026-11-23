@@ -5,56 +5,130 @@ about people that an engine and board code cannot compute. An idea becomes a mod
 card with its rule, a task, and runs on the leaderboard ([`CLAUDE.md`](../CLAUDE.md), "Adding a
 model"). The order below is the order they are worth building in.
 
-## Built or measured
+## Built
 
 | Model | Reads | Predicts | What the app gets |
 |---|---|---|---|
 | [coach-narrator](../models/coach-narrator/) | Checked facts about a line | Two plain sentences | The line behind a mistake, said out loud |
 | [puzzle-difficulty](../models/puzzle-difficulty/) | A position and its solution | The puzzle's rating | A rating for any tactic in the player's games |
+| [puzzle-difficulty-unsolved](../models/puzzle-difficulty-unsolved/) | The same position with its solution hidden | The puzzle's rating | How much of a tactic's difficulty shows before anyone knows the line |
+| [where-to-look](../models/where-to-look/) | A puzzle's position with its solution hidden | For each square, the chance that the tactic's line leaves it or lands on it | A hint for a missed tactic that is a place on the board and not yet a move |
+| [puzzle-themes](../models/puzzle-themes/) | A position and its solution | For each of 30 themes, the chance that the puzzle carries it | A name, in a coach's words, for what a tactic in the player's games was |
 | [blunder-hazard](../models/blunder-hazard/) | A position, ratings, clocks, the evaluation | The chance the mover blunders | The positions where players at a level go wrong |
 | [think-time](../models/think-time/) | A position, ratings, clocks | The seconds spent on the move | Where a player moved too fast or too slow |
 | [tactic-found](../models/tactic-found/) | A position after the opponent's mistake, the tactic's line, ratings, clocks | The chance the player finds the tactic in the game | Which missed tactics were within reach at the player's level |
-| [human-moves](../models/human-moves/) | A position and a rating | The move that level plays | Maia-2, as the app runs it |
-| [concept-tagger](../models/concept-tagger/) | A position | Its tactical themes | A name for what a position is about |
-| [graded-opponent](../models/graded-opponent/) | A game | Each mistake and the chance it is punished | A mistake priced by the player's level |
-| [opening-repertoire](../models/opening-repertoire/) | Opening lines at a rating band | How each line scores for people | Lines that work at the player's level |
+| [position-evaluation](../models/position-evaluation/) | A position | An engine's evaluation, as the mover's chance of winning | Nothing by itself: a body the other models start from |
+| [practical-chances](../models/practical-chances/) | A position, ratings, clocks, the evaluation | The mover's expected score in the game | Which "equal" positions are hard to hold at the player's level, and which "lost" ones are still worth playing on |
+| [game-rating](../models/game-rating/) | A player's moves through one game, with the clocks and what each move lost | The player's rating | What one game looked like beside the player's usual level |
+| [human-move](../models/human-move/) | A position, ratings, clocks | For each legal move, the chance that it is the one the player makes | A check on the human-move model the app runs (Maia-2 is a run of the same leaderboard), and a human-move model that reads the clock |
 
 ## Next
 
-### More from the starters
+### More from the models on the harness
 
 What the first full runs ([the leaderboards](../README.md#leaderboards)) leave to try. Each is a
-run or a recipe, not a new model:
+run or a recipe, not a new model. Nine of the sixteen network runs had their best valid epoch at
+the last one, so four models were given two runs with twice the epochs (`transformer-medium-long`,
+`transformer-medium-hand-long`). Those are in, and each card says what they found: both are kept
+in puzzle difficulty and in think time, the one on the board alone in tactic found, neither in
+blunder hazard. All but think time's stopped before the end of the longer schedule, and think
+time's had flattened by it, so a still longer one is not on this list. Practical chances has
+none: its networks stopped early on the first schedule. Two studies then ran on every model
+([`design.md`](design.md), "A run that changes another"), and each card says what they found:
 
-- **A longer schedule.** Seven of the twelve network runs had their best valid epoch at the last
-  one.
-- **More games.** `game-positions` keeps 30,000 games of a month's, and on the board alone no
-  network matched the trees on `blunder-hazard`.
-- **One group of hand features left out at a time**, to say which of them a network still needs
-  beside the board. The network that reads them is the best run of every starter.
-- **Blunder hazard on the positions that can still be blundered**, its own task, as its card says.
-- **Puzzle difficulty from the position alone**, with no solution marked: how hard a tactic is to
-  notice.
+- **`games`: fewer training games.** The reference trees and the best twelve-epoch network on half
+  and on a quarter of the games. The network is worse beyond the noise on half the games in all
+  five models, and it loses more than the trees do in every one. Its lead over the trees comes
+  with the data: in blunder hazard the two are level on a quarter of the games, in tactic found on
+  half. Only in practical chances do fewer games cost the trees nothing the test rows can show.
+- **`features`: one group of hand features left out at a time**, from the reference trees and, on
+  `blunder-hazard`, from the best network too. Material costs the trees something in every model
+  and passed pawns next to nothing in any. The two models that read a line lean on it most (the
+  line's counts in puzzle difficulty, its first move in tactic found). In blunder hazard the
+  material group is most of what the hand features give the network, and the attackers near the
+  kings, which cost the trees, cost the network nothing.
 
-### Practical chances
+**Other shapes of network.** On blunder hazard and tactic found every network that reads the board
+alone is below the trees, small or medium, tower or transformer, and only the transformer that is
+also handed the hand features is ahead. The two bodies had only been set side by side at their
+small size, where the tower is level with the transformer or a little ahead. So each of the four
+models whose best run is a network, and human-move, gets runs that change the body of its medium
+transformer and nothing else (the plans `bodies-first` and `bodies-rest`): a tower of the same
+size that weighs its channels by the whole board, a hybrid of two blocks of the tower under five
+layers of the transformer, and the transformer with its attention told what each piece attacks and
+what it stands behind ([`design.md`](design.md), "Bodies and a head"). One study leaves the
+offsets out of the transformer's attention, to say what they are worth, and puzzle difficulty and
+human-move get a transformer three times larger. Each is kept by the rule every run is kept by:
+better than the run it changes on valid, and on test beyond the noise. What is expected, written
+before any of them ran: the most from attention told the attacks on blunder hazard and tactic
+found, where the hand features that count attackers and loose pieces are what the board-only
+networks lack; little from any shape on think time, which leans on the clock; and more from size
+on puzzle difficulty than on the models that read 30,000 games.
 
-Between two people at these ratings, with these clocks, who wins from here?
+The first two models have their runs (puzzle difficulty and blunder hazard, the plan
+`bodies-first`), and neither expectation about them held. On blunder hazard no shape leaves the
+noise of the transformer it changes, the attention told the attacks among them. On puzzle
+difficulty that attention is the largest gain any one change has made to a network that starts
+from nothing, the tower is a small gain from a cheaper network, the hybrid is worse, and the
+transformer three times larger is worse than the medium one on the same rows. The best run of both
+models is still the transformer that started from the body trained on an engine's evaluations.
+Each model's card says what it found, and the lab's paper sets the two side by side. Think time,
+tactic found and human-move come next (`bodies-rest`).
 
-- **Reads.** A position, both ratings, both clocks, the engine's evaluation.
-- **Predicts.** The mover's expected score in the game.
-- **Data.** The `game-positions` dataset already carries the label (`mover_score`).
-- **Scored by.** Mean squared error of the expected score, against the engine's evaluation passed
-  through the win-probability curve with the rating gap added.
-- **Needs.** A task and a card. No new code.
-- **What the app gets.** Which "equal" positions are hard to hold at the player's level, and which
-  "lost" ones are still worth playing on.
+What is left:
 
-### Pre-training on engine evaluations
+- **Larger builds of the datasets.** The games study says each doubling still pays, and pays a
+  network most, and each dataset has more to take: `game-positions` keeps 30,000 games of a
+  month's, `puzzles` a quarter of the puzzles that pass, `tactics` half of them. The measurement
+  to make first is written and waits for its runs (the plan `more`): the games study turned
+  round. Each of the five models with a games study gets its reference trees and its medium
+  transformer with hand features on twice and on four times the training games, from a larger
+  build of its dataset (`puzzles-all`, `game-positions-120k`, `tactics-all`, which holds twice
+  the games and no more). Each is scored on the test rows the model has now, so its gain is paired
+  with the run on today's games, and a network is given fewer epochs so that it takes as many
+  steps ([`design.md`](design.md), "A run on more games"). What is expected, written before any
+  of them ran: the networks gain more than the trees in every model, as the study read forward
+  says; the most from tactic found, where half of the games cost the most, and the least from
+  practical chances, where fewer games cost the trees nothing the test rows could show. A run is
+  kept only when it is better on valid and on test beyond the noise, like any change. If
+  the runs on four times the games are kept, the next builds are larger still, and the
+  architecture test above is made on the larger build.
+- **Tactic found, with the whole line as the label**: the player found the tactic only if the game
+  followed it to the end, which a game answers while the opponent follows the puzzle's replies.
+- **Game rating, asked for the opponent's rating**: the same learners on the same rows with the
+  other player's rating as the label. Lichess pairs players of like rating, so this says how much
+  of a reading is the level of the game and how much is the player.
+- **Game rating by phase**: a rating for the opening, the middlegame and the ending of one game,
+  which needs a label for a part of a sequence ([`design.md`](design.md), "Growing it").
+- **Game rating from more games, and from a body that already reads a board**: its dataset keeps
+  50,000 games of a month's, and a network over a sequence does not start from another run yet.
 
-Not a model but a run: train a body to predict Stockfish's evaluation on the open
-[Lichess evaluations](https://database.lichess.org/#evals) (CC0, hundreds of millions of
-positions), then start every task from it. It is worth keeping only where it beats the same body
-trained from scratch on a task's own leaderboard.
+### More from the body that learned an engine's evaluation
+
+[`position-evaluation`](../models/position-evaluation/) trains the medium transformer on six
+million positions of the open [Lichess evaluations](https://database.lichess.org/#evals) (CC0,
+some two hundred million positions), and each model has two runs that start from that body
+(`transformer-medium-pretrained`, `transformer-medium-hand-pretrained`). A start is kept on a
+model only where it beats the same run started from nothing there. What is left to try once
+those say whether it pays: more of the file, more epochs, a larger body, and a lower learning rate
+for the run that starts from it.
+
+The architecture test adds one run to that list, ahead of the rest: the attention that is told
+what each piece attacks, started from that body. On puzzle difficulty the two are the largest
+gains measured, each made alone, and they can be made together without a new body: what the
+attention is told enters with weights that start at nothing ([`design.md`](design.md), "Bodies
+and a head"), so such a network takes the body as it is and begins as that body does. A tower
+cannot, until a tower has learned the same evaluations.
+
+### More published models on the human-move rows
+
+[`human-move`](../models/human-move/) scores Maia-2's published rapid model on the lab's own test
+rows beside the runs trained here. Its authors have since published
+[Maia-3](https://github.com/CSSLab/maia3) and recommend it for new work. It is the next run of
+that leaderboard: on the same rows it says whether the app should move to it. Two more things the
+model waits for: a closer look that reads a move, so two named runs can be set against each other
+by their paired difference and the test rows cut by the clock, and a larger build of the dataset,
+if the `games` study says more games pay.
 
 ### A published body under the lab's head
 
@@ -66,11 +140,12 @@ here.
 
 | Idea | Reads | Predicts | Needs in the harness |
 |---|---|---|---|
-| Where to look | A position | The squares that matter (a tactic's squares, from the puzzle solutions) | A label per square |
-| Game rating | A whole game with clocks | The rating the play looks like, by phase | A body over a sequence of positions |
-| Human moves, trained here | A position and a rating | A chance for every legal move | A move head. Maia-3 is the model to benchmark against first |
-| Concept tagger on the harness | A position | Its themes | A head with one output per theme |
+| Lines that work at a level | Opening lines at a rating band | How each line scores for people there, whatever the engine thinks | Nothing trained: a counted opening tree with intervals |
 | A player over time | One player's games in order | Whether a weakness is closing | Games grouped by player, from the Lichess API |
+
+The lab's first experiments tried the first of these, and two of the models above in another form
+(an opening tree, a Maia-2 benchmark, a theme tagger on Maia-2's activations):
+[`history.md`](history.md) says what they found.
 
 ## Checks on the player's own scale
 

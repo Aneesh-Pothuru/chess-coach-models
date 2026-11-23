@@ -12,7 +12,7 @@ pytest.importorskip("lightgbm")
 
 from chess_coach_models import cli, paths, tasks  # noqa: E402
 from chess_coach_models.data import store  # noqa: E402
-from chess_coach_models.evals import leaderboard  # noqa: E402
+from chess_coach_models.evals import analysis, leaderboard  # noqa: E402
 from chess_coach_models.train import learners  # noqa: E402
 from chess_coach_models.train import run as runs  # noqa: E402
 from chess_coach_models.train.learners import rating_formula  # noqa: E402
@@ -91,3 +91,18 @@ def test_the_rating_formula_needs_a_yes_or_no_label(lab):
     prepared = learners.prepare(tasks.get("puzzle-difficulty"), store.read_dataset(DATASET))
     with pytest.raises(ValueError, match="yes-or-no"):
         rating_formula.fit(prepared, CONFIGS["puzzle-rating"], log=lambda _: None)
+
+
+def test_the_closer_look_at_a_chance_ranks_it_from_both_ends(lab):
+    for name in ("gbm-hand", "puzzle-rating"):
+        runs.run("tactic-found", name, smoke=True, log=lambda _: None)
+    look = analysis.analyse("tactic-found", smoke=True)
+    assert look["label"]["kind"] == "binary" and 0 < look["label"]["rate"] < 1
+    assert set(look["ranking"]) == {"gbm-hand", "puzzle-rating"}
+    assert set(look["ranking"]["gbm-hand"]) == {"top", "bottom"}
+    assert set(look["examples"]) == {"typical", "highest", "lowest", "surprised-no", "surprised-yes"}
+    missed = look["examples"]["surprised-no"][0]
+    assert missed["label"] == 0.0 and set(missed["moves"]) == {"setup", "line", "played"}
+    assert missed["moves"]["played"] != missed["moves"]["line"].split()[0]
+    assert {grid["key"] for grid in look["grids"]} == {"ratings", "clock-rating"}
+    assert "mover_elo" in look["describe"] and look["describe"]["clock"]["quantiles"]["50"] > 0

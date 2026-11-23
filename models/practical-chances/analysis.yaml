@@ -1,0 +1,34 @@
+# How practical-chances' paper looks at its results (src/chess_coach_models/evals/analysis.py).
+band: {title: The mover's rating}
+describe: [mover_elo, opponent_elo, clock, opponent_clock, ply, win_before, loss, plies]
+# A result is a loss, a draw or a win: three bars.
+label: {low: -0.25, high: 1.25, bins: 3}
+slices:
+  - {key: win, column: win_before, title: The mover's winning chances by the engine (percent), edges: [10, 20, 30, 40, 50, 60, 70, 80, 90]}
+  - {key: clock, column: clock, title: Seconds on the mover's clock, edges: [30, 60, 120, 300, 480]}
+  - {key: opponent-clock, column: opponent_clock, title: Seconds on the opponent's clock, edges: [30, 60, 120, 300, 480]}
+  - {key: ply, column: ply, title: Ply of the game, edges: [20, 30, 40, 60, 80]}
+  - {key: pieces, column: phase_piece_count, title: "Knights, bishops, rooks and queens on the board", edges: [3, 6, 9, 12]}
+  - {key: hanging, column: hanging_own, title: The mover's pieces that can be taken, values: [0, 1, 2], rest: 3+}
+  - {key: opponent-hanging, column: hanging_opponent, title: The opponent's pieces that can be taken, values: [0, 1, 2], rest: 3+}
+  - {key: check, column: in_check, title: The mover is in check, values: [0, 1], labels: ["no", "yes"]}
+grids:
+  - key: rating-win
+    rows: {column: mover_elo, title: The mover's rating, edges: [1100, 1400, 1700, 2000]}
+    columns: {column: win_before, title: The mover's winning chances by the engine (percent), edges: [20, 40, 60, 80]}
+  - key: clock-win
+    rows: {column: clock, title: Seconds on the mover's clock, edges: [30, 60, 120, 300]}
+    columns: {column: win_before, title: The mover's winning chances by the engine (percent), edges: [20, 40, 60, 80]}
+examples:
+  count: 3
+  # What a paper calls the label beside a board.
+  truth: The mover's result
+  moves: [last_move, move]
+  show: [mover_elo, opponent_elo, clock, opponent_clock, base, increment, win_before, plies]
+# Runs set against the run each changed or has to beat, the first over the second.
+pairs:
+  - [gbm-context, engine-curve]
+  - [gbm-context, elo-gap]
+  - [gbm-hand, gbm-context]
+  - [transformer-medium-hand, engine-curve]
+  - [transformer-medium-hand, transformer-medium]

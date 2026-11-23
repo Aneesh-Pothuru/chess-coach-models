@@ -7,22 +7,37 @@ machine that built and trained them. ``lab analyse <model>`` reads them there
 and writes ``results/analysis.json``: small tables, committed, from which the
 paper's figures are drawn on any machine.
 
-What it looks at is the task's ``analysis`` block (``models/<model>/task.yaml``):
+What it looks at is ``models/<model>/analysis.yaml``:
 
-    analysis:
-      label: {low: 400, high: 3200, bins: 28}       a quantity's histogram
-      within: {"100": 100, "200": 200}              shares of test rows predicted this close, by name
-      slices:                                       the results by a column
-        - {key: moves, column: solver_moves, title: Moves the solver plays, values: [1, 2, 3], rest: 4+}
-        - {key: mate, column: ends_in_mate, title: Ends in mate, values: [0, 1], labels: [no, yes]}
-        - {key: clock, column: clock, title: Seconds on the clock, edges: [30, 60, 180, 600]}
-        - {key: themes, column: themes, title: Theme, tags: 16}
-      grids:                                        the label by two columns at once
-        - {key: ratings, rows: {column: mover_elo, edges: [...]}, columns: {column: rating, edges: [...]}}
-      examples: {count: 3, id: puzzle_id, moves: [setup, line], show: [rating, themes]}
+    band: {title: The mover's rating}             what the task's bands are bands of
+    describe: [clock, mover_elo]                  columns whose spread the paper states
+    label: {low: 400, high: 3200, bins: 28}       a quantity's histogram
+    within: {"100": 100, "200": 200}              shares of test rows predicted this close, by name
+    slices:                                       the results by a column
+      - {key: moves, column: solver_moves, title: Moves the solver plays, values: [1, 2, 3], rest: 4+}
+      - {key: mate, column: ends_in_mate, title: Ends in mate, values: [0, 1], labels: [no, yes]}
+      - {key: clock, column: clock, title: Seconds on the clock, edges: [30, 60, 180, 600]}
+      - {key: themes, column: themes, title: Theme, tags: 16}
+    grids:                                        the label by two columns at once
+      - {key: ratings, rows: {column: mover_elo, edges: [...]}, columns: {column: rating, edges: [...]}}
+    examples: {count: 3, id: puzzle_id, moves: [setup, line], show: [rating, themes]}
+    pairs: [[transformer-long, transformer]]      runs set against the run each changed, first over second
+    shown: puzzle-difficulty                      the model that asks the same of the same rows with more
+                                                  shown: its runs against this model's runs of the same name
 
-Every number is rounded to six significant digits, so two machines write the
-same file.
+The task's own bands are always its first slice. Every number is rounded to
+six significant digits, so two machines write the same file.
+
+A study run (one whose config names a ``study``) is no candidate, so the
+tables above leave it out. It is read for one thing: every run that names a
+``base`` is set against that run among the ``pairs``, whether the plan asks or
+not.
+
+A model whose answer is a set or a move gives a chance for each of a row's
+candidates, and the tables above read one number a row. Its closer look is
+its ``pairs`` alone: each is measured from the score the two runs' predictions
+keep for every test row, as a leaderboard measures a gain over the reference.
+So the rule for a change can be read off such a model as off any other.
 """
 
 from __future__ import annotations
@@ -31,22 +46,37 @@ import hashlib
 import json
 import math
 from collections import Counter
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
 import numpy as np
 import polars as pl
+import yaml
 
-from .. import paths, tasks
+from .. import bands, paths, tasks
 from ..data import recipe
 from ..data.store import Dataset, code_commit, read_dataset
+from .bootstrap import RESAMPLES, SMOKE_RESAMPLES, paired, paired_of_rows
 from .leaderboard import ranked, records
-from .metrics import METRICS
+from .metrics import BY_ROW, LOWER_IS_BETTER, METRICS, mean_of_rows
 
 
 SHARES = (0.01, 0.02, 0.05, 0.10, 0.20, 0.50)
 QUANTILES = (1, 5, 25, 50, 75, 95, 99)
+# A gain inside one group of test rows is resampled fewer times than a leaderboard's: there are many groups.
+GROUP_RESAMPLES = 200
+SMALLEST_COMPARED = 200
 Group = tuple[str, np.ndarray]
+
+
+def plan(model: str) -> dict[str, Any]:
+    """How a model's paper looks at its results: ``models/<model>/analysis.yaml``, or nothing asked."""
+    path = paths.model(model) / "analysis.yaml"
+    if not path.exists():
+        return {}
+    with path.open("r", encoding="utf-8") as handle:
+        return yaml.safe_load(handle) or {}
 
 
 def _edge(value: float) -> str:
@@ -57,7 +87,8 @@ def groups(rows: pl.DataFrame, spec: dict[str, Any]) -> list[Group]:
     """The named groups of rows a slice asks for, each as a mask over every row.
 
     ``values`` gives one group a value (named by ``labels`` when a value says little, as 0 and 1 do), and
-    ``rest`` names everything else; ``edges`` cuts a number into ``<a``, ``a-b`` and so on up to ``z+``;
+    ``rest`` names everything else; ``edges`` cuts a number into ``<a``, ``a-b`` and so on up to ``z+``
+    (``a to b`` where ``a`` is below zero);
     ``tags`` takes the most common words of a column of space-separated tags, and a row can then be in
     several groups.
     """
@@ -77,7 +108,9 @@ def groups(rows: pl.DataFrame, spec: dict[str, Any]) -> list[Group]:
         edges = [float(edge) for edge in spec["edges"]]
         found = [(f"<{_edge(edges[0])}", data < edges[0])]
         for low, high in zip(edges, edges[1:]):
-            found.append((f"{_edge(low)}-{_edge(high)}", (data >= low) & (data < high)))
+            # A dash between two numbers would read as a minus sign beside one that is below zero.
+            between = " to " if low < 0 else "-"
+            found.append((f"{_edge(low)}{between}{_edge(high)}", (data >= low) & (data < high)))
         found.append((f"{_edge(edges[-1])}+", data >= edges[-1]))
         return found
     if "tags" in spec:
@@ -109,63 +142,127 @@ def _mean(values: np.ndarray) -> float | None:
     return float(values.mean()) if len(values) else None
 
 
-def slice_table(
-    task: tasks.Task,
-    spec: dict[str, Any],
-    dataset: Dataset,
-    y: np.ndarray,
-    test: np.ndarray,
-    predictions: dict[str, np.ndarray],
-) -> dict[str, Any]:
-    """One slice: for each group how many rows it has, what happened there, and what each run said and scored."""
+def challenger_of(task: tasks.Task, read: dict[str, Any]) -> str | None:
+    """The best run read, best first, that is not the task's reference, or none when the reference was not read."""
+    if task.reference not in read:
+        return None
+    return next((run for run in read if run != task.reference), None)
+
+
+@dataclass
+class Look:
+    """What every table of an analysis is cut from: the label, the test rows, and what each run said of them."""
+
+    task: tasks.Task
+    dataset: Dataset
+    y: np.ndarray
+    test: np.ndarray
+    games: np.ndarray
+    predictions: dict[str, np.ndarray]
+
+    @property
+    def truth(self) -> np.ndarray:
+        return self.y[self.test]
+
+    @property
+    def best(self) -> str:
+        """The best run whose predictions are here: they are kept best first."""
+        return next(iter(self.predictions))
+
+    @property
+    def challenger(self) -> str | None:
+        """The best run that is not the reference: the one a paper sets against it, group by group."""
+        return challenger_of(self.task, self.predictions)
+
+    def gain(self, inside: np.ndarray) -> dict[str, float | bool] | None:
+        """The challenger's paired gain over the reference among some test rows, or nothing where it cannot be measured."""
+        challenger = self.challenger
+        if challenger is None or int(inside.sum()) < SMALLEST_COMPARED:
+            return None
+        measured = paired(
+            self.task.kind,
+            self.task.primary,
+            self.truth[inside],
+            self.predictions[challenger][inside],
+            self.predictions[self.task.reference][inside],
+            self.games[inside],
+            resamples=GROUP_RESAMPLES,
+        )
+        return None if math.isnan(measured["gain"]) or math.isnan(measured["low"]) else measured
+
+
+def slice_table(look: Look, spec: dict[str, Any]) -> dict[str, Any]:
+    """One slice: for each group how many rows it has, what happened there, what each run said and scored, and
+    the challenger's gain over the reference there."""
     table = []
-    for label, mask in groups(dataset.rows, spec):
-        inside = mask[test]
+    for label, mask in groups(look.dataset.rows, spec):
+        inside = mask[look.test]
+        truth = look.truth[inside]
         table.append(
             {
                 "group": label,
                 "rows_all": int(mask.sum()),
-                "label_mean_all": _mean(y[mask]),
+                "label_mean_all": _mean(look.y[mask]),
                 "rows": int(inside.sum()),
-                "label_mean": _mean(y[test][inside]),
-                "runs": {run: _run_stats(task, y[test][inside], p[inside]) for run, p in predictions.items()},
+                "label_mean": _mean(truth),
+                "runs": {run: _run_stats(look.task, truth, p[inside]) for run, p in look.predictions.items()},
+                "gain": look.gain(inside),
             }
         )
     return {"key": spec["key"], "column": spec["column"], "title": spec.get("title", spec["column"]), "groups": table}
 
 
-def grid_table(
-    task: tasks.Task,
-    spec: dict[str, Any],
-    dataset: Dataset,
-    y: np.ndarray,
-    test: np.ndarray,
-    predictions: dict[str, np.ndarray],
-) -> dict[str, Any]:
+def band_spec(look: Look, asked: dict[str, Any]) -> dict[str, Any]:
+    """The task's own bands as a slice asks for them, in their order."""
+    column = look.task.band
+    names = sorted(look.dataset.rows[column].unique().to_list(), key=bands.order)
+    return {"key": "band", "column": column, "title": asked.get("title", "Band"), "values": names}
+
+
+def band_slice(look: Look, asked: dict[str, Any]) -> dict[str, Any]:
+    """The task's own bands as a slice."""
+    return slice_table(look, band_spec(look, asked))
+
+
+def grid_table(look: Look, spec: dict[str, Any]) -> dict[str, Any]:
     """The label by two columns at once: every cell's rows, what happened there and what each run said."""
-    down, across = groups(dataset.rows, spec["rows"]), groups(dataset.rows, spec["columns"])
+    rows = look.dataset.rows
+    down, across = groups(rows, spec["rows"]), groups(rows, spec["columns"])
     cells = []
     for _, row_mask in down:
         line = []
         for _, column_mask in across:
             mask = row_mask & column_mask
-            inside = mask[test]
+            inside = mask[look.test]
             line.append(
                 {
                     "rows_all": int(mask.sum()),
-                    "label_mean_all": _mean(y[mask]),
+                    "label_mean_all": _mean(look.y[mask]),
                     "rows": int(inside.sum()),
-                    "label_mean": _mean(y[test][inside]),
-                    "runs": {run: _mean(p[inside]) for run, p in predictions.items()},
+                    "label_mean": _mean(look.truth[inside]),
+                    "runs": {run: _mean(p[inside]) for run, p in look.predictions.items()},
                 }
             )
         cells.append(line)
-    return {
-        "key": spec["key"],
-        "rows": {"column": spec["rows"]["column"], "title": spec["rows"].get("title", spec["rows"]["column"]), "groups": [label for label, _ in down]},
-        "columns": {"column": spec["columns"]["column"], "title": spec["columns"].get("title", spec["columns"]["column"]), "groups": [label for label, _ in across]},
-        "cells": cells,
-    }
+
+    def side(asked: dict[str, Any], found: list[Group]) -> dict[str, Any]:
+        return {"column": asked["column"], "title": asked.get("title", asked["column"]), "groups": [label for label, _ in found]}
+
+    return {"key": spec["key"], "rows": side(spec["rows"], down), "columns": side(spec["columns"], across), "cells": cells}
+
+
+def describe(dataset: Dataset, columns: list[str]) -> dict[str, dict[str, Any]]:
+    """The spread of a few columns over every row: the facts a paper states about its data."""
+    table = {}
+    for name in columns:
+        values = dataset.rows[name].to_numpy().astype(np.float64)
+        table[name] = {
+            "mean": float(values.mean()),
+            "min": float(values.min()),
+            "max": float(values.max()),
+            "quantiles": {str(q): float(np.percentile(values, q)) for q in QUANTILES},
+        }
+    return table
 
 
 def label_summary(task: tasks.Task, spec: dict[str, Any], dataset: Dataset, y: np.ndarray) -> dict[str, Any]:
@@ -217,29 +314,37 @@ def reliability(kind: str, y: np.ndarray, p: np.ndarray) -> list[dict[str, float
     return table
 
 
-def ranking(y: np.ndarray, p: np.ndarray) -> list[dict[str, float]]:
-    """What a chance is worth as a flag: among the rows it ranks highest, how many were hits.
+def ranking(y: np.ndarray, p: np.ndarray) -> dict[str, list[dict[str, float]]]:
+    """What a chance is worth as a flag, from either end of its ranking.
 
-    For each share of the test rows, taken from the top of the ranking: the hit rate there (``precision``),
-    the share of all hits that fall there (``recall``), and the hit rate against the base rate (``lift``).
+    ``top`` takes a share of the test rows from the highest chances and asks how many were hits; ``bottom``
+    takes it from the lowest and asks how many were misses. Each gives the rate found there (``precision``),
+    the share of all hits (or misses) that fall there (``recall``), and the rate against the rate over
+    every test row (``lift``).
     """
-    order = np.argsort(-p, kind="mergesort")
-    base = float(y.mean())
-    table = []
-    for share in SHARES:
-        top = order[: max(1, int(round(share * len(y))))]
-        hits = float(y[top].sum())
-        precision = hits / len(top)
-        table.append(
-            {
-                "share": share,
-                "rows": int(len(top)),
-                "precision": precision,
-                "recall": hits / float(y.sum()) if y.sum() else float("nan"),
-                "lift": precision / base if base else float("nan"),
-            }
-        )
-    return table
+
+    def end(order: np.ndarray, wanted: np.ndarray) -> list[dict[str, float]]:
+        base, total = float(wanted.mean()), float(wanted.sum())
+        table = []
+        for share in SHARES:
+            taken = order[: max(1, int(round(share * len(wanted))))]
+            hits = float(wanted[taken].sum())
+            precision = hits / len(taken)
+            table.append(
+                {
+                    "share": share,
+                    "rows": int(len(taken)),
+                    "precision": precision,
+                    "recall": hits / total if total else float("nan"),
+                    "lift": precision / base if base else float("nan"),
+                }
+            )
+        return table
+
+    return {
+        "top": end(np.argsort(-p, kind="mergesort"), y),
+        "bottom": end(np.argsort(p, kind="mergesort"), 1.0 - y),
+    }
 
 
 def closeness(y: np.ndarray, p: np.ndarray, within: dict[str, float]) -> dict[str, Any]:
@@ -259,15 +364,7 @@ def _unit(key: str) -> int:
     return int.from_bytes(hashlib.sha256(key.encode("utf-8")).digest()[:8], "big")
 
 
-def examples(
-    task: tasks.Task,
-    spec: dict[str, Any],
-    dataset: Dataset,
-    y: np.ndarray,
-    test: np.ndarray,
-    predictions: dict[str, np.ndarray],
-    best: str,
-) -> dict[str, list[dict[str, Any]]]:
+def examples(look: Look, spec: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
     """Positions a paper can show, chosen by rule from the test rows and the best run's predictions.
 
     ``typical`` are the first few in the order of a hash of their key: ordinary rows, picked by nothing
@@ -275,10 +372,11 @@ def examples(
     where it said yes loudest and it did not happen, ``surprised-yes`` the reverse; for a quantity, ``over``
     and ``under`` are its largest misses each way.
     """
+    task, test, predictions = look.task, look.test, look.predictions
     count = int(spec.get("count", 3))
-    rows = dataset.rows
+    rows = look.dataset.rows
     keys = rows["key"].to_numpy()[test]
-    truth, said = y[test], predictions[best]
+    truth, said = look.truth, predictions[look.best]
     by_key = np.argsort(keys, kind="mergesort")
 
     def ordered(score: np.ndarray, among: np.ndarray | None = None) -> list[int]:
@@ -329,70 +427,299 @@ def rounded(value: Any) -> Any:
     return value
 
 
-def analyse(model: str, *, smoke: bool = False) -> dict[str, Any]:
-    task = tasks.get(model)
-    spec = task.analysis
-    runs = records(model, smoke=smoke)
-    if not runs:
-        raise FileNotFoundError(f"{model} has no run records yet: train a run first")
-    dataset = read_dataset(recipe(task.dataset, smoke=smoke)["name"])
-    y = dataset.rows[task.label].to_numpy().astype(np.float64)
-    test = dataset.split("test")
-    keys = dataset.rows["key"].to_numpy()[test]
+def against_reference(look: Look) -> dict[str, dict[str, float]]:
+    """How each run's predictions sit beside the reference's, row by row: how alike the two are, and how often
+    the run is the closer of the two to what happened."""
+    reference = look.predictions.get(look.task.reference)
+    if reference is None:
+        return {}
+    table = {}
+    for run, p in look.predictions.items():
+        if run == look.task.reference:
+            continue
+        flat = float(np.std(p)) < 1e-12 or float(np.std(reference)) < 1e-12
+        nearer, further = np.abs(p - look.truth), np.abs(reference - look.truth)
+        table[run] = {
+            "correlation": float("nan") if flat else float(np.corrcoef(p, reference)[0, 1]),
+            "closer_share": float((nearer < further).mean()),
+            "tied_share": float((nearer == further).mean()),
+        }
+    return table
 
+
+def pair_table(
+    look: Look,
+    asked: list[list[str]],
+    *,
+    studied: dict[str, np.ndarray] | None = None,
+    studies: dict[str, str] | None = None,
+    resamples: int = RESAMPLES,
+) -> list[dict[str, Any]]:
+    """Runs set against the run each changed: the first's paired gain over the second on the same resampled test
+    games, measured as a leaderboard measures a gain over the reference. A pair with a run that was not read
+    has no gain. ``studied`` holds the study runs' predictions, which no other table reads, and ``studies``
+    the study each of them belongs to, which its pair then names."""
+    said = {**look.predictions, **(studied or {})}
+    table = []
+    for run, changed in asked:
+        entry: dict[str, Any] = {"run": run, "over": changed, "gain": None}
+        if studies and run in studies:
+            entry["study"] = studies[run]
+        if run in said and changed in said:
+            entry.update(
+                paired(
+                    look.task.kind,
+                    look.task.primary,
+                    look.truth,
+                    said[run],
+                    said[changed],
+                    look.games,
+                    resamples=resamples,
+                )
+            )
+        table.append(entry)
+    return table
+
+
+# What two models must share for one to be set against the other: then they are scored on the same test
+# rows against the same truth by the same metric, and a run of one is paired with a run of the other.
+SHARED = ("dataset", "kind", "label", "primary")
+
+
+def shown_table(
+    look: Look, other: str, slices: list[dict[str, Any]], *, smoke: bool = False, resamples: int = RESAMPLES
+) -> dict[str, Any]:
+    """This model's runs against those of the model that asks the same of the same rows with more shown.
+
+    Each run here is set against the other model's run of the same name: that run's paired gain over this one
+    on the same resampled test games, positive when being shown more made it better, which is what the thing
+    shown is worth to that learner. ``best`` is the same for the best run of each model, whatever they are
+    called, and ``slices`` cuts that one pair by each slice of the plan: where the thing shown is worth most.
+    The other model's runs are read as this model's are (``read_predictions``), so a pair is measured only
+    where both runs' predictions are the ones their leaderboards rank; a study run is no candidate. A run is
+    the same run in both models only when its two records were trained from one config, so that what the
+    task shows is all that differs: a run of the same name that was not is left out, and ``skipped`` says so.
+    """
+    task, theirs_task = look.task, tasks.get(other)
+    differ = [name for name in SHARED if getattr(task, name) != getattr(theirs_task, name)]
+    if differ:
+        raise ValueError(
+            f"{task.name} is set against {other}, and the two do not share their {', '.join(differ)}: "
+            "two models are set against each other only on the same rows, label and metric"
+        )
+    runs = [run for run in records(other, smoke=smoke) if run["config"].get("study") is None]
+    theirs, skipped = read_predictions(other, theirs_task, runs, look.dataset, look.y, look.test, smoke=smoke)
+
+    def measured(here: str, there: str) -> dict[str, Any]:
+        gain = paired(task.kind, task.primary, look.truth, theirs[there], look.predictions[here], look.games, resamples=resamples)
+        return {"run": here, "there": there, **gain}
+
+    configs = {name: {run["run"]: run["config"] for run in found} for name, found in (("here", records(task.name, smoke=smoke)), ("there", runs))}
+    same = [name for name in look.predictions if name in theirs and configs["here"].get(name) == configs["there"].get(name)]
+    for name in look.predictions:
+        if name in theirs and name not in same:
+            skipped[name] = f"its record here and its record in {other} were trained from different configs"
+    table: dict[str, Any] = {"model": other, "pairs": [measured(name, name) for name in same], "skipped": skipped}
+    if not theirs:
+        return table
+    here, there = look.best, next(iter(theirs))
+    table["best"] = measured(here, there)
+
+    def cut(spec: dict[str, Any]) -> dict[str, Any]:
+        found = []
+        for label, mask in groups(look.dataset.rows, spec):
+            inside = mask[look.test]
+            truth, ours, shown = look.truth[inside], look.predictions[here][inside], theirs[there][inside]
+            entry: dict[str, Any] = {
+                "group": label,
+                "rows": int(inside.sum()),
+                "here": _metric(task.kind, task.primary, truth, ours),
+                "there": _metric(task.kind, task.primary, truth, shown),
+                "gain": None,
+            }
+            if entry["rows"] >= SMALLEST_COMPARED:
+                gain = paired(task.kind, task.primary, truth, shown, ours, look.games[inside], resamples=GROUP_RESAMPLES)
+                entry["gain"] = None if math.isnan(gain["gain"]) or math.isnan(gain["low"]) else gain
+            found.append(entry)
+        return {"key": spec["key"], "title": spec.get("title", spec["column"]), "groups": found}
+
+    table["slices"] = [cut(spec) for spec in slices]
+    return table
+
+
+def read_predictions(
+    model: str, task: tasks.Task, runs: list[dict[str, Any]], dataset: Dataset, y: np.ndarray, test: np.ndarray, *, smoke: bool
+) -> tuple[dict[str, np.ndarray], dict[str, str]]:
+    """Each run's test predictions as they are on this machine, best run first, and why any run is left out.
+
+    A run is read only when its record names this build of the data, its predictions are of this dataset's test
+    rows in their order, and they score what the record says: then they are the ones the leaderboard ranks.
+    """
+    keys = dataset.rows["key"].to_numpy()[test]
     predictions: dict[str, np.ndarray] = {}
     skipped: dict[str, str] = {}
-    order = [run["run"] for run in ranked(task, runs)]
     for run in ranked(task, runs):
         name = run["run"]
         path = paths.predictions(model, name, smoke=smoke)
         if run["dataset"].get("fingerprint") != dataset.manifest["fingerprint"]:
             skipped[name] = "its record names another build of the data than the one on this machine"
-        elif not path.exists():
+            continue
+        if not path.exists():
             skipped[name] = "its test predictions are not on this machine"
-        else:
-            frame = pl.read_parquet(path)
-            if len(frame) != len(keys) or not bool((frame["key"].to_numpy() == keys).all()):
-                skipped[name] = "its test predictions are not of this dataset's test rows"
-                continue
-            p = frame["p"].to_numpy().astype(np.float64)
-            scored = METRICS[task.kind][task.primary](y[test], p)
-            recorded = run["test"][task.primary]["value"]
-            if abs(scored - recorded) > 1e-9 * max(1.0, abs(recorded)):
-                skipped[name] = "its test predictions here are not the ones its record scored"
-            else:
-                predictions[name] = p
+            continue
+        frame = pl.read_parquet(path)
+        if len(frame) != len(keys) or not bool((frame["key"].to_numpy() == keys).all()):
+            skipped[name] = "its test predictions are not of this dataset's test rows"
+            continue
+        p = frame["p"].to_numpy().astype(np.float64)
+        scored = METRICS[task.kind][task.primary](y[test], p)
+        recorded = run["test"][task.primary]["value"]
+        if abs(scored - recorded) > 1e-9 * max(1.0, abs(recorded)):
+            skipped[name] = "its test predictions here are not the ones its record scored"
+            continue
+        predictions[name] = p
+    return predictions, skipped
+
+
+def read_row_scores(
+    model: str, task: tasks.Task, runs: list[dict[str, Any]], dataset: Dataset, test: np.ndarray, *, smoke: bool
+) -> tuple[dict[str, np.ndarray], dict[str, str]]:
+    """``read_predictions`` for a model whose answer is a set or a move: what each test row scored on the
+    metric the runs are ranked by, which a run's predictions keep beside its chances. A run is read on the same
+    three conditions, the last being that its rows' scores average to what its record says."""
+    keys = dataset.rows["key"].to_numpy()[test]
+    scores: dict[str, np.ndarray] = {}
+    skipped: dict[str, str] = {}
+    for run in ranked(task, runs):
+        name = run["run"]
+        path = paths.predictions(model, name, smoke=smoke)
+        if run["dataset"].get("fingerprint") != dataset.manifest["fingerprint"]:
+            skipped[name] = "its record names another build of the data than the one on this machine"
+            continue
+        if not path.exists():
+            skipped[name] = "its test predictions are not on this machine"
+            continue
+        frame = pl.read_parquet(path, columns=["key", task.primary])
+        if len(frame) != len(keys) or not bool((frame["key"].to_numpy() == keys).all()):
+            skipped[name] = "its test predictions are not of this dataset's test rows"
+            continue
+        by_row = frame[task.primary].to_numpy().astype(np.float64)
+        recorded = run["test"][task.primary]["value"]
+        if abs(float(mean_of_rows(by_row)) - recorded) > 1e-9 * max(1.0, abs(recorded)):
+            skipped[name] = "its test predictions here are not the ones its record scored"
+            continue
+        scores[name] = by_row
+    return scores, skipped
+
+
+def pairs_of_rows(
+    task: tasks.Task,
+    scores: dict[str, np.ndarray],
+    asked: list[list[str]],
+    games: np.ndarray,
+    *,
+    studies: dict[str, str] | None = None,
+    resamples: int = RESAMPLES,
+) -> list[dict[str, Any]]:
+    """``pair_table`` from each run's score row by row: the first run's paired gain over the second on the
+    same resampled test games. A pair with a run that was not read has no gain."""
+    table = []
+    for run, changed in asked:
+        entry: dict[str, Any] = {"run": run, "over": changed, "gain": None}
+        if studies and run in studies:
+            entry["study"] = studies[run]
+        if run in scores and changed in scores:
+            entry.update(
+                paired_of_rows(
+                    scores[run], scores[changed], games, lower_is_better=task.primary in LOWER_IS_BETTER, resamples=resamples
+                )
+            )
+        table.append(entry)
+    return table
+
+
+def analyse(model: str, *, smoke: bool = False) -> dict[str, Any]:
+    task = tasks.get(model)
+    asked = plan(model)
+    runs = records(model, smoke=smoke)
+    if not runs:
+        raise FileNotFoundError(f"{model} has no run records yet: train a run first")
+    dataset = read_dataset(recipe(task.dataset, smoke=smoke)["name"])
+    test = dataset.split("test")
+    study_runs = [run for run in runs if run["config"].get("study") is not None]
+    runs = [run for run in runs if run["config"].get("study") is None]
+    by_row = task.kind in BY_ROW
+    if by_row:
+        predictions, skipped = read_row_scores(model, task, runs, dataset, test, smoke=smoke)
+        studied, study_skipped = read_row_scores(model, task, study_runs, dataset, test, smoke=smoke)
+    else:
+        y = dataset.rows[task.label].to_numpy().astype(np.float64)
+        predictions, skipped = read_predictions(model, task, runs, dataset, y, test, smoke=smoke)
+        studied, study_skipped = read_predictions(model, task, study_runs, dataset, y, test, smoke=smoke)
+    skipped.update(study_skipped)
+    pairs = [list(pair) for pair in asked.get("pairs", [])]
+    for run in sorted(study_runs + runs, key=lambda run: run["run"]):
+        pair = [run["run"], run["config"].get("base")]
+        if pair[1] is not None and pair not in pairs:
+            pairs.append(pair)
     if not predictions:
         raise FileNotFoundError(
             f"no run of {model} has its test predictions on this machine for this build of the data: "
             + "; ".join(f"{name}: {reason}" for name, reason in skipped.items())
         )
-    best = next(name for name in order if name in predictions)
-
-    result: dict[str, Any] = {
+    games = dataset.rows[dataset.manifest["group"]].to_numpy()[test]
+    resamples = SMOKE_RESAMPLES if smoke else RESAMPLES
+    studies = {run["run"]: run["config"]["study"] for run in study_runs}
+    head: dict[str, Any] = {
         "model": model,
         "written_by": f"lab analyse {model}",
         "written": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "code": code_commit(),
         "dataset": dataset.manifest,
         "task": {"label": task.label, "kind": task.kind, "primary": task.primary, "band": task.band},
-        "runs": [name for name in order if name in predictions],
+        "runs": list(predictions),
         "skipped": skipped,
-        "best": best,
+        "best": next(iter(predictions)),
         "reference": task.reference,
+        "challenger": challenger_of(task, predictions),
         "test_rows": int(len(test)),
-        "label": label_summary(task, spec.get("label", {}), dataset, y),
-        "reliability": {run: reliability(task.kind, y[test], p) for run, p in predictions.items()},
-        "slices": [slice_table(task, one, dataset, y, test, predictions) for one in spec.get("slices", [])],
-        "grids": [grid_table(task, one, dataset, y, test, predictions) for one in spec.get("grids", [])],
-        "examples": examples(task, spec.get("examples", {}), dataset, y, test, predictions, best),
     }
+    if by_row:
+        result = {**head, "pairs": pairs_of_rows(task, {**predictions, **studied}, pairs, games, studies=studies, resamples=resamples)}
+        if study_runs:
+            result["studies"] = sorted(studied)
+        return _written(model, result, smoke=smoke)
+    look = Look(task=task, dataset=dataset, y=y, test=test, games=games, predictions=predictions)
+    result: dict[str, Any] = {
+        **head,
+        "label": label_summary(task, asked.get("label", {}), dataset, y),
+        "describe": describe(dataset, asked.get("describe", [])),
+        "reliability": {run: reliability(task.kind, look.truth, p) for run, p in predictions.items()},
+        "against_reference": against_reference(look),
+        "slices": [band_slice(look, asked.get("band", {}))] + [slice_table(look, one) for one in asked.get("slices", [])],
+        "grids": [grid_table(look, one) for one in asked.get("grids", [])],
+        "examples": examples(look, asked.get("examples", {})),
+        "pairs": pair_table(look, pairs, studied=studied, studies=studies, resamples=resamples),
+    }
+    if study_runs:
+        result["studies"] = sorted(studied)
+    if asked.get("shown"):
+        result["shown"] = shown_table(
+            look,
+            asked["shown"],
+            [band_spec(look, asked.get("band", {})), *asked.get("slices", [])],
+            smoke=smoke,
+            resamples=resamples,
+        )
     if task.kind == "binary":
-        result["ranking"] = {run: ranking(y[test], p) for run, p in predictions.items()}
+        result["ranking"] = {run: ranking(look.truth, p) for run, p in predictions.items()}
     else:
-        result["closeness"] = {
-            run: closeness(y[test], p, spec.get("within", {})) for run, p in predictions.items()
-        }
+        result["closeness"] = {run: closeness(look.truth, p, asked.get("within", {})) for run, p in predictions.items()}
+    return _written(model, result, smoke=smoke)
+
+
+def _written(model: str, result: dict[str, Any], *, smoke: bool) -> dict[str, Any]:
+    """A closer look as its file holds it, every number rounded, written beside the model's records."""
     result = rounded(result)
     directory = paths.results(model, smoke=smoke)
     directory.mkdir(parents=True, exist_ok=True)

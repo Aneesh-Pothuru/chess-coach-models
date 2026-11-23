@@ -1,0 +1,17 @@
+% Written by `lab paper think-time`; do not edit by hand.
+\fit{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Group & Test rows & Happened & said & MAE & said & MAE & Gain & 95\% interval \\
+\midrule
+\textless{}30 & 718 & 2.7 & 2.9 & 0.4335 & 2.8 & 0.4534 & \textbf{+0.01992} & +0.00177 to +0.03929 \\
+30-60 & 777 & 4.6 & 4.7 & 0.5235 & 4.3 & 0.5316 & +0.00818 & $-$0.01147 to +0.02977 \\
+60-120 & 1{,}456 & 6.2 & 6.0 & 0.5894 & 6.1 & 0.5988 & +0.00944 & $-$0.00826 to +0.02548 \\
+120-300 & 7{,}214 & 7.8 & 7.8 & 0.6435 & 7.6 & 0.6599 & \textbf{+0.01640} & +0.00848 to +0.02454 \\
+300-480 & 18{,}755 & 8.1 & 8.0 & 0.6270 & 8.0 & 0.6526 & \textbf{+0.02563} & +0.02085 to +0.03004 \\
+480+ & 39{,}659 & 6.6 & 6.1 & 0.5997 & 6.3 & 0.6212 & \textbf{+0.02144} & +0.01919 to +0.02463 \\
+\bottomrule
+\end{tabular}%
+}

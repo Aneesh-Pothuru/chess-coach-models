@@ -1,0 +1,19 @@
+% Written by `lab paper blunder-hazard`; do not edit by hand.
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.7cm}Lrrrr}
+\toprule
+Run & Left out & Features & PR-AUC & Gain & 95\% interval \\
+\midrule
+\run{gbm-hand} & nothing &  & 0.2533 &  &  \\
+\run{gbm-hand-no-material} & material & 3 & 0.2188 & \textbf{$-$0.03451} & $-$0.04111 to $-$0.02763 \\
+\run{gbm-hand-no-kings} & attacks near the kings & 2 & 0.2432 & \textbf{$-$0.01014} & $-$0.01545 to $-$0.00453 \\
+\run{gbm-hand-no-hanging} & pieces that can be taken & 2 & 0.2445 & \textbf{$-$0.00880} & $-$0.01324 to $-$0.00458 \\
+\run{gbm-hand-no-mobility} & the moves on offer & 4 & 0.2483 & \textbf{$-$0.005001} & $-$0.009009 to $-$0.000286 \\
+\run{gbm-hand-no-pawns} & passed pawns & 2 & 0.2528 & $-$0.000488 & $-$0.003935 to +0.003267 \\
+\run{transformer-medium-hand} & nothing &  & 0.2666 &  &  \\
+\run{transformer-medium-hand-no-material} & material & 3 & 0.2394 & \textbf{$-$0.02723} & $-$0.03467 to $-$0.01997 \\
+\run{transformer-medium-hand-no-hanging} & pieces that can be taken & 2 & 0.2564 & \textbf{$-$0.01019} & $-$0.01573 to $-$0.00470 \\
+\run{transformer-medium-hand-no-mobility} & the moves on offer & 4 & 0.2571 & \textbf{$-$0.00948} & $-$0.01423 to $-$0.00438 \\
+\run{transformer-medium-hand-no-kings} & attacks near the kings & 2 & 0.2667 & +0.000052 & $-$0.005345 to +0.005285 \\
+\run{transformer-medium-hand-no-pawns} & passed pawns & 2 & 0.2677 & +0.001076 & $-$0.002735 to +0.005063 \\
+\bottomrule
+\end{tabularx}

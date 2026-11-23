@@ -14,6 +14,12 @@ usually miss is not, and today it cannot tell the two apart.
 | **Data** | [`Lichess/chess-puzzles-with-games`](https://huggingface.co/datasets/Lichess/chess-puzzles-with-games) (CC0): the Lichess puzzles of September 2022, each joined to the rated game it was cut from. A puzzle begins with the opponent's mistake, so the game's next move says whether the player at the board found the answer. Blitz, rapid and classical games, puzzles whose own rating has settled, a random half of the source. Recipe: [`datasets/tactics.yaml`](../../datasets/tactics.yaml). |
 | **Split** | By game: 85% train, 5% valid, 10% test. |
 
+**The paper.** [`paper/paper.pdf`](paper/paper.pdf) reads these results at
+length: every run, the figures, the cuts of the closer look, and positions
+as boards (ordinary ones, the ones the best run was surest of and the ones
+it got most wrong). `lab paper tactic-found` builds it from the results
+committed here ([`docs/design.md`](../../docs/design.md), "The paper").
+
 ## The rule
 
 Written before the first full run.
@@ -62,11 +68,149 @@ Written before the first full run.
 | `transformer-small` | A square-token transformer, CPU-sized |
 | `transformer-medium` | A larger square-token transformer, for a GPU |
 | `transformer-medium-hand` | The same, reading the hand features beside the board |
+| `transformer-medium-long` | `transformer-medium` with twice the epochs |
+| `transformer-medium-hand-long` | `transformer-medium-hand` with twice the epochs |
+| `transformer-medium-pretrained` | `transformer-medium` started from the body of [position evaluation](../position-evaluation/) |
+| `transformer-medium-hand-pretrained` | `transformer-medium-hand` started from the same body |
+| `gbm-hand-double` | `gbm-hand` on twice the training games, from the larger build `tactics-all` of the dataset |
+| `transformer-medium-hand-double` | `transformer-medium-hand` on twice the training games, with half the epochs so that it takes as many steps |
+| `conv-medium-hand` | `transformer-medium-hand` with its body changed to a convolutional tower of about its size, each block weighing its channels by the whole board |
+| `hybrid-medium-hand` | `transformer-medium-hand` with its body changed to two blocks of the tower under five transformer layers |
+| `transformer-medium-attacks` | `transformer-medium` with its attention told what each piece attacks and what it stands behind |
+| `transformer-medium-hand-attacks` | `transformer-medium-hand` told the same |
+
+The last four change only the body of the run they name
+([`docs/design.md`](../../docs/design.md), "Bodies and a head"), and
+[`docs/ideas.md`](../../docs/ideas.md) says what was expected of them before
+they ran. Each is kept only if it beats the run it changes on valid and on
+test beyond the noise.
+
+The two runs on twice the games (`-double`) take their training rows from
+[`tactics-all`](../../datasets/tactics-all.yaml), a larger build of the dataset
+that reads all fourteen files of its source where the dataset reads seven, and
+are scored on the valid and test rows every run here is scored on
+([`docs/design.md`](../../docs/design.md), "A run on more games"). They are the
+`games` study below turned round, and [`docs/ideas.md`](../../docs/ideas.md)
+says what was expected of them before they ran. Each is kept only if it beats
+the run it changes on valid and on test beyond the noise.
+
+### Studies
+
+Runs that change one thing in a run above, to say what that thing is worth
+([`docs/design.md`](../../docs/design.md), "A run that changes another"). They
+are listed apart on the leaderboard, and each is read against the run it
+changes: the paired difference on the same resampled test games (the closer
+look's `pairs`), which says something only when its interval leaves zero out.
+
+| Study | Runs | What each changes |
+|---|---|---|
+| `games` | `gbm-hand-half`, `gbm-hand-quarter`, `transformer-medium-hand-half`, `transformer-medium-hand-quarter` | Half and a quarter of the training games, chosen by a hash of the game. The network goes through them often enough to take as many steps as the run it changes, so only the number of games differs. |
+| `features` | `gbm-hand-no-<group>` for each of material, mobility, hanging, pawns, kings, setup, first-move, line | One group of hand features left out |
+| `geometry` | `transformer-medium-hand-no-geometry` | The learned bias for each offset between two squares left out of the transformer's attention: what telling it the board's geometry is worth |
 
 ## Results
 
 [`results/leaderboard.md`](results/leaderboard.md), written by
-`lab eval tactic-found`.
+`lab eval tactic-found`. What the first full runs say (commit `7cd074c`; the
+numbers are in the leaderboard):
+
+- **One network beats the trees: the medium transformer that also reads the
+  hand features.** Its paired gain is beyond the noise, and small beside what
+  the trees already take off the floor. By band it is ahead of the reference
+  in every band but one, where the two are level.
+- **Without the hand features, no network matches the trees.** The
+  convolutional tower and both transformers land together, below the
+  reference beyond the noise, whatever their size. They are shown the line as
+  marked squares and have to work out for themselves what the hand features
+  count: what the first move gives up, what the line wins, how long it is.
+  Both of those transformers were still improving on valid at their last
+  epoch, so more epochs is the run to add before saying the squares are not
+  enough.
+- **The crowd's rating says less than a look at the board.** `puzzle-rating`
+  lands beside the trees that see no board, and far below the reference,
+  which never reads a puzzle's rating. The reference leans most on the two
+  evaluations and on whether the tactic's first move gives up material
+  (`leans_on` in [its record](results/gbm-hand.json)). So what the line does
+  on the board says more about finding a tactic in a game than thousands of
+  puzzle attempts summed into one number.
+- **A game is far from a puzzle.** The slope fitted for `puzzle-rating` is
+  about a fifth of the rating formula's
+  (`calibration` in [its record](results/puzzle-rating.json)): a gap between
+  the player's rating and the puzzle's that would decide a puzzle moves the
+  chance in a game much less.
+- **The stated chance can be read as a frequency.** After the rescaling on
+  valid, each of the best run's ten groups is within about a point of what
+  happened, from a chance near a third to one above nine in ten.
+- **Every run does best in the same band.** Log loss is lowest for movers
+  rated 2100 to 2299 and higher on both sides, for the floor as well, so
+  compare runs within a band, not one band with another.
+
+What twice the epochs say (commit `0ba155a`: `transformer-medium-long` and
+`transformer-medium-hand-long`, each set against the run it changed among the
+`pairs` of [`results/analysis.json`](results/analysis.json)):
+
+- **One of the two longer runs is kept: the transformer on the board alone.**
+  `transformer-medium-long` is better than `transformer-medium` on the valid
+  rows, and on the test rows beyond the noise. The gain is small, and the run
+  is still behind the trees beyond the noise. So the epochs were not what
+  the squares lacked: at this many games a network does not work out from
+  the marked squares what the hand features count about the line.
+- **With the hand features, twice the epochs change nothing.**
+  `transformer-medium-hand-long` is a little better than the run it changed
+  on the valid rows and level with it on the test rows (the interval of its
+  paired gain holds zero). It is not kept, and `transformer-medium-hand`
+  stays the model's best run.
+- **Both stopped early.** Each had its best valid epoch a little past halfway
+  and was stopped three epochs later: the training loss went on falling and
+  the valid score did not.
+
+A run that is not kept stays in the results as a measurement of what its
+change is worth. `transformer-medium-hand-long` is filed under a study of its
+own (`lab file`) once the runs now training are in; until then the
+leaderboard still ranks it.
+
+What the two studies say (commit `ceae3ec`; a study run is listed apart on
+the leaderboard and set against the run it changed among the `pairs` of
+[`results/analysis.json`](results/analysis.json)):
+
+- **The network leads only with all the data.** Trained on half and on a
+  quarter of the training games, the trees and the best network are both
+  worse beyond the noise, and the network loses more. On a quarter of the
+  games the trees are ahead of it, on half the two are level, and only on all
+  of them does the network lead. Twice the epochs gave the same network
+  nothing, so more games are the next thing to try here.
+- **The first move says most.** With one group of hand features left out at
+  a time, what the move to be found looks like costs the trees most. After it
+  come the line as a whole, the moves on offer, loose pieces, the opponent's
+  last move and material. The attackers near the kings and passed pawns cost
+  nothing these test rows can show.
+
+What a start from engine evaluations says (commit `3810bca`:
+`transformer-medium-pretrained` and `transformer-medium-hand-pretrained`, the
+twelve-epoch runs started from the body that
+[position evaluation](../position-evaluation/) trained, each set against the
+run it changed among the `pairs` of
+[`results/analysis.json`](results/analysis.json)):
+
+- **Both are kept, and the one with the features is the model's best run.**
+  Each is better than the same run started from nothing on the valid rows, and
+  on the test rows beyond the noise.
+- **A network on the board alone is ahead of the trees for the first time.**
+  It is also ahead of the best run before it, which read the features (the
+  intervals of their gains over the reference do not touch).
+- **The features still pay under the start.** The run that reads them is
+  ahead of the run that does not: the intervals of their gains over the
+  reference do not touch.
+- **Both stopped early.** Each had its best valid epoch at the eighth of
+  twelve, and the trainer stopped it three epochs later. More epochs from this
+  start would not help. More positions from it may: the `games` study above
+  says positions are what this model lacks.
+
+**Weights.** Every run's weights and test predictions are on the owner's
+machine, under `artifacts/runs/tactic-found/<run>/`, as the GPU session
+packed them; none is published. Each record names its run's files by size
+and sha256. The best run's `model.pt` is 26,294,879 bytes, sha256
+`8c03dd1520494c30e78a359a6747b102fee7596fb59e269d0c47d32cf08bf68d`.
 
 ## What it does not say yet
 

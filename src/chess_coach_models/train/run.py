@@ -11,6 +11,26 @@ fingerprint, and it carries the run's gain over the model's reference run,
 measured on the same resampled test games against the reference trained on the
 same machine. A leaderboard is then written from the records alone, on any
 machine, from runs made on several.
+
+A run that changes one thing in another names that run as its ``base`` and
+writes only the change:
+
+    base: transformer-medium-hand      the run it changes
+    study: games                       what the change is there to find out
+    data: {train_share: 0.5}           the change: half of the training games
+
+Its config is the base's with its own blocks laid over it. A network can also
+begin from the body another run trained, on this machine, named by
+``learner: {init: {model: position-evaluation, run: transformer-medium}}``. A run with a
+``study`` is not a candidate: a leaderboard lists it apart, under its study,
+and the closer look sets it against its base (``evals/analysis.py``).
+
+A run can train on a larger build of its task's dataset, named by
+``data: {train_on: puzzles-all}`` (a recipe that is ``of`` the task's own,
+``data/__init__.py``). It takes its training rows from the larger build and
+its valid and test rows from the task's own, so it is scored on the rows every
+other run of the model is scored on. Its record's ``dataset`` is still the
+task's own build, and ``train_dataset`` names the larger one.
 """
 
 from __future__ import annotations
@@ -20,32 +40,76 @@ import time
 from datetime import datetime, timezone
 from typing import Any
 
+import numpy as np
 import polars as pl
 import yaml
 
 from .. import paths, tasks
-from ..data import recipe
+from ..data import larger_of, recipe
 from ..data.store import code_commit, read_dataset
-from ..evals.bootstrap import intervals, paired
-from ..evals.calibration import apply_platt, platt
-from ..evals.metrics import METRICS, calibration_table, score
+from ..evals.bootstrap import RESAMPLES, SMOKE_RESAMPLES, intervals, intervals_of_rows, paired, paired_of_rows
+from ..evals.calibration import apply_platt, platt, temper, temperature
+from ..evals.metrics import (
+    BY_ROW,
+    LOWER_IS_BETTER,
+    METRICS,
+    SETS,
+    calibration_table,
+    mean_of_rows,
+    pr_auc,
+    roc_auc,
+    row_scores,
+    score,
+)
 from . import learners
 from .record import machine, saved_weights, software
 
 
+def _laid_over(under: dict[str, Any], over: dict[str, Any]) -> dict[str, Any]:
+    """One config laid over another, block by block: a block of ``over`` adds to the same block of ``under``."""
+    merged = dict(under)
+    for key, value in over.items():
+        merged[key] = {**merged[key], **value} if isinstance(value, dict) and isinstance(merged.get(key), dict) else value
+    return merged
+
+
+def _written(model: str, run: str, above: tuple[str, ...] = ()) -> dict[str, Any]:
+    """A run's config as its file and its bases' files give it, before any smoke override."""
+    path = paths.configs(model) / f"{run}.yaml"
+    if not path.exists():
+        raise FileNotFoundError(f"{model} has no run named {run!r}: {path} is not there")
+    with path.open("r", encoding="utf-8") as handle:
+        own = yaml.safe_load(handle)
+    if "base" not in own:
+        return own
+    if own["base"] == run or own["base"] in above:
+        raise ValueError(f"{model}/{run}: its base runs lead back to itself")
+    base = _written(model, own["base"], above + (run,))
+    # What a base was there to find out is its own business: a run on top of it says its own.
+    base.pop("study", None)
+    return _laid_over(base, own)
+
+
 def run_config(model: str, run: str, *, smoke: bool = False) -> dict[str, Any]:
-    """A run's config; a smoke run takes its ``smoke`` overrides, block by block."""
-    with (paths.configs(model) / f"{run}.yaml").open("r", encoding="utf-8") as handle:
-        config = yaml.safe_load(handle)
+    """A run's config: its base's, when it names one, with its own blocks laid over it. A smoke run then takes
+    the ``smoke`` overrides the same way."""
+    config = _written(model, run)
     overrides = config.pop("smoke", {})
     if smoke:
-        for block, values in overrides.items():
-            config.setdefault(block, {}).update(values)
+        config = _laid_over(config, overrides)
     return config
 
 
-def run_names(model: str) -> list[str]:
-    return sorted(path.stem for path in paths.configs(model).glob("*.yaml"))
+def run_names(model: str, *, study: str | None = None) -> list[str]:
+    """A model's runs by name: the leaderboard's own, or with ``study`` the runs of that study."""
+    names = sorted(path.stem for path in paths.configs(model).glob("*.yaml"))
+    return [name for name in names if _written(model, name).get("study") == study]
+
+
+def studies(model: str) -> list[str]:
+    """The studies a model's configs name."""
+    names = (path.stem for path in paths.configs(model).glob("*.yaml"))
+    return sorted({study for study in (_written(model, name).get("study") for name in names) if study})
 
 
 def gain_over_reference(
@@ -55,7 +119,7 @@ def gain_over_reference(
     fingerprint: str,
     *,
     smoke: bool = False,
-    resamples: int = 1000,
+    resamples: int = RESAMPLES,
 ) -> dict[str, Any] | None:
     """How much better a run is than its model's reference run on the same resampled test games.
 
@@ -76,14 +140,39 @@ def gain_over_reference(
     same_rows = len(reference) == len(frame) and bool((reference["key"] == frame["key"]).all())
     if record["dataset"].get("fingerprint") != fingerprint or not same_rows:
         return None
-    y, p_reference = frame["y"].to_numpy(), reference["p"].to_numpy()
-    value = float(METRICS[task.kind][task.primary](y, p_reference))
+    by_row = task.kind in BY_ROW
+    # Where a score is the mean of what each row scored, a run's predictions keep that row by row.
+    y, p_reference = frame["y"].to_numpy(), reference[task.primary if by_row else "p"].to_numpy()
+    value = float(mean_of_rows(p_reference) if by_row else METRICS[task.kind][task.primary](y, p_reference))
     if abs(value - record["test"][task.primary]["value"]) > 1e-9 * max(1.0, abs(value)):
         return None
-    gain = paired(
-        task.kind, task.primary, y, frame["p"].to_numpy(), p_reference, frame["group"].to_numpy(), resamples=resamples
-    )
+    if by_row:
+        gain = paired_of_rows(
+            frame[task.primary].to_numpy(),
+            p_reference,
+            frame["group"].to_numpy(),
+            lower_is_better=task.primary in LOWER_IS_BETTER,
+            resamples=resamples,
+        )
+    else:
+        gain = paired(
+            task.kind, task.primary, y, frame["p"].to_numpy(), p_reference, frame["group"].to_numpy(), resamples=resamples
+        )
     return {**gain, "reference": task.reference, "reference_trained": record["trained"], "reference_value": value}
+
+
+def by_candidate(candidates: tuple[str, ...], y: np.ndarray, p: np.ndarray) -> dict[str, dict[str, float]]:
+    """Each candidate of a set by itself, as a yes or no over the rows: how many rows it is right in, and how
+    well its chance tells those rows from the rest."""
+    return {
+        name: {
+            "rows": int(y[:, column].sum()),
+            "share": float(y[:, column].mean()),
+            "pr_auc": pr_auc(y[:, column].astype(np.float64), p[:, column]),
+            "roc_auc": roc_auc(y[:, column].astype(np.float64), p[:, column]),
+        }
+        for column, name in enumerate(candidates)
+    }
 
 
 def run(
@@ -96,50 +185,112 @@ def run(
 ) -> dict[str, Any]:
     task = tasks.get(model)
     config = run_config(model, name, smoke=smoke)
-    dataset = read_dataset(recipe(task.dataset, smoke=smoke)["name"])
-    if "fingerprint" not in dataset.manifest:
+    own = read_dataset(recipe(task.dataset, smoke=smoke)["name"])
+    if "fingerprint" not in own.manifest:
         raise ValueError(
-            f"{dataset.name} was built before datasets carried a fingerprint: "
+            f"{own.name} was built before datasets carried a fingerprint: "
             f"build it again with `lab data {task.dataset} --rebuild`"
         )
-    prepared = learners.prepare(task, dataset)
-    log(
-        f"{model}/{name}: {len(prepared.train):,} train, {len(prepared.valid):,} valid, "
-        f"{len(prepared.test):,} test rows of {dataset.name}"
+    # The dataset a run reads its rows from: the task's own, or a larger build of it for the training rows.
+    dataset, larger = own, config.get("data", {}).get("train_on")
+    if larger is not None:
+        if larger_of(larger, smoke=smoke) != task.dataset:
+            raise ValueError(f"{model}/{name} trains on {larger}, which is not a larger build of {task.dataset}")
+        dataset = read_dataset(recipe(larger, smoke=smoke)["name"])
+    prepared = learners.prepare(
+        task,
+        dataset,
+        train_share=float(config.get("data", {}).get("train_share", 1.0)),
+        scored=None if dataset is own else own,
     )
+    log(
+        f"{model}/{name}: {len(prepared.train):,} train rows of {dataset.name}, {len(prepared.valid):,} valid and "
+        f"{len(prepared.test):,} test rows of {own.name}"
+    )
+    start = None
+    init = config.get("learner", {}).get("init")
+    if init is not None:
+        start = paths.run_files(init["model"], init["run"], smoke=smoke) / "model.pt"
+        if not start.exists():
+            raise FileNotFoundError(
+                f"{model}/{name} starts from the weights of {init['model']}/{init['run']}, which are not on this "
+                f"machine: train that run here first ({start})"
+            )
     started = time.time()
-    fitted = learners.fit(prepared, config, log=log, device=device)
+    fitted = learners.fit(prepared, config, log=log, device=device, start=start)
     valid_p, test_p = fitted.valid, fitted.test
     y_valid, y_test = prepared.y[prepared.valid], prepared.y[prepared.test]
+    sets = task.kind in SETS
+    moves = task.kind == "moves"
+    by_row = task.kind in BY_ROW
     calibration = None
-    if task.kind == "binary":
-        slope, intercept = platt(valid_p, y_valid)
+    if task.kind == "binary" or sets:
+        # For a set, one line through every candidate's chance: it moves no candidate past another in a row.
+        slope, intercept = platt(valid_p.reshape(-1), y_valid.reshape(-1))
         valid_p, test_p = apply_platt(valid_p, slope, intercept), apply_platt(test_p, slope, intercept)
         calibration = {"platt_slope": slope, "platt_intercept": intercept, "fitted_on": "valid"}
+    elif moves:
+        # One temperature for every row's chances: it moves no move past another, so only the log loss and
+        # the calibration can change. What the log loss was before it stays in the record.
+        for split, said, rows in (("valid", valid_p, prepared.valid), ("test", test_p, prepared.test)):
+            held = prepared.moves[rows] >= 0
+            if said.shape != held.shape or not np.array_equal(~np.isnan(said), held):
+                raise ValueError(f"{model}/{name}: its {split} chances are not one for each legal move of each row")
+            if not np.allclose(np.nansum(said, axis=1), 1.0, atol=1e-4):
+                raise ValueError(f"{model}/{name}: a {split} row's chances do not add up to one")
+        log_loss = METRICS[task.kind]["log_loss"]
+        before = {"valid": log_loss(y_valid, valid_p), "test": log_loss(y_test, test_p)}
+        heat = temperature(valid_p, y_valid)
+        valid_p, test_p = temper(valid_p, heat), temper(test_p, heat)
+        calibration = {"temperature": heat, "fitted_on": "valid", "log_loss_before": before}
 
     rows = dataset.rows
-    group = dataset.manifest["group"]
-    groups_test = rows[group].to_numpy()[prepared.test]
+    groups = rows[dataset.manifest["group"]].to_numpy()
+    groups_test = groups[prepared.test]
     bands_test = rows[task.band].to_numpy()[prepared.test]
+    metrics = list(METRICS[task.kind])
+    resamples = SMOKE_RESAMPLES if smoke else RESAMPLES
+    if by_row:
+        scored = row_scores(task.kind, y_test, test_p)
+        valid_scores = dict(zip(metrics, mean_of_rows(row_scores(task.kind, y_valid, valid_p)).tolist()))
+        test_scores = intervals_of_rows(metrics, scored, groups_test, resamples=resamples)
+    else:
+        valid_scores = score(task.kind, y_valid, valid_p)
+        test_scores = intervals(task.kind, y_test, test_p, groups_test, resamples=resamples)
     by_band = {}
     for band in sorted(set(bands_test.tolist())):
         mask = bands_test == band
-        by_band[band] = {"rows": int(mask.sum()), **score(task.kind, y_test[mask], test_p[mask])}
+        in_band = dict(zip(metrics, mean_of_rows(scored[mask]).tolist())) if by_row else score(task.kind, y_test[mask], test_p[mask])
+        by_band[band] = {"rows": int(mask.sum()), **in_band}
     record = {
         "model": model,
         "run": name,
         "task": {
-            "label": task.label,
+            "label": task.label if isinstance(task.label, str) else list(task.label),
             "kind": task.kind,
             "unit": task.unit,
             "primary": task.primary,
             "lower_is_better": task.lower_is_better,
             "context": list(task.context),
+            # Only a task that keeps something from its learners says what they may read.
+            **({} if task.marks is None and task.hand is None else {"marks": prepared.mark_names, "hand": prepared.hand_names}),
+            **({"candidates": list(task.candidates)} if sets else {}),
+            # Where a row is a sequence of positions, the numbers of each position a network read.
+            **({} if dataset.steps is None else {"steps": prepared.step_names}),
         },
+        # The build a run is scored on, which is its task's own whatever it trained on.
         "dataset": {
-            key: dataset.manifest[key]
-            for key in ("dataset", "source", "licence", "rows", "splits", "fingerprint", "built", "code")
+            **{
+                key: own.manifest[key]
+                for key in ("dataset", "source", "licence", "rows", "splits", "fingerprint", "built", "code")
+            },
+            **({} if own.steps is None else {"positions": own.manifest["positions"]}),
         },
+        **(
+            {}
+            if dataset is own
+            else {"train_dataset": {key: dataset.manifest[key] for key in ("dataset", "rows", "splits", "fingerprint", "built", "code")}}
+        ),
         "config": config,
         "learner": fitted.details,
         "calibration": calibration,
@@ -148,16 +299,26 @@ def run(
         "code": code_commit(),
         "trained": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "seconds": round(time.time() - started, 1),
-        "valid": score(task.kind, y_valid, valid_p),
-        "test": intervals(
-            task.kind, y_test, test_p, groups_test, resamples=100 if smoke else 1000
-        ),
+        "train_rows": int(len(prepared.train)),
+        "train_groups": int(len(set(groups[prepared.train].tolist()))),
+        "valid": valid_scores,
+        "test": test_scores,
         "test_rows": int(len(y_test)),
         "test_groups": int(len(set(groups_test.tolist()))),
         "test_by_band": by_band,
     }
-    if task.kind == "binary":
-        record["test_calibration"] = calibration_table(y_test, test_p)
+    if task.kind == "binary" or sets:
+        # For a set, every candidate of every row as one yes or no.
+        record["test_calibration"] = calibration_table(y_test.reshape(-1).astype(np.float64), test_p.reshape(-1))
+    if moves:
+        # Every legal move of every row as one yes or no: was it the move played.
+        held = ~np.isnan(test_p)
+        right = np.zeros(test_p.shape)
+        right[np.arange(len(y_test)), y_test] = 1.0
+        record["test_calibration"] = calibration_table(right[held], test_p[held])
+        record["test_candidates"] = {"mean": float(held.sum(axis=1).mean()), "most": int(held.sum(axis=1).max())}
+    if task.kind == "tags":
+        record["test_by_candidate"] = by_candidate(task.candidates, y_test, test_p)
 
     predictions = paths.predictions(model, name, smoke=smoke)
     predictions.parent.mkdir(parents=True, exist_ok=True)
@@ -166,16 +327,20 @@ def run(
             "key": rows["key"].to_numpy()[prepared.test],
             "group": groups_test,
             "band": bands_test,
+            # A set's row keeps what was right and every candidate's chance, then what the row scored. So
+            # does a row whose answer is a move: which candidate was played, and each one's chance.
             "y": y_test,
-            "p": test_p,
+            "p": test_p.astype(np.float32) if by_row else test_p,
+            **({metric: scored[:, column] for column, metric in enumerate(metrics)} if by_row else {}),
         }
     )
     frame.write_parquet(predictions)
-    fitted.save(predictions.parent)
-    record["weights"] = saved_weights(predictions.parent, predictions)
-    record["gain"] = gain_over_reference(
-        model, name, frame, dataset.manifest["fingerprint"], smoke=smoke, resamples=100 if smoke else 1000
-    )
+    # A study run is there to be measured and is never used: it keeps its predictions and no weights.
+    kept = "study" not in config
+    if kept:
+        fitted.save(predictions.parent)
+    record["weights"] = saved_weights(predictions.parent, predictions) if kept else []
+    record["gain"] = gain_over_reference(model, name, frame, own.manifest["fingerprint"], smoke=smoke, resamples=resamples)
     out = paths.results(model, smoke=smoke)
     out.mkdir(parents=True, exist_ok=True)
     (out / f"{name}.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")

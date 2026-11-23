@@ -1,0 +1,235 @@
+{
+  "model": "puzzle-difficulty",
+  "run": "transformer-large-hand",
+  "task": {
+    "label": "rating",
+    "kind": "regression",
+    "unit": "Lichess puzzle rating points",
+    "primary": "rmse",
+    "lower_is_better": true,
+    "context": [
+      "solver_moves",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "puzzles-v1",
+    "source": "https://database.lichess.org/lichess_db_puzzle.csv.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 1127915,
+    "splits": {
+      "test": 112450,
+      "train": 958941,
+      "valid": 56524
+    },
+    "fingerprint": "d14731fa4425fc6efdadb45c94ee53e07f5afe9151992b690b81edc71064cd5d",
+    "built": "2026-11-22T20:55:15Z",
+    "code": "8c771617309d36154b1c85abcbbff500fafea271"
+  },
+  "config": {
+    "needs": "cuda",
+    "learner": {
+      "kind": "net",
+      "body": "transformer",
+      "features": "hand",
+      "dim": 384,
+      "depth": 12,
+      "heads": 8,
+      "dropout": 0.1
+    },
+    "train": {
+      "epochs": 12,
+      "batch": 1024,
+      "lr": 0.0006,
+      "weight_decay": 0.05,
+      "warmup": 0.05,
+      "patience": 3
+    },
+    "base": "transformer-medium-hand"
+  },
+  "learner": {
+    "features": 38,
+    "parameters": 21809377,
+    "device": "NVIDIA A100-SXM4-80GB",
+    "best_epoch": 11,
+    "fit_seconds": 1589.2,
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.43689,
+        "valid_rmse": 316.6205,
+        "rows_a_second": 7393
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.37364,
+        "valid_rmse": 302.68743,
+        "rows_a_second": 7389
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.35528,
+        "valid_rmse": 298.44468,
+        "rows_a_second": 7386
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.34393,
+        "valid_rmse": 293.51319,
+        "rows_a_second": 7387
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.33571,
+        "valid_rmse": 290.93572,
+        "rows_a_second": 7387
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.32784,
+        "valid_rmse": 287.11698,
+        "rows_a_second": 7388
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.32066,
+        "valid_rmse": 285.1994,
+        "rows_a_second": 7390
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.31323,
+        "valid_rmse": 283.26097,
+        "rows_a_second": 7386
+      },
+      {
+        "epoch": 9,
+        "train_loss": 0.30652,
+        "valid_rmse": 281.22062,
+        "rows_a_second": 7387
+      },
+      {
+        "epoch": 10,
+        "train_loss": 0.30019,
+        "valid_rmse": 279.83716,
+        "rows_a_second": 7384
+      },
+      {
+        "epoch": 11,
+        "train_loss": 0.29524,
+        "valid_rmse": 279.22412,
+        "rows_a_second": 7379
+      },
+      {
+        "epoch": 12,
+        "train_loss": 0.29261,
+        "valid_rmse": 279.24879,
+        "rows_a_second": 7377
+      }
+    ]
+  },
+  "calibration": null,
+  "machine": {
+    "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "threads": 12,
+    "system": "Linux"
+  },
+  "software": {
+    "python": "3.13.16",
+    "numpy": "2.4.6",
+    "polars": "2.1.0",
+    "lightgbm": "4.6.0",
+    "torch": "2.14.1+cu130"
+  },
+  "code": "8c771617309d36154b1c85abcbbff500fafea271",
+  "trained": "2026-11-22T22:17:49Z",
+  "seconds": 1626.0,
+  "train_rows": 958941,
+  "train_groups": 958941,
+  "valid": {
+    "rmse": 279.22412080561384,
+    "mae": 213.2277632471643,
+    "r2": 0.6908819074721526,
+    "spearman": 0.8347129476468877
+  },
+  "test": {
+    "rmse": {
+      "value": 278.0501305974941,
+      "low": 276.54613585000106,
+      "high": 279.40291705258
+    },
+    "mae": {
+      "value": 212.40282192530447,
+      "low": 211.27994654320375,
+      "high": 213.40048051443816
+    },
+    "r2": {
+      "value": 0.6942811836618983,
+      "low": 0.6909818248308199,
+      "high": 0.6978250597398006
+    },
+    "spearman": {
+      "value": 0.8373270819982916,
+      "low": 0.8352705752182633,
+      "high": 0.8395162234484457
+    }
+  },
+  "test_rows": 112450,
+  "test_groups": 112450,
+  "test_by_band": {
+    "1000-1399": {
+      "rows": 31846,
+      "rmse": 252.9388156724189,
+      "mae": 193.59208991696306,
+      "r2": -4.18603342416754,
+      "spearman": 0.4021884561737329
+    },
+    "1400-1799": {
+      "rows": 28501,
+      "rmse": 252.07201003428398,
+      "mae": 199.01272326776225,
+      "r2": -3.962709370864756,
+      "spearman": 0.30625054246189276
+    },
+    "1800-2199": {
+      "rows": 19518,
+      "rmse": 300.87171551467173,
+      "mae": 235.75857663088638,
+      "r2": -5.84604347736029,
+      "spearman": 0.24314424044929592
+    },
+    "2200+": {
+      "rows": 9834,
+      "rmse": 456.45514844190836,
+      "mae": 388.53322732431604,
+      "r2": -6.759074809800905,
+      "spearman": 0.29947452555850035
+    },
+    "<1000": {
+      "rows": 22751,
+      "rmse": 212.72674872537078,
+      "mae": 159.3393849923707,
+      "r2": -0.8433382714840449,
+      "spearman": 0.6633594496135088
+    }
+  },
+  "weights": [
+    {
+      "file": "model.pt",
+      "bytes": 87280719,
+      "sha256": "b5dc3505c4b35b7779ec70cc5d279d9de800b224b1fbe05cfaf63813476dd26c"
+    }
+  ],
+  "gain": {
+    "gain": 16.872606811143555,
+    "low": 16.086034425871773,
+    "high": 17.613293111228398,
+    "beyond_noise": true,
+    "reference": "gbm-hand",
+    "reference_trained": "2026-11-22T20:59:30Z",
+    "reference_value": 294.92273740863766
+  }
+}

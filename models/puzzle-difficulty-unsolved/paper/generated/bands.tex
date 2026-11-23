@@ -1,0 +1,30 @@
+% Written by `lab paper puzzle-difficulty-unsolved`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.66\textwidth,
+  height=5.2cm,
+  ymajorgrids,
+  xlabel={The puzzle's rating},
+  ylabel={Lead in RMSE},
+  legend columns=2,
+  xtick={0,1,2,3,4},
+  xticklabels={{\textless{}1000},{1000-1399},{1400-1799},{1800-2199},{2200+}},
+  xmin=-0.5, xmax=4.5,
+]
+\addplot[draw=none, mark=none, forget plot] coordinates {(0,0)};
+\draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:-0.5,0) -- (axis cs:4.5,0) node[anchor=west, font=\sffamily\scriptsize, text=labSecondary, inner sep=2pt] {\run{gbm-hand}};
+\addplot[color=labBlue, dash pattern=on 1pt off 2pt, mark=*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labBlue}] coordinates {(0,221.407) (1,-24.8355) (2,-38.5734) (3,104.269) (4,164.864)};
+\addlegendentry{\texttt{transformer-medium-hand-pretrained}}
+\addplot[color=labMagenta, mark=pentagon*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labMagenta}] coordinates {(0,122.159) (1,-29.4577) (2,-24.808) (3,62.0122) (4,92.1374)};
+\addlegendentry{\texttt{conv-small}}
+\addplot[color=labBlue, mark=*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labBlue}] coordinates {(0,111.513) (1,-19.1666) (2,-21.1858) (3,47.2969) (4,78.3627)};
+\addlegendentry{\texttt{transformer-medium-hand}}
+\addplot[color=labAqua, mark=triangle*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labAqua}] coordinates {(0,81.6559) (1,-21.0286) (2,-18.149) (3,40.7904) (4,67.2026)};
+\addlegendentry{\texttt{transformer-medium}}
+\addplot[color=labYellow, mark=diamond*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labYellow}] coordinates {(0,70.302) (1,-23.239) (2,-20.0853) (3,38.6888) (4,65.6336)};
+\addlegendentry{\texttt{transformer-small}}
+\end{axis}
+\end{tikzpicture}%
+}

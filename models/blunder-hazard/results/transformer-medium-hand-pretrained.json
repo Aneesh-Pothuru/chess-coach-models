@@ -1,0 +1,326 @@
+{
+  "model": "blunder-hazard",
+  "run": "transformer-medium-hand-pretrained",
+  "task": {
+    "label": "blunder",
+    "kind": "binary",
+    "unit": "chance the mover loses more than 20 points of win probability",
+    "primary": "pr_auc",
+    "lower_is_better": false,
+    "context": [
+      "mover_elo",
+      "opponent_elo",
+      "log_clock",
+      "log_opponent_clock",
+      "log_base",
+      "increment",
+      "ply",
+      "win_before",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "game-positions-2026-10",
+    "source": "https://database.lichess.org/standard/lichess_db_standard_rated_2026-10.pgn.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 698013,
+    "splits": {
+      "test": 68579,
+      "train": 594940,
+      "valid": 34494
+    },
+    "fingerprint": "340c68ed5c918cd6dfea4f5cb24218c52d8d0a88cb29e50498218aefdb9dfbd0",
+    "built": "2026-11-22T13:43:02Z",
+    "code": "36a0ad94d25b6b17bb33c15f065bfe68fa3faf15"
+  },
+  "config": {
+    "needs": "cuda",
+    "learner": {
+      "kind": "net",
+      "body": "transformer",
+      "features": "hand",
+      "dim": 256,
+      "depth": 8,
+      "heads": 8,
+      "dropout": 0.1,
+      "init": {
+        "model": "position-evaluation",
+        "run": "transformer-medium"
+      }
+    },
+    "train": {
+      "epochs": 12,
+      "batch": 1024,
+      "lr": 0.0006,
+      "weight_decay": 0.05,
+      "warmup": 0.05,
+      "patience": 3
+    },
+    "base": "transformer-medium-hand"
+  },
+  "learner": {
+    "features": 25,
+    "parameters": 6557505,
+    "device": "NVIDIA A100-SXM4-40GB",
+    "best_epoch": 9,
+    "fit_seconds": 519.9,
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.23639,
+        "valid_pr_auc": 0.23139,
+        "rows_a_second": 14009
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.19923,
+        "valid_pr_auc": 0.24366,
+        "rows_a_second": 14015
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.19654,
+        "valid_pr_auc": 0.25133,
+        "rows_a_second": 14018
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.19408,
+        "valid_pr_auc": 0.24735,
+        "rows_a_second": 13994
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.19247,
+        "valid_pr_auc": 0.24618,
+        "rows_a_second": 14035
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.19087,
+        "valid_pr_auc": 0.25417,
+        "rows_a_second": 14003
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.18829,
+        "valid_pr_auc": 0.26122,
+        "rows_a_second": 13954
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.18586,
+        "valid_pr_auc": 0.25908,
+        "rows_a_second": 13967
+      },
+      {
+        "epoch": 9,
+        "train_loss": 0.18305,
+        "valid_pr_auc": 0.26341,
+        "rows_a_second": 13951
+      },
+      {
+        "epoch": 10,
+        "train_loss": 0.18024,
+        "valid_pr_auc": 0.25984,
+        "rows_a_second": 13951
+      },
+      {
+        "epoch": 11,
+        "train_loss": 0.17773,
+        "valid_pr_auc": 0.26022,
+        "rows_a_second": 13953
+      },
+      {
+        "epoch": 12,
+        "train_loss": 0.17635,
+        "valid_pr_auc": 0.26019,
+        "rows_a_second": 13955
+      }
+    ],
+    "started_from": {
+      "model": "position-evaluation",
+      "run": "transformer-medium",
+      "sha256": "e74b67486516834822284bd0ff23bd93b12da4acc5a14d559c8f13436a4ee65e",
+      "tensors_taken": 109,
+      "marks_taken": [
+        "en_passant"
+      ],
+      "new": [
+        "body.context",
+        "head"
+      ]
+    }
+  },
+  "calibration": {
+    "platt_slope": 0.8181734015703119,
+    "platt_intercept": -0.3011375103795169,
+    "fitted_on": "valid"
+  },
+  "machine": {
+    "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "threads": 12,
+    "system": "Linux"
+  },
+  "software": {
+    "python": "3.13.16",
+    "numpy": "2.4.6",
+    "polars": "2.1.0",
+    "lightgbm": "4.6.0",
+    "torch": "2.14.1+cu130"
+  },
+  "code": "36a0ad94d25b6b17bb33c15f065bfe68fa3faf15",
+  "trained": "2026-11-22T15:35:28Z",
+  "seconds": 520.5,
+  "train_rows": 594940,
+  "train_groups": 25573,
+  "valid": {
+    "pr_auc": 0.2634058308614595,
+    "roc_auc": 0.8456801398200177,
+    "brier": 0.05363043662753453,
+    "log_loss": 0.1880749941408716,
+    "calibration_error": 0.0017454469869679738
+  },
+  "test": {
+    "pr_auc": {
+      "value": 0.2775822499214336,
+      "low": 0.26432302459488816,
+      "high": 0.29211565296958786
+    },
+    "roc_auc": {
+      "value": 0.8403263589330329,
+      "low": 0.8348835083984459,
+      "high": 0.8455139950487643
+    },
+    "brier": {
+      "value": 0.055845704554560095,
+      "low": 0.054041401547151514,
+      "high": 0.057714265618106705
+    },
+    "log_loss": {
+      "value": 0.1959078632016828,
+      "low": 0.19048498459531837,
+      "high": 0.20171117102990896
+    },
+    "calibration_error": {
+      "value": 0.0022579927276236665,
+      "low": 0.0017836197436485817,
+      "high": 0.004768583247250253
+    }
+  },
+  "test_rows": 68579,
+  "test_groups": 2944,
+  "test_by_band": {
+    "1100-1400": {
+      "rows": 16674,
+      "pr_auc": 0.28499037990858306,
+      "roc_auc": 0.838216403359265,
+      "brier": 0.062752245832715,
+      "log_loss": 0.2147110053414919,
+      "calibration_error": 0.0056700525138474196
+    },
+    "1400-1700": {
+      "rows": 19614,
+      "pr_auc": 0.23431446860212157,
+      "roc_auc": 0.8244955175163017,
+      "brier": 0.05258243591649466,
+      "log_loss": 0.18849534801571144,
+      "calibration_error": 0.004548054655987465
+    },
+    "1700-2000": {
+      "rows": 14453,
+      "pr_auc": 0.20568757268285612,
+      "roc_auc": 0.817358946884286,
+      "brier": 0.04599142795914927,
+      "log_loss": 0.17127978811061392,
+      "calibration_error": 0.005927462204801862
+    },
+    "2000+": {
+      "rows": 7126,
+      "pr_auc": 0.15902729741518679,
+      "roc_auc": 0.8292546448440414,
+      "brier": 0.03418323124839627,
+      "log_loss": 0.13385210854415192,
+      "calibration_error": 0.007228630616650821
+    },
+    "<1100": {
+      "rows": 10712,
+      "pr_auc": 0.3799073497697123,
+      "roc_auc": 0.8507735882894407,
+      "brier": 0.0787766909444272,
+      "log_loss": 0.2547226837579981,
+      "calibration_error": 0.015456733802010039
+    }
+  },
+  "test_calibration": [
+    {
+      "n": 6858,
+      "predicted": 4.5785747938273866e-05,
+      "observed": 0.0
+    },
+    {
+      "n": 6858,
+      "predicted": 0.00013782007431693545,
+      "observed": 0.00029163021289005544
+    },
+    {
+      "n": 6858,
+      "predicted": 0.0027234461820769824,
+      "observed": 0.0030621172353455816
+    },
+    {
+      "n": 6858,
+      "predicted": 0.009623774228609903,
+      "observed": 0.015018955963837854
+    },
+    {
+      "n": 6858,
+      "predicted": 0.02212311144539245,
+      "observed": 0.02216389617964421
+    },
+    {
+      "n": 6858,
+      "predicted": 0.04055411541755352,
+      "observed": 0.0405365995917177
+    },
+    {
+      "n": 6858,
+      "predicted": 0.06447718817401181,
+      "observed": 0.06780402449693788
+    },
+    {
+      "n": 6858,
+      "predicted": 0.09769844797165368,
+      "observed": 0.1020705745115194
+    },
+    {
+      "n": 6858,
+      "predicted": 0.15037856830111956,
+      "observed": 0.15908428113152523
+    },
+    {
+      "n": 6857,
+      "predicted": 0.27566810574733414,
+      "observed": 0.2754849059355403
+    }
+  ],
+  "weights": [
+    {
+      "file": "model.pt",
+      "bytes": 26260127,
+      "sha256": "aa6347c502fe165b9dfd3ba3ba200b16a696928227e1fa2b030263a4f1f47854"
+    }
+  ],
+  "gain": {
+    "gain": 0.024293592279447884,
+    "low": 0.014731201264159376,
+    "high": 0.03380551538788142,
+    "beyond_noise": true,
+    "reference": "gbm-hand",
+    "reference_trained": "2026-11-22T15:16:55Z",
+    "reference_value": 0.2532886576419857
+  }
+}

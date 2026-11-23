@@ -1,0 +1,7654 @@
+{
+ "model": "puzzle-difficulty-unsolved",
+ "written_by": "lab analyse puzzle-difficulty-unsolved",
+ "written": "2026-11-22T18:43:03Z",
+ "code": "492a6a3ab32718ddf248d206ea5ee7deb61b7b9f",
+ "dataset": {
+  "dataset": "puzzles-v1",
+  "builder": "puzzles",
+  "source": "https://database.lichess.org/lichess_db_puzzle.csv.zst",
+  "licence": "CC0 1.0, database.lichess.org",
+  "recipe": {
+   "filters": {
+    "max_rating_deviation": 100,
+    "min_plays": 100
+   },
+   "sample": 0.25,
+   "split": {
+    "salt": "puzzles-v1",
+    "valid": 0.05,
+    "test": 0.1
+   }
+  },
+  "source_rows_read": 6193530,
+  "marks": [
+   "en_passant",
+   "setup_from",
+   "setup_to",
+   "solver1_from",
+   "solver1_to",
+   "reply1_from",
+   "reply1_to",
+   "solver2_from",
+   "solver2_to",
+   "reply2_from",
+   "reply2_to",
+   "solver3_from",
+   "solver3_to",
+   "later"
+  ],
+  "hand": [
+   "material_count",
+   "material_imbalance",
+   "phase_piece_count",
+   "in_check",
+   "legal_moves",
+   "legal_captures",
+   "legal_checks",
+   "hanging_own",
+   "hanging_opponent",
+   "passed_pawns_own",
+   "passed_pawns_opponent",
+   "attackers_near_own_king",
+   "attackers_near_opponent_king",
+   "solver_moves",
+   "first_piece",
+   "first_capture",
+   "first_captured_value",
+   "first_check",
+   "first_promotion",
+   "first_distance",
+   "first_backward",
+   "first_to_attacked",
+   "first_sacrifice",
+   "line_checks",
+   "line_captures",
+   "line_quiet",
+   "line_promotions",
+   "line_pieces_moved",
+   "line_sacrifices",
+   "line_max_distance",
+   "ends_in_mate",
+   "reply_captures",
+   "setup_capture",
+   "final_material_gain"
+  ],
+  "group": "game_id",
+  "build_seconds": 188.8,
+  "rows": 1127915,
+  "splits": {
+   "test": 112450,
+   "train": 958941,
+   "valid": 56524
+  },
+  "fingerprint": "d14731fa4425fc6efdadb45c94ee53e07f5afe9151992b690b81edc71064cd5d",
+  "built": "2026-11-22T00:20:03Z",
+  "code": "5e4946ac1bff231bb0df94429fdc044c3ea9e6ec"
+ },
+ "task": {
+  "label": "rating",
+  "kind": "regression",
+  "primary": "rmse",
+  "band": "band"
+ },
+ "runs": [
+  "transformer-medium-hand-pretrained",
+  "transformer-medium-pretrained",
+  "conv-small",
+  "transformer-medium-hand",
+  "transformer-medium",
+  "transformer-small",
+  "gbm-hand",
+  "constant"
+ ],
+ "skipped": {},
+ "best": "transformer-medium-hand-pretrained",
+ "reference": "gbm-hand",
+ "challenger": "transformer-medium-hand-pretrained",
+ "test_rows": 112450,
+ "label": {
+  "kind": "regression",
+  "rows": 1127915,
+  "mean": 1462.4,
+  "sd": 503.326,
+  "min": 399.0,
+  "max": 3115.0,
+  "quantiles": {
+   "1": 499.0,
+   "5": 693.0,
+   "25": 1082.0,
+   "50": 1421.0,
+   "75": 1821.0,
+   "95": 2338.0,
+   "99": 2657.86
+  },
+  "by_split": {
+   "train": {
+    "rows": 958941,
+    "mean": 1462.39
+   },
+   "valid": {
+    "rows": 56524,
+    "mean": 1464.49
+   },
+   "test": {
+    "rows": 112450,
+    "mean": 1461.44
+   }
+  },
+  "histogram": {
+   "edges": [
+    400.0,
+    500.0,
+    600.0,
+    700.0,
+    800.0,
+    900.0,
+    1000.0,
+    1100.0,
+    1200.0,
+    1300.0,
+    1400.0,
+    1500.0,
+    1600.0,
+    1700.0,
+    1800.0,
+    1900.0,
+    2000.0,
+    2100.0,
+    2200.0,
+    2300.0,
+    2400.0,
+    2500.0,
+    2600.0,
+    2700.0,
+    2800.0,
+    2900.0,
+    3000.0
+   ],
+   "counts": [
+    10790,
+    19977,
+    26944,
+    32033,
+    51499,
+    86693,
+    67399,
+    103299,
+    69226,
+    78509,
+    76525,
+    75182,
+    73409,
+    60127,
+    52935,
+    56699,
+    48426,
+    38123,
+    32005,
+    25332,
+    16712,
+    10029,
+    7911,
+    6118,
+    1137,
+    298
+   ],
+   "below": 543,
+   "above": 35
+  }
+ },
+ "describe": {
+  "rating": {
+   "mean": 1462.4,
+   "min": 399.0,
+   "max": 3115.0,
+   "quantiles": {
+    "1": 499.0,
+    "5": 693.0,
+    "25": 1082.0,
+    "50": 1421.0,
+    "75": 1821.0,
+    "95": 2338.0,
+    "99": 2657.86
+   }
+  },
+  "rating_deviation": {
+   "mean": 79.6942,
+   "min": 63.0,
+   "max": 100.0,
+   "quantiles": {
+    "1": 74.0,
+    "5": 74.0,
+    "25": 76.0,
+    "50": 77.0,
+    "75": 81.0,
+    "95": 94.0,
+    "99": 99.0
+   }
+  },
+  "plays": {
+   "mean": 2347.19,
+   "min": 100.0,
+   "max": 237864.0,
+   "quantiles": {
+    "1": 104.0,
+    "5": 123.0,
+    "25": 265.0,
+    "50": 675.0,
+    "75": 2001.0,
+    "95": 11151.0,
+    "99": 24807.0
+   }
+  },
+  "solver_moves": {
+   "mean": 2.32305,
+   "min": 1.0,
+   "max": 13.0,
+   "quantiles": {
+    "1": 1.0,
+    "5": 1.0,
+    "25": 2.0,
+    "50": 2.0,
+    "75": 3.0,
+    "95": 4.0,
+    "99": 5.0
+   }
+  },
+  "legal_moves": {
+   "mean": 30.7323,
+   "min": 2.0,
+   "max": 70.0,
+   "quantiles": {
+    "1": 3.0,
+    "5": 6.0,
+    "25": 24.0,
+    "50": 33.0,
+    "75": 40.0,
+    "95": 47.0,
+    "99": 52.0
+   }
+  },
+  "phase_piece_count": {
+   "mean": 6.76343,
+   "min": 0.0,
+   "max": 14.0,
+   "quantiles": {
+    "1": 0.0,
+    "5": 1.0,
+    "25": 4.0,
+    "50": 7.0,
+    "75": 9.0,
+    "95": 12.0,
+    "99": 14.0
+   }
+  }
+ },
+ "reliability": {
+  "transformer-medium-hand-pretrained": [
+   {
+    "n": 5623,
+    "predicted": 622.096,
+    "observed": 669.222,
+    "observed_low": 457.0,
+    "observed_high": 912.0
+   },
+   {
+    "n": 5623,
+    "predicted": 830.869,
+    "observed": 891.765,
+    "observed_low": 642.0,
+    "observed_high": 1144.0
+   },
+   {
+    "n": 5623,
+    "predicted": 956.867,
+    "observed": 1021.24,
+    "observed_low": 752.0,
+    "observed_high": 1330.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1062.87,
+    "observed": 1126.53,
+    "observed_low": 819.0,
+    "observed_high": 1529.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1155.94,
+    "observed": 1201.87,
+    "observed_low": 870.2,
+    "observed_high": 1643.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1238.6,
+    "observed": 1290.85,
+    "observed_low": 915.0,
+    "observed_high": 1813.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1311.75,
+    "observed": 1355.45,
+    "observed_low": 949.0,
+    "observed_high": 1901.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1376.67,
+    "observed": 1412.48,
+    "observed_low": 974.0,
+    "observed_high": 1964.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1435.22,
+    "observed": 1455.75,
+    "observed_low": 991.0,
+    "observed_high": 2016.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1487.65,
+    "observed": 1505.48,
+    "observed_low": 1044.0,
+    "observed_high": 2052.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1536.28,
+    "observed": 1534.44,
+    "observed_low": 1071.1,
+    "observed_high": 2077.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1582.12,
+    "observed": 1590.41,
+    "observed_low": 1110.0,
+    "observed_high": 2147.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1627.39,
+    "observed": 1612.02,
+    "observed_low": 1125.1,
+    "observed_high": 2172.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1672.37,
+    "observed": 1643.12,
+    "observed_low": 1139.0,
+    "observed_high": 2189.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1717.57,
+    "observed": 1685.02,
+    "observed_low": 1162.1,
+    "observed_high": 2222.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1765.04,
+    "observed": 1736.61,
+    "observed_low": 1195.0,
+    "observed_high": 2286.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1815.71,
+    "observed": 1777.5,
+    "observed_low": 1237.0,
+    "observed_high": 2306.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1875.18,
+    "observed": 1820.73,
+    "observed_low": 1273.0,
+    "observed_high": 2361.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1951.43,
+    "observed": 1889.3,
+    "observed_low": 1337.0,
+    "observed_high": 2415.8
+   },
+   {
+    "n": 5622,
+    "predicted": 2098.12,
+    "observed": 2009.42,
+    "observed_low": 1447.0,
+    "observed_high": 2532.9
+   }
+  ],
+  "transformer-medium-pretrained": [
+   {
+    "n": 5623,
+    "predicted": 628.895,
+    "observed": 680.38,
+    "observed_low": 459.0,
+    "observed_high": 932.0
+   },
+   {
+    "n": 5623,
+    "predicted": 839.096,
+    "observed": 896.836,
+    "observed_low": 634.2,
+    "observed_high": 1155.8
+   },
+   {
+    "n": 5623,
+    "predicted": 971.126,
+    "observed": 1032.57,
+    "observed_low": 745.0,
+    "observed_high": 1364.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1081.28,
+    "observed": 1123.54,
+    "observed_low": 809.0,
+    "observed_high": 1527.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1174.1,
+    "observed": 1219.58,
+    "observed_low": 869.0,
+    "observed_high": 1693.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1255.38,
+    "observed": 1293.75,
+    "observed_low": 905.2,
+    "observed_high": 1837.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1327.37,
+    "observed": 1352.67,
+    "observed_low": 937.0,
+    "observed_high": 1914.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1390.82,
+    "observed": 1415.03,
+    "observed_low": 973.2,
+    "observed_high": 1968.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1447.01,
+    "observed": 1457.22,
+    "observed_low": 998.0,
+    "observed_high": 2001.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1497.4,
+    "observed": 1506.01,
+    "observed_low": 1028.0,
+    "observed_high": 2077.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1543.7,
+    "observed": 1534.29,
+    "observed_low": 1056.1,
+    "observed_high": 2092.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1587.44,
+    "observed": 1579.67,
+    "observed_low": 1095.0,
+    "observed_high": 2147.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1630.18,
+    "observed": 1608.85,
+    "observed_low": 1118.1,
+    "observed_high": 2151.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1673.78,
+    "observed": 1649.7,
+    "observed_low": 1144.0,
+    "observed_high": 2203.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1719.87,
+    "observed": 1686.04,
+    "observed_low": 1162.1,
+    "observed_high": 2236.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1767.45,
+    "observed": 1727.2,
+    "observed_low": 1182.0,
+    "observed_high": 2269.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1818.19,
+    "observed": 1765.34,
+    "observed_low": 1221.0,
+    "observed_high": 2302.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1877.25,
+    "observed": 1813.84,
+    "observed_low": 1259.0,
+    "observed_high": 2348.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1952.77,
+    "observed": 1879.44,
+    "observed_low": 1319.1,
+    "observed_high": 2403.9
+   },
+   {
+    "n": 5622,
+    "predicted": 2094.8,
+    "observed": 2007.27,
+    "observed_low": 1448.0,
+    "observed_high": 2527.0
+   }
+  ],
+  "conv-small": [
+   {
+    "n": 5623,
+    "predicted": 708.253,
+    "observed": 737.404,
+    "observed_low": 468.0,
+    "observed_high": 1044.0
+   },
+   {
+    "n": 5623,
+    "predicted": 926.489,
+    "observed": 967.397,
+    "observed_low": 629.2,
+    "observed_high": 1346.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1059.04,
+    "observed": 1101.41,
+    "observed_low": 719.0,
+    "observed_high": 1588.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1159.28,
+    "observed": 1199.03,
+    "observed_low": 800.2,
+    "observed_high": 1752.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1237.28,
+    "observed": 1270.68,
+    "observed_low": 846.0,
+    "observed_high": 1854.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1301.45,
+    "observed": 1343.44,
+    "observed_low": 890.0,
+    "observed_high": 1957.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1356.58,
+    "observed": 1387.18,
+    "observed_low": 917.0,
+    "observed_high": 1980.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1406.39,
+    "observed": 1423.57,
+    "observed_low": 928.0,
+    "observed_high": 2045.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1451.3,
+    "observed": 1462.91,
+    "observed_low": 963.0,
+    "observed_high": 2067.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1492.95,
+    "observed": 1497.55,
+    "observed_low": 973.2,
+    "observed_high": 2102.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1531.06,
+    "observed": 1524.15,
+    "observed_low": 988.0,
+    "observed_high": 2110.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1567.19,
+    "observed": 1565.47,
+    "observed_low": 1038.0,
+    "observed_high": 2163.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1602.72,
+    "observed": 1578.72,
+    "observed_low": 1044.0,
+    "observed_high": 2163.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1638.2,
+    "observed": 1620.96,
+    "observed_low": 1087.1,
+    "observed_high": 2207.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1674.08,
+    "observed": 1647.9,
+    "observed_low": 1099.0,
+    "observed_high": 2238.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1711.54,
+    "observed": 1676.5,
+    "observed_low": 1111.0,
+    "observed_high": 2265.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1752.46,
+    "observed": 1713.57,
+    "observed_low": 1154.0,
+    "observed_high": 2297.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1800.45,
+    "observed": 1755.39,
+    "observed_low": 1175.1,
+    "observed_high": 2325.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1863.03,
+    "observed": 1817.59,
+    "observed_low": 1215.0,
+    "observed_high": 2379.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1990.56,
+    "observed": 1938.32,
+    "observed_low": 1344.1,
+    "observed_high": 2479.0
+   }
+  ],
+  "transformer-medium-hand": [
+   {
+    "n": 5623,
+    "predicted": 702.788,
+    "observed": 753.883,
+    "observed_low": 470.0,
+    "observed_high": 1085.8
+   },
+   {
+    "n": 5623,
+    "predicted": 955.108,
+    "observed": 997.021,
+    "observed_low": 651.0,
+    "observed_high": 1428.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1088.22,
+    "observed": 1125.45,
+    "observed_low": 731.2,
+    "observed_high": 1651.6
+   },
+   {
+    "n": 5623,
+    "predicted": 1179.14,
+    "observed": 1213.46,
+    "observed_low": 800.0,
+    "observed_high": 1764.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1250.02,
+    "observed": 1274.49,
+    "observed_low": 832.0,
+    "observed_high": 1856.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1307.73,
+    "observed": 1323.63,
+    "observed_low": 863.0,
+    "observed_high": 1936.2
+   },
+   {
+    "n": 5623,
+    "predicted": 1357.72,
+    "observed": 1378.81,
+    "observed_low": 907.2,
+    "observed_high": 1989.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1401.56,
+    "observed": 1414.77,
+    "observed_low": 922.2,
+    "observed_high": 2042.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1441.21,
+    "observed": 1464.44,
+    "observed_low": 957.0,
+    "observed_high": 2077.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1477.99,
+    "observed": 1483.69,
+    "observed_low": 964.0,
+    "observed_high": 2083.8
+   },
+   {
+    "n": 5622,
+    "predicted": 1514.09,
+    "observed": 1509.56,
+    "observed_low": 982.1,
+    "observed_high": 2117.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1549.55,
+    "observed": 1558.67,
+    "observed_low": 1016.0,
+    "observed_high": 2159.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1583.49,
+    "observed": 1578.43,
+    "observed_low": 1043.0,
+    "observed_high": 2176.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1617.45,
+    "observed": 1608.52,
+    "observed_low": 1064.1,
+    "observed_high": 2199.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1652.56,
+    "observed": 1645.96,
+    "observed_low": 1093.0,
+    "observed_high": 2228.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1689.57,
+    "observed": 1685.23,
+    "observed_low": 1122.1,
+    "observed_high": 2269.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1730.46,
+    "observed": 1710.92,
+    "observed_low": 1138.0,
+    "observed_high": 2299.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1777.49,
+    "observed": 1753.88,
+    "observed_low": 1170.0,
+    "observed_high": 2322.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1839.49,
+    "observed": 1810.4,
+    "observed_low": 1216.0,
+    "observed_high": 2380.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1975.23,
+    "observed": 1937.91,
+    "observed_low": 1324.1,
+    "observed_high": 2489.0
+   }
+  ],
+  "transformer-medium": [
+   {
+    "n": 5623,
+    "predicted": 736.126,
+    "observed": 787.675,
+    "observed_low": 477.0,
+    "observed_high": 1157.0
+   },
+   {
+    "n": 5623,
+    "predicted": 986.922,
+    "observed": 1031.91,
+    "observed_low": 637.2,
+    "observed_high": 1520.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1115.2,
+    "observed": 1144.92,
+    "observed_low": 718.0,
+    "observed_high": 1701.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1204.17,
+    "observed": 1225.7,
+    "observed_low": 787.2,
+    "observed_high": 1807.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1271.57,
+    "observed": 1292.31,
+    "observed_low": 820.2,
+    "observed_high": 1903.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1325.96,
+    "observed": 1332.01,
+    "observed_low": 861.2,
+    "observed_high": 1946.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1371.92,
+    "observed": 1379.08,
+    "observed_low": 890.4,
+    "observed_high": 2003.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1413.12,
+    "observed": 1425.49,
+    "observed_low": 909.0,
+    "observed_high": 2043.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1450.14,
+    "observed": 1445.74,
+    "observed_low": 931.0,
+    "observed_high": 2073.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1484.12,
+    "observed": 1483.41,
+    "observed_low": 956.0,
+    "observed_high": 2097.8
+   },
+   {
+    "n": 5622,
+    "predicted": 1516.69,
+    "observed": 1510.94,
+    "observed_low": 970.0,
+    "observed_high": 2136.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1547.48,
+    "observed": 1542.78,
+    "observed_low": 989.0,
+    "observed_high": 2155.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1578.45,
+    "observed": 1581.99,
+    "observed_low": 1028.0,
+    "observed_high": 2176.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1609.82,
+    "observed": 1592.47,
+    "observed_low": 1035.0,
+    "observed_high": 2188.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1641.61,
+    "observed": 1634.12,
+    "observed_low": 1073.0,
+    "observed_high": 2236.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1675.2,
+    "observed": 1658.56,
+    "observed_low": 1086.2,
+    "observed_high": 2256.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1712.77,
+    "observed": 1703.57,
+    "observed_low": 1128.0,
+    "observed_high": 2307.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1756.85,
+    "observed": 1738.13,
+    "observed_low": 1157.0,
+    "observed_high": 2324.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1816.95,
+    "observed": 1792.05,
+    "observed_low": 1187.0,
+    "observed_high": 2363.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1958.63,
+    "observed": 1926.26,
+    "observed_low": 1289.0,
+    "observed_high": 2488.0
+   }
+  ],
+  "transformer-small": [
+   {
+    "n": 5623,
+    "predicted": 740.523,
+    "observed": 799.761,
+    "observed_low": 476.0,
+    "observed_high": 1184.6
+   },
+   {
+    "n": 5623,
+    "predicted": 998.056,
+    "observed": 1048.67,
+    "observed_low": 643.4,
+    "observed_high": 1566.6
+   },
+   {
+    "n": 5623,
+    "predicted": 1124.46,
+    "observed": 1157.76,
+    "observed_low": 714.0,
+    "observed_high": 1725.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1210.82,
+    "observed": 1226.96,
+    "observed_low": 786.0,
+    "observed_high": 1796.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1274.82,
+    "observed": 1286.32,
+    "observed_low": 824.0,
+    "observed_high": 1885.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1327.72,
+    "observed": 1339.57,
+    "observed_low": 863.2,
+    "observed_high": 1968.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1373.36,
+    "observed": 1385.69,
+    "observed_low": 889.0,
+    "observed_high": 1994.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1413.42,
+    "observed": 1415.46,
+    "observed_low": 909.0,
+    "observed_high": 2031.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1450.01,
+    "observed": 1447.1,
+    "observed_low": 931.0,
+    "observed_high": 2073.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1484.27,
+    "observed": 1480.43,
+    "observed_low": 947.0,
+    "observed_high": 2103.8
+   },
+   {
+    "n": 5622,
+    "predicted": 1516.68,
+    "observed": 1518.3,
+    "observed_low": 972.0,
+    "observed_high": 2135.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1547.3,
+    "observed": 1537.94,
+    "observed_low": 983.0,
+    "observed_high": 2148.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1578.06,
+    "observed": 1575.0,
+    "observed_low": 1012.1,
+    "observed_high": 2190.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1608.95,
+    "observed": 1599.3,
+    "observed_low": 1026.0,
+    "observed_high": 2205.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1640.73,
+    "observed": 1626.26,
+    "observed_low": 1058.0,
+    "observed_high": 2228.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1674.39,
+    "observed": 1656.94,
+    "observed_low": 1078.2,
+    "observed_high": 2262.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1712.48,
+    "observed": 1697.03,
+    "observed_low": 1123.0,
+    "observed_high": 2292.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1756.95,
+    "observed": 1736.01,
+    "observed_low": 1134.0,
+    "observed_high": 2331.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1816.65,
+    "observed": 1786.27,
+    "observed_low": 1176.1,
+    "observed_high": 2363.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1956.23,
+    "observed": 1908.32,
+    "observed_low": 1259.0,
+    "observed_high": 2475.9
+   }
+  ],
+  "gbm-hand": [
+   {
+    "n": 5623,
+    "predicted": 965.91,
+    "observed": 948.359,
+    "observed_low": 505.0,
+    "observed_high": 1512.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1148.66,
+    "observed": 1146.26,
+    "observed_low": 643.0,
+    "observed_high": 1793.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1225.01,
+    "observed": 1229.37,
+    "observed_low": 701.0,
+    "observed_high": 1903.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1278.14,
+    "observed": 1278.65,
+    "observed_low": 758.0,
+    "observed_high": 1951.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1320.31,
+    "observed": 1330.9,
+    "observed_low": 808.0,
+    "observed_high": 2005.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1356.72,
+    "observed": 1356.07,
+    "observed_low": 819.0,
+    "observed_high": 2045.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1388.74,
+    "observed": 1385.67,
+    "observed_low": 854.0,
+    "observed_high": 2055.4
+   },
+   {
+    "n": 5623,
+    "predicted": 1417.15,
+    "observed": 1418.95,
+    "observed_low": 876.0,
+    "observed_high": 2072.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1443.46,
+    "observed": 1441.66,
+    "observed_low": 895.2,
+    "observed_high": 2105.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1468.29,
+    "observed": 1467.73,
+    "observed_low": 912.0,
+    "observed_high": 2121.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1492.45,
+    "observed": 1484.7,
+    "observed_low": 920.0,
+    "observed_high": 2147.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1515.55,
+    "observed": 1528.29,
+    "observed_low": 956.0,
+    "observed_high": 2182.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1537.92,
+    "observed": 1531.4,
+    "observed_low": 958.1,
+    "observed_high": 2169.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1560.42,
+    "observed": 1560.46,
+    "observed_low": 977.1,
+    "observed_high": 2194.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1584.92,
+    "observed": 1589.14,
+    "observed_low": 997.0,
+    "observed_high": 2217.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1610.99,
+    "observed": 1626.44,
+    "observed_low": 1042.0,
+    "observed_high": 2258.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1641.0,
+    "observed": 1628.71,
+    "observed_low": 1056.1,
+    "observed_high": 2236.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1678.71,
+    "observed": 1681.56,
+    "observed_low": 1094.0,
+    "observed_high": 2287.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1732.22,
+    "observed": 1728.4,
+    "observed_low": 1123.1,
+    "observed_high": 2328.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1875.39,
+    "observed": 1866.32,
+    "observed_low": 1215.0,
+    "observed_high": 2446.0
+   }
+  ],
+  "constant": [
+   {
+    "n": 5623,
+    "predicted": 1462.39,
+    "observed": 1466.33,
+    "observed_low": 843.0,
+    "observed_high": 2178.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1462.39,
+    "observed": 1473.27,
+    "observed_low": 854.2,
+    "observed_high": 2173.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1462.39,
+    "observed": 1470.99,
+    "observed_low": 841.2,
+    "observed_high": 2178.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1462.39,
+    "observed": 1455.04,
+    "observed_low": 838.0,
+    "observed_high": 2164.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1462.39,
+    "observed": 1441.46,
+    "observed_low": 839.2,
+    "observed_high": 2126.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1462.39,
+    "observed": 1468.51,
+    "observed_low": 862.0,
+    "observed_high": 2167.8
+   },
+   {
+    "n": 5623,
+    "predicted": 1462.39,
+    "observed": 1445.31,
+    "observed_low": 842.0,
+    "observed_high": 2146.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1462.39,
+    "observed": 1463.68,
+    "observed_low": 847.2,
+    "observed_high": 2161.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1462.39,
+    "observed": 1470.37,
+    "observed_low": 851.2,
+    "observed_high": 2184.0
+   },
+   {
+    "n": 5623,
+    "predicted": 1462.39,
+    "observed": 1465.13,
+    "observed_low": 847.2,
+    "observed_high": 2175.8
+   },
+   {
+    "n": 5622,
+    "predicted": 1462.39,
+    "observed": 1455.38,
+    "observed_low": 832.0,
+    "observed_high": 2150.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1462.39,
+    "observed": 1470.81,
+    "observed_low": 851.0,
+    "observed_high": 2185.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1462.39,
+    "observed": 1456.83,
+    "observed_low": 833.0,
+    "observed_high": 2169.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1462.39,
+    "observed": 1455.59,
+    "observed_low": 838.1,
+    "observed_high": 2158.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1462.39,
+    "observed": 1470.31,
+    "observed_low": 852.1,
+    "observed_high": 2181.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1462.39,
+    "observed": 1466.29,
+    "observed_low": 851.0,
+    "observed_high": 2165.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1462.39,
+    "observed": 1462.56,
+    "observed_low": 848.0,
+    "observed_high": 2166.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1462.39,
+    "observed": 1457.68,
+    "observed_low": 846.0,
+    "observed_high": 2159.9
+   },
+   {
+    "n": 5622,
+    "predicted": 1462.39,
+    "observed": 1456.75,
+    "observed_low": 838.0,
+    "observed_high": 2165.0
+   },
+   {
+    "n": 5622,
+    "predicted": 1462.39,
+    "observed": 1456.44,
+    "observed_low": 844.1,
+    "observed_high": 2179.0
+   }
+  ]
+ },
+ "against_reference": {
+  "transformer-medium-hand-pretrained": {
+   "correlation": 0.584444,
+   "closer_share": 0.617617,
+   "tied_share": 0.0
+  },
+  "transformer-medium-pretrained": {
+   "correlation": 0.561261,
+   "closer_share": 0.608955,
+   "tied_share": 0.0
+  },
+  "conv-small": {
+   "correlation": 0.566698,
+   "closer_share": 0.567079,
+   "tied_share": 0.0
+  },
+  "transformer-medium-hand": {
+   "correlation": 0.706079,
+   "closer_share": 0.574149,
+   "tied_share": 0.0
+  },
+  "transformer-medium": {
+   "correlation": 0.613796,
+   "closer_share": 0.552414,
+   "tied_share": 0.0
+  },
+  "transformer-small": {
+   "correlation": 0.624073,
+   "closer_share": 0.545585,
+   "tied_share": 0.0
+  },
+  "constant": {
+   "correlation": null,
+   "closer_share": 0.415411,
+   "tied_share": 0.0
+  }
+ },
+ "slices": [
+  {
+   "key": "band",
+   "column": "band",
+   "title": "The puzzle's rating",
+   "groups": [
+    {
+     "group": "<1000",
+     "rows_all": 228479,
+     "label_mean_all": 806.521,
+     "rows": 22751,
+     "label_mean": 805.855,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1002.19,
+       "bias": 196.333,
+       "rmse": 335.504
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1020.94,
+       "bias": 215.086,
+       "rmse": 353.281
+      },
+      "conv-small": {
+       "mean": 1132.43,
+       "bias": 326.58,
+       "rmse": 434.753
+      },
+      "transformer-medium-hand": {
+       "mean": 1147.58,
+       "bias": 341.723,
+       "rmse": 445.399
+      },
+      "transformer-medium": {
+       "mean": 1187.26,
+       "bias": 381.407,
+       "rmse": 475.255
+      },
+      "transformer-small": {
+       "mean": 1200.43,
+       "bias": 394.578,
+       "rmse": 486.609
+      },
+      "gbm-hand": {
+       "mean": 1313.71,
+       "bias": 507.854,
+       "rmse": 556.911
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 656.534,
+       "rmse": 674.971
+      }
+     },
+     "gain": {
+      "gain": 221.407,
+      "low": 217.076,
+      "high": 226.031,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "1000-1399",
+     "rows_all": 318433,
+     "label_mean_all": 1200.9,
+     "rows": 31846,
+     "label_mean": 1200.62,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1397.83,
+       "bias": 197.21,
+       "rmse": 338.759
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1408.63,
+       "bias": 208.012,
+       "rmse": 344.745
+      },
+      "conv-small": {
+       "mean": 1427.7,
+       "bias": 227.082,
+       "rmse": 343.381
+      },
+      "transformer-medium-hand": {
+       "mean": 1424.01,
+       "bias": 223.387,
+       "rmse": 333.09
+      },
+      "transformer-medium": {
+       "mean": 1431.17,
+       "bias": 230.548,
+       "rmse": 334.952
+      },
+      "transformer-small": {
+       "mean": 1432.45,
+       "bias": 231.832,
+       "rmse": 337.163
+      },
+      "gbm-hand": {
+       "mean": 1441.2,
+       "bias": 240.58,
+       "rmse": 313.924
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 261.77,
+       "rmse": 284.359
+      }
+     },
+     "gain": {
+      "gain": -24.8355,
+      "low": -27.1755,
+      "high": -21.9644,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "1400-1799",
+     "rows_all": 285243,
+     "label_mean_all": 1589.99,
+     "rows": 28501,
+     "label_mean": 1589.98,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1599.63,
+       "bias": 9.65845,
+       "rmse": 255.783
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1603.68,
+       "bias": 13.7025,
+       "rmse": 254.851
+      },
+      "conv-small": {
+       "mean": 1563.24,
+       "bias": -26.7357,
+       "rmse": 242.018
+      },
+      "transformer-medium-hand": {
+       "mean": 1546.43,
+       "bias": -43.5441,
+       "rmse": 238.395
+      },
+      "transformer-medium": {
+       "mean": 1536.62,
+       "bias": -53.3582,
+       "rmse": 235.359
+      },
+      "transformer-small": {
+       "mean": 1533.49,
+       "bias": -56.4858,
+       "rmse": 237.295
+      },
+      "gbm-hand": {
+       "mean": 1504.68,
+       "bias": -85.2946,
+       "rmse": 217.21
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -127.587,
+       "rmse": 170.535
+      }
+     },
+     "gain": {
+      "gain": -38.5734,
+      "low": -41.4297,
+      "high": -36.3965,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "1800-2199",
+     "rows_all": 196183,
+     "label_mean_all": 1985.3,
+     "rows": 19518,
+     "label_mean": 1987.16,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1708.88,
+       "bias": -278.281,
+       "rmse": 382.859
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1709.26,
+       "bias": -277.9,
+       "rmse": 381.657
+      },
+      "conv-small": {
+       "mean": 1637.97,
+       "bias": -349.187,
+       "rmse": 425.116
+      },
+      "transformer-medium-hand": {
+       "mean": 1618.82,
+       "bias": -368.34,
+       "rmse": 439.831
+      },
+      "transformer-medium": {
+       "mean": 1606.04,
+       "bias": -381.118,
+       "rmse": 446.337
+      },
+      "transformer-small": {
+       "mean": 1603.44,
+       "bias": -383.721,
+       "rmse": 448.439
+      },
+      "gbm-hand": {
+       "mean": 1546.96,
+       "bias": -440.191,
+       "rmse": 487.128
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -524.768,
+       "rmse": 537.219
+      }
+     },
+     "gain": {
+      "gain": 104.269,
+      "low": 100.956,
+      "high": 108.031,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "2200+",
+     "rows_all": 99577,
+     "label_mean_all": 2407.85,
+     "rows": 9834,
+     "label_mean": 2406.8,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1775.63,
+       "bias": -631.172,
+       "rmse": 696.486
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1775.24,
+       "bias": -631.565,
+       "rmse": 695.987
+      },
+      "conv-small": {
+       "mean": 1687.06,
+       "bias": -719.742,
+       "rmse": 769.213
+      },
+      "transformer-medium-hand": {
+       "mean": 1671.01,
+       "bias": -735.792,
+       "rmse": 782.987
+      },
+      "transformer-medium": {
+       "mean": 1657.19,
+       "bias": -749.609,
+       "rmse": 794.148
+      },
+      "transformer-small": {
+       "mean": 1655.19,
+       "bias": -751.612,
+       "rmse": 795.717
+      },
+      "gbm-hand": {
+       "mean": 1581.06,
+       "bias": -825.738,
+       "rmse": 861.35
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -944.411,
+       "rmse": 958.522
+      }
+     },
+     "gain": {
+      "gain": 164.864,
+      "low": 159.486,
+      "high": 169.925,
+      "beyond_noise": true
+     }
+    }
+   ]
+  },
+  {
+   "key": "moves",
+   "column": "solver_moves",
+   "title": "Moves the solver has to find",
+   "groups": [
+    {
+     "group": "1",
+     "rows_all": 149816,
+     "label_mean_all": 961.835,
+     "rows": 14854,
+     "label_mean": 961.241,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1038.7,
+       "bias": 77.4626,
+       "rmse": 273.151
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1049.54,
+       "bias": 88.2959,
+       "rmse": 288.633
+      },
+      "conv-small": {
+       "mean": 1149.91,
+       "bias": 188.673,
+       "rmse": 360.192
+      },
+      "transformer-medium-hand": {
+       "mean": 1179.23,
+       "bias": 217.988,
+       "rmse": 379.049
+      },
+      "transformer-medium": {
+       "mean": 1211.71,
+       "bias": 250.474,
+       "rmse": 409.585
+      },
+      "transformer-small": {
+       "mean": 1221.67,
+       "bias": 260.434,
+       "rmse": 419.078
+      },
+      "gbm-hand": {
+       "mean": 1354.02,
+       "bias": 392.779,
+       "rmse": 498.874
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 501.148,
+       "rmse": 590.747
+      }
+     },
+     "gain": {
+      "gain": 225.722,
+      "low": 221.398,
+      "high": 230.814,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "2",
+     "rows_all": 581031,
+     "label_mean_all": 1395.99,
+     "rows": 57896,
+     "label_mean": 1394.75,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1459.14,
+       "bias": 64.3916,
+       "rmse": 352.345
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1468.42,
+       "bias": 73.6765,
+       "rmse": 358.19
+      },
+      "conv-small": {
+       "mean": 1468.1,
+       "bias": 73.356,
+       "rmse": 384.994
+      },
+      "transformer-medium-hand": {
+       "mean": 1458.93,
+       "bias": 64.1856,
+       "rmse": 384.695
+      },
+      "transformer-medium": {
+       "mean": 1460.46,
+       "bias": 65.7091,
+       "rmse": 391.61
+      },
+      "transformer-small": {
+       "mean": 1462.43,
+       "bias": 67.6813,
+       "rmse": 396.274
+      },
+      "gbm-hand": {
+       "mean": 1458.78,
+       "bias": 64.037,
+       "rmse": 408.818
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 67.642,
+       "rmse": 447.772
+      }
+     },
+     "gain": {
+      "gain": 56.4723,
+      "low": 54.6605,
+      "high": 58.5667,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "3",
+     "rows_all": 311636,
+     "label_mean_all": 1690.18,
+     "rows": 31251,
+     "label_mean": 1687.82,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1593.23,
+       "bias": -94.5942,
+       "rmse": 405.279
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1597.78,
+       "bias": -90.0403,
+       "rmse": 405.997
+      },
+      "conv-small": {
+       "mean": 1557.78,
+       "bias": -130.044,
+       "rmse": 434.225
+      },
+      "transformer-medium-hand": {
+       "mean": 1539.17,
+       "bias": -148.654,
+       "rmse": 439.151
+      },
+      "transformer-medium": {
+       "mean": 1536.67,
+       "bias": -151.147,
+       "rmse": 445.257
+      },
+      "transformer-small": {
+       "mean": 1534.67,
+       "bias": -153.152,
+       "rmse": 446.734
+      },
+      "gbm-hand": {
+       "mean": 1498.97,
+       "bias": -188.854,
+       "rmse": 468.438
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -225.431,
+       "rmse": 500.022
+      }
+     },
+     "gain": {
+      "gain": 63.1587,
+      "low": 60.3309,
+      "high": 65.962,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "4",
+     "rows_all": 63461,
+     "label_mean_all": 1914.67,
+     "rows": 6303,
+     "label_mean": 1913.64,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1653.96,
+       "bias": -259.678,
+       "rmse": 484.375
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1658.49,
+       "bias": -255.146,
+       "rmse": 483.736
+      },
+      "conv-small": {
+       "mean": 1600.59,
+       "bias": -313.042,
+       "rmse": 530.564
+      },
+      "transformer-medium-hand": {
+       "mean": 1587.34,
+       "bias": -326.298,
+       "rmse": 536.9
+      },
+      "transformer-medium": {
+       "mean": 1582.87,
+       "bias": -330.768,
+       "rmse": 545.426
+      },
+      "transformer-small": {
+       "mean": 1579.76,
+       "bias": -333.872,
+       "rmse": 545.654
+      },
+      "gbm-hand": {
+       "mean": 1529.56,
+       "bias": -384.075,
+       "rmse": 585.402
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -451.247,
+       "rmse": 631.482
+      }
+     },
+     "gain": {
+      "gain": 101.027,
+      "low": 94.5121,
+      "high": 107.837,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "5+",
+     "rows_all": 21971,
+     "label_mean_all": 2094.69,
+     "rows": 2146,
+     "label_mean": 2098.03,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1677.83,
+       "bias": -420.202,
+       "rmse": 612.011
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1687.21,
+       "bias": -410.829,
+       "rmse": 606.891
+      },
+      "conv-small": {
+       "mean": 1629.19,
+       "bias": -468.846,
+       "rmse": 645.92
+      },
+      "transformer-medium-hand": {
+       "mean": 1618.35,
+       "bias": -479.682,
+       "rmse": 656.567
+      },
+      "transformer-medium": {
+       "mean": 1618.93,
+       "bias": -479.103,
+       "rmse": 661.574
+      },
+      "transformer-small": {
+       "mean": 1619.39,
+       "bias": -478.649,
+       "rmse": 665.354
+      },
+      "gbm-hand": {
+       "mean": 1563.84,
+       "bias": -534.2,
+       "rmse": 708.167
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -635.646,
+       "rmse": 783.772
+      }
+     },
+     "gain": {
+      "gain": 96.1562,
+      "low": 84.0314,
+      "high": 106.238,
+      "beyond_noise": true
+     }
+    }
+   ]
+  },
+  {
+   "key": "themes",
+   "column": "themes",
+   "title": "Theme",
+   "groups": [
+    {
+     "group": "short",
+     "rows_all": 576451,
+     "label_mean_all": 1395.61,
+     "rows": 57439,
+     "label_mean": 1394.49,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1458.72,
+       "bias": 64.2278,
+       "rmse": 352.366
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1468.03,
+       "bias": 73.5401,
+       "rmse": 358.283
+      },
+      "conv-small": {
+       "mean": 1467.75,
+       "bias": 73.2618,
+       "rmse": 385.109
+      },
+      "transformer-medium-hand": {
+       "mean": 1458.59,
+       "bias": 64.102,
+       "rmse": 384.78
+      },
+      "transformer-medium": {
+       "mean": 1460.2,
+       "bias": 65.7055,
+       "rmse": 391.767
+      },
+      "transformer-small": {
+       "mean": 1462.19,
+       "bias": 67.6961,
+       "rmse": 396.365
+      },
+      "gbm-hand": {
+       "mean": 1458.6,
+       "bias": 64.1097,
+       "rmse": 408.896
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 67.8957,
+       "rmse": 447.981
+      }
+     },
+     "gain": {
+      "gain": 56.5298,
+      "low": 54.3708,
+      "high": 58.8756,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "endgame",
+     "rows_all": 555027,
+     "label_mean_all": 1444.1,
+     "rows": 55361,
+     "label_mean": 1443.42,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1440.17,
+       "bias": -3.24671,
+       "rmse": 388.704
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1446.32,
+       "bias": 2.9007,
+       "rmse": 392.668
+      },
+      "conv-small": {
+       "mean": 1441.12,
+       "bias": -2.30052,
+       "rmse": 424.832
+      },
+      "transformer-medium-hand": {
+       "mean": 1436.71,
+       "bias": -6.71073,
+       "rmse": 424.576
+      },
+      "transformer-medium": {
+       "mean": 1442.46,
+       "bias": -0.959328,
+       "rmse": 435.076
+      },
+      "transformer-small": {
+       "mean": 1448.74,
+       "bias": 5.32307,
+       "rmse": 439.676
+      },
+      "gbm-hand": {
+       "mean": 1443.04,
+       "bias": -0.372998,
+       "rmse": 457.648
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 18.9725,
+       "rmse": 514.515
+      }
+     },
+     "gain": {
+      "gain": 68.9432,
+      "low": 66.704,
+      "high": 70.794,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "middlegame",
+     "rows_all": 515322,
+     "label_mean_all": 1491.11,
+     "rows": 51328,
+     "label_mean": 1489.54,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1483.73,
+       "bias": -5.81444,
+       "rmse": 363.697
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1492.96,
+       "bias": 3.42189,
+       "rmse": 368.501
+      },
+      "conv-small": {
+       "mean": 1492.71,
+       "bias": 3.16271,
+       "rmse": 403.871
+      },
+      "transformer-medium-hand": {
+       "mean": 1484.17,
+       "bias": -5.37613,
+       "rmse": 413.639
+      },
+      "transformer-medium": {
+       "mean": 1487.58,
+       "bias": -1.96082,
+       "rmse": 421.447
+      },
+      "transformer-small": {
+       "mean": 1485.33,
+       "bias": -4.20882,
+       "rmse": 424.785
+      },
+      "gbm-hand": {
+       "mean": 1489.37,
+       "bias": -0.16796,
+       "rmse": 459.99
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -27.1539,
+       "rmse": 493.663
+      }
+     },
+     "gain": {
+      "gain": 96.2933,
+      "low": 93.2997,
+      "high": 98.6046,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "crushing",
+     "rows_all": 435100,
+     "label_mean_all": 1610.41,
+     "rows": 43433,
+     "label_mean": 1610.92,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1588.07,
+       "bias": -22.8438,
+       "rmse": 416.118
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1592.77,
+       "bias": -18.1457,
+       "rmse": 418.123
+      },
+      "conv-small": {
+       "mean": 1566.94,
+       "bias": -43.9748,
+       "rmse": 447.162
+      },
+      "transformer-medium-hand": {
+       "mean": 1557.06,
+       "bias": -53.8568,
+       "rmse": 449.412
+      },
+      "transformer-medium": {
+       "mean": 1550.99,
+       "bias": -59.9307,
+       "rmse": 453.81
+      },
+      "transformer-small": {
+       "mean": 1553.94,
+       "bias": -56.9806,
+       "rmse": 457.602
+      },
+      "gbm-hand": {
+       "mean": 1514.3,
+       "bias": -96.6207,
+       "rmse": 475.113
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -148.53,
+       "rmse": 511.46
+      }
+     },
+     "gain": {
+      "gain": 58.9951,
+      "low": 56.0063,
+      "high": 61.5626,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "mate",
+     "rows_all": 345465,
+     "label_mean_all": 1118.88,
+     "rows": 34439,
+     "label_mean": 1118.21,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1171.9,
+       "bias": 53.6827,
+       "rmse": 288.97
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1185.49,
+       "bias": 67.2787,
+       "rmse": 299.483
+      },
+      "conv-small": {
+       "mean": 1237.93,
+       "bias": 119.72,
+       "rmse": 348.282
+      },
+      "transformer-medium-hand": {
+       "mean": 1245.28,
+       "bias": 127.065,
+       "rmse": 356.153
+      },
+      "transformer-medium": {
+       "mean": 1276.8,
+       "bias": 158.585,
+       "rmse": 376.884
+      },
+      "transformer-small": {
+       "mean": 1281.46,
+       "bias": 163.247,
+       "rmse": 383.944
+      },
+      "gbm-hand": {
+       "mean": 1363.47,
+       "bias": 245.253,
+       "rmse": 439.983
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 344.174,
+       "rmse": 520.763
+      }
+     },
+     "gain": {
+      "gain": 151.014,
+      "low": 147.48,
+      "high": 154.624,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "advantage",
+     "rows_all": 337379,
+     "label_mean_all": 1620.4,
+     "rows": 33591,
+     "label_mean": 1617.74,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1573.93,
+       "bias": -43.8187,
+       "rmse": 392.197
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1580.17,
+       "bias": -37.573,
+       "rmse": 395.373
+      },
+      "conv-small": {
+       "mean": 1552.46,
+       "bias": -65.2834,
+       "rmse": 424.106
+      },
+      "transformer-medium-hand": {
+       "mean": 1534.8,
+       "bias": -82.9444,
+       "rmse": 428.291
+      },
+      "transformer-medium": {
+       "mean": 1524.38,
+       "bias": -93.3692,
+       "rmse": 435.569
+      },
+      "transformer-small": {
+       "mean": 1521.04,
+       "bias": -96.7039,
+       "rmse": 437.196
+      },
+      "gbm-hand": {
+       "mean": 1495.06,
+       "bias": -122.686,
+       "rmse": 449.908
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -155.356,
+       "rmse": 472.909
+      }
+     },
+     "gain": {
+      "gain": 57.7107,
+      "low": 54.8581,
+      "high": 60.1349,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "long",
+     "rows_all": 308225,
+     "label_mean_all": 1690.05,
+     "rows": 30918,
+     "label_mean": 1688.08,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1592.95,
+       "bias": -95.1269,
+       "rmse": 405.121
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1597.51,
+       "bias": -90.5666,
+       "rmse": 405.686
+      },
+      "conv-small": {
+       "mean": 1557.55,
+       "bias": -130.523,
+       "rmse": 434.129
+      },
+      "transformer-medium-hand": {
+       "mean": 1539.02,
+       "bias": -149.059,
+       "rmse": 439.109
+      },
+      "transformer-medium": {
+       "mean": 1536.58,
+       "bias": -151.494,
+       "rmse": 445.205
+      },
+      "transformer-small": {
+       "mean": 1534.36,
+       "bias": -153.719,
+       "rmse": 446.825
+      },
+      "gbm-hand": {
+       "mean": 1498.93,
+       "bias": -189.149,
+       "rmse": 468.423
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -225.687,
+       "rmse": 500.108
+      }
+     },
+     "gain": {
+      "gain": 63.302,
+      "low": 60.1813,
+      "high": 66.3297,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "master",
+     "rows_all": 157601,
+     "label_mean_all": 1492.2,
+     "rows": 15509,
+     "label_mean": 1492.72,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1506.32,
+       "bias": 13.6009,
+       "rmse": 385.033
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1511.69,
+       "bias": 18.9668,
+       "rmse": 389.309
+      },
+      "conv-small": {
+       "mean": 1506.19,
+       "bias": 13.4716,
+       "rmse": 423.244
+      },
+      "transformer-medium-hand": {
+       "mean": 1501.99,
+       "bias": 9.27139,
+       "rmse": 428.962
+      },
+      "transformer-medium": {
+       "mean": 1503.53,
+       "bias": 10.8147,
+       "rmse": 434.728
+      },
+      "transformer-small": {
+       "mean": 1509.59,
+       "bias": 16.8714,
+       "rmse": 440.686
+      },
+      "gbm-hand": {
+       "mean": 1485.87,
+       "bias": -6.84803,
+       "rmse": 459.898
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -30.3312,
+       "rmse": 499.633
+      }
+     },
+     "gain": {
+      "gain": 74.8649,
+      "low": 70.1087,
+      "high": 79.2413,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "fork",
+     "rows_all": 151240,
+     "label_mean_all": 1394.18,
+     "rows": 15186,
+     "label_mean": 1397.46,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1401.34,
+       "bias": 3.8802,
+       "rmse": 353.315
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1406.78,
+       "bias": 9.3215,
+       "rmse": 355.592
+      },
+      "conv-small": {
+       "mean": 1423.84,
+       "bias": 26.3788,
+       "rmse": 386.748
+      },
+      "transformer-medium-hand": {
+       "mean": 1422.83,
+       "bias": 25.3648,
+       "rmse": 393.102
+      },
+      "transformer-medium": {
+       "mean": 1423.3,
+       "bias": 25.8386,
+       "rmse": 396.918
+      },
+      "transformer-small": {
+       "mean": 1424.99,
+       "bias": 27.5283,
+       "rmse": 402.465
+      },
+      "gbm-hand": {
+       "mean": 1420.56,
+       "bias": 23.096,
+       "rmse": 415.193
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 64.926,
+       "rmse": 452.335
+      }
+     },
+     "gain": {
+      "gain": 61.8777,
+      "low": 57.3411,
+      "high": 65.37,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "oneMove",
+     "rows_all": 149402,
+     "label_mean_all": 961.402,
+     "rows": 14812,
+     "label_mean": 960.852,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1038.29,
+       "bias": 77.4347,
+       "rmse": 273.282
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1049.15,
+       "bias": 88.2952,
+       "rmse": 288.742
+      },
+      "conv-small": {
+       "mean": 1149.65,
+       "bias": 188.795,
+       "rmse": 360.323
+      },
+      "transformer-medium-hand": {
+       "mean": 1178.99,
+       "bias": 218.143,
+       "rmse": 379.251
+      },
+      "transformer-medium": {
+       "mean": 1211.61,
+       "bias": 250.753,
+       "rmse": 409.863
+      },
+      "transformer-small": {
+       "mean": 1221.63,
+       "bias": 260.777,
+       "rmse": 419.336
+      },
+      "gbm-hand": {
+       "mean": 1354.04,
+       "bias": 393.184,
+       "rmse": 499.201
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 501.536,
+       "rmse": 591.088
+      }
+     },
+     "gain": {
+      "gain": 225.919,
+      "low": 221.033,
+      "high": 230.404,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "mateIn1",
+     "rows_all": 149121,
+     "label_mean_all": 960.689,
+     "rows": 14788,
+     "label_mean": 959.951,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1037.37,
+       "bias": 77.4231,
+       "rmse": 272.666
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1048.22,
+       "bias": 88.2694,
+       "rmse": 288.294
+      },
+      "conv-small": {
+       "mean": 1148.95,
+       "bias": 188.998,
+       "rmse": 360.107
+      },
+      "transformer-medium-hand": {
+       "mean": 1178.44,
+       "bias": 218.488,
+       "rmse": 378.943
+      },
+      "transformer-medium": {
+       "mean": 1211.15,
+       "bias": 251.203,
+       "rmse": 409.626
+      },
+      "transformer-small": {
+       "mean": 1221.2,
+       "bias": 261.252,
+       "rmse": 419.133
+      },
+      "gbm-hand": {
+       "mean": 1353.85,
+       "bias": 393.899,
+       "rmse": 499.21
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 502.437,
+       "rmse": 591.218
+      }
+     },
+     "gain": {
+      "gain": 226.544,
+      "low": 221.294,
+      "high": 231.719,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "mateIn2",
+     "rows_all": 147180,
+     "label_mean_all": 1168.48,
+     "rows": 14791,
+     "label_mean": 1169.0,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1231.4,
+       "bias": 62.4057,
+       "rmse": 290.976
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1247.86,
+       "bias": 78.8578,
+       "rmse": 300.921
+      },
+      "conv-small": {
+       "mean": 1275.92,
+       "bias": 106.918,
+       "rmse": 331.806
+      },
+      "transformer-medium-hand": {
+       "mean": 1270.29,
+       "bias": 101.287,
+       "rmse": 328.792
+      },
+      "transformer-medium": {
+       "mean": 1305.23,
+       "bias": 136.227,
+       "rmse": 346.224
+      },
+      "transformer-small": {
+       "mean": 1307.7,
+       "bias": 138.699,
+       "rmse": 352.08
+      },
+      "gbm-hand": {
+       "mean": 1361.59,
+       "bias": 192.596,
+       "rmse": 388.045
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 293.39,
+       "rmse": 472.483
+      }
+     },
+     "gain": {
+      "gain": 97.0697,
+      "low": 92.559,
+      "high": 102.475,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "kingsideAttack",
+     "rows_all": 97963,
+     "label_mean_all": 1303.88,
+     "rows": 9742,
+     "label_mean": 1302.54,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1315.19,
+       "bias": 12.6512,
+       "rmse": 327.323
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1328.06,
+       "bias": 25.5273,
+       "rmse": 336.137
+      },
+      "conv-small": {
+       "mean": 1346.96,
+       "bias": 44.4227,
+       "rmse": 371.295
+      },
+      "transformer-medium-hand": {
+       "mean": 1341.4,
+       "bias": 38.8626,
+       "rmse": 392.793
+      },
+      "transformer-medium": {
+       "mean": 1350.57,
+       "bias": 48.0344,
+       "rmse": 398.866
+      },
+      "transformer-small": {
+       "mean": 1344.82,
+       "bias": 42.2821,
+       "rmse": 408.619
+      },
+      "gbm-hand": {
+       "mean": 1428.26,
+       "bias": 125.723,
+       "rmse": 491.359
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 159.851,
+       "rmse": 529.592
+      }
+     },
+     "gain": {
+      "gain": 164.036,
+      "low": 157.29,
+      "high": 170.396,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "sacrifice",
+     "rows_all": 90468,
+     "label_mean_all": 1643.61,
+     "rows": 8857,
+     "label_mean": 1648.66,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1546.57,
+       "bias": -102.086,
+       "rmse": 367.766
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1557.2,
+       "bias": -91.4609,
+       "rmse": 367.972
+      },
+      "conv-small": {
+       "mean": 1520.93,
+       "bias": -127.734,
+       "rmse": 399.527
+      },
+      "transformer-medium-hand": {
+       "mean": 1501.3,
+       "bias": -147.358,
+       "rmse": 414.412
+      },
+      "transformer-medium": {
+       "mean": 1511.1,
+       "bias": -137.562,
+       "rmse": 414.028
+      },
+      "transformer-small": {
+       "mean": 1510.38,
+       "bias": -138.276,
+       "rmse": 417.685
+      },
+      "gbm-hand": {
+       "mean": 1489.53,
+       "bias": -159.13,
+       "rmse": 472.321
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -186.272,
+       "rmse": 500.804
+      }
+     },
+     "gain": {
+      "gain": 104.555,
+      "low": 99.442,
+      "high": 111.276,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "veryLong",
+     "rows_all": 84486,
+     "label_mean_all": 1960.96,
+     "rows": 8358,
+     "label_mean": 1959.83,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1659.52,
+       "bias": -300.306,
+       "rmse": 519.601
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1665.11,
+       "bias": -294.719,
+       "rmse": 517.803
+      },
+      "conv-small": {
+       "mean": 1607.35,
+       "bias": -352.478,
+       "rmse": 562.001
+      },
+      "transformer-medium-hand": {
+       "mean": 1594.82,
+       "bias": -365.008,
+       "rmse": 569.606
+      },
+      "transformer-medium": {
+       "mean": 1591.54,
+       "bias": -368.287,
+       "rmse": 577.001
+      },
+      "transformer-small": {
+       "mean": 1589.39,
+       "bias": -370.439,
+       "rmse": 578.339
+      },
+      "gbm-hand": {
+       "mean": 1537.97,
+       "bias": -421.86,
+       "rmse": 618.443
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -497.438,
+       "rmse": 672.791
+      }
+     },
+     "gain": {
+      "gain": 98.8429,
+      "low": 92.9461,
+      "high": 105.066,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "pin",
+     "rows_all": 71593,
+     "label_mean_all": 1625.63,
+     "rows": 7235,
+     "label_mean": 1628.52,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1569.78,
+       "bias": -58.7343,
+       "rmse": 387.526
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1577.7,
+       "bias": -50.8174,
+       "rmse": 382.371
+      },
+      "conv-small": {
+       "mean": 1553.31,
+       "bias": -75.2104,
+       "rmse": 409.653
+      },
+      "transformer-medium-hand": {
+       "mean": 1521.22,
+       "bias": -107.294,
+       "rmse": 425.787
+      },
+      "transformer-medium": {
+       "mean": 1518.7,
+       "bias": -109.814,
+       "rmse": 421.59
+      },
+      "transformer-small": {
+       "mean": 1516.35,
+       "bias": -112.169,
+       "rmse": 426.383
+      },
+      "gbm-hand": {
+       "mean": 1477.07,
+       "bias": -151.446,
+       "rmse": 458.253
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -166.129,
+       "rmse": 468.627
+      }
+     },
+     "gain": {
+      "gain": 70.7276,
+      "low": 64.5409,
+      "high": 76.4533,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "advancedPawn",
+     "rows_all": 71550,
+     "label_mean_all": 1617.99,
+     "rows": 7237,
+     "label_mean": 1612.16,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1622.6,
+       "bias": 10.4427,
+       "rmse": 437.358
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1628.6,
+       "bias": 16.4476,
+       "rmse": 439.693
+      },
+      "conv-small": {
+       "mean": 1595.7,
+       "bias": -16.4579,
+       "rmse": 466.157
+      },
+      "transformer-medium-hand": {
+       "mean": 1584.07,
+       "bias": -28.0876,
+       "rmse": 458.881
+      },
+      "transformer-medium": {
+       "mean": 1592.26,
+       "bias": -19.8927,
+       "rmse": 470.211
+      },
+      "transformer-small": {
+       "mean": 1603.18,
+       "bias": -8.97306,
+       "rmse": 472.352
+      },
+      "gbm-hand": {
+       "mean": 1511.9,
+       "bias": -100.257,
+       "rmse": 495.495
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -149.769,
+       "rmse": 520.708
+      }
+     },
+     "gain": {
+      "gain": 58.1373,
+      "low": 51.2777,
+      "high": 65.0532,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "defensiveMove",
+     "rows_all": 62234,
+     "label_mean_all": 1905.72,
+     "rows": 6116,
+     "label_mean": 1894.1,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1725.72,
+       "bias": -168.384,
+       "rmse": 488.235
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1722.78,
+       "bias": -171.324,
+       "rmse": 493.725
+      },
+      "conv-small": {
+       "mean": 1636.78,
+       "bias": -257.325,
+       "rmse": 535.457
+      },
+      "transformer-medium-hand": {
+       "mean": 1667.04,
+       "bias": -227.062,
+       "rmse": 524.507
+      },
+      "transformer-medium": {
+       "mean": 1629.76,
+       "bias": -264.347,
+       "rmse": 543.516
+      },
+      "transformer-small": {
+       "mean": 1633.1,
+       "bias": -260.997,
+       "rmse": 542.186
+      },
+      "gbm-hand": {
+       "mean": 1621.35,
+       "bias": -272.757,
+       "rmse": 554.017
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -431.714,
+       "rmse": 630.345
+      }
+     },
+     "gain": {
+      "gain": 65.7819,
+      "low": 59.4582,
+      "high": 72.7782,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "discoveredAttack",
+     "rows_all": 62094,
+     "label_mean_all": 1502.42,
+     "rows": 6150,
+     "label_mean": 1503.07,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1489.06,
+       "bias": -14.0098,
+       "rmse": 363.262
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1506.21,
+       "bias": 3.13819,
+       "rmse": 369.529
+      },
+      "conv-small": {
+       "mean": 1504.71,
+       "bias": 1.63153,
+       "rmse": 403.906
+      },
+      "transformer-medium-hand": {
+       "mean": 1485.14,
+       "bias": -17.9287,
+       "rmse": 403.104
+      },
+      "transformer-medium": {
+       "mean": 1489.41,
+       "bias": -13.6674,
+       "rmse": 409.889
+      },
+      "transformer-small": {
+       "mean": 1490.54,
+       "bias": -12.53,
+       "rmse": 412.874
+      },
+      "gbm-hand": {
+       "mean": 1447.43,
+       "bias": -55.6392,
+       "rmse": 418.883
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -40.685,
+       "rmse": 444.882
+      }
+     },
+     "gain": {
+      "gain": 55.6207,
+      "low": 49.1939,
+      "high": 61.2406,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "rookEndgame",
+     "rows_all": 57695,
+     "label_mean_all": 1466.11,
+     "rows": 5741,
+     "label_mean": 1475.46,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1462.61,
+       "bias": -12.8482,
+       "rmse": 398.6
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1469.7,
+       "bias": -5.75982,
+       "rmse": 401.629
+      },
+      "conv-small": {
+       "mean": 1447.57,
+       "bias": -27.8913,
+       "rmse": 443.593
+      },
+      "transformer-medium-hand": {
+       "mean": 1465.51,
+       "bias": -9.9494,
+       "rmse": 441.372
+      },
+      "transformer-medium": {
+       "mean": 1453.6,
+       "bias": -21.8633,
+       "rmse": 448.584
+      },
+      "transformer-small": {
+       "mean": 1478.85,
+       "bias": 3.38983,
+       "rmse": 453.316
+      },
+      "gbm-hand": {
+       "mean": 1463.31,
+       "bias": -12.1516,
+       "rmse": 472.613
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -13.0729,
+       "rmse": 533.013
+      }
+     },
+     "gain": {
+      "gain": 74.0131,
+      "low": 66.8288,
+      "high": 80.4547,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "opening",
+     "rows_all": 57566,
+     "label_mean_all": 1381.78,
+     "rows": 5761,
+     "label_mean": 1384.2,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1360.28,
+       "bias": -23.9262,
+       "rmse": 311.101
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1373.31,
+       "bias": -10.8966,
+       "rmse": 316.222
+      },
+      "conv-small": {
+       "mean": 1379.23,
+       "bias": -4.97271,
+       "rmse": 350.232
+      },
+      "transformer-medium-hand": {
+       "mean": 1361.62,
+       "bias": -22.5845,
+       "rmse": 350.913
+      },
+      "transformer-medium": {
+       "mean": 1356.8,
+       "bias": -27.4084,
+       "rmse": 369.05
+      },
+      "transformer-small": {
+       "mean": 1347.85,
+       "bias": -36.3496,
+       "rmse": 372.638
+      },
+      "gbm-hand": {
+       "mean": 1401.91,
+       "bias": 17.7086,
+       "rmse": 419.006
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 78.1847,
+       "rmse": 470.043
+      }
+     },
+     "gain": {
+      "gain": 107.905,
+      "low": 99.9128,
+      "high": 114.711,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "deflection",
+     "rows_all": 52877,
+     "label_mean_all": 1561.1,
+     "rows": 5294,
+     "label_mean": 1555.67,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1542.99,
+       "bias": -12.6849,
+       "rmse": 372.71
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1551.34,
+       "bias": -4.33095,
+       "rmse": 376.567
+      },
+      "conv-small": {
+       "mean": 1522.88,
+       "bias": -32.7902,
+       "rmse": 395.201
+      },
+      "transformer-medium-hand": {
+       "mean": 1498.76,
+       "bias": -56.9141,
+       "rmse": 396.049
+      },
+      "transformer-medium": {
+       "mean": 1499.53,
+       "bias": -56.1435,
+       "rmse": 396.703
+      },
+      "transformer-small": {
+       "mean": 1499.95,
+       "bias": -55.7219,
+       "rmse": 401.178
+      },
+      "gbm-hand": {
+       "mean": 1465.83,
+       "bias": -89.8454,
+       "rmse": 414.823
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -93.2857,
+       "rmse": 441.609
+      }
+     },
+     "gain": {
+      "gain": 42.1138,
+      "low": 36.3011,
+      "high": 49.1662,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "attraction",
+     "rows_all": 45873,
+     "label_mean_all": 1682.36,
+     "rows": 4573,
+     "label_mean": 1685.34,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1625.31,
+       "bias": -60.0297,
+       "rmse": 365.879
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1643.91,
+       "bias": -41.431,
+       "rmse": 364.685
+      },
+      "conv-small": {
+       "mean": 1581.89,
+       "bias": -103.454,
+       "rmse": 391.263
+      },
+      "transformer-medium-hand": {
+       "mean": 1545.68,
+       "bias": -139.666,
+       "rmse": 400.669
+      },
+      "transformer-medium": {
+       "mean": 1555.49,
+       "bias": -129.847,
+       "rmse": 400.944
+      },
+      "transformer-small": {
+       "mean": 1550.41,
+       "bias": -134.935,
+       "rmse": 403.961
+      },
+      "gbm-hand": {
+       "mean": 1479.99,
+       "bias": -205.354,
+       "rmse": 437.278
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -222.953,
+       "rmse": 450.563
+      }
+     },
+     "gain": {
+      "gain": 71.3988,
+      "low": 63.6571,
+      "high": 78.3734,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "pawnEndgame",
+     "rows_all": 41680,
+     "label_mean_all": 1740.01,
+     "rows": 4171,
+     "label_mean": 1734.46,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1746.44,
+       "bias": 11.9865,
+       "rmse": 432.355
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1746.87,
+       "bias": 12.4155,
+       "rmse": 433.335
+      },
+      "conv-small": {
+       "mean": 1753.47,
+       "bias": 19.014,
+       "rmse": 453.329
+      },
+      "transformer-medium-hand": {
+       "mean": 1746.62,
+       "bias": 12.1597,
+       "rmse": 458.031
+      },
+      "transformer-medium": {
+       "mean": 1781.38,
+       "bias": 46.9242,
+       "rmse": 467.755
+      },
+      "transformer-small": {
+       "mean": 1775.37,
+       "bias": 40.9076,
+       "rmse": 472.209
+      },
+      "gbm-hand": {
+       "mean": 1743.73,
+       "bias": 9.27227,
+       "rmse": 472.206
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -272.07,
+       "rmse": 603.703
+      }
+     },
+     "gain": {
+      "gain": 39.8511,
+      "low": 32.7594,
+      "high": 47.1892,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "mateIn3",
+     "rows_all": 41261,
+     "label_mean_all": 1390.61,
+     "rows": 4097,
+     "label_mean": 1386.02,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1368.19,
+       "bias": -17.8324,
+       "rmse": 306.217
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1380.76,
+       "bias": -5.25969,
+       "rmse": 307.557
+      },
+      "conv-small": {
+       "mean": 1369.06,
+       "bias": -16.9609,
+       "rmse": 336.693
+      },
+      "transformer-medium-hand": {
+       "mean": 1350.42,
+       "bias": -35.6058,
+       "rmse": 339.819
+      },
+      "transformer-medium": {
+       "mean": 1368.11,
+       "bias": -17.9144,
+       "rmse": 338.658
+      },
+      "transformer-small": {
+       "mean": 1363.73,
+       "bias": -22.2955,
+       "rmse": 341.743
+      },
+      "gbm-hand": {
+       "mean": 1391.43,
+       "bias": 5.40776,
+       "rmse": 368.735
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 76.3641,
+       "rmse": 407.137
+      }
+     },
+     "gain": {
+      "gain": 62.5176,
+      "low": 56.2051,
+      "high": 69.264,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "quietMove",
+     "rows_all": 40674,
+     "label_mean_all": 1960.02,
+     "rows": 3992,
+     "label_mean": 1952.06,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1696.46,
+       "bias": -255.6,
+       "rmse": 525.744
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1697.44,
+       "bias": -254.619,
+       "rmse": 520.738
+      },
+      "conv-small": {
+       "mean": 1630.87,
+       "bias": -321.192,
+       "rmse": 571.566
+      },
+      "transformer-medium-hand": {
+       "mean": 1620.61,
+       "bias": -331.446,
+       "rmse": 576.69
+      },
+      "transformer-medium": {
+       "mean": 1623.72,
+       "bias": -328.342,
+       "rmse": 587.932
+      },
+      "transformer-small": {
+       "mean": 1623.61,
+       "bias": -328.446,
+       "rmse": 588.611
+      },
+      "gbm-hand": {
+       "mean": 1583.24,
+       "bias": -368.82,
+       "rmse": 611.001
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -489.672,
+       "rmse": 684.72
+      }
+     },
+     "gain": {
+      "gain": 85.2569,
+      "low": 75.1566,
+      "high": 94.3502,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "hangingPiece",
+     "rows_all": 40487,
+     "label_mean_all": 1389.0,
+     "rows": 4040,
+     "label_mean": 1392.74,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1407.29,
+       "bias": 14.5516,
+       "rmse": 390.425
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1416.22,
+       "bias": 23.4773,
+       "rmse": 394.948
+      },
+      "conv-small": {
+       "mean": 1425.06,
+       "bias": 32.3212,
+       "rmse": 435.91
+      },
+      "transformer-medium-hand": {
+       "mean": 1429.35,
+       "bias": 36.6129,
+       "rmse": 434.3
+      },
+      "transformer-medium": {
+       "mean": 1422.55,
+       "bias": 29.8075,
+       "rmse": 450.993
+      },
+      "transformer-small": {
+       "mean": 1419.01,
+       "bias": 26.2694,
+       "rmse": 457.267
+      },
+      "gbm-hand": {
+       "mean": 1465.05,
+       "bias": 72.3059,
+       "rmse": 488.822
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 69.6464,
+       "rmse": 525.642
+      }
+     },
+     "gain": {
+      "gain": 98.3972,
+      "low": 90.7991,
+      "high": 107.425,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "exposedKing",
+     "rows_all": 35081,
+     "label_mean_all": 1759.54,
+     "rows": 3645,
+     "label_mean": 1760.92,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1612.79,
+       "bias": -148.124,
+       "rmse": 438.913
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1618.75,
+       "bias": -142.167,
+       "rmse": 440.031
+      },
+      "conv-small": {
+       "mean": 1566.35,
+       "bias": -194.569,
+       "rmse": 464.294
+      },
+      "transformer-medium-hand": {
+       "mean": 1542.43,
+       "bias": -218.482,
+       "rmse": 470.545
+      },
+      "transformer-medium": {
+       "mean": 1542.35,
+       "bias": -218.57,
+       "rmse": 470.476
+      },
+      "transformer-small": {
+       "mean": 1543.76,
+       "bias": -217.153,
+       "rmse": 469.166
+      },
+      "gbm-hand": {
+       "mean": 1484.97,
+       "bias": -275.947,
+       "rmse": 501.133
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -298.527,
+       "rmse": 528.687
+      }
+     },
+     "gain": {
+      "gain": 62.2195,
+      "low": 53.5917,
+      "high": 70.2752,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "backRankMate",
+     "rows_all": 29473,
+     "label_mean_all": 898.236,
+     "rows": 2952,
+     "label_mean": 895.642,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 895.113,
+       "bias": -0.528466,
+       "rmse": 196.853
+      },
+      "transformer-medium-pretrained": {
+       "mean": 904.299,
+       "bias": 8.65713,
+       "rmse": 201.638
+      },
+      "conv-small": {
+       "mean": 954.06,
+       "bias": 58.4185,
+       "rmse": 257.962
+      },
+      "transformer-medium-hand": {
+       "mean": 951.2,
+       "bias": 55.5584,
+       "rmse": 255.16
+      },
+      "transformer-medium": {
+       "mean": 975.837,
+       "bias": 80.195,
+       "rmse": 284.088
+      },
+      "transformer-small": {
+       "mean": 976.408,
+       "bias": 80.7665,
+       "rmse": 291.838
+      },
+      "gbm-hand": {
+       "mean": 1221.34,
+       "bias": 325.701,
+       "rmse": 444.363
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 566.747,
+       "rmse": 662.476
+      }
+     },
+     "gain": {
+      "gain": 247.51,
+      "low": 236.392,
+      "high": 260.072,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "promotion",
+     "rows_all": 27850,
+     "label_mean_all": 1519.94,
+     "rows": 2901,
+     "label_mean": 1512.14,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1536.46,
+       "bias": 24.3178,
+       "rmse": 427.715
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1540.77,
+       "bias": 28.6276,
+       "rmse": 433.523
+      },
+      "conv-small": {
+       "mean": 1537.78,
+       "bias": 25.6372,
+       "rmse": 462.764
+      },
+      "transformer-medium-hand": {
+       "mean": 1528.89,
+       "bias": 16.7553,
+       "rmse": 449.322
+      },
+      "transformer-medium": {
+       "mean": 1547.67,
+       "bias": 35.5345,
+       "rmse": 464.279
+      },
+      "transformer-small": {
+       "mean": 1566.47,
+       "bias": 54.3328,
+       "rmse": 469.193
+      },
+      "gbm-hand": {
+       "mean": 1485.4,
+       "bias": -26.7353,
+       "rmse": 476.556
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -49.7501,
+       "rmse": 510.323
+      }
+     },
+     "gain": {
+      "gain": 48.841,
+      "low": 39.2817,
+      "high": 59.8505,
+      "beyond_noise": true
+     }
+    }
+   ]
+  },
+  {
+   "key": "first-piece",
+   "column": "first_piece",
+   "title": "The piece that makes the first move",
+   "groups": [
+    {
+     "group": "pawn",
+     "rows_all": 129692,
+     "label_mean_all": 1673.72,
+     "rows": 13094,
+     "label_mean": 1674.33,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1661.47,
+       "bias": -12.8641,
+       "rmse": 421.475
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1667.5,
+       "bias": -6.83382,
+       "rmse": 424.568
+      },
+      "conv-small": {
+       "mean": 1633.89,
+       "bias": -40.4432,
+       "rmse": 446.097
+      },
+      "transformer-medium-hand": {
+       "mean": 1604.82,
+       "bias": -69.5111,
+       "rmse": 446.295
+      },
+      "transformer-medium": {
+       "mean": 1612.09,
+       "bias": -62.2365,
+       "rmse": 457.617
+      },
+      "transformer-small": {
+       "mean": 1609.09,
+       "bias": -65.2447,
+       "rmse": 463.138
+      },
+      "gbm-hand": {
+       "mean": 1551.66,
+       "bias": -122.673,
+       "rmse": 475.994
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -211.942,
+       "rmse": 529.621
+      }
+     },
+     "gain": {
+      "gain": 54.5188,
+      "low": 50.0484,
+      "high": 58.5689,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "knight",
+     "rows_all": 164168,
+     "label_mean_all": 1442.54,
+     "rows": 16147,
+     "label_mean": 1440.67,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1429.82,
+       "bias": -10.8486,
+       "rmse": 353.852
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1433.8,
+       "bias": -6.86914,
+       "rmse": 356.478
+      },
+      "conv-small": {
+       "mean": 1442.33,
+       "bias": 1.66466,
+       "rmse": 389.7
+      },
+      "transformer-medium-hand": {
+       "mean": 1446.45,
+       "bias": 5.77979,
+       "rmse": 400.46
+      },
+      "transformer-medium": {
+       "mean": 1437.22,
+       "bias": -3.44986,
+       "rmse": 407.855
+      },
+      "transformer-small": {
+       "mean": 1441.16,
+       "bias": 0.49669,
+       "rmse": 412.485
+      },
+      "gbm-hand": {
+       "mean": 1448.65,
+       "bias": 7.98175,
+       "rmse": 433.786
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 21.722,
+       "rmse": 477.273
+      }
+     },
+     "gain": {
+      "gain": 79.9341,
+      "low": 75.8604,
+      "high": 84.2355,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "bishop",
+     "rows_all": 129161,
+     "label_mean_all": 1528.88,
+     "rows": 12862,
+     "label_mean": 1529.21,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1534.86,
+       "bias": 5.65044,
+       "rmse": 378.705
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1541.42,
+       "bias": 12.2047,
+       "rmse": 383.61
+      },
+      "conv-small": {
+       "mean": 1525.2,
+       "bias": -4.01232,
+       "rmse": 412.993
+      },
+      "transformer-medium-hand": {
+       "mean": 1505.96,
+       "bias": -23.2552,
+       "rmse": 411.085
+      },
+      "transformer-medium": {
+       "mean": 1502.16,
+       "bias": -27.0495,
+       "rmse": 419.798
+      },
+      "transformer-small": {
+       "mean": 1502.65,
+       "bias": -26.5594,
+       "rmse": 422.834
+      },
+      "gbm-hand": {
+       "mean": 1473.41,
+       "bias": -55.8023,
+       "rmse": 434.231
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -66.8257,
+       "rmse": 459.509
+      }
+     },
+     "gain": {
+      "gain": 55.5268,
+      "low": 51.2664,
+      "high": 60.2234,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "rook",
+     "rows_all": 294257,
+     "label_mean_all": 1425.76,
+     "rows": 29442,
+     "label_mean": 1424.62,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1427.29,
+       "bias": 2.67499,
+       "rmse": 373.005
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1438.48,
+       "bias": 13.8621,
+       "rmse": 377.602
+      },
+      "conv-small": {
+       "mean": 1429.75,
+       "bias": 5.13074,
+       "rmse": 409.305
+      },
+      "transformer-medium-hand": {
+       "mean": 1416.67,
+       "bias": -7.94765,
+       "rmse": 414.235
+      },
+      "transformer-medium": {
+       "mean": 1428.25,
+       "bias": 3.63187,
+       "rmse": 422.132
+      },
+      "transformer-small": {
+       "mean": 1436.33,
+       "bias": 11.7082,
+       "rmse": 424.257
+      },
+      "gbm-hand": {
+       "mean": 1418.46,
+       "bias": -6.15856,
+       "rmse": 447.53
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 37.7706,
+       "rmse": 508.521
+      }
+     },
+     "gain": {
+      "gain": 74.5255,
+      "low": 71.3534,
+      "high": 77.5657,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "queen",
+     "rows_all": 358505,
+     "label_mean_all": 1359.17,
+     "rows": 35764,
+     "label_mean": 1357.32,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1351.91,
+       "bias": -5.41601,
+       "rmse": 347.075
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1360.89,
+       "bias": 3.56741,
+       "rmse": 352.563
+      },
+      "conv-small": {
+       "mean": 1384.92,
+       "bias": 27.5977,
+       "rmse": 393.751
+      },
+      "transformer-medium-hand": {
+       "mean": 1384.45,
+       "bias": 27.1286,
+       "rmse": 402.704
+      },
+      "transformer-medium": {
+       "mean": 1394.75,
+       "bias": 37.424,
+       "rmse": 412.915
+      },
+      "transformer-small": {
+       "mean": 1391.62,
+       "bias": 34.2994,
+       "rmse": 418.543
+      },
+      "gbm-hand": {
+       "mean": 1440.11,
+       "bias": 82.793,
+       "rmse": 467.204
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 105.067,
+       "rmse": 502.068
+      }
+     },
+     "gain": {
+      "gain": 120.13,
+      "low": 116.508,
+      "high": 123.582,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "king",
+     "rows_all": 52132,
+     "label_mean_all": 1751.19,
+     "rows": 5141,
+     "label_mean": 1750.02,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1705.26,
+       "bias": -44.7663,
+       "rmse": 465.622
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1707.45,
+       "bias": -42.568,
+       "rmse": 469.6
+      },
+      "conv-small": {
+       "mean": 1637.7,
+       "bias": -112.321,
+       "rmse": 510.838
+      },
+      "transformer-medium-hand": {
+       "mean": 1672.64,
+       "bias": -77.3856,
+       "rmse": 492.74
+      },
+      "transformer-medium": {
+       "mean": 1645.28,
+       "bias": -104.741,
+       "rmse": 510.887
+      },
+      "transformer-small": {
+       "mean": 1649.99,
+       "bias": -100.028,
+       "rmse": 511.274
+      },
+      "gbm-hand": {
+       "mean": 1650.47,
+       "bias": -99.5557,
+       "rmse": 509.245
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -287.634,
+       "rmse": 582.054
+      }
+     },
+     "gain": {
+      "gain": 43.6237,
+      "low": 36.9047,
+      "high": 49.8925,
+      "beyond_noise": true
+     }
+    }
+   ]
+  },
+  {
+   "key": "capture",
+   "column": "first_capture",
+   "title": "The first move takes something",
+   "groups": [
+    {
+     "group": "no",
+     "rows_all": 675694,
+     "label_mean_all": 1458.25,
+     "rows": 67465,
+     "label_mean": 1458.61,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1439.07,
+       "bias": -19.5394,
+       "rmse": 377.03
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1446.28,
+       "bias": -12.3266,
+       "rmse": 381.271
+      },
+      "conv-small": {
+       "mean": 1443.54,
+       "bias": -15.0733,
+       "rmse": 415.117
+      },
+      "transformer-medium-hand": {
+       "mean": 1439.33,
+       "bias": -19.2813,
+       "rmse": 419.031
+      },
+      "transformer-medium": {
+       "mean": 1445.79,
+       "bias": -12.8249,
+       "rmse": 429.813
+      },
+      "transformer-small": {
+       "mean": 1448.98,
+       "bias": -9.63334,
+       "rmse": 434.36
+      },
+      "gbm-hand": {
+       "mean": 1445.68,
+       "bias": -12.9311,
+       "rmse": 456.841
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 3.77854,
+       "rmse": 509.15
+      }
+     },
+     "gain": {
+      "gain": 79.8108,
+      "low": 77.8703,
+      "high": 81.5833,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "yes",
+     "rows_all": 452221,
+     "label_mean_all": 1468.59,
+     "rows": 44985,
+     "label_mean": 1465.68,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1481.29,
+       "bias": 15.6097,
+       "rmse": 368.881
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1490.24,
+       "bias": 24.5651,
+       "rmse": 373.481
+      },
+      "conv-small": {
+       "mean": 1488.42,
+       "bias": 22.7464,
+       "rmse": 406.812
+      },
+      "transformer-medium-hand": {
+       "mean": 1477.31,
+       "bias": 11.6315,
+       "rmse": 411.708
+      },
+      "transformer-medium": {
+       "mean": 1477.98,
+       "bias": 12.3059,
+       "rmse": 419.521
+      },
+      "transformer-small": {
+       "mean": 1477.22,
+       "bias": 11.5408,
+       "rmse": 422.636
+      },
+      "gbm-hand": {
+       "mean": 1486.69,
+       "bias": 21.0103,
+       "rmse": 456.795
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -3.28816,
+       "rmse": 493.323
+      }
+     },
+     "gain": {
+      "gain": 87.9133,
+      "low": 85.1236,
+      "high": 90.5389,
+      "beyond_noise": true
+     }
+    }
+   ]
+  },
+  {
+   "key": "check",
+   "column": "first_check",
+   "title": "The first move gives check",
+   "groups": [
+    {
+     "group": "no",
+     "rows_all": 430534,
+     "label_mean_all": 1725.51,
+     "rows": 42741,
+     "label_mean": 1724.39,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1666.88,
+       "bias": -57.5105,
+       "rmse": 419.788
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1669.34,
+       "bias": -55.0561,
+       "rmse": 421.409
+      },
+      "conv-small": {
+       "mean": 1625.31,
+       "bias": -99.0841,
+       "rmse": 452.252
+      },
+      "transformer-medium-hand": {
+       "mean": 1610.36,
+       "bias": -114.036,
+       "rmse": 455.65
+      },
+      "transformer-medium": {
+       "mean": 1595.98,
+       "bias": -128.415,
+       "rmse": 463.105
+      },
+      "transformer-small": {
+       "mean": 1595.19,
+       "bias": -129.199,
+       "rmse": 464.584
+      },
+      "gbm-hand": {
+       "mean": 1564.44,
+       "bias": -159.956,
+       "rmse": 481.495
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -262.005,
+       "rmse": 516.671
+      }
+     },
+     "gain": {
+      "gain": 61.7074,
+      "low": 59.0486,
+      "high": 64.3485,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "yes",
+     "rows_all": 697381,
+     "label_mean_all": 1299.96,
+     "rows": 69709,
+     "label_mean": 1300.21,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1326.63,
+       "bias": 26.4246,
+       "rmse": 342.549
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1337.89,
+       "bias": 37.6795,
+       "rmse": 349.026
+      },
+      "conv-small": {
+       "mean": 1361.05,
+       "bias": 60.8427,
+       "rmse": 384.926
+      },
+      "transformer-medium-hand": {
+       "mean": 1358.97,
+       "bias": 58.7648,
+       "rmse": 389.901
+      },
+      "transformer-medium": {
+       "mean": 1374.47,
+       "bias": 74.2649,
+       "rmse": 401.088
+      },
+      "transformer-small": {
+       "mean": 1377.55,
+       "bias": 77.3408,
+       "rmse": 406.849
+      },
+      "gbm-hand": {
+       "mean": 1399.33,
+       "bias": 99.1184,
+       "rmse": 441.013
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 162.179,
+       "rmse": 494.231
+      }
+     },
+     "gain": {
+      "gain": 98.4637,
+      "low": 96.2853,
+      "high": 100.539,
+      "beyond_noise": true
+     }
+    }
+   ]
+  },
+  {
+   "key": "sacrifice",
+   "column": "first_sacrifice",
+   "title": "The first move gives up material",
+   "groups": [
+    {
+     "group": "no",
+     "rows_all": 972823,
+     "label_mean_all": 1443.3,
+     "rows": 97168,
+     "label_mean": 1442.8,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1442.37,
+       "bias": -0.42383,
+       "rmse": 377.731
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1449.58,
+       "bias": 6.78677,
+       "rmse": 382.315
+      },
+      "conv-small": {
+       "mean": 1449.22,
+       "bias": 6.42368,
+       "rmse": 416.711
+      },
+      "transformer-medium-hand": {
+       "mean": 1444.77,
+       "bias": 1.97085,
+       "rmse": 419.802
+      },
+      "transformer-medium": {
+       "mean": 1448.45,
+       "bias": 5.65414,
+       "rmse": 430.823
+      },
+      "transformer-small": {
+       "mean": 1450.06,
+       "bias": 7.25925,
+       "rmse": 434.868
+      },
+      "gbm-hand": {
+       "mean": 1456.27,
+       "bias": 13.4747,
+       "rmse": 461.523
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 19.5926,
+       "rmse": 509.793
+      }
+     },
+     "gain": {
+      "gain": 83.7918,
+      "low": 81.9814,
+      "high": 85.3265,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "yes",
+     "rows_all": 155092,
+     "label_mean_all": 1582.17,
+     "rows": 15282,
+     "label_mean": 1579.96,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1542.35,
+       "bias": -37.6156,
+       "rmse": 347.701
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1554.7,
+       "bias": -25.259,
+       "rmse": 350.701
+      },
+      "conv-small": {
+       "mean": 1539.53,
+       "bias": -40.4297,
+       "rmse": 379.206
+      },
+      "transformer-medium-hand": {
+       "mean": 1516.55,
+       "bias": -63.4126,
+       "rmse": 391.877
+      },
+      "transformer-medium": {
+       "mean": 1523.62,
+       "bias": -56.3444,
+       "rmse": 391.77
+      },
+      "transformer-small": {
+       "mean": 1525.25,
+       "bias": -54.7125,
+       "rmse": 395.33
+      },
+      "gbm-hand": {
+       "mean": 1499.05,
+       "bias": -80.9163,
+       "rmse": 425.723
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -117.574,
+       "rmse": 456.469
+      }
+     },
+     "gain": {
+      "gain": 78.0226,
+      "low": 73.7306,
+      "high": 82.234,
+      "beyond_noise": true
+     }
+    }
+   ]
+  },
+  {
+   "key": "backward",
+   "column": "first_backward",
+   "title": "The first move goes backward",
+   "groups": [
+    {
+     "group": "no",
+     "rows_all": 1030095,
+     "label_mean_all": 1453.54,
+     "rows": 102725,
+     "label_mean": 1452.43,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1450.14,
+       "bias": -2.29334,
+       "rmse": 371.447
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1458.26,
+       "bias": 5.82997,
+       "rmse": 375.533
+      },
+      "conv-small": {
+       "mean": 1457.49,
+       "bias": 5.0641,
+       "rmse": 408.797
+      },
+      "transformer-medium-hand": {
+       "mean": 1449.9,
+       "bias": -2.52565,
+       "rmse": 414.524
+      },
+      "transformer-medium": {
+       "mean": 1455.19,
+       "bias": 2.75578,
+       "rmse": 423.999
+      },
+      "transformer-small": {
+       "mean": 1455.79,
+       "bias": 3.35863,
+       "rmse": 428.095
+      },
+      "gbm-hand": {
+       "mean": 1459.41,
+       "bias": 6.97798,
+       "rmse": 457.408
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 9.95828,
+       "rmse": 504.066
+      }
+     },
+     "gain": {
+      "gain": 85.9606,
+      "low": 84.2842,
+      "high": 87.7276,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "yes",
+     "rows_all": 97820,
+     "label_mean_all": 1555.7,
+     "rows": 9725,
+     "label_mean": 1556.57,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1517.46,
+       "bias": -39.1198,
+       "rmse": 397.712
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1523.11,
+       "bias": -33.4638,
+       "rmse": 405.019
+      },
+      "conv-small": {
+       "mean": 1503.73,
+       "bias": -52.8413,
+       "rmse": 442.436
+      },
+      "transformer-medium-hand": {
+       "mean": 1503.3,
+       "bias": -53.2772,
+       "rmse": 432.591
+      },
+      "transformer-medium": {
+       "mean": 1495.42,
+       "bias": -61.156,
+       "rmse": 443.553
+      },
+      "transformer-small": {
+       "mean": 1507.65,
+       "bias": -48.9219,
+       "rmse": 446.392
+      },
+      "gbm-hand": {
+       "mean": 1490.35,
+       "bias": -66.2277,
+       "rmse": 450.592
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -94.1864,
+       "rmse": 490.154
+      }
+     },
+     "gain": {
+      "gain": 52.8801,
+      "low": 48.2399,
+      "high": 57.3123,
+      "beyond_noise": true
+     }
+    }
+   ]
+  },
+  {
+   "key": "quiet",
+   "column": "line_quiet",
+   "title": "Solver's moves that neither take nor check",
+   "groups": [
+    {
+     "group": "0",
+     "rows_all": 767282,
+     "label_mean_all": 1302.05,
+     "rows": 76556,
+     "label_mean": 1301.37,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1354.87,
+       "bias": 53.5026,
+       "rmse": 329.2
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1366.18,
+       "bias": 64.8058,
+       "rmse": 336.375
+      },
+      "conv-small": {
+       "mean": 1387.8,
+       "bias": 86.4265,
+       "rmse": 371.429
+      },
+      "transformer-medium-hand": {
+       "mean": 1382.1,
+       "bias": 80.7273,
+       "rmse": 373.733
+      },
+      "transformer-medium": {
+       "mean": 1394.44,
+       "bias": 93.0668,
+       "rmse": 384.869
+      },
+      "transformer-small": {
+       "mean": 1396.83,
+       "bias": 95.461,
+       "rmse": 390.474
+      },
+      "gbm-hand": {
+       "mean": 1418.05,
+       "bias": 116.683,
+       "rmse": 419.628
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 161.019,
+       "rmse": 470.814
+      }
+     },
+     "gain": {
+      "gain": 90.4281,
+      "low": 88.44,
+      "high": 92.3996,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "1",
+     "rows_all": 237359,
+     "label_mean_all": 1759.82,
+     "rows": 23549,
+     "label_mean": 1758.82,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1655.34,
+       "bias": -103.488,
+       "rmse": 428.441
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1656.9,
+       "bias": -101.925,
+       "rmse": 428.255
+      },
+      "conv-small": {
+       "mean": 1603.39,
+       "bias": -155.429,
+       "rmse": 453.822
+      },
+      "transformer-medium-hand": {
+       "mean": 1588.3,
+       "bias": -170.527,
+       "rmse": 467.617
+      },
+      "transformer-medium": {
+       "mean": 1570.35,
+       "bias": -188.47,
+       "rmse": 471.158
+      },
+      "transformer-small": {
+       "mean": 1568.33,
+       "bias": -190.498,
+       "rmse": 472.436
+      },
+      "gbm-hand": {
+       "mean": 1532.93,
+       "bias": -225.889,
+       "rmse": 495.887
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -296.435,
+       "rmse": 512.491
+      }
+     },
+     "gain": {
+      "gain": 67.4467,
+      "low": 63.8306,
+      "high": 71.151,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "2",
+     "rows_all": 87845,
+     "label_mean_all": 1870.82,
+     "rows": 8817,
+     "label_mean": 1872.09,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1707.07,
+       "bias": -165.02,
+       "rmse": 492.116
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1705.16,
+       "bias": -166.93,
+       "rmse": 493.023
+      },
+      "conv-small": {
+       "mean": 1646.53,
+       "bias": -225.561,
+       "rmse": 534.001
+      },
+      "transformer-medium-hand": {
+       "mean": 1648.1,
+       "bias": -223.988,
+       "rmse": 534.86
+      },
+      "transformer-medium": {
+       "mean": 1636.47,
+       "bias": -235.621,
+       "rmse": 547.478
+      },
+      "transformer-small": {
+       "mean": 1641.59,
+       "bias": -230.498,
+       "rmse": 549.498
+      },
+      "gbm-hand": {
+       "mean": 1591.2,
+       "bias": -280.892,
+       "rmse": 576.802
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -409.702,
+       "rmse": 631.546
+      }
+     },
+     "gain": {
+      "gain": 84.6863,
+      "low": 79.231,
+      "high": 91.0786,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "3+",
+     "rows_all": 35429,
+     "label_mean_all": 1929.82,
+     "rows": 3528,
+     "label_mean": 1923.52,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1691.1,
+       "bias": -232.413,
+       "rmse": 520.831
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1692.29,
+       "bias": -231.229,
+       "rmse": 521.055
+      },
+      "conv-small": {
+       "mean": 1651.08,
+       "bias": -272.438,
+       "rmse": 569.601
+      },
+      "transformer-medium-hand": {
+       "mean": 1649.4,
+       "bias": -274.115,
+       "rmse": 559.993
+      },
+      "transformer-medium": {
+       "mean": 1662.54,
+       "bias": -260.977,
+       "rmse": 576.004
+      },
+      "transformer-small": {
+       "mean": 1662.6,
+       "bias": -260.922,
+       "rmse": 576.621
+      },
+      "gbm-hand": {
+       "mean": 1621.95,
+       "bias": -301.569,
+       "rmse": 598.105
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -461.129,
+       "rmse": 707.402
+      }
+     },
+     "gain": {
+      "gain": 77.2749,
+      "low": 66.8336,
+      "high": 86.1523,
+      "beyond_noise": true
+     }
+    }
+   ]
+  },
+  {
+   "key": "mate",
+   "column": "ends_in_mate",
+   "title": "The line ends in mate",
+   "groups": [
+    {
+     "group": "no",
+     "rows_all": 781372,
+     "label_mean_all": 1614.54,
+     "rows": 77904,
+     "label_mean": 1613.46,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1581.71,
+       "bias": -31.7433,
+       "rmse": 405.774
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1587.14,
+       "bias": -26.3192,
+       "rmse": 408.258
+      },
+      "conv-small": {
+       "mean": 1560.46,
+       "bias": -52.9938,
+       "rmse": 437.072
+      },
+      "transformer-medium-hand": {
+       "mean": 1547.18,
+       "bias": -66.2809,
+       "rmse": 440.129
+      },
+      "transformer-medium": {
+       "mean": 1539.22,
+       "bias": -74.2345,
+       "rmse": 445.75
+      },
+      "transformer-small": {
+       "mean": 1539.47,
+       "bias": -73.982,
+       "rmse": 448.584
+      },
+      "gbm-hand": {
+       "mean": 1505.78,
+       "bias": -107.673,
+       "rmse": 464.218
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -151.068,
+       "rmse": 494.911
+      }
+     },
+     "gain": {
+      "gain": 58.4437,
+      "low": 56.8114,
+      "high": 60.4042,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "yes",
+     "rows_all": 346543,
+     "label_mean_all": 1119.37,
+     "rows": 34546,
+     "label_mean": 1118.62,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1172.37,
+       "bias": 53.7517,
+       "rmse": 288.957
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1185.89,
+       "bias": 67.2675,
+       "rmse": 299.437
+      },
+      "conv-small": {
+       "mean": 1238.31,
+       "bias": 119.688,
+       "rmse": 348.196
+      },
+      "transformer-medium-hand": {
+       "mean": 1245.58,
+       "bias": 126.96,
+       "rmse": 356.076
+      },
+      "transformer-medium": {
+       "mean": 1277.0,
+       "bias": 158.383,
+       "rmse": 376.683
+      },
+      "transformer-small": {
+       "mean": 1281.67,
+       "bias": 163.051,
+       "rmse": 383.75
+      },
+      "gbm-hand": {
+       "mean": 1363.54,
+       "bias": 244.918,
+       "rmse": 439.69
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 343.769,
+       "rmse": 520.398
+      }
+     },
+     "gain": {
+      "gain": 150.733,
+      "low": 147.727,
+      "high": 154.829,
+      "beyond_noise": true
+     }
+    }
+   ]
+  },
+  {
+   "key": "pieces",
+   "column": "phase_piece_count",
+   "title": "Knights, bishops, rooks and queens on the board",
+   "groups": [
+    {
+     "group": "<3",
+     "rows_all": 158227,
+     "label_mean_all": 1588.14,
+     "rows": 15773,
+     "label_mean": 1590.9,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1593.22,
+       "bias": 2.3246,
+       "rmse": 429.001
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1596.77,
+       "bias": 5.86898,
+       "rmse": 432.142
+      },
+      "conv-small": {
+       "mean": 1585.42,
+       "bias": -5.4768,
+       "rmse": 463.932
+      },
+      "transformer-medium-hand": {
+       "mean": 1595.27,
+       "bias": 4.37176,
+       "rmse": 459.481
+      },
+      "transformer-medium": {
+       "mean": 1595.11,
+       "bias": 4.21044,
+       "rmse": 468.929
+      },
+      "transformer-small": {
+       "mean": 1613.05,
+       "bias": 22.1464,
+       "rmse": 474.876
+      },
+      "gbm-hand": {
+       "mean": 1588.69,
+       "bias": -2.20923,
+       "rmse": 482.528
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -128.51,
+       "rmse": 564.518
+      }
+     },
+     "gain": {
+      "gain": 53.5268,
+      "low": 49.7476,
+      "high": 57.8591,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "3-6",
+     "rows_all": 244438,
+     "label_mean_all": 1344.7,
+     "rows": 24519,
+     "label_mean": 1343.76,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1337.16,
+       "bias": -6.60236,
+       "rmse": 369.173
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1343.53,
+       "bias": -0.223675,
+       "rmse": 372.763
+      },
+      "conv-small": {
+       "mean": 1345.27,
+       "bias": 1.51499,
+       "rmse": 407.0
+      },
+      "transformer-medium-hand": {
+       "mean": 1334.23,
+       "bias": -9.53195,
+       "rmse": 405.092
+      },
+      "transformer-medium": {
+       "mean": 1337.72,
+       "bias": -6.04056,
+       "rmse": 417.598
+      },
+      "transformer-small": {
+       "mean": 1340.64,
+       "bias": -3.11648,
+       "rmse": 421.729
+      },
+      "gbm-hand": {
+       "mean": 1342.65,
+       "bias": -1.10503,
+       "rmse": 443.679
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 118.63,
+       "rmse": 500.153
+      }
+     },
+     "gain": {
+      "gain": 74.5062,
+      "low": 70.6804,
+      "high": 77.6323,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "6-9",
+     "rows_all": 378491,
+     "label_mean_all": 1476.71,
+     "rows": 37334,
+     "label_mean": 1475.43,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1472.04,
+       "bias": -3.38931,
+       "rmse": 374.443
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1481.36,
+       "bias": 5.9361,
+       "rmse": 379.49
+      },
+      "conv-small": {
+       "mean": 1473.37,
+       "bias": -2.05486,
+       "rmse": 412.85
+      },
+      "transformer-medium-hand": {
+       "mean": 1464.69,
+       "bias": -10.7353,
+       "rmse": 420.449
+      },
+      "transformer-medium": {
+       "mean": 1476.8,
+       "bias": 1.37137,
+       "rmse": 429.014
+      },
+      "transformer-small": {
+       "mean": 1476.34,
+       "bias": 0.909666,
+       "rmse": 432.285
+      },
+      "gbm-hand": {
+       "mean": 1476.9,
+       "bias": 1.47426,
+       "rmse": 458.962
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -13.0396,
+       "rmse": 488.358
+      }
+     },
+     "gain": {
+      "gain": 84.5181,
+      "low": 81.9669,
+      "high": 87.4959,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "9-12",
+     "rows_all": 225861,
+     "label_mean_all": 1474.66,
+     "rows": 22790,
+     "label_mean": 1470.25,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1462.61,
+       "bias": -7.63995,
+       "rmse": 359.366
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1472.36,
+       "bias": 2.11172,
+       "rmse": 366.304
+      },
+      "conv-small": {
+       "mean": 1476.42,
+       "bias": 6.16673,
+       "rmse": 401.055
+      },
+      "transformer-medium-hand": {
+       "mean": 1467.83,
+       "bias": -2.42276,
+       "rmse": 411.07
+      },
+      "transformer-medium": {
+       "mean": 1467.1,
+       "bias": -3.15123,
+       "rmse": 419.2
+      },
+      "transformer-small": {
+       "mean": 1462.8,
+       "bias": -7.45056,
+       "rmse": 423.483
+      },
+      "gbm-hand": {
+       "mean": 1474.5,
+       "bias": 4.25244,
+       "rmse": 462.024
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -7.86369,
+       "rmse": 498.316
+      }
+     },
+     "gain": {
+      "gain": 102.658,
+      "low": 99.0929,
+      "high": 106.116,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "12+",
+     "rows_all": 120898,
+     "label_mean_all": 1468.12,
+     "rows": 12034,
+     "label_mean": 1471.42,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1455.62,
+       "bias": -15.8015,
+       "rmse": 327.315
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1464.49,
+       "bias": -6.92891,
+       "rmse": 328.05
+      },
+      "conv-small": {
+       "mean": 1470.73,
+       "bias": -0.685984,
+       "rmse": 362.928
+      },
+      "transformer-medium-hand": {
+       "mean": 1458.39,
+       "bias": -13.0301,
+       "rmse": 372.155
+      },
+      "transformer-medium": {
+       "mean": 1454.02,
+       "bias": -17.3956,
+       "rmse": 382.453
+      },
+      "transformer-small": {
+       "mean": 1449.16,
+       "bias": -22.2548,
+       "rmse": 384.848
+      },
+      "gbm-hand": {
+       "mean": 1469.98,
+       "bias": -1.43463,
+       "rmse": 431.305
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -9.02958,
+       "rmse": 474.89
+      }
+     },
+     "gain": {
+      "gain": 103.99,
+      "low": 99.1221,
+      "high": 109.053,
+      "beyond_noise": true
+     }
+    }
+   ]
+  },
+  {
+   "key": "plays",
+   "column": "plays",
+   "title": "Attempts the puzzle has had",
+   "groups": [
+    {
+     "group": "<200",
+     "rows_all": 195184,
+     "label_mean_all": 1390.22,
+     "rows": 19367,
+     "label_mean": 1389.41,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1361.27,
+       "bias": -28.1413,
+       "rmse": 389.516
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1369.7,
+       "bias": -19.7122,
+       "rmse": 395.47
+      },
+      "conv-small": {
+       "mean": 1389.22,
+       "bias": -0.191262,
+       "rmse": 441.313
+      },
+      "transformer-medium-hand": {
+       "mean": 1389.62,
+       "bias": 0.21622,
+       "rmse": 446.67
+      },
+      "transformer-medium": {
+       "mean": 1400.91,
+       "bias": 11.5044,
+       "rmse": 461.155
+      },
+      "transformer-small": {
+       "mean": 1405.56,
+       "bias": 16.1478,
+       "rmse": 467.296
+      },
+      "gbm-hand": {
+       "mean": 1433.24,
+       "bias": 43.8349,
+       "rmse": 510.916
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 72.9806,
+       "rmse": 585.671
+      }
+     },
+     "gain": {
+      "gain": 121.399,
+      "low": 117.681,
+      "high": 125.297,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "200-500",
+     "rows_all": 281499,
+     "label_mean_all": 1340.25,
+     "rows": 27949,
+     "label_mean": 1336.24,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1355.23,
+       "bias": 18.9834,
+       "rmse": 382.11
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1366.05,
+       "bias": 29.808,
+       "rmse": 390.021
+      },
+      "conv-small": {
+       "mean": 1389.96,
+       "bias": 53.7163,
+       "rmse": 435.581
+      },
+      "transformer-medium-hand": {
+       "mean": 1388.77,
+       "bias": 52.5256,
+       "rmse": 442.954
+      },
+      "transformer-medium": {
+       "mean": 1401.44,
+       "bias": 65.2011,
+       "rmse": 457.141
+      },
+      "transformer-small": {
+       "mean": 1405.28,
+       "bias": 69.0417,
+       "rmse": 461.707
+      },
+      "gbm-hand": {
+       "mean": 1432.43,
+       "bias": 96.1869,
+       "rmse": 501.338
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 126.146,
+       "rmse": 566.571
+      }
+     },
+     "gain": {
+      "gain": 119.228,
+      "low": 116.051,
+      "high": 122.009,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "500-1000",
+     "rows_all": 195921,
+     "label_mean_all": 1451.61,
+     "rows": 19769,
+     "label_mean": 1449.27,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1453.1,
+       "bias": 3.82847,
+       "rmse": 383.771
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1463.3,
+       "bias": 14.0255,
+       "rmse": 389.206
+      },
+      "conv-small": {
+       "mean": 1462.25,
+       "bias": 12.9733,
+       "rmse": 425.316
+      },
+      "transformer-medium-hand": {
+       "mean": 1457.41,
+       "bias": 8.13988,
+       "rmse": 427.422
+      },
+      "transformer-medium": {
+       "mean": 1460.62,
+       "bias": 11.3493,
+       "rmse": 438.11
+      },
+      "transformer-small": {
+       "mean": 1463.06,
+       "bias": 13.7918,
+       "rmse": 441.923
+      },
+      "gbm-hand": {
+       "mean": 1464.65,
+       "bias": 15.3738,
+       "rmse": 470.366
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 13.1154,
+       "rmse": 515.142
+      }
+     },
+     "gain": {
+      "gain": 86.5942,
+      "low": 82.4051,
+      "high": 90.7075,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "1000-5000",
+     "rows_all": 326752,
+     "label_mean_all": 1571.61,
+     "rows": 32437,
+     "label_mean": 1572.78,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1551.91,
+       "bias": -20.8661,
+       "rmse": 371.856
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1556.62,
+       "bias": -16.1534,
+       "rmse": 372.893
+      },
+      "conv-small": {
+       "mean": 1531.68,
+       "bias": -41.101,
+       "rmse": 394.376
+      },
+      "transformer-medium-hand": {
+       "mean": 1519.4,
+       "bias": -53.375,
+       "rmse": 397.979
+      },
+      "transformer-medium": {
+       "mean": 1515.39,
+       "bias": -57.3845,
+       "rmse": 402.229
+      },
+      "transformer-small": {
+       "mean": 1514.76,
+       "bias": -58.0192,
+       "rmse": 404.922
+      },
+      "gbm-hand": {
+       "mean": 1492.82,
+       "bias": -79.9546,
+       "rmse": 417.003
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -110.389,
+       "rmse": 440.335
+      }
+     },
+     "gain": {
+      "gain": 45.1472,
+      "low": 42.153,
+      "high": 48.1113,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "5000+",
+     "rows_all": 128559,
+     "label_mean_all": 1578.31,
+     "rows": 12928,
+     "label_mean": 1579.24,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1579.21,
+       "bias": -0.0332192,
+       "rmse": 316.555
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1584.56,
+       "bias": 5.32255,
+       "rmse": 316.703
+      },
+      "conv-small": {
+       "mean": 1547.17,
+       "bias": -32.0668,
+       "rmse": 326.103
+      },
+      "transformer-medium-hand": {
+       "mean": 1526.69,
+       "bias": -52.5515,
+       "rmse": 326.019
+      },
+      "transformer-medium": {
+       "mean": 1523.57,
+       "bias": -55.6737,
+       "rmse": 326.592
+      },
+      "transformer-small": {
+       "mean": 1520.16,
+       "bias": -59.0818,
+       "rmse": 328.781
+      },
+      "gbm-hand": {
+       "mean": 1488.36,
+       "bias": -90.8857,
+       "rmse": 325.817
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -116.852,
+       "rmse": 315.495
+      }
+     },
+     "gain": {
+      "gain": 9.26209,
+      "low": 5.38048,
+      "high": 13.2876,
+      "beyond_noise": true
+     }
+    }
+   ]
+  },
+  {
+   "key": "deviation",
+   "column": "rating_deviation",
+   "title": "The rating's deviation",
+   "groups": [
+    {
+     "group": "<75",
+     "rows_all": 63081,
+     "label_mean_all": 1664.88,
+     "rows": 6359,
+     "label_mean": 1669.03,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1614.93,
+       "bias": -54.0994,
+       "rmse": 292.689
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1620.71,
+       "bias": -48.3205,
+       "rmse": 291.82
+      },
+      "conv-small": {
+       "mean": 1575.51,
+       "bias": -93.5166,
+       "rmse": 303.593
+      },
+      "transformer-medium-hand": {
+       "mean": 1551.62,
+       "bias": -117.411,
+       "rmse": 310.035
+      },
+      "transformer-medium": {
+       "mean": 1541.64,
+       "bias": -127.385,
+       "rmse": 313.881
+      },
+      "transformer-small": {
+       "mean": 1539.51,
+       "bias": -129.517,
+       "rmse": 313.852
+      },
+      "gbm-hand": {
+       "mean": 1504.7,
+       "bias": -164.328,
+       "rmse": 319.767
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -206.639,
+       "rmse": 321.369
+      }
+     },
+     "gain": {
+      "gain": 27.0787,
+      "low": 20.6956,
+      "high": 33.9798,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "75-80",
+     "rows_all": 698194,
+     "label_mean_all": 1501.84,
+     "rows": 69429,
+     "label_mean": 1499.98,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1513.12,
+       "bias": 13.1384,
+       "rmse": 341.102
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1520.16,
+       "bias": 20.1796,
+       "rmse": 344.454
+      },
+      "conv-small": {
+       "mean": 1504.95,
+       "bias": 4.96359,
+       "rmse": 363.7
+      },
+      "transformer-medium-hand": {
+       "mean": 1494.82,
+       "bias": -5.16378,
+       "rmse": 365.314
+      },
+      "transformer-medium": {
+       "mean": 1494.43,
+       "bias": -5.55,
+       "rmse": 370.627
+      },
+      "transformer-small": {
+       "mean": 1494.4,
+       "bias": -5.57859,
+       "rmse": 373.624
+      },
+      "gbm-hand": {
+       "mean": 1479.66,
+       "bias": -20.3206,
+       "rmse": 382.822
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": -37.5936,
+       "rmse": 400.421
+      }
+     },
+     "gain": {
+      "gain": 41.72,
+      "low": 39.7906,
+      "high": 43.6089,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "80-90",
+     "rows_all": 256388,
+     "label_mean_all": 1404.5,
+     "rows": 25600,
+     "label_mean": 1406.95,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1377.55,
+       "bias": -29.4057,
+       "rmse": 428.781
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1386.68,
+       "bias": -20.2706,
+       "rmse": 433.628
+      },
+      "conv-small": {
+       "mean": 1403.13,
+       "bias": -3.82499,
+       "rmse": 482.676
+      },
+      "transformer-medium-hand": {
+       "mean": 1404.87,
+       "bias": -2.08691,
+       "rmse": 488.572
+      },
+      "transformer-medium": {
+       "mean": 1414.53,
+       "bias": 7.57644,
+       "rmse": 501.241
+      },
+      "transformer-small": {
+       "mean": 1419.55,
+       "bias": 12.6028,
+       "rmse": 507.806
+      },
+      "gbm-hand": {
+       "mean": 1443.18,
+       "bias": 36.2238,
+       "rmse": 548.821
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 55.4364,
+       "rmse": 612.29
+      }
+     },
+     "gain": {
+      "gain": 120.041,
+      "low": 116.47,
+      "high": 123.969,
+      "beyond_noise": true
+     }
+    },
+    {
+     "group": "90+",
+     "rows_all": 110252,
+     "label_mean_all": 1231.41,
+     "rows": 11062,
+     "label_mean": 1226.27,
+     "runs": {
+      "transformer-medium-hand-pretrained": {
+       "mean": 1187.27,
+       "bias": -38.9987,
+       "rmse": 464.046
+      },
+      "transformer-medium-pretrained": {
+       "mean": 1199.02,
+       "bias": -27.2468,
+       "rmse": 474.37
+      },
+      "conv-small": {
+       "mean": 1258.3,
+       "bias": 32.0288,
+       "rmse": 549.188
+      },
+      "transformer-medium-hand": {
+       "mean": 1260.71,
+       "bias": 34.4414,
+       "rmse": 561.163
+      },
+      "transformer-medium": {
+       "mean": 1288.63,
+       "bias": 62.354,
+       "rmse": 584.972
+      },
+      "transformer-small": {
+       "mean": 1294.75,
+       "bias": 68.4808,
+       "rmse": 589.494
+      },
+      "gbm-hand": {
+       "mean": 1371.02,
+       "bias": 144.749,
+       "rmse": 667.639
+      },
+      "constant": {
+       "mean": 1462.39,
+       "bias": 236.117,
+       "rmse": 798.371
+      }
+     },
+     "gain": {
+      "gain": 203.593,
+      "low": 197.856,
+      "high": 209.201,
+      "beyond_noise": true
+     }
+    }
+   ]
+  }
+ ],
+ "grids": [
+  {
+   "key": "moves-pieces",
+   "rows": {
+    "column": "solver_moves",
+    "title": "Moves the solver has to find",
+    "groups": [
+     "1",
+     "2",
+     "3",
+     "4",
+     "5+"
+    ]
+   },
+   "columns": {
+    "column": "phase_piece_count",
+    "title": "Knights, bishops, rooks and queens on the board",
+    "groups": [
+     "<3",
+     "3-6",
+     "6-9",
+     "9-12",
+     "12+"
+    ]
+   },
+   "cells": [
+    [
+     {
+      "rows_all": 6373,
+      "label_mean_all": 1003.13,
+      "rows": 614,
+      "label_mean": 1004.76,
+      "runs": {
+       "transformer-medium-hand-pretrained": 1084.09,
+       "transformer-medium-pretrained": 1107.69,
+       "conv-small": 1213.47,
+       "transformer-medium-hand": 1240.96,
+       "transformer-medium": 1257.78,
+       "transformer-small": 1302.46,
+       "gbm-hand": 1337.73,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 34413,
+      "label_mean_all": 975.802,
+      "rows": 3433,
+      "label_mean": 976.255,
+      "runs": {
+       "transformer-medium-hand-pretrained": 1081.19,
+       "transformer-medium-pretrained": 1095.98,
+       "conv-small": 1181.66,
+       "transformer-medium-hand": 1200.22,
+       "transformer-medium": 1241.7,
+       "transformer-small": 1252.64,
+       "gbm-hand": 1306.15,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 43524,
+      "label_mean_all": 978.895,
+      "rows": 4308,
+      "label_mean": 971.861,
+      "runs": {
+       "transformer-medium-hand-pretrained": 1089.8,
+       "transformer-medium-pretrained": 1102.04,
+       "conv-small": 1207.35,
+       "transformer-medium-hand": 1251.45,
+       "transformer-medium": 1298.56,
+       "transformer-small": 1311.33,
+       "gbm-hand": 1416.85,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 42013,
+      "label_mean_all": 943.029,
+      "rows": 4187,
+      "label_mean": 948.288,
+      "runs": {
+       "transformer-medium-hand-pretrained": 997.393,
+       "transformer-medium-pretrained": 1008.64,
+       "conv-small": 1113.66,
+       "transformer-medium-hand": 1145.13,
+       "transformer-medium": 1169.0,
+       "transformer-small": 1176.34,
+       "gbm-hand": 1359.86,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 23493,
+      "label_mean_all": 932.203,
+      "rows": 2312,
+      "label_mean": 931.056,
+      "runs": {
+       "transformer-medium-hand-pretrained": 943.165,
+       "transformer-medium-pretrained": 941.377,
+       "conv-small": 1044.53,
+       "transformer-medium-hand": 1058.85,
+       "transformer-medium": 1070.48,
+       "transformer-small": 1069.28,
+       "gbm-hand": 1301.78,
+       "constant": 1462.39
+      }
+     }
+    ],
+    [
+     {
+      "rows_all": 70379,
+      "label_mean_all": 1427.47,
+      "rows": 7043,
+      "label_mean": 1436.55,
+      "runs": {
+       "transformer-medium-hand-pretrained": 1545.36,
+       "transformer-medium-pretrained": 1550.0,
+       "conv-small": 1545.76,
+       "transformer-medium-hand": 1560.08,
+       "transformer-medium": 1550.62,
+       "transformer-small": 1575.67,
+       "gbm-hand": 1562.78,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 132665,
+      "label_mean_all": 1265.79,
+      "rows": 13324,
+      "label_mean": 1262.4,
+      "runs": {
+       "transformer-medium-hand-pretrained": 1314.5,
+       "transformer-medium-pretrained": 1322.17,
+       "conv-small": 1332.09,
+       "transformer-medium-hand": 1320.45,
+       "transformer-medium": 1322.53,
+       "transformer-small": 1326.82,
+       "gbm-hand": 1335.14,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 196050,
+      "label_mean_all": 1400.59,
+      "rows": 19173,
+      "label_mean": 1397.61,
+      "runs": {
+       "transformer-medium-hand-pretrained": 1465.73,
+       "transformer-medium-pretrained": 1476.73,
+       "conv-small": 1472.02,
+       "transformer-medium-hand": 1462.11,
+       "transformer-medium": 1473.25,
+       "transformer-small": 1472.36,
+       "gbm-hand": 1473.04,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 115376,
+      "label_mean_all": 1461.4,
+      "rows": 11716,
+      "label_mean": 1455.87,
+      "runs": {
+       "transformer-medium-hand-pretrained": 1515.76,
+       "transformer-medium-pretrained": 1525.5,
+       "conv-small": 1525.73,
+       "transformer-medium-hand": 1510.29,
+       "transformer-medium": 1506.49,
+       "transformer-small": 1500.9,
+       "gbm-hand": 1489.1,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 66561,
+      "label_mean_all": 1495.28,
+      "rows": 6640,
+      "label_mean": 1499.85,
+      "runs": {
+       "transformer-medium-hand-pretrained": 1538.98,
+       "transformer-medium-pretrained": 1550.66,
+       "conv-small": 1545.67,
+       "transformer-medium-hand": 1529.74,
+       "transformer-medium": 1523.41,
+       "transformer-small": 1517.88,
+       "gbm-hand": 1501.93,
+       "constant": 1462.39
+      }
+     }
+    ],
+    [
+     {
+      "rows_all": 54189,
+      "label_mean_all": 1710.85,
+      "rows": 5414,
+      "label_mean": 1707.58,
+      "runs": {
+       "transformer-medium-hand-pretrained": 1669.84,
+       "transformer-medium-pretrained": 1668.85,
+       "conv-small": 1646.31,
+       "transformer-medium-hand": 1650.45,
+       "transformer-medium": 1655.05,
+       "transformer-small": 1667.23,
+       "gbm-hand": 1624.03,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 63322,
+      "label_mean_all": 1579.97,
+      "rows": 6346,
+      "label_mean": 1578.82,
+      "runs": {
+       "transformer-medium-hand-pretrained": 1473.04,
+       "transformer-medium-pretrained": 1474.08,
+       "conv-small": 1427.88,
+       "transformer-medium-hand": 1404.94,
+       "transformer-medium": 1394.64,
+       "transformer-small": 1391.67,
+       "gbm-hand": 1366.01,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 111771,
+      "label_mean_all": 1681.64,
+      "rows": 11208,
+      "label_mean": 1682.04,
+      "runs": {
+       "transformer-medium-hand-pretrained": 1586.2,
+       "transformer-medium-pretrained": 1591.96,
+       "conv-small": 1549.25,
+       "transformer-medium-hand": 1524.54,
+       "transformer-medium": 1528.43,
+       "transformer-small": 1524.94,
+       "gbm-hand": 1498.28,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 55989,
+      "label_mean_all": 1769.59,
+      "rows": 5633,
+      "label_mean": 1759.63,
+      "runs": {
+       "transformer-medium-hand-pretrained": 1641.46,
+       "transformer-medium-pretrained": 1650.18,
+       "conv-small": 1605.14,
+       "transformer-medium-hand": 1583.99,
+       "transformer-medium": 1574.81,
+       "transformer-small": 1565.12,
+       "gbm-hand": 1517.81,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 26365,
+      "label_mean_all": 1779.94,
+      "rows": 2650,
+      "label_mean": 1780.24,
+      "runs": {
+       "transformer-medium-hand-pretrained": 1651.7,
+       "transformer-medium-pretrained": 1662.05,
+       "conv-small": 1623.36,
+       "transformer-medium-hand": 1599.81,
+       "transformer-medium": 1588.74,
+       "transformer-small": 1582.7,
+       "gbm-hand": 1524.68,
+       "constant": 1462.39
+      }
+     }
+    ],
+    [
+     {
+      "rows_all": 17342,
+      "label_mean_all": 1842.63,
+      "rows": 1715,
+      "label_mean": 1842.25,
+      "runs": {
+       "transformer-medium-hand-pretrained": 1679.2,
+       "transformer-medium-pretrained": 1681.21,
+       "conv-small": 1651.57,
+       "transformer-medium-hand": 1658.01,
+       "transformer-medium": 1665.67,
+       "transformer-small": 1669.56,
+       "gbm-hand": 1642.74,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 10970,
+      "label_mean_all": 1873.51,
+      "rows": 1116,
+      "label_mean": 1882.33,
+      "runs": {
+       "transformer-medium-hand-pretrained": 1554.22,
+       "transformer-medium-pretrained": 1551.34,
+       "conv-small": 1492.07,
+       "transformer-medium-hand": 1461.76,
+       "transformer-medium": 1457.55,
+       "transformer-small": 1453.56,
+       "gbm-hand": 1389.33,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 21440,
+      "label_mean_all": 1928.34,
+      "rows": 2092,
+      "label_mean": 1926.72,
+      "runs": {
+       "transformer-medium-hand-pretrained": 1647.92,
+       "transformer-medium-pretrained": 1654.34,
+       "conv-small": 1583.85,
+       "transformer-medium-hand": 1570.15,
+       "transformer-medium": 1565.25,
+       "transformer-small": 1559.18,
+       "gbm-hand": 1509.63,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 9916,
+      "label_mean_all": 2019.99,
+      "rows": 1011,
+      "label_mean": 2010.35,
+      "runs": {
+       "transformer-medium-hand-pretrained": 1715.13,
+       "transformer-medium-pretrained": 1724.45,
+       "conv-small": 1647.84,
+       "transformer-medium-hand": 1627.31,
+       "transformer-medium": 1607.94,
+       "transformer-small": 1599.56,
+       "gbm-hand": 1529.63,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 3793,
+      "label_mean_all": 2010.47,
+      "rows": 369,
+      "label_mean": 2000.96,
+      "runs": {
+       "transformer-medium-hand-pretrained": 1704.95,
+       "transformer-medium-pretrained": 1719.74,
+       "conv-small": 1657.39,
+       "transformer-medium-hand": 1626.62,
+       "transformer-medium": 1608.22,
+       "transformer-small": 1606.53,
+       "gbm-hand": 1540.47,
+       "constant": 1462.39
+      }
+     }
+    ],
+    [
+     {
+      "rows_all": 9944,
+      "label_mean_all": 1987.69,
+      "rows": 987,
+      "label_mean": 1980.15,
+      "runs": {
+       "transformer-medium-hand-pretrained": 1681.86,
+       "transformer-medium-pretrained": 1692.66,
+       "conv-small": 1650.95,
+       "transformer-medium-hand": 1655.08,
+       "transformer-medium": 1671.02,
+       "transformer-small": 1677.51,
+       "gbm-hand": 1641.88,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 3068,
+      "label_mean_all": 2147.77,
+      "rows": 300,
+      "label_mean": 2186.73,
+      "runs": {
+       "transformer-medium-hand-pretrained": 1590.54,
+       "transformer-medium-pretrained": 1590.74,
+       "conv-small": 1509.71,
+       "transformer-medium-hand": 1509.55,
+       "transformer-medium": 1461.3,
+       "transformer-small": 1461.97,
+       "gbm-hand": 1426.24,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 5706,
+      "label_mean_all": 2177.82,
+      "rows": 553,
+      "label_mean": 2201.44,
+      "runs": {
+       "transformer-medium-hand-pretrained": 1689.49,
+       "transformer-medium-pretrained": 1701.09,
+       "conv-small": 1636.92,
+       "transformer-medium-hand": 1603.47,
+       "transformer-medium": 1607.12,
+       "transformer-small": 1601.42,
+       "gbm-hand": 1521.72,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 2567,
+      "label_mean_all": 2232.05,
+      "rows": 243,
+      "label_mean": 2202.12,
+      "runs": {
+       "transformer-medium-hand-pretrained": 1719.46,
+       "transformer-medium-pretrained": 1729.78,
+       "conv-small": 1652.24,
+       "transformer-medium-hand": 1624.78,
+       "transformer-medium": 1621.71,
+       "transformer-small": 1621.1,
+       "gbm-hand": 1512.98,
+       "constant": 1462.39
+      }
+     },
+     {
+      "rows_all": 686,
+      "label_mean_all": 2202.72,
+      "rows": 63,
+      "label_mean": 2213.44,
+      "runs": {
+       "transformer-medium-hand-pretrained": 1767.49,
+       "transformer-medium-pretrained": 1775.02,
+       "conv-small": 1700.42,
+       "transformer-medium-hand": 1666.8,
+       "transformer-medium": 1646.45,
+       "transformer-small": 1609.46,
+       "gbm-hand": 1562.24,
+       "constant": 1462.39
+      }
+     }
+    ]
+   ]
+  }
+ ],
+ "examples": {
+  "typical": [
+   {
+    "id": "lpK6U",
+    "fen": "5rk1/5ppp/p3p3/1p1pPP2/2r5/q1PQ1R2/P5PP/5R1K w - - 1 26",
+    "moves": {
+     "setup": "e7a3",
+     "line": "f5e6 f7e6 f3f8 a3f8 f1f8"
+    },
+    "label": 1292.0,
+    "predicted": {
+     "transformer-medium-hand-pretrained": 1779.74,
+     "transformer-medium-pretrained": 1807.03,
+     "conv-small": 1733.78,
+     "transformer-medium-hand": 1815.88,
+     "transformer-medium": 1773.11,
+     "transformer-small": 1597.1,
+     "gbm-hand": 1492.58,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 76,
+     "plays": 1626,
+     "themes": "advantage discoveredAttack endgame kingsideAttack long"
+    }
+   },
+   {
+    "id": "3qm2z",
+    "fen": "4nk2/5pp1/1R1p3p/4pP2/4r3/2P3PP/3B3K/4N3 b - - 0 41",
+    "moves": {
+     "setup": "b7b6",
+     "line": "e4e2 e1g2 e2d2"
+    },
+    "label": 863.0,
+    "predicted": {
+     "transformer-medium-hand-pretrained": 1067.6,
+     "transformer-medium-pretrained": 1226.28,
+     "conv-small": 975.169,
+     "transformer-medium-hand": 1101.52,
+     "transformer-medium": 1332.1,
+     "transformer-small": 1191.74,
+     "gbm-hand": 991.429,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 90,
+     "plays": 240,
+     "themes": "advantage endgame fork short"
+    }
+   },
+   {
+    "id": "Fk5ur",
+    "fen": "5k2/p4Pp1/3p3r/1pp2Q2/3pb1P1/6K1/PPP2R2/4q3 w - - 0 36",
+    "moves": {
+     "setup": "c6e4",
+     "line": "f5c8 f8e7 f7f8q"
+    },
+    "label": 958.0,
+    "predicted": {
+     "transformer-medium-hand-pretrained": 1257.99,
+     "transformer-medium-pretrained": 1582.72,
+     "conv-small": 1565.39,
+     "transformer-medium-hand": 1417.34,
+     "transformer-medium": 1483.41,
+     "transformer-small": 1414.82,
+     "gbm-hand": 1160.28,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 89,
+     "plays": 2290,
+     "themes": "advancedPawn endgame mate mateIn2 promotion short"
+    }
+   }
+  ],
+  "highest": [
+   {
+    "id": "hQsNV",
+    "fen": "8/8/8/2pk2K1/7P/8/8/8 b - - 0 47",
+    "moves": {
+     "setup": "h3h4",
+     "line": "c5c4 g5f4 c4c3 f4e3 d5c4 e3e2 c4b3 e2d1 b3b2"
+    },
+    "label": 2474.0,
+    "predicted": {
+     "transformer-medium-hand-pretrained": 2505.66,
+     "transformer-medium-pretrained": 2498.77,
+     "conv-small": 1912.73,
+     "transformer-medium-hand": 1960.92,
+     "transformer-medium": 1762.78,
+     "transformer-small": 1761.8,
+     "gbm-hand": 1256.95,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 88,
+     "plays": 126,
+     "themes": "crushing defensiveMove endgame pawnEndgame quietMove veryLong"
+    }
+   },
+   {
+    "id": "LmwtA",
+    "fen": "5k2/2R5/8/1r2P1Kp/8/8/8/8 w - - 4 44",
+    "moves": {
+     "setup": "g7f8",
+     "line": "g5f6 b5b6 e5e6"
+    },
+    "label": 1551.0,
+    "predicted": {
+     "transformer-medium-hand-pretrained": 2456.98,
+     "transformer-medium-pretrained": 2398.48,
+     "conv-small": 1988.94,
+     "transformer-medium-hand": 2131.02,
+     "transformer-medium": 2210.67,
+     "transformer-small": 2038.1,
+     "gbm-hand": 1788.7,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 75,
+     "plays": 347,
+     "themes": "crushing defensiveMove endgame rookEndgame short"
+    }
+   },
+   {
+    "id": "6UvTz",
+    "fen": "8/8/3pk1p1/2p2p1p/2PpPPP1/3P1K1P/8/8 w - - 1 44",
+    "moves": {
+     "setup": "f6e6",
+     "line": "e4f5 g6f5 g4g5"
+    },
+    "label": 2360.0,
+    "predicted": {
+     "transformer-medium-hand-pretrained": 2453.05,
+     "transformer-medium-pretrained": 2366.52,
+     "conv-small": 2283.43,
+     "transformer-medium-hand": 2295.72,
+     "transformer-medium": 2205.75,
+     "transformer-small": 2096.61,
+     "gbm-hand": 2297.52,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 89,
+     "plays": 349,
+     "themes": "crushing defensiveMove endgame pawnEndgame short"
+    }
+   }
+  ],
+  "lowest": [
+   {
+    "id": "1KTsL",
+    "fen": "8/p6p/4B3/6P1/P4k1P/1P3p2/5P2/2rR1K2 b - - 0 36",
+    "moves": {
+     "setup": "e1d1",
+     "line": "c1d1"
+    },
+    "label": 399.0,
+    "predicted": {
+     "transformer-medium-hand-pretrained": 360.123,
+     "transformer-medium-pretrained": 423.053,
+     "conv-small": 625.611,
+     "transformer-medium-hand": 613.319,
+     "transformer-medium": 1033.18,
+     "transformer-small": 829.151,
+     "gbm-hand": 977.036,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 90,
+     "plays": 115,
+     "themes": "endgame mate mateIn1 oneMove"
+    }
+   },
+   {
+    "id": "U0EV9",
+    "fen": "6k1/5pp1/6p1/1p6/8/8/PP4PP/3rR2K b - - 2 36",
+    "moves": {
+     "setup": "e2e1",
+     "line": "d1e1"
+    },
+    "label": 423.0,
+    "predicted": {
+     "transformer-medium-hand-pretrained": 376.839,
+     "transformer-medium-pretrained": 392.571,
+     "conv-small": 424.037,
+     "transformer-medium-hand": 395.521,
+     "transformer-medium": 390.605,
+     "transformer-small": 375.855,
+     "gbm-hand": 1317.48,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 91,
+     "plays": 191,
+     "themes": "backRankMate endgame hangingPiece mate mateIn1 oneMove rookEndgame"
+    }
+   },
+   {
+    "id": "y8YJa",
+    "fen": "4q1k1/5ppp/p7/8/8/6P1/7P/4R1K1 w - - 0 32",
+    "moves": {
+     "setup": "b5e8",
+     "line": "e1e8"
+    },
+    "label": 400.0,
+    "predicted": {
+     "transformer-medium-hand-pretrained": 378.805,
+     "transformer-medium-pretrained": 405.354,
+     "conv-small": 473.201,
+     "transformer-medium-hand": 550.881,
+     "transformer-medium": 441.736,
+     "transformer-small": 473.201,
+     "gbm-hand": 721.778,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 93,
+     "plays": 464,
+     "themes": "backRankMate endgame mate mateIn1 oneMove"
+    }
+   }
+  ],
+  "over": [
+   {
+    "id": "IbTFf",
+    "fen": "r1b2r2/pppp1p2/1bn2Bk1/6P1/5P2/3nP3/qPPQ2P1/2KR3R w - - 0 18",
+    "moves": {
+     "setup": "e5d3",
+     "line": "d2d3"
+    },
+    "label": 509.0,
+    "predicted": {
+     "transformer-medium-hand-pretrained": 1952.07,
+     "transformer-medium-pretrained": 2119.22,
+     "conv-small": 1754.42,
+     "transformer-medium-hand": 1500.49,
+     "transformer-medium": 1672.93,
+     "transformer-small": 1807.28,
+     "gbm-hand": 1524.17,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 84,
+     "plays": 262,
+     "themes": "mate mateIn1 middlegame oneMove"
+    }
+   },
+   {
+    "id": "8kTbh",
+    "fen": "8/4k3/4p1K1/5pP1/5P1P/5b2/8/8 w - - 1 60",
+    "moves": {
+     "setup": "d5f3",
+     "line": "h4h5 f3g4 h5h6"
+    },
+    "label": 599.0,
+    "predicted": {
+     "transformer-medium-hand-pretrained": 1978.61,
+     "transformer-medium-pretrained": 2043.51,
+     "conv-small": 1961.65,
+     "transformer-medium-hand": 1714.6,
+     "transformer-medium": 1779.99,
+     "transformer-small": 1745.82,
+     "gbm-hand": 1669.45,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 91,
+     "plays": 502,
+     "themes": "bishopEndgame crushing endgame quietMove short"
+    }
+   },
+   {
+    "id": "TVnqw",
+    "fen": "r4r1k/5p1p/b4RpN/p1qpP1R1/6B1/2p1P1QP/Pn4P1/6K1 w - - 0 32",
+    "moves": {
+     "setup": "c4c3",
+     "line": "h6f7 f8f7 f6f7"
+    },
+    "label": 811.0,
+    "predicted": {
+     "transformer-medium-hand-pretrained": 2161.51,
+     "transformer-medium-pretrained": 2191.5,
+     "conv-small": 1929.7,
+     "transformer-medium-hand": 2050.89,
+     "transformer-medium": 1955.75,
+     "transformer-small": 2014.5,
+     "gbm-hand": 1674.67,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 79,
+     "plays": 110,
+     "themes": "crushing kingsideAttack middlegame short"
+    }
+   }
+  ],
+  "under": [
+   {
+    "id": "z7TY2",
+    "fen": "8/6p1/5n2/2pk1PK1/1p6/1P6/P2B4/8 b - - 6 44",
+    "moves": {
+     "setup": "f4g5",
+     "line": "f6e4 g5g6 e4d2 g6g7 d2f3 f5f6 f3d4 f6f7 d4e6"
+    },
+    "label": 2916.0,
+    "predicted": {
+     "transformer-medium-hand-pretrained": 762.288,
+     "transformer-medium-pretrained": 801.619,
+     "conv-small": 779.495,
+     "transformer-medium-hand": 1057.52,
+     "transformer-medium": 1455.99,
+     "transformer-small": 1296.34,
+     "gbm-hand": 1067.22,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 97,
+     "plays": 187,
+     "themes": "crushing endgame fork quietMove veryLong"
+    }
+   },
+   {
+    "id": "yUMws",
+    "fen": "8/2p5/p6r/1p2N1p1/1P2Pp2/P2P1B2/3K1k2/8 w - - 4 41",
+    "moves": {
+     "setup": "g2f2",
+     "line": "e5g4 f2f3 g4h6 g5g4 d2e1 g4g3 e1f1 g3g2 f1g1"
+    },
+    "label": 2713.0,
+    "predicted": {
+     "transformer-medium-hand-pretrained": 734.264,
+     "transformer-medium-pretrained": 861.108,
+     "conv-small": 1324.36,
+     "transformer-medium-hand": 974.924,
+     "transformer-medium": 1247.54,
+     "transformer-small": 1094.88,
+     "gbm-hand": 1277.09,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 92,
+     "plays": 249,
+     "themes": "crushing endgame fork veryLong"
+    }
+   },
+   {
+    "id": "L9iUl",
+    "fen": "8/8/8/1pk3Kp/5P1P/8/8/8 b - - 1 48",
+    "moves": {
+     "setup": "f5g5",
+     "line": "c5d6 g5h6 b5b4 f4f5 d6e5 h6g5 b4b3 f5f6 e5e6"
+    },
+    "label": 2752.0,
+    "predicted": {
+     "transformer-medium-hand-pretrained": 797.686,
+     "transformer-medium-pretrained": 938.296,
+     "conv-small": 1126.35,
+     "transformer-medium-hand": 915.189,
+     "transformer-medium": 1465.97,
+     "transformer-small": 1375.0,
+     "gbm-hand": 1147.83,
+     "constant": 1462.39
+    },
+    "show": {
+     "rating_deviation": 87,
+     "plays": 519,
+     "themes": "crushing endgame pawnEndgame quietMove veryLong"
+    }
+   }
+  ]
+ },
+ "pairs": [
+  {
+   "run": "transformer-medium-hand",
+   "over": "transformer-medium",
+   "gain": 9.60867,
+   "low": 8.59443,
+   "high": 10.6891,
+   "beyond_noise": true
+  },
+  {
+   "run": "transformer-medium-hand-pretrained",
+   "over": "transformer-medium-hand",
+   "gain": 42.3254,
+   "low": 40.9792,
+   "high": 43.6726,
+   "beyond_noise": true
+  },
+  {
+   "run": "transformer-medium-pretrained",
+   "over": "transformer-medium",
+   "gain": 47.552,
+   "low": 46.1192,
+   "high": 48.9654,
+   "beyond_noise": true
+  }
+ ],
+ "shown": {
+  "model": "puzzle-difficulty",
+  "pairs": [
+   {
+    "run": "transformer-medium-hand-pretrained",
+    "there": "transformer-medium-hand-pretrained",
+    "gain": 122.091,
+    "low": 120.192,
+    "high": 123.944,
+    "beyond_noise": true
+   },
+   {
+    "run": "transformer-medium-pretrained",
+    "there": "transformer-medium-pretrained",
+    "gain": 116.161,
+    "low": 114.264,
+    "high": 118.046,
+    "beyond_noise": true
+   },
+   {
+    "run": "conv-small",
+    "there": "conv-small",
+    "gain": 120.997,
+    "low": 119.172,
+    "high": 122.914,
+    "beyond_noise": true
+   },
+   {
+    "run": "transformer-medium-hand",
+    "there": "transformer-medium-hand",
+    "gain": 145.878,
+    "low": 143.989,
+    "high": 147.777,
+    "beyond_noise": true
+   },
+   {
+    "run": "transformer-medium",
+    "there": "transformer-medium",
+    "gain": 141.715,
+    "low": 139.85,
+    "high": 143.523,
+    "beyond_noise": true
+   },
+   {
+    "run": "transformer-small",
+    "there": "transformer-small",
+    "gain": 136.633,
+    "low": 134.795,
+    "high": 138.484,
+    "beyond_noise": true
+   },
+   {
+    "run": "gbm-hand",
+    "there": "gbm-hand",
+    "gain": 161.9,
+    "low": 160.189,
+    "high": 163.497,
+    "beyond_noise": true
+   },
+   {
+    "run": "constant",
+    "there": "constant",
+    "gain": -0.0,
+    "low": -0.0,
+    "high": 0.0,
+    "beyond_noise": false
+   }
+  ],
+  "skipped": {},
+  "best": {
+   "run": "transformer-medium-hand-pretrained",
+   "there": "transformer-medium-hand-pretrained",
+   "gain": 122.091,
+   "low": 120.192,
+   "high": 123.944,
+   "beyond_noise": true
+  },
+  "slices": [
+   {
+    "key": "band",
+    "title": "The puzzle's rating",
+    "groups": [
+     {
+      "group": "<1000",
+      "rows": 22751,
+      "here": 335.504,
+      "there": 170.834,
+      "gain": {
+       "gain": 164.67,
+       "low": 161.344,
+       "high": 168.199,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "1000-1399",
+      "rows": 31846,
+      "here": 338.759,
+      "there": 221.489,
+      "gain": {
+       "gain": 117.27,
+       "low": 114.366,
+       "high": 119.69,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "1400-1799",
+      "rows": 28501,
+      "here": 255.783,
+      "there": 243.426,
+      "gain": {
+       "gain": 12.3572,
+       "low": 9.39888,
+       "high": 14.9781,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "1800-2199",
+      "rows": 19518,
+      "here": 382.859,
+      "there": 287.803,
+      "gain": {
+       "gain": 95.0567,
+       "low": 91.3791,
+       "high": 99.9933,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "2200+",
+      "rows": 9834,
+      "here": 696.486,
+      "there": 402.388,
+      "gain": {
+       "gain": 294.099,
+       "low": 286.752,
+       "high": 301.287,
+       "beyond_noise": true
+      }
+     }
+    ]
+   },
+   {
+    "key": "moves",
+    "title": "Moves the solver has to find",
+    "groups": [
+     {
+      "group": "1",
+      "rows": 14854,
+      "here": 273.151,
+      "there": 189.839,
+      "gain": {
+       "gain": 83.3128,
+       "low": 78.9246,
+       "high": 87.6168,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "2",
+      "rows": 57896,
+      "here": 352.345,
+      "there": 240.565,
+      "gain": {
+       "gain": 111.781,
+       "low": 109.416,
+       "high": 113.859,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "3",
+      "rows": 31251,
+      "here": 405.279,
+      "there": 280.782,
+      "gain": {
+       "gain": 124.497,
+       "low": 121.606,
+       "high": 128.367,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "4",
+      "rows": 6303,
+      "here": 484.375,
+      "there": 302.39,
+      "gain": {
+       "gain": 181.986,
+       "low": 172.499,
+       "high": 189.598,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "5+",
+      "rows": 2146,
+      "here": 612.011,
+      "there": 303.831,
+      "gain": {
+       "gain": 308.18,
+       "low": 292.661,
+       "high": 324.956,
+       "beyond_noise": true
+      }
+     }
+    ]
+   },
+   {
+    "key": "themes",
+    "title": "Theme",
+    "groups": [
+     {
+      "group": "short",
+      "rows": 57439,
+      "here": 352.366,
+      "there": 240.439,
+      "gain": {
+       "gain": 111.928,
+       "low": 109.222,
+       "high": 114.215,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "endgame",
+      "rows": 55361,
+      "here": 388.704,
+      "there": 262.698,
+      "gain": {
+       "gain": 126.006,
+       "low": 123.49,
+       "high": 128.554,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "middlegame",
+      "rows": 51328,
+      "here": 363.697,
+      "there": 243.286,
+      "gain": {
+       "gain": 120.411,
+       "low": 118.069,
+       "high": 123.097,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "crushing",
+      "rows": 43433,
+      "here": 416.118,
+      "there": 278.397,
+      "gain": {
+       "gain": 137.721,
+       "low": 134.455,
+       "high": 141.801,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "mate",
+      "rows": 34439,
+      "here": 288.97,
+      "there": 198.19,
+      "gain": {
+       "gain": 90.78,
+       "low": 88.2527,
+       "high": 93.2353,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "advantage",
+      "rows": 33591,
+      "here": 392.197,
+      "there": 263.612,
+      "gain": {
+       "gain": 128.585,
+       "low": 125.206,
+       "high": 131.893,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "long",
+      "rows": 30918,
+      "here": 405.121,
+      "there": 280.734,
+      "gain": {
+       "gain": 124.387,
+       "low": 121.455,
+       "high": 127.812,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "master",
+      "rows": 15509,
+      "here": 385.033,
+      "there": 259.462,
+      "gain": {
+       "gain": 125.571,
+       "low": 120.232,
+       "high": 130.051,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "fork",
+      "rows": 15186,
+      "here": 353.315,
+      "there": 230.471,
+      "gain": {
+       "gain": 122.844,
+       "low": 117.672,
+       "high": 127.554,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "oneMove",
+      "rows": 14812,
+      "here": 273.282,
+      "there": 189.788,
+      "gain": {
+       "gain": 83.4935,
+       "low": 79.219,
+       "high": 87.4354,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "mateIn1",
+      "rows": 14788,
+      "here": 272.666,
+      "there": 189.343,
+      "gain": {
+       "gain": 83.3228,
+       "low": 79.3874,
+       "high": 88.0983,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "mateIn2",
+      "rows": 14791,
+      "here": 290.976,
+      "there": 197.682,
+      "gain": {
+       "gain": 93.294,
+       "low": 89.3086,
+       "high": 97.2553,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "kingsideAttack",
+      "rows": 9742,
+      "here": 327.323,
+      "there": 222.84,
+      "gain": {
+       "gain": 104.483,
+       "low": 98.2886,
+       "high": 110.689,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "sacrifice",
+      "rows": 8857,
+      "here": 367.766,
+      "there": 231.057,
+      "gain": {
+       "gain": 136.709,
+       "low": 129.831,
+       "high": 143.034,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "veryLong",
+      "rows": 8358,
+      "here": 519.601,
+      "there": 302.91,
+      "gain": {
+       "gain": 216.69,
+       "low": 208.407,
+       "high": 225.848,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "pin",
+      "rows": 7235,
+      "here": 387.526,
+      "there": 248.949,
+      "gain": {
+       "gain": 138.577,
+       "low": 130.91,
+       "high": 146.902,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "advancedPawn",
+      "rows": 7237,
+      "here": 437.358,
+      "there": 298.594,
+      "gain": {
+       "gain": 138.764,
+       "low": 130.199,
+       "high": 145.587,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "defensiveMove",
+      "rows": 6116,
+      "here": 488.235,
+      "there": 338.792,
+      "gain": {
+       "gain": 149.444,
+       "low": 140.343,
+       "high": 159.752,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "discoveredAttack",
+      "rows": 6150,
+      "here": 363.262,
+      "there": 245.939,
+      "gain": {
+       "gain": 117.324,
+       "low": 109.061,
+       "high": 125.64,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "rookEndgame",
+      "rows": 5741,
+      "here": 398.6,
+      "there": 271.573,
+      "gain": {
+       "gain": 127.027,
+       "low": 116.072,
+       "high": 135.195,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "opening",
+      "rows": 5761,
+      "here": 311.101,
+      "there": 214.712,
+      "gain": {
+       "gain": 96.3886,
+       "low": 89.172,
+       "high": 104.711,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "deflection",
+      "rows": 5294,
+      "here": 372.71,
+      "there": 258.144,
+      "gain": {
+       "gain": 114.566,
+       "low": 106.813,
+       "high": 122.473,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "attraction",
+      "rows": 4573,
+      "here": 365.879,
+      "there": 237.678,
+      "gain": {
+       "gain": 128.202,
+       "low": 118.433,
+       "high": 136.168,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "pawnEndgame",
+      "rows": 4171,
+      "here": 432.355,
+      "there": 299.083,
+      "gain": {
+       "gain": 133.272,
+       "low": 122.977,
+       "high": 142.894,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "mateIn3",
+      "rows": 4097,
+      "here": 306.217,
+      "there": 218.56,
+      "gain": {
+       "gain": 87.6573,
+       "low": 81.0425,
+       "high": 94.6147,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "quietMove",
+      "rows": 3992,
+      "here": 525.744,
+      "there": 293.609,
+      "gain": {
+       "gain": 232.135,
+       "low": 219.55,
+       "high": 244.593,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "hangingPiece",
+      "rows": 4040,
+      "here": 390.425,
+      "there": 275.434,
+      "gain": {
+       "gain": 114.991,
+       "low": 105.349,
+       "high": 125.476,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "exposedKing",
+      "rows": 3645,
+      "here": 438.913,
+      "there": 281.784,
+      "gain": {
+       "gain": 157.13,
+       "low": 147.87,
+       "high": 169.964,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "backRankMate",
+      "rows": 2952,
+      "here": 196.853,
+      "there": 154.051,
+      "gain": {
+       "gain": 42.8014,
+       "low": 36.8321,
+       "high": 48.8955,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "promotion",
+      "rows": 2901,
+      "here": 427.715,
+      "there": 291.967,
+      "gain": {
+       "gain": 135.748,
+       "low": 122.853,
+       "high": 145.631,
+       "beyond_noise": true
+      }
+     }
+    ]
+   },
+   {
+    "key": "first-piece",
+    "title": "The piece that makes the first move",
+    "groups": [
+     {
+      "group": "pawn",
+      "rows": 13094,
+      "here": 421.475,
+      "there": 286.106,
+      "gain": {
+       "gain": 135.37,
+       "low": 130.956,
+       "high": 140.471,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "knight",
+      "rows": 16147,
+      "here": 353.852,
+      "there": 238.255,
+      "gain": {
+       "gain": 115.597,
+       "low": 111.017,
+       "high": 120.523,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "bishop",
+      "rows": 12862,
+      "here": 378.705,
+      "there": 249.758,
+      "gain": {
+       "gain": 128.946,
+       "low": 124.11,
+       "high": 134.648,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "rook",
+      "rows": 29442,
+      "here": 373.005,
+      "there": 248.338,
+      "gain": {
+       "gain": 124.667,
+       "low": 121.31,
+       "high": 128.808,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "queen",
+      "rows": 35764,
+      "here": 347.075,
+      "there": 233.586,
+      "gain": {
+       "gain": 113.489,
+       "low": 110.145,
+       "high": 116.398,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "king",
+      "rows": 5141,
+      "here": 465.622,
+      "there": 331.869,
+      "gain": {
+       "gain": 133.753,
+       "low": 122.358,
+       "high": 144.261,
+       "beyond_noise": true
+      }
+     }
+    ]
+   },
+   {
+    "key": "capture",
+    "title": "The first move takes something",
+    "groups": [
+     {
+      "group": "no",
+      "rows": 67465,
+      "here": 377.03,
+      "there": 248.644,
+      "gain": {
+       "gain": 128.386,
+       "low": 126.123,
+       "high": 130.711,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "yes",
+      "rows": 44985,
+      "here": 368.881,
+      "there": 256.216,
+      "gain": {
+       "gain": 112.665,
+       "low": 110.002,
+       "high": 114.967,
+       "beyond_noise": true
+      }
+     }
+    ]
+   },
+   {
+    "key": "check",
+    "title": "The first move gives check",
+    "groups": [
+     {
+      "group": "no",
+      "rows": 42741,
+      "here": 419.788,
+      "there": 281.358,
+      "gain": {
+       "gain": 138.43,
+       "low": 135.177,
+       "high": 141.27,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "yes",
+      "rows": 69709,
+      "here": 342.549,
+      "there": 231.647,
+      "gain": {
+       "gain": 110.902,
+       "low": 108.861,
+       "high": 113.102,
+       "beyond_noise": true
+      }
+     }
+    ]
+   },
+   {
+    "key": "sacrifice",
+    "title": "The first move gives up material",
+    "groups": [
+     {
+      "group": "no",
+      "rows": 97168,
+      "here": 377.731,
+      "there": 254.262,
+      "gain": {
+       "gain": 123.469,
+       "low": 121.416,
+       "high": 125.223,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "yes",
+      "rows": 15282,
+      "here": 347.701,
+      "there": 234.761,
+      "gain": {
+       "gain": 112.939,
+       "low": 108.443,
+       "high": 117.463,
+       "beyond_noise": true
+      }
+     }
+    ]
+   },
+   {
+    "key": "backward",
+    "title": "The first move goes backward",
+    "groups": [
+     {
+      "group": "no",
+      "rows": 102725,
+      "here": 371.447,
+      "there": 250.045,
+      "gain": {
+       "gain": 121.402,
+       "low": 119.087,
+       "high": 123.37,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "yes",
+      "rows": 9725,
+      "here": 397.712,
+      "there": 268.568,
+      "gain": {
+       "gain": 129.144,
+       "low": 123.259,
+       "high": 135.628,
+       "beyond_noise": true
+      }
+     }
+    ]
+   },
+   {
+    "key": "quiet",
+    "title": "Solver's moves that neither take nor check",
+    "groups": [
+     {
+      "group": "0",
+      "rows": 76556,
+      "here": 329.2,
+      "there": 228.051,
+      "gain": {
+       "gain": 101.148,
+       "low": 99.0911,
+       "high": 103.051,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "1",
+      "rows": 23549,
+      "here": 428.441,
+      "there": 286.665,
+      "gain": {
+       "gain": 141.776,
+       "low": 137.478,
+       "high": 145.904,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "2",
+      "rows": 8817,
+      "here": 492.116,
+      "there": 311.695,
+      "gain": {
+       "gain": 180.42,
+       "low": 171.925,
+       "high": 187.989,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "3+",
+      "rows": 3528,
+      "here": 520.831,
+      "there": 315.331,
+      "gain": {
+       "gain": 205.499,
+       "low": 192.655,
+       "high": 218.578,
+       "beyond_noise": true
+      }
+     }
+    ]
+   },
+   {
+    "key": "mate",
+    "title": "The line ends in mate",
+    "groups": [
+     {
+      "group": "no",
+      "rows": 77904,
+      "here": 405.774,
+      "there": 272.072,
+      "gain": {
+       "gain": 133.702,
+       "low": 131.326,
+       "high": 136.026,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "yes",
+      "rows": 34546,
+      "here": 288.957,
+      "there": 198.223,
+      "gain": {
+       "gain": 90.7341,
+       "low": 87.8302,
+       "high": 93.5688,
+       "beyond_noise": true
+      }
+     }
+    ]
+   },
+   {
+    "key": "pieces",
+    "title": "Knights, bishops, rooks and queens on the board",
+    "groups": [
+     {
+      "group": "<3",
+      "rows": 15773,
+      "here": 429.001,
+      "there": 297.895,
+      "gain": {
+       "gain": 131.106,
+       "low": 125.517,
+       "high": 136.224,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "3-6",
+      "rows": 24519,
+      "here": 369.173,
+      "there": 245.259,
+      "gain": {
+       "gain": 123.914,
+       "low": 119.353,
+       "high": 127.545,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "6-9",
+      "rows": 37334,
+      "here": 374.443,
+      "there": 249.289,
+      "gain": {
+       "gain": 125.154,
+       "low": 122.105,
+       "high": 127.972,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "9-12",
+      "rows": 22790,
+      "here": 359.366,
+      "there": 241.638,
+      "gain": {
+       "gain": 117.728,
+       "low": 113.664,
+       "high": 121.44,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "12+",
+      "rows": 12034,
+      "here": 327.315,
+      "there": 223.044,
+      "gain": {
+       "gain": 104.271,
+       "low": 98.9758,
+       "high": 109.732,
+       "beyond_noise": true
+      }
+     }
+    ]
+   },
+   {
+    "key": "plays",
+    "title": "Attempts the puzzle has had",
+    "groups": [
+     {
+      "group": "<200",
+      "rows": 19367,
+      "here": 389.516,
+      "there": 248.548,
+      "gain": {
+       "gain": 140.969,
+       "low": 136.605,
+       "high": 146.52,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "200-500",
+      "rows": 27949,
+      "here": 382.11,
+      "there": 244.953,
+      "gain": {
+       "gain": 137.157,
+       "low": 133.802,
+       "high": 140.872,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "500-1000",
+      "rows": 19769,
+      "here": 383.771,
+      "there": 255.821,
+      "gain": {
+       "gain": 127.951,
+       "low": 123.223,
+       "high": 132.495,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "1000-5000",
+      "rows": 32437,
+      "here": 371.856,
+      "there": 259.472,
+      "gain": {
+       "gain": 112.384,
+       "low": 108.933,
+       "high": 115.6,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "5000+",
+      "rows": 12928,
+      "here": 316.555,
+      "there": 244.534,
+      "gain": {
+       "gain": 72.0211,
+       "low": 67.7426,
+       "high": 76.7697,
+       "beyond_noise": true
+      }
+     }
+    ]
+   },
+   {
+    "key": "deviation",
+    "title": "The rating's deviation",
+    "groups": [
+     {
+      "group": "<75",
+      "rows": 6359,
+      "here": 292.689,
+      "there": 232.502,
+      "gain": {
+       "gain": 60.1872,
+       "low": 52.5019,
+       "high": 66.8309,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "75-80",
+      "rows": 69429,
+      "here": 341.102,
+      "there": 245.705,
+      "gain": {
+       "gain": 95.3962,
+       "low": 93.1277,
+       "high": 97.7175,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "80-90",
+      "rows": 25600,
+      "here": 428.781,
+      "there": 270.58,
+      "gain": {
+       "gain": 158.201,
+       "low": 153.916,
+       "high": 162.387,
+       "beyond_noise": true
+      }
+     },
+     {
+      "group": "90+",
+      "rows": 11062,
+      "here": 464.046,
+      "there": 254.156,
+      "gain": {
+       "gain": 209.89,
+       "low": 202.863,
+       "high": 217.216,
+       "beyond_noise": true
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "closeness": {
+  "transformer-medium-hand-pretrained": {
+   "median_error": 222.017,
+   "p90_error": 619.995,
+   "within": {
+    "100": {
+     "distance": 100.0,
+     "share": 0.252494
+    },
+    "200": {
+     "distance": 200.0,
+     "share": 0.460774
+    },
+    "300": {
+     "distance": 300.0,
+     "share": 0.617519
+    }
+   }
+  },
+  "transformer-medium-pretrained": {
+   "median_error": 229.419,
+   "p90_error": 627.491,
+   "within": {
+    "100": {
+     "distance": 100.0,
+     "share": 0.244811
+    },
+    "200": {
+     "distance": 200.0,
+     "share": 0.447292
+    },
+    "300": {
+     "distance": 300.0,
+     "share": 0.608822
+    }
+   }
+  },
+  "conv-small": {
+   "median_error": 267.324,
+   "p90_error": 678.58,
+   "within": {
+    "100": {
+     "distance": 100.0,
+     "share": 0.204936
+    },
+    "200": {
+     "distance": 200.0,
+     "share": 0.389515
+    },
+    "300": {
+     "distance": 300.0,
+     "share": 0.548315
+    }
+   }
+  },
+  "transformer-medium-hand": {
+   "median_error": 272.427,
+   "p90_error": 684.767,
+   "within": {
+    "100": {
+     "distance": 100.0,
+     "share": 0.200578
+    },
+    "200": {
+     "distance": 200.0,
+     "share": 0.382801
+    },
+    "300": {
+     "distance": 300.0,
+     "share": 0.540703
+    }
+   }
+  },
+  "transformer-medium": {
+   "median_error": 285.885,
+   "p90_error": 697.273,
+   "within": {
+    "100": {
+     "distance": 100.0,
+     "share": 0.188404
+    },
+    "200": {
+     "distance": 200.0,
+     "share": 0.36434
+    },
+    "300": {
+     "distance": 300.0,
+     "share": 0.520943
+    }
+   }
+  },
+  "transformer-small": {
+   "median_error": 291.708,
+   "p90_error": 702.328,
+   "within": {
+    "100": {
+     "distance": 100.0,
+     "share": 0.183744
+    },
+    "200": {
+     "distance": 200.0,
+     "share": 0.357697
+    },
+    "300": {
+     "distance": 300.0,
+     "share": 0.512005
+    }
+   }
+  },
+  "gbm-hand": {
+   "median_error": 326.315,
+   "p90_error": 741.454,
+   "within": {
+    "100": {
+     "distance": 100.0,
+     "share": 0.161174
+    },
+    "200": {
+     "distance": 200.0,
+     "share": 0.315331
+    },
+    "300": {
+     "distance": 300.0,
+     "share": 0.464073
+    }
+   }
+  },
+  "constant": {
+   "median_error": 370.388,
+   "p90_error": 822.388,
+   "within": {
+    "100": {
+     "distance": 100.0,
+     "share": 0.135847
+    },
+    "200": {
+     "distance": 200.0,
+     "share": 0.270636
+    },
+    "300": {
+     "distance": 300.0,
+     "share": 0.401414
+    }
+   }
+  }
+ }
+}

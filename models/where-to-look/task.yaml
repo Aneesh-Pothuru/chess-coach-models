@@ -1,0 +1,30 @@
+# What where-to-look is asked (src/chess_coach_models/tasks.py); its card says why.
+dataset: puzzles
+kind: squares
+# The squares that are right: every square a move of the solution leaves or lands on, the solver's
+# moves and the replies alike.
+label:
+  - solver1_from
+  - solver1_to
+  - reply1_from
+  - reply1_to
+  - solver2_from
+  - solver2_to
+  - reply2_from
+  - reply2_to
+  - solver3_from
+  - solver3_to
+  - later
+unit: the chance that a square is one the tactic's line leaves or lands on
+primary: ap
+reference: gbm-hand
+# The numbers every learner reads beside the board: castling rights, and nothing about the solution.
+context:
+  - castle_own_king
+  - castle_own_queen
+  - castle_opp_king
+  - castle_opp_queen
+# The opponent's last move is on the board the solver sees. The squares of the solution are the answer.
+marks: [en_passant, setup_from, setup_to]
+# The hand features of the position, and none of the solution's.
+hand: [material, mobility, hanging, pawns, kings, setup]

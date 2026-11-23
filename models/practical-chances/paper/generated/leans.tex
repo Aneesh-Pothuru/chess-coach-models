@@ -1,0 +1,32 @@
+% Written by `lab paper practical-chances`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.5\textwidth,
+  height=5.70cm,
+  y dir=reverse,
+  ymin=-0.6, ymax=9.6,
+  ytick={0,1,2,3,4,5,6,7,8,9},
+  yticklabels={{Winning chances before the move},{The opponent's rating},{The mover's rating},{Material balance},{The opponent's clock},{The mover's clock},{Material on the board},{Increment},{Legal moves},{Pieces left}},
+  ytick style={draw=none},
+  y axis line style={draw=none},
+  xmajorgrids,
+  xmin=0,
+  enlarge x limits={upper, value=0.16},
+  xlabel={Share of the trees' gain (percent)},
+]
+\addplot[xbar, fill=labOrange, draw=none, bar width=5.5pt] coordinates {(72.87,0) (5.13,1) (4.94,2) (4.13,3) (3.01,4) (2.93,5) (1.77,6) (0.89,7) (0.75,8) (0.58,9)};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:72.87,0) {72.9};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:5.13,1) {5.1};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:4.94,2) {4.9};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:4.13,3) {4.1};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:3.01,4) {3.0};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:2.93,5) {2.9};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:1.77,6) {1.8};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:0.89,7) {0.9};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:0.75,8) {0.8};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:0.58,9) {0.6};
+\end{axis}
+\end{tikzpicture}%
+}

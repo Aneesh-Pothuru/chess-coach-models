@@ -32,13 +32,189 @@
       "valid": 34494
     },
     "fingerprint": "340c68ed5c918cd6dfea4f5cb24218c52d8d0a88cb29e50498218aefdb9dfbd0",
-    "built": "2026-11-22T01:42:50Z",
-    "code": "85d0c35a08069598b9b5d0d17ac80052a4509a64+changes"
+    "built": "2026-11-22T13:43:02Z",
+    "code": "36a0ad94d25b6b17bb33c15f065bfe68fa3faf15"
   },
   "test_rows": 68579,
   "test_groups": 2944,
   "reference": "gbm-hand",
   "runs": [
+    {
+      "run": "transformer-medium-hand-pretrained",
+      "learner": "transformer, 8 layers of width 256, with hand features, started from `position-evaluation/transformer-medium`",
+      "test": {
+        "pr_auc": {
+          "value": 0.2775822499214336,
+          "low": 0.26432302459488816,
+          "high": 0.29211565296958786
+        },
+        "roc_auc": {
+          "value": 0.8403263589330329,
+          "low": 0.8348835083984459,
+          "high": 0.8455139950487643
+        },
+        "brier": {
+          "value": 0.055845704554560095,
+          "low": 0.054041401547151514,
+          "high": 0.057714265618106705
+        },
+        "log_loss": {
+          "value": 0.1959078632016828,
+          "low": 0.19048498459531837,
+          "high": 0.20171117102990896
+        },
+        "calibration_error": {
+          "value": 0.0022579927276236665,
+          "low": 0.0017836197436485817,
+          "high": 0.004768583247250253
+        }
+      },
+      "test_by_band": {
+        "1100-1400": {
+          "rows": 16674,
+          "pr_auc": 0.28499037990858306,
+          "roc_auc": 0.838216403359265,
+          "brier": 0.062752245832715,
+          "log_loss": 0.2147110053414919,
+          "calibration_error": 0.0056700525138474196
+        },
+        "1400-1700": {
+          "rows": 19614,
+          "pr_auc": 0.23431446860212157,
+          "roc_auc": 0.8244955175163017,
+          "brier": 0.05258243591649466,
+          "log_loss": 0.18849534801571144,
+          "calibration_error": 0.004548054655987465
+        },
+        "1700-2000": {
+          "rows": 14453,
+          "pr_auc": 0.20568757268285612,
+          "roc_auc": 0.817358946884286,
+          "brier": 0.04599142795914927,
+          "log_loss": 0.17127978811061392,
+          "calibration_error": 0.005927462204801862
+        },
+        "2000+": {
+          "rows": 7126,
+          "pr_auc": 0.15902729741518679,
+          "roc_auc": 0.8292546448440414,
+          "brier": 0.03418323124839627,
+          "log_loss": 0.13385210854415192,
+          "calibration_error": 0.007228630616650821
+        },
+        "<1100": {
+          "rows": 10712,
+          "pr_auc": 0.3799073497697123,
+          "roc_auc": 0.8507735882894407,
+          "brier": 0.0787766909444272,
+          "log_loss": 0.2547226837579981,
+          "calibration_error": 0.015456733802010039
+        }
+      },
+      "parameters": 6557505,
+      "device": "NVIDIA A100-SXM4-40GB",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 520.5,
+      "code": "36a0ad94d25b6b17bb33c15f065bfe68fa3faf15",
+      "trained": "2026-11-22T15:35:28Z",
+      "gain": {
+        "gain": 0.024293592279447884,
+        "low": 0.014731201264159376,
+        "high": 0.03380551538788142,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-22T15:16:55Z",
+        "reference_value": 0.2532886576419857
+      }
+    },
+    {
+      "run": "transformer-medium-pretrained",
+      "learner": "transformer, 8 layers of width 256, started from `position-evaluation/transformer-medium`",
+      "test": {
+        "pr_auc": {
+          "value": 0.27470506493958585,
+          "low": 0.2610936019918396,
+          "high": 0.28947829637923206
+        },
+        "roc_auc": {
+          "value": 0.8410769604889037,
+          "low": 0.8356872268969227,
+          "high": 0.846189363548415
+        },
+        "brier": {
+          "value": 0.05579812700432769,
+          "low": 0.05396532193469534,
+          "high": 0.05768439749209206
+        },
+        "log_loss": {
+          "value": 0.1955900169383231,
+          "low": 0.19002444950277128,
+          "high": 0.20113293012092562
+        },
+        "calibration_error": {
+          "value": 0.0022398402526442704,
+          "low": 0.0013957149649801261,
+          "high": 0.004501583495818029
+        }
+      },
+      "test_by_band": {
+        "1100-1400": {
+          "rows": 16674,
+          "pr_auc": 0.2752292194158339,
+          "roc_auc": 0.8358429196386874,
+          "brier": 0.06307247430891791,
+          "log_loss": 0.21558809682182714,
+          "calibration_error": 0.003545628924228479
+        },
+        "1400-1700": {
+          "rows": 19614,
+          "pr_auc": 0.22963741670342616,
+          "roc_auc": 0.8245781504225056,
+          "brier": 0.052560880929038385,
+          "log_loss": 0.18836595786630586,
+          "calibration_error": 0.004590985966727293
+        },
+        "1700-2000": {
+          "rows": 14453,
+          "pr_auc": 0.22010842581246837,
+          "roc_auc": 0.8215607289492173,
+          "brier": 0.045470425441189274,
+          "log_loss": 0.16958437594575468,
+          "calibration_error": 0.0041924466750132205
+        },
+        "2000+": {
+          "rows": 7126,
+          "pr_auc": 0.16055406906939104,
+          "roc_auc": 0.824799416484318,
+          "brier": 0.03400688053279933,
+          "log_loss": 0.13365497636657656,
+          "calibration_error": 0.004613290539486775
+        },
+        "<1100": {
+          "rows": 10712,
+          "pr_auc": 0.3727781959849546,
+          "roc_auc": 0.8505744381431319,
+          "brier": 0.07883337444758173,
+          "log_loss": 0.25397811804370535,
+          "calibration_error": 0.012891328790372235
+        }
+      },
+      "parameters": 6554177,
+      "device": "NVIDIA A100-SXM4-40GB",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 520.8,
+      "code": "36a0ad94d25b6b17bb33c15f065bfe68fa3faf15",
+      "trained": "2026-11-22T15:26:05Z",
+      "gain": {
+        "gain": 0.021416407297600137,
+        "low": 0.012016423234081267,
+        "high": 0.030661967294885732,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-22T15:16:55Z",
+        "reference_value": 0.2532886576419857
+      }
+    },
     {
       "run": "transformer-medium-hand",
       "learner": "transformer, 8 layers of width 256, with hand features",
@@ -128,6 +304,358 @@
       }
     },
     {
+      "run": "conv-medium-hand",
+      "learner": "conv, 10 layers of width 192, each block weighing its channels by the whole board, with hand features",
+      "test": {
+        "pr_auc": {
+          "value": 0.26638968032678473,
+          "low": 0.25286272758195255,
+          "high": 0.2812821903705008
+        },
+        "roc_auc": {
+          "value": 0.8304870376209531,
+          "low": 0.8247618166364599,
+          "high": 0.8362241831271345
+        },
+        "brier": {
+          "value": 0.05632758658738002,
+          "low": 0.05450374483293088,
+          "high": 0.05823669341583611
+        },
+        "log_loss": {
+          "value": 0.1993946524357664,
+          "low": 0.19362986586327768,
+          "high": 0.20538779050598088
+        },
+        "calibration_error": {
+          "value": 0.0031277694950069945,
+          "low": 0.0018896817207322966,
+          "high": 0.005212414178839577
+        }
+      },
+      "test_by_band": {
+        "1100-1400": {
+          "rows": 16674,
+          "pr_auc": 0.2783818318103909,
+          "roc_auc": 0.826379245482595,
+          "brier": 0.06327709069172718,
+          "log_loss": 0.21940607901021897,
+          "calibration_error": 0.007184452305781452
+        },
+        "1400-1700": {
+          "rows": 19614,
+          "pr_auc": 0.22183197444449165,
+          "roc_auc": 0.815806989882501,
+          "brier": 0.05298521515215371,
+          "log_loss": 0.19063951205565036,
+          "calibration_error": 0.005377080410682224
+        },
+        "1700-2000": {
+          "rows": 14453,
+          "pr_auc": 0.18981298304735503,
+          "roc_auc": 0.8021106342261081,
+          "brier": 0.046407958881893065,
+          "log_loss": 0.17570815132275683,
+          "calibration_error": 0.0035984430571926553
+        },
+        "2000+": {
+          "rows": 7126,
+          "pr_auc": 0.136350455482468,
+          "roc_auc": 0.8138854123770997,
+          "brier": 0.03457408231959851,
+          "log_loss": 0.136873915468765,
+          "calibration_error": 0.0023744167596471857
+        },
+        "<1100": {
+          "rows": 10712,
+          "pr_auc": 0.36073819743204444,
+          "roc_auc": 0.8425881192503573,
+          "brier": 0.07948526886279621,
+          "log_loss": 0.2578259975558515,
+          "calibration_error": 0.008699650802125305
+        }
+      },
+      "parameters": 6936865,
+      "device": "NVIDIA A100-SXM4-80GB",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 251.1,
+      "code": "8c771617309d36154b1c85abcbbff500fafea271",
+      "trained": "2026-11-22T22:36:09Z",
+      "gain": {
+        "gain": 0.013101022684799013,
+        "low": 0.0059937124484193425,
+        "high": 0.019720211249895803,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-22T22:31:57Z",
+        "reference_value": 0.2532886576419857
+      }
+    },
+    {
+      "run": "transformer-medium-hand-attacks",
+      "learner": "transformer, 8 layers of width 256, attention told what each piece attacks, with hand features",
+      "test": {
+        "pr_auc": {
+          "value": 0.26475421947703404,
+          "low": 0.25135564958429096,
+          "high": 0.2801630909146067
+        },
+        "roc_auc": {
+          "value": 0.8276365809374748,
+          "low": 0.8218138158877478,
+          "high": 0.8334559801467027
+        },
+        "brier": {
+          "value": 0.05651255458522494,
+          "low": 0.054650521739445526,
+          "high": 0.05842908816656461
+        },
+        "log_loss": {
+          "value": 0.19999903205069022,
+          "low": 0.19426278817183135,
+          "high": 0.20597534661201555
+        },
+        "calibration_error": {
+          "value": 0.004441501587362762,
+          "low": 0.003018718884930016,
+          "high": 0.006508189784203742
+        }
+      },
+      "test_by_band": {
+        "1100-1400": {
+          "rows": 16674,
+          "pr_auc": 0.26901619709283464,
+          "roc_auc": 0.8214276376975305,
+          "brier": 0.06374542539278817,
+          "log_loss": 0.22058711149023252,
+          "calibration_error": 0.006451181567424134
+        },
+        "1400-1700": {
+          "rows": 19614,
+          "pr_auc": 0.22417958882477468,
+          "roc_auc": 0.815421964723537,
+          "brier": 0.052941843434642526,
+          "log_loss": 0.19073580156691147,
+          "calibration_error": 0.00350717298670682
+        },
+        "1700-2000": {
+          "rows": 14453,
+          "pr_auc": 0.18513610906082212,
+          "roc_auc": 0.7983252866540089,
+          "brier": 0.046622071784604015,
+          "log_loss": 0.17581918587724815,
+          "calibration_error": 0.004259668515191381
+        },
+        "2000+": {
+          "rows": 7126,
+          "pr_auc": 0.14161422438679605,
+          "roc_auc": 0.8069758115524263,
+          "brier": 0.03455057855830822,
+          "log_loss": 0.1376853140991807,
+          "calibration_error": 0.0035695974308642127
+        },
+        "<1100": {
+          "rows": 10712,
+          "pr_auc": 0.3628833276025154,
+          "roc_auc": 0.8403065622100588,
+          "brier": 0.0797466126273643,
+          "log_loss": 0.25899102579612737,
+          "calibration_error": 0.008686313750559504
+        }
+      },
+      "parameters": 6557761,
+      "device": "NVIDIA A100-SXM4-80GB",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 621.7,
+      "code": "8c771617309d36154b1c85abcbbff500fafea271",
+      "trained": "2026-11-22T22:53:40Z",
+      "gain": {
+        "gain": 0.011465561835048321,
+        "low": 0.005064951792703691,
+        "high": 0.017550606042225584,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-22T22:31:57Z",
+        "reference_value": 0.2532886576419857
+      }
+    },
+    {
+      "run": "transformer-medium-hand-long",
+      "learner": "transformer, 8 layers of width 256, with hand features",
+      "test": {
+        "pr_auc": {
+          "value": 0.2628109645852064,
+          "low": 0.24914818104132172,
+          "high": 0.2779895031923631
+        },
+        "roc_auc": {
+          "value": 0.826599148774874,
+          "low": 0.8208997014606498,
+          "high": 0.832406203633798
+        },
+        "brier": {
+          "value": 0.056530448656811956,
+          "low": 0.05462654914362814,
+          "high": 0.05842438073599924
+        },
+        "log_loss": {
+          "value": 0.20022475933587663,
+          "low": 0.19455614751233377,
+          "high": 0.20595334281904012
+        },
+        "calibration_error": {
+          "value": 0.002329149261064309,
+          "low": 0.0017854519472079158,
+          "high": 0.004666964075515524
+        }
+      },
+      "test_by_band": {
+        "1100-1400": {
+          "rows": 16674,
+          "pr_auc": 0.273034423761087,
+          "roc_auc": 0.8202497894472142,
+          "brier": 0.06365513958598888,
+          "log_loss": 0.2204328848696152,
+          "calibration_error": 0.005045160589054873
+        },
+        "1400-1700": {
+          "rows": 19614,
+          "pr_auc": 0.2150429424753752,
+          "roc_auc": 0.81319058615941,
+          "brier": 0.05313448472577733,
+          "log_loss": 0.1915742231069653,
+          "calibration_error": 0.003486462444998762
+        },
+        "1700-2000": {
+          "rows": 14453,
+          "pr_auc": 0.18675658004878382,
+          "roc_auc": 0.7980484902961988,
+          "brier": 0.04654821181298228,
+          "log_loss": 0.17555342334606938,
+          "calibration_error": 0.00458007674306556
+        },
+        "2000+": {
+          "rows": 7126,
+          "pr_auc": 0.12866524450742675,
+          "roc_auc": 0.8040652310243015,
+          "brier": 0.034782236540271294,
+          "log_loss": 0.13897503404783546,
+          "calibration_error": 0.004459382496541245
+        },
+        "<1100": {
+          "rows": 10712,
+          "pr_auc": 0.36113815774736213,
+          "roc_auc": 0.8402337280651189,
+          "brier": 0.07959452339883547,
+          "log_loss": 0.25864164636981746,
+          "calibration_error": 0.00674272095615323
+        }
+      },
+      "parameters": 6557505,
+      "device": "NVIDIA A100-SXM4-80GB",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 685.1,
+      "code": "3a74aa4b28f6805e3da49ea7c054bc4b5cf4d712",
+      "trained": "2026-11-22T07:35:22Z",
+      "gain": {
+        "gain": 0.009522306943220704,
+        "low": 0.0028033872417595473,
+        "high": 0.017147739049191042,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-22T07:11:20Z",
+        "reference_value": 0.2532886576419857
+      }
+    },
+    {
+      "run": "hybrid-medium-hand",
+      "learner": "hybrid, 2 conv blocks then 5 transformer layers of width 256, with hand features",
+      "test": {
+        "pr_auc": {
+          "value": 0.2622222769600991,
+          "low": 0.24849766914225158,
+          "high": 0.2770483473372084
+        },
+        "roc_auc": {
+          "value": 0.8261688187795285,
+          "low": 0.82025260572809,
+          "high": 0.8319573402345751
+        },
+        "brier": {
+          "value": 0.05655734387433106,
+          "low": 0.054712024403886055,
+          "high": 0.05847277245011606
+        },
+        "log_loss": {
+          "value": 0.20048762238429202,
+          "low": 0.19482042075403003,
+          "high": 0.20659891336674382
+        },
+        "calibration_error": {
+          "value": 0.0024826922286028644,
+          "low": 0.0016561776474172834,
+          "high": 0.004901979557225631
+        }
+      },
+      "test_by_band": {
+        "1100-1400": {
+          "rows": 16674,
+          "pr_auc": 0.2682535843922887,
+          "roc_auc": 0.8208979128331424,
+          "brier": 0.06379080626500133,
+          "log_loss": 0.2207951281440432,
+          "calibration_error": 0.003061310015899069
+        },
+        "1400-1700": {
+          "rows": 19614,
+          "pr_auc": 0.22221431064550506,
+          "roc_auc": 0.8132831269809137,
+          "brier": 0.05300609412427361,
+          "log_loss": 0.19102031977202746,
+          "calibration_error": 0.003639720339006136
+        },
+        "1700-2000": {
+          "rows": 14453,
+          "pr_auc": 0.1865338755634458,
+          "roc_auc": 0.7968485942999026,
+          "brier": 0.04655802874954813,
+          "log_loss": 0.1761478389601307,
+          "calibration_error": 0.0025363858861929866
+        },
+        "2000+": {
+          "rows": 7126,
+          "pr_auc": 0.13335384741841547,
+          "roc_auc": 0.8011928696967495,
+          "brier": 0.03473877816197543,
+          "log_loss": 0.13929382616969116,
+          "calibration_error": 0.005913044255941121
+        },
+        "<1100": {
+          "rows": 10712,
+          "pr_auc": 0.35881515258043895,
+          "roc_auc": 0.8403405087776125,
+          "brier": 0.07980628538481689,
+          "log_loss": 0.2597607930390264,
+          "calibration_error": 0.012123747120588493
+        }
+      },
+      "parameters": 6583849,
+      "device": "NVIDIA A100-SXM4-80GB",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 394.6,
+      "code": "8c771617309d36154b1c85abcbbff500fafea271",
+      "trained": "2026-11-22T22:43:00Z",
+      "gain": {
+        "gain": 0.008933619318113373,
+        "low": 0.001924993009254316,
+        "high": 0.016033520373204806,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-22T22:31:57Z",
+        "reference_value": 0.2532886576419857
+      }
+    },
+    {
       "run": "gbm-hand",
       "learner": "LightGBM, context and hand features",
       "test": {
@@ -144,7 +672,7 @@
         "brier": {
           "value": 0.05687015967075623,
           "low": 0.055030720375983715,
-          "high": 0.05877511601501996
+          "high": 0.05877511601501995
         },
         "log_loss": {
           "value": 0.20129817010030807,
@@ -152,8 +680,8 @@
           "high": 0.20694614873443207
         },
         "calibration_error": {
-          "value": 0.0041959693770217,
-          "low": 0.002511932290565878,
+          "value": 0.004195969377021698,
+          "low": 0.002511932290565868,
           "high": 0.006035991110994137
         }
       },
@@ -164,7 +692,7 @@
           "roc_auc": 0.8171392462409841,
           "brier": 0.06422363733104211,
           "log_loss": 0.22166814965117085,
-          "calibration_error": 0.0021360501221228214
+          "calibration_error": 0.002136050122122817
         },
         "1400-1700": {
           "rows": 19614,
@@ -178,9 +706,9 @@
           "rows": 14453,
           "pr_auc": 0.17936120694397722,
           "roc_auc": 0.7957143682871876,
-          "brier": 0.046720351736051415,
+          "brier": 0.04672035173605141,
           "log_loss": 0.17609949336499134,
-          "calibration_error": 0.004083566019799725
+          "calibration_error": 0.004083566019799722
         },
         "2000+": {
           "rows": 7126,
@@ -188,7 +716,7 @@
           "roc_auc": 0.8042460993537726,
           "brier": 0.034792203756555645,
           "log_loss": 0.13852893490989623,
-          "calibration_error": 0.006191413035144857
+          "calibration_error": 0.0061914130351448556
         },
         "<1100": {
           "rows": 10712,
@@ -196,16 +724,104 @@
           "roc_auc": 0.8357612906649684,
           "brier": 0.08060733937981453,
           "log_loss": 0.2616354814236605,
-          "calibration_error": 0.009599094231833279
+          "calibration_error": 0.009599094231833274
         }
       },
       "parameters": null,
       "device": "cpu",
       "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
-      "seconds": 8.7,
-      "code": "85d0c35a08069598b9b5d0d17ac80052a4509a64+changes",
-      "trained": "2026-11-22T01:42:59Z",
+      "seconds": 37.8,
+      "code": "8c771617309d36154b1c85abcbbff500fafea271",
+      "trained": "2026-11-22T22:31:57Z",
       "gain": null
+    },
+    {
+      "run": "transformer-medium-attacks",
+      "learner": "transformer, 8 layers of width 256, attention told what each piece attacks",
+      "test": {
+        "pr_auc": {
+          "value": 0.23812065738045354,
+          "low": 0.22608561517394246,
+          "high": 0.25217360570241504
+        },
+        "roc_auc": {
+          "value": 0.8191243513222554,
+          "low": 0.8129668664720322,
+          "high": 0.8250703864466011
+        },
+        "brier": {
+          "value": 0.05739729063327469,
+          "low": 0.055487417928219394,
+          "high": 0.059332744370963114
+        },
+        "log_loss": {
+          "value": 0.20327505391801506,
+          "low": 0.1974807313357166,
+          "high": 0.20882063803540304
+        },
+        "calibration_error": {
+          "value": 0.002198005009577787,
+          "low": 0.0015765346882647294,
+          "high": 0.004692311168072185
+        }
+      },
+      "test_by_band": {
+        "1100-1400": {
+          "rows": 16674,
+          "pr_auc": 0.23405915618152529,
+          "roc_auc": 0.816061086252799,
+          "brier": 0.06488608686186663,
+          "log_loss": 0.2233493232900638,
+          "calibration_error": 0.004776651612716289
+        },
+        "1400-1700": {
+          "rows": 19614,
+          "pr_auc": 0.18906916891226339,
+          "roc_auc": 0.7972356514641756,
+          "brier": 0.0539211212019717,
+          "log_loss": 0.19591864322788471,
+          "calibration_error": 0.0029063498554566603
+        },
+        "1700-2000": {
+          "rows": 14453,
+          "pr_auc": 0.17988372673032174,
+          "roc_auc": 0.7943813200801737,
+          "brier": 0.04675910931029167,
+          "log_loss": 0.17654716964801095,
+          "calibration_error": 0.0024856682220093843
+        },
+        "2000+": {
+          "rows": 7126,
+          "pr_auc": 0.14176839388122306,
+          "roc_auc": 0.7985406724964405,
+          "brier": 0.03455619758883082,
+          "log_loss": 0.138041528004185,
+          "calibration_error": 0.004898842282988819
+        },
+        "<1100": {
+          "rows": 10712,
+          "pr_auc": 0.332134446359621,
+          "roc_auc": 0.8278648707010927,
+          "brier": 0.08165351380409391,
+          "log_loss": 0.2649556447304682,
+          "calibration_error": 0.009101941670386268
+        }
+      },
+      "parameters": 6554433,
+      "device": "NVIDIA A100-SXM4-80GB",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 622.3,
+      "code": "8c771617309d36154b1c85abcbbff500fafea271",
+      "trained": "2026-11-22T23:04:21Z",
+      "gain": {
+        "gain": -0.015168000261532172,
+        "low": -0.023521844337858817,
+        "high": -0.006589106791325256,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-22T22:31:57Z",
+        "reference_value": 0.2532886576419857
+      }
     },
     {
       "run": "transformer-medium",
@@ -472,6 +1088,94 @@
       }
     },
     {
+      "run": "transformer-medium-long",
+      "learner": "transformer, 8 layers of width 256",
+      "test": {
+        "pr_auc": {
+          "value": 0.23593083432412262,
+          "low": 0.22361274211713297,
+          "high": 0.24878740378672823
+        },
+        "roc_auc": {
+          "value": 0.8165888163793192,
+          "low": 0.8106735371471128,
+          "high": 0.8224846102148267
+        },
+        "brier": {
+          "value": 0.05753356341356361,
+          "low": 0.0556312356809532,
+          "high": 0.05949493120054502
+        },
+        "log_loss": {
+          "value": 0.20402127806194725,
+          "low": 0.19820092404591097,
+          "high": 0.20986159521714742
+        },
+        "calibration_error": {
+          "value": 0.002618586922759398,
+          "low": 0.0016023733643038898,
+          "high": 0.004917442086498159
+        }
+      },
+      "test_by_band": {
+        "1100-1400": {
+          "rows": 16674,
+          "pr_auc": 0.23335634688135196,
+          "roc_auc": 0.8143069869596976,
+          "brier": 0.06491623592537378,
+          "log_loss": 0.22405393470634877,
+          "calibration_error": 0.007303670025073547
+        },
+        "1400-1700": {
+          "rows": 19614,
+          "pr_auc": 0.19235480789168613,
+          "roc_auc": 0.7971266197656305,
+          "brier": 0.05391954750252702,
+          "log_loss": 0.195831078809017,
+          "calibration_error": 0.003572347311747163
+        },
+        "1700-2000": {
+          "rows": 14453,
+          "pr_auc": 0.17513759571300658,
+          "roc_auc": 0.7925107032058207,
+          "brier": 0.04689201647419284,
+          "log_loss": 0.17695230770127016,
+          "calibration_error": 0.005685209929329634
+        },
+        "2000+": {
+          "rows": 7126,
+          "pr_auc": 0.14299137145050383,
+          "roc_auc": 0.799380149162542,
+          "brier": 0.0345587573972089,
+          "log_loss": 0.13869464540265514,
+          "calibration_error": 0.005975298298737585
+        },
+        "<1100": {
+          "rows": 10712,
+          "pr_auc": 0.32641940198600466,
+          "roc_auc": 0.8213085624040392,
+          "brier": 0.08230086851106344,
+          "log_loss": 0.267815477484203,
+          "calibration_error": 0.006155467526371236
+        }
+      },
+      "parameters": 6554177,
+      "device": "NVIDIA A100-SXM4-80GB",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 685.5,
+      "code": "3a74aa4b28f6805e3da49ea7c054bc4b5cf4d712",
+      "trained": "2026-11-22T07:23:15Z",
+      "gain": {
+        "gain": -0.01735782331786309,
+        "low": -0.02569168094973313,
+        "high": -0.008905257917773185,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-22T07:11:20Z",
+        "reference_value": 0.2532886576419857
+      }
+    },
+    {
       "run": "gbm-context",
       "learner": "LightGBM, context numbers only",
       "test": {
@@ -649,57 +1353,1539 @@
     }
   ],
   "calibration": {
-    "run": "transformer-medium-hand",
+    "run": "transformer-medium-hand-pretrained",
     "bins": [
       {
         "n": 6858,
-        "predicted": 4.769223657189697e-06,
+        "predicted": 4.5785747938273866e-05,
         "observed": 0.0
       },
       {
         "n": 6858,
-        "predicted": 2.4602309016852345e-05,
+        "predicted": 0.00013782007431693545,
         "observed": 0.00029163021289005544
       },
       {
         "n": 6858,
-        "predicted": 0.003558760979804751,
-        "observed": 0.0051035287255759695
+        "predicted": 0.0027234461820769824,
+        "observed": 0.0030621172353455816
       },
       {
         "n": 6858,
-        "predicted": 0.011748078967451834,
-        "observed": 0.014435695538057743
+        "predicted": 0.009623774228609903,
+        "observed": 0.015018955963837854
       },
       {
         "n": 6858,
-        "predicted": 0.025579703418277182,
-        "observed": 0.0284339457567804
+        "predicted": 0.02212311144539245,
+        "observed": 0.02216389617964421
       },
       {
         "n": 6858,
-        "predicted": 0.04423002187050428,
-        "observed": 0.04666083406240887
+        "predicted": 0.04055411541755352,
+        "observed": 0.0405365995917177
       },
       {
         "n": 6858,
-        "predicted": 0.06814012901350676,
-        "observed": 0.07567804024496938
+        "predicted": 0.06447718817401181,
+        "observed": 0.06780402449693788
       },
       {
         "n": 6858,
-        "predicted": 0.10074822972665363,
-        "observed": 0.10177894429862934
+        "predicted": 0.09769844797165368,
+        "observed": 0.1020705745115194
       },
       {
         "n": 6858,
-        "predicted": 0.14966785651964312,
-        "observed": 0.14391951006124235
+        "predicted": 0.15037856830111956,
+        "observed": 0.15908428113152523
       },
       {
         "n": 6857,
-        "predicted": 0.2617118159995866,
-        "observed": 0.2692139419571241
+        "predicted": 0.27566810574733414,
+        "observed": 0.2754849059355403
+      }
+    ]
+  },
+  "studies": {
+    "features": [
+      {
+        "run": "transformer-medium-hand-no-pawns",
+        "learner": "transformer, 8 layers of width 256, with hand features, without the pawns group",
+        "test": {
+          "pr_auc": {
+            "value": 0.26767534467153486,
+            "low": 0.2538870270615979,
+            "high": 0.2827428611648074
+          },
+          "roc_auc": {
+            "value": 0.8290785963582902,
+            "low": 0.8234671082333337,
+            "high": 0.8348556134441472
+          },
+          "brier": {
+            "value": 0.05639119950014511,
+            "low": 0.054534826264772275,
+            "high": 0.05829210465170522
+          },
+          "log_loss": {
+            "value": 0.19943481552620157,
+            "low": 0.19384512343255836,
+            "high": 0.2052891914691965
+          },
+          "calibration_error": {
+            "value": 0.002797246373643984,
+            "low": 0.0019760153853410145,
+            "high": 0.005055861656465253
+          }
+        },
+        "test_by_band": {
+          "1100-1400": {
+            "rows": 16674,
+            "pr_auc": 0.2726406937893743,
+            "roc_auc": 0.8262411138741313,
+            "brier": 0.06351672359944964,
+            "log_loss": 0.21866726133981318,
+            "calibration_error": 0.004345230969047145
+          },
+          "1400-1700": {
+            "rows": 19614,
+            "pr_auc": 0.22539126866095005,
+            "roc_auc": 0.8137390919208181,
+            "brier": 0.05288580315426658,
+            "log_loss": 0.19108273874876752,
+            "calibration_error": 0.004353955259916058
+          },
+          "1700-2000": {
+            "rows": 14453,
+            "pr_auc": 0.195417418337466,
+            "roc_auc": 0.8007621819488715,
+            "brier": 0.04637923056318825,
+            "log_loss": 0.17487354928428814,
+            "calibration_error": 0.004342170092343136
+          },
+          "2000+": {
+            "rows": 7126,
+            "pr_auc": 0.1306457928098386,
+            "roc_auc": 0.8065796237831088,
+            "brier": 0.03468720350973187,
+            "log_loss": 0.13800242820997458,
+            "calibration_error": 0.004658928240639901
+          },
+          "<1100": {
+            "rows": 10712,
+            "pr_auc": 0.3658964920882421,
+            "roc_auc": 0.8399485677476498,
+            "brier": 0.0796650528953822,
+            "log_loss": 0.258796933284439,
+            "calibration_error": 0.007939472704933375
+          }
+        },
+        "parameters": 6556993,
+        "device": "NVIDIA A100-SXM4-80GB",
+        "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+        "seconds": 489.7,
+        "code": "0ba155afac19364bfc996e771f2be7757fd57a6d",
+        "trained": "2026-11-22T10:49:41Z",
+        "gain": {
+          "gain": 0.01438668702954915,
+          "low": 0.008620866713344737,
+          "high": 0.02063689635842911,
+          "beyond_noise": true,
+          "reference": "gbm-hand",
+          "reference_trained": "2026-11-22T09:45:04Z",
+          "reference_value": 0.2532886576419857
+        },
+        "base": "transformer-medium-hand",
+        "base_test": {
+          "value": 0.266598881596608,
+          "low": 0.2526279716308411,
+          "high": 0.28220690214790173
+        },
+        "changes": [
+          "`learner.without` pawns"
+        ],
+        "train_rows": 594940
+      },
+      {
+        "run": "transformer-medium-hand-no-kings",
+        "learner": "transformer, 8 layers of width 256, with hand features, without the kings group",
+        "test": {
+          "pr_auc": {
+            "value": 0.2666507307240591,
+            "low": 0.2539022162918058,
+            "high": 0.28134853285746075
+          },
+          "roc_auc": {
+            "value": 0.8294111660110648,
+            "low": 0.8235561957757841,
+            "high": 0.835067712150067
+          },
+          "brier": {
+            "value": 0.05640337029573811,
+            "low": 0.05453733711706021,
+            "high": 0.0582959467910507
+          },
+          "log_loss": {
+            "value": 0.19937143899472168,
+            "low": 0.19375098215864653,
+            "high": 0.20518594155107472
+          },
+          "calibration_error": {
+            "value": 0.00258439648658782,
+            "low": 0.0015708916149478167,
+            "high": 0.0047343825025175056
+          }
+        },
+        "test_by_band": {
+          "1100-1400": {
+            "rows": 16674,
+            "pr_auc": 0.2746245950575887,
+            "roc_auc": 0.8252797807456962,
+            "brier": 0.06350369811519861,
+            "log_loss": 0.21918478266907052,
+            "calibration_error": 0.004734735811594157
+          },
+          "1400-1700": {
+            "rows": 19614,
+            "pr_auc": 0.2207265943240159,
+            "roc_auc": 0.8144257952485565,
+            "brier": 0.05300245354821277,
+            "log_loss": 0.19125395721128224,
+            "calibration_error": 0.0036098972956883158
+          },
+          "1700-2000": {
+            "rows": 14453,
+            "pr_auc": 0.18801759814345825,
+            "roc_auc": 0.8020700971992062,
+            "brier": 0.04645643613202702,
+            "log_loss": 0.1748678207745055,
+            "calibration_error": 0.0030658538034165203
+          },
+          "2000+": {
+            "rows": 7126,
+            "pr_auc": 0.1354299859799196,
+            "roc_auc": 0.8106615420639983,
+            "brier": 0.034627102027581305,
+            "log_loss": 0.1368974128807088,
+            "calibration_error": 0.0034329079400561196
+          },
+          "<1100": {
+            "rows": 10712,
+            "pr_auc": 0.367212359410957,
+            "roc_auc": 0.8415437361720349,
+            "brier": 0.07948546907946472,
+            "log_loss": 0.25801495089721693,
+            "calibration_error": 0.009895324593305613
+          }
+        },
+        "parameters": 6556993,
+        "device": "NVIDIA A100-SXM4-80GB",
+        "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+        "seconds": 490.1,
+        "code": "0ba155afac19364bfc996e771f2be7757fd57a6d",
+        "trained": "2026-11-22T10:23:04Z",
+        "gain": {
+          "gain": 0.013362073082073378,
+          "low": 0.006723116831589121,
+          "high": 0.020721629734951265,
+          "beyond_noise": true,
+          "reference": "gbm-hand",
+          "reference_trained": "2026-11-22T09:45:04Z",
+          "reference_value": 0.2532886576419857
+        },
+        "base": "transformer-medium-hand",
+        "base_test": {
+          "value": 0.266598881596608,
+          "low": 0.2526279716308411,
+          "high": 0.28220690214790173
+        },
+        "changes": [
+          "`learner.without` kings"
+        ],
+        "train_rows": 594940
+      },
+      {
+        "run": "transformer-medium-hand-no-mobility",
+        "learner": "transformer, 8 layers of width 256, with hand features, without the mobility group",
+        "test": {
+          "pr_auc": {
+            "value": 0.25711673548015224,
+            "low": 0.2447553181587921,
+            "high": 0.2716239589057213
+          },
+          "roc_auc": {
+            "value": 0.8248483356838241,
+            "low": 0.8189901323007248,
+            "high": 0.8305237473343356
+          },
+          "brier": {
+            "value": 0.05678880465622351,
+            "low": 0.054974783800386576,
+            "high": 0.05869442694350755
+          },
+          "log_loss": {
+            "value": 0.2011178478071438,
+            "low": 0.19546233475443386,
+            "high": 0.20689992710319405
+          },
+          "calibration_error": {
+            "value": 0.0031154954692213703,
+            "low": 0.002054655786957257,
+            "high": 0.005548835573410483
+          }
+        },
+        "test_by_band": {
+          "1100-1400": {
+            "rows": 16674,
+            "pr_auc": 0.2611109560873532,
+            "roc_auc": 0.8199178195512731,
+            "brier": 0.06402759618042944,
+            "log_loss": 0.22147475315432483,
+            "calibration_error": 0.004053758093315503
+          },
+          "1400-1700": {
+            "rows": 19614,
+            "pr_auc": 0.21638140676170528,
+            "roc_auc": 0.8105826621836474,
+            "brier": 0.053226211287065714,
+            "log_loss": 0.19210821206239614,
+            "calibration_error": 0.004386424789788286
+          },
+          "1700-2000": {
+            "rows": 14453,
+            "pr_auc": 0.18250056919949834,
+            "roc_auc": 0.7953735234268724,
+            "brier": 0.04673368770488619,
+            "log_loss": 0.17656305026633015,
+            "calibration_error": 0.004919577517629134
+          },
+          "2000+": {
+            "rows": 7126,
+            "pr_auc": 0.12678495298572703,
+            "roc_auc": 0.8014970084055326,
+            "brier": 0.03482849430211389,
+            "log_loss": 0.1390863169939522,
+            "calibration_error": 0.005066546952978804
+          },
+          "<1100": {
+            "rows": 10712,
+            "pr_auc": 0.3541815526442712,
+            "roc_auc": 0.8380758792709998,
+            "brier": 0.08021980478216775,
+            "log_loss": 0.2603235174459382,
+            "calibration_error": 0.00917601862340724
+          }
+        },
+        "parameters": 6556481,
+        "device": "NVIDIA A100-SXM4-80GB",
+        "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+        "seconds": 489.4,
+        "code": "0ba155afac19364bfc996e771f2be7757fd57a6d",
+        "trained": "2026-11-22T10:40:49Z",
+        "gain": {
+          "gain": 0.0038280778381665215,
+          "low": -0.0026679855445407175,
+          "high": 0.011013740248386958,
+          "beyond_noise": false,
+          "reference": "gbm-hand",
+          "reference_trained": "2026-11-22T09:45:04Z",
+          "reference_value": 0.2532886576419857
+        },
+        "base": "transformer-medium-hand",
+        "base_test": {
+          "value": 0.266598881596608,
+          "low": 0.2526279716308411,
+          "high": 0.28220690214790173
+        },
+        "changes": [
+          "`learner.without` mobility"
+        ],
+        "train_rows": 594940
+      },
+      {
+        "run": "transformer-medium-hand-no-hanging",
+        "learner": "transformer, 8 layers of width 256, with hand features, without the hanging group",
+        "test": {
+          "pr_auc": {
+            "value": 0.2564040581772695,
+            "low": 0.24371467594780422,
+            "high": 0.2707922311268857
+          },
+          "roc_auc": {
+            "value": 0.8278896192639181,
+            "low": 0.8221736858508194,
+            "high": 0.8334347863518445
+          },
+          "brier": {
+            "value": 0.056694494506832574,
+            "low": 0.054789515383415276,
+            "high": 0.058608482541073946
+          },
+          "log_loss": {
+            "value": 0.20011472420187296,
+            "low": 0.19453426443082522,
+            "high": 0.2059232630317405
+          },
+          "calibration_error": {
+            "value": 0.002196969577085314,
+            "low": 0.0015572388758115382,
+            "high": 0.004719954061442878
+          }
+        },
+        "test_by_band": {
+          "1100-1400": {
+            "rows": 16674,
+            "pr_auc": 0.2655866348822014,
+            "roc_auc": 0.8221480575258152,
+            "brier": 0.06387647790015137,
+            "log_loss": 0.22017518443317288,
+            "calibration_error": 0.005890067888307222
+          },
+          "1400-1700": {
+            "rows": 19614,
+            "pr_auc": 0.2185860321384915,
+            "roc_auc": 0.8143202893396901,
+            "brier": 0.053030102834972004,
+            "log_loss": 0.19129201409740104,
+            "calibration_error": 0.002441033618036147
+          },
+          "1700-2000": {
+            "rows": 14453,
+            "pr_auc": 0.18656582918025677,
+            "roc_auc": 0.801136314861866,
+            "brier": 0.046507993692841754,
+            "log_loss": 0.17485909194814656,
+            "calibration_error": 0.002222561987890118
+          },
+          "2000+": {
+            "rows": 7126,
+            "pr_auc": 0.14311269599510543,
+            "roc_auc": 0.8151307661873117,
+            "brier": 0.034452255094842094,
+            "log_loss": 0.13648752784982082,
+            "calibration_error": 0.005759271812872928
+          },
+          "<1100": {
+            "rows": 10712,
+            "pr_auc": 0.34061834804670854,
+            "roc_auc": 0.8352228578434872,
+            "brier": 0.08076513317992152,
+            "log_loss": 0.2614466487967431,
+            "calibration_error": 0.010849561041628862
+          }
+        },
+        "parameters": 6556993,
+        "device": "NVIDIA A100-SXM4-80GB",
+        "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+        "seconds": 490.1,
+        "code": "0ba155afac19364bfc996e771f2be7757fd57a6d",
+        "trained": "2026-11-22T10:14:10Z",
+        "gain": {
+          "gain": 0.0031154005352838077,
+          "low": -0.0031000373995416753,
+          "high": 0.009791587048010246,
+          "beyond_noise": false,
+          "reference": "gbm-hand",
+          "reference_trained": "2026-11-22T09:45:04Z",
+          "reference_value": 0.2532886576419857
+        },
+        "base": "transformer-medium-hand",
+        "base_test": {
+          "value": 0.266598881596608,
+          "low": 0.2526279716308411,
+          "high": 0.28220690214790173
+        },
+        "changes": [
+          "`learner.without` hanging"
+        ],
+        "train_rows": 594940
+      },
+      {
+        "run": "gbm-hand-no-pawns",
+        "learner": "LightGBM, context and hand features, without the pawns group",
+        "test": {
+          "pr_auc": {
+            "value": 0.2528011045282026,
+            "low": 0.23907176079506887,
+            "high": 0.2667495231629588
+          },
+          "roc_auc": {
+            "value": 0.8230895086856533,
+            "low": 0.8169627908496556,
+            "high": 0.8288313554975579
+          },
+          "brier": {
+            "value": 0.05688128819757896,
+            "low": 0.05502667331495051,
+            "high": 0.058856095181336804
+          },
+          "log_loss": {
+            "value": 0.2013405755316729,
+            "low": 0.19576372120924004,
+            "high": 0.2071638303200906
+          },
+          "calibration_error": {
+            "value": 0.003570235046725452,
+            "low": 0.0022954464571912536,
+            "high": 0.00569544081772112
+          }
+        },
+        "test_by_band": {
+          "1100-1400": {
+            "rows": 16674,
+            "pr_auc": 0.2606463802460661,
+            "roc_auc": 0.8180141379709497,
+            "brier": 0.06413883923622261,
+            "log_loss": 0.2213386331351754,
+            "calibration_error": 0.004111996742740155
+          },
+          "1400-1700": {
+            "rows": 19614,
+            "pr_auc": 0.21193866613621407,
+            "roc_auc": 0.8075794034613794,
+            "brier": 0.05327366557379647,
+            "log_loss": 0.19279303782559593,
+            "calibration_error": 0.00438845409379864
+          },
+          "1700-2000": {
+            "rows": 14453,
+            "pr_auc": 0.18286688706331633,
+            "roc_auc": 0.7947791552312509,
+            "brier": 0.046676587168344115,
+            "log_loss": 0.1761659232297756,
+            "calibration_error": 0.005482206217815859
+          },
+          "2000+": {
+            "rows": 7126,
+            "pr_auc": 0.12858149345641223,
+            "roc_auc": 0.8067707197859725,
+            "brier": 0.03481147999608851,
+            "log_loss": 0.13827775129357342,
+            "calibration_error": 0.007064869124393585
+          },
+          "<1100": {
+            "rows": 10712,
+            "pr_auc": 0.3430314537654157,
+            "roc_auc": 0.8352093615666295,
+            "brier": 0.08064020355828454,
+            "log_loss": 0.2617810840572715,
+            "calibration_error": 0.010783411216491267
+          }
+        },
+        "parameters": null,
+        "device": "cpu",
+        "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+        "seconds": 8.4,
+        "code": "0ba155afac19364bfc996e771f2be7757fd57a6d",
+        "trained": "2026-11-22T10:05:12Z",
+        "gain": {
+          "gain": -0.0004875531137831235,
+          "low": -0.003935116100806185,
+          "high": 0.003267275616898143,
+          "beyond_noise": false,
+          "reference": "gbm-hand",
+          "reference_trained": "2026-11-22T09:45:04Z",
+          "reference_value": 0.2532886576419857
+        },
+        "base": "gbm-hand",
+        "base_test": {
+          "value": 0.2532886576419857,
+          "low": 0.23964641106494833,
+          "high": 0.26813110113138766
+        },
+        "changes": [
+          "`learner.without` pawns"
+        ],
+        "train_rows": 594940
+      },
+      {
+        "run": "gbm-hand-no-mobility",
+        "learner": "LightGBM, context and hand features, without the mobility group",
+        "test": {
+          "pr_auc": {
+            "value": 0.24828810808120003,
+            "low": 0.23503990737124003,
+            "high": 0.2627264883651019
+          },
+          "roc_auc": {
+            "value": 0.8209789256121535,
+            "low": 0.8147926264025206,
+            "high": 0.8267834802774965
+          },
+          "brier": {
+            "value": 0.05705580713924753,
+            "low": 0.05518893131512525,
+            "high": 0.05900394130587788
+          },
+          "log_loss": {
+            "value": 0.20209374036715336,
+            "low": 0.19640582074590307,
+            "high": 0.20797496787713227
+          },
+          "calibration_error": {
+            "value": 0.0036905971875449235,
+            "low": 0.0025313093761025313,
+            "high": 0.00590775500054613
+          }
+        },
+        "test_by_band": {
+          "1100-1400": {
+            "rows": 16674,
+            "pr_auc": 0.2534555285052526,
+            "roc_auc": 0.813948822700584,
+            "brier": 0.06445931150955737,
+            "log_loss": 0.22257930835767079,
+            "calibration_error": 0.00433985500452728
+          },
+          "1400-1700": {
+            "rows": 19614,
+            "pr_auc": 0.20353592631052925,
+            "roc_auc": 0.806514436457415,
+            "brier": 0.0534725536785773,
+            "log_loss": 0.19344738159987757,
+            "calibration_error": 0.00421351160256673
+          },
+          "1700-2000": {
+            "rows": 14453,
+            "pr_auc": 0.18571153395643591,
+            "roc_auc": 0.7916902337813263,
+            "brier": 0.0466733110031151,
+            "log_loss": 0.17653437557268042,
+            "calibration_error": 0.003457535411197657
+          },
+          "2000+": {
+            "rows": 7126,
+            "pr_auc": 0.1291763693019568,
+            "roc_auc": 0.8014507147259656,
+            "brier": 0.034801271024436906,
+            "log_loss": 0.13890906221592184,
+            "calibration_error": 0.00802396827293364
+          },
+          "<1100": {
+            "rows": 10712,
+            "pr_auc": 0.33822091830634315,
+            "roc_auc": 0.8339157319923066,
+            "brier": 0.08090568974909654,
+            "log_loss": 0.2625564771173077,
+            "calibration_error": 0.010195291133647406
+          }
+        },
+        "parameters": null,
+        "device": "cpu",
+        "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+        "seconds": 6.7,
+        "code": "0ba155afac19364bfc996e771f2be7757fd57a6d",
+        "trained": "2026-11-22T10:04:16Z",
+        "gain": {
+          "gain": -0.005000549560785689,
+          "low": -0.009008803190837678,
+          "high": -0.00028634913120343693,
+          "beyond_noise": true,
+          "reference": "gbm-hand",
+          "reference_trained": "2026-11-22T09:45:04Z",
+          "reference_value": 0.2532886576419857
+        },
+        "base": "gbm-hand",
+        "base_test": {
+          "value": 0.2532886576419857,
+          "low": 0.23964641106494833,
+          "high": 0.26813110113138766
+        },
+        "changes": [
+          "`learner.without` mobility"
+        ],
+        "train_rows": 594940
+      },
+      {
+        "run": "gbm-hand-no-hanging",
+        "learner": "LightGBM, context and hand features, without the hanging group",
+        "test": {
+          "pr_auc": {
+            "value": 0.24448662013170255,
+            "low": 0.23189034222835112,
+            "high": 0.25851519329165196
+          },
+          "roc_auc": {
+            "value": 0.8201608610446849,
+            "low": 0.8140761249075085,
+            "high": 0.8259661263567941
+          },
+          "brier": {
+            "value": 0.057195471182301214,
+            "low": 0.055294402893098525,
+            "high": 0.059110323771349046
+          },
+          "log_loss": {
+            "value": 0.20249353942797824,
+            "low": 0.19686371713124814,
+            "high": 0.20811989407970194
+          },
+          "calibration_error": {
+            "value": 0.0033567632612512563,
+            "low": 0.0021345223462624764,
+            "high": 0.005561097974428124
+          }
+        },
+        "test_by_band": {
+          "1100-1400": {
+            "rows": 16674,
+            "pr_auc": 0.25006042856599386,
+            "roc_auc": 0.8148439714047363,
+            "brier": 0.06457465286351326,
+            "log_loss": 0.22267421149637798,
+            "calibration_error": 0.002845569678906422
+          },
+          "1400-1700": {
+            "rows": 19614,
+            "pr_auc": 0.20989093466368863,
+            "roc_auc": 0.8048981966165987,
+            "brier": 0.05334794486957579,
+            "log_loss": 0.19345374831231,
+            "calibration_error": 0.0033457308286691492
+          },
+          "1700-2000": {
+            "rows": 14453,
+            "pr_auc": 0.18124249677061538,
+            "roc_auc": 0.7911996880651935,
+            "brier": 0.0467670485421975,
+            "log_loss": 0.17682378819505865,
+            "calibration_error": 0.004207490110301175
+          },
+          "2000+": {
+            "rows": 7126,
+            "pr_auc": 0.12488587569330331,
+            "roc_auc": 0.8045836125757319,
+            "brier": 0.034862608045723414,
+            "log_loss": 0.13870886269041766,
+            "calibration_error": 0.006494199422399466
+          },
+          "<1100": {
+            "rows": 10712,
+            "pr_auc": 0.32524081191873944,
+            "roc_auc": 0.8287776307674852,
+            "brier": 0.08168117701444641,
+            "log_loss": 0.26469933273225976,
+            "calibration_error": 0.009666600100956005
+          }
+        },
+        "parameters": null,
+        "device": "cpu",
+        "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+        "seconds": 6.6,
+        "code": "0ba155afac19364bfc996e771f2be7757fd57a6d",
+        "trained": "2026-11-22T10:01:31Z",
+        "gain": {
+          "gain": -0.008802037510283162,
+          "low": -0.013236269863908386,
+          "high": -0.004580877053648348,
+          "beyond_noise": true,
+          "reference": "gbm-hand",
+          "reference_trained": "2026-11-22T09:45:04Z",
+          "reference_value": 0.2532886576419857
+        },
+        "base": "gbm-hand",
+        "base_test": {
+          "value": 0.2532886576419857,
+          "low": 0.23964641106494833,
+          "high": 0.26813110113138766
+        },
+        "changes": [
+          "`learner.without` hanging"
+        ],
+        "train_rows": 594940
+      },
+      {
+        "run": "gbm-hand-no-kings",
+        "learner": "LightGBM, context and hand features, without the kings group",
+        "test": {
+          "pr_auc": {
+            "value": 0.2431527536271656,
+            "low": 0.23112990959977606,
+            "high": 0.2566255809408078
+          },
+          "roc_auc": {
+            "value": 0.8182052912113983,
+            "low": 0.8121491855113838,
+            "high": 0.8242952962832483
+          },
+          "brier": {
+            "value": 0.05726320784149241,
+            "low": 0.055402049735438226,
+            "high": 0.05921174367559686
+          },
+          "log_loss": {
+            "value": 0.20308923530719236,
+            "low": 0.1974281730643471,
+            "high": 0.20873153946406472
+          },
+          "calibration_error": {
+            "value": 0.0021845625038167007,
+            "low": 0.0014710203020085262,
+            "high": 0.004720059637350768
+          }
+        },
+        "test_by_band": {
+          "1100-1400": {
+            "rows": 16674,
+            "pr_auc": 0.2534679354762107,
+            "roc_auc": 0.8147534636432218,
+            "brier": 0.06443719532123161,
+            "log_loss": 0.22254933087004397,
+            "calibration_error": 0.0020218495260577165
+          },
+          "1400-1700": {
+            "rows": 19614,
+            "pr_auc": 0.20569478773246347,
+            "roc_auc": 0.8040889609399631,
+            "brier": 0.05347041725740708,
+            "log_loss": 0.1938204323985344,
+            "calibration_error": 0.004042450498745685
+          },
+          "1700-2000": {
+            "rows": 14453,
+            "pr_auc": 0.16872973855482382,
+            "roc_auc": 0.7892286347453635,
+            "brier": 0.04701002275299503,
+            "log_loss": 0.17763193328983012,
+            "calibration_error": 0.0022879072301981262
+          },
+          "2000+": {
+            "rows": 7126,
+            "pr_auc": 0.11933691575173325,
+            "roc_auc": 0.7967422168751228,
+            "brier": 0.03498582935799715,
+            "log_loss": 0.13981632151448753,
+            "calibration_error": 0.005865133080095518
+          },
+          "<1100": {
+            "rows": 10712,
+            "pr_auc": 0.32795218716273933,
+            "roc_auc": 0.8270395848087738,
+            "brier": 0.08169474354318378,
+            "log_loss": 0.26620889891615257,
+            "calibration_error": 0.010072238384059318
+          }
+        },
+        "parameters": null,
+        "device": "cpu",
+        "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+        "seconds": 7.6,
+        "code": "0ba155afac19364bfc996e771f2be7757fd57a6d",
+        "trained": "2026-11-22T10:02:26Z",
+        "gain": {
+          "gain": -0.010135904014820118,
+          "low": -0.015445823468108619,
+          "high": -0.004525609573166772,
+          "beyond_noise": true,
+          "reference": "gbm-hand",
+          "reference_trained": "2026-11-22T09:45:04Z",
+          "reference_value": 0.2532886576419857
+        },
+        "base": "gbm-hand",
+        "base_test": {
+          "value": 0.2532886576419857,
+          "low": 0.23964641106494833,
+          "high": 0.26813110113138766
+        },
+        "changes": [
+          "`learner.without` kings"
+        ],
+        "train_rows": 594940
+      },
+      {
+        "run": "transformer-medium-hand-no-material",
+        "learner": "transformer, 8 layers of width 256, with hand features, without the material group",
+        "test": {
+          "pr_auc": {
+            "value": 0.23937189193923167,
+            "low": 0.22743998268786284,
+            "high": 0.25295726593882184
+          },
+          "roc_auc": {
+            "value": 0.8202556475999881,
+            "low": 0.8138317420601324,
+            "high": 0.8263713247066246
+          },
+          "brier": {
+            "value": 0.05729484087209078,
+            "low": 0.055373731426349444,
+            "high": 0.05923744180983338
+          },
+          "log_loss": {
+            "value": 0.20279511644386336,
+            "low": 0.1968857050305902,
+            "high": 0.2084597788046923
+          },
+          "calibration_error": {
+            "value": 0.0028589618108165716,
+            "low": 0.0016702683434589856,
+            "high": 0.005036559102835041
+          }
+        },
+        "test_by_band": {
+          "1100-1400": {
+            "rows": 16674,
+            "pr_auc": 0.23811980320747378,
+            "roc_auc": 0.8173029984313318,
+            "brier": 0.06473465857510648,
+            "log_loss": 0.22292770906227669,
+            "calibration_error": 0.005850425988732254
+          },
+          "1400-1700": {
+            "rows": 19614,
+            "pr_auc": 0.20197755518574212,
+            "roc_auc": 0.8025585450681612,
+            "brier": 0.05358392984851906,
+            "log_loss": 0.19428583922380216,
+            "calibration_error": 0.0018442871174586207
+          },
+          "1700-2000": {
+            "rows": 14453,
+            "pr_auc": 0.1747402711616252,
+            "roc_auc": 0.7927625096788113,
+            "brier": 0.04686597544385078,
+            "log_loss": 0.1769145049419525,
+            "calibration_error": 0.003667669305751171
+          },
+          "2000+": {
+            "rows": 7126,
+            "pr_auc": 0.13112080487828837,
+            "roc_auc": 0.8013801976094159,
+            "brier": 0.03469479378792645,
+            "log_loss": 0.13809397952647065,
+            "calibration_error": 0.005577323881063829
+          },
+          "<1100": {
+            "rows": 10712,
+            "pr_auc": 0.3267752035607244,
+            "roc_auc": 0.828002441224858,
+            "brier": 0.08161435319400634,
+            "log_loss": 0.26499852325727974,
+            "calibration_error": 0.009873741807668769
+          }
+        },
+        "parameters": 6556737,
+        "device": "NVIDIA A100-SXM4-80GB",
+        "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+        "seconds": 489.8,
+        "code": "0ba155afac19364bfc996e771f2be7757fd57a6d",
+        "trained": "2026-11-22T10:31:56Z",
+        "gain": {
+          "gain": -0.013916765702754047,
+          "low": -0.021417872689648874,
+          "high": -0.006281409200604262,
+          "beyond_noise": true,
+          "reference": "gbm-hand",
+          "reference_trained": "2026-11-22T09:45:04Z",
+          "reference_value": 0.2532886576419857
+        },
+        "base": "transformer-medium-hand",
+        "base_test": {
+          "value": 0.266598881596608,
+          "low": 0.2526279716308411,
+          "high": 0.28220690214790173
+        },
+        "changes": [
+          "`learner.without` material"
+        ],
+        "train_rows": 594940
+      },
+      {
+        "run": "gbm-hand-no-material",
+        "learner": "LightGBM, context and hand features, without the material group",
+        "test": {
+          "pr_auc": {
+            "value": 0.21877385664354768,
+            "low": 0.2076328945890618,
+            "high": 0.23120995360551755
+          },
+          "roc_auc": {
+            "value": 0.801015355538513,
+            "low": 0.7944246221279136,
+            "high": 0.8072761672494535
+          },
+          "brier": {
+            "value": 0.05829710187140377,
+            "low": 0.05636685397828846,
+            "high": 0.06032901608232369
+          },
+          "log_loss": {
+            "value": 0.20830368519864265,
+            "low": 0.20248348816455505,
+            "high": 0.214036716580605
+          },
+          "calibration_error": {
+            "value": 0.002747364087654563,
+            "low": 0.0018211309110950868,
+            "high": 0.005199982643657984
+          }
+        },
+        "test_by_band": {
+          "1100-1400": {
+            "rows": 16674,
+            "pr_auc": 0.21945685432204765,
+            "roc_auc": 0.7972823223473343,
+            "brier": 0.0658935710002786,
+            "log_loss": 0.228687740742962,
+            "calibration_error": 0.003418893966822287
+          },
+          "1400-1700": {
+            "rows": 19614,
+            "pr_auc": 0.18258033521113834,
+            "roc_auc": 0.7800200461226846,
+            "brier": 0.054376903084255704,
+            "log_loss": 0.19943463675117845,
+            "calibration_error": 0.004124218211385124
+          },
+          "1700-2000": {
+            "rows": 14453,
+            "pr_auc": 0.15687567318814702,
+            "roc_auc": 0.7720747956790772,
+            "brier": 0.04742610426647268,
+            "log_loss": 0.18096455207555798,
+            "calibration_error": 0.003247216901583474
+          },
+          "2000+": {
+            "rows": 7126,
+            "pr_auc": 0.11488644175402873,
+            "roc_auc": 0.7824089400631424,
+            "brier": 0.03511127068988188,
+            "log_loss": 0.14151280413998765,
+            "calibration_error": 0.004277615058628209
+          },
+          "<1100": {
+            "rows": 10712,
+            "pr_auc": 0.30154527387029034,
+            "roc_auc": 0.8069274787856828,
+            "brier": 0.08374221148117392,
+            "log_loss": 0.2741324831406235,
+            "calibration_error": 0.010626153988396994
+          }
+        },
+        "parameters": null,
+        "device": "cpu",
+        "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+        "seconds": 7.3,
+        "code": "0ba155afac19364bfc996e771f2be7757fd57a6d",
+        "trained": "2026-11-22T10:03:21Z",
+        "gain": {
+          "gain": -0.03451480099843804,
+          "low": -0.04110773923863476,
+          "high": -0.027625042361335766,
+          "beyond_noise": true,
+          "reference": "gbm-hand",
+          "reference_trained": "2026-11-22T09:45:04Z",
+          "reference_value": 0.2532886576419857
+        },
+        "base": "gbm-hand",
+        "base_test": {
+          "value": 0.2532886576419857,
+          "low": 0.23964641106494833,
+          "high": 0.26813110113138766
+        },
+        "changes": [
+          "`learner.without` material"
+        ],
+        "train_rows": 594940
+      }
+    ],
+    "games": [
+      {
+        "run": "transformer-medium-hand-half",
+        "learner": "transformer, 8 layers of width 256, with hand features",
+        "test": {
+          "pr_auc": {
+            "value": 0.2581198247573372,
+            "low": 0.24411983108800234,
+            "high": 0.2731446380714061
+          },
+          "roc_auc": {
+            "value": 0.822287007382232,
+            "low": 0.8165668799272965,
+            "high": 0.8281326279028146
+          },
+          "brier": {
+            "value": 0.05690536846345474,
+            "low": 0.055056172878791325,
+            "high": 0.05883660301290326
+          },
+          "log_loss": {
+            "value": 0.20212971202826466,
+            "low": 0.1964976003934416,
+            "high": 0.2081814398237825
+          },
+          "calibration_error": {
+            "value": 0.0037921414507935585,
+            "low": 0.0023371641688344517,
+            "high": 0.00568988951312795
+          }
+        },
+        "test_by_band": {
+          "1100-1400": {
+            "rows": 16674,
+            "pr_auc": 0.2701044204328774,
+            "roc_auc": 0.8177766424115179,
+            "brier": 0.06401392369942809,
+            "log_loss": 0.2220085239669883,
+            "calibration_error": 0.006486758310113782
+          },
+          "1400-1700": {
+            "rows": 19614,
+            "pr_auc": 0.2107405956446566,
+            "roc_auc": 0.8087957785854067,
+            "brier": 0.05331688334378206,
+            "log_loss": 0.19304138147849112,
+            "calibration_error": 0.0045583790302601325
+          },
+          "1700-2000": {
+            "rows": 14453,
+            "pr_auc": 0.16706764347224756,
+            "roc_auc": 0.7870018643217125,
+            "brier": 0.04712318588292605,
+            "log_loss": 0.1785090186044292,
+            "calibration_error": 0.006004520295082545
+          },
+          "2000+": {
+            "rows": 7126,
+            "pr_auc": 0.13151838062814605,
+            "roc_auc": 0.8095416118274968,
+            "brier": 0.03466630507086472,
+            "log_loss": 0.13772210162955714,
+            "calibration_error": 0.006363165267807721
+          },
+          "<1100": {
+            "rows": 10712,
+            "pr_auc": 0.36438365287734514,
+            "roc_auc": 0.8371637139557908,
+            "brier": 0.0804036832230344,
+            "log_loss": 0.2625439875037001,
+            "calibration_error": 0.015603415005433038
+          }
+        },
+        "parameters": 6557505,
+        "device": "NVIDIA A100-SXM4-80GB",
+        "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+        "seconds": 475.5,
+        "code": "0ba155afac19364bfc996e771f2be7757fd57a6d",
+        "trained": "2026-11-22T09:55:09Z",
+        "gain": {
+          "gain": 0.004831167115351476,
+          "low": -0.002169463012094471,
+          "high": 0.012124296142579927,
+          "beyond_noise": false,
+          "reference": "gbm-hand",
+          "reference_trained": "2026-11-22T09:45:04Z",
+          "reference_value": 0.2532886576419857
+        },
+        "base": "transformer-medium-hand",
+        "base_test": {
+          "value": 0.266598881596608,
+          "low": 0.2526279716308411,
+          "high": 0.28220690214790173
+        },
+        "changes": [
+          "`data.train_share` 0.5",
+          "`train.epochs` 24 (the base has 12)",
+          "`train.patience` 6 (the base has 3)"
+        ],
+        "train_rows": 299955
+      },
+      {
+        "run": "gbm-hand-half",
+        "learner": "LightGBM, context and hand features",
+        "test": {
+          "pr_auc": {
+            "value": 0.2489900237644494,
+            "low": 0.23556954078856776,
+            "high": 0.2635353178470142
+          },
+          "roc_auc": {
+            "value": 0.8206814203412737,
+            "low": 0.8144312124764425,
+            "high": 0.8263746697276672
+          },
+          "brier": {
+            "value": 0.057059457824174924,
+            "low": 0.05521565448566201,
+            "high": 0.05899912632431915
+          },
+          "log_loss": {
+            "value": 0.20217923351698575,
+            "low": 0.19660282904650883,
+            "high": 0.20803532796947014
+          },
+          "calibration_error": {
+            "value": 0.0038214772298997297,
+            "low": 0.002478833164099854,
+            "high": 0.005855526959116205
+          }
+        },
+        "test_by_band": {
+          "1100-1400": {
+            "rows": 16674,
+            "pr_auc": 0.25997936996521315,
+            "roc_auc": 0.8160083482682782,
+            "brier": 0.06423394024962711,
+            "log_loss": 0.2219910059874264,
+            "calibration_error": 0.004869364155237434
+          },
+          "1400-1700": {
+            "rows": 19614,
+            "pr_auc": 0.2117636962344781,
+            "roc_auc": 0.8061439161294077,
+            "brier": 0.05332827132873421,
+            "log_loss": 0.19308586566893768,
+            "calibration_error": 0.006722566518737014
+          },
+          "1700-2000": {
+            "rows": 14453,
+            "pr_auc": 0.17254493078523522,
+            "roc_auc": 0.790761029743495,
+            "brier": 0.0468840446499801,
+            "log_loss": 0.17719307364077402,
+            "calibration_error": 0.003223743789691351
+          },
+          "2000+": {
+            "rows": 7126,
+            "pr_auc": 0.12300667963558085,
+            "roc_auc": 0.8002556918348177,
+            "brier": 0.03489154638413567,
+            "log_loss": 0.13922885628573536,
+            "calibration_error": 0.006707958429979107
+          },
+          "<1100": {
+            "rows": 10712,
+            "pr_auc": 0.334465261755681,
+            "roc_auc": 0.8312187641253406,
+            "brier": 0.08119967024836668,
+            "log_loss": 0.26358001578362733,
+            "calibration_error": 0.0095490096557686
+          }
+        },
+        "parameters": null,
+        "device": "cpu",
+        "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+        "seconds": 5.4,
+        "code": "0ba155afac19364bfc996e771f2be7757fd57a6d",
+        "trained": "2026-11-22T09:45:38Z",
+        "gain": {
+          "gain": -0.0042986338775363175,
+          "low": -0.008724748527832546,
+          "high": 0.0002874671478552273,
+          "beyond_noise": false,
+          "reference": "gbm-hand",
+          "reference_trained": "2026-11-22T09:45:04Z",
+          "reference_value": 0.2532886576419857
+        },
+        "base": "gbm-hand",
+        "base_test": {
+          "value": 0.2532886576419857,
+          "low": 0.23964641106494833,
+          "high": 0.26813110113138766
+        },
+        "changes": [
+          "`data.train_share` 0.5"
+        ],
+        "train_rows": 299955
+      },
+      {
+        "run": "transformer-medium-hand-quarter",
+        "learner": "transformer, 8 layers of width 256, with hand features",
+        "test": {
+          "pr_auc": {
+            "value": 0.24129327964055156,
+            "low": 0.2289646720902501,
+            "high": 0.25449740356079525
+          },
+          "roc_auc": {
+            "value": 0.8133278754846166,
+            "low": 0.8068900509162446,
+            "high": 0.8193271435310757
+          },
+          "brier": {
+            "value": 0.057483409540153,
+            "low": 0.05562327448352372,
+            "high": 0.05954294087447432
+          },
+          "log_loss": {
+            "value": 0.2051604210005436,
+            "low": 0.1994850573982692,
+            "high": 0.2114456364297396
+          },
+          "calibration_error": {
+            "value": 0.003138572701629436,
+            "low": 0.002140302249421973,
+            "high": 0.005337967620178623
+          }
+        },
+        "test_by_band": {
+          "1100-1400": {
+            "rows": 16674,
+            "pr_auc": 0.2456856519863216,
+            "roc_auc": 0.805032411158699,
+            "brier": 0.06494722529046985,
+            "log_loss": 0.2264761799148248,
+            "calibration_error": 0.003788579695866713
+          },
+          "1400-1700": {
+            "rows": 19614,
+            "pr_auc": 0.2041966076329147,
+            "roc_auc": 0.8014730704647366,
+            "brier": 0.053616144940300973,
+            "log_loss": 0.1952218065657687,
+            "calibration_error": 0.004885925729661851
+          },
+          "1700-2000": {
+            "rows": 14453,
+            "pr_auc": 0.1674304204675675,
+            "roc_auc": 0.7792965385575801,
+            "brier": 0.04718839332076225,
+            "log_loss": 0.1802195687751516,
+            "calibration_error": 0.006201729147959055
+          },
+          "2000+": {
+            "rows": 7126,
+            "pr_auc": 0.1239565864684308,
+            "roc_auc": 0.7927687657620559,
+            "brier": 0.034925841673785825,
+            "log_loss": 0.1405107032775822,
+            "calibration_error": 0.004405880630508632
+          },
+          "<1100": {
+            "rows": 10712,
+            "pr_auc": 0.3344999171961653,
+            "roc_auc": 0.8256921531273848,
+            "brier": 0.08184300271372484,
+            "log_loss": 0.26683714291002486,
+            "calibration_error": 0.012665653973678517
+          }
+        },
+        "parameters": 6557505,
+        "device": "NVIDIA A100-SXM4-80GB",
+        "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+        "seconds": 289.8,
+        "code": "0ba155afac19364bfc996e771f2be7757fd57a6d",
+        "trained": "2026-11-22T10:00:42Z",
+        "gain": {
+          "gain": -0.01199537800143416,
+          "low": -0.019023929950682764,
+          "high": -0.004627607093612466,
+          "beyond_noise": true,
+          "reference": "gbm-hand",
+          "reference_trained": "2026-11-22T09:45:04Z",
+          "reference_value": 0.2532886576419857
+        },
+        "base": "transformer-medium-hand",
+        "base_test": {
+          "value": 0.266598881596608,
+          "low": 0.2526279716308411,
+          "high": 0.28220690214790173
+        },
+        "changes": [
+          "`data.train_share` 0.25",
+          "`train.epochs` 48 (the base has 12)",
+          "`train.patience` 12 (the base has 3)"
+        ],
+        "train_rows": 151209
+      },
+      {
+        "run": "gbm-hand-quarter",
+        "learner": "LightGBM, context and hand features",
+        "test": {
+          "pr_auc": {
+            "value": 0.24126177544665814,
+            "low": 0.22847323391616914,
+            "high": 0.25523963966786734
+          },
+          "roc_auc": {
+            "value": 0.8175697732247108,
+            "low": 0.8114294590597445,
+            "high": 0.8237153950862729
+          },
+          "brier": {
+            "value": 0.05736417870660583,
+            "low": 0.05547304178234351,
+            "high": 0.059338425283976044
+          },
+          "log_loss": {
+            "value": 0.20352892091827463,
+            "low": 0.1978307830009837,
+            "high": 0.20940714182108253
+          },
+          "calibration_error": {
+            "value": 0.0038294889114716003,
+            "low": 0.002653519082711223,
+            "high": 0.006168050893401792
+          }
+        },
+        "test_by_band": {
+          "1100-1400": {
+            "rows": 16674,
+            "pr_auc": 0.24799761173856735,
+            "roc_auc": 0.8095635370473115,
+            "brier": 0.0648077661673452,
+            "log_loss": 0.22444042296306785,
+            "calibration_error": 0.004306575534294515
+          },
+          "1400-1700": {
+            "rows": 19614,
+            "pr_auc": 0.21029589681822894,
+            "roc_auc": 0.8038300608649485,
+            "brier": 0.0533826084544009,
+            "log_loss": 0.19379460835872991,
+            "calibration_error": 0.005696672542239146
+          },
+          "1700-2000": {
+            "rows": 14453,
+            "pr_auc": 0.1807942823581626,
+            "roc_auc": 0.7922509800899292,
+            "brier": 0.0467122256767607,
+            "log_loss": 0.17669127727794867,
+            "calibration_error": 0.004228126237490011
+          },
+          "2000+": {
+            "rows": 7126,
+            "pr_auc": 0.11333780841439892,
+            "roc_auc": 0.793455903924466,
+            "brier": 0.035083326661426925,
+            "log_loss": 0.1405692632843878,
+            "calibration_error": 0.005246809755126102
+          },
+          "<1100": {
+            "rows": 10712,
+            "pr_auc": 0.31902543597400246,
+            "roc_auc": 0.82446293968125,
+            "brier": 0.08226206616185934,
+            "log_loss": 0.26689574366666285,
+            "calibration_error": 0.010798056856623169
+          }
+        },
+        "parameters": null,
+        "device": "cpu",
+        "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+        "seconds": 2.5,
+        "code": "0ba155afac19364bfc996e771f2be7757fd57a6d",
+        "trained": "2026-11-22T09:46:26Z",
+        "gain": {
+          "gain": -0.012026882195327576,
+          "low": -0.017537814203055852,
+          "high": -0.006775509651918806,
+          "beyond_noise": true,
+          "reference": "gbm-hand",
+          "reference_trained": "2026-11-22T09:45:04Z",
+          "reference_value": 0.2532886576419857
+        },
+        "base": "gbm-hand",
+        "base_test": {
+          "value": 0.2532886576419857,
+          "low": 0.23964641106494833,
+          "high": 0.26813110113138766
+        },
+        "changes": [
+          "`data.train_share` 0.25"
+        ],
+        "train_rows": 151209
+      }
+    ],
+    "geometry": [
+      {
+        "run": "transformer-medium-hand-no-geometry",
+        "learner": "transformer, 8 layers of width 256, without the offsets between squares, with hand features",
+        "test": {
+          "pr_auc": {
+            "value": 0.26507561337951335,
+            "low": 0.2514348216065199,
+            "high": 0.28036870316896967
+          },
+          "roc_auc": {
+            "value": 0.8274686235638814,
+            "low": 0.8219005745526934,
+            "high": 0.8331255586708438
+          },
+          "brier": {
+            "value": 0.0565031369426126,
+            "low": 0.054649339828397314,
+            "high": 0.05840832508101256
+          },
+          "log_loss": {
+            "value": 0.20010297397832424,
+            "low": 0.1944896120657007,
+            "high": 0.20600868579151915
+          },
+          "calibration_error": {
+            "value": 0.004318110521832767,
+            "low": 0.0028995025814626666,
+            "high": 0.00649807612562447
+          }
+        },
+        "test_by_band": {
+          "1100-1400": {
+            "rows": 16674,
+            "pr_auc": 0.2693750570048444,
+            "roc_auc": 0.8211643968211518,
+            "brier": 0.06378021896403772,
+            "log_loss": 0.22065907440192128,
+            "calibration_error": 0.005234511824820733
+          },
+          "1400-1700": {
+            "rows": 19614,
+            "pr_auc": 0.22623134250539986,
+            "roc_auc": 0.8141681001902676,
+            "brier": 0.05291761164099457,
+            "log_loss": 0.19094349829700927,
+            "calibration_error": 0.004021792524890939
+          },
+          "1700-2000": {
+            "rows": 14453,
+            "pr_auc": 0.18548931677265484,
+            "roc_auc": 0.7986783880036344,
+            "brier": 0.04656419770202179,
+            "log_loss": 0.17580223418032223,
+            "calibration_error": 0.004368848652586869
+          },
+          "2000+": {
+            "rows": 7126,
+            "pr_auc": 0.13857067975468723,
+            "roc_auc": 0.8053388455109934,
+            "brier": 0.03459666382250525,
+            "log_loss": 0.13832510499439798,
+            "calibration_error": 0.0034062326613390845
+          },
+          "<1100": {
+            "rows": 10712,
+            "pr_auc": 0.3623720569192862,
+            "roc_auc": 0.8405285416517979,
+            "brier": 0.07972395881890436,
+            "log_loss": 0.2587614153739773,
+            "calibration_error": 0.008052750430523847
+          }
+        },
+        "parameters": 6543105,
+        "device": "NVIDIA A100-SXM4-80GB",
+        "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+        "seconds": 495.1,
+        "code": "8c771617309d36154b1c85abcbbff500fafea271",
+        "trained": "2026-11-22T23:12:54Z",
+        "gain": {
+          "gain": 0.011786955737527638,
+          "low": 0.005664472227866549,
+          "high": 0.017982516247855178,
+          "beyond_noise": true,
+          "reference": "gbm-hand",
+          "reference_trained": "2026-11-22T22:31:57Z",
+          "reference_value": 0.2532886576419857
+        },
+        "base": "transformer-medium-hand",
+        "base_test": {
+          "value": 0.266598881596608,
+          "low": 0.2526279716308411,
+          "high": 0.28220690214790173
+        },
+        "changes": [
+          "`learner.geometry` False"
+        ],
+        "train_rows": 594940
       }
     ]
   }

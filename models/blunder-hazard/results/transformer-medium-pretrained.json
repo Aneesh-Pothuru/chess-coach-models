@@ -1,0 +1,325 @@
+{
+  "model": "blunder-hazard",
+  "run": "transformer-medium-pretrained",
+  "task": {
+    "label": "blunder",
+    "kind": "binary",
+    "unit": "chance the mover loses more than 20 points of win probability",
+    "primary": "pr_auc",
+    "lower_is_better": false,
+    "context": [
+      "mover_elo",
+      "opponent_elo",
+      "log_clock",
+      "log_opponent_clock",
+      "log_base",
+      "increment",
+      "ply",
+      "win_before",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "game-positions-2026-10",
+    "source": "https://database.lichess.org/standard/lichess_db_standard_rated_2026-10.pgn.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 698013,
+    "splits": {
+      "test": 68579,
+      "train": 594940,
+      "valid": 34494
+    },
+    "fingerprint": "340c68ed5c918cd6dfea4f5cb24218c52d8d0a88cb29e50498218aefdb9dfbd0",
+    "built": "2026-11-22T13:43:02Z",
+    "code": "36a0ad94d25b6b17bb33c15f065bfe68fa3faf15"
+  },
+  "config": {
+    "needs": "cuda",
+    "learner": {
+      "kind": "net",
+      "body": "transformer",
+      "dim": 256,
+      "depth": 8,
+      "heads": 8,
+      "dropout": 0.1,
+      "init": {
+        "model": "position-evaluation",
+        "run": "transformer-medium"
+      }
+    },
+    "train": {
+      "epochs": 12,
+      "batch": 1024,
+      "lr": 0.0006,
+      "weight_decay": 0.05,
+      "warmup": 0.05,
+      "patience": 3
+    },
+    "base": "transformer-medium"
+  },
+  "learner": {
+    "features": 12,
+    "parameters": 6554177,
+    "device": "NVIDIA A100-SXM4-40GB",
+    "best_epoch": 10,
+    "fit_seconds": 518.8,
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.23803,
+        "valid_pr_auc": 0.22048,
+        "rows_a_second": 13804
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.20128,
+        "valid_pr_auc": 0.23054,
+        "rows_a_second": 14059
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.19887,
+        "valid_pr_auc": 0.23602,
+        "rows_a_second": 14045
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.19638,
+        "valid_pr_auc": 0.23685,
+        "rows_a_second": 14035
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.19475,
+        "valid_pr_auc": 0.24043,
+        "rows_a_second": 14025
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.1931,
+        "valid_pr_auc": 0.24068,
+        "rows_a_second": 14033
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.19074,
+        "valid_pr_auc": 0.25099,
+        "rows_a_second": 14029
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.18832,
+        "valid_pr_auc": 0.25409,
+        "rows_a_second": 14039
+      },
+      {
+        "epoch": 9,
+        "train_loss": 0.18584,
+        "valid_pr_auc": 0.25403,
+        "rows_a_second": 14035
+      },
+      {
+        "epoch": 10,
+        "train_loss": 0.18346,
+        "valid_pr_auc": 0.2546,
+        "rows_a_second": 14034
+      },
+      {
+        "epoch": 11,
+        "train_loss": 0.18175,
+        "valid_pr_auc": 0.25427,
+        "rows_a_second": 14029
+      },
+      {
+        "epoch": 12,
+        "train_loss": 0.18041,
+        "valid_pr_auc": 0.25409,
+        "rows_a_second": 14036
+      }
+    ],
+    "started_from": {
+      "model": "position-evaluation",
+      "run": "transformer-medium",
+      "sha256": "e74b67486516834822284bd0ff23bd93b12da4acc5a14d559c8f13436a4ee65e",
+      "tensors_taken": 109,
+      "marks_taken": [
+        "en_passant"
+      ],
+      "new": [
+        "body.context",
+        "head"
+      ]
+    }
+  },
+  "calibration": {
+    "platt_slope": 0.7746661946983692,
+    "platt_intercept": -0.3884466487083679,
+    "fitted_on": "valid"
+  },
+  "machine": {
+    "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "threads": 12,
+    "system": "Linux"
+  },
+  "software": {
+    "python": "3.13.16",
+    "numpy": "2.4.6",
+    "polars": "2.1.0",
+    "lightgbm": "4.6.0",
+    "torch": "2.14.1+cu130"
+  },
+  "code": "36a0ad94d25b6b17bb33c15f065bfe68fa3faf15",
+  "trained": "2026-11-22T15:26:05Z",
+  "seconds": 520.8,
+  "train_rows": 594940,
+  "train_groups": 25573,
+  "valid": {
+    "pr_auc": 0.2546021768203647,
+    "roc_auc": 0.8426381384309694,
+    "brier": 0.05393288926928104,
+    "log_loss": 0.18930576039081579,
+    "calibration_error": 0.0017789057581454983
+  },
+  "test": {
+    "pr_auc": {
+      "value": 0.27470506493958585,
+      "low": 0.2610936019918396,
+      "high": 0.28947829637923206
+    },
+    "roc_auc": {
+      "value": 0.8410769604889037,
+      "low": 0.8356872268969227,
+      "high": 0.846189363548415
+    },
+    "brier": {
+      "value": 0.05579812700432769,
+      "low": 0.05396532193469534,
+      "high": 0.05768439749209206
+    },
+    "log_loss": {
+      "value": 0.1955900169383231,
+      "low": 0.19002444950277128,
+      "high": 0.20113293012092562
+    },
+    "calibration_error": {
+      "value": 0.0022398402526442704,
+      "low": 0.0013957149649801261,
+      "high": 0.004501583495818029
+    }
+  },
+  "test_rows": 68579,
+  "test_groups": 2944,
+  "test_by_band": {
+    "1100-1400": {
+      "rows": 16674,
+      "pr_auc": 0.2752292194158339,
+      "roc_auc": 0.8358429196386874,
+      "brier": 0.06307247430891791,
+      "log_loss": 0.21558809682182714,
+      "calibration_error": 0.003545628924228479
+    },
+    "1400-1700": {
+      "rows": 19614,
+      "pr_auc": 0.22963741670342616,
+      "roc_auc": 0.8245781504225056,
+      "brier": 0.052560880929038385,
+      "log_loss": 0.18836595786630586,
+      "calibration_error": 0.004590985966727293
+    },
+    "1700-2000": {
+      "rows": 14453,
+      "pr_auc": 0.22010842581246837,
+      "roc_auc": 0.8215607289492173,
+      "brier": 0.045470425441189274,
+      "log_loss": 0.16958437594575468,
+      "calibration_error": 0.0041924466750132205
+    },
+    "2000+": {
+      "rows": 7126,
+      "pr_auc": 0.16055406906939104,
+      "roc_auc": 0.824799416484318,
+      "brier": 0.03400688053279933,
+      "log_loss": 0.13365497636657656,
+      "calibration_error": 0.004613290539486775
+    },
+    "<1100": {
+      "rows": 10712,
+      "pr_auc": 0.3727781959849546,
+      "roc_auc": 0.8505744381431319,
+      "brier": 0.07883337444758173,
+      "log_loss": 0.25397811804370535,
+      "calibration_error": 0.012891328790372235
+    }
+  },
+  "test_calibration": [
+    {
+      "n": 6858,
+      "predicted": 6.523333866333704e-05,
+      "observed": 0.0
+    },
+    {
+      "n": 6858,
+      "predicted": 0.00013392539154182166,
+      "observed": 0.0
+    },
+    {
+      "n": 6858,
+      "predicted": 0.0032899098834653666,
+      "observed": 0.003937007874015748
+    },
+    {
+      "n": 6858,
+      "predicted": 0.010630864856729936,
+      "observed": 0.011811023622047244
+    },
+    {
+      "n": 6858,
+      "predicted": 0.02350869339654951,
+      "observed": 0.02478856809565471
+    },
+    {
+      "n": 6858,
+      "predicted": 0.04133003989575631,
+      "observed": 0.04184893554972295
+    },
+    {
+      "n": 6858,
+      "predicted": 0.06533269679860416,
+      "observed": 0.06780402449693788
+    },
+    {
+      "n": 6858,
+      "predicted": 0.09890016359050544,
+      "observed": 0.09623797025371829
+    },
+    {
+      "n": 6858,
+      "predicted": 0.1516499961757727,
+      "observed": 0.157917760279965
+    },
+    {
+      "n": 6857,
+      "predicted": 0.2739998736013085,
+      "observed": 0.2811725244275922
+    }
+  ],
+  "weights": [
+    {
+      "file": "model.pt",
+      "bytes": 26246303,
+      "sha256": "fd06696e8c534ea9c537a8f6bb3130f6ab996c45a3646967c8053166062afe01"
+    }
+  ],
+  "gain": {
+    "gain": 0.021416407297600137,
+    "low": 0.012016423234081267,
+    "high": 0.030661967294885732,
+    "beyond_noise": true,
+    "reference": "gbm-hand",
+    "reference_trained": "2026-11-22T15:16:55Z",
+    "reference_value": 0.2532886576419857
+  }
+}

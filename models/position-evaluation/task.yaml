@@ -1,0 +1,15 @@
+# What position-evaluation is asked (src/chess_coach_models/tasks.py); its card says why.
+dataset: evaluations
+kind: regression
+label: win
+unit: the mover's chance of winning by the engine's evaluation (percent)
+primary: rmse
+reference: gbm-hand
+# The numbers every learner reads beside the board.
+context:
+  - castle_own_king
+  - castle_own_queen
+  - castle_opp_king
+  - castle_opp_queen
+# The lab has this model for its body, which the other models start from, not for its answer.
+purpose: body

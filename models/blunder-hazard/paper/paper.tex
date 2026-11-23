@@ -1,0 +1,1166 @@
+% Blunder hazard: the paper. What is typed here says what the numbers mean.
+% Every number, table, figure and board is written by
+% `lab paper blunder-hazard` into generated/, from the model's committed
+% results.
+\documentclass[11pt]{article}
+\input{../../../papers/preamble}
+\input{generated/values}
+
+\begin{document}
+
+\labtitle{Blunder hazard}
+  {Before a move is played, how likely is the player to blunder here?}
+  {Results of \V{results.date}\quad\textperiodcentered\quad dataset \V{data.name},
+   build \V{data.fingerprint}\quad\textperiodcentered\quad code \V{code.commit}}
+
+\begin{summary}
+Some positions are quiet and some are cliffs, and which is which depends on
+the player's level and clock as much as on the board. This paper trains models
+that say, before a move is played, how likely the mover is to blunder: to lose
+more than \V{method.blunder-bar} points of win probability with the move. The
+data is \V{data.rows} positions from \V{recipe.games} rated rapid games on
+Lichess that carry engine analysis and clocks, split by game. A blunder is
+rare, \V{floor.constant} of the moves. Ranked by the area under the
+precision-recall curve, the best of \V{runs.count} runs is a square-token
+transformer that reads the board and \V{task.hand.count} hand-made counts. It
+scores
+\V{best.score} (95\% interval \V{best.score.low} to \V{best.score.high}),
+against \V{reference.score} for gradient-boosted trees on the hand-made counts
+and \V{floor.score} for the base rate. Beyond the noise,
+\V{networks.ahead.of} beat the trees. From the board alone no network of the
+ladder matches them, whatever its size. Started from a body that was first
+trained on engine evaluations, the same transformer passes them from the
+board alone, and the best run starts from that body too. After calibration
+the stated chance
+can be read as a frequency: none of the best run's
+\V{best.calibration.groups} groups is further than
+\V{best.calibration.widest-gap} points from what happened.
+\iflook
+Of the hundredth of the test positions the best run calls most dangerous,
+\V{best.top.1.rate}\% were blundered, \V{best.top.1.lift} times the base
+rate.
+\fi
+\end{summary}
+
+\section{The question}
+
+An engine can say after the fact that a move was a blunder. It cannot say
+beforehand that this is a position where people blunder. A hanging piece in a
+quiet middlegame and a hanging piece with ten seconds left are the same to an
+engine, and very different to the person at the board.
+
+The coaching app this lab works for reviews a player's games. A chance of
+blundering, given the position, the ratings and the clocks, would let it do
+two things it cannot do today. It could mark the positions where players at
+the player's level usually go wrong, which are the ones worth slowing down in,
+whether or not the player went wrong there this time. And it could tell a
+blunder in a position where almost nobody blunders, a lapse, from one in a
+position that trips most players of that level, a hard position.
+
+Human error in chess has been modelled before. With endgame tablebases as a
+benchmark of perfection, the difficulty of the position was found to predict
+a blunder better than the player's skill or the time left~\cite{humanerror},
+and blunder prediction has been studied on Lichess games alongside human-move
+prediction~\cite{maia}. This paper asks the question in the form the app
+needs it: one calibrated chance for one position, from inputs the app has for
+any game, compared against a plain baseline on games no learner saw.
+
+\begin{table}[htbp]\centering\small
+\begin{tabularx}{\textwidth}{lL}
+\toprule
+Reads & The position, the opponent's last move, both ratings, both clocks, the
+time control, the move number, and the mover's win probability from the
+engine's evaluation before the move. \\
+Predicts & The chance that the move played loses more than
+\V{method.blunder-bar} points of win probability. \\
+Data & Rated Lichess rapid games of \V{data.month} (\V{data.licence}) with
+engine analysis and clocks: up to \V{recipe.per-game} positions a game. \\
+Split & By game: \V{data.share.train}\% train, \V{data.share.valid}\% valid,
+\V{data.share.test}\% test. \\
+Score & PR-AUC, the area under the precision-recall curve, on the test
+positions. Higher is better. \\
+\bottomrule
+\end{tabularx}
+\caption{The model in brief.}
+\label{tab:brief}
+\end{table}
+
+\section{The data}
+
+The source is the Lichess database of rated games for
+\V{data.month}~\cite{lichessdb}. The builder reads the month as a stream from
+its start and stops once \V{recipe.games} games have given rows, so the
+sample is the first games of the month and not a draw from all of it. A game
+gives rows when it is rated, played at rapid speed between two rated humans,
+ended over the board or on time, and carries Lichess's engine analysis and
+both clocks.
+
+From each such game up to \V{recipe.per-game} positions are kept, chosen by a
+hash of the game and the ply. None comes before ply \V{recipe.min-ply}, each
+side's sixth move, while players are still playing their openings from
+memory. A position is kept only when the evaluation before and after the move
+and the clocks around it are all known, so every row carries every label.
+That gives \V{data.rows} positions (Table~\ref{tab:data}). The split is a
+hash of the game, so no game has positions on both sides of it.
+
+\paragraph{What counts as a blunder.}
+An engine's evaluation is turned into the mover's chance of winning by the
+curve Lichess publishes~\cite{lichessaccuracy}, which the app uses as well; a
+parity check in this repository holds the lab's curve to the app's. A move is
+a blunder when it loses more than \V{method.blunder-bar} points of that
+chance, the bar the app and Lichess share. By that bar \V{floor.constant} of
+the moves in the train rows are blunders.
+
+\begin{table}[htbp]\centering\small
+\block{data}
+\caption{The dataset's rows by split.}
+\label{tab:data}
+\end{table}
+
+\iflook
+The builder read \V{manifest.games-read} games of the month to find the
+\V{manifest.games-kept} that gave rows. Over every row, \V{label.rate}\% of
+the moves are blunders. Table~\ref{tab:describe} gives the spread of the
+ratings, the clocks and a few other columns.
+
+\begin{table}[htbp]\centering\small
+\block{describe}
+\caption{The spread of a few columns over every row of the dataset: the mean,
+five quantiles, and the least and the most. Clocks and times are in seconds,
+winning chances in percent.}
+\label{tab:describe}
+\end{table}
+\fi
+
+\section{What a model reads}
+\label{sec:reads}
+
+\input{../../../papers/reading}
+
+\paragraph{This model reads the position before the move, never the move.}
+The marks carry only the squares of the opponent's last move. The context
+numbers are both ratings, both clocks and the time control's starting time as
+logarithms, the increment, the ply, and the mover's win probability before
+the move. That last number says how the mover stands. It does not say which
+move is best or how many moves keep the evaluation, so a learner knows that
+the position is winning and not how easy the win is to spoil.
+
+\section{The learners}
+\label{sec:learners}
+
+\input{../../../papers/learners}
+
+\section{How a result is scored}
+\label{sec:scoring}
+
+The model's card named its score before the first full run: PR-AUC, the area
+under the precision-recall curve, also called average precision. Put the test
+positions in the order of the stated chance, highest first. At each position
+that was a blunder, note the share of blunders among the positions so far.
+PR-AUC is the average of those shares. A run that says the same chance
+everywhere scores the base rate, and a run that puts every blunder first
+scores one. It was chosen because a blunder is rare, and what the app needs
+is the ranking: which positions to flag.
+
+Four more scores are reported beside it. ROC-AUC is the chance that a blunder
+is ranked above a move that was not one. The Brier score, the log loss and
+the calibration error ask whether the stated chance means what it says, and
+are computed after the chance is calibrated on the valid rows, so that a
+stated one in five can be read as one in five. A run beats the reference when
+its paired gain in PR-AUC has a 95\% interval above zero. Results are also
+given by the mover's rating in \V{bands.count} bands.
+
+\input{../../../papers/scoring}
+
+\section{Results}
+\label{sec:results}
+
+\subsection{The leaderboard}
+
+Read from the bottom up, Table~\ref{tab:leaderboard} is a ladder. The floor
+says the base rate for every position and scores \V{floor.score}. Trees on
+the context numbers alone, \V{run.gbm-context.name}, reach
+\V{run.gbm-context.score} without ever seeing a board: the ratings, the
+clocks and above all the evaluation carry \V{context.lift.share}\% of what
+the reference adds to the floor. The reference, which also reads the hand
+features of the position, scores \V{reference.score}. The best run scores
+\V{best.score} (Figure~\ref{fig:scores}).
+
+\begin{table}[htbp]\centering\small
+\block{leaderboard}
+\caption{The runs on the \V{data.rows.test} test positions, from
+\V{data.games.test} games, best first. The gain is paired with
+\V{task.reference} on the same resampled games, positive when the run is
+better, and bold when its interval leaves zero out.}
+\label{tab:leaderboard}
+\end{table}
+
+\begin{figure}[htbp]\centering
+\block{scores}
+\caption{Every run's PR-AUC with its 95\% interval. The vertical line is the
+reference's score.}
+\label{fig:scores}
+\end{figure}
+
+\subsection{What a network adds}
+
+Beyond the noise, \V{ladder.ahead.of} beat the trees and
+\V{ladder.behind.of} fell short of them (Figure~\ref{fig:gains}). The one
+ahead is the medium transformer that also reads the hand features, with a
+paired gain of \V{run.transformer-medium-hand.gain}
+(\V{run.transformer-medium-hand.gain.low} to
+\V{run.transformer-medium-hand.gain.high}). In Figure~\ref{fig:scores} its
+interval and the reference's overlap. With \V{data.games.test} test games,
+only the paired comparison, which scores both runs on the same resampled
+games, separates them.
+
+\begin{figure}[htbp]\centering
+\block{gains}
+\caption{Each network's paired gain in PR-AUC over the reference, with its
+95\% interval. Right of the line a network is ahead of the trees, left of it
+behind.}
+\label{fig:gains}
+\end{figure}
+
+From the board alone, no network of the ladder matches the trees. The
+convolutional tower and both transformers without the hand features land
+within a thousandth of each other, at \V{run.conv-small.score},
+\V{run.transformer-small.score} and \V{run.transformer-medium.score}, and
+each is behind the reference beyond the noise. Size does not change it: a
+network of \V{run.transformer-small.parameters.millions} million parameters
+and one of \V{run.transformer-medium.parameters.millions} million land in
+the same place, and so does a body of another kind.
+\ifvariants
+Section~\ref{sec:changes} has the board-alone network that does pass the
+trees: the same medium transformer, started from a body that was trained on
+engine evaluations first.
+\fi
+
+The plain reading is that \V{recipe.games} games are too few for a network to
+learn off the squares what the hand features count: a piece that can be
+taken, the checks and captures on offer, the pressure on a king. Handed those
+counts, the same medium transformer gains
+\V{run.transformer-medium-hand.over-twin} over its twin that reads the board
+alone, and passes the trees.
+\ifpairs
+Set against each other on the same resampled games, the one that reads the
+counts is \V{pair.transformer-medium-hand.transformer-medium.verdict}
+(Table~\ref{tab:pairs}).
+\fi
+So the body can use the facts. It did not find them by itself from this much
+data.
+\ifgames
+What more games would buy is measured in Section~\ref{sec:changes}.
+\else
+More games is the run to add, since the recipe keeps a small part of one
+month's.
+\fi
+
+Set against the ladder, the best run's gain is \V{best.gain.percent}\% of the
+reference's own score, and \V{best.gain.of-lift}\% as large as the step from
+the floor to the reference. Trees on \V{reference.features} numbers do most
+of the work, and the network refines it.
+
+\subsection{Every score}
+
+\begin{table}[htbp]\centering\small
+\block{metrics}
+\caption{Every score of every run on the test positions. PR-AUC and ROC-AUC
+are higher for a better run; the Brier score, the log loss and the
+calibration error are lower, and are computed after calibration on the valid
+rows.}
+\label{tab:metrics}
+\end{table}
+
+Table~\ref{tab:metrics} has the other scores. ROC-AUC looks high for every
+run that reads the evaluation, the trees with no board among them, and the
+reason is not skill. A position that is already lost cannot be blundered:
+with a win probability of \V{method.blunder-bar} or less, no move loses that
+many more points. Every learner that reads the evaluation gets those rows
+right for free, which lifts ROC-AUC for all of them alike. PR-AUC is spent on
+the positions near the top of the ranking, where that gift does not help,
+which is one more reason it is the score to read here.
+
+\subsection{By the mover's rating}
+
+Ranking is harder the stronger the mover. Every run's PR-AUC falls as the
+band rises (Table~\ref{tab:bands}), and so does the floor's, which is the base
+rate of each band: \V{band.1.floor} for movers rated \V{band.1.name} and
+\V{band.5.floor} for those rated \V{band.5.name}. Stronger players blunder
+less often, and a rarer event is harder to rank. So a band's column is read
+from the top down, run against run, and never across.
+
+\begin{table}[htbp]\centering\small
+\block{bands-table}
+\caption{PR-AUC by the mover's rating band. Read a column from the top down:
+the base rate differs from band to band, and PR-AUC with it.}
+\label{tab:bands}
+\end{table}
+
+Read that way, the best run leads the reference in \V{bands.best-ahead.of}.
+Its lead is widest for movers rated \V{bands.lead.widest.name}, at
+\V{bands.lead.widest}, and narrowest for those rated
+\V{bands.lead.narrowest.name}, at \V{bands.lead.narrowest}
+(Figure~\ref{fig:bands}). These are differences of scores without intervals,
+and a band holds a fraction of the test games, so the order of the networks
+inside one band is not to be leaned on.
+
+\begin{figure}[htbp]\centering
+\block{bands}
+\caption{Each network's lead over the reference in PR-AUC, band by band: the
+differences of the scores in Table~\ref{tab:bands}, without intervals. Above
+the dashed line a network is ahead of the trees.}
+\label{fig:bands}
+\end{figure}
+
+\iflook
+The closer look makes the same cut with the comparison paired inside each
+band (Table~\ref{tab:slice-band} in the appendix), and that is the one to
+lean on. There \V{challenger.name} is ahead of the trees beyond the noise in
+\V{slice.band.ahead.of}, the movers rated \V{slice.band.ahead.groups}, and
+behind in \V{slice.band.behind}. Its gain is \V{slice.band.-1100.gain} for
+movers under 1100 and \V{slice.band.2000+.gain} for those at 2000 and over,
+where the interval holds zero. So what the network adds is proven for the
+weaker players, who blunder most (\V{slice.band.-1100.happened} of their
+moves, against \V{slice.band.2000+.happened} at 2000 and over) and whom a
+coaching app is mostly for. For the strongest movers the test games do not
+tell the two learners apart.
+\fi
+
+\subsection{A chance that can be read as one}
+
+The app would show the number as a chance, so it has to mean what it says.
+Table~\ref{tab:calibration} puts the test positions in
+\V{best.calibration.groups} equal groups by a run's stated chance and sets
+what the run said beside what happened. The groups run from
+\V{best.calibration.lowest}\% to \V{best.calibration.highest}\%, and none is
+further than \V{best.calibration.widest-gap} points from the rate that
+happened (Figure~\ref{fig:calibration}). The correction fitted on the valid
+rows has a slope of \V{best.platt.slope}. A slope of one is a network that
+needed none, and one below it a network that stated its chances too far
+apart.
+
+\begin{table}[htbp]\centering\small
+\block{calibration-table}
+\caption{Each run's test positions in ten equal groups by its own stated
+chance, lowest first: what the run said in the group on average, and the
+share of the group that were blunders.}
+\label{tab:calibration}
+\end{table}
+
+\begin{figure}[htbp]\centering
+\block{calibration}
+\caption{What was said against what happened, from the ten groups of
+Table~\ref{tab:calibration}. On the diagonal a stated chance is the rate
+that happened.}
+\label{fig:calibration}
+\end{figure}
+
+The lowest groups are the positions that cannot be blundered: the stated
+chance is nil there, and so is the rate. The highest group is what the model
+can flag. Even there most moves are not blunders, which sets what a flag can
+honestly say: this is a position where players like you go wrong unusually
+often, never that you will.
+
+\subsection{How the networks learned}
+
+Figure~\ref{fig:curves} follows each network of the ladder on the valid
+positions after every epoch. By that score, \V{ladder.at-last-epoch.of}
+peaked at the last epoch given. The medium transformer with the hand
+features had its best epoch at \V{run.transformer-medium-hand.best-epoch} of
+\V{run.transformer-medium-hand.epochs}, so it had stopped improving before
+its schedule ran out. Its twin on the board alone peaked at
+\V{run.transformer-medium.best-epoch} of \V{run.transformer-medium.epochs}:
+the network that has to find everything on the squares was still finding it.
+\ifvariants
+Section~\ref{sec:changes} gives both of them twice the epochs and says what
+that bought.
+\else
+A run of each with twice the epochs says whether that matters, and it is the
+cheapest run to add.
+\fi
+
+\begin{figure}[htbp]\centering
+\block{curves}
+\caption{Each ladder network's PR-AUC on the valid positions after every
+epoch, before calibration. The dashed line is the reference's score on the
+same rows.}
+\label{fig:curves}
+\end{figure}
+
+\subsection{What the trees lean on}
+
+The reference grew \V{reference.trees} trees over \V{reference.features}
+features (Figure~\ref{fig:leans}). The three it leans on most are:
+\V{reference.leans.1.feature} (\V{reference.leans.1.share}\% of the gain),
+\V{reference.leans.2.feature} (\V{reference.leans.2.share}\%) and
+\V{reference.leans.3.feature} (\V{reference.leans.3.share}\%). How the mover
+stands comes first by a distance, which is the gift of the lost positions
+again, and also a real pattern: Section~\ref{sec:closer} shows how sharply
+the rate of blunders moves with it. A share of gain says what the trees used.
+It does not say what makes a position dangerous.
+
+\begin{figure}[htbp]\centering
+\block{leans}
+\caption{The ten features the reference's trees gained most from: each
+feature's share of the total gain of the splits made on it.}
+\label{fig:leans}
+\end{figure}
+
+\ifchanges
+\section{One change at a time}
+\label{sec:changes}
+
+\input{../../../papers/changes}
+
+\ifvariants
+\paragraph{What twice the epochs were worth here.}
+Each medium transformer was trained again on a schedule of
+\V{run.transformer-medium-long.epochs} epochs for the ladder's
+\V{run.transformer-medium.epochs}. On the board alone,
+\V{run.transformer-medium-long.name} is
+\V{pair.transformer-medium-long.transformer-medium.valid.verdict} than the
+run it changed on the valid positions and
+\V{pair.transformer-medium-long.transformer-medium.verdict} on the test
+positions (\V{pair.transformer-medium-long.transformer-medium.gain},
+\V{pair.transformer-medium-long.transformer-medium.gain.low} to
+\V{pair.transformer-medium-long.transformer-medium.gain.high}): it is
+\V{pair.transformer-medium-long.transformer-medium.kept}. With the hand
+features, \V{run.transformer-medium-hand-long.name} is
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.valid.verdict}
+than the run it changed on the valid positions and
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.verdict} on the
+test positions
+(\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain},
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain.low} to
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain.high}): it
+is \V{pair.transformer-medium-hand-long.transformer-medium-hand.kept}
+either. So neither longer run takes the place of the run it changed. A run
+that is not kept leaves the leaderboard when it is filed, and its row stays
+in Table~\ref{tab:pairs} as the measurement of what the epochs were worth.
+
+Neither run used its whole schedule. Both had their best valid epoch at
+\V{run.transformer-medium-long.best-epoch} of
+\V{run.transformer-medium-long.epochs}, and each was stopped
+\V{networks.patience} epochs later, as the trainer stops any run whose valid
+score has not improved for that long (Figure~\ref{fig:variants}). The valid
+positions come from few games, and their score moves from one epoch to the
+next by more than the two schedules differ, so where a run stopped is partly
+chance. As trained, the longer runs are no better.
+
+A reading: this model is short of games, not of steps. The transformer on
+the board alone was still improving when the ladder's schedule ran out, and
+more of the same games did not carry it further. That fits the plain reading
+of Section~\ref{sec:results}, that \V{recipe.games} games are too few for
+a network to learn off the squares what the hand features count.
+
+\paragraph{What a start from engine evaluations was worth here.}
+The lab's position-evaluation model trains the same medium transformer on
+positions from the open Lichess evaluations file, to say the mover's winning
+chances as an engine sees them. That label says nothing about people. The
+model is there for its body: a run of this model can start from it. The
+embeddings and the blocks are copied in, the head starts new, and the run
+then trains on this model's games on the ladder's schedule, with nothing
+else changed.
+
+On the board alone, \V{run.transformer-medium-pretrained.name} is
+\V{pair.transformer-medium-pretrained.transformer-medium.valid.verdict} than
+the run it changed on the valid positions and
+\V{pair.transformer-medium-pretrained.transformer-medium.verdict} on the
+test positions (\V{pair.transformer-medium-pretrained.transformer-medium.gain},
+\V{pair.transformer-medium-pretrained.transformer-medium.gain.low} to
+\V{pair.transformer-medium-pretrained.transformer-medium.gain.high}): it is
+\V{pair.transformer-medium-pretrained.transformer-medium.kept}. With the
+hand features, \V{run.transformer-medium-hand-pretrained.name} is
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.valid.verdict}
+than the run it changed on the valid positions and
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.verdict}
+on the test positions
+(\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain},
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.low}
+to
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.high}):
+it is
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.kept}.
+The model's best run is \V{best.name}.
+
+Two things follow. The first is that the start did what neither size nor
+steps had done. From the board alone the transformer now passes the trees,
+with a gain over the reference of \V{run.transformer-medium-pretrained.gain}
+(\V{run.transformer-medium-pretrained.gain.low} to
+\V{run.transformer-medium-pretrained.gain.high}), where the same network
+started from nothing has one of \V{run.transformer-medium.gain}. The second
+is that the counts add little once the body has been trained first.
+\V{run.transformer-medium-hand-pretrained.name} scores
+\V{run.transformer-medium-hand-pretrained.over-twin} above
+\V{run.transformer-medium-pretrained.name}, where on the ladder the same
+difference was \V{run.transformer-medium-hand.over-twin}, and the two runs'
+gains over the reference lie inside each other's intervals
+(Table~\ref{tab:leaderboard}). The two were not set against each other on
+resampled games, so that difference is a reading of the leaderboard.
+
+A reading: this is the shortage of games again, met from another side. A
+body that has read a great many positions for another label arrives able to
+read a board, and most of what the hand features count comes with it.
+Neither run was at its best in its last epoch: the best valid epochs were
+\V{run.transformer-medium-pretrained.best-epoch} and
+\V{run.transformer-medium-hand-pretrained.best-epoch} of
+\V{run.transformer-medium-hand-pretrained.epochs}, so a longer schedule from
+the same start is not the next run.
+\fi
+
+\ifshapes
+\paragraph{What another shape of network was worth here.}
+The architecture test keeps a medium transformer's rows, its head and its
+epochs, and changes its shape. Each run below started from nothing, as the
+network it changes did. Each is set against that network in
+Table~\ref{tab:pairs} and followed epoch by epoch in
+Figure~\ref{fig:shapes}.
+\begin{itemize}
+\item \emph{A convolutional tower}, \V{run.conv-medium-hand.name}: residual
+blocks of convolutions, each also weighing its channels by a mean over the
+whole board, with \V{run.conv-medium-hand.parameters.millions} million
+parameters for the transformer's
+\V{run.transformer-medium-hand.parameters.millions} million. It is trained at a
+tower's peak learning rate, \V{run.conv-medium-hand.lr} for
+\V{run.transformer-medium-hand.lr}, and changes nothing else. It is
+\V{pair.conv-medium-hand.transformer-medium-hand.valid.verdict} than
+\V{run.transformer-medium-hand.name} on the valid positions and
+\V{pair.conv-medium-hand.transformer-medium-hand.verdict} on the test
+positions (\V{pair.conv-medium-hand.transformer-medium-hand.gain},
+\V{pair.conv-medium-hand.transformer-medium-hand.gain.low} to
+\V{pair.conv-medium-hand.transformer-medium-hand.gain.high}): it is
+\V{pair.conv-medium-hand.transformer-medium-hand.kept}.
+\item \emph{A hybrid}, \V{run.hybrid-medium-hand.name}: a few residual blocks
+of convolutions first, then layers of the transformer over the squares
+they give, \V{run.hybrid-medium-hand.parameters.millions} million parameters
+in all. It is
+\V{pair.hybrid-medium-hand.transformer-medium-hand.valid.verdict} than
+\V{run.transformer-medium-hand.name} on the valid positions and
+\V{pair.hybrid-medium-hand.transformer-medium-hand.verdict} on the test
+positions (\V{pair.hybrid-medium-hand.transformer-medium-hand.gain},
+\V{pair.hybrid-medium-hand.transformer-medium-hand.gain.low} to
+\V{pair.hybrid-medium-hand.transformer-medium-hand.gain.high}): it is
+\V{pair.hybrid-medium-hand.transformer-medium-hand.kept}.
+\item \emph{Attention told what each piece attacks.} The offsets say that
+two squares share a diagonal, and not whether anything stands between
+them. Here each head also learns a bias for a pair of squares when the
+piece on one attacks the other on this board, worked out from the tokens
+with no search. With the hand features, \V{run.transformer-medium-hand-attacks.name} is
+\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.valid.verdict} than
+\V{run.transformer-medium-hand.name} on the valid positions and
+\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.verdict} on the test
+positions (\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.gain},
+\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.gain.low} to
+\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.gain.high}): it is
+\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.kept}. On the
+board alone, \V{run.transformer-medium-attacks.name} is
+\V{pair.transformer-medium-attacks.transformer-medium.valid.verdict} than
+\V{run.transformer-medium.name} on the valid positions and
+\V{pair.transformer-medium-attacks.transformer-medium.verdict} on the test
+positions (\V{pair.transformer-medium-attacks.transformer-medium.gain},
+\V{pair.transformer-medium-attacks.transformer-medium.gain.low} to
+\V{pair.transformer-medium-attacks.transformer-medium.gain.high}): it is
+\V{pair.transformer-medium-attacks.transformer-medium.kept}.
+\item \emph{Attention without the offsets},
+\V{run.transformer-medium-hand-no-geometry.name}: a study, there to measure what
+the offsets are worth and never a candidate. Without them the transformer
+is \V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.valid.verdict}
+on the valid positions than with them, and
+\V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.verdict} on the
+test positions (\V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain},
+\V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain.low} to
+\V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain.high}).
+\end{itemize}
+
+No run of another shape is kept. On the test positions every one of them is
+inside the noise of the transformer it changes, so the model's runs stand as
+they did and its best run is still \V{best.name}. The tower, and the
+attention that is told the attacks on the board alone, pass the first half
+of the lab's rule, on the valid positions, and not the second.
+
+A reading: what this model's transformer lacks is not a way of reading the
+board. Told what each piece attacks, the transformer on the board alone
+still trails the trees, with a gain over the reference of
+\V{run.transformer-medium-attacks.gain}
+(\V{run.transformer-medium-attacks.gain.low} to
+\V{run.transformer-medium-attacks.gain.high}). The lab's own paper sets
+this beside puzzle difficulty, where the same change is kept.
+\iffeatures
+The features study below says where the difference may lie. What the counts
+give this network is mostly the material group, three sums over the whole
+board, and which piece attacks which is not what those turn on.
+\fi
+It fits the reading of the longer schedule as well: this model is short of
+games, and of the changes made to its transformer the one that moved it is
+the start from a body that had read many more positions elsewhere.
+\fi
+
+\input{../../../papers/studies}
+
+\ifgames
+\paragraph{What more games are worth here.}
+The network is worse on fewer games in
+\V{study.games.transformer-medium-hand.worse.of}. Against the run trained on every training
+game, \V{run.transformer-medium-hand.name} has a paired gain of \V{pair.transformer-medium-hand-half.transformer-medium-hand.gain} on
+half of them and of \V{pair.transformer-medium-hand-quarter.transformer-medium-hand.gain} on a quarter. The trees are
+worse beyond the noise in \V{study.games.gbm-hand.worse.of}, with gains
+of \V{pair.gbm-hand-half.gbm-hand.gain} and
+\V{pair.gbm-hand-quarter.gbm-hand.gain}. On a quarter of the games the two
+learners are level, and the network's lead opens as the games are added
+(Table~\ref{tab:games}). That is the reading of the longer schedule,
+now measured: this model is short of games. \V{recipe.games} games of one
+month are a small part of what the Lichess database holds, so a larger
+dataset is the next thing to try.
+\fi
+
+\ifmore
+\paragraph{What more games were worth.}
+That reading was then checked on a larger build of the dataset, which holds
+\V{more.gbm-hand.most} the training games and every row these runs are
+scored on. Against the run trained on today's games,
+\V{run.transformer-medium-hand.name} has a paired gain of
+\V{pair.transformer-medium-hand-double.transformer-medium-hand.gain} on twice the games and of
+\V{pair.transformer-medium-hand-quadruple.transformer-medium-hand.gain} on four times, which is
+\V{pair.transformer-medium-hand-quadruple.transformer-medium-hand.verdict}. The trees' gains are
+\V{pair.gbm-hand-double.gbm-hand.gain} and
+\V{pair.gbm-hand-quadruple.gbm-hand.gain}, the second
+\V{pair.gbm-hand-quadruple.gbm-hand.verdict}. By the lab's rule the
+network on four times the games is \V{more.transformer-medium-hand.most.kept} and the trees
+on four times the games are \V{more.gbm-hand.most.kept}.
+\fi
+
+\iffeatures
+\paragraph{Which counts each learner needs here.}
+The study was run twice here: on the trees, and on the transformer that
+reads the hand features. Both lose most without \V{study.features.gbm-hand.most.group}: the trees' paired gain
+without it is \V{study.features.gbm-hand.most.gain} and the network's
+\V{study.features.transformer-medium-hand.most.gain}. For the network that is most of what
+the hand features gave it in the first place
+(\V{pair.transformer-medium-hand.transformer-medium.gain}, Table~\ref{tab:pairs}). Loose pieces
+and the moves on offer cost both learners something: the trees
+\V{pair.gbm-hand-no-hanging.gbm-hand.gain} and
+\V{pair.gbm-hand-no-mobility.gbm-hand.gain}, the network
+\V{pair.transformer-medium-hand-no-hanging.transformer-medium-hand.gain} and \V{pair.transformer-medium-hand-no-mobility.transformer-medium-hand.gain}. The
+attackers near the kings split the two. Without them the trees are
+\V{pair.gbm-hand-no-kings.gbm-hand.verdict}
+(\V{pair.gbm-hand-no-kings.gbm-hand.gain}) and the network is
+\V{pair.transformer-medium-hand-no-kings.transformer-medium-hand.verdict}. Without the passed pawns the trees
+are \V{pair.gbm-hand-no-pawns.gbm-hand.verdict} and the network is
+\V{pair.transformer-medium-hand-no-pawns.transformer-medium-hand.verdict}.
+
+A reading: the network reads off the squares what stands near a king and
+where the pawns are. What it does not learn from \V{recipe.games} games is
+the three sums of the material group: how much is on the board, who is
+ahead, and how far the game has gone. Those stay worth handing to it.
+\fi
+\fi
+
+\section{A closer look}
+\label{sec:closer}
+
+\input{../../../papers/closer}
+
+\iflook
+\subsection{What a flag is worth}
+
+The app would not show every chance. It would flag the positions at the top
+of the ranking, so the question is what the top holds.
+Table~\ref{tab:ranking-top} takes a share of the test positions from the
+highest stated chances down. Of the hundredth the best run calls most
+dangerous, \V{best.top.1.rate}\% were blunders, \V{best.top.1.lift} times the
+base rate, and that hundredth holds \V{best.top.1.recall}\% of all the
+blunders in the test games. Of the tenth it calls most dangerous,
+\V{best.top.10.rate}\% were blunders, and that tenth holds
+\V{best.top.10.recall}\% of them.
+
+\begin{table}[htbp]\centering\small
+\block{ranking-top}
+\caption{The top of each run's ranking. For a share of the test positions
+taken from the highest stated chances: the share of them that were blunders
+(\emph{rate}), the share of all blunders that fall among them (\emph{of
+all}), and the rate against the base rate (\emph{lift}).}
+\label{tab:ranking-top}
+\end{table}
+
+The two ends of the table are two ways to use a flag, and the app has to
+choose between them. A rare flag is right often and passes over most
+blunders. A frequent one catches most of them and is wrong most of the time:
+of the fifth of the positions called most dangerous, \V{best.top.20.rate}\%
+were blunders, and that fifth holds \V{best.top.20.recall}\% of them. No
+setting does both. In a review a player reads a few flags a game, which is
+the rare end, and the table says what those few are worth.
+
+Table~\ref{tab:ranking-bottom} reads the ranking from the other end: of the
+positions a run calls safest, how many were indeed not blunders. Of the half
+the best run calls safest, \V{best.bottom.50.rate}\% were not, and the other
+half of the ranking holds \V{best.top.50.recall}\% of all the blunders. Part
+of that is given away for nothing: the positions that are already lost,
+which no move can blunder, are about a fifth of the test positions (the two
+lowest groups of Table~\ref{tab:win}) and sit at the bottom of every
+ranking.
+
+\begin{table}[htbp]\centering\small
+\block{ranking-bottom}
+\caption{The bottom of each run's ranking. For a share of the test positions
+taken from the lowest stated chances: the share of them that were not
+blunders, the share of all moves that were not blunders that fall among them,
+and that rate against the rate over every test position.}
+\label{tab:ranking-bottom}
+\end{table}
+
+\subsection{By how the mover stands}
+
+Table~\ref{tab:win} cuts the test positions by the mover's winning chances
+before the move, and Figure~\ref{fig:win} sets the rate of blunders in each
+group beside what the two runs said. Below \V{method.blunder-bar}\% no move
+can lose \V{method.blunder-bar} points more, so the two lowest groups,
+\V{slice.win.-10.share}\% and \V{slice.win.10-20.share}\% of the test
+positions, hold no blunders, and both runs say so.
+
+Above that, the rate is not highest where the game is in the balance. It is
+highest where the mover is winning and has not yet won:
+\V{slice.win.80-90.happened} at 80 to 90\% and \V{slice.win.60-80.happened}
+at 60 to 80\%, against \V{slice.win.40-60.happened} at 40 to 60\% and
+\V{slice.win.20-40.happened} at 20 to 40\%. Past 90\% it falls again, to
+\V{slice.win.90+.happened}. An advantage is the dangerous thing to hold.
+
+One reading of that is the win not taken. A position can stand at 85\%
+because the opponent has just gone wrong, and then the advantage is there
+only for a mover who finds the move that punishes it. Playing something else
+hands the points back, and the label counts that as a blunder like any
+other. The tables cannot tell a piece left to be taken from a win not taken,
+since the label is one for both, and how much of the peak is each is a cut
+nobody has made.
+
+\begin{table}[htbp]\centering\footnotesize
+\block{slice-win}
+\caption{The test positions by the mover's winning chances before the move.
+For each group: its test rows, the share of moves that were blunders, what
+each of the two runs said on average and its PR-AUC there, and the first
+run's paired gain over the second.}
+\label{tab:win}
+\end{table}
+
+\begin{figure}[htbp]\centering
+\block{slice-win-said}
+\caption{The share of moves that were blunders by the mover's winning chances
+before the move, beside what the two runs said on average.}
+\label{fig:win}
+\end{figure}
+
+Both runs follow the rate from group to group: at its furthest
+\V{challenger.name} is \V{slice.win.challenger.widest-off} points from what
+happened, and the reference \V{slice.win.reference.widest-off}. Among the
+groups with enough rows to compare, the network is ahead of the trees beyond
+the noise in \V{slice.win.ahead.of} (\V{slice.win.ahead.groups}) and behind
+in \V{slice.win.behind}.
+
+\subsection{By the clock}
+
+The clock is the part of the question an engine has no view of.
+Table~\ref{tab:clock} cuts the test positions by the seconds on the mover's
+clock, and Figure~\ref{fig:clock} shows the rate of blunders in each group
+beside what the runs said.
+
+\begin{table}[htbp]\centering\footnotesize
+\block{slice-clock}
+\caption{The test positions by the seconds on the mover's clock.}
+\label{tab:clock}
+\end{table}
+
+\begin{figure}[htbp]\centering
+\block{slice-clock-said}
+\caption{The share of moves that were blunders by the seconds on the mover's
+clock, beside what the two runs said on average.}
+\label{fig:clock}
+\end{figure}
+
+The first thing the table says is how little of a rapid game is played short
+of time. \V{slice.clock.480+.share}\% of the test positions have eight
+minutes or more on the mover's clock, and the two groups under a minute hold
+\V{slice.clock.-30.rows} and \V{slice.clock.30-60.rows} of the
+\V{look.test-rows}. In those two groups and the next, the rate of blunders
+goes \V{slice.clock.-30.happened}, \V{slice.clock.30-60.happened},
+\V{slice.clock.60-120.happened}: with so few positions that is noise as much
+as pattern, and no difference between the runs there is beyond it. Where the
+positions are, the network's lead is proven: it is ahead of the trees beyond
+the noise in \V{slice.clock.ahead.of} (\V{slice.clock.ahead.groups}).
+
+So this dataset cannot say what a short clock does, which is the thing a
+player most wants to know. The cut is also confounded. A short clock comes
+late in a game, and late positions are more often already decided, where
+little is left to lose (Table~\ref{tab:slice-ply}). A learner reads the
+clock, the ply and the evaluation together and can hold them apart. A table
+by the clock alone cannot. Time trouble needs a dataset with more of it:
+many more rapid games, or blitz.
+
+Table~\ref{tab:seconds} uses something no learner reads, because it is known
+only once the move is made: how long the move took.
+
+\begin{table}[htbp]\centering\footnotesize
+\block{slice-seconds}
+\caption{The test positions by the seconds the move took, which no learner
+reads.}
+\label{tab:seconds}
+\end{table}
+
+The rate of blunders rises with every step: \V{slice.seconds.-2.happened} of
+the moves made in under two seconds, \V{slice.seconds.5-10.happened} of
+those that took five to ten, and \V{slice.seconds.40+.happened} of those
+that took forty or more. A long think is not a safe think. It marks a
+position the player found hard, and hard positions are where blunders are
+made.
+
+Neither run knows how long the move will take, and both are off in the same
+direction at both ends. For moves made in under two seconds
+\V{challenger.name} states a chance \V{slice.seconds.-2.challenger.off}
+points from the rate that happened, and for the longest thinks
+\V{slice.seconds.40+.challenger.off} points, where a figure below zero is a
+chance stated too low. The reference is off by
+\V{slice.seconds.-2.reference.off} and \V{slice.seconds.40+.reference.off}.
+So the danger the models understate lies in the slow moves, not the fast
+ones, and the time a player takes knows something about the position that
+neither learner reads off it. That time is the label of another model of
+this lab, which predicts the seconds from the same inputs. Whether one body
+trained on both labels would close the gap is a run to make.
+
+\subsection{By what can be taken, and how much there is to choose from}
+
+A piece that can be taken is the plainest danger on a board, and the hand
+features count it for the trees. Table~\ref{tab:hanging} cuts the test
+positions by how many of the mover's own pieces can be taken.
+
+\begin{table}[htbp]\centering\footnotesize
+\block{slice-hanging}
+\caption{The test positions by how many of the mover's pieces can be taken:
+pieces that something cheaper attacks, or that anything attacks while nothing
+defends them.}
+\label{tab:hanging}
+\end{table}
+
+The rate of blunders rises with the count, and by less than a player might
+expect: from \V{slice.hanging.0.happened} with no such piece to
+\V{slice.hanging.3+.happened} with three or more. A piece under attack is a
+danger a player sees. \V{slice.hanging.0.share}\% of the test positions have
+none, and more than half of all the blunders are made there. The opponent's
+pieces that can be taken tell even less, from
+\V{slice.opponent-hanging.0.happened} with none to
+\V{slice.opponent-hanging.3+.happened} with three or more
+(Table~\ref{tab:slice-opponent-hanging}).
+
+What moves the rate more is how much there is to choose from. A mover in
+check blunders \V{slice.check.yes.happened} of the time, against
+\V{slice.check.no.happened} for one who is not
+(Table~\ref{tab:slice-check}): a check leaves few legal moves. By the count
+of legal moves the rate climbs from \V{slice.moves.-5.happened} with fewer
+than five to \V{slice.moves.45+.happened} with 45 or more
+(Table~\ref{tab:slice-moves}), and it is in the groups with the most moves
+that the network leads the trees beyond the noise
+(\V{slice.moves.ahead.groups}). Many legal moves go with a full board and a
+middlegame, so this cut does not hold choice apart from the stage of the
+game either.
+
+\subsection{By the stage of the game}
+
+Two cuts in the appendix follow a game from its opening to its ending: by
+the ply (Table~\ref{tab:slice-ply}) and by the knights, bishops, rooks and
+queens left on the board (Table~\ref{tab:slice-pieces}). The rate of
+blunders is highest between ply 30 and 40, at \V{slice.ply.30-40.happened},
+and lowest from ply 80 on, at \V{slice.ply.80+.happened}.
+
+The network's lead is proven early in a game and not late.
+\V{challenger.name} is ahead beyond the noise in \V{slice.ply.ahead.of}
+(\V{slice.ply.ahead.groups}) and behind beyond the noise in
+\V{slice.ply.behind.of}. From ply 60 to 80 its gain is
+\V{slice.ply.60-80.gain} and from ply 80 on \V{slice.ply.80+.gain}, where a
+gain below zero puts the trees ahead, and both intervals hold zero. The cut
+by material agrees as far as it can: with fewer than nine pieces left the
+network's gain is inside the noise in all three groups
+(\V{slice.pieces.-3.gain}, \V{slice.pieces.3-6.gain} and
+\V{slice.pieces.6-9.gain}), and it is ahead beyond the noise with nine or
+more (\V{slice.pieces.ahead.groups}).
+
+So the network earns its lead in the opening and the middlegame, and in
+long endings the test games do not tell the two learners apart. Positions
+from ply 80 on are \V{slice.ply.80+.share}\% of the test positions and as
+small a share of the ones a network trains on, so a difference there would
+have to be large to show. For the app that leaves the trees as the safe
+choice late in a game: nothing here proves the network better there.
+
+\subsection{Two things at once}
+
+Figure~\ref{fig:grid-win} crosses the mover's rating with how the mover
+stands, and Figure~\ref{fig:grid-clock} crosses it with the clock. In each,
+the upper grid is the rate of blunders that happened and the lower one what
+the run said. If the lower grid looks like the upper one, the run has the
+joint pattern and not only each margin.
+
+\begin{figure}[htbp]\centering
+\block{grid-rating-win}
+
+\medskip
+\block{grid-rating-win-said}
+\caption{The share of moves that were blunders, in percent, by the mover's
+rating and the mover's winning chances before the move. Above: what happened.
+Below: what the best run that is not the reference said. Both grids share one
+scale of colour, and a cell with too few test positions is left empty.}
+\label{fig:grid-win}
+\end{figure}
+
+The first grid is the clearest picture in this paper of what the model is
+for. Movers under 1100 who stand at 60 to 80\% blunder
+\V{grid.rating-win.-1100.60-80.happened} of the time, the highest cell of
+the grid. Movers at 2000 and over in the same spot blunder
+\V{grid.rating-win.2000+.60-80.happened} of the time. The run said
+\V{grid.rating-win.-1100.60-80.said} and
+\V{grid.rating-win.2000+.60-80.said}. An advantage is several times as
+dangerous in a weaker player's hands, which neither margin states by itself.
+The model has the pattern: it puts the first far above the second, as the
+truth does.
+
+\begin{figure}[htbp]\centering
+\block{grid-rating-clock}
+
+\medskip
+\block{grid-rating-clock-said}
+\caption{The share of moves that were blunders, in percent, by the mover's
+rating and the seconds on the mover's clock. Above: what happened. Below:
+what the run said.}
+\label{fig:grid-clock}
+\end{figure}
+
+The clock grid is rougher, for the reason the clock's own table gave. Its
+short-clock columns hold few positions a cell, and what happened there jumps
+about: for movers under 1100, \V{grid.rating-clock.-1100.30-60.happened}
+with 30 to 60 seconds on the clock (\V{grid.rating-clock.-1100.30-60.rows}
+positions) and \V{grid.rating-clock.-1100.60-120.happened} with 60 to 120
+(\V{grid.rating-clock.-1100.60-120.rows}). What the run says stays smooth,
+\V{grid.rating-clock.-1100.30-60.said} and
+\V{grid.rating-clock.-1100.60-120.said}. With so few positions in a cell
+neither grid proves the other wrong.
+
+\subsection{Beside the reference}
+
+Table~\ref{tab:beside} sets each run's stated chances beside the reference's
+on the same test positions. The best run's correlation with the reference is
+\V{best.beside.correlation}, and it is the closer of the two to what happened
+on \V{best.beside.closer}\% of the positions. Two runs that score alike and
+still disagree position by position would do better averaged than either
+does alone, and the stage of the game says where the network's lead is
+proven. A blend of the two is a run nobody has made yet.
+
+\begin{table}[htbp]\centering\small
+\block{beside}
+\caption{Each run's stated chances beside the reference's on the same test
+positions: their correlation, and how often the run is the closer of the two
+to what happened.}
+\label{tab:beside}
+\end{table}
+
+\section{Positions}
+\label{sec:positions}
+
+The positions below were chosen by rule from the test games. Each board is
+seen from the side to move. The grey arrow is the opponent's last move and
+the blue arrow is the move that was played. Beside each board are the move,
+whether it was a blunder, what the best run and the reference said before it,
+and what the position came with. The games are public Lichess games; no game
+is named.
+
+The surprises are the instructive ones. Figure~\ref{fig:surprised-no} holds
+the positions the model called most dangerous in which the mover did not
+blunder, and Figure~\ref{fig:surprised-yes} the blunders it saw coming least.
+The positions it is surest of at each end are in the appendix
+(Figures~\ref{fig:highest} and~\ref{fig:lowest}).
+
+\examples{examples-typical}{Ordinary positions: the first \V{examples.count}
+test positions in the order of a hash of their key, so nothing about them
+picked them.}{fig:typical}
+
+\examples{examples-surprised-no}{Called dangerous, and the mover did not
+blunder: the test positions with the highest stated chance among the moves
+that were not blunders.}{fig:surprised-no}
+
+\examples{examples-surprised-yes}{Called safe, and the mover blundered: the
+test positions with the lowest stated chance among the moves that were
+blunders.}{fig:surprised-yes}
+\fi
+
+\section{What the app can use today}
+\label{sec:use}
+
+\begin{itemize}
+\item \textbf{A chance that means what it says.} After calibration none of
+the best run's groups is further than \V{best.calibration.widest-gap} points
+from the rate that happened, so on Lichess rapid games the number can be
+shown as a chance.
+\iflook
+\item \textbf{A flag for the positions worth slowing down in.} Flagged at
+the top hundredth of the ranking, a position is one where
+\V{best.top.1.rate}\% of the moves played were blunders, against
+\V{label.rate.test}\% over all the test positions. The words that go with
+such a flag are that players of this level often go wrong here, never that
+this player will.
+\item \textbf{A lapse or a hard position.} After a blunder, the chance
+stated before it says which it was. At a chance near the base rate the
+player slipped where few do. At several times the base rate the position
+trips most players of that level, and the review can say so.
+\item \textbf{Most for the weaker player.} The network's lead over the trees
+is proven for the movers rated \V{slice.band.ahead.groups}. The two weakest
+bands are among them, and those are the players who blunder most.
+\item \textbf{The trees first, and late in a game.} \V{task.reference}
+reaches \V{reference.score} against the best run's \V{best.score}. It is a
+file of trees that needs no GPU, and from ply 60 on the test games do not
+prove the network better. Where the app has to run the model itself, the
+trees are the place to start.
+\item \textbf{Not yet a model of time trouble.} Too few of these positions
+have a short clock for the tables to say what one does.
+\else
+\item \textbf{The trees first.} \V{task.reference} reaches
+\V{reference.score} against the best run's \V{best.score}. It is a file of
+trees that needs no GPU, so where the app has to run the model itself, the
+trees are the place to start.
+\fi
+\end{itemize}
+
+\section{What the model does not say yet}
+\label{sec:limits}
+
+\begin{itemize}
+\item \textbf{Lost positions are free points.} A position that is already
+lost cannot be blundered, and every learner that reads the evaluation knows
+it. That lifts every run's ROC-AUC alike. A run on the positions that can
+still be blundered would be the fairer picture of each learner, and is its
+own task.
+\item \textbf{A blunder is two things under one label.} A piece left to be
+taken and a win not taken both lose the points. They are different mistakes
+with different lessons, and telling them apart is a label of its own.
+\item \textbf{Only analysed games give a label.} Lichess analyses a game when
+a player asks for it, and players choose which games to analyse.
+\item \textbf{The label is as deep as the server's analysis.} A move the
+server's engine misjudged is mislabelled here too.
+\item \textbf{One position, no history.} The model does not see the moves or
+the clock use that led to the position, which a model of the game as a
+sequence would.
+\item \textbf{Short clocks are scarce.} A rapid game is mostly played with
+time in hand, so the test games hold too few positions under a minute to
+say what a short clock does.
+\item \textbf{Lichess ratings, rapid games, one month.} The chance is on the
+scale of Lichess rapid ratings. Stated for a player on another site, it needs
+calibrating to that site's ratings first, and a check on the player's own
+games.
+\item \textbf{A piece that can be taken is a proxy.} The hand feature counts
+attackers and defenders. It is not a full search of the exchanges on the
+square.
+\end{itemize}
+
+The lab's first hazard model was a tree model over sixteen board features,
+trained on rated games of April 2019 with scripts of its own. It showed that
+the size of the evaluation alone ranks blunders no better than chance and
+that a few board features do. Its data, its features and its split differ
+from this harness's, so its scores are not comparable with the ones here.
+
+\section{Cost and how to draw this again}
+\label{sec:cost}
+
+The \V{runs.count} runs took \V{cost.seconds} in all: \V{cost.seconds.networks}
+for the networks, which trained on a rented GPU (\V{best.device}), and
+\V{cost.seconds.others} for the floor and the trees. The best run has
+\V{best.parameters} parameters and trained for \V{best.epochs.run} epochs in
+\V{best.seconds}, at about \V{best.rows-a-second} positions a second.
+Table~\ref{tab:runs} has every run's time and Table~\ref{tab:settings} the
+ladder networks' settings.
+
+Everything is drawn from committed files. The dataset is built by
+\texttt{lab data game-positions} from the recipe, the runs are trained by
+\texttt{lab all blunder-hazard}, each run writes its record under the model's
+\texttt{results/} folder, and \texttt{lab paper blunder-hazard} writes every
+number, table and figure of this paper from those records and compiles it. A
+record names the build of the data it read (\V{data.fingerprint}) and the
+commit of the code that trained it (\V{code.commit}). Weights and test
+predictions are not committed. They are kept on the owner's machine, and the
+model's card says where and gives the hash of the best run's weights.
+
+\section{What comes next}
+
+\begin{itemize}
+\ifgames\else
+\item \textbf{More games.} No network learned from the squares what the hand
+features count. The recipe keeps a small part of one month's games, so a
+larger build is the first run to add, and a run on half and on a quarter of
+these games says beforehand what it would buy.
+\fi
+\iffeatures\else
+\item \textbf{Which hand features carry it.} Leaving out one group of
+features at a time says which counts the trees and the network cannot do
+without.
+\fi
+\item \textbf{Short clocks.} More rapid games, or blitz, until the groups
+under a minute are large enough to read.
+\item \textbf{The positions that can still be blundered.} The same question
+without the lost positions, as a task of its own, scored on its own floor.
+\item \textbf{A piece lost or a win not taken.} Two labels where there is
+one, so the app can say which kind of mistake a position invites.
+\item \textbf{One body for the blunder and the think.} The seconds a move
+takes know something about a position that these learners do not. A body
+trained on both labels is the run that asks whether it can be read off the
+board.
+\item \textbf{A blend.} The network's lead is proven early in a game and
+not late. An average of the two, or one that knows the stage, may beat
+both.
+\item \textbf{A stronger body to start from.} The body was trained once, at
+one size, on a part of the evaluations file. One trained for longer, on more
+of the file or at a larger size has not been tried.
+\item \textbf{The game as a sequence.} The moves and the clock use that led
+to a position say whether a player is drifting or in time trouble.
+\item \textbf{The player's own scale.} A check of the stated chance on the
+player's own games, kept private, before the app states it.
+\item \textbf{A full exchange search} in place of the count of pieces that
+can be taken.
+\end{itemize}
+
+\bibliographystyle{unsrt}
+\bibliography{../../../papers/references}
+
+\clearpage
+\appendix
+
+\section{Sizes, schedules and features}
+
+\begin{table}[htbp]\centering\footnotesize
+\block{settings}
+\caption{The ladder networks' sizes and schedules, from their run configs.
+\emph{Rate} is the peak learning rate. A setting they all share is in the
+line under the table.}
+\label{tab:settings}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\block{hand}
+\caption{The hand features: what \V{task.reference} reads beside the context
+numbers, and a network when its run asks for them.}
+\label{tab:hand}
+\end{table}
+
+\iflook
+\section{The positions the model is surest of}
+
+\examples{examples-highest}{The test positions with the highest stated
+chance of a blunder.}{fig:highest}
+
+\examples{examples-lowest}{The test positions with the lowest stated chance
+of a blunder.}{fig:lowest}
+
+\section{Every cut of the test positions}
+
+Each table below groups the test positions by one column. The columns are the
+group, its test rows, the share of moves that were blunders, then for each of
+the two runs the chance it stated on average and its PR-AUC, and the paired
+gain of the first run over the second with its 95\% interval, bold when the
+interval leaves zero out.
+
+\block{slices}
+\fi
+
+\end{document}

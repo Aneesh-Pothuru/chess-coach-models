@@ -46,6 +46,49 @@ def last_move_marks(last_move: str, white: bool) -> list[tuple[int, int]]:
     return [(1, start), (2, end)]
 
 
+def kept_chunks(
+    origin: str,
+    *,
+    speeds: tuple[str, ...],
+    games: int,
+    job: Callable[[dict[str, str], str], tuple],
+    work: Callable[[tuple], list[dict[str, Any]]],
+    workers: int | None,
+    counts: dict[str, int],
+) -> Iterator[list[list[dict[str, Any]]]]:
+    """The games of a month's stream that give rows, a chunk at a time, until ``games`` of them have.
+
+    ``job`` turns a wanted game into what ``work`` is given in a worker, and ``work`` gives the game's rows,
+    or none. The pool reads the stream ahead of the games it has given back, further on a faster machine.
+    Each job carries the number of games read when it was made, so ``counts["read"]`` follows the count up
+    to the last game taken, which is the same on every machine.
+    """
+    ahead = {"read": 0}
+    read_at: deque[int] = deque()
+
+    def jobs(text) -> Iterator[tuple]:
+        for headers, movetext in game_blocks(text):
+            ahead["read"] += 1
+            if wanted(headers, movetext, speeds=speeds):
+                read_at.append(ahead["read"])
+                yield job(headers, movetext)
+
+    def kept(pool, text) -> Iterator[list[dict[str, Any]]]:
+        given = 0
+        for game in pool.imap(work, fed(jobs(text)), chunksize=32):
+            counts["read"] = read_at.popleft()
+            if game:
+                given += 1
+                yield game
+                if given >= games:
+                    return
+        counts["read"] = ahead["read"]
+
+    with open_zst(origin) as text, worker_pool(workers) as pool:
+        yield from batches(kept(pool, text), GAMES_A_CHUNK)
+        pool.terminate()
+
+
 def build(
     recipe: dict[str, Any],
     *,
@@ -56,19 +99,7 @@ def build(
     salt = recipe["split"]["salt"]
     speeds = tuple(recipe["speeds"])
     origin = source or games_url(recipe["month"])
-    # The pool reads the stream ahead of the games it has given back, further on a faster machine. Each job
-    # carries the number of games read when it was made, so a build reports the count up to the last game it
-    # took, which is the same on every machine.
-    ahead = {"read": 0}
-    read_at: deque[int] = deque()
     counts = {"read": 0}
-
-    def jobs(text) -> Iterator[tuple[dict[str, str], str, int, int, str]]:
-        for headers, movetext in game_blocks(text):
-            ahead["read"] += 1
-            if wanted(headers, movetext, speeds=speeds):
-                read_at.append(ahead["read"])
-                yield headers, movetext, int(recipe["min_ply"]), int(recipe["per_game"]), salt
 
     def encode(rows: list[dict[str, Any]]) -> tuple[pl.DataFrame, np.ndarray, np.ndarray]:
         for row in rows:
@@ -91,28 +122,23 @@ def build(
         )
         return frame, tokens, marks
 
-    def kept_games(pool) -> Iterator[list[dict[str, Any]]]:
-        games = 0
-        for game in pool.imap(_rows, fed(jobs(text)), chunksize=32):
-            counts["read"] = read_at.popleft()
-            if game:
-                games += 1
-                yield game
-                if games >= int(recipe["games"]):
-                    return
-        counts["read"] = ahead["read"]
-
     parts = []
     games = 0
-    with open_zst(origin) as text, worker_pool(workers) as pool:
-        for chunk in batches(kept_games(pool), GAMES_A_CHUNK):
-            games += len(chunk)
-            parts.append(encode([row for game in chunk for row in game]))
-            log(
-                f"games: read {counts['read']:,}, kept {games:,}, "
-                f"rows {sum(len(part[0]) for part in parts):,}"
-            )
-        pool.terminate()
+    for chunk in kept_chunks(
+        origin,
+        speeds=speeds,
+        games=int(recipe["games"]),
+        job=lambda headers, movetext: (headers, movetext, int(recipe["min_ply"]), int(recipe["per_game"]), salt),
+        work=_rows,
+        workers=workers,
+        counts=counts,
+    ):
+        games += len(chunk)
+        parts.append(encode([row for game in chunk for row in game]))
+        log(
+            f"games: read {counts['read']:,}, kept {games:,}, "
+            f"rows {sum(len(part[0]) for part in parts):,}"
+        )
     frame = pl.concat([part[0] for part in parts], how="vertical_relaxed")
     tokens = np.concatenate([part[1] for part in parts])
     marks = np.concatenate([part[2] for part in parts])

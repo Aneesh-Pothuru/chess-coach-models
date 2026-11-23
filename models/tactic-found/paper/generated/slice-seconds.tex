@@ -1,0 +1,17 @@
+% Written by `lab paper tactic-found`; do not edit by hand.
+\fit{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Group & Test rows & Happened (\%) & said & Log loss & said & Log loss & Gain & 95\% interval \\
+\midrule
+\textless{}2 & 10{,}846 & 75.3 & 75.4 & 0.4384 & 73.4 & 0.4613 & \textbf{+0.02293} & +0.01870 to +0.02751 \\
+2-5 & 28{,}263 & 75.9 & 71.9 & 0.4596 & 71.2 & 0.4747 & \textbf{+0.01512} & +0.01242 to +0.01810 \\
+5-10 & 18{,}826 & 68.4 & 67.5 & 0.5517 & 67.7 & 0.5574 & \textbf{+0.005691} & +0.002271 to +0.009337 \\
+10-20 & 13{,}107 & 60.8 & 64.8 & 0.6135 & 65.7 & 0.6200 & \textbf{+0.00648} & +0.00258 to +0.01062 \\
+20-40 & 6{,}830 & 54.3 & 61.8 & 0.6524 & 63.6 & 0.6647 & \textbf{+0.01230} & +0.00636 to +0.01874 \\
+40+ & 3{,}263 & 51.5 & 61.7 & 0.6958 & 64.1 & 0.7182 & \textbf{+0.02239} & +0.01227 to +0.03256 \\
+\bottomrule
+\end{tabular}%
+}

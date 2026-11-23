@@ -1,0 +1,18 @@
+# A residual tower of 3x3 convolutions reads each of the player's positions, and two transformer
+# layers read them in order. A row is 26 boards on average and up to 48, so a batch is 64 rows.
+learner:
+  kind: net
+  body: conv
+  dim: 96
+  depth: 6
+  dropout: 0.1
+  over: {depth: 2, heads: 4}
+train:
+  epochs: 8
+  batch: 64
+  lr: 0.001
+  weight_decay: 0.05
+  warmup: 0.05
+  patience: 3
+smoke:
+  train: {epochs: 1}

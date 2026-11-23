@@ -1,0 +1,19 @@
+% Written by `lab paper blunder-hazard`; do not edit by hand.
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.45cm}>{\raggedright\arraybackslash}p{2.45cm}Lrrr}
+\toprule
+ &  &  & \multicolumn{3}{c}{Gain in PR-AUC} \\
+\cmidrule(lr){4-6}
+Run & Set against & What the run changes & Valid rows & Test rows & 95\% interval \\
+\midrule
+\run{transformer-medium-long} & \run{transformer-medium} & 24 epochs for 12 & +0.000818 & $-$0.001048 & $-$0.005152 to +0.002857 \\
+\run{transformer-medium-hand-long} & \run{transformer-medium-hand} & 24 epochs for 12 & $-$0.00106 & $-$0.003788 & $-$0.008039 to +0.000907 \\
+\run{transformer-medium-hand} & \run{transformer-medium} & reads the hand features & +0.0258 & \textbf{+0.02962} & +0.02098 to +0.03802 \\
+\run{conv-medium-hand} & \run{transformer-medium-hand} & its body is a convolutional tower for a transformer; 0.002 peak learning rate for 0.0006 & +0.00608 & $-$0.000209 & $-$0.005854 to +0.005750 \\
+\run{hybrid-medium-hand} & \run{transformer-medium-hand} & its body is convolutions under a transformer for a transformer & $-$0.00325 & $-$0.00438 & $-$0.01037 to +0.00153 \\
+\run{transformer-medium-attacks} & \run{transformer-medium} & its attention is told what each piece attacks & +0.000815 & +0.001142 & $-$0.001737 to +0.004468 \\
+\run{transformer-medium-hand-attacks} & \run{transformer-medium-hand} & its attention is told what each piece attacks & $-$0.00196 & $-$0.001845 & $-$0.004391 to +0.000665 \\
+\run{transformer-medium-hand-no-geometry} & \run{transformer-medium-hand} & its attention is not told the offsets between squares & +0.0000380 & $-$0.001523 & $-$0.004325 to +0.001176 \\
+\run{transformer-medium-hand-pretrained} & \run{transformer-medium-hand} & starts from the body of \run{position-evaluation/transformer-medium} & +0.0145 & \textbf{+0.01098} & +0.00234 to +0.01966 \\
+\run{transformer-medium-pretrained} & \run{transformer-medium} & starts from the body of \run{position-evaluation/transformer-medium} & +0.0315 & \textbf{+0.03773} & +0.02816 to +0.04832 \\
+\bottomrule
+\end{tabularx}

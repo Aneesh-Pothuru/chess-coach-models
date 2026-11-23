@@ -1,0 +1,15 @@
+% Written by `lab paper think-time`; do not edit by hand.
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.45cm}>{\raggedright\arraybackslash}p{2.45cm}Lrrr}
+\toprule
+ &  &  & \multicolumn{3}{c}{Gain in MAE} \\
+\cmidrule(lr){4-6}
+Run & Set against & What the run changes & Valid rows & Test rows & 95\% interval \\
+\midrule
+\run{transformer-medium-long} & \run{transformer-medium} & 24 epochs for 12 & +0.00556 & \textbf{+0.004728} & +0.003745 to +0.005666 \\
+\run{transformer-medium-hand-long} & \run{transformer-medium-hand} & 24 epochs for 12 & +0.00173 & \textbf{+0.001414} & +0.000382 to +0.002486 \\
+\run{transformer-medium-hand} & \run{transformer-medium} & reads the hand features & +0.0147 & \textbf{+0.01276} & +0.01124 to +0.01434 \\
+\run{transformer-medium-hand-long} & \run{transformer-medium-long} & reads the hand features & +0.0108 & \textbf{+0.00944} & +0.00784 to +0.01114 \\
+\run{transformer-medium-hand-pretrained} & \run{transformer-medium-hand} & starts from the body of \run{position-evaluation/transformer-medium} & +0.0118 & \textbf{+0.01101} & +0.00928 to +0.01270 \\
+\run{transformer-medium-pretrained} & \run{transformer-medium} & starts from the body of \run{position-evaluation/transformer-medium} & +0.0261 & \textbf{+0.02286} & +0.02099 to +0.02493 \\
+\bottomrule
+\end{tabularx}

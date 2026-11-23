@@ -1,0 +1,20 @@
+# A small square-token transformer reads each of the player's positions, and two transformer layers
+# read them in order. A row is 26 boards on average and up to 48, so a batch is 64 rows.
+needs: cuda
+learner:
+  kind: net
+  body: transformer
+  dim: 128
+  depth: 4
+  heads: 8
+  dropout: 0.1
+  over: {depth: 2, heads: 4}
+train:
+  epochs: 8
+  batch: 64
+  lr: 0.0006
+  weight_decay: 0.05
+  warmup: 0.05
+  patience: 3
+smoke:
+  train: {epochs: 1, batch: 16}

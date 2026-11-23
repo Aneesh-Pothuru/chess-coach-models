@@ -1,0 +1,14 @@
+# Trees that read a row a legal move: what gbm-context reads, the position's hand features, and what a
+# person would count of the move (who attacks the square it leaves and the square it reaches, whether
+# the piece there hangs or is pinned, whether the move gives check, castles, promotes or takes in
+# passing). The reference every network is compared with. Each position is about thirty rows to them,
+# so they train on a quarter of the training games, and at twice the usual learning rate.
+learner:
+  kind: gbm
+  features: hand
+  learning_rate: 0.1
+  rounds: 1500
+data:
+  train_share: 0.25
+smoke:
+  learner: {rounds: 30}

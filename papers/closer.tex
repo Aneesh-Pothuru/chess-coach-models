@@ -1,0 +1,40 @@
+% What a closer look is and how it is made: the same for every model. A paper
+% reads it under its own section heading, before the cuts that are its own.
+\iflook
+A leaderboard says which run is best. It does not say where a model is right
+and where it is wrong, and one score is a poor guide to whether the app can
+use it. So the same test rows are cut several ways, on the machine that has
+the dataset and every run's test predictions, and the small tables that come
+out are committed beside the leaderboard. Everything in this section and the
+next is drawn from them (\V{look.test-rows} test rows, looked at on
+\V{look.date}).
+
+\paragraph{Slices.}
+The test rows are grouped by one column at a time. For each group a slice
+gives how many rows fall in it, what happened there, what a run said on
+average, and how the run scored. Two runs are set side by side: \V{challenger.name},
+the best run that is not the reference, and the reference. The gain of the
+first over the second is measured inside each group as it is for the whole
+test set, paired and over resampled games (\V{look.resamples} draws), and is
+left out for a group with fewer than \V{look.smallest-compared} test rows.
+A slice is where a claim such as ``the network helps most on long lines'' is
+checked, not made: a group whose interval holds zero says nothing either way.
+
+\paragraph{Grids.}
+Two columns at once: what happened in each cell, and what the run said there,
+on one scale of colour so the two can be compared by eye. A cell with fewer
+than \V{grid.smallest-cell} test rows is left empty.
+
+\paragraph{Examples.}
+\ifsequence Rows\else Positions\fi{} are chosen by rule, never by eye: ordinary rows picked by a hash of
+their key, the rows the best run is surest of at each end, and its largest
+misses each way, \V{examples.count} of each. They show what the numbers are
+about. They are not evidence of how often anything happens.
+\else
+\emph{This build of the paper was drawn before the model's closer look was
+run. The closer look cuts the test rows by rating, clock and the shape of a
+position, checks what a stated number is worth, and shows example positions.
+It is written by \texttt{lab analyse} on the machine that holds the dataset
+and every run's test predictions, and this section and the next appear once
+its file is committed.}
+\fi

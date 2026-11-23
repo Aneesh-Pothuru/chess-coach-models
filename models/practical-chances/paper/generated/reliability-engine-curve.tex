@@ -1,0 +1,20 @@
+% Written by `lab paper practical-chances`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.55\textwidth,
+  height=6.6cm,
+  ymajorgrids,
+  xlabel={What the run said},
+  ylabel={What happened},
+  legend columns=-1,
+]
+\addplot[labAxis, line width=0.6pt, mark=none, forget plot] coordinates {(0.0251009,0.0251009) (0.975447,0.975447)};
+\addplot[color=labSecondary, mark=diamond*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labSecondary}] coordinates {(0.0251009,0.0551181) (0.0494495,0.11709) (0.0890546,0.184602) (0.151172,0.273549) (0.256985,0.316273) (0.362091,0.370954) (0.432944,0.387577) (0.471553,0.43657) (0.49437,0.462963) (0.504027,0.488189) (0.522197,0.530767) (0.548323,0.540391) (0.589425,0.560805) (0.65426,0.605133) (0.744529,0.66725) (0.834424,0.670458) (0.894591,0.746573) (0.933024,0.818314) (0.963242,0.879557) (0.975447,0.924008)};
+\addlegendentry{\texttt{engine-curve}}
+\addplot[color=labOrange, mark=square*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labOrange}] coordinates {(0.0352164,0.0339749) (0.0985484,0.0993001) (0.164899,0.174832) (0.232909,0.240741) (0.294458,0.320647) (0.346925,0.355789) (0.389867,0.407991) (0.426115,0.429134) (0.459157,0.4704) (0.488901,0.494167) (0.517094,0.516185) (0.547063,0.530184) (0.578499,0.557889) (0.612865,0.604258) (0.657394,0.651794) (0.711483,0.701516) (0.771829,0.760426) (0.835625,0.824584) (0.899766,0.902012) (0.962959,0.960327)};
+\addlegendentry{\texttt{gbm-hand}}
+\end{axis}
+\end{tikzpicture}%
+}

@@ -1,0 +1,687 @@
+% Game rating: the paper. What is typed here says what the numbers mean.
+% Every number, table, figure and board is written by `lab paper game-rating`
+% into generated/, from the model's committed results, and read back with
+% \V{key} and \block{name}.
+\documentclass[11pt]{article}
+\input{../../../papers/preamble}
+\input{generated/values}
+
+\begin{document}
+
+\labtitle{Game rating}
+  {What rating does a player's play in one game look like?}
+  {Results of \V{results.date}\quad\textperiodcentered\quad dataset \V{data.name},
+   build \V{data.fingerprint}\quad\textperiodcentered\quad code \V{code.commit}}
+
+\begin{summary}
+A rating is earned over many games, and one game is a single reading of it.
+This paper trains models that take that reading. A model is given a player's
+moves through one game, in order: the position before each, both clocks, the
+seconds the move took and what an engine says it lost. It says the player's
+rating, and reads neither player's rating nor the result. The data is
+\V{data.rows} players of \V{recipe.games} rated rapid games on Lichess, split
+by game, and the score is the mean absolute error in rating points. The best
+of \V{runs.count} runs, \V{best.name}, is off by \V{best.score} points on a
+typical game (95\% interval \V{best.score.low} to \V{best.score.high}),
+against \V{reference.score} for gradient-boosted trees on
+\V{task.hand.count} counts over the player's moves and \V{floor.score} for
+one rating said for every player.
+\end{summary}
+
+\section{The question}
+
+A rating is a summary of many games. One game is a single reading of it, and
+a noisy one: a player rated 1500 has games that look like 1300 and games that
+look like 1700. A review of one game can still use the reading. What an
+engine says of a game is measured against perfect play, as so many points of
+winning chances lost or an accuracy in percent~\cite{lichessaccuracy}, and a
+player has no scale for either. A rating is the scale a player already has.
+``You played this game like a player two hundred points above you'' is read
+at once.
+
+The coaching app this lab works for reviews a player's games one at a time.
+A reading of one game in rating points would let a review say what the game
+looked like beside the player's usual level: a good day, a bad one, or a
+game that was played well on the board and lost on the clock. Before the app
+says any of that, three things have to be measured, and this paper is about
+them. How far off is one game's reading? What in a game gives the rating
+away: what the moves lost, how the clock was used, or the positions
+themselves? And whose level is being read? Lichess pairs players of like
+rating and every position of a game is made by both of them, so a model can
+read the level of the game and never tell its two players apart.
+
+Reading a player's strength off the moves is an old idea. Intrinsic ratings
+fit a model of a fallible player to the moves of many games, as an engine
+judges them, and place the player on the rating scale~\cite{intrinsic}. A
+study of human error against perfect play relates how often a move is a
+mistake to the player's rating, the time left and how hard the position
+is~\cite{humanerror}. Models of human play run the other way: Maia-2 is told
+a rating and says what such a player moves~\cite{maia2}, and Allie reads a
+game as a sequence of moves and of the time each took~\cite{allie}. This
+paper asks a narrow question with the lab's common tools: one game, one
+player, one number.
+
+\begin{table}[htbp]\centering\small
+\begin{tabularx}{\textwidth}{lL}
+\toprule
+Reads & Each of the player's moves from the sixth on, in order, up to
+\V{recipe.most-moves} of them: the position before the move, the opponent's
+last move, the move played, both clocks, the seconds the move took, the
+player's winning chances before it and what it lost, the number of legal
+moves, whether it took or gave check, and the castling rights. Beside the
+moves, the time control and the game's length. Neither player's rating and
+not the result. \\
+Predicts & The player's Lichess rapid rating when the game was played. \\
+Data & Rated Lichess rapid games of \V{data.month} (\V{data.licence}) with
+engine evaluations and clocks. A row is one player in one game, and both
+players of a game are rows. \\
+Split & By game: \V{data.share.train}\% train, \V{data.share.valid}\% valid,
+\V{data.share.test}\% test, so both players of a game are in the same
+part. \\
+Score & Mean absolute error in rating points on the test rows. Lower is
+better. \\
+\bottomrule
+\end{tabularx}
+\caption{The model in brief.}
+\label{tab:brief}
+\end{table}
+
+\section{The data}
+
+The source is the Lichess database of rated games for
+\V{data.month}~\cite{lichessdb}. The builder reads the month as a stream from
+its start and stops once \V{recipe.games} games have given rows, so the
+sample is the first games of the month and not a draw from all of it. A game
+gives rows when it is rated, played at rapid speed between two rated humans,
+ended over the board or on time, and carries Lichess's engine analysis and
+both clocks.
+
+A row is one player in one game. A move of the player counts from ply
+\V{recipe.min-ply} on, which is each side's sixth move, after the opening
+moves players know by heart, and it counts when the evaluation before and
+after it and the clocks around it are all known. A player with fewer than
+\V{recipe.least-moves} such moves gives no row, and a row keeps the first
+\V{recipe.most-moves} of them at most. Where both players have enough moves,
+both are rows. That gives \V{data.rows} rows that hold \V{data.positions}
+positions between them, \V{data.positions.a-row} a row on average
+(Table~\ref{tab:data}). The split is a hash of the game, so both players of
+a game are on the same side of it. The hash is the one the lab's dataset of
+single positions uses, so a game falls in the same part there and here.
+
+\paragraph{The rating.}
+The label is the rating the game's record gives the player: their Lichess
+rapid rating when the game was played. Lichess keeps its ratings with
+Glicko-2~\cite{glicko2}, in which the rating of a new player is still
+unsettled. A game's record does not say how settled a rating is, so every
+rated player counts alike here.
+
+\paragraph{What a move lost.}
+An engine's evaluation is turned into the mover's chance of winning by the
+curve Lichess publishes~\cite{lichessaccuracy}, which the app uses as well; a
+parity check in this repository holds the lab's curve to the app's. What a
+move lost is the mover's chance before it less the chance after it, in points
+of a percent. The evaluations are the ones Lichess's own analysis attached to
+the game. Lichess runs that analysis when somebody asks for it, so these are
+games somebody wanted to look at again.
+
+\paragraph{The seconds a move took.}
+Lichess records each player's clock after every move. The time spent on a
+move is the mover's clock before it, less the clock after it, plus the
+increment the time control adds.
+
+\begin{table}[htbp]\centering\small
+\block{data}
+\caption{The dataset's rows by split. A row is one player in one game.}
+\label{tab:data}
+\end{table}
+
+\iflook
+The builder read \V{manifest.games-read} games of the month to find the
+\V{manifest.games-kept} that gave rows. The ratings run from
+\V{describe.player-elo.min} to \V{describe.player-elo.max} around a mean of
+\V{describe.player-elo.mean}, and half of them lie between
+\V{describe.player-elo.q25} and \V{describe.player-elo.q75}
+(Figure~\ref{fig:label}). The two players of
+a game are close: the player's rating less the opponent's lies between
+\V{describe.elo-gap.q25} and \V{describe.elo-gap.q75} for half of the rows,
+and between \V{describe.elo-gap.q5} and \V{describe.elo-gap.q95} for nine in
+ten. A row holds \V{describe.steps.q50} of the player's moves at the median,
+and one row in four holds \V{describe.steps.q75} or more
+(Table~\ref{tab:describe}).
+
+\begin{figure}[htbp]\centering
+\block{label}
+\caption{The player's rating over every row of the dataset.}
+\label{fig:label}
+\end{figure}
+
+\begin{table}[htbp]\centering\small
+\block{describe}
+\caption{The spread of a few columns over every row of the dataset: the mean,
+five quantiles, and the least and the most. Times are in seconds, and what
+the moves lost is in points of winning chances.}
+\label{tab:describe}
+\end{table}
+\fi
+
+\section{What a model reads}
+\label{sec:reads}
+
+\input{../../../papers/reading}
+
+\paragraph{This model reads what an engine said of each move, and neither
+rating.}
+The marks are the squares of the opponent's last move and of the player's own
+move, so a network sees what was played in a position and not only where the
+player stood. A move's numbers are of three kinds. The clock: both clocks and
+the seconds the move took, as logarithms, and the ply. The engine: the
+player's winning chances before the move and what the move lost. The board:
+how many legal moves there were, whether the move took or gave check, and the
+castling rights. The context numbers are the time control's starting time as
+a logarithm, its increment, and the length of the game in plies.
+
+The engine is read on purpose, where the lab's model of think time leaves it
+out. That model is a yardstick of what a player can see during a game. This
+one is for a review after it, when the analysis is there to be read.
+
+Neither player's rating is read. The pairing would give the answer away,
+since the opponent's rating alone lands close to the player's. The result is
+not read either: the reading is meant to be of the play.
+
+\section{The learners}
+\label{sec:learners}
+
+\input{../../../papers/learners}
+
+\section{How a result is scored}
+\label{sec:scoring}
+
+The model's card named its score before the first full run: the mean
+absolute error on the test rows, in rating points, where lower is better. A
+run beats the reference when its paired gain has a 95\% interval above zero.
+Three more scores are reported beside it: the root mean squared error, which
+a few large misses move more, R\textsuperscript{2}, the share of the
+ratings' variance a run explains, and Spearman's rank correlation, which asks
+only whether the players come out in the right order.
+
+Results are also given by the player's rating in \V{bands.count} bands. The
+bands are bands of the label itself, so they show whom a run reads well: a
+run that pulls every reading toward the middle has an error that grows
+toward both ends.
+
+Both players of a game are test rows, and what a model says of one is not
+independent of what it says of the other: the two shared every position. The
+intervals allow for that.
+
+\input{../../../papers/scoring}
+
+\section{Results}
+\label{sec:results}
+
+\subsection{The leaderboard}
+
+Read from the bottom up, Table~\ref{tab:leaderboard} is a ladder. The floor
+says \V{floor.constant} for every player, the median rating of the train
+rows, and is off by \V{floor.score} points. Trees that read only the time
+control and the game's length, \V{run.gbm-context.name}, reach
+\V{run.gbm-context.score}, which is \V{context.lift.share}\% of what the
+reference takes off the floor. The reference, which also reads the counts
+over the player's moves, reaches \V{reference.score}, which is
+\V{reference.lift.percent}\% under the floor, and the best run
+\V{best.score} (Figure~\ref{fig:scores}).
+
+\begin{table}[htbp]\centering\small
+\block{leaderboard}
+\caption{The runs on the \V{data.rows.test} test rows, from
+\V{data.games.test} games, best first. The gain is paired with
+\V{task.reference} on the same resampled games, positive when the run is
+better, and bold when its interval leaves zero out.}
+\label{tab:leaderboard}
+\end{table}
+
+\begin{figure}[htbp]\centering
+\block{scores}
+\caption{Every run's MAE with its 95\% interval. The vertical line is the
+reference's score.}
+\label{fig:scores}
+\end{figure}
+
+\subsection{What a network adds}
+
+Beyond the noise, \V{ladder.ahead.of} beat the trees and
+\V{ladder.behind.of} fell short of them (Figure~\ref{fig:gains}).
+
+\begin{figure}[htbp]\centering
+\block{gains}
+\caption{Each network's paired gain in MAE over the reference, with its 95\%
+interval. Right of the line a network is ahead of the trees, left of it
+behind.}
+\label{fig:gains}
+\end{figure}
+
+\subsection{The order and the number}
+
+The best run's rank correlation with the player's rating is
+\V{best.spearman}, and it explains a share of \V{best.r2} of the ratings'
+variance (Table~\ref{tab:metrics}).
+
+\begin{table}[htbp]\centering\small
+\block{metrics}
+\caption{Every score of every run on the test rows. MAE and RMSE are in
+rating points and lower is better; for R\textsuperscript{2} and Spearman's
+rank correlation higher is better. The floor says one number, so it has no
+rank correlation.}
+\label{tab:metrics}
+\end{table}
+
+\subsection{By the player's rating}
+
+A band rewards hedging. The bands are cut by the player's own rating, so the
+floor, which says one rating for every player, has the smallest error of all
+in the band that rating lies in and the largest at both ends
+(Table~\ref{tab:bands}). A model that leans toward the middle looks good in
+the middle for the same reason. So a band's column is read from the top
+down, run against run, and never across.
+
+\begin{table}[htbp]\centering\small
+\block{bands-table}
+\caption{MAE by the player's rating band. Read a column from the top down:
+the bands are cut by the truth, so one band cannot be compared with another.}
+\label{tab:bands}
+\end{table}
+
+\begin{figure}[htbp]\centering
+\block{bands}
+\caption{Each network's lead over the reference in MAE, band by band: the
+differences of the scores in Table~\ref{tab:bands}, without intervals. Above
+the dashed line a network is ahead of the trees.}
+\label{fig:bands}
+\end{figure}
+
+\subsection{How the networks learned}
+
+Figure~\ref{fig:curves} follows each network of the ladder on the valid rows
+after every epoch. By that score, \V{ladder.at-last-epoch.of} peaked at the
+last epoch given.
+
+\begin{figure}[htbp]\centering
+\block{curves}
+\caption{Each ladder network's MAE on the valid rows after every epoch. The
+dashed line is the reference's score on the same rows.}
+\label{fig:curves}
+\end{figure}
+
+\subsection{What the trees lean on}
+
+The reference grew \V{reference.trees} trees over \V{reference.features}
+features (Figure~\ref{fig:leans}). The three it leans on most are:
+\V{reference.leans.1.feature} (\V{reference.leans.1.share}\% of the gain),
+\V{reference.leans.2.feature} (\V{reference.leans.2.share}\%) and
+\V{reference.leans.3.feature} (\V{reference.leans.3.share}\%). A share of
+gain says what the trees used. It does not say what makes a player strong.
+
+\begin{figure}[htbp]\centering
+\block{leans}
+\caption{The ten features the reference's trees gained most from: each
+feature's share of the total gain of the splits made on it.}
+\label{fig:leans}
+\end{figure}
+
+\ifchanges
+\section{One change at a time}
+\label{sec:changes}
+
+\input{../../../papers/changes}
+
+\input{../../../papers/studies}
+
+\ifgames
+\paragraph{What more games are worth here.}
+Against the trees trained on every training game, the trees on half of them
+have a paired gain of \V{pair.gbm-hand-half.gbm-hand.gain}, which is
+\V{pair.gbm-hand-half.gbm-hand.verdict}, and the trees on a quarter one of
+\V{pair.gbm-hand-quarter.gbm-hand.gain}, which is
+\V{pair.gbm-hand-quarter.gbm-hand.verdict} (Table~\ref{tab:games}).
+\fi
+
+\iffeatures
+\paragraph{Which counts the trees need here.}
+In \V{study.features.gbm-hand.worse.of} the trees are worse beyond the noise
+without the group. The group that costs most is
+\V{study.features.gbm-hand.most.group}, at
+\V{study.features.gbm-hand.most.gain}, which is
+\V{study.features.gbm-hand.most.verdict}. Without what the moves lost the
+paired gain is \V{pair.gbm-hand-no-accuracy.gbm-hand.gain}, without how the
+clock was used \V{pair.gbm-hand-no-tempo.gbm-hand.gain}, and without what
+there was to choose from \V{pair.gbm-hand-no-choices.gbm-hand.gain}.
+\fi
+\fi
+
+\section{A closer look}
+\label{sec:closer}
+
+\input{../../../papers/closer}
+
+\iflook
+\subsection{How close a reading lands}
+
+An average error hides how the misses are spread. The best run's median miss
+is \V{best.close.median} points, and nine in ten of its readings fall within
+\V{best.close.p90}. It is within a hundred points of the player's rating for
+\V{best.close.within.100}\% of the test rows, within two hundred for
+\V{best.close.within.200}\%, and within three hundred for
+\V{best.close.within.300}\% (Table~\ref{tab:closeness}).
+
+\begin{table}[htbp]\centering\small
+\block{closeness}
+\caption{How close each run's readings land on the test rows: the median
+miss, the distance nine in ten readings fall within, and the share within
+one, two and three hundred points of the player's rating.}
+\label{tab:closeness}
+\end{table}
+
+\subsection{What a stated rating is worth}
+
+Figure~\ref{fig:reliability} asks whether a stated rating means what it says.
+The test rows are put in \V{best.reliability.groups} equal groups by what the
+best run said. The group it rates lowest it calls
+\V{best.reliability.lowest.said} on average, and those players' ratings
+average \V{best.reliability.lowest.happened}. The group it rates highest it
+calls \V{best.reliability.highest.said}, against
+\V{best.reliability.highest.happened}. In no group are the two further apart
+than \V{best.reliability.widest-gap} points. Around one stated number, the
+middle four fifths of the players' ratings span about
+\V{best.reliability.spread} points.
+
+\begin{figure}[htbp]\centering
+\block{reliability}
+\caption{What a run said against the player's rating. The test rows are put
+in equal groups by what the run said; each point is one group's average
+reading against its players' average rating. The wash is the middle four
+fifths of the ratings in each group of the first run. On the diagonal a run
+is right on average at that level.}
+\label{fig:reliability}
+\end{figure}
+
+Turned around, the looseness of one reading is a pull toward the middle.
+Figure~\ref{fig:band-bias} groups the test rows by the player's own rating
+instead. Players rated \V{band.1.name} are read
+\V{slice.band.-1100.challenger.off} points from their rating on average by
+\V{challenger.name}, and players rated \V{band.5.name}
+\V{slice.band.2000+.challenger.off}. For the trees the two figures are
+\V{slice.band.-1100.reference.off} and \V{slice.band.2000+.reference.off}.
+Every model with error does this, since what it cannot tell apart it places
+near the average. A better model does it less.
+
+\begin{figure}[htbp]\centering
+\block{slice-band-bias}
+\caption{What the two runs said on average, less the players' average
+rating, by the player's rating band. Above the line a run reads a band's
+players as stronger than they are, and below it as weaker.}
+\label{fig:band-bias}
+\end{figure}
+
+\subsection{Whose level is read}
+\label{sec:gap}
+
+Lichess pairs players of like rating, and every position of a game is made
+by both of them. A model can therefore read the level of the game and say it
+for both players. Such a model is right on average and wrong for each player
+by half the gap between the two: too low for the stronger player, too high
+for the weaker one.
+
+Table~\ref{tab:gap} groups the test rows by the player's rating less the
+opponent's. Players rated two hundred points or more above their opponent
+are read \V{slice.gap.200+.challenger.off} points from their rating on
+average by \V{challenger.name}, and players rated two hundred or more below
+theirs \V{slice.gap.--200.challenger.off}. For the trees the two figures are
+\V{slice.gap.200+.reference.off} and \V{slice.gap.--200.reference.off}
+(Figure~\ref{fig:gap-bias}).
+
+\begin{table}[htbp]\centering\footnotesize
+\block{slice-gap}
+\caption{The test rows by the player's rating less the opponent's. For each
+group: its test rows, the players' average rating, what each of the two runs
+said on average and its MAE there, and the first run's paired gain over the
+second.}
+\label{tab:gap}
+\end{table}
+
+\begin{figure}[htbp]\centering
+\block{slice-gap-bias}
+\caption{What the two runs said on average, less the players' average
+rating, by the player's rating less the opponent's. Above the line a run
+reads a group's players as stronger than they are, and below it as weaker.}
+\label{fig:gap-bias}
+\end{figure}
+
+That cut alone does not settle whose level is read, because the pull toward
+the middle leans the same way. A player far above the opponent is more often
+a strong player, and a pull toward the middle reads a strong player too low
+whoever the opponent is. Figure~\ref{fig:rating-gap} holds the two apart.
+Each row of it is one band of the player's own rating, and along a row only
+the opponent changes. A run that reads the player and nothing else says the
+same along a row. A run that reads the level of the game says less from left
+to right, as the opponent gets weaker. The opposite lean is possible too: a
+stronger opponent sets harder problems, and a player who loses more to them
+looks weaker than against an easier one.
+
+\begin{figure}[htbp]\centering
+\block{grid-rating-gap}
+
+\medskip
+\block{grid-rating-gap-said}
+\caption{The players' average rating, by the player's rating band and the
+player's rating less the opponent's. Above: the ratings themselves. Below:
+what the best run that is not the reference said. Both grids share one scale
+of colour, and a cell with too few test rows is left empty.}
+\label{fig:rating-gap}
+\end{figure}
+
+\subsection{By what the moves lost and how long they took}
+
+Table~\ref{tab:loss} groups the test rows by what the player's moves lost on
+average. Players whose moves lost under two points of winning chances a move
+are rated \V{slice.loss.-2.happened} on average, and players whose moves
+lost twelve or more \V{slice.loss.12+.happened}. By the seconds a move took
+on average, the players' ratings run from \V{slice.pace.-5.happened} for
+under five seconds a move to \V{slice.pace.30+.happened} for thirty or more
+(Table~\ref{tab:pace}).
+
+\begin{table}[htbp]\centering\footnotesize
+\block{slice-loss}
+\caption{The test rows by the points of winning chances the player's moves
+lost on average.}
+\label{tab:loss}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\block{slice-pace}
+\caption{The test rows by the seconds the player's moves took on average.}
+\label{tab:pace}
+\end{table}
+
+Figure~\ref{fig:grid} crosses the two. The upper grid is the players'
+average rating and the lower one what the run said. If the lower grid looks
+like the upper one, the run has the joint pattern and not only each margin.
+
+\begin{figure}[htbp]\centering
+\block{grid-loss-pace}
+
+\medskip
+\block{grid-loss-pace-said}
+\caption{The players' average rating, by the points of winning chances their
+moves lost on average and the seconds a move took on average. Above: the
+ratings themselves. Below: what the best run that is not the reference said.
+Both grids share one scale of colour, and a cell with too few test rows is
+left empty.}
+\label{fig:grid}
+\end{figure}
+
+\subsection{By the game}
+
+A row can hold as few as \V{recipe.least-moves} of the player's moves and as
+many as \V{recipe.most-moves}, and a reading has more to go on in a long
+game. Table~\ref{tab:moves} groups the test rows by how many moves were
+read. The other cuts of the game are in the appendix: how it ended for the
+player (Table~\ref{tab:slice-result}), the player's colour
+(Table~\ref{tab:slice-side}), the time control
+(Tables~\ref{tab:slice-start} and~\ref{tab:slice-increment}) and what the
+player's costliest move lost (Table~\ref{tab:slice-worst}).
+
+\begin{table}[htbp]\centering\footnotesize
+\block{slice-moves}
+\caption{The test rows by how many of the player's moves the row holds.}
+\label{tab:moves}
+\end{table}
+
+\subsection{Beside the reference}
+
+Table~\ref{tab:beside} sets each run's readings beside the reference's on
+the same test rows: their correlation, and how often the run is the closer
+of the two to the player's rating.
+
+\begin{table}[htbp]\centering\small
+\block{beside}
+\caption{Each run's readings beside the reference's on the same test rows:
+their correlation, and how often the run is the closer of the two to the
+player's rating.}
+\label{tab:beside}
+\end{table}
+
+\section{Games}
+\label{sec:positions}
+
+The rows below were chosen by rule from the test games. A row is a whole
+game of one player, and one board stands for it: the position before the
+player's costliest move, seen from the player's side. The grey arrow is the
+opponent's last move and the blue arrow is the move the player made. Beside
+each board are those two moves, the player's rating, what the best run and
+the reference said, and what the game came with. The games are public
+Lichess games; no game is named.
+
+\examples{examples-typical}{Ordinary rows: the first \V{examples.count} test
+rows in the order of a hash of their key, so nothing about them picked
+them.}{fig:typical}
+
+\examples{examples-over}{The best run's largest misses upward: the test rows
+where it said the highest rating against the player's own.}{fig:over}
+
+\examples{examples-under}{The best run's largest misses downward: the test
+rows where it said the lowest rating against the player's own.}{fig:under}
+\fi
+
+\section{What the model does not say yet}
+\label{sec:limits}
+
+\begin{itemize}
+\item \textbf{One game is a noisy reading.} A player rated 1500 has games
+that look like 1300 and games that look like 1700. The error left after the
+best run is partly the model's and partly the game's, and nothing here
+separates the two. Several games of one player would.
+\item \textbf{The pairing shows through.} A position is made by both
+players, and Section~\ref{sec:gap} measures how much of a reading is the
+level of the game. The same model asked for the opponent's rating would say
+it from the other side, and that run is not made yet.
+\item \textbf{One number for the game.} A player can open like a master and
+finish like a beginner. A reading for the opening, the middlegame and the
+ending needs a label for each part, and a rating is a label for none of them.
+\item \textbf{The engine is read.} What a move lost comes from the
+evaluations Lichess attached. A rating read from the moves and the clock
+alone is a different run.
+\item \textbf{Which games.} Only analysed games give a row, and players
+choose which games to analyse. The evaluation is as deep as Lichess's own
+analysis goes. A long game is cut at the player's \V{recipe.most-moves}th
+counted move, and the opening is not read at all.
+\item \textbf{Whose scale.} The ratings are Lichess rapid's. A reading is on
+that scale, which is not the scale of the player's own site, and a fit of
+one to the other is a private check.
+\end{itemize}
+
+\section{Cost and how to draw this again}
+\label{sec:cost}
+
+The \V{runs.count} runs took \V{cost.seconds} in all: \V{cost.seconds.networks}
+for the networks, which trained on a rented GPU, and \V{cost.seconds.others}
+for the floor and the trees. Table~\ref{tab:runs} has every run's time and
+Table~\ref{tab:settings} the networks' settings.
+
+Everything is drawn from committed files. The dataset is built by
+\texttt{lab data games} from the recipe, the runs are trained by
+\texttt{lab all game-rating}, each run writes its record under the model's
+\texttt{results/} folder, and \texttt{lab paper game-rating} writes every
+number, table and figure of this paper from those records and compiles it. A
+record names the build of the data it read (\V{data.fingerprint}) and the
+commit of the code that trained it (\V{code.commit}). Weights and test
+predictions are not committed. They are kept on the owner's machine.
+
+\section{What comes next}
+
+\begin{itemize}
+\item \textbf{The opponent's rating as the label.} The same rows and the
+same learners, asked for the other player: how well a run does there is how
+much of a reading is the game's and not the player's.
+\item \textbf{Several games of one player.} One game is a noisy reading,
+and a review would read a player's last twenty. How fast the error falls
+with the number of games needs rows that say which games one player played,
+which this dataset does not keep.
+\item \textbf{A reading for each part of the game.} The idea behind this
+model is a rating for the opening, the middlegame and the ending.
+\item \textbf{Without the engine.} The moves and the clocks alone, to say
+how much of the reading the engine's judgement is.
+\item \textbf{A body that has read boards before.} In the lab's models of
+one position, a network that starts from a body trained on engine
+evaluations is ahead of the same network started from nothing. A network
+over a game cannot start from one yet.
+\item \textbf{The player's own games.} A fit of this model's readings to the
+player's rating on the player's own site, kept private, before the app
+states a reading.
+\end{itemize}
+
+\bibliographystyle{unsrt}
+\bibliography{../../../papers/references}
+
+\clearpage
+\appendix
+
+\section{Sizes, schedules and features}
+
+\begin{table}[htbp]\centering\footnotesize
+\block{settings}
+\caption{The ladder networks' sizes and schedules, from their run configs.
+\emph{Layers over} and \emph{heads over} are those of the transformer that
+reads a row's positions in order, above the body that reads each one.
+\emph{Rate} is the peak learning rate. A setting they all share is in the
+line under the table.}
+\label{tab:settings}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\block{hand}
+\caption{The hand features: counts over the player's moves, which
+\V{task.reference} reads beside the context numbers, and a network when its
+run asks for them.}
+\label{tab:hand}
+\end{table}
+
+\iflook
+\section{The extremes of what the model says}
+
+\examples{examples-highest}{The test rows for which the best run said the
+highest rating.}{fig:highest}
+
+\examples{examples-lowest}{The test rows for which the best run said the
+lowest rating.}{fig:lowest}
+
+\section{Every cut of the test rows}
+
+Each table below groups the test rows by one column. The columns are the
+group, its test rows, the players' average rating, then for each of the two
+runs the rating it said on average and its MAE, and the paired gain of the
+first run over the second with its 95\% interval, bold when the interval
+leaves zero out.
+
+\block{slices}
+\fi
+
+\end{document}

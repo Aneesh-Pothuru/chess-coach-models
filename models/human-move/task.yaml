@@ -1,0 +1,22 @@
+# What human-move is asked (src/chess_coach_models/tasks.py); its card says why.
+dataset: game-positions
+kind: moves
+# The move the player made, as UCI. A row's candidates are the moves its position allows.
+label: move
+unit: the chance that each legal move is the one the player makes
+primary: top1
+reference: gbm-hand
+# The numbers every learner reads beside the board: who is playing and what the clocks say. Nothing an
+# engine says of the position, and nothing about the move that was made.
+context:
+  - mover_elo
+  - opponent_elo
+  - log_clock
+  - log_opponent_clock
+  - log_base
+  - increment
+  - ply
+  - castle_own_king
+  - castle_own_queen
+  - castle_opp_king
+  - castle_opp_queen

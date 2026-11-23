@@ -1,0 +1,331 @@
+{
+  "model": "tactic-found",
+  "run": "transformer-medium-hand-long",
+  "task": {
+    "label": "found",
+    "kind": "binary",
+    "unit": "chance the move played is the first move of the tactic",
+    "primary": "log_loss",
+    "lower_is_better": true,
+    "context": [
+      "mover_elo",
+      "opponent_elo",
+      "log_clock",
+      "log_opponent_clock",
+      "log_base",
+      "increment",
+      "ply",
+      "win_prior",
+      "win_before",
+      "solver_moves",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "tactics-v1",
+    "source": "https://huggingface.co/datasets/Lichess/chess-puzzles-with-games/tree/3510a01f320eaaab7b7775ebc73afcfe0b33b4c2",
+    "licence": "CC0 1.0, huggingface.co/datasets/Lichess/chess-puzzles-with-games",
+    "rows": 810140,
+    "splits": {
+      "test": 81135,
+      "train": 688480,
+      "valid": 40525
+    },
+    "fingerprint": "15bd888b36b8fa30bcf93923ba28de9274fed4facb8662ebe5daac040a66193a",
+    "built": "2026-11-22T06:19:11Z",
+    "code": "3a74aa4b28f6805e3da49ea7c054bc4b5cf4d712"
+  },
+  "config": {
+    "needs": "cuda",
+    "learner": {
+      "kind": "net",
+      "body": "transformer",
+      "features": "hand",
+      "dim": 256,
+      "depth": 8,
+      "heads": 8,
+      "dropout": 0.1
+    },
+    "train": {
+      "epochs": 24,
+      "batch": 1024,
+      "lr": 0.0006,
+      "weight_decay": 0.05,
+      "warmup": 0.05,
+      "patience": 3
+    }
+  },
+  "learner": {
+    "parameters": 6565953,
+    "device": "NVIDIA A100-SXM4-80GB",
+    "best_epoch": 13,
+    "fit_seconds": 745.5,
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.56866,
+        "valid_log_loss": 0.55776,
+        "rows_a_second": 15012
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.55379,
+        "valid_log_loss": 0.55695,
+        "rows_a_second": 15060
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.54838,
+        "valid_log_loss": 0.54959,
+        "rows_a_second": 15053
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.5447,
+        "valid_log_loss": 0.54553,
+        "rows_a_second": 15047
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.54213,
+        "valid_log_loss": 0.54427,
+        "rows_a_second": 15050
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.53998,
+        "valid_log_loss": 0.54489,
+        "rows_a_second": 15046
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.53788,
+        "valid_log_loss": 0.5439,
+        "rows_a_second": 15058
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.53596,
+        "valid_log_loss": 0.54206,
+        "rows_a_second": 15040
+      },
+      {
+        "epoch": 9,
+        "train_loss": 0.53402,
+        "valid_log_loss": 0.54194,
+        "rows_a_second": 15057
+      },
+      {
+        "epoch": 10,
+        "train_loss": 0.53219,
+        "valid_log_loss": 0.5394,
+        "rows_a_second": 15040
+      },
+      {
+        "epoch": 11,
+        "train_loss": 0.53002,
+        "valid_log_loss": 0.5408,
+        "rows_a_second": 15049
+      },
+      {
+        "epoch": 12,
+        "train_loss": 0.52788,
+        "valid_log_loss": 0.53858,
+        "rows_a_second": 15046
+      },
+      {
+        "epoch": 13,
+        "train_loss": 0.52591,
+        "valid_log_loss": 0.53804,
+        "rows_a_second": 15045
+      },
+      {
+        "epoch": 14,
+        "train_loss": 0.52355,
+        "valid_log_loss": 0.53827,
+        "rows_a_second": 15058
+      },
+      {
+        "epoch": 15,
+        "train_loss": 0.52095,
+        "valid_log_loss": 0.53925,
+        "rows_a_second": 15031
+      },
+      {
+        "epoch": 16,
+        "train_loss": 0.51875,
+        "valid_log_loss": 0.5406,
+        "rows_a_second": 14999
+      }
+    ]
+  },
+  "calibration": {
+    "platt_slope": 0.9160996798447336,
+    "platt_intercept": 0.09646552129713996,
+    "fitted_on": "valid"
+  },
+  "machine": {
+    "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "threads": 12,
+    "system": "Linux"
+  },
+  "software": {
+    "python": "3.13.16",
+    "numpy": "2.4.6",
+    "polars": "2.1.0",
+    "lightgbm": "4.6.0",
+    "torch": "2.14.1+cu130"
+  },
+  "code": "3a74aa4b28f6805e3da49ea7c054bc4b5cf4d712",
+  "trained": "2026-11-22T08:37:50Z",
+  "seconds": 746.4,
+  "valid": {
+    "pr_auc": 0.8596065470381374,
+    "roc_auc": 0.7405459243799646,
+    "brier": 0.18105551510573958,
+    "log_loss": 0.5373809591726233,
+    "calibration_error": 0.008142599055944751
+  },
+  "test": {
+    "pr_auc": {
+      "value": 0.8598837312896666,
+      "low": 0.856943255731893,
+      "high": 0.8628455761423744
+    },
+    "roc_auc": {
+      "value": 0.7400895114645449,
+      "low": 0.7364643203055466,
+      "high": 0.7436297170951803
+    },
+    "brier": {
+      "value": 0.18115170434624225,
+      "low": 0.1797677161236376,
+      "high": 0.1825050668448912
+    },
+    "log_loss": {
+      "value": 0.5372805597545336,
+      "low": 0.5339160357820781,
+      "high": 0.5406604144601751
+    },
+    "calibration_error": {
+      "value": 0.005306685338904249,
+      "low": 0.0040065703173252296,
+      "high": 0.00899900933779446
+    }
+  },
+  "test_rows": 81135,
+  "test_groups": 81135,
+  "test_by_band": {
+    "1700-1899": {
+      "rows": 28346,
+      "pr_auc": 0.8511957463697246,
+      "roc_auc": 0.7370809783076605,
+      "brier": 0.18398313684113882,
+      "log_loss": 0.5452673507058796,
+      "calibration_error": 0.009184979961939104
+    },
+    "1900-2099": {
+      "rows": 18674,
+      "pr_auc": 0.872051586505704,
+      "roc_auc": 0.7432918659162715,
+      "brier": 0.1764358944698557,
+      "log_loss": 0.5243217413222351,
+      "calibration_error": 0.00718550095711992
+    },
+    "2100-2299": {
+      "rows": 8845,
+      "pr_auc": 0.8754329974234953,
+      "roc_auc": 0.7387707332239382,
+      "brier": 0.17409482849974137,
+      "log_loss": 0.5193560547205388,
+      "calibration_error": 0.007074362565677519
+    },
+    "2300+": {
+      "rows": 9862,
+      "pr_auc": 0.8650197837680733,
+      "roc_auc": 0.7292235798406809,
+      "brier": 0.18064110249325063,
+      "log_loss": 0.5349597380761337,
+      "calibration_error": 0.012149795792145113
+    },
+    "<1700": {
+      "rows": 15408,
+      "pr_auc": 0.8454855798114286,
+      "roc_auc": 0.7460962314706298,
+      "brier": 0.18603597683247067,
+      "log_loss": 0.5500680460938343,
+      "calibration_error": 0.010489114115631455
+    }
+  },
+  "test_calibration": [
+    {
+      "n": 8114,
+      "predicted": 0.32320302421988634,
+      "observed": 0.33362090214444173
+    },
+    {
+      "n": 8114,
+      "predicted": 0.4961190040637469,
+      "observed": 0.48311560266206555
+    },
+    {
+      "n": 8114,
+      "predicted": 0.5801896998450136,
+      "observed": 0.573330046832635
+    },
+    {
+      "n": 8114,
+      "predicted": 0.6392073102842886,
+      "observed": 0.6306384027606606
+    },
+    {
+      "n": 8114,
+      "predicted": 0.6880416242526393,
+      "observed": 0.6863445895982253
+    },
+    {
+      "n": 8113,
+      "predicted": 0.7330291500572972,
+      "observed": 0.7314187107112042
+    },
+    {
+      "n": 8113,
+      "predicted": 0.7771131787628139,
+      "observed": 0.781215333415506
+    },
+    {
+      "n": 8113,
+      "predicted": 0.8239668893048815,
+      "observed": 0.8280537409096512
+    },
+    {
+      "n": 8113,
+      "predicted": 0.8784664011917848,
+      "observed": 0.8805620608899297
+    },
+    {
+      "n": 8113,
+      "predicted": 0.9554966614284297,
+      "observed": 0.9561198077160113
+    }
+  ],
+  "weights": [
+    {
+      "file": "model.pt",
+      "bytes": 26294815,
+      "sha256": "93ab3d067d7a6797e9581d95fda3e06fb32b6fd1ca6137397f693376ebaa7865"
+    }
+  ],
+  "gain": {
+    "gain": 0.004086038912239798,
+    "low": 0.00286527591114287,
+    "high": 0.005432441991768319,
+    "beyond_noise": true,
+    "reference": "gbm-hand",
+    "reference_trained": "2026-11-22T08:10:06Z",
+    "reference_value": 0.5413665986667734
+  }
+}

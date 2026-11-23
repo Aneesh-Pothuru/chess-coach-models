@@ -17,8 +17,9 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
+from .paths import ROOT
 
-ROOT = Path(__file__).resolve().parents[2]
+
 PIN = ROOT / "bridge" / "chess.json"
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 

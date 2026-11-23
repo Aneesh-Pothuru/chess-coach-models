@@ -1,0 +1,127 @@
+{
+  "model": "position-evaluation",
+  "run": "constant",
+  "task": {
+    "label": "win",
+    "kind": "regression",
+    "unit": "the mover's chance of winning by the engine's evaluation (percent)",
+    "primary": "rmse",
+    "lower_is_better": true,
+    "context": [
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "evaluations-v1",
+    "source": "https://database.lichess.org/lichess_db_eval.jsonl.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 6000000,
+    "splits": {
+      "test": 120035,
+      "train": 5819934,
+      "valid": 60031
+    },
+    "fingerprint": "a815743c4639860a64567274f2d7eb2cd52d1fcb7de2c5cc672aeb7ffd093326",
+    "built": "2026-11-22T13:39:30Z",
+    "code": "36a0ad94d25b6b17bb33c15f065bfe68fa3faf15"
+  },
+  "config": {
+    "learner": {
+      "kind": "constant"
+    }
+  },
+  "learner": {
+    "constant": 51.55630114747625
+  },
+  "calibration": null,
+  "machine": {
+    "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "threads": 12,
+    "system": "Linux"
+  },
+  "software": {
+    "python": "3.13.16",
+    "numpy": "2.4.6",
+    "polars": "2.1.0",
+    "lightgbm": "4.6.0",
+    "torch": "2.14.1+cu130"
+  },
+  "code": "36a0ad94d25b6b17bb33c15f065bfe68fa3faf15",
+  "trained": "2026-11-22T14:03:11Z",
+  "seconds": 0.9,
+  "train_rows": 5819934,
+  "train_groups": 5819934,
+  "valid": {
+    "rmse": 25.663999128826482,
+    "mae": 18.386040910351163,
+    "r2": -5.31934276384316e-05,
+    "spearman": NaN
+  },
+  "test": {
+    "rmse": {
+      "value": 25.76456262332697,
+      "low": 25.665673704013994,
+      "high": 25.865589412789156
+    },
+    "mae": {
+      "value": 18.482569207380692,
+      "low": 18.377883029481342,
+      "high": 18.585404891200515
+    },
+    "r2": {
+      "value": -8.936056719033303e-07,
+      "low": -4.522476000685671e-05,
+      "high": -9.389787031244298e-09
+    },
+    "spearman": {
+      "value": NaN,
+      "low": NaN,
+      "high": NaN
+    }
+  },
+  "test_rows": 120035,
+  "test_groups": 120035,
+  "test_by_band": {
+    "17-24": {
+      "rows": 34199,
+      "rmse": 25.791429453889013,
+      "mae": 19.559722149612178,
+      "r2": -0.0005719111819719735,
+      "spearman": NaN
+    },
+    "25-32": {
+      "rows": 46498,
+      "rmse": 14.332900154028254,
+      "mae": 9.346083858649838,
+      "r2": -0.0008058180905623491,
+      "spearman": NaN
+    },
+    "9-16": {
+      "rows": 23338,
+      "rmse": 31.946304579456203,
+      "mae": 25.593694092968686,
+      "r2": -7.2975230878125075e-06,
+      "spearman": NaN
+    },
+    "<9": {
+      "rows": 16000,
+      "rmse": 38.37438821288847,
+      "mae": 32.359526063259466,
+      "r2": -0.004458885926060363,
+      "spearman": NaN
+    }
+  },
+  "weights": [],
+  "gain": {
+    "gain": -9.315579597262989,
+    "low": -9.42606063625839,
+    "high": -9.19995552663267,
+    "beyond_noise": true,
+    "reference": "gbm-hand",
+    "reference_trained": "2026-11-22T14:02:32Z",
+    "reference_value": 16.44898302606398
+  }
+}

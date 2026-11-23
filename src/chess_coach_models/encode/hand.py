@@ -1,4 +1,4 @@
-"""Hand-made features of a position and of a line, for the tree baselines.
+"""Hand-made features of a position, of a line and of a player's moves through a game, for the tree baselines.
 
 A network reads the board itself. A gradient-boosted baseline reads these
 counts instead, and every model's leaderboard keeps one, so a network's score
@@ -6,6 +6,10 @@ always stands beside what a few dozen plain features already explain.
 """
 
 from __future__ import annotations
+
+from collections.abc import Sequence
+from statistics import fmean, median
+from typing import Any
 
 import chess
 
@@ -59,6 +63,95 @@ LINE_FEATURES = (
     "setup_capture",
     "final_material_gain",
 )
+
+# Counts over one player's moves in one game (``game_features``).
+GAME_FEATURES = (
+    "loss_mean",
+    "loss_median",
+    "loss_worst",
+    "loss_over_5",
+    "loss_over_10",
+    "loss_over_20",
+    "win_before_mean",
+    "spent_mean",
+    "spent_median",
+    "spent_longest",
+    "spent_under_2",
+    "spent_over_30",
+    "clock_lowest",
+    "clock_used",
+    "legal_moves_mean",
+    "capture_share",
+    "check_share",
+)
+# The points of winning chances a move has to lose to be counted at each bar, and the seconds that make a
+# move instant or a long think.
+LOSS_BARS = (5.0, 10.0, 20.0)
+INSTANT_SECONDS = 2.0
+LONG_SECONDS = 30.0
+
+
+# The hand features by what each is about. A run can leave a group out (``learner.without``), and a
+# task can keep a group from every learner (``hand`` in its task.yaml).
+GROUPS = {
+    "material": ("material_count", "material_imbalance", "phase_piece_count"),
+    "mobility": ("in_check", "legal_moves", "legal_captures", "legal_checks"),
+    "hanging": ("hanging_own", "hanging_opponent"),
+    "pawns": ("passed_pawns_own", "passed_pawns_opponent"),
+    "kings": ("attackers_near_own_king", "attackers_near_opponent_king"),
+    "setup": ("setup_capture",),
+    "first-move": (
+        "first_piece",
+        "first_capture",
+        "first_captured_value",
+        "first_check",
+        "first_promotion",
+        "first_distance",
+        "first_backward",
+        "first_to_attacked",
+        "first_sacrifice",
+    ),
+    "line": (
+        "solver_moves",
+        "line_checks",
+        "line_captures",
+        "line_quiet",
+        "line_promotions",
+        "line_pieces_moved",
+        "line_sacrifices",
+        "line_max_distance",
+        "ends_in_mate",
+        "reply_captures",
+        "final_material_gain",
+    ),
+    "accuracy": (
+        "loss_mean",
+        "loss_median",
+        "loss_worst",
+        "loss_over_5",
+        "loss_over_10",
+        "loss_over_20",
+        "win_before_mean",
+    ),
+    "tempo": (
+        "spent_mean",
+        "spent_median",
+        "spent_longest",
+        "spent_under_2",
+        "spent_over_30",
+        "clock_lowest",
+        "clock_used",
+    ),
+    "choices": ("legal_moves_mean", "capture_share", "check_share"),
+}
+_GROUP_OF = {name: group for group, names in GROUPS.items() for name in names}
+
+
+def group_of(name: str) -> str:
+    """The group a hand feature belongs to."""
+    if name not in _GROUP_OF:
+        raise KeyError(f"no group holds a hand feature named {name!r}")
+    return _GROUP_OF[name]
 
 
 def _material(board: chess.Board, color: chess.Color) -> float:
@@ -237,3 +330,34 @@ def line_features(
         }
     )
     return features
+
+
+
+def game_features(moves: Sequence[dict[str, Any]], *, base: float) -> dict[str, float]:
+    """Counts over one player's moves in one game, each move with what it lost, the seconds it took, the
+    clock before it, how many legal moves there were and whether it took or checked (``data/games.py``).
+
+    How much the moves lost, how the clock was used, and what there was to choose from. ``clock_used`` is
+    the share of the starting time gone at the last of the moves, which an increment can make negative.
+    """
+    count = len(moves)
+    losses = [move["loss"] for move in moves]
+    spent = [move["spent"] for move in moves]
+    features = {
+        "loss_mean": fmean(losses),
+        "loss_median": float(median(losses)),
+        "loss_worst": max(losses),
+        **{f"loss_over_{bar:g}": sum(loss > bar for loss in losses) / count for bar in LOSS_BARS},
+        "win_before_mean": fmean(move["win_before"] for move in moves),
+        "spent_mean": fmean(spent),
+        "spent_median": float(median(spent)),
+        "spent_longest": max(spent),
+        "spent_under_2": sum(seconds < INSTANT_SECONDS for seconds in spent) / count,
+        "spent_over_30": sum(seconds > LONG_SECONDS for seconds in spent) / count,
+        "clock_lowest": min(move["clock"] for move in moves),
+        "clock_used": 1.0 - moves[-1]["clock"] / base if base else 0.0,
+        "legal_moves_mean": fmean(move["legal_moves"] for move in moves),
+        "capture_share": sum(move["capture"] for move in moves) / count,
+        "check_share": sum(move["check"] for move in moves) / count,
+    }
+    return {name: float(features[name]) for name in GAME_FEATURES}

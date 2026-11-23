@@ -1,0 +1,28 @@
+# What game-rating is asked (src/chess_coach_models/tasks.py); its card says why.
+dataset: games
+kind: regression
+label: player_elo
+unit: Lichess rapid rating points
+primary: mae
+reference: gbm-hand
+# The numbers every learner reads of the game itself: the time control and how long the game was.
+# Neither player's rating and not the result.
+context:
+  - log_base
+  - increment
+  - plies
+# The numbers of each of the player's moves a network reads beside its position.
+steps:
+  - ply
+  - log_clock
+  - log_opponent_clock
+  - log_spent
+  - win_before
+  - loss
+  - legal_moves
+  - capture
+  - check
+  - castle_own_king
+  - castle_own_queen
+  - castle_opp_king
+  - castle_opp_queen

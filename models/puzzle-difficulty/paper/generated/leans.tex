@@ -1,0 +1,32 @@
+% Written by `lab paper puzzle-difficulty`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.5\textwidth,
+  height=5.70cm,
+  y dir=reverse,
+  ymin=-0.6, ymax=9.6,
+  ytick={0,1,2,3,4,5,6,7,8,9},
+  yticklabels={{Quiet moves in the line},{Line ends in mate},{Pieces the line moves},{Moves in the line},{Checks on offer},{Material the line wins},{First move checks},{Captures on offer},{Material on the board},{Piece that moves first}},
+  ytick style={draw=none},
+  y axis line style={draw=none},
+  xmajorgrids,
+  xmin=0,
+  enlarge x limits={upper, value=0.16},
+  xlabel={Share of the trees' gain (percent)},
+]
+\addplot[xbar, fill=labOrange, draw=none, bar width=5.5pt] coordinates {(21.88,0) (11.47,1) (10,2) (8.55,3) (7.28,4) (5.85,5) (3.31,6) (3.14,7) (3.1,8) (2.56,9)};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:21.88,0) {21.9};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:11.47,1) {11.5};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:10,2) {10.0};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:8.55,3) {8.6};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:7.28,4) {7.3};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:5.85,5) {5.9};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:3.31,6) {3.3};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:3.14,7) {3.1};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:3.1,8) {3.1};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:2.56,9) {2.6};
+\end{axis}
+\end{tikzpicture}%
+}

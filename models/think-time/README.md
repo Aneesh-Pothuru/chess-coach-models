@@ -13,6 +13,12 @@ typical think time is that yardstick.
 | **Data** | The same positions as [blunder-hazard](../blunder-hazard/): rated Lichess rapid games of October 2026 (CC0) with clocks, up to 24 positions a game from each side's sixth move on. The seconds spent are the mover's clock before the move, less the clock after it, plus the increment. Recipe: [`datasets/game-positions.yaml`](../../datasets/game-positions.yaml). |
 | **Split** | By game: 85% train, 5% valid, 10% test. |
 
+**The paper.** [`paper/paper.pdf`](paper/paper.pdf) reads these results at
+length: every run, the figures, the cuts of the closer look, and positions
+as boards (ordinary ones, the ones the best run was surest of and the ones
+it got most wrong). `lab paper think-time` builds it from the results
+committed here ([`docs/design.md`](../../docs/design.md), "The paper").
+
 ## The rule
 
 Written before the first full run.
@@ -39,6 +45,47 @@ Written before the first full run.
 | `transformer-small` | A square-token transformer, CPU-sized |
 | `transformer-medium` | A larger square-token transformer, for a GPU |
 | `transformer-medium-hand` | The same, reading the hand features beside the board |
+| `transformer-medium-long` | `transformer-medium` with twice the epochs |
+| `transformer-medium-hand-long` | `transformer-medium-hand` with twice the epochs |
+| `transformer-medium-pretrained` | `transformer-medium` started from the body of [position evaluation](../position-evaluation/) |
+| `transformer-medium-hand-pretrained` | `transformer-medium-hand` started from the same body |
+| `gbm-hand-double` | `gbm-hand` on twice the training games, from the larger build `game-positions-120k` of the dataset |
+| `gbm-hand-quadruple` | `gbm-hand` on four times the training games, from the same build |
+| `transformer-medium-hand-double` | `transformer-medium-hand` on twice the training games, with half the epochs so that it takes as many steps |
+| `transformer-medium-hand-quadruple` | `transformer-medium-hand` on four times the training games, with a quarter of the epochs |
+| `conv-medium-hand` | `transformer-medium-hand` with its body changed to a convolutional tower of about its size, each block weighing its channels by the whole board |
+| `hybrid-medium-hand` | `transformer-medium-hand` with its body changed to two blocks of the tower under five transformer layers |
+| `transformer-medium-attacks` | `transformer-medium` with its attention told what each piece attacks and what it stands behind |
+| `transformer-medium-hand-attacks` | `transformer-medium-hand` told the same |
+
+The last four change only the body of the run they name
+([`docs/design.md`](../../docs/design.md), "Bodies and a head"), and
+[`docs/ideas.md`](../../docs/ideas.md) says what was expected of them before
+they ran. Each is kept only if it beats the run it changes on valid and on
+test beyond the noise.
+
+The four runs on more games (`-double`, `-quadruple`) take their training rows
+from [`game-positions-120k`](../../datasets/game-positions-120k.yaml), a larger
+build of the dataset, and are scored on the valid and test rows every run here
+is scored on ([`docs/design.md`](../../docs/design.md), "A run on more games").
+They are the `games` study below turned round, and
+[`docs/ideas.md`](../../docs/ideas.md) says what was expected of them before
+they ran. Each is kept only if it beats the run it changes on valid and on test
+beyond the noise.
+
+### Studies
+
+Runs that change one thing in a run above, to say what that thing is worth
+([`docs/design.md`](../../docs/design.md), "A run that changes another"). They
+are listed apart on the leaderboard, and each is read against the run it
+changes: the paired difference on the same resampled test games (the closer
+look's `pairs`), which says something only when its interval leaves zero out.
+
+| Study | Runs | What each changes |
+|---|---|---|
+| `games` | `gbm-hand-half`, `gbm-hand-quarter`, `transformer-medium-hand-half`, `transformer-medium-hand-quarter` | Half and a quarter of the training games, chosen by a hash of the game. The network goes through them often enough to take as many steps as the run it changes, so only the number of games differs. |
+| `features` | `gbm-hand-no-<group>` for each of material, mobility, hanging, pawns, kings | One group of hand features left out |
+| `geometry` | `transformer-medium-hand-no-geometry` | The learned bias for each offset between two squares left out of the transformer's attention: what telling it the board's geometry is worth |
 
 ## Results
 
@@ -61,12 +108,70 @@ numbers are in the leaderboard):
 - **Stronger players are harder to predict.** The error grows with the mover's
   rating band in every run.
 
+What twice the epochs say (commit `0ba155a`: `transformer-medium-long` and
+`transformer-medium-hand-long`, each set against the run it changed among the
+`pairs` of [`results/analysis.json`](results/analysis.json)):
+
+- **Both longer runs are kept, by a little.** Each is better than the run it
+  changed on the valid rows, and on the test rows beyond the noise.
+  `transformer-medium-hand-long` is now the model's best run. Both gains are
+  small beside the step the hand features make, and the gain is smaller for
+  the run that already reads them.
+- **On the board alone, the epochs take the transformer past the trees.** At
+  twelve epochs it was just behind the reference, and with twice as many it
+  is just ahead, beyond the noise both times.
+- **Twenty-four epochs were enough.** Both runs used the whole schedule, and
+  their valid scores had flattened over its last few epochs. A still longer
+  schedule is not the next run.
+
+What the two studies say (commit `ceae3ec`; a study run is listed apart on
+the leaderboard and set against the run it changed among the `pairs` of
+[`results/analysis.json`](results/analysis.json)):
+
+- **More games would help, and the network most.** Trained on half and on a
+  quarter of the training games, the trees and the best twelve-epoch network
+  are both worse beyond the noise, and the network loses more. Its lead over
+  the trees widens with every doubling, and the last doubling was worth more
+  to it than twice the epochs were. Like blunder hazard, this model is short
+  of games before it is short of steps.
+- **Beside the clocks, the trees need material most.** With one group of
+  hand features left out at a time, the material group costs the trees most,
+  then loose pieces, the moves on offer and the attackers near the kings.
+  Passed pawns cost nothing these test rows can show. A reading: what moves a
+  player's time, beyond the clock, is how far the game has gone, whether
+  something can be taken, and how much there is to choose from.
+
+What a start from engine evaluations says (commit `3810bca`:
+`transformer-medium-pretrained` and `transformer-medium-hand-pretrained`, the
+twelve-epoch runs started from the body that
+[position evaluation](../position-evaluation/) trained, each set against the
+run it changed among the `pairs` of
+[`results/analysis.json`](results/analysis.json)):
+
+- **Both are kept, and both are ahead of every run before them.** Each is
+  better than the same run started from nothing on the valid rows and on the
+  test rows beyond the noise, and both are ahead of
+  `transformer-medium-hand-long`, the best run before (the intervals of their
+  gains over the reference do not touch).
+- **The start was worth more than the features, and more than the epochs.**
+  The transformer on the board alone gained more from the start than the hand
+  features had added to it, and several times what twice the epochs had (the
+  intervals of the three paired gains do not touch).
+- **Under the start the features add nothing that can be measured.** The run
+  that reads them and the run that does not have gains over the reference
+  that lie inside each other's intervals. From nothing, twelve epochs had
+  left the transformer on the board alone behind the trees.
+
 **Weights.** Every run's weights and test predictions are on the owner's
 machine, under `artifacts/runs/think-time/<run>/`, as the GPU session
-packed them; none is published. The best run's `model.pt` is 26,258,975
-bytes, sha256 `4e82080046f9aea0c6ec20458cbccd6f072b6ce7c8f157f3fb1ae764e292e496`,
-read off the file there: these records were written before a record named its
-weights, which every later one does.
+packed them; none is published. The best run's `model.pt` is
+26,259,039 bytes, sha256
+`1e5e3d83056a91ed650168fb0d41586f5059e045fdf546497b0809eef498abe1`
+(`weights` in [its record](results/transformer-medium-hand-pretrained.json)). The
+records of the first full runs were written before a record named its
+weights: `transformer-medium-hand`'s `model.pt` is 26,258,975 bytes, sha256
+`4e82080046f9aea0c6ec20458cbccd6f072b6ce7c8f157f3fb1ae764e292e496`, read off
+the file there.
 
 ## What it does not say yet
 

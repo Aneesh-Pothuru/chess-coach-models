@@ -1,0 +1,22 @@
+% Written by `lab paper blunder-hazard`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.5\textwidth,
+  height=5.2cm,
+  ymajorgrids,
+  xlabel={Training games, beside all the games of the dataset},
+  ylabel={PR-AUC on the test rows (higher is better)},
+  legend columns=-1,
+  xtick={0,1,2},
+  xticklabels={{a quarter},{half},{all}},
+  xmin=-0.5, xmax=2.5,
+]
+\addplot[color=labOrange, mark=square*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labOrange}] coordinates {(0,0.241262) (1,0.24899) (2,0.253289)};
+\addlegendentry{\texttt{gbm-hand}}
+\addplot[color=labBlue, mark=*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labBlue}] coordinates {(0,0.241293) (1,0.25812) (2,0.266599)};
+\addlegendentry{\texttt{transformer-medium-hand}}
+\end{axis}
+\end{tikzpicture}%
+}

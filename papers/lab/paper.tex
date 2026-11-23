@@ -1,0 +1,1655 @@
+% The model lab: the paper. What is typed here says what the numbers mean.
+% Every number, table and figure is written by `lab paper` into generated/,
+% from every model's committed results, and read back with \V{key} and
+% \block{name}. A model's values and blocks stand under its name.
+\documentclass[11pt]{article}
+\input{../preamble}
+\input{generated/values}
+
+\begin{document}
+
+\labtitle{The model lab}
+  {What an engine cannot compute about people, model by model}
+  {Results of \V{lab.results.date}\quad\textperiodcentered\quad
+   \V{lab.models.count} models with full runs\quad\textperiodcentered\quad
+   \V{lab.runs.count} runs}
+
+\begin{summary}
+An engine says what the best move is and what a position is worth with best
+play. It does not say how hard a move is to find, where players of a level go
+wrong, how long they think, or who wins between two of them. The lab trains
+models of those things from open games, for a chess coaching app that speaks
+to one player at that player's level. Each model is a question put to
+Lichess data, a rule written before its first run, and one ladder of
+learners: a floor that says one number, gradient-boosted trees on the numbers
+beside the board, the same trees with hand-made counts of the position, and
+\V{puzzle-difficulty.ladder.count} networks that read the board square by
+square. This paper sets side by side the \V{lab.side.count} such models
+that have full runs. Their scores are in different units, so one scale is
+used throughout: a run's share of the step from the floor to the trees with
+the hand-made counts.
+\ifbodies
+One more model has full runs and is of another kind: \V{lab.bodies.names}
+learns an engine's evaluations, so that the others can start from what it
+learned. It is counted in none of the comparisons here.
+\fi
+
+Four things hold across the models. First, the numbers beside the board,
+which are the ratings, the clocks, the move number and an engine's verdict
+where a model reads one, carry from \V{lab.context.share.least}\% of that
+step, in \V{lab.context.share.least.model}, to \V{lab.context.share.most}\%,
+in \V{lab.context.share.most.model}. Second, the best network beats the
+trees beyond the noise in \V{lab.network.ahead.of}. Where the learners read
+all their data has, it adds \V{lab.network.gain.whole.most} hundredths of
+the step at most. In \V{lab.hidden.names}, which hides a puzzle's solution
+from every learner, the trees have little to go on and the best network adds
+\V{puzzle-difficulty-unsolved.network.gain.of-lift} hundredths.
+\ifchangestart
+Third, what a network starts from matters. A transformer whose body had
+first learned an engine's evaluation of
+\V{position-evaluation.data.rows.train} positions is better than the same
+transformer started from nothing, beyond the noise, in
+\V{lab.change.start.net.better.of}, and worse in
+\V{lab.change.start.net.worse.of}. It is the best run of every model where
+a network leads the trees. From the board alone, without the hand-made
+counts, it is ahead of the trees in \V{lab.started.board.ahead.of}, where
+the same transformer started from nothing was ahead in
+\V{lab.ladder.board.ahead.of}.
+\else
+Third, from the board alone, without the hand-made counts, the best network
+is ahead of the trees in \V{lab.board.ahead.of} and behind them in
+\V{lab.board.behind.of}.
+\fi
+\ifchangeattacks
+What its attention is told matters in places (Section~\ref{sec:shapes}):
+told what each piece attacks, the transformer that reads the board alone is
+\V{lab.change.attacks.over.transformer-medium.said}.
+\ifchangelarger
+A larger transformer is
+\V{lab.change.larger.over.transformer-medium-hand.said}.
+\fi
+\fi
+\ifgames
+A network's place also rises with the data: on half of a model's training
+games the larger transformer loses more than the trees do in every model
+that was tried.
+\fi
+Fourth, the trees and baselines of all \V{lab.models.count} models train in
+\V{lab.cost.seconds.others} on a processor, and the networks took
+\V{lab.cost.seconds.networks} of a rented GPU. What the app can carry first
+is therefore the trees, and Section~\ref{sec:use} says for what. What each
+model found about players is in Section~\ref{sec:each}.
+\end{summary}
+
+\section{What the lab is for}
+\label{sec:for}
+
+The lab belongs to a chess coaching app for one player. The app has an
+engine, which says what the best move is and how much a move lost, and board
+code, which says what is attacked and what is left hanging. Neither knows
+anything about people. A coach does: that one tactic is routine for a player
+and another far out of reach, that players of a level go wrong in positions
+like this one, that a move played in two seconds was played too fast for its
+position, that a position the engine calls winning is still a game between
+two club players.
+
+A model belongs in the lab when it predicts something of that kind:
+something about people that an engine and board code cannot compute. What a
+model says is a statement about what players do, learned from what they did.
+Where chess is put into words by a language model, the facts come from an
+engine, a model of human play, board code or data. A language model never
+judges chess on its own.
+
+The data is open. Every model here is trained and tested on the Lichess
+database, which is in the public domain~\cite{lichessdb}: rated games with
+their clocks and, for a share of them, the server's engine analysis, and the
+puzzles Lichess cuts from its games, each with the rating its solvers gave
+it. One dataset is those puzzles joined to the games they were cut
+from~\cite{puzzlegames}. The player's own games are not training data and
+are not in the lab's repository.
+
+\section{One harness}
+\label{sec:harness}
+
+Every model is built the same way, so that a result in one can be read
+beside a result in another.
+
+\paragraph{A model is a question and a rule.}
+A model starts as a card: the question, what the model reads, what it
+predicts, the data, the score, the split, and what will count as better. The
+card is written before the first full run, so no result picks its own
+yardstick. The model's folder then holds its task, its runs as small files
+of settings, the records the runs wrote, a closer look at the results, and a
+paper. No model has code of its own. Datasets, encodings, networks, training
+and scoring are shared, and adding a model touches none of them.
+
+\paragraph{The data is split by game.}
+A dataset's rows are positions, and the positions of one game are alike, so
+a game's rows all go to one side.
+\ifrowsequences
+A row of game rating is one player's moves through a whole game, and the two
+players of a game go to one side together.
+\fi
+\ifsplitapart
+In the dataset of every model but \V{lab.split.apart.names},
+\V{lab.split.test.percent}\% of the games are test games and
+\V{lab.split.valid.percent}\% are valid games, chosen by a hash of the game.
+The dataset of \V{lab.split.apart.names} keeps
+\V{lab.split.apart.test.percent}\% and
+\V{lab.split.apart.valid.percent}\%\ifbodies, of positions that come with no
+game (Section~\ref{sec:models})\fi.
+\else
+In every dataset here
+\V{lab.split.test.percent}\% of the games are test games and
+\V{lab.split.valid.percent}\% are valid games, chosen by a hash of the game.
+\fi
+An epoch, a size or a learning rate is
+chosen on the valid games. The test games are read once, for the score.
+
+\paragraph{The same ladder of learners.}
+Each model is given the same runs, so each rung says what one more thing is
+worth.
+\begin{itemize}
+\item \run{constant} says one number for every row. It is the floor: a model
+that does not beat it has learned nothing.
+\item \run{gbm-context} is gradient-boosted trees~\cite{lightgbm} on the
+numbers beside the board: the ratings, the clocks, the move number, and
+whatever else a task lets a learner read as a number, such as an engine's
+verdict. It never sees the board.
+\item \run{gbm-hand} is the same trees with hand-made counts of the
+position: material, mobility, pieces left hanging, pawns, the kings, and for
+a tactic counts of its line. It is the \emph{reference}: every other run is
+compared with it.
+\item \run{conv-small} and \run{transformer-small} are a convolutional tower
+and a square-token transformer~\cite{attention}, of
+\V{puzzle-difficulty.run.conv-small.parameters.millions} and
+\V{puzzle-difficulty.run.transformer-small.parameters.millions} million
+parameters, sized to train on a processor.
+\item \run{transformer-medium} is a square-token transformer of
+\V{puzzle-difficulty.run.transformer-medium.parameters.millions} million
+parameters, for a GPU, and \run{transformer-medium-hand} is the same network
+reading the hand-made counts beside the board.
+\end{itemize}
+Where a formula already answers a model's question with nothing fitted, the
+formula is a run too: an engine's win probability read as a forecast of the
+result, or the rating formula on two ratings. Each model's own paper
+describes the learners in full.
+\ifpaperless
+No paper is written yet for \V{lab.paperless.names}. For those, what this
+paper says a model's paper holds is on the model's card and in the files
+the card links.
+\fi
+
+\ifanswersets
+\paragraph{The ladder where the answer is a set.}
+Some models answer with a chance for each of a list of candidates, and not
+with one number. Their rungs are the same. The floor gives every row the
+same chances, each candidate's share of the training rows, and a network
+gives a chance to every candidate at once.
+\ifanswersquares
+In where to look the candidates are the
+\V{where-to-look.task.candidates.count} squares of the board. Its trees are
+one booster that reads a row for each square of a position: the position's
+numbers, the piece on the square, and with the hand-made counts what
+attacks the square and which moves start or end there. A position is that
+many rows to them, so they are trained on
+\V{where-to-look.run.gbm-hand.train-rows} of the
+\V{where-to-look.data.rows.train} training puzzles, and the networks on all
+of them.
+\fi
+\ifanswertags
+In puzzle themes the candidates are
+\V{puzzle-themes.task.candidates.count} themes, and its trees are a booster
+for each theme.
+\fi
+\fi
+
+\ifanswermoves
+\paragraph{The ladder where the answer is a move.}
+In human move the candidates are the moves a row's own position allows. The
+floor gives each of them the same chance. The trees are one booster that
+reads a row for each legal move: what moves, from where and to where, and
+with the hand-made counts what attacks those two squares. So they are
+trained on \V{human-move.run.gbm-hand.train-rows} of the
+\V{human-move.data.rows.train} training positions, and the networks on all
+of them. A network scores a move by the square it leaves and the square it
+reaches. A published model of human play is a run as well, as a formula is
+elsewhere: Maia-2~\cite{maia2} as its authors released it, read on the same
+rows with nothing fitted but one temperature, which every run of the model
+is given.
+\fi
+
+\ifrowsequences
+\paragraph{The ladder where a row is a game.}
+In game rating a row is a player's moves through one game. The trees read
+counts over those moves: what they lost, how the clock was used and what
+there was to choose from. A network reads each position with the body the
+other models use, and transformer layers over those then read the positions
+in order.
+\fi
+
+\paragraph{A score has an interval, and a comparison is paired.}
+A score is given with a 95\% interval from \V{method.resamples} resamples of
+the test games. A run is compared with the reference on the same resampled
+games, and the comparison counts only when the interval of that paired gain
+leaves zero out. In this paper \emph{beyond the noise} always means that. A
+change to a run is kept only when the changed run is better on the valid
+games and its paired gain on the test games is beyond the noise.
+
+\paragraph{One scale for this paper.}
+The models are scored in different units: rating points, the area under a
+precision-recall curve, a log loss, an error in the logarithm of seconds, an
+error in an expected score\ifanswersets, an average precision over a row's
+candidates\fi\ifanswermoves, how often the move a run puts first is the one
+played\fi. To set them side by side this paper uses the
+reference's \emph{step}: how much better the trees with the hand-made counts
+are than the floor, on the model's own score. A run's share of the step is 0
+for the floor and 100 for the reference, and a gain over the reference is a
+number of hundredths of the step. An interval on this scale is the paired
+gain's interval divided by the step. The step is a measured number as well,
+and its own noise is left out, so the scale is for setting models side by
+side. Each model's paper gives every gain in the model's own units.
+
+\section{The models}
+\label{sec:models}
+
+Table~\ref{tab:models} lists the models with full runs.
+
+\begin{table}[htbp]\centering\small
+\block{lab-models}
+\caption{The models with full runs: what each predicts, the rows of its
+dataset, the test rows and the games they come from, and the score its runs
+are ranked by.\ifbodies{} The positions of \V{lab.bodies.names} come with no
+game, and each counts as its own.\fi}
+\label{tab:models}
+\end{table}
+
+\begin{itemize}
+\item \textbf{Puzzle difficulty} asks how hard a tactic is for people. It
+reads a puzzle's position and its solution and predicts the puzzle's rating,
+which is where the crowd's attempts settled.
+\item \textbf{Puzzle difficulty, unsolved} asks the same of the same
+puzzles with the solution hidden. A learner sees what the solver saw, the
+position and the opponent's last move, and the model is read against puzzle
+difficulty run by run: the gap is what knowing the line is worth.
+\item \textbf{Blunder hazard} asks, before a move is played, how likely the
+mover is to blunder: to lose more than \V{method.blunder-bar} points of win
+probability with the move. It reads the position, both ratings, both clocks
+and the engine's evaluation before the move.
+\item \textbf{Think time} asks how long players of a level think in a
+position on a given clock. It reads no engine, since the question is what a
+player can see.
+\item \textbf{Tactic found} asks whether the player at the board plays the
+tactic the opponent has just allowed. Its rows are puzzles joined to the
+games they were cut from, so the game's next move says whether the tactic
+was found.
+\item \textbf{Practical chances} asks who wins from a position between two
+people at these ratings and clocks: the mover's expected score in the game,
+set against the chance an engine's evaluation gives.
+\ifanswersquares
+\item \textbf{Where to look} asks which squares a tactic runs through. It
+reads a puzzle's position as the solver sees it, with the opponent's last
+move and nothing of the solution, and gives each square the chance that a
+move of the solution leaves it or lands on it.
+\fi
+\ifanswertags
+\item \textbf{Puzzle themes} asks what kind of tactic a puzzle is. It reads
+a puzzle's position and its solution and gives a chance to each of
+\V{puzzle-themes.task.candidates.count} themes Lichess tags its puzzles
+with: a fork, a pin, a deflection, a named mate.
+\fi
+\ifanswermoves
+\item \textbf{Human move} asks which move a player of a given rating makes
+in a position. It reads the position, both ratings and both clocks, and
+nothing an engine says, and gives a chance to every legal move. The app
+already asks this of a published model, Maia-2~\cite{maia2}, which is a run
+of this model's leaderboard on the same rows.
+\fi
+\ifrowsequences
+\item \textbf{Game rating} asks what rating a player's play in one game
+looks like. It reads the player's moves in order, each with its clocks, the
+seconds it took and what an engine says it lost, and neither player's
+rating.
+\fi
+\end{itemize}
+
+Blunder hazard, think time and practical chances read the same positions:
+\V{blunder-hazard.data.rows} of them, from
+\V{blunder-hazard.recipe.games} rated \V{blunder-hazard.recipe.speeds}
+games of \V{blunder-hazard.data.month} that carry clocks and engine
+analysis.
+\ifanswermoves
+Human move reads those positions too.
+\fi
+Puzzle difficulty and its unsolved version read the same
+\V{puzzle-difficulty.data.rows} puzzles, and tactic found
+\V{tactic-found.data.rows} that could be joined to the games they were cut
+from.
+\ifanswersquares
+Where to look reads puzzle difficulty's puzzles, row for row.
+\fi
+\ifanswertags
+Puzzle themes reads puzzle difficulty's puzzles as well.
+\fi
+\ifrowsequences
+Game rating reads \V{game-rating.data.rows} rows from
+\V{game-rating.recipe.games} rated \V{game-rating.recipe.speeds} games of
+\V{game-rating.data.month}: a row for each player with at least
+\V{game-rating.recipe.least-moves} moves that carry a clock and an engine's
+evaluation, \V{game-rating.data.positions} positions in all.
+\fi
+
+\ifbodies
+Table~\ref{tab:models} also lists \V{lab.bodies.names}, which is of another
+kind. It asks what an engine makes of a position: the mover's chance of
+winning by the engine's evaluation. An engine computes that, so nothing
+about people is in the answer and the app has no use for it. The lab has
+the model for its body. Its network is the larger transformer of the
+ladder, trained on \V{position-evaluation.data.rows.train} positions from
+the open file of positions Lichess holds an engine's evaluation
+for~\cite{lichessdb}, and the other models' transformers can start from
+what it learned\ifchangestart{} (Section~\ref{sec:start})\fi. Those positions come with no
+game, each of them once, so its split is by position. The model is listed,
+costed and given its leaderboard with the rest, and it is counted in no
+statement of how the models compare: from here on \emph{the models} are the
+\V{lab.side.count} that say something about people.
+\fi
+
+\ifwaiting
+Tasks are also written for models that have no full run yet:
+\V{lab.waiting.names} (Table~\ref{tab:waiting} in
+Section~\ref{sec:next}).
+\fi
+
+One model of the lab is not on this harness and not in these tables: the
+coach narrator, a small language model that tells a checked line in two
+plain sentences. Its facts come from an engine, a model of human moves and
+board code, and its rule is a truth check on what it writes. Its card has
+its results.
+
+\section{What holds across the models}
+\label{sec:across}
+
+Table~\ref{tab:scores} gives each model's rungs in its own units, and
+Figure~\ref{fig:shares} places every run of the ladder and every formula
+on the one scale.
+
+\begin{table}[htbp]\centering\small
+\block{lab-scores}
+\caption{Each model's rungs on its test rows: the floor, the trees on the
+context numbers, the reference, and the best network with its paired gain
+over the reference, in the model's units and in hundredths of the
+reference's step from the floor. A gain is bold when its 95\% interval leaves
+zero out. Figure~\ref{fig:networks} shows the intervals, and the appendix
+has every run of every model.}
+\label{tab:scores}
+\end{table}
+
+\begin{figure}[htbp]\centering
+\block{lab-shares}
+\caption{Where each run of the ladder and each formula stands between the
+floor and the reference, model by model. The scale is the share of the
+reference's step from the floor: 0 is the floor, 100 the trees with the
+hand-made counts. Each run keeps its colour, its mark and its lane in every
+strip. A run that changes one thing in a run of the ladder is in
+Figure~\ref{fig:networks}.}
+\label{fig:shares}
+\end{figure}
+
+\subsection{How much is in the numbers beside the board}
+\label{sec:context}
+
+The trees on the context numbers never see the board, and what they reach
+differs more from model to model than anything else in
+Figure~\ref{fig:shares}. They make
+\V{puzzle-difficulty.context.lift.share}\% of the step in puzzle difficulty
+and \V{tactic-found.context.lift.share}\% in tactic found,
+\V{blunder-hazard.context.lift.share}\% in blunder hazard and
+\V{think-time.context.lift.share}\% in think time, and
+\V{practical-chances.context.lift.share}\% in practical chances.
+
+The order follows what each question is about. This is a reading, since no
+run here measures why. In puzzle difficulty and tactic found the answer is
+on the board and in the tactic's line: what a tactic asks decides more than who is asked
+or how much time they have. How long a player thinks moves with the clock
+and the ratings, whatever the position. How often a player blunders moves
+with them too, and with how much there is to lose, which the engine's
+evaluation before the move says. And in practical chances one of the context
+numbers is the engine's whole verdict on the position: read as a forecast
+with nothing fitted, it is already
+\V{practical-chances.run.engine-curve.lift.share}\% of the step.
+
+For the app this is the most useful line of Table~\ref{tab:scores}. Where
+the context numbers carry most of the step, most of the model is a table by
+rating and clock, which the app can hold without running a model of the
+board at all.
+
+\subsection{What a network adds to the trees}
+
+Figure~\ref{fig:networks} sets each network on a model's leaderboard
+against the reference: the networks of the ladder, and with each of them
+any run that changed one thing in it.
+\ifchangeepochs
+A run whose name ends in \texttt{-long} is the run its name starts with on
+twice the epochs (Section~\ref{sec:epochs}).
+\fi
+\ifchangestart
+A run whose name ends in \texttt{-pretrained} is the run its name starts
+with, started from a body that had first learned an engine's evaluations
+(Section~\ref{sec:start}).
+\fi
+\ifshapes
+The other names are networks of another shape, each drawn in the colour of
+the transformer it changes (Section~\ref{sec:shapes}).
+\fi
+
+\begin{figure}[htbp]\centering
+\block{lab-networks}
+\caption{Each network's paired gain over the reference with its 95\%
+interval, in hundredths of the reference's step from the floor. A panel is a
+model and has the scale its own networks span. Right of a panel's line a
+network is better than the trees with the hand-made counts, and an interval
+that does not cross the line is beyond the noise.}
+\label{fig:networks}
+\end{figure}
+
+The best network beats the reference beyond the noise in
+\V{lab.network.ahead.of}: \V{lab.network.ahead.names}. It is level with it
+in \V{lab.network.level.of}, \V{lab.network.level.names}, and behind it in
+\V{lab.network.behind.of}. Among the \V{lab.whole.count} models whose
+learners read all their data has, the gain is largest in
+\V{lab.network.gain.whole.most.model}, at \V{lab.network.gain.whole.most}
+hundredths of the step. So where a network wins there, the trees had already
+taken most of the way from the floor, and the network adds the smaller part.
+
+One model is of another kind: \V{lab.hidden.names} hides the solution of a
+puzzle from every learner, trees and networks alike. Its trees are left with
+the counts of the position, so their step is small, and its best network
+adds \V{puzzle-difficulty-unsolved.network.gain.of-lift} hundredths of it.
+That number says how little the trees have to go on there as much as it says
+anything of the network (Section~\ref{sec:each}).
+
+Where it wins, the best network is \V{lab.network.ahead.runs}.
+\ifchangestart
+In every one of those models that is the larger transformer with the
+hand-made counts beside the board, started from the body of
+Section~\ref{sec:start}.
+\fi
+
+From the board alone the picture depends on where a network starts. On the
+ladder every network starts from nothing, and there the larger transformer
+that reads no hand-made count is ahead of the trees beyond the noise in
+\V{lab.ladder.board.ahead.of} (\V{lab.ladder.board.ahead.names}), level
+with them in \V{lab.ladder.board.level.of}
+(\V{lab.ladder.board.level.names}) and behind them in
+\V{lab.ladder.board.behind.of} (\V{lab.ladder.board.behind.names}). The
+networks sized for a processor do about as well: the best of them is ahead
+in \V{lab.small.ahead.of}, level in \V{lab.small.level.of} and behind in
+\V{lab.small.behind.of}. With every run counted, the best network that
+reads no hand-made count is ahead of the trees in \V{lab.board.ahead.of}
+(\V{lab.board.ahead.names}), level with them in \V{lab.board.level.of}
+(\V{lab.board.level.names}) and behind them in \V{lab.board.behind.of}.
+\ifchangestart
+Where it is ahead that network is \V{lab.board.ahead.runs}. The start of
+Section~\ref{sec:start} puts it ahead in every model where the ladder's
+transformer was behind.
+\fi
+\ifchangeattacks
+In \V{lab.board.ahead.run.transformer-medium-attacks.names} it starts from
+nothing: it is the transformer whose attention is told what each piece
+attacks (Section~\ref{sec:shapes}).
+\fi
+
+The two models of puzzle difficulty are where the board alone is enough to
+pass the trees from nothing, on the ladder's own schedule:
+\V{puzzle-difficulty.ladder.ahead.of} do with the solution shown, and
+\V{puzzle-difficulty-unsolved.ladder.ahead.of} with it hidden.
+\ifchangeepochs
+In think time it takes the longer schedule of Section~\ref{sec:epochs}, and
+the lead is \V{think-time.run.transformer-medium-long.gain.of-lift}
+hundredths of the step.
+\fi
+Why there and not elsewhere? Two readings fit the ladder. The puzzles are
+the largest dataset among these models (Table~\ref{tab:models}), so a
+network there has the most boards to learn the board from. And a tactic is a
+pattern of pieces on squares, which a network reads directly: with the
+solution shown the marks hand it the line itself, and with the solution
+hidden it still finds on the board what no count of the position says. A
+blunder or a slow move in a game turns more on sums over the whole board,
+such as what is left and what is hanging, and those the counts hand the
+trees ready-made.
+\ifgames
+Section~\ref{sec:games} trains the reference and a network on half and on a
+quarter of each model's training games, and it supports the first reading:
+fewer games cost the network more than the trees in every model.
+\else
+Runs on half and on a quarter of each model's training games, named in
+Section~\ref{sec:next}, say how much of a network's standing is the amount
+of data, which bears on the first reading.
+\fi
+\ifchangestart
+The start supports it too. A body that has already seen
+\V{position-evaluation.data.rows.train} positions passes the trees from the
+board alone in \V{lab.ladder.board.behind.names} as well, on no more games
+of those models than the ladder had. A reading: what the ladder's
+transformer lacked there was boards to learn the board from, more than
+anything those questions ask.
+\fi
+
+\subsection{What the hand-made counts are worth}
+
+Under the trees the answer is the rest of the step: what the reference adds
+to the trees on the context numbers. With the counts the trees are
+\V{lab.change.hand.over.gbm-context.said} (Table~\ref{tab:changes}), and
+the counts are the larger part of the step in puzzle difficulty and tactic
+found.
+
+\begin{table}[htbp]\centering\small
+\block{lab-changes}
+\caption{One change measured in model after model. Under each kind of
+change a pair of columns is the run the change was made in, and a row gives
+the changed run's paired gain over that run on the same resampled test
+games, in hundredths of the reference's step, with its 95\% interval. Bold
+when the interval leaves zero out. Each model's paper has the same gains in
+the model's own units.}
+\label{tab:changes}
+\end{table}
+
+\begin{figure}[htbp]\centering
+\block{lab-changes-figure}
+\caption{The pairs of Table~\ref{tab:changes}, each with its 95\%
+interval.}
+\label{fig:changes}
+\end{figure}
+
+Under a network the direct measure is the pair: the transformer that reads
+the counts over the same transformer without them, on the same resampled
+games. Table~\ref{tab:changes} has that pair for
+\V{lab.change.hand.over.transformer-medium.models}, and with the counts the
+network is \V{lab.change.hand.over.transformer-medium.said}.
+\ifchangeepochs
+Under the longer schedule of Section~\ref{sec:epochs} the same pair is
+measured in \V{lab.change.hand.over.transformer-medium-long.models}, and
+with the counts the network is
+\V{lab.change.hand.over.transformer-medium-long.said}.
+\fi
+\ifchangeepochs\else
+% The closer look measures this pair for the other models in the same pass
+% as their longer runs, so until those land the ladder stands in for it.
+For the other models Figure~\ref{fig:networks} gives two gains over the same
+reference in place of a pair. In blunder hazard, tactic found and think time
+the transformer with the counts is ahead of the trees beyond the noise and
+the same transformer without them is behind the trees beyond the noise, so
+the counts are worth something to the network there. In puzzle difficulty
+both are ahead and their intervals stand apart. Two intervals that do not
+overlap are not a paired gain, and the pairs are measured with the runs
+named in Section~\ref{sec:next}.
+\fi
+
+\iffeatures
+Which counts carry the step? They come in groups, and the reference was
+trained again without one group at a time (Table~\ref{tab:features}). Trees
+that are worse without a group were using it, and nothing else they read
+holds the same. Trees that are no worse either made no use of the group or
+find the same elsewhere, so a group can matter on a board and still cost
+nothing here. The group whose loss costs the trees most is
+\V{lab.features.in.puzzle-difficulty.most.group} in puzzle difficulty
+(\V{lab.features.in.puzzle-difficulty.most.gain} hundredths of the step),
+\V{lab.features.in.tactic-found.most.group} in tactic found
+(\V{lab.features.in.tactic-found.most.gain}),
+\V{lab.features.in.blunder-hazard.most.group} in blunder hazard
+(\V{lab.features.in.blunder-hazard.most.gain}),
+\V{lab.features.in.think-time.most.group} in think time
+(\V{lab.features.in.think-time.most.gain}) and
+\V{lab.features.in.practical-chances.most.group} in practical chances
+(\V{lab.features.in.practical-chances.most.gain}).
+
+\begin{table}[htbp]\centering\small
+\block{lab-features}
+\caption{The reference trained again without one group of hand-made counts
+at a time. A row is a group and how many counts it holds. A cell is the
+paired gain of the trees without the group over the trees with it, in
+hundredths of the reference's step: below zero the trees are worse without
+the group, and bold when the 95\% interval leaves zero out. An empty cell
+is a group the model's counts do not have.}
+\label{tab:features}
+\end{table}
+
+A reading of Table~\ref{tab:features}. Material costs the trees something in
+every model, and passed pawns next to nothing in any. Beyond that the models
+part by what they are about. The two that read a line of moves lean on the
+line: its counts as a whole in puzzle difficulty, its first move in tactic
+found. The three that read a position from a game lean on material, which
+also says how far the game has gone. Under a network the study was run in
+blunder hazard alone. There the material group is most of what the counts
+are worth to the transformer, and the attackers near the kings, which cost
+the trees, cost the network nothing these test rows can show: a reading is
+that it finds those on the squares (that model's paper has the table).
+\fi
+
+\ifchangeepochs
+\subsection{What a longer schedule is worth}
+\label{sec:epochs}
+
+On the valid games, \V{lab.ladder.at-last-epoch.of} of the ladder had their
+best epoch at the last epoch of their schedule, so some had more to learn.
+In \V{lab.change.epochs.over.transformer-medium.count} models the two
+transformers sized for a GPU were trained again on a schedule of
+\V{puzzle-difficulty.run.transformer-medium-long.epochs} epochs for
+\V{puzzle-difficulty.run.transformer-medium.epochs}, with nothing else
+changed (Table~\ref{tab:changes}). Practical chances has no such runs: its
+networks had stopped improving before the half of the ladder's schedule.
+\ifchangestart
+Nor has \V{lab.hidden.names}: the model was added after these runs, and its
+transformers were given the start of Section~\ref{sec:start} instead.
+\fi
+With the longer schedule, the transformer that reads the board alone is
+\V{lab.change.epochs.over.transformer-medium.said}, and the one that reads
+the hand-made counts as well is
+\V{lab.change.epochs.over.transformer-medium-hand.said}.
+
+Puzzle difficulty is where the epochs pay. The gain there is
+\V{lab.change.epochs.over.transformer-medium.gain.most} hundredths of the
+step on the board alone, which is more than the hand-made counts were worth
+to the same transformer, and
+\V{lab.change.epochs.over.transformer-medium-hand.gain.most} with the
+counts. In the other models a gain is a few hundredths or nothing. Only in
+think time did the longer runs use their whole schedule. In the other three
+the trainer stopped them early, their score on the valid games no longer
+improving, so a still longer schedule is not what any of these models
+lacks.
+
+A change is kept on both halves of the rule: better on the valid games, and
+on the test games beyond the noise. By both,
+\V{lab.change.epochs.net.kept.of} are kept, so those longer runs are runs of
+their models. Both runs are kept in
+\V{lab.change.epochs.net.kept.whole.models}, and there the longer run with
+the hand-made counts
+\ifchangestart
+was the model's best run until the start of Section~\ref{sec:start}.
+\else
+is the model's best run.
+\fi
+The other \V{lab.change.epochs.net.level} are not kept. Each stays in its
+model's paper as a measurement of what the epochs were worth there, and
+leaves its model's leaderboard when it is filed.
+\fi
+
+\ifchangestart
+\subsection{What a start from an engine's evaluations is worth}
+\label{sec:start}
+
+Every network of the ladder starts from nothing: its weights are random
+before its first step, and what the pieces do it has to learn from its own
+model's rows. A network can start from another run's body instead.
+\ifbodies
+The body used here comes from \V{lab.bodies.names}. That model trains the
+larger transformer of the ladder, on the board alone, to say what an engine
+makes of a position: the mover's chance of winning by the deepest evaluation
+Lichess holds for it, at depth \V{position-evaluation.recipe.min-depth} or
+more. On \V{position-evaluation.data.rows.test} held-out positions its error
+is \V{position-evaluation.best.score} points of that chance, against
+\V{position-evaluation.reference.score} for trees on the hand-made counts,
+which lean on \V{position-evaluation.reference.leans.1.feature} most, and
+\V{position-evaluation.floor.score} for the floor. So the body has learned
+more of an engine's verdict than counting gives. It took
+\V{position-evaluation.best.seconds} of the rented GPU, once for all the
+models, and its best epoch on the valid positions was epoch
+\V{position-evaluation.best.best-epoch} of
+\V{position-evaluation.best.epochs}.
+\fi
+A run that starts from the body copies the embeddings of the pieces and the
+squares and every block of the transformer. The last layers, which turn the
+body's reading into an answer, start new. The run is then trained on its own
+model's rows on the ladder's schedule, with nothing else changed
+(Table~\ref{tab:changes}).
+
+Started from the body, the transformer that reads the board alone is
+\V{lab.change.start.over.transformer-medium.said}, and the one that reads
+the hand-made counts as well is
+\V{lab.change.start.over.transformer-medium-hand.said}. By both halves of
+the lab's rule \V{lab.change.start.net.kept.of} are kept: both runs in
+\V{lab.change.start.net.kept.whole.models}. In each of those models the run
+with the counts is now the best run (Table~\ref{tab:scores}).
+
+Four things can be read off Table~\ref{tab:changes}.
+
+\emph{The start is worth more than the epochs were.} In each of the
+\V{lab.change.epochs.over.transformer-medium.count} models that have both
+changes, either transformer gains more from the start than it did from twice
+the epochs, and the intervals of the two gains stand apart every time. The
+start does it on the ladder's schedule, which is half the epochs of the
+longer one.
+
+\emph{The board alone gains most.} Wherever the start helps, it is worth
+more to the transformer that reads the board alone than to the one that
+also reads the hand-made counts, and the two intervals stand apart. On the
+board alone it is also worth more than the counts were to the same
+transformer started from nothing, in every one of those models, though in
+blunder hazard those two intervals overlap. A reading: part of what the
+body brings is what the counts say. An engine's verdict turns on material
+and on what is attacked, and the body has had to find both on the squares.
+
+\emph{It does not help where the engine's verdict is already read.} In
+practical chances both runs from the body are worse beyond the noise, and
+both had their best epoch sooner than the runs they changed: epochs
+\V{practical-chances.run.transformer-medium-pretrained.best-epoch} and
+\V{practical-chances.run.transformer-medium-hand-pretrained.best-epoch} of
+\V{practical-chances.run.transformer-medium-pretrained.epochs}. A reading:
+there the engine's evaluation is one of the numbers beside the board, and
+it is most of the step before any board is read
+(Section~\ref{sec:context}). A body that has learned to work that verdict
+out from the squares brings what the model was already handed.
+
+\emph{It helps most where the most is hidden.} With a puzzle's solution
+hidden the start is worth
+\V{puzzle-difficulty-unsolved.pair.transformer-medium-pretrained.transformer-medium.gain}
+and
+\V{puzzle-difficulty-unsolved.pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain}
+rating points to the two transformers, and with it shown
+\V{puzzle-difficulty.pair.transformer-medium-pretrained.transformer-medium.gain}
+and
+\V{puzzle-difficulty.pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain}:
+more than twice as far each time, on the same test puzzles. A reading: the
+marks of a shown solution hand a network the line. Without them, what makes
+a puzzle hard has to be found on the board, and a body that knows what the
+pieces do finds more of it (Section~\ref{sec:each}).
+
+\ifbodies
+The body was made once: at one size, for
+\V{position-evaluation.best.epochs} epochs, on
+\V{position-evaluation.data.rows.train} of the positions the file has. So
+this measures one start and not the best one, and Section~\ref{sec:next}
+names the next to try.
+\fi
+\fi
+
+\ifshapes
+\subsection{What another shape of network is worth}
+\label{sec:shapes}
+
+The networks of the ladder are of two shapes: a small convolutional tower,
+and a transformer with a token for each square~\cite{attention} whose
+attention is told the offset between every two squares~\cite{relative}. The
+runs of this section change the body of a transformer of the ladder and
+keep the rest: the same rows, the same numbers beside the board, the same
+head and as many epochs. Each is set against the transformer it changes on
+the same resampled test games (Table~\ref{tab:shapes},
+Figure~\ref{fig:shapes}).
+\begin{itemize}
+\ifchangeconv
+\item \emph{A convolutional tower.} A residual tower of about the
+transformer's size, each block also weighing its channels by a mean over the
+whole board. It is trained at the peak learning rate the ladder's small
+tower takes, which is higher than a transformer's, and that is the one
+thing it changes beside its body. Set against the transformer that reads
+the hand-made counts, the tower is
+\V{lab.change.conv.over.transformer-medium-hand.said}.
+\fi
+\ifchangehybrid
+\item \emph{A hybrid.} A few residual blocks of convolutions first, then layers of the
+transformer over the squares they give. It is
+\V{lab.change.hybrid.over.transformer-medium-hand.said}.
+\fi
+\ifchangelarger
+\item \emph{A larger transformer.} More layers and a wider token for each
+square: \V{puzzle-difficulty.run.transformer-large-hand.parameters.millions}
+million parameters for
+\V{puzzle-difficulty.run.transformer-medium-hand.parameters.millions}. It is
+\V{lab.change.larger.over.transformer-medium-hand.said}.
+\fi
+\ifchangeattacks
+\item \emph{Attention told what each piece attacks.} An offset says that two
+squares share a diagonal, and not whether anything stands between them. Here
+each head also learns a bias for a pair of squares when the piece on one
+attacks the other on this board. Told that, the transformer that reads the
+counts is \V{lab.change.attacks.over.transformer-medium-hand.said}, and the
+one that reads the board alone is
+\V{lab.change.attacks.over.transformer-medium.said}.
+\fi
+\ifchangegeometry
+\item \emph{Attention without the offsets.} A study, to say what the offsets
+are worth. Without them the transformer is
+\V{lab.change.geometry.over.transformer-medium-hand.said}.
+\fi
+\end{itemize}
+
+\begin{table}[htbp]\centering\small
+\block{lab-shapes}
+\caption{A network of another shape, model by model. Under each shape a pair
+of columns is the transformer whose body was changed, and a row gives the
+changed run's paired gain over that transformer on the same resampled test
+games, in hundredths of the reference's step, with its 95\% interval. Bold
+when the interval leaves zero out. Each model's paper has the same gains in
+the model's own units.}
+\label{tab:shapes}
+\end{table}
+
+\begin{figure}[htbp]\centering
+\block{lab-shapes-figure}
+\caption{The pairs of Table~\ref{tab:shapes}, each with its 95\%
+interval.}
+\label{fig:shapes}
+\end{figure}
+
+A change of shape is kept as any other change is, on both halves of the
+lab's rule.
+\ifchangeattacks
+Where the attention is told the attacks the rule keeps
+\V{lab.change.attacks.net.kept.of}.
+\fi
+\ifchangeconv
+Where the body is a tower it keeps \V{lab.change.conv.net.kept.of}.
+\fi
+\ifchangehybrid
+It keeps \V{lab.change.hybrid.net.kept} of the hybrid's
+pairs\ifchangelarger{} and \V{lab.change.larger.net.kept} of the larger
+transformer's\fi.
+\fi
+What can be read off Table~\ref{tab:shapes} so far is this.
+
+\ifchangeattacks
+\emph{What a piece attacks is worth telling, where the question is a
+tactic.} In puzzle difficulty the transformer that reads the board alone
+gains
+\V{puzzle-difficulty.pair.transformer-medium-attacks.transformer-medium.gain}
+rating points from it.
+\ifchangestart\ifchangeepochs
+The start of Section~\ref{sec:start} gave the same transformer
+\V{puzzle-difficulty.pair.transformer-medium-pretrained.transformer-medium.gain}
+and twice the epochs
+\V{puzzle-difficulty.pair.transformer-medium-long.transformer-medium.gain},
+and the three intervals stand apart.
+\fi\fi
+With the hand-made counts beside the board the gain is
+\V{puzzle-difficulty.pair.transformer-medium-hand-attacks.transformer-medium-hand.gain}%
+\ifchangestart\ifchangeepochs
+, less than the start gave that run
+(\V{puzzle-difficulty.pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain})
+and more than the epochs did
+(\V{puzzle-difficulty.pair.transformer-medium-hand-long.transformer-medium-hand.gain})%
+\fi\fi
+. Told the attacks, the transformer has little use left for the counts: with
+them it scores \V{puzzle-difficulty.run.transformer-medium-hand-attacks.score}
+and without them \V{puzzle-difficulty.run.transformer-medium-attacks.score},
+each inside the other's interval, where on the ladder the counts were worth
+\V{puzzle-difficulty.pair.transformer-medium-hand.transformer-medium.gain}
+points to it. Those two runs were not set against each other on resampled
+games, so that much is a reading of the leaderboard. A reading of the whole:
+what the counts gave this network it can add up for itself once it is told
+which piece attacks which square. Both runs had their best epoch at the last
+of their schedule, epoch
+\V{puzzle-difficulty.run.transformer-medium-attacks.best-epoch} of
+\V{puzzle-difficulty.run.transformer-medium-attacks.epochs}, so neither had
+finished learning.
+\fi
+
+\emph{No shape moves \V{lab.shapes.still.names}.} No pair of
+Table~\ref{tab:shapes} leaves the noise there.
+\ifchangeepochs\ifgames
+A reading: that is what the longer schedule and the games study said of
+blunder hazard from two other sides (Sections~\ref{sec:epochs}
+and~\ref{sec:games}). Its transformer is short of games, and neither a
+shape nor more steps makes up for them.
+\ifchangestart
+What moved it was the start of Section~\ref{sec:start}, which brings boards
+from elsewhere.
+\fi
+\fi\fi
+
+\ifchangelarger
+\emph{More parameters did not pay.} The transformer of
+\V{puzzle-difficulty.run.transformer-large-hand.parameters.millions} million
+parameters is \V{lab.change.larger.over.transformer-medium-hand.said}, on the
+same rows and as many epochs. On the valid puzzles it is behind the smaller
+one after every epoch, and its curve ends flat without turning up (that
+model's paper draws both), so it has not fitted its training puzzles too
+closely. A reading: at the smaller one's learning rate and epochs it learns
+more slowly, and whether a rate or a schedule of its own would take it past
+the smaller one is not measured.
+\fi
+\ifchangeconv
+The tower is the cheap one. In puzzle difficulty it took
+\V{puzzle-difficulty.run.conv-medium-hand.seconds} of the GPU for the
+transformer's \V{puzzle-difficulty.run.transformer-medium-hand.seconds}. It
+changes its learning rate with its body, so its gain is the tower's as
+trained and cannot be given to the convolutions alone. Its best epoch on the
+valid puzzles was \V{puzzle-difficulty.run.conv-medium-hand.best-epoch} of
+\V{puzzle-difficulty.run.conv-medium-hand.epochs}, and it lost ground after
+it while the transformer went on gaining\ifchangehybrid, as the hybrid
+did\fi. A reading: the networks with convolutions learn these puzzles sooner
+and fit them too closely sooner, so more puzzles are likelier to help them
+than more epochs are.
+\fi
+\ifchangegeometry
+And the offsets are worth less to the transformer than the attacks: without
+them its gain is at the lowest
+\V{lab.change.geometry.over.transformer-medium-hand.gain.least} hundredths of
+the step, in
+\V{lab.change.geometry.over.transformer-medium-hand.gain.least.model}.
+\fi
+
+Two things this section does not say. Every run in it starts from nothing,
+and a run of another shape is the best run in \V{lab.shapes.best.of}%
+\ifchangestart
+: the best run of each is still the transformer started from the body of
+Section~\ref{sec:start} (Table~\ref{tab:scores})%
+\fi
+. And each run was trained once. Section~\ref{sec:next} names the run that
+sets the best of these shapes against the best start.
+\fi
+
+\ifgames
+\subsection{What more games would be worth}
+\label{sec:games}
+
+The reference and the larger transformer that reads the hand-made counts
+were trained again on half and on a quarter of each model's training games,
+and scored on the same test rows (Table~\ref{tab:games},
+Figure~\ref{fig:games}). The games are chosen by a hash, so the quarter
+lies inside the half. The transformer is given twice the epochs on half the
+games and four times on a quarter, so it takes as many steps each time and
+loses only the games. The study is read forward: where halving the games
+costs little, doubling them would buy little.
+\ifmore
+Then the forward reading is checked. Each dataset has a larger build that
+keeps more of the same source, split the same way, so every test row is in
+it unchanged and no game of a test row is among its training games. The
+same two runs were trained on twice and on four times the training games,
+going through them less often so that the steps stay the same, and scored
+on the same test rows (Figure~\ref{fig:games-more}). Tactic found has the
+doubling only: its build already reads half of the files its source has.
+\fi
+
+On half of the games the trees are \V{lab.games.gbm-hand.half.said}, and on
+a quarter they are \V{lab.games.gbm-hand.quarter.said}. The transformer on
+half of the games is \V{lab.games.transformer-medium-hand.half.said}, and
+on a quarter it is \V{lab.games.transformer-medium-hand.quarter.said}. The
+lowest of these gains on half of the games is
+\V{lab.games.gbm-hand.half.gain.least} hundredths of the step for the
+trees, in \V{lab.games.gbm-hand.half.gain.least.model}, and
+\V{lab.games.transformer-medium-hand.half.gain.least} for the transformer,
+in \V{lab.games.transformer-medium-hand.half.gain.least.model}.
+\ifmore
+On twice the games the trees are \V{lab.games.gbm-hand.double.said}, and on
+four times they are \V{lab.games.gbm-hand.quadruple.said}. The transformer
+on twice the games is \V{lab.games.transformer-medium-hand.double.said},
+and on four times it is
+\V{lab.games.transformer-medium-hand.quadruple.said}.
+\fi
+
+A reading of Table~\ref{tab:games}. On the same share of the games the
+transformer loses more than the trees in every model, so each doubling of
+the games moves the network up against the trees. In blunder hazard the two
+are level on a quarter of the games and in tactic found on half, and the
+network's lead comes with the rest. In practical chances, where fewer games
+cost the trees nothing these test rows can show, the network stays behind
+them on every share. The datasets are a part of what is open: a fixed
+\V{puzzle-difficulty.recipe.sample.percent}\% of the puzzles whose rating
+has settled, and \V{blunder-hazard.recipe.games} games of one month. So for
+the other four models a larger dataset is a next gain for a
+network\ifchangeepochs, ahead of a longer schedule
+(Section~\ref{sec:epochs})\fi.
+\ifchangestart
+The study was made on the ladder's transformer, which starts from nothing.
+Whether a network started from the body of Section~\ref{sec:start} gains as
+much from more games is not measured, and it may not: that body has seen
+many more boards already.
+\fi
+
+\begin{table}[htbp]\centering\small
+\block{lab-games}
+\caption{Fewer training games\ifmore{} and more\fi, model by model. A cell
+is the paired gain of a run trained on half or on a quarter of the training
+games\ifmore, or on twice or four times as many from a larger build of the
+dataset,\fi{} over the same run trained on all of them, in hundredths of the
+reference's step: below zero the run is worse than the run on all the games,
+and bold when the 95\% interval leaves zero out.}
+\label{tab:games}
+\end{table}
+
+\begin{figure}[htbp]\centering
+\block{lab-games-figure}
+\caption{The pairs of Table~\ref{tab:games}\ifmore{} on fewer games\fi, each
+with its 95\% interval.}
+\label{fig:games}
+\end{figure}
+\ifmore
+\begin{figure}[htbp]\centering
+\block{lab-games-more-figure}
+\caption{The pairs of Table~\ref{tab:games} on more games, each with its
+95\% interval.}
+\label{fig:games-more}
+\end{figure}
+\fi
+\fi
+
+\subsection{What the runs cost}
+
+\begin{table}[htbp]\centering\small
+\block{lab-cost}
+\caption{What the runs took to train. The floor, the baselines that fit
+nothing and the trees ran on a processor, and the networks on a rented GPU.
+\ifstudies A study run changes one thing in another run to measure what it
+is worth, and no leaderboard ranks it.\fi}
+\label{tab:cost}
+\end{table}
+
+The floors, baselines and trees of all \V{lab.models.count} models trained
+in \V{lab.cost.seconds.others}, and the \V{lab.networks.count} networks in
+\V{lab.cost.seconds.networks} (Table~\ref{tab:cost}).
+\ifstudies
+The \V{lab.studies.count} study runs took \V{lab.cost.seconds.studies}
+more.
+\fi
+The trees are a file
+that runs anywhere. A network needs its weights and something to run them
+on. In the models whose learners read all their data has, a network's gain
+is \V{lab.network.gain.whole.most} hundredths of the step at most, and that
+is the trade a port to the app has to weigh.
+
+\ifchangeepochs\else
+On the valid games, \V{lab.ladder.at-last-epoch.of} of the ladder had their
+best epoch at the last epoch of their schedule, so some had more to learn.
+Longer schedules are among the runs of Section~\ref{sec:next}.
+\fi
+
+\section{What each model found}
+\label{sec:each}
+
+\ifpaperless
+Every model but \V{lab.paperless.names} has a paper of its own,
+\else
+Each model has a paper of its own,
+\fi
+with every run, the cuts of its closer look and example positions. What
+follows is the part of each that a coach would want first.
+
+\subsection{Puzzle difficulty}
+
+On \V{puzzle-difficulty.data.rows.test} held-out puzzles the best run's
+error is \V{puzzle-difficulty.best.score} rating points
+(\V{puzzle-difficulty.task.metric}), against
+\V{puzzle-difficulty.reference.score} for the trees and
+\V{puzzle-difficulty.floor.score} for the floor. It orders puzzles well,
+with a rank correlation of \V{puzzle-difficulty.best.spearman}, and its
+typical miss is \V{puzzle-difficulty.best.mae} points. What it states is
+right on average to within \V{puzzle-difficulty.best.reliability.widest-gap}
+points along the whole scale, and loose on the single puzzle
+(Figure~\ref{fig:puzzle}). So it can sort the tactics of a game into easier
+and harder ones, and it cannot yet give one a rating worth showing.
+
+\begin{figure}[htbp]\centering
+\block{puzzle-difficulty-reliability}
+\caption{Puzzle difficulty: what a run said against the true rating, with
+the test puzzles in equal groups by what the run said. The wash is the middle
+four fifths of the true ratings in each group of the first run.}
+\label{fig:puzzle}
+\end{figure}
+
+\subsection{Puzzle difficulty, unsolved}
+
+The same puzzles with the solution hidden, scored on the same
+\V{puzzle-difficulty-unsolved.data.rows.test} test puzzles. The best run's
+error is \V{puzzle-difficulty-unsolved.best.score} rating points, against
+\V{puzzle-difficulty-unsolved.reference.score} for the trees on the
+position's counts and \V{puzzle-difficulty-unsolved.floor.score} for the
+floor, which is the floor of puzzle difficulty too. Set beside puzzle
+difficulty run by run (Table~\ref{tab:unsolved}), the solution is worth
+\V{puzzle-difficulty-unsolved.shown.best.worth} points between the best run
+of each, and the model that sees only the position makes
+\V{puzzle-difficulty-unsolved.shown.best.kept.percent}\% of the step from
+the floor that the model shown the solution makes.
+
+\begin{table}[htbp]\centering\small
+\block{puzzle-difficulty-unsolved-shown}
+\caption{Puzzle difficulty with the solution hidden and shown: each run of
+the unsolved model beside the run of the same name in puzzle difficulty, on
+the same test puzzles. \emph{Worth} is the shown run's lead in RMSE, and
+\emph{Kept} the share of the shown run's step from the floor that the
+hidden run makes.}
+\label{tab:unsolved}
+\end{table}
+
+A reading. On the ladder, most of what these learners know of a puzzle's
+difficulty they take from the solution: no run of the ladder keeps half of
+its shown run's step, and the trees keep the least.
+\ifchangestart
+The start of Section~\ref{sec:start} moves that. The two transformers
+started from the body keep
+\V{puzzle-difficulty-unsolved.shown.transformer-medium-hand-pretrained.kept.percent}\%
+and
+\V{puzzle-difficulty-unsolved.shown.transformer-medium-pretrained.kept.percent}\%
+of their shown runs' steps, where the same two started from nothing keep
+\V{puzzle-difficulty-unsolved.shown.transformer-medium-hand.kept.percent}\%
+and
+\V{puzzle-difficulty-unsolved.shown.transformer-medium.kept.percent}\%. So
+how much of a puzzle's difficulty can be read off the position, before any
+line is given, depends on the learner as well as on puzzles, and what is
+measured here is a floor on it.
+\fi
+The hidden model is also where a network matters most. Its best run leads
+its trees by \V{puzzle-difficulty-unsolved.best.gain} points, where puzzle
+difficulty's best run leads by \V{puzzle-difficulty.best.gain}. With the
+line's counts gone the trees have little left, and a network still has the
+board. For the app the lesson is one of order: a tactic's difficulty is
+rated after the line is known, as the app does it, and the look of a
+position alone is the weaker reading.
+
+\subsection{Blunder hazard}
+
+A blunder is rare: \V{blunder-hazard.floor.constant} of the moves. Ranked by
+the area under the precision-recall curve, the best run scores
+\V{blunder-hazard.best.score}, against \V{blunder-hazard.reference.score}
+for the trees and \V{blunder-hazard.floor.score} for the base rate. After
+calibration the stated chance can be read as a frequency: none of the best
+run's \V{blunder-hazard.best.calibration.groups} groups is further than
+\V{blunder-hazard.best.calibration.widest-gap} points from what happened
+(Figure~\ref{fig:blunder}). Of the hundredth of the test positions the best
+run calls most dangerous, \V{blunder-hazard.best.top.1.rate}\% were
+blundered, \V{blunder-hazard.best.top.1.lift} times the base rate. Those are
+the positions worth slowing down in, and the words for them are that players
+of this level often go wrong here, never that this player will.
+
+\begin{figure}[htbp]\centering
+\block{blunder-hazard-calibration}
+\caption{Blunder hazard: the chance stated against the share of moves that
+were blunders, in ten groups of the test positions. On the diagonal a stated
+chance is the rate that happened.}
+\label{fig:blunder}
+\end{figure}
+
+\subsection{Think time}
+
+The label is the logarithm of the seconds spent, so an error is a factor.
+The best run is off by a factor of \V{think-time.best.mae.factor} on a
+typical move, the trees by \V{think-time.reference.mae.factor} and the floor
+by \V{think-time.floor.mae.factor}. Trees that never see the board make
+\V{think-time.context.lift.share}\% of the step, and what they lean on most
+is \V{think-time.run.gbm-context.leans.1.feature}
+(Figure~\ref{fig:think}). Most of a move's time cannot be predicted from the
+position at all: the best run explains a share of \V{think-time.best.r2} of
+the variance. The model says what is usual. One
+move far from it is weak evidence, and a pattern over many moves is what a
+review can stand on.
+
+\begin{figure}[htbp]\centering
+\block{think-time-slice-clock-said}
+\caption{Think time: the typical time a move took by the seconds on the
+mover's clock, beside what two runs said on average.}
+\label{fig:think}
+\end{figure}
+
+\subsection{Tactic found}
+
+In the games the puzzles were cut from, the tactic was found
+\V{tactic-found.floor.constant} of the time. The score is the log loss of a
+calibrated chance: \V{tactic-found.best.score} for the best run,
+\V{tactic-found.reference.score} for the trees and
+\V{tactic-found.floor.score} for the base rate. The puzzle's own rating,
+put through the rating formula with the mover's rating, makes
+\V{tactic-found.run.puzzle-rating.lift.share}\% of the step: the crowd's
+verdict on a puzzle says less about the game than a look at what its line
+does. What decides is what the tactic asks more than who is asked. In every
+row of Figure~\ref{fig:tactic} the share found is far lower for the hardest
+puzzles than for the easiest, and down every column it changes less from the
+lowest-rated movers to the highest. A first move that gives up material was found
+\V{tactic-found.slice.sacrifice.yes.happened} of the time, against
+\V{tactic-found.slice.sacrifice.no.happened} for one that does not. In the
+tenth of tactics the best run calls
+likeliest, \V{tactic-found.best.top.10.rate}\% were found, so a miss there
+is a lapse. In the tenth it calls least likely,
+\V{tactic-found.best.bottom.10.rate}\% were missed, so a miss there is the
+usual thing.
+
+\begin{figure}[htbp]\centering
+\block{tactic-found-grid-ratings}
+\caption{Tactic found: the share of tactics found in the game, in percent,
+by the mover's rating and the puzzle's own rating.}
+\label{fig:tactic}
+\end{figure}
+
+\subsection{Practical chances}
+
+A review turns the engine's evaluation into a chance of winning, and a
+player reads it as a forecast of the game. As a forecast it scores
+\V{practical-chances.run.engine-curve.score}. Trees that read it beside the
+ratings, the clocks and the move number reach
+\V{practical-chances.run.gbm-context.score}, better by
+\V{practical-chances.pair.gbm-context.engine-curve.gain} on the same
+resampled games (\V{practical-chances.pair.gbm-context.engine-curve.gain.low}
+to \V{practical-chances.pair.gbm-context.engine-curve.gain.high}). The
+engine's number is too sure at both ends (Figure~\ref{fig:practical}): where
+it gives the mover 80 to 90\%, movers score
+\V{practical-chances.slice.win.80-90.happened}. It is furthest off for
+weaker players: from positions it rates at 80\% or more, movers under 1100
+score \V{practical-chances.grid.rating-win.-1100.80+.happened} and movers at
+2000 and over \V{practical-chances.grid.rating-win.2000+.80+.happened}. It
+does not see the clock: with under thirty seconds left a mover scores
+\V{practical-chances.slice.clock.-30.happened} where the engine says
+\V{practical-chances.slice.clock.-30.engine-curve.said}. And read before the
+mover's own move it flatters the mover: over all the test positions it says
+\V{practical-chances.overall.engine-curve.said} where movers score
+\V{practical-chances.overall.happened}. No network adds anything to the
+trees here\ifchangestart, and the start of Section~\ref{sec:start} made its
+transformers worse\fi.
+
+\begin{figure}[htbp]\centering
+\block{practical-chances-reliability-engine-curve}
+\caption{Practical chances: what the engine's number said against the
+movers' mean result, in equal groups of the test positions by what it said,
+with the reference beside it.}
+\label{fig:practical}
+\end{figure}
+
+\ifanswersquares
+\subsection{Where to look}
+
+A run ranks the squares of each test position by the chance it gives them,
+and the score is the average precision of that ranking: 1 when every square
+the tactic's line leaves or lands on comes before every other square. The
+trees with the hand-made counts score \V{where-to-look.reference.score}, the
+best network, \V{where-to-look.network.name},
+\V{where-to-look.network.score}, and the floor, which ranks the squares in
+the same order in every position, \V{where-to-look.floor.score}. The square
+a run puts first is one of the line's in
+\V{where-to-look.reference.top1.percent}\% of the test positions for the
+trees, \V{where-to-look.network.top1.percent}\% for that network and
+\V{where-to-look.floor.top1.percent}\% for the floor. Table~\ref{tab:look}
+gives the score by the puzzle's rating.
+
+\begin{table}[htbp]\centering\small
+\block{where-to-look-bands-table}
+\caption{Where to look: each run's average precision by the puzzle's
+rating.}
+\label{tab:look}
+\end{table}
+\fi
+
+\ifanswertags
+\subsection{Puzzle themes}
+
+A run ranks the \V{puzzle-themes.task.candidates.count} themes for each
+test puzzle, and the score is the average precision of that ranking over
+the puzzles that carry at least one of them. The trees with the hand-made
+counts score \V{puzzle-themes.reference.score}, the best network,
+\V{puzzle-themes.network.name}, \V{puzzle-themes.network.score}, and the
+floor, which ranks the themes by how common they are,
+\V{puzzle-themes.floor.score}. The theme a run puts first is one the puzzle
+carries in \V{puzzle-themes.reference.top1.percent}\% of those puzzles for
+the trees, \V{puzzle-themes.network.top1.percent}\% for that network and
+\V{puzzle-themes.floor.top1.percent}\% for the floor.
+
+A mean over puzzles is led by the common themes, so Table~\ref{tab:themes}
+takes each theme by itself, as one yes or no over the test puzzles. The
+commonest is \V{puzzle-themes.candidates.common.name}, on
+\V{puzzle-themes.candidates.common.share}\% of the test puzzles, and the
+rarest \V{puzzle-themes.candidates.rare.name}, on
+\V{puzzle-themes.candidates.rare.share}\%. The theme that
+\V{puzzle-themes.candidates.run} tells best from the rest is
+\V{puzzle-themes.candidates.roc.most.name}, with an area under the ROC
+curve of \V{puzzle-themes.candidates.roc.most}, and the one it tells worst
+is \V{puzzle-themes.candidates.roc.least.name}, with
+\V{puzzle-themes.candidates.roc.least}.
+
+\begin{table}[htbp]\centering\small
+\block{puzzle-themes-candidates}
+\caption{Puzzle themes: each theme by itself over the test puzzles, the
+most common first. Test rows and Share say how many test puzzles carry the
+theme. The two areas say how well a run's chance for the theme tells those
+puzzles from the rest: under the precision-recall curve, where a rare theme
+starts low, and under the ROC curve, where 0.5 is a coin and 1 is every
+puzzle with the theme ranked before every puzzle without it.}
+\label{tab:themes}
+\end{table}
+\fi
+
+\ifanswermoves
+\subsection{Human move}
+
+A test position has \V{human-move.candidates.mean} legal moves on average,
+and the score is how often the move a run gives the highest chance is the
+move that was played. Maia-2, the published model, names it in
+\V{human-move.run.maia2.top1.percent}\% of the test positions and has it
+among its first three in \V{human-move.run.maia2.top3.percent}\%. The best
+network trained here, \V{human-move.network.name}, names it in
+\V{human-move.network.top1.percent}\% and has it among its first three in
+\V{human-move.network.top3.percent}\%. The trees name it in
+\V{human-move.reference.top1.percent}\%, and the floor, which gives every
+legal move the same chance, in \V{human-move.floor.top1.percent}\%.
+Table~\ref{tab:move} gives the score by the mover's rating, which is how the
+app asks: what do players of this player's level do here.
+
+\begin{table}[htbp]\centering\small
+\block{human-move-bands-table}
+\caption{Human move: how often the move a run puts first is the move
+played, as a share of the test positions, by the mover's rating.}
+\label{tab:move}
+\end{table}
+\fi
+
+\ifrowsequences
+\subsection{Game rating}
+
+A row is one player in one game, and the answer is that player's rating
+when the game was played. The trees with the counts over the player's moves
+are off by \V{game-rating.reference.score} rating points on average
+(\V{game-rating.task.metric}), the best network,
+\V{game-rating.network.name}, by \V{game-rating.network.score}, and the
+floor, which says the same rating for every player, by
+\V{game-rating.floor.score}. Trees that read only the time control and the
+length of the game are off by \V{game-rating.run.gbm-context.score}. The
+best run's readings order the players with a rank correlation of
+\V{game-rating.best.spearman} with their ratings. Table~\ref{tab:rating}
+gives the error by the player's rating. The bands are bands of the answer
+itself, so a run that pulls every reading toward the middle has an error
+that grows toward both ends.
+
+\begin{table}[htbp]\centering\small
+\block{game-rating-bands-table}
+\caption{Game rating: each run's mean error in rating points, by the
+player's rating.}
+\label{tab:rating}
+\end{table}
+\fi
+
+\section{What the app can use today}
+\label{sec:use}
+
+\begin{itemize}
+\item \textbf{The trees, in every model the app would carry.} In the
+\V{lab.whole.count} models that hide nothing, no network is more than
+\V{lab.network.gain.whole.most} hundredths of the step ahead of them. The
+trees of all the models together train in \V{lab.cost.seconds.others}, and
+they run without a GPU. A port starts from them.
+\item \textbf{A network where its lead is worth its weight.} The best
+network leads the trees in \V{lab.network.ahead.of}. It is
+\V{puzzle-difficulty.best.weights.megabytes} megabytes of weights and needs
+something to run them on, so it follows the trees into the app model by
+model, where what it adds is worth that.
+\item \textbf{A table before a model.} In think time, blunder hazard and
+practical chances most of the step is in the numbers beside the board: the
+ratings, the clocks and, where a model reads it, the engine's evaluation. A
+table by those is a first version the app can hold with no model in it.
+\item \textbf{A chance that can be shown.} Blunder hazard and tactic found
+state chances that match what happened, to within
+\V{blunder-hazard.best.calibration.widest-gap} and
+\V{tactic-found.best.calibration.widest-gap} points in any group. Each can
+be shown as a chance, with words about players of a level and never about
+this player.
+\item \textbf{An order, not a rating.} Puzzle difficulty can say which of a
+game's tactics was the routine one and which the hard one. It should not put
+a rating on the screen.
+\item \textbf{A yardstick for a pattern.} Think time says what is usual for
+a position, a rating and a clock. A review can count how often the player
+moved far faster than that, and in what kind of position. It cannot call one
+move too fast.
+\item \textbf{A second number beside the engine's.} Practical chances gives
+the result two players at these ratings and clocks get from a position,
+beside the result best play gets. Where the two part is where a coach would
+stop.
+\item \textbf{From the unsolved model, an order of work.} It was built to
+measure what a puzzle's solution is worth, and the answer is
+\V{puzzle-difficulty-unsolved.shown.best.worth} rating points between the
+best run of each. The app has the engine's line whenever it has a tactic,
+so a tactic's difficulty is rated from the line, and a miss is explained by
+what the line asked for. What the position alone says is for a tactic that
+has no line yet.
+\end{itemize}
+
+All of it holds for Lichess players at Lichess ratings. Ratings on another
+site need mapping to that scale first, and a model carried to the app is
+checked on the player's own games there, which stay private.
+
+\section{What the lab does not say yet}
+\label{sec:limits}
+
+\begin{itemize}
+\item \textbf{One site, one month, one kind of game.} The game positions are
+from rated \V{blunder-hazard.recipe.speeds} games of
+\V{blunder-hazard.data.month} on Lichess. Nothing here says how another
+speed of game or another site differs.
+\item \textbf{Analysed games only.} A position has an engine's evaluation
+only when someone asked the server to analyse its game, and players choose
+which games to analyse.
+\item \textbf{\ifanswermoves Four\else Three\fi{} models share their test
+games.} Blunder hazard, think time\ifanswermoves, human move\fi{} and
+practical chances are scored on the same
+\V{blunder-hazard.data.games.test} games. The intervals resample games, so
+they are as wide as that number allows, and the
+\ifanswermoves four\else three\fi{} results are not independent of one
+another.
+\ifrowsequences
+Game rating reads games of the same month under the same split, so a game
+in both datasets is a test game in both.
+\fi
+\item \textbf{Tactics that became puzzles.} The models that read puzzles
+see the tactics Lichess made puzzles of. A tactic nobody made a puzzle of
+may be another kind of tactic.
+\item \textbf{Small networks, by today's measure.} The largest network here
+has \V{lab.networks.largest.parameters.millions} million parameters, and the
+largest set about people a network was trained on has
+\V{puzzle-difficulty.data.rows.train} rows\ifbodies{} (the body's set of
+engine evaluations has \V{position-evaluation.data.rows.train})\fi. How far
+a network stands from trees that are handed the right counts is a statement
+about networks of this size on this much data\ifgames, and
+Section~\ref{sec:games} says more data would move it\fi\ifchangestart, as
+the start of Section~\ref{sec:start} already did\fi.
+\ifchangelarger
+Size alone was tried: the larger transformer of Section~\ref{sec:shapes} is
+\V{lab.change.larger.over.transformer-medium-hand.said}, on the same rows.
+\fi
+\item \textbf{One training of each run.} Every run was trained once, from
+one seed. An interval here is over the test games, and says nothing of how
+far a second training of the same run would land from the first. A gain of
+a few hundredths of the step is the kind that needs a second training most.
+\ifchangestart
+\item \textbf{One body.} The start was tried from one body: one size, one
+schedule, one sample of the evaluations, and an engine's verdict as the
+only thing it had learned.
+\fi
+\item \textbf{The one scale leaves the step's noise out.} A share of the
+step is for setting models side by side. A claim about one model rests on
+the paired gain in that model's own units, in its own paper.
+\end{itemize}
+
+\section{What is not here yet}
+\label{sec:next}
+
+\ifwaiting
+\begin{table}[htbp]\centering\small
+\block{lab-waiting}
+\caption{Models that have a task and no full run yet.}
+\label{tab:waiting}
+\end{table}
+
+Table~\ref{tab:waiting} lists the tasks with no full run in this paper,
+each with the question its card opens with.
+\fi
+
+% Runs that change one thing in a run of the ladder, each measured as a pair
+% against the run it changes. A paragraph leaves when its runs are in.
+\ifchangeepochs\else
+\paragraph{A longer schedule.}
+Each transformer sized for a GPU with twice the epochs and nothing else
+changed, for the networks that were still improving when their schedule
+ended.
+\fi
+
+\ifchangestart\else
+\paragraph{Another start.}
+Each transformer sized for a GPU started from a body that first learned an
+engine's evaluation of positions, to see whether knowing what a position is
+worth helps a network learn what people do in it.
+\fi
+
+\ifchangestart
+\paragraph{From the start.}
+A longer schedule from the body, for the runs that were still improving
+when theirs ended. A body trained for longer or on more of the file, and a
+larger one. And a body that has learned what people play in a position, not
+what an engine says of it, since what people do is what every model here is
+asked.
+\fi
+
+\ifshapes
+\paragraph{A shape with a start of its own.}
+Every run of Section~\ref{sec:shapes} starts from nothing, as the
+transformer it changes does.
+\ifchangestart
+Where a model's best network started from the body of
+Section~\ref{sec:start}, a shape that is ahead of the ladder's transformer
+has still to be set against that run.
+\ifchangeattacks
+A transformer whose attention is told what each piece attacks can start from
+that body as it is. The weights on what it is told start at nothing, so it
+begins as the body does, and the run changes one thing in the model's best
+run.
+\fi
+\ifchangeconv
+A tower needs a body of its own shape that has learned the same evaluations
+first.
+\fi
+\fi
+\else
+\paragraph{Other shapes of network.}
+The ladder's networks are a small tower and a transformer at two sizes.
+Runs that change only the body of the larger transformer are written and
+wait for their GPU: a tower of about its size whose blocks weigh their
+channels by the whole board, blocks of that tower under transformer layers,
+a transformer whose attention is told what each piece attacks, and one
+three times the size.
+\fi
+
+\ifgames
+\ifmore\else
+\paragraph{Larger datasets.}
+Section~\ref{sec:games} says each doubling of the games still pays, and
+pays a network most. The same runs on twice and on four times the games,
+from larger builds of the same sources, are written and are the next
+measurement.
+\fi
+\else
+\paragraph{Fewer games.}
+The reference and the best network on half and on a quarter of the training
+games, which says whether more games would help.
+\fi
+
+\iffeatures\else
+\paragraph{A group of counts left out.}
+The trees with one group of hand-made counts left out at a time, which says
+which counts carry the step.
+\fi
+
+\paragraph{Other kinds of answer.}
+\ifwaiting
+The tasks of Table~\ref{tab:waiting} give other kinds of answer than one
+number a row: a chance for each square of the board, for the squares a
+tactic's line runs through; a chance for each theme a puzzle can carry; a
+chance for every legal move at a rating, set beside a published model of
+human play~\cite{maia,maia2} on the same rows; and the rating a whole
+game's play looks like, read from the game as a sequence of positions.
+Their heads and bodies are on the shared harness, and their first full runs
+are the next to be made.
+\else
+The lab's list of ideas has more models, and each starts as a card.
+\fi
+
+\ifpaperless
+\paragraph{A paper for every model.}
+No paper is written yet for \V{lab.paperless.names}. A model's paper is
+drawn from its closer look, and the closer look's tables read one number a
+row. So a model that answers with a chance for each square, each theme or
+each legal move has its leaderboard and its pairs for now, each changed run
+set against the run it changed, and its paper waits for a closer look of its
+own kind.
+\fi
+
+\bibliographystyle{unsrt}
+\bibliography{../references}
+
+\appendix
+
+\section{Every run of every model}
+\label{sec:runs}
+
+Each table is a model's leaderboard on its test rows, best first: the score
+its runs are ranked by with its 95\% interval, and the paired gain over the
+reference with its interval, bold when the interval leaves zero out.
+\ifchangeepochs
+A run whose name ends in \texttt{-long} is the run its name starts with on
+the longer schedule of Section~\ref{sec:epochs}.
+\fi
+\ifchangestart
+A run whose name ends in \texttt{-pretrained} is the run its name starts
+with, started from the body of Section~\ref{sec:start}.
+\fi
+A changed run that was not kept stands here until it is filed.
+
+\begin{table}[htbp]\centering\small
+\block{puzzle-difficulty-leaderboard}
+\caption{Puzzle difficulty.}
+\end{table}
+
+\begin{table}[htbp]\centering\small
+\block{puzzle-difficulty-unsolved-leaderboard}
+\caption{Puzzle difficulty, unsolved.}
+\end{table}
+
+\begin{table}[htbp]\centering\small
+\block{blunder-hazard-leaderboard}
+\caption{Blunder hazard.}
+\end{table}
+
+\begin{table}[htbp]\centering\small
+\block{think-time-leaderboard}
+\caption{Think time.}
+\end{table}
+
+\begin{table}[htbp]\centering\small
+\block{tactic-found-leaderboard}
+\caption{Tactic found.}
+\end{table}
+
+\begin{table}[htbp]\centering\small
+\block{practical-chances-leaderboard}
+\caption{Practical chances.}
+\end{table}
+
+\ifanswersquares
+\begin{table}[htbp]\centering\small
+\block{where-to-look-leaderboard}
+\caption{Where to look.}
+\end{table}
+\fi
+
+\ifanswertags
+\begin{table}[htbp]\centering\small
+\block{puzzle-themes-leaderboard}
+\caption{Puzzle themes.}
+\end{table}
+\fi
+
+\ifanswermoves
+\begin{table}[htbp]\centering\small
+\block{human-move-leaderboard}
+\caption{Human move.}
+\end{table}
+\fi
+
+\ifrowsequences
+\begin{table}[htbp]\centering\small
+\block{game-rating-leaderboard}
+\caption{Game rating.}
+\end{table}
+\fi
+
+\ifbodies
+\begin{table}[htbp]\centering\small
+\block{position-evaluation-leaderboard}
+\caption{Position evaluation, the model the other models' bodies start
+from.}
+\end{table}
+\fi
+
+\end{document}

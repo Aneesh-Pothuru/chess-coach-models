@@ -4,7 +4,9 @@ A game is read from its movetext alone: each move's SAN, the engine evaluation
 Lichess attached after it and the mover's clock. A position row then says what
 a model may read (the board, the last move, both ratings, both clocks, the
 evaluation before the move) and what it may be asked to predict (the seconds
-spent, the loss of win probability, the result).
+spent, the loss of win probability, the result). A game can also be read a
+player at a time (``game_sides``): one row a player, with that player's moves
+in order.
 """
 
 from __future__ import annotations
@@ -15,6 +17,7 @@ from typing import Any
 
 import chess
 
+from ..encode.hand import game_features
 from ..winprob import eval_to_cp, mover_win_percent
 from .splits import unit_hash
 
@@ -207,4 +210,103 @@ def game_rows(
             )
         board.push(move)
         last_move = move.uci()
+    return rows
+
+
+def game_sides(
+    headers: dict[str, str],
+    movetext: str,
+    *,
+    min_ply: int,
+    least_moves: int,
+    most_moves: int,
+) -> list[dict[str, Any]]:
+    """Each player's moves through one game: a row a player, with the moves in order as its ``steps``.
+
+    A move counts from ``min_ply`` on when the evaluation before and after it and all three clocks around
+    it are known, as a position row's does (``game_rows``). A player with fewer than ``least_moves`` such
+    moves gives no row, and one with more than ``most_moves`` gives the first of them. A step is the
+    position before the move, the move, and what went with it: the clocks, the seconds it took, the
+    winning chances before it and what it lost, how many legal moves there were, and whether it took or
+    gave check. The row also carries the position of the player's costliest move, for a paper to show,
+    and the player's rating less the opponent's: the two are paired to be close, and a model that reads
+    the level of the game and not the player is wrong by half of it.
+    """
+    control = time_control(headers.get("TimeControl", ""))
+    if control is None:
+        return []
+    base, increment = control
+    plies = parse_movetext(movetext)
+    identity = game_id(headers)
+    eligible = {
+        index
+        for index in range(max(2, min_ply - 1), len(plies))
+        if plies[index].eval_cp_white is not None
+        and plies[index - 1].eval_cp_white is not None
+        and plies[index].clock is not None
+        and plies[index - 1].clock is not None
+        and plies[index - 2].clock is not None
+    }
+    if not eligible:
+        return []
+    elos = {chess.WHITE: int(headers["WhiteElo"]), chess.BLACK: int(headers["BlackElo"])}
+    white_score = RESULTS[headers["Result"]]
+    board = chess.Board()
+    last_move = ""
+    steps: dict[chess.Color, list[dict[str, Any]]] = {chess.WHITE: [], chess.BLACK: []}
+    for index, ply in enumerate(plies[: max(eligible) + 1]):
+        try:
+            move = board.parse_san(ply.san)
+        except ValueError:
+            return []
+        mover = board.turn
+        if index in eligible and len(steps[mover]) < most_moves:
+            win_before = mover_win_percent(plies[index - 1].eval_cp_white, mover)
+            clock = plies[index - 2].clock
+            steps[mover].append(
+                {
+                    "ply": index + 1,
+                    "fen": board.fen(),
+                    "last_move": last_move,
+                    "move": move.uci(),
+                    "clock": clock,
+                    "opponent_clock": plies[index - 1].clock,
+                    "spent": max(0.0, clock - ply.clock + increment),
+                    "win_before": win_before,
+                    "loss": win_before - mover_win_percent(ply.eval_cp_white, mover),
+                    "legal_moves": board.legal_moves.count(),
+                    "capture": int(board.is_capture(move)),
+                    "check": int(board.gives_check(move)),
+                }
+            )
+        board.push(move)
+        last_move = move.uci()
+    rows = []
+    for color, side in ((chess.WHITE, "white"), (chess.BLACK, "black")):
+        moves = steps[color]
+        if len(moves) < least_moves:
+            continue
+        # The costliest move, and of two that cost the same the earlier.
+        worst = max(moves, key=lambda step: (step["loss"], -step["ply"]))
+        rows.append(
+            {
+                "key": f"{identity}:{side}",
+                "game_id": identity,
+                "side": side,
+                "player_elo": elos[color],
+                "opponent_elo": elos[not color],
+                "elo_gap": elos[color] - elos[not color],
+                "base": base,
+                "increment": increment,
+                "plies": len(plies),
+                "moves": len(moves),
+                "player_score": white_score if color == chess.WHITE else 1.0 - white_score,
+                "fen": worst["fen"],
+                "last_move": worst["last_move"],
+                "worst_move": worst["move"],
+                "worst_ply": worst["ply"],
+                **game_features(moves, base=base),
+                "steps": moves,
+            }
+        )
     return rows

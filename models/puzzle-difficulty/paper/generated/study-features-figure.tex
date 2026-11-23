@@ -1,0 +1,38 @@
+% Written by `lab paper puzzle-difficulty`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.5\textwidth,
+  height=5.22cm,
+  y dir=reverse,
+  ymin=-0.6, ymax=7.6,
+  ytick={0,1,2,3,4,5,6,7},
+  yticklabels={{the line},{the moves on offer},{the first move},{material},{attacks near the kings},{pieces that can be taken},{passed pawns},{the opponent's move}},
+  ytick style={draw=none},
+  y axis line style={draw=none},
+  xmajorgrids,
+  xlabel={Gain in RMSE without the group (left of the line: worse without it)},
+  xmin=-48.2352, xmax=4.27498,
+]
+\draw[labAxis, line width=0.6pt] (axis cs:0,-0.6) -- (axis cs:0,7.6);
+\node[anchor=south, font=\sffamily\scriptsize, text=labSecondary, inner sep=1.5pt] at (axis cs:0,-0.6) {\run{gbm-hand}};
+\draw[labOrange, line width=1pt, line cap=round] (axis cs:-44.6138,0) -- (axis cs:-42.5654,0);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labOrange, mark options={draw=white, line width=0.6pt}] coordinates {(-43.5787,0)};
+\draw[labOrange, line width=1pt, line cap=round] (axis cs:-15.9331,1) -- (axis cs:-14.6266,1);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labOrange, mark options={draw=white, line width=0.6pt}] coordinates {(-15.3273,1)};
+\draw[labOrange, line width=1pt, line cap=round] (axis cs:-12.6215,2) -- (axis cs:-11.5677,2);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labOrange, mark options={draw=white, line width=0.6pt}] coordinates {(-12.0784,2)};
+\draw[labOrange, line width=1pt, line cap=round] (axis cs:-3.34324,3) -- (axis cs:-2.48827,3);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labOrange, mark options={draw=white, line width=0.6pt}] coordinates {(-2.93208,3)};
+\draw[labOrange, line width=1pt, line cap=round] (axis cs:-2.61494,4) -- (axis cs:-1.89772,4);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labOrange, mark options={draw=white, line width=0.6pt}] coordinates {(-2.23631,4)};
+\draw[labOrange, line width=1pt, line cap=round] (axis cs:-1.49819,5) -- (axis cs:-0.888531,5);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labOrange, mark options={draw=white, line width=0.6pt}] coordinates {(-1.18767,5)};
+\draw[labOrange, line width=1pt, line cap=round] (axis cs:-0.67814,6) -- (axis cs:-0.0579194,6);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labOrange, mark options={draw=white, line width=0.6pt}] coordinates {(-0.373863,6)};
+\draw[labOrange, line width=1pt, line cap=round] (axis cs:0.132071,7) -- (axis cs:0.65359,7);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labOrange, mark options={draw=white, line width=0.6pt}] coordinates {(0.389919,7)};
+\end{axis}
+\end{tikzpicture}%
+}

@@ -1,0 +1,34 @@
+% Written by `lab paper puzzle-difficulty-unsolved`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.6\textwidth,
+  height=4.70cm,
+  y dir=reverse,
+  ymin=-0.6, ymax=5.6,
+  ytick={0,1,2,3,4,5},
+  yticklabels={{\texttt{transformer-medium-hand-pretrained}},{\texttt{transformer-medium-pretrained}},{\texttt{conv-small}},{\texttt{transformer-medium-hand}},{\texttt{transformer-medium}},{\texttt{transformer-small}}},
+  ytick style={draw=none},
+  y axis line style={draw=none},
+  xmajorgrids,
+  xlabel={Gain in RMSE over the reference (right of the line is better)},
+  xmin=-6.77049, xmax=91.4016,
+]
+\draw[labAxis, line width=0.6pt] (axis cs:0,-0.6) -- (axis cs:0,5.6);
+\node[anchor=south, font=\sffamily\scriptsize, text=labSecondary, inner sep=1.5pt] at (axis cs:0,-0.6) {\run{gbm-hand}};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:81.3565,0) -- (axis cs:84.6311,0);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(83.0308,0)};
+\draw[labAqua, line width=1pt, line cap=round] (axis cs:76.9958,1) -- (axis cs:80.377,1);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(78.6488,1)};
+\draw[labMagenta, line width=1pt, line cap=round] (axis cs:43.4863,2) -- (axis cs:46.4601,2);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labMagenta, mark options={draw=white, line width=0.6pt}] coordinates {(45.0079,2)};
+\draw[labBlue, line width=1pt, line cap=round] (axis cs:39.5131,3) -- (axis cs:41.9015,3);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labBlue, mark options={draw=white, line width=0.6pt}] coordinates {(40.7054,3)};
+\draw[labAqua, line width=1pt, line cap=round] (axis cs:29.8039,4) -- (axis cs:32.2388,4);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labAqua, mark options={draw=white, line width=0.6pt}] coordinates {(31.0968,4)};
+\draw[labYellow, line width=1pt, line cap=round] (axis cs:25.8323,5) -- (axis cs:28.2964,5);
+\addplot[only marks, mark=*, mark size=2.1pt, color=labYellow, mark options={draw=white, line width=0.6pt}] coordinates {(27.1142,5)};
+\end{axis}
+\end{tikzpicture}%
+}

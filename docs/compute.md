@@ -6,7 +6,7 @@ what it costs, and how long it takes.
 | Place | What it is | What runs there |
 |---|---|---|
 | Any machine, or a cloud session | A few CPU cores | Writing code, the tests, `--smoke` runs, and bridge scripts where the app's repository can be read |
-| The owner's desktop | A 16-thread CPU, no GPU worth using | Dataset builds, the constant and tree runs, CPU-sized networks, and a model's checks on the player's own games |
+| The owner's desktop | A 16-thread CPU, no GPU worth using | Dataset builds, the constant and tree runs, CPU-sized networks, the closer look at a model's results, and a model's checks on the player's own games |
 | Google Colab, opened from the desktop's browser | A rented GPU, paid in compute units | Transformer runs, runs marked `needs: cuda`, the coach narrator's teacher and fine-tune |
 
 ## The rules behind the table
@@ -49,28 +49,76 @@ lab report                       # the README's table
 ```
 
 `lab all` skips the runs marked `needs: cuda`. `--runs constant,gbm-context,gbm-hand,conv-small`
-keeps a first pass to the runs a CPU finishes quickly.
+keeps a first pass to the runs a CPU finishes quickly. A run that trains on a larger build of the
+dataset (`gbm-hand-quadruple`) needs that build, which is several times the dataset's own, and
+`lab all` makes it before any run. The plan `more` does this on Colab, where the networks that
+train on the same build run.
+
+The closer look runs here too, once a model's GPU runs are unzipped (below), because it needs the
+dataset and every run's test predictions on one machine:
+
+```bash
+lab analyse tactic-found         # writes models/tactic-found/results/analysis.json; commit it
+```
+
+It reads a run's predictions only when they are the ones its record scored on this machine's build
+of the data, and names the runs it left out and why. For a model whose answer is a set or a move
+the closer look is its pairs alone ([`design.md`](design.md), "An answer that is a set" and "An
+answer that is a move"): each run set against the run it changed.
 
 ## On Colab
 
 [`colab/lab.ipynb`](../colab/lab.ipynb) clones this repository, installs it, and runs the same
-commands on the notebook's GPU. Its first cell names the models and the runs. Its last cell packs
-two zips and prints their hashes: `lab-results.zip`, the run records and leaderboards under
-`models/*/results/`, and `lab-runs.zip`, every run's trained weights and test predictions.
+commands on the notebook's GPU. Its first cell names the models and the runs, or a plan kept in
+[`colab/plans/`](../colab/plans/): `all` is every model's own runs, `studies` the study runs of
+the models that have results, `pretrain` the body trained on engine evaluations and the runs that
+start from it, `sets` the two models whose answer is a set, `games` the first pass of game rating,
+`moves` the first pass of human moves beside Maia-2, `bodies-first` and `bodies-rest` the
+architecture test in two passes, `more` the runs on twice and four times the training games, which
+build a larger build of each dataset first. Names joined with `+` are read into one pass
+(`sets+games+moves`): a model that two of them name is given the runs of both.
 
 1. Open the notebook in Colab and choose a GPU runtime.
 2. Run every cell.
-3. Save both zips from the Files panel, before the runtime is released.
+3. Save `lab-runs-<plan>.zip` from the Files panel within 45 minutes of the last cell, and check
+   that the browser saved `lab-results-<plan>.zip` by itself (if it did not, save that one too).
 4. Unzip both at the root of a clone: the records replace `models/*/results/`, and the weights
    land under `artifacts/runs/`, which git ignores. Then `lab eval <model>` for each model,
    `lab report`, commit and push.
 
 Nothing is pushed from Colab, and the notebook holds no credentials.
 
+**A pass ends by itself** (`src/chess_coach_models/colab.py`, which the notebook's cells call).
+Its last cell packs two zips and prints their hashes: `lab-results-<plan>.zip`, the run records,
+leaderboards and logs, with each run's test predictions where a row has one number, and
+`lab-runs-<plan>.zip`, every run's files, its trained weights among them. It asks the browser that
+opened the notebook to save the first, which is all `lab eval`, `lab analyse` and a report read.
+Then it sets the runtime to hand itself back to Colab 45 minutes later (`RELEASE_AFTER_MINUTES` in
+the first cell), from a process of its own, so that the GPU is not paid for while nobody is
+there. A run that fails ends the pass the same way, with what had finished, and a cell that stops
+before any full run sets the release too. Starting another plan on the same runtime cancels it.
+The fourth pass of 2026-11-22 is why: it finished with nobody watching, and its GPU sat idle for
+an hour and three quarters with the only copy of its results on its disk.
+
+**A published model is a run, and its package is no part of the lab.** `human-move` scores Maia-2
+as its authors published it, through their `maia2` package (MIT). The package pins exact versions
+of Torch, NumPy and pandas, so it is installed beside the lab's own, without them:
+
+```bash
+pip install --no-deps maia2==0.10.0 && pip install einops pyzstd gdown
+```
+
+The notebook does this after the clone. The package fetches its weights once into
+`artifacts/maia2/`, and a run's record names the package's version and the weights' hash. A run
+marked `needs: maia2` waits on a machine without the package, as one marked `needs: cuda` waits
+for a GPU, and every other run of the model goes ahead. Where the package and the weights are,
+`tests/test_maia.py` holds the lab's reading of the model to the package's own.
+
 **A runtime's disk goes with the runtime.** The coach narrator's first adapter was lost that way:
 it was trained, scored, and never copied off before the runtime was deleted. So a notebook's last
 cell always packs what the run made, weights included, and the zips are saved before anything else
-is done.
+is done. The weights are the one thing a pass that ends alone can lose: they are too large to send
+to the browser unasked, so they are saved by hand within the 45 minutes, or trained again.
 
 The coach narrator has its own script for the same reason,
 [`models/coach-narrator/colab/retrain.sh`](../models/coach-narrator/colab/retrain.sh): its teacher

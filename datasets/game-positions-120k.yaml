@@ -1,0 +1,20 @@
+# Four times the games of game-positions.yaml: the stream is read until 120,000 games have given rows,
+# and the first 30,000 of them are the games of game-positions.yaml. It is a larger build of that
+# recipe (data/__init__.py) and is there for training only: a run names it with
+# `data: {train_on: game-positions-120k}` and is still scored on the valid and test games of
+# game-positions.yaml.
+name: game-positions-2026-10-120k
+of: game-positions
+builder: game_positions
+month: "2026-10"
+speeds: [rapid]
+min_ply: 11
+per_game: 24
+games: 120000
+# The split of game-positions.yaml, so a game lands where it lands there.
+split:
+  salt: game-positions-v1
+  valid: 0.05
+  test: 0.10
+smoke:
+  games: 2400

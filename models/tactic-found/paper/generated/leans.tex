@@ -1,0 +1,32 @@
+% Written by `lab paper tactic-found`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.5\textwidth,
+  height=5.70cm,
+  y dir=reverse,
+  ymin=-0.6, ymax=9.6,
+  ytick={0,1,2,3,4,5,6,7,8,9},
+  yticklabels={{Winning chances before the move},{First move gives up material},{Winning chances before the mistake},{The mover's rating},{The mover's clock},{Material the line wins},{Moves in the line},{First move takes},{The opponent's rating},{Legal moves}},
+  ytick style={draw=none},
+  y axis line style={draw=none},
+  xmajorgrids,
+  xmin=0,
+  enlarge x limits={upper, value=0.16},
+  xlabel={Share of the trees' gain (percent)},
+]
+\addplot[xbar, fill=labOrange, draw=none, bar width=5.5pt] coordinates {(8.71,0) (8.67,1) (6.13,2) (5.17,3) (4.74,4) (4.32,5) (3.83,6) (3.71,7) (3.58,8) (3.51,9)};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:8.71,0) {8.7};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:8.67,1) {8.7};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:6.13,2) {6.1};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:5.17,3) {5.2};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:4.74,4) {4.7};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:4.32,5) {4.3};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:3.83,6) {3.8};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:3.71,7) {3.7};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:3.58,8) {3.6};
+\node[anchor=west, font=\sffamily\scriptsize, text=labSecondary] at (axis cs:3.51,9) {3.5};
+\end{axis}
+\end{tikzpicture}%
+}

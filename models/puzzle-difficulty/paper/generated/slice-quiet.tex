@@ -1,0 +1,15 @@
+% Written by `lab paper puzzle-difficulty`; do not edit by hand.
+\fit{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{transformer-medium-hand-pretrained}}} & \multicolumn{2}{c}{\parbox[b]{2.2cm}{\centering \run{gbm-hand}}} &  &  \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Group & Test rows & Happened & said & RMSE & said & RMSE & Gain & 95\% interval \\
+\midrule
+0 & 76{,}556 & 1301.4 & 1291.0 & 228.1 & 1301.5 & 269.9 & \textbf{+41.88} & +40.54 to +43.12 \\
+1 & 23{,}549 & 1758.8 & 1749.5 & 286.7 & 1759.3 & 330.2 & \textbf{+43.58} & +40.78 to +46.73 \\
+2 & 8{,}817 & 1872.1 & 1862.7 & 311.7 & 1872.4 & 363.5 & \textbf{+51.79} & +46.91 to +56.91 \\
+3+ & 3{,}528 & 1923.5 & 1917.3 & 315.3 & 1927.8 & 364.7 & \textbf{+49.40} & +41.95 to +58.30 \\
+\bottomrule
+\end{tabular}%
+}

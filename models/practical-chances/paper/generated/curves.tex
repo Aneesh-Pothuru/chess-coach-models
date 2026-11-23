@@ -1,0 +1,27 @@
+% Written by `lab paper practical-chances`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.66\textwidth,
+  height=5.2cm,
+  ymajorgrids,
+  xlabel={Epoch},
+  ylabel={RMSE on the valid rows},
+  legend columns=2,
+  xtick distance=1,
+  xmin=0.5, xmax=8.5,
+]
+\addplot[draw=none, mark=none, forget plot] coordinates {(1,0.423063)};
+\draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:1,0.423063) -- (axis cs:8,0.423063) node[anchor=west, font=\sffamily\scriptsize, text=labSecondary, inner sep=2pt] {\run{gbm-hand}};
+\addplot[color=labMagenta, mark=pentagon*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labMagenta}] coordinates {(1,0.42579) (2,0.42609) (3,0.42438) (4,0.42417) (5,0.42374) (6,0.42375) (7,0.42402) (8,0.42431)};
+\addlegendentry{\texttt{conv-small}}
+\addplot[color=labYellow, mark=diamond*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labYellow}] coordinates {(1,0.42647) (2,0.42465) (3,0.42424) (4,0.42418) (5,0.42425) (6,0.42328) (7,0.42348) (8,0.42337)};
+\addlegendentry{\texttt{transformer-small}}
+\addplot[color=labAqua, mark=triangle*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labAqua}] coordinates {(1,0.4255) (2,0.42656) (3,0.4243) (4,0.42349) (5,0.4234) (6,0.42403) (7,0.42384) (8,0.42353)};
+\addlegendentry{\texttt{transformer-medium}}
+\addplot[color=labBlue, mark=*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labBlue}] coordinates {(1,0.42738) (2,0.42807) (3,0.42498) (4,0.42444) (5,0.42432) (6,0.42444) (7,0.42464) (8,0.42439)};
+\addlegendentry{\texttt{transformer-medium-hand}}
+\end{axis}
+\end{tikzpicture}%
+}

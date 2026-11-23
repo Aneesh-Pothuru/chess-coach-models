@@ -1,0 +1,1132 @@
+% Puzzle difficulty: the paper. What is typed here says what the numbers
+% mean. Every number, table, figure and board is written by
+% `lab paper puzzle-difficulty` into generated/, from the model's committed
+% results, and read back with \V{key} and \block{name}.
+\documentclass[11pt]{article}
+\input{../../../papers/preamble}
+\input{generated/values}
+
+\begin{document}
+
+\labtitle{Puzzle difficulty}
+  {How hard is this tactic for people?}
+  {Results of \V{results.date}\quad\textperiodcentered\quad dataset \V{data.name},
+   build \V{data.fingerprint}\quad\textperiodcentered\quad code \V{code.commit}}
+
+\begin{summary}
+A Lichess puzzle's rating is where the crowd's attempts settled: a player
+rated the same solves it about half the time. This paper trains models that
+read that rating off a position and its solution, so that any tactic, a
+player's own missed ones included, can be placed on the scale puzzle ratings
+live on. The data is \V{data.rows} puzzles whose ratings have settled, split
+by the game each was cut from. The best of \V{runs.count} runs is a
+square-token transformer that reads the board and also a few dozen hand-made
+counts, and that starts from a body trained on engine evaluations first. On
+\V{data.rows.test} held-out puzzles its root mean squared error is
+\V{best.score} rating points (95\% interval \V{best.score.low} to
+\V{best.score.high}), against \V{reference.score} for gradient-boosted trees
+on the hand-made counts and \V{floor.score} for one number said for every
+puzzle. Beyond the noise, \V{networks.ahead.of} beat the trees. The best
+run orders puzzles well, with a rank correlation of
+\V{best.spearman}, and its typical miss is still \V{best.mae} points. It can
+sort the tactics of a game into easier and harder ones. It cannot yet give
+one a rating worth stating.
+\end{summary}
+
+\section{The question}
+
+An engine says which move is best, and board code says what a move does.
+Neither says how hard a tactic is for a person to find. A fork that wins a
+queen in one move and a quiet rook lift that wins the same queen five moves
+later are worth the same to an engine, and most players find only the first.
+
+Lichess publishes several million puzzles, each cut from a real game at the
+moment one side went wrong~\cite{lichessdb}. Every puzzle carries a rating,
+kept the way a player's is~\cite{glicko2}: each attempt is scored as a game
+between the solver and the puzzle, which the solver wins by playing the whole
+solution. After a few hundred attempts the rating has settled, and it is the
+best measure there is of how hard the tactic is for people.
+
+A model that can read that rating off a position and its solution can rate any
+tactic, among them the ones in a player's own games, which no crowd has
+attempted. The coaching app this lab works for would use it twice. In a game
+review it would tell a missed tactic that was within the player's reach from
+one far above the player's level. And it would pick training positions at the
+right height.
+
+The same label has been the subject of two data-mining competitions, at IEEE
+BigData 2024 and at FedCSIS 2025~\cite{puzzlecup}. Among the strongest entries
+were models that started from a human-move model, Maia-2~\cite{maia2}, and
+added hand-made and engine features. This paper starts lower on purpose: from
+the raw board, with and without hand-made features, against trees on those
+features alone, so that each step says what one more thing is worth. Its
+scores are not comparable with the competitions', which used other puzzles
+and another test set.
+
+\begin{table}[htbp]\centering\small
+\begin{tabularx}{\textwidth}{lL}
+\toprule
+Reads & The position the solver sees, the opponent's move that led to it, and
+the solution line. The squares each move of the line leaves and reaches are
+marked on the board. \\
+Predicts & The puzzle's Lichess rating, in rating points. \\
+Data & The Lichess puzzle database (\V{data.licence}): puzzles whose rating
+has settled, a fixed \V{recipe.sample.percent}\% of them. \\
+Split & By the game a puzzle was cut from: \V{data.share.train}\% train,
+\V{data.share.valid}\% valid, \V{data.share.test}\% test. \\
+Score & Root mean squared error on the test puzzles, in rating points. Lower
+is better. \\
+\bottomrule
+\end{tabularx}
+\caption{The model in brief.}
+\label{tab:brief}
+\end{table}
+
+\section{The data}
+
+The source is the Lichess puzzle database. A row of it gives a puzzle's id,
+the position before the opponent's move, the moves of the solution with the
+opponent's move first, the puzzle's rating and that rating's deviation, how
+often the puzzle has been attempted, the themes Lichess tags it with, and the
+game it was cut from.
+
+A puzzle is kept when its rating has settled: a Glicko deviation of at most
+\V{recipe.filters.max-rating-deviation} after at least
+\V{recipe.filters.min-plays} attempts. Of the puzzles that pass, a fixed
+\V{recipe.sample.percent}\% are kept, chosen by a hash of the puzzle's id. The
+same recipe therefore builds the same rows on any machine, and a larger sample
+would contain this one. That leaves \V{data.rows} puzzles
+(Table~\ref{tab:data}).
+
+The split is a hash of the game a puzzle was cut from, so no game has a puzzle
+on both sides of it, and the same grouping is used when a score's noise is
+measured. The dataset itself is not committed. Its recipe is, and a build is
+named by a fingerprint: a hash of the boards and of every exact column. Every
+run in this paper read the build \V{data.fingerprint}, and the leaderboard
+refuses to rank runs that read different builds.
+
+\begin{table}[htbp]\centering\small
+\block{data}
+\caption{The dataset's rows by split.}
+\label{tab:data}
+\end{table}
+
+\iflook
+The builder read \V{manifest.source-rows-read} puzzles from the source and
+kept \V{manifest.kept.percent}\% of them after the filters and the sample.
+The ratings that are left have a mean of \V{label.mean} and a standard
+deviation of \V{label.sd}, and nine in ten lie between \V{label.q5} and
+\V{label.q95} (Figure~\ref{fig:label}, Table~\ref{tab:describe}). That spread
+is what the floor is off by: a model that says the mean for every puzzle
+misses by about one standard deviation.
+
+\begin{figure}[htbp]\centering
+\block{label}
+\caption{The puzzles' ratings over every row of the dataset.}
+\label{fig:label}
+\end{figure}
+
+\begin{table}[htbp]\centering\small
+\block{describe}
+\caption{The spread of a few columns over every row of the dataset: the mean,
+five quantiles, and the least and the most.}
+\label{tab:describe}
+\end{table}
+\fi
+
+\section{What a model reads}
+\label{sec:reads}
+
+\input{../../../papers/reading}
+
+\paragraph{This model is shown the solution.}
+The question here is how hard a known tactic is, so every learner is told the
+line. The marks carry the opponent's move that set the puzzle up, then the
+first three moves of the solver and the two replies between them square by
+square, and one more mark for every square a later move touches. The one
+context number besides the castling rights is how many moves the solver has
+to find. A network is told where the pieces go. It is not told that a move is
+a capture, a check or a sacrifice: that it has to read off the board, and the
+hand features are exactly those facts counted for it.
+
+\section{The learners}
+\label{sec:learners}
+
+\input{../../../papers/learners}
+
+\section{How a result is scored}
+\label{sec:scoring}
+
+The model's card named its score before the first full run: the root mean
+squared error on the test puzzles, in rating points, where lower is better. A
+run beats the reference when its paired gain has a 95\% interval above zero.
+Three more scores are reported beside it: the mean absolute error, which is
+the typical miss, R\textsuperscript{2}, the share of the ratings' variance a
+run explains, and Spearman's rank correlation, which asks only whether the
+puzzles come out in the right order.
+
+Results are also given by the puzzle's true rating in \V{bands.count} bands,
+since an error of two hundred points matters most near a player's own level.
+
+\input{../../../papers/scoring}
+
+\section{Results}
+\label{sec:results}
+
+\subsection{The leaderboard}
+
+Read from the bottom up, Table~\ref{tab:leaderboard} is a ladder. The floor
+says \V{floor.constant} for every puzzle and is off by \V{floor.score} points,
+which is the spread of the ratings themselves. Told only how many moves the
+solver has to find, \V{run.gbm-context.name} brings that down to
+\V{run.gbm-context.score}: longer lines are harder, and that one number
+carries \V{context.lift.share}\% of what the reference takes off the floor.
+The reference, trees on the hand features of the position and the line,
+reaches \V{reference.score}, which is \V{reference.lift.percent}\% under the
+floor. Every network lands below it (Figure~\ref{fig:scores}).
+
+\begin{table}[htbp]\centering\small
+\block{leaderboard}
+\caption{The runs on the \V{data.rows.test} test puzzles, best first. The
+gain is paired with \V{task.reference} on the same resampled games, positive
+when the run is better, and bold when its interval leaves zero out.}
+\label{tab:leaderboard}
+\end{table}
+
+\begin{figure}[htbp]\centering
+\block{scores}
+\caption{Every run's RMSE with its 95\% interval. The vertical line is the
+reference's score.}
+\label{fig:scores}
+\end{figure}
+
+\subsection{What a network adds}
+
+Beyond the noise, \V{networks.ahead.of} are ahead of the reference
+(Figure~\ref{fig:gains}). On the ladder their order follows what a network
+reads and how large it is. The medium transformer that also reads the hand
+features gains \V{run.transformer-medium-hand.gain} points. The same
+transformer on the board alone gains \V{run.transformer-medium.gain}, the
+convolutional tower \V{run.conv-small.gain}, and the small transformer
+\V{run.transformer-small.gain}.
+
+\begin{figure}[htbp]\centering
+\block{gains}
+\caption{Each network's paired gain in RMSE over the reference, with its 95\%
+interval. A run whose interval clears the line beats the trees beyond the
+noise.}
+\label{fig:gains}
+\end{figure}
+
+Two things stand out. The first is that size counts for more than the choice
+of body. The two small networks, about a million parameters each and of
+different kinds, both sit within a few points of the trees, and the larger
+step comes with the \V{run.transformer-medium.parameters.millions} million
+parameters of the medium transformer.
+
+The second is that the hand features still pay under a network. On the
+ladder's schedule, the medium transformer that reads them scores
+\V{run.transformer-medium-hand.over-twin} points better than the same
+transformer without them.
+\ifpairs
+Set against each other on the same resampled games, the one that reads them
+is \V{pair.transformer-medium-hand.transformer-medium.verdict}
+(Table~\ref{tab:pairs}).
+\fi
+In that many epochs, eight layers of attention did not learn from the squares
+everything that a few dozen counts hold.
+\ifvariants
+Section~\ref{sec:changes} gives both transformers twice the epochs, and most
+of that difference goes.
+\fi
+\iffeatures
+Which of the counts the trees cannot do without is in
+Section~\ref{sec:changes}.
+\else
+Which of the counts carry that is a run still to make, with one group of
+features left out at a time.
+\fi
+
+Set against what the trees already do, the best run's gain is
+\V{best.gain.percent}\% of the reference's own error, and
+\V{best.gain.of-lift}\% as large as the step from the floor to the
+reference. Counting the right things with trees does most of the work, and
+the network refines it.
+
+\subsection{Good at ranking, loose on the rating}
+
+The best run's rank correlation with the true rating is \V{best.spearman},
+and it explains a share of \V{best.r2} of the ratings' variance
+(Table~\ref{tab:metrics}). Its mean absolute error is \V{best.mae} points.
+Players speak of rating classes two hundred points wide, so the typical miss
+is about a class.
+
+\begin{table}[htbp]\centering\small
+\block{metrics}
+\caption{Every score of every run on the test puzzles. RMSE and MAE are in
+rating points and lower is better; for R\textsuperscript{2} and Spearman's
+rank correlation higher is better. The floor says one number, so it has no
+rank correlation.}
+\label{tab:metrics}
+\end{table}
+
+That decides what the model is good for today. It can put the tactics of a
+game in order, which is what a review needs to say that one missed shot was
+routine and another was hard. It cannot yet print a number such as ``this was
+an 1850 tactic'' and be believed to the nearest class.
+
+\subsection{By the puzzle's rating}
+
+A band rewards hedging. The bands are cut by the true rating, so the floor,
+which says the average for every puzzle, has the smallest error of all in the
+middle band and the largest at both ends (Table~\ref{tab:bands}). A model that
+leans toward the middle looks good there for the same reason. So a band's
+column is read from the top down, run against run, and never across.
+
+\begin{table}[htbp]\centering\small
+\block{bands-table}
+\caption{RMSE by the puzzle's true rating band. Read a column from the top
+down: the bands are cut by the truth, so one band cannot be compared with
+another.}
+\label{tab:bands}
+\end{table}
+
+Read that way, the best run leads the reference in \V{bands.best-ahead.of}.
+Its lead is widest for puzzles rated \V{bands.lead.widest.name}, at
+\V{bands.lead.widest} points, and narrowest for those rated
+\V{bands.lead.narrowest.name}, at \V{bands.lead.narrowest}, where a lead below
+zero means the trees are ahead. The network earns its place at the two ends,
+on the easiest and the hardest puzzles (Figure~\ref{fig:bands}).
+
+\begin{figure}[htbp]\centering
+\block{bands}
+\caption{Each network's lead over the reference in RMSE, band by band: the
+differences of the scores in Table~\ref{tab:bands}, without intervals. Above
+the dashed line a network is ahead of the trees.}
+\label{fig:bands}
+\end{figure}
+
+\subsection{How the networks learned}
+
+Figure~\ref{fig:curves} follows each network of the ladder on the valid
+puzzles. By that score, \V{ladder.at-last-epoch.of} had their best epoch at
+the last one they were given, so training stopped while they were still
+improving.
+\ifvariants
+The scores of the ladder are therefore a floor on what these bodies can do,
+not a ceiling, and Section~\ref{sec:changes} has the same networks trained
+for longer.
+\else
+A longer schedule is the cheapest run to add, and the scores here are a
+floor on what these bodies can do, not a ceiling.
+\fi
+
+\begin{figure}[htbp]\centering
+\block{curves}
+\caption{Each ladder network's RMSE on the valid puzzles after every epoch.
+The dashed line is the reference's score on the same rows.}
+\label{fig:curves}
+\end{figure}
+
+\subsection{What the trees lean on}
+
+The reference grew \V{reference.trees} trees over \V{reference.features}
+features, and Figure~\ref{fig:leans} shows where its gain came from. The three
+it leans on most are: \V{reference.leans.1.feature}
+(\V{reference.leans.1.share}\% of the gain), \V{reference.leans.2.feature}
+(\V{reference.leans.2.share}\%) and \V{reference.leans.3.feature}
+(\V{reference.leans.3.share}\%). All three describe the line, not the
+position: what makes a tactic hard is mostly what its solution asks for. A
+share of gain says what the trees used. It does not say what makes a puzzle
+hard, since two features that carry the same information split the credit
+between them by chance.
+
+\begin{figure}[htbp]\centering
+\block{leans}
+\caption{The ten features the reference's trees gained most from: each
+feature's share of the total gain of the splits made on it.}
+\label{fig:leans}
+\end{figure}
+
+\ifchanges
+\section{One change at a time}
+\label{sec:changes}
+
+\input{../../../papers/changes}
+
+\ifvariants
+\paragraph{What twice the epochs were worth here.}
+Each medium transformer was trained again on a schedule of
+\V{run.transformer-medium-long.epochs} epochs for the ladder's
+\V{run.transformer-medium.epochs}. On the board alone,
+\V{run.transformer-medium-long.name} is
+\V{pair.transformer-medium-long.transformer-medium.valid.verdict} than the
+run it changed on the valid puzzles and
+\V{pair.transformer-medium-long.transformer-medium.verdict} on the test
+puzzles, by \V{pair.transformer-medium-long.transformer-medium.gain} points:
+it is \V{pair.transformer-medium-long.transformer-medium.kept}. With the
+hand features, \V{run.transformer-medium-hand-long.name} is
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.valid.verdict}
+than the run it changed on the valid puzzles and
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.verdict} on the
+test puzzles, by
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain}: it is
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.kept}.
+
+Two things follow. The first is that the epochs were worth more than the
+hand features. The longer schedule gave the transformer on the board alone
+more than the features had given it on the ladder
+(\V{pair.transformer-medium-hand.transformer-medium.gain} points, and the
+two intervals in Table~\ref{tab:pairs} do not touch), and with it that
+transformer is ahead of the ladder's transformer that reads the features: a
+gain over the reference of \V{run.transformer-medium-long.gain} against
+\V{run.transformer-medium-hand.gain}.
+
+The second is that under the longer schedule the features add little.
+\V{run.transformer-medium-hand-long.name} scores
+\V{run.transformer-medium-hand-long.over-twin} points better than
+\V{run.transformer-medium-long.name}, where on the ladder the same
+difference was \V{run.transformer-medium-hand.over-twin}. The two long runs
+order puzzles
+equally well, with rank correlations of
+\V{run.transformer-medium-hand-long.spearman} and
+\V{run.transformer-medium-long.spearman}, and their mean absolute errors,
+\V{run.transformer-medium-hand-long.mae} and
+\V{run.transformer-medium-long.mae} points, lie inside each other's
+intervals. By band the run with the features is ahead on the puzzles rated
+1800 and over and behind on those under 1400 (Table~\ref{tab:bands}, which
+draws no interval). A reading: given the steps, eight layers learn from the
+squares most of what the counts hold, and the counts still help where a
+puzzle is hard. Set against each other on the same resampled games, the long
+run with the features is
+\V{pair.transformer-medium-hand-long.transformer-medium-long.valid.verdict}
+than the one without on the valid puzzles and
+\V{pair.transformer-medium-hand-long.transformer-medium-long.verdict} on
+the test puzzles, by
+\V{pair.transformer-medium-hand-long.transformer-medium-long.gain} points
+(\V{pair.transformer-medium-hand-long.transformer-medium-long.gain.low} to
+\V{pair.transformer-medium-hand-long.transformer-medium-long.gain.high},
+Table~\ref{tab:pairs}).
+
+Neither run used its whole schedule. \V{run.transformer-medium-long.name}
+had its best valid epoch at \V{run.transformer-medium-long.best-epoch} of
+\V{run.transformer-medium-long.epochs} and
+\V{run.transformer-medium-hand-long.name} at
+\V{run.transformer-medium-hand-long.best-epoch}, and each was stopped
+\V{networks.patience} epochs later, as the trainer stops any run whose valid
+score has not improved for that long (Figure~\ref{fig:variants}). Their
+training loss was still falling: from there a network is fitting the
+training puzzles. So a still longer schedule from nothing is not the next
+run. A better start was, and the next paragraph has it. The games study
+below says what more puzzles are worth.
+
+\paragraph{What a start from engine evaluations was worth here.}
+The lab's position-evaluation model trains the same medium transformer on
+positions from the open Lichess evaluations file, to say the mover's winning
+chances as an engine sees them. That label says nothing about people. The
+model is there for its body: a run of this model can start from it. The
+embeddings and the blocks are copied in, the head starts new, and the run
+then trains on this model's puzzles on the ladder's schedule, with nothing
+else changed.
+
+On the board alone, \V{run.transformer-medium-pretrained.name} is
+\V{pair.transformer-medium-pretrained.transformer-medium.valid.verdict} than
+the run it changed on the valid puzzles and
+\V{pair.transformer-medium-pretrained.transformer-medium.verdict} on the
+test puzzles, by \V{pair.transformer-medium-pretrained.transformer-medium.gain}
+points: it is \V{pair.transformer-medium-pretrained.transformer-medium.kept}.
+With the hand features, \V{run.transformer-medium-hand-pretrained.name} is
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.valid.verdict}
+than the run it changed on the valid puzzles and
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.verdict}
+on the test puzzles, by
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain}: it
+is \V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.kept}.
+The model's best run is \V{best.name}.
+
+Three things follow. The first is that the start was worth more than twice
+the epochs, in half of them. Each run gained more from the body than the
+same run had gained from the longer schedule:
+\V{pair.transformer-medium-pretrained.transformer-medium.gain} points
+against \V{pair.transformer-medium-long.transformer-medium.gain} on the
+board alone, and
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain}
+against \V{pair.transformer-medium-hand-long.transformer-medium-hand.gain}
+with the features, and in Table~\ref{tab:pairs} the two intervals do not
+touch for either. On the ladder's schedule, the transformer that starts from
+the body and reads the board alone scores
+\V{run.transformer-medium-pretrained.score}, level with the run that reads
+the features for twice as long
+(\V{run.transformer-medium-hand-long.score}).
+
+The second is that the features pay again. Under the longer schedule they
+added little. From the body, the run that reads them scores
+\V{run.transformer-medium-hand-pretrained.over-twin} points better than the
+one that does not, where the ladder's difference was
+\V{run.transformer-medium-hand.over-twin} and the longer schedule's
+\V{run.transformer-medium-hand-long.over-twin}, and the intervals of the two
+runs' gains over the reference do not touch
+(Table~\ref{tab:leaderboard}). A reading: the body arrives knowing who
+stands better, which is not what makes a tactic hard to find, and the counts
+of what the line's moves do say that directly.
+
+The third is that the run with the features had not finished learning. Its
+best valid epoch was \V{run.transformer-medium-hand-pretrained.best-epoch}
+of \V{run.transformer-medium-hand-pretrained.epochs}, where the run on the
+board alone had its best at
+\V{run.transformer-medium-pretrained.best-epoch}
+(Figure~\ref{fig:variants}). A longer schedule from the same start is the
+cheapest run to add.
+\fi
+
+\ifshapes
+\paragraph{What another shape of network was worth here.}
+The architecture test keeps a medium transformer's rows, its head and its
+epochs, and changes its shape. Each run below started from nothing, as the
+network it changes did. Each is set against that network in
+Table~\ref{tab:pairs} and followed epoch by epoch in
+Figure~\ref{fig:shapes}.
+\begin{itemize}
+\item \emph{A convolutional tower}, \V{run.conv-medium-hand.name}: residual
+blocks of convolutions, each also weighing its channels by a mean over the
+whole board, with \V{run.conv-medium-hand.parameters.millions} million
+parameters for the transformer's
+\V{run.transformer-medium-hand.parameters.millions} million. It is trained at a
+tower's peak learning rate, \V{run.conv-medium-hand.lr} for
+\V{run.transformer-medium-hand.lr}, and changes nothing else. It is
+\V{pair.conv-medium-hand.transformer-medium-hand.valid.verdict} than
+\V{run.transformer-medium-hand.name} on the valid puzzles and
+\V{pair.conv-medium-hand.transformer-medium-hand.verdict} on the test
+puzzles (\V{pair.conv-medium-hand.transformer-medium-hand.gain} points,
+\V{pair.conv-medium-hand.transformer-medium-hand.gain.low} to
+\V{pair.conv-medium-hand.transformer-medium-hand.gain.high}): it is
+\V{pair.conv-medium-hand.transformer-medium-hand.kept}.
+\item \emph{A hybrid}, \V{run.hybrid-medium-hand.name}: a few residual blocks
+of convolutions first, then layers of the transformer over the squares
+they give, \V{run.hybrid-medium-hand.parameters.millions} million parameters
+in all. It is
+\V{pair.hybrid-medium-hand.transformer-medium-hand.valid.verdict} than
+\V{run.transformer-medium-hand.name} on the valid puzzles and
+\V{pair.hybrid-medium-hand.transformer-medium-hand.verdict} on the test
+puzzles (\V{pair.hybrid-medium-hand.transformer-medium-hand.gain} points,
+\V{pair.hybrid-medium-hand.transformer-medium-hand.gain.low} to
+\V{pair.hybrid-medium-hand.transformer-medium-hand.gain.high}): it is
+\V{pair.hybrid-medium-hand.transformer-medium-hand.kept}.
+\item \emph{A larger transformer}, \V{run.transformer-large-hand.name}:
+\V{run.transformer-large-hand.depth} layers of width
+\V{run.transformer-large-hand.dim} for \V{run.transformer-medium-hand.depth} of width
+\V{run.transformer-medium-hand.dim}, so
+\V{run.transformer-large-hand.parameters.millions} million parameters. It is
+\V{pair.transformer-large-hand.transformer-medium-hand.valid.verdict} than
+\V{run.transformer-medium-hand.name} on the valid puzzles and
+\V{pair.transformer-large-hand.transformer-medium-hand.verdict} on the test
+puzzles (\V{pair.transformer-large-hand.transformer-medium-hand.gain} points,
+\V{pair.transformer-large-hand.transformer-medium-hand.gain.low} to
+\V{pair.transformer-large-hand.transformer-medium-hand.gain.high}): it is
+\V{pair.transformer-large-hand.transformer-medium-hand.kept}.
+\item \emph{Attention told what each piece attacks.} The offsets say that
+two squares share a diagonal, and not whether anything stands between
+them. Here each head also learns a bias for a pair of squares when the
+piece on one attacks the other on this board, worked out from the tokens
+with no search. With the hand features, \V{run.transformer-medium-hand-attacks.name} is
+\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.valid.verdict} than
+\V{run.transformer-medium-hand.name} on the valid puzzles and
+\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.verdict} on the test
+puzzles (\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.gain} points,
+\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.gain.low} to
+\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.gain.high}): it is
+\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.kept}. On the
+board alone, \V{run.transformer-medium-attacks.name} is
+\V{pair.transformer-medium-attacks.transformer-medium.valid.verdict} than
+\V{run.transformer-medium.name} on the valid puzzles and
+\V{pair.transformer-medium-attacks.transformer-medium.verdict} on the test
+puzzles (\V{pair.transformer-medium-attacks.transformer-medium.gain} points,
+\V{pair.transformer-medium-attacks.transformer-medium.gain.low} to
+\V{pair.transformer-medium-attacks.transformer-medium.gain.high}): it is
+\V{pair.transformer-medium-attacks.transformer-medium.kept}.
+\item \emph{Attention without the offsets},
+\V{run.transformer-medium-hand-no-geometry.name}: a study, there to measure what
+the offsets are worth and never a candidate. Without them the transformer
+is \V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.valid.verdict}
+on the valid puzzles than with them, and
+\V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.verdict} on the
+test puzzles (\V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain} points,
+\V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain.low} to
+\V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain.high}).
+\end{itemize}
+
+Four things follow. The first is that what each piece attacks was worth more
+to this model than anything else tried from nothing. On the board alone the
+attention that is told it gains
+\V{pair.transformer-medium-attacks.transformer-medium.gain} points, where
+twice the epochs gave the same transformer
+\V{pair.transformer-medium-long.transformer-medium.gain} and the start from
+the body \V{pair.transformer-medium-pretrained.transformer-medium.gain}, and
+in Table~\ref{tab:pairs} the three intervals do not touch.
+\V{run.transformer-medium-attacks.name} starts from nothing and scores
+\V{run.transformer-medium-attacks.score}. That is ahead of
+\V{run.transformer-medium-pretrained.name}, which starts from the body and
+scores \V{run.transformer-medium-pretrained.score}, and the intervals of
+their gains over the reference do not touch (Table~\ref{tab:leaderboard}).
+With the hand features the change is worth
+\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.gain}:
+more than the epochs gave that run
+(\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain}) and
+less than the start did
+(\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain}).
+
+The second is that the features add next to nothing once the attention is
+told the attacks. \V{run.transformer-medium-hand-attacks.name} scores
+\V{run.transformer-medium-hand-attacks.over-twin} points better than
+\V{run.transformer-medium-attacks.name}, where the ladder's difference was
+\V{run.transformer-medium-hand.over-twin}, and the two runs' gains over the
+reference lie inside each other's intervals (Table~\ref{tab:leaderboard}).
+The two were not set against each other on resampled games, so that is a
+reading of the leaderboard. It is what the longer schedule showed from
+another side: most of what the counts hold, eight layers can work out from
+the squares. A reading: told which piece attacks which square, they work it
+out within the ladder's epochs.
+
+The third is that neither of those runs had finished learning, and neither
+is the model's best run. Both had their best valid epoch at the last,
+\V{run.transformer-medium-attacks.best-epoch} of
+\V{run.transformer-medium-attacks.epochs} (Figure~\ref{fig:shapes}). The
+best run is still \V{best.name}, at \V{best.score}, and it starts from the
+body. The attention that is told the attacks can start from the same body as
+it is: the weights on what it is told start at nothing, so the network
+begins as the body does. That run changes one thing in the model's best run,
+and it is the next to make.
+
+The fourth is what did not pay. Convolutions under the transformer's layers
+and a larger transformer both left the network worse on the same puzzles and
+epochs, and Figure~\ref{fig:shapes} shows two ways of losing. The larger one
+took \V{run.transformer-large-hand.seconds} of the GPU for the medium one's
+\V{run.transformer-medium-hand.seconds}. On the valid puzzles it is behind
+the medium one after every epoch, and its curve ends flat without turning up,
+so it has not fitted its training puzzles too closely. A reading: at the
+medium one's learning rate and epochs it learns more slowly, and whether a
+rate or a schedule of its own would take it past the smaller one is not
+measured. The hybrid is the other way round. It is ahead of the transformer
+for most of the schedule, has its best valid epoch at
+\V{run.hybrid-medium-hand.best-epoch} of \V{run.hybrid-medium-hand.epochs},
+and loses ground after it while the transformer goes on gaining. The tower
+does the same from further ahead, with its best epoch at
+\V{run.conv-medium-hand.best-epoch}, and the epoch it keeps is its small
+gain. A reading: the networks with convolutions learn these puzzles sooner
+and fit them too closely sooner, so more puzzles are likelier to help them
+than more epochs are. The tower is the cheap one, at
+\V{run.conv-medium-hand.seconds}. It changes its learning rate with its
+body, so the gain is the tower's as trained and cannot be given to the
+convolutions alone. The offsets are worth less to the transformer than the
+attacks are. Each of these runs was trained once.
+\fi
+
+\input{../../../papers/studies}
+
+\ifgames
+\paragraph{What more puzzles are worth here.}
+Both learners are worse on fewer puzzles, and the network by more. Against
+the run trained on every training puzzle, \V{run.transformer-medium-hand.name} has a paired
+gain of \V{pair.transformer-medium-hand-half.transformer-medium-hand.gain} points on half of them and of
+\V{pair.transformer-medium-hand-quarter.transformer-medium-hand.gain} on a quarter. The trees' gains are
+\V{pair.gbm-hand-half.gbm-hand.gain} and \V{pair.gbm-hand-quarter.gbm-hand.gain}.
+The network's lead over the trees widens with every doubling
+(Table~\ref{tab:games}), and the curve of Figure~\ref{fig:games} is
+still falling where it ends. The last doubling was worth about as much to
+the network as twice the epochs were to the same run
+(\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain}). The dataset is a fixed
+\V{recipe.sample.percent}\% of the puzzles whose rating has settled, so
+the rest are there to be read. A reading: more puzzles are the next thing to
+try for this model, ahead of a longer schedule.
+\fi
+
+\ifmore
+\paragraph{What more puzzles were worth.}
+That reading was then checked on a larger build of the dataset, which holds
+\V{more.gbm-hand.most} the training puzzles and every row these runs are
+scored on. Against the run trained on today's puzzles,
+\V{run.transformer-medium-hand.name} has a paired gain of
+\V{pair.transformer-medium-hand-double.transformer-medium-hand.gain} points on twice the puzzles and of
+\V{pair.transformer-medium-hand-quadruple.transformer-medium-hand.gain} on four times, which is
+\V{pair.transformer-medium-hand-quadruple.transformer-medium-hand.verdict}. The trees' gains are
+\V{pair.gbm-hand-double.gbm-hand.gain} and
+\V{pair.gbm-hand-quadruple.gbm-hand.gain}, the second
+\V{pair.gbm-hand-quadruple.gbm-hand.verdict}. By the lab's rule the
+network on four times the puzzles is \V{more.transformer-medium-hand.most.kept} and the trees
+on four times the puzzles are \V{more.gbm-hand.most.kept}.
+\fi
+
+\iffeatures
+\paragraph{Which counts the trees need here.}
+In \V{study.features.gbm-hand.worse.of} the trees are worse beyond the
+noise without the group. What costs most is
+\V{study.features.gbm-hand.most.group}: without the counts of what the
+solution's moves do, the trees' paired gain is
+\V{study.features.gbm-hand.most.gain} points, and that is with the number
+of moves the solver has to find still beside the board. After it come the
+moves on offer in the position (\V{pair.gbm-hand-no-mobility.gbm-hand.gain})
+and the first move of the solution
+(\V{pair.gbm-hand-no-first-move.gbm-hand.gain}). The other groups cost little:
+material \V{pair.gbm-hand-no-material.gbm-hand.gain}, the attackers near the
+kings \V{pair.gbm-hand-no-kings.gbm-hand.gain}, loose pieces
+\V{pair.gbm-hand-no-hanging.gbm-hand.gain} and passed pawns
+\V{pair.gbm-hand-no-pawns.gbm-hand.gain}. Without the one count of the
+opponent's last move the trees are
+\V{study.features.gbm-hand.least.verdict}, by
+\V{study.features.gbm-hand.least.gain} points, which is small enough for
+another training to undo. A reading: what these trees know of a puzzle's
+difficulty is mostly what its solution looks like. The lab's model that
+hides the solution measures the same from the other side, and its paper
+gives that number.
+\fi
+\fi
+
+\section{A closer look}
+\label{sec:closer}
+
+\input{../../../papers/closer}
+
+\iflook
+\subsection{How close a prediction lands}
+
+An average error hides how the misses are spread. The best run's median miss
+is \V{best.close.median} points, and nine in ten of its predictions fall
+within \V{best.close.p90}. It is within a hundred points of the truth for
+\V{best.close.within.100}\% of the test puzzles, within two hundred for
+\V{best.close.within.200}\%, and within three hundred for
+\V{best.close.within.300}\% (Table~\ref{tab:closeness}). A class is two
+hundred points wide, so the first of those shares is how often the model
+lands within half a class of where the crowd put the puzzle, and the second
+how often within a whole one.
+
+\begin{table}[htbp]\centering\small
+\block{closeness}
+\caption{How close each run's predictions land on the test puzzles: the
+median miss, the distance nine in ten predictions fall within, and the share
+within one, two and three hundred points of the true rating.}
+\label{tab:closeness}
+\end{table}
+
+\subsection{What a stated rating is worth}
+
+Figure~\ref{fig:reliability} asks whether a stated rating means what it says.
+The test puzzles are put in \V{best.reliability.groups} equal groups by what
+the best run said. The group it rates lowest it calls
+\V{best.reliability.lowest.said} on average, and those puzzles' true ratings
+average \V{best.reliability.lowest.happened}. The group it rates highest it
+calls \V{best.reliability.highest.said}, against
+\V{best.reliability.highest.happened}. In no group are the two further apart
+than \V{best.reliability.widest-gap} points, which is under a third of a
+rating class: a stated rating is close to right on average at every level.
+The gaps lean one way, though. The run's lowest ratings are a little too low
+and its highest a little too high, so what it says is spread slightly wider
+than the truth, and the two ends are where a stated rating is least exact.
+
+The wash is the other half of the answer. Around one stated number, the
+middle four fifths of the true ratings span about \V{best.reliability.spread}
+points. The model is honest about the level and loose on the single puzzle.
+
+\begin{figure}[htbp]\centering
+\block{reliability}
+\caption{What a run said against the true rating. The test puzzles are put in
+equal groups by what the run said; each point is one group's average
+prediction against its average true rating. The wash is the middle four
+fifths of the true ratings in each group of the first run. On the diagonal a
+run is right on average at that level.}
+\label{fig:reliability}
+\end{figure}
+
+Turned around, the same looseness is a pull toward the middle.
+Figure~\ref{fig:band-bias} groups the puzzles by their true rating instead.
+Puzzles truly rated under 1000 are called
+\V{slice.band.-1000.challenger.off} points too hard on average by
+\V{challenger.name}, and puzzles rated 2200 and over
+\V{slice.band.2200+.challenger.off} points, which is too easy. The trees pull
+harder at both ends, by \V{slice.band.-1000.reference.off} and
+\V{slice.band.2200+.reference.off}.
+
+Both figures are true at once, and they answer different questions. When a
+number is shown for a tactic, the first applies: tactics shown as 1800 are
+1800 on average. When the question is whether the model will know a truly
+hard tactic when it sees one, the second applies: it will call it hard, and
+seldom as hard as it is. Every model with error does this, since what it
+cannot tell apart it places near the average. A better model does it less.
+
+\begin{figure}[htbp]\centering
+\block{slice-band-bias}
+\caption{What the two runs said on average, less the mean true rating, by
+the puzzle's true rating band. Above the line a run calls a band's puzzles
+harder than they are, and below it easier.}
+\label{fig:band-bias}
+\end{figure}
+
+\subsection{By the length of the solution}
+
+The length of the line is the one thing every learner is told outright, and
+the trees that read nothing else already take a large step with it.
+Table~\ref{tab:moves} shows what is left once a model reads the line
+itself. Among the lengths with enough puzzles to compare,
+\V{challenger.name} is ahead of the reference beyond the noise in
+\V{slice.moves.ahead.of} and behind in \V{slice.moves.behind}. Its gain is
+smallest for one-move puzzles, at \V{slice.moves.1.gain} points, and larger
+for every longer line: \V{slice.moves.2.gain} at two moves and
+\V{slice.moves.3.gain} at three. One move leaves little to read that a count
+does not already say. From the second move on there is a reply to foresee,
+and the squares carry more than the counts.
+
+\begin{table}[htbp]\centering\footnotesize
+\block{slice-moves}
+\caption{The test puzzles by how many moves the solver has to find. For each
+group: its test rows, the mean true rating, what each of the two runs said on
+average and its RMSE there, and the first run's paired gain over the second.}
+\label{tab:moves}
+\end{table}
+
+The trees are right on average at every length, since the length is a number
+they are handed. The network has to learn what a length is worth, and on
+one-move puzzles it is off by \V{slice.moves.1.challenger.off} points
+(Figure~\ref{fig:slice-moves}).
+
+\begin{figure}[htbp]\centering
+\block{slice-moves-bias}
+\caption{What the two runs said on average, less the mean true rating, by
+the length of the solution.}
+\label{fig:slice-moves}
+\end{figure}
+
+\subsection{By theme}
+
+Lichess tags every puzzle with themes: what the tactic is (a fork, a pin, a
+discovered attack), what it wins, the phase of the game, how long it is. No
+learner reads them. Figure~\ref{fig:themes} uses them to ask where the
+network's gain comes from: it is ahead of the reference beyond the noise in
+\V{slice.themes.ahead} of \V{slice.themes.compared} themes, and behind in
+\V{slice.themes.behind}.
+
+Its gain is largest for the theme
+\texttt{\V{slice.themes.gain.most.group}}, at \V{slice.themes.gain.most}
+points, and smallest for \texttt{\V{slice.themes.gain.least.group}}, at
+\V{slice.themes.gain.least}. The themes at the top of the figure have
+something in common: pawn endings, pins and quiet moves are
+hard for reasons no list of counts states. A quiet move has to be thought of
+with nothing to prompt it, and a pawn ending turns on a tempo. At the bottom
+are mates in one and promotions, where a count or two says most of what
+there is to say. The network pays for itself where the board has to be read,
+which is what it was given the squares for.
+
+The table behind the figure is in the appendix
+(Table~\ref{tab:slice-themes}).
+
+\begin{figure}[htbp]\centering
+\block{slice-themes-gain}
+\caption{The paired gain in RMSE of the best run that is not the reference
+over the reference, for the thirty most common themes. A puzzle carries
+several themes and is counted under each. A theme whose interval crosses the
+line says nothing either way.}
+\label{fig:themes}
+\end{figure}
+
+\subsection{Quiet moves and mates}
+
+The two features the trees lean on most each get a cut of their own. A quiet
+move is one that neither takes nor checks, the kind a solver has to think of
+without being prompted (Table~\ref{tab:quiet}). A line with none averages
+\V{slice.quiet.0.happened}, and a line with one \V{slice.quiet.1.happened}.
+A second quiet move adds much less (\V{slice.quiet.2.happened}): what is hard
+is that the line has a quiet move in it at all.
+
+A line that ends in mate is forcing to the end (Table~\ref{tab:mate}), and it
+averages \V{slice.mate.yes.happened} against \V{slice.mate.no.happened} for a
+line that wins material. Checks narrow the search for the solver, as they do
+for an engine.
+
+In both tables the network leads the trees on either side. With two quiet
+moves in the line its lead is \V{slice.quiet.2.gain} points, against
+\V{slice.quiet.0.gain} with none, and the two intervals do not touch
+(Table~\ref{tab:quiet}). Without a mate at the end it is
+\V{slice.mate.no.gain} and with one \V{slice.mate.yes.gain}, which is too
+close to call.
+
+\begin{table}[htbp]\centering\footnotesize
+\block{slice-quiet}
+\caption{The test puzzles by how many of the solver's moves neither take nor
+check.}
+\label{tab:quiet}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\block{slice-mate}
+\caption{The test puzzles by whether the line ends in mate.}
+\label{tab:mate}
+\end{table}
+
+\subsection{The first move}
+
+What the first move is says a good deal about how hard a puzzle is, and a
+player will recognise every part of it. The mean true ratings below depend
+only on the puzzles, not on any model.
+
+\begin{itemize}
+\item \textbf{A check is found.} A puzzle whose first move gives check
+averages \V{slice.check.yes.happened}, against \V{slice.check.no.happened}
+for one whose first move does not.
+\item \textbf{A capture tells little.} Whether the first move takes something
+makes almost no difference: \V{slice.capture.yes.happened} against
+\V{slice.capture.no.happened}.
+\item \textbf{Giving something up is harder.} A first move that leaves the
+piece to be taken averages \V{slice.sacrifice.yes.happened}, against
+\V{slice.sacrifice.no.happened}.
+\item \textbf{So is going backward.} A first move toward the solver's own
+side averages \V{slice.backward.yes.happened}, against
+\V{slice.backward.no.happened}.
+\item \textbf{The piece matters.} Puzzles that begin with a king move are the
+hardest (\V{slice.first-piece.king.happened}), then those that begin with a
+pawn (\V{slice.first-piece.pawn.happened}). Those that begin with the queen
+are the easiest (\V{slice.first-piece.queen.happened}).
+\end{itemize}
+
+The network leads the trees beyond the noise in every one of these groups
+(Tables~\ref{tab:slice-first-piece} to~\ref{tab:slice-backward} in the
+appendix), so no kind of first move is where it earns its gain or gives it
+back.
+
+\subsection{How settled the rating is}
+
+The network's lead is not the same for every puzzle. By the rating's
+deviation it is \V{slice.deviation.-75.gain} points for the most settled
+ratings, a deviation under 75, and \V{slice.deviation.90+.gain} for the
+least settled, a deviation of 90 and over
+(Table~\ref{tab:slice-deviation}). By attempts it falls from
+\V{slice.plays.-200.gain} for puzzles tried fewer than two hundred times to
+\V{slice.plays.5000+.gain} for those tried five thousand times or more
+(Table~\ref{tab:slice-plays}).
+
+So the network's lead is smallest on the puzzles whose ratings are measured
+best, a small part of what it is on the least settled, and it grows as a
+rating is less settled. It is also smallest on the puzzles tried most. The
+tables do not say why.
+The most settled ratings average \V{slice.deviation.-75.happened} and the
+least settled \V{slice.deviation.90+.happened}, so the two groups are
+different puzzles and not only differently measured ones, and the lead by
+rating band is uneven too (Table~\ref{tab:bands}). A cut by deviation inside
+each band would separate the two, and nobody has made it. Until then the
+careful reading is that most of the network's gain is on the less-played
+nine tenths of the test puzzles, and that on the best-measured ones it is
+small.
+
+\subsection{Two things at once}
+
+Figure~\ref{fig:grid} crosses the length of the line with how much material
+is left, which stands for the phase of the game. If the lower grid looks like
+the upper one, the run has the joint pattern and not only each margin.
+
+\begin{figure}[htbp]\centering
+\block{grid-moves-pieces}
+
+\medskip
+\block{grid-moves-pieces-said}
+\caption{The mean rating by the length of the solution and by how many
+knights, bishops, rooks and queens are on the board. Above: the true ratings.
+Below: what the best run that is not the reference said. Both grids share one
+scale of colour, and a cell with too few test puzzles is left empty.}
+\label{fig:grid}
+\end{figure}
+
+\subsection{Beside the reference}
+
+Two runs with close scores can still disagree puzzle by puzzle, and then an
+average of the two would beat both. Table~\ref{tab:beside} gives each run's
+correlation with the reference's predictions and the share of test puzzles on
+which the run is the closer of the two. The best run is closer than the
+reference on \V{best.beside.closer}\% of them, with a correlation of
+\V{best.beside.correlation} between what the two said. The network wins
+by a little on most puzzles more than by a lot on a few, and what is left of
+the disagreement is room for a blend of the two that nobody has trained yet.
+
+\begin{table}[htbp]\centering\small
+\block{beside}
+\caption{Each run's predictions beside the reference's on the same test
+puzzles: their correlation, and how often the run is the closer of the two to
+the true rating.}
+\label{tab:beside}
+\end{table}
+
+\section{Positions}
+\label{sec:positions}
+
+The positions below were chosen by rule from the test puzzles. Each board is
+seen from the side to move. The grey arrow is the opponent's move that set
+the puzzle up, and the blue arrow is the first move of the solution. Beside
+each board are the line, the true rating, what the best run and the reference
+said, and the puzzle's id, by which it can be opened on Lichess.
+
+The misses are the instructive ones. A puzzle the model rates far too high
+(Figure~\ref{fig:over}) is a line that looks demanding on the board and that
+people find anyway. A puzzle it rates far too low (Figure~\ref{fig:under})
+looks routine and is missed. The extremes of what the model says, the
+puzzles it calls hardest and easiest, are in the appendix
+(Figures~\ref{fig:highest} and~\ref{fig:lowest}).
+
+\examples{examples-typical}{Ordinary puzzles: the first \V{examples.count}
+test puzzles in the order of a hash of their key, so nothing about them
+picked them.}{fig:typical}
+
+\examples{examples-over}{The best run's largest misses upward: the test
+puzzles it rated furthest above their true rating.}{fig:over}
+
+\examples{examples-under}{The best run's largest misses downward: the test
+puzzles it rated furthest below their true rating.}{fig:under}
+\fi
+
+\section{What the app can use today}
+\label{sec:use}
+
+\begin{itemize}
+\item \textbf{The order of a game's tactics.} With a rank correlation of
+\V{best.spearman}, the model can say which of a game's missed tactics was
+the routine one and which the hard one. That is the use the results support
+without reservation.
+\item \textbf{Within reach or not, with a margin.} Set beside a player's own
+puzzle rating, a predicted rating says whether a missed tactic was within
+reach. The typical miss is \V{best.mae} points, so a call should leave a
+class on either side: well below the player's level, well above it, or near
+it.
+\item \textbf{Not a number on the screen.} A stated rating is right on
+average and loose on the single tactic, and it understates the hardest. Shown
+as a number it would promise more than it holds.
+\item \textbf{The trees are most of it.} \V{task.reference} reaches
+\V{reference.score} against the best run's \V{best.score}, and it is a file
+of trees that needs no GPU. Where the app has to run the model itself, the
+trees are the place to start and the network is what a server would add.
+\end{itemize}
+
+\section{What the model does not say yet}
+\label{sec:limits}
+
+\begin{itemize}
+\item \textbf{The rating is on Lichess's puzzle scale.} Reading it on a
+player's own scale, or on another site's, needs a mapping this model does not
+make.
+\item \textbf{The model is shown the solution.} How hard a tactic is to
+notice with no line given is a different question. The lab's model that
+hides the solution asks it of the same puzzles, and its paper sets the two
+side by side.
+\item \textbf{A puzzle's rating depends on who is served it.} Lichess serves
+puzzles near a solver's level, so a hard puzzle is rated mostly by strong
+solvers and an easy one mostly by weaker ones. The model takes the rating as
+given.
+\item \textbf{Only settled ratings.} A puzzle with few attempts is left out,
+so nothing here says how the model does on puzzles the crowd has barely
+tried, new ones among them.
+\item \textbf{Every position has a tactic that works.} A puzzle is cut where
+a winning line exists. The model has seen no position where a tempting shot
+fails, and says nothing about those.
+\end{itemize}
+
+\section{Cost and how to draw this again}
+\label{sec:cost}
+
+The \V{runs.count} runs took \V{cost.seconds} in all: \V{cost.seconds.networks}
+for the networks, which trained on a rented GPU (\V{best.device}), and
+\V{cost.seconds.others} for the floor and the trees. The best run has
+\V{best.parameters} parameters and trained for \V{best.epochs.run} epochs in
+\V{best.seconds}, at about \V{best.rows-a-second} puzzles a second.
+Table~\ref{tab:runs} has every run's time and Table~\ref{tab:settings} the
+ladder networks' settings.
+
+Everything is drawn from committed files. The dataset is built by
+\texttt{lab data puzzles} from the recipe, the runs are trained by
+\texttt{lab all puzzle-difficulty}, each run writes its record under the
+model's \texttt{results/} folder, and \texttt{lab paper puzzle-difficulty}
+writes every number, table and figure of this paper from those records and
+compiles it. A record names the build of the data it read
+(\V{data.fingerprint}) and the commit of the code that trained it
+(\V{code.commit}). Weights and test predictions are not committed. They are
+kept on the owner's machine, and the model's card says where and gives the
+hash of the best run's weights.
+
+\section{What comes next}
+
+\begin{itemize}
+\ifvariants\else
+\item \textbf{A longer schedule.} Most of the networks were still improving
+when training stopped, so more epochs is the cheapest run to add.
+\fi
+\ifvariants\ifgames\else
+\item \textbf{More puzzles.} The longer runs ended by fitting the training
+puzzles, and the recipe keeps \V{recipe.sample.percent}\% of the puzzles
+that pass its filters. The same runs on half and on a quarter of these
+puzzles say what a larger sample would be worth.
+\fi\fi
+\iffeatures\else
+\item \textbf{Which hand features a network is missing.} Leaving out one
+group of features at a time says which counts a learner cannot do without.
+\fi
+\ifshapes
+\item \textbf{The attention that is told the attacks, from the body.}
+\V{run.transformer-medium-hand-pretrained.name} with its attention told what
+each piece attacks: one change in the model's best run, and the two largest
+gains measured here in one network.
+\fi
+\item \textbf{A longer schedule from the start.}
+\V{run.transformer-medium-hand-pretrained.name} had its best valid epoch at
+\V{run.transformer-medium-hand-pretrained.best-epoch} of
+\V{run.transformer-medium-hand-pretrained.epochs}, so it was stopped by its
+schedule and not by its score.
+\item \textbf{A stronger body to start from.} The body was trained once, at
+one size, on a part of the evaluations file. One trained for longer, on more
+of the file or at a larger size has not been tried.
+\item \textbf{A body that already knows how people play.} The competitions'
+strongest entries started from a human-move model. Maia-2's body under this
+head is the next body to try.
+\item \textbf{A blend.} The best network and the trees disagree often enough
+that an average of the two may beat both, for the price of running both.
+\item \textbf{A stated rating.} Turning the prediction into a number a player
+can read needs a mapping to the player's own scale, and a check on tactics
+from real games.
+\end{itemize}
+
+\bibliographystyle{unsrt}
+\bibliography{../../../papers/references}
+
+\clearpage
+\appendix
+
+\section{Sizes, schedules and features}
+
+\begin{table}[htbp]\centering\footnotesize
+\block{settings}
+\caption{The ladder networks' sizes and schedules, from their run configs.
+\emph{Rate} is the peak learning rate. A setting they all share is in the
+line under the table.}
+\label{tab:settings}
+\end{table}
+
+\begin{table}[htbp]\centering\footnotesize
+\block{hand}
+\caption{The hand features: what \V{task.reference} reads beside the context
+numbers, and a network when its run asks for them.}
+\label{tab:hand}
+\end{table}
+
+\iflook
+\section{The extremes of what the model says}
+
+\examples{examples-highest}{The test puzzles the best run rated
+highest.}{fig:highest}
+
+\examples{examples-lowest}{The test puzzles the best run rated
+lowest.}{fig:lowest}
+
+\section{Every cut of the test puzzles}
+
+Each table below groups the test puzzles by one column. The columns are the
+group, its test rows, the mean true rating, then for each of the two runs
+what it said on average and its RMSE, and the paired gain of the first run
+over the second with its 95\% interval, bold when the interval leaves zero
+out.
+
+\block{slices}
+\fi
+
+\end{document}

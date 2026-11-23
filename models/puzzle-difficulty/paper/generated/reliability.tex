@@ -1,0 +1,21 @@
+% Written by `lab paper puzzle-difficulty`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.55\textwidth,
+  height=6.6cm,
+  ymajorgrids,
+  xlabel={What the run said (Lichess puzzle rating points)},
+  ylabel={What happened (Lichess puzzle rating points)},
+  legend columns=-1,
+]
+\addplot[labAxis, line width=0.6pt, mark=none, forget plot] coordinates {(597.376,597.376) (2357.71,2357.71)};
+\addplot[draw=none, mark=none, fill=labBlue, fill opacity=0.14, forget plot] coordinates {(597.376,454) (793.092,638) (909.606,757) (994.88,834.2) (1067.55,896.2) (1133.91,942) (1198,981) (1265.41,1018) (1332.68,1088.2) (1400.89,1132) (1468.15,1170.1) (1536.56,1217.1) (1605.9,1281) (1677.48,1333) (1754.23,1383) (1837.54,1466) (1925.42,1540) (2024.94,1628) (2148.63,1732.1) (2357.71,1922) (2357.71,2690.9) (2148.63,2473) (2024.94,2359) (1925.42,2302) (1837.54,2215.9) (1754.23,2155.9) (1677.48,2074) (1605.9,1986.9) (1536.56,1925) (1468.15,1839) (1400.89,1755.8) (1332.68,1686) (1265.41,1598.8) (1198,1513.8) (1133.91,1422) (1067.55,1327) (994.88,1231.6) (909.606,1140) (793.092,1010) (597.376,836.8)} -- cycle;
+\addplot[color=labBlue, dash pattern=on 1pt off 2pt, mark=*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labBlue}] coordinates {(597.376,634.871) (793.092,825.756) (909.606,939.809) (994.88,1022.63) (1067.55,1092.05) (1133.91,1162.16) (1198,1228.68) (1265.41,1289.89) (1332.68,1362.23) (1400.89,1427.15) (1468.15,1490.69) (1536.56,1557.99) (1605.9,1611.7) (1677.48,1686.23) (1754.23,1755.9) (1837.54,1826.34) (1925.42,1913.2) (2024.94,1997.62) (2148.63,2108.07) (2357.71,2296.4)};
+\addlegendentry{\texttt{transformer-medium-hand-pretrained}}
+\addplot[color=labOrange, mark=square*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labOrange}] coordinates {(677.594,670.232) (866.668,864.541) (970.501,963.419) (1050.67,1050.93) (1120.7,1119.94) (1186.55,1179.42) (1252.34,1239.24) (1317.88,1315.27) (1380.59,1381.31) (1441.54,1439.12) (1501.03,1500.44) (1558.9,1557.56) (1616.57,1619.85) (1673.87,1678.09) (1733.32,1739.34) (1796.93,1804.02) (1865.28,1879.83) (1944.46,1950.61) (2045.24,2048.01) (2235.7,2228.16)};
+\addlegendentry{\texttt{gbm-hand}}
+\end{axis}
+\end{tikzpicture}%
+}

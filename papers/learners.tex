@@ -1,0 +1,92 @@
+% The learners every model is given: the same ladder of runs on every task,
+% so each paper reads it from here under its own section heading.
+A run is one learner, trained on the train rows, tuned on the valid rows and
+scored once on the test rows. Every model keeps the same ladder of runs, so
+each step up it says what one more thing is worth. Table~\ref{tab:runs} lists
+this model's.
+
+\paragraph{The floor.}
+\run{constant} says one number for every row: the mean label of the train
+rows, or their median where the score is an absolute error. A model that does
+not beat it has learned nothing.
+
+\paragraph{Trees.}
+\run{gbm-context} is gradient-boosted trees (LightGBM~\cite{lightgbm}) on the
+context numbers alone, with no view of the board. It measures how much of the
+answer is already in the numbers beside the board. \run{gbm-hand} adds the
+hand features and is the \emph{reference}: every other run is compared with
+it on the same test rows. Both grow up to \V{method.gbm.rounds} trees of up
+to \V{method.gbm.leaves} leaves at a learning rate of \V{method.gbm.rate},
+each tree on a random \V{method.gbm.rows.percent}\% of the rows and
+\V{method.gbm.features.percent}\% of the features, and stop when the valid
+rows have not improved for \V{method.gbm.patience} rounds.
+
+\paragraph{Networks.}
+A network is a body, which turns the tokens, the marks and the context numbers
+into one vector, and a head of two layers, which turns that vector into the
+answer. Two bodies ship, so that a leaderboard can say what the architecture
+is worth on a task.
+
+The \emph{square transformer}~\cite{attention} treats each square as a token:
+an embedding of its piece, plus a learned embedding of the square, plus a
+linear map of the square's marks. Every square attends to every other from the
+first layer, so a bishop on a1 and a king on h8 meet at once. Attention is
+told about the board's geometry by a learned bias for each offset between two
+squares, one per head~\cite{relative}: files, ranks, diagonals and knight hops
+are all offsets, so a head can learn to look along them. The context numbers
+enter as one more token, and the body's output is that token beside the mean
+of the 64 square tokens.
+
+The \emph{convolutional tower} is residual blocks of three-by-three
+convolutions over the board, the kind of network the first AlphaZero-style
+engines used~\cite{alphazero}. The context numbers are added to every square
+after the first layer, and the output is the mean and the maximum over the
+squares. It sees further only as it gets deeper. It is cheap and trains on a
+CPU, and it is here as the honest alternative: where it matches the
+transformer, the cheaper model wins.
+
+\ifsequence
+\paragraph{A network over a game.}
+A row of this model is a sequence of positions, so a network has two parts
+under its head. One of the two bodies above reads every position of the row,
+with that position's own numbers where a row of one position has its context
+numbers, and gives each a vector. A short transformer then reads those
+vectors in the order the moves were played: each is a token, with a learned
+vector for its place in the sequence, and the game's context numbers are one
+more token. The head reads that token beside the mean of the positions'
+tokens. Rows differ in length, so a batch is as long as its longest row and
+a shorter row is filled out. Nothing reads or attends to what fills it, so
+what a network says of a row does not depend on the rows it is scored with.
+
+Sizes are settings of a run, not code. \run{conv-small} is sized to train on
+a CPU. A row is tens of boards, so \run{transformer-small} and
+\run{transformer-medium} are sized for a GPU, and
+\run{transformer-medium-hand} is the same network as the second reading the
+hand features beside the game. Table~\ref{tab:settings} in the appendix has
+every size and schedule.
+\else
+Sizes are settings of a run, not code. \run{conv-small} and
+\run{transformer-small} are sized to train on a CPU. \run{transformer-medium}
+is sized for a GPU, and \run{transformer-medium-hand} is the same network
+reading the hand features beside the board. Table~\ref{tab:settings} in the
+appendix has every size and schedule.
+\fi
+
+\paragraph{One training loop.}
+Every network is trained the same way: AdamW~\cite{adamw}, a learning rate
+that rises over the first \V{networks.warmup.percent}\% of the steps and then
+follows a cosine down to zero, gradients clipped, mixed precision on a GPU.
+The loss follows the score: squared error for a quantity ranked by RMSE, a
+smoothed absolute error for one ranked by MAE, the log loss for a chance. A
+quantity's label is standardised by the train rows. After each epoch the
+network is scored on the valid rows, the weights of the best epoch are the
+ones kept, and training stops early once \V{networks.patience} epochs pass
+without a better one.
+
+\begin{table}[htbp]\centering\footnotesize
+\block{runs}
+\caption{The runs, best first. \emph{Kept} is what the valid rows chose: the
+number of trees, or the epoch whose weights were kept. \emph{Time} is the
+whole run, training and scoring.}
+\label{tab:runs}
+\end{table}

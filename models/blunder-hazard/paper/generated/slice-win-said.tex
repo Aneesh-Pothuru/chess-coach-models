@@ -1,0 +1,24 @@
+% Written by `lab paper blunder-hazard`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.66\textwidth,
+  height=5.2cm,
+  ymajorgrids,
+  xlabel={The mover's winning chances before the move (percent)},
+  ylabel={Share (percent)},
+  legend columns=-1,
+  xtick={0,1,2,3,4,5,6},
+  xticklabels={{\textless{}10},{10-20},{20-40},{40-60},{60-80},{80-90},{90+}},
+  xmin=-0.5, xmax=6.5,
+]
+\addplot[color=labInk, mark=o, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labInk}] coordinates {(0,0) (1,0) (2,8.77005) (3,7.51022) (4,12.3932) (5,14.2638) (6,5.44055)};
+\addlegendentry{what happened}
+\addplot[color=labBlue, dash pattern=on 1pt off 2pt, mark=*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labBlue}] coordinates {(0,0.00755074) (1,0.0523608) (2,8.2521) (3,7.11698) (4,11.8458) (5,13.3394) (6,5.982)};
+\addlegendentry{\texttt{transformer-medium-hand-pretrained}}
+\addplot[color=labOrange, mark=square*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labOrange}] coordinates {(0,0.00250942) (1,0.00316279) (2,8.48231) (3,7.44806) (4,12.0915) (5,13.2214) (6,5.02427)};
+\addlegendentry{\texttt{gbm-hand}}
+\end{axis}
+\end{tikzpicture}%
+}

@@ -1,0 +1,50 @@
+# What puzzle-themes is asked (src/chess_coach_models/tasks.py); its card says why.
+dataset: puzzles
+kind: tags
+label: themes
+# The themes it gives a chance each: every one that names a pattern on the board (what a move
+# does, a named mate, a promotion) and that at least one puzzle in 300 carried in the small sample
+# they were chosen on, the most common first. A theme that says how long a line is, which phase the
+# game is in, how much the line wins or whose game it came from is left out: board code and the
+# engine already say those.
+tags:
+  - fork
+  - kingsideAttack
+  - sacrifice
+  - pin
+  - advancedPawn
+  - defensiveMove
+  - discoveredAttack
+  - deflection
+  - attraction
+  - hangingPiece
+  - quietMove
+  - exposedKing
+  - backRankMate
+  - promotion
+  - skewer
+  - discoveredCheck
+  - queensideAttack
+  - clearance
+  - intermezzo
+  - trappedPiece
+  - zugzwang
+  - operaMate
+  - pillsburysMate
+  - capturingDefender
+  - attackingF2F7
+  - doubleCheck
+  - xRayAttack
+  - epauletteMate
+  - smotheredMate
+  - interference
+unit: the chance that a puzzle carries a theme
+primary: ap
+reference: gbm-hand
+# The numbers every learner reads beside the board.
+context:
+  - solver_moves
+  - castle_own_king
+  - castle_own_queen
+  - castle_opp_king
+  - castle_opp_queen

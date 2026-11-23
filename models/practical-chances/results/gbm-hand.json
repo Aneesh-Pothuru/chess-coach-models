@@ -1,0 +1,185 @@
+{
+  "model": "practical-chances",
+  "run": "gbm-hand",
+  "task": {
+    "label": "mover_score",
+    "kind": "regression",
+    "unit": "expected score of the mover in the game (a win 1, a draw 0.5, a loss 0)",
+    "primary": "rmse",
+    "lower_is_better": true,
+    "context": [
+      "mover_elo",
+      "opponent_elo",
+      "log_clock",
+      "log_opponent_clock",
+      "log_base",
+      "increment",
+      "ply",
+      "win_before",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "game-positions-2026-10",
+    "source": "https://database.lichess.org/standard/lichess_db_standard_rated_2026-10.pgn.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 698013,
+    "splits": {
+      "test": 68579,
+      "train": 594940,
+      "valid": 34494
+    },
+    "fingerprint": "340c68ed5c918cd6dfea4f5cb24218c52d8d0a88cb29e50498218aefdb9dfbd0",
+    "built": "2026-11-22T13:43:02Z",
+    "code": "36a0ad94d25b6b17bb33c15f065bfe68fa3faf15"
+  },
+  "config": {
+    "learner": {
+      "kind": "gbm",
+      "features": "hand"
+    }
+  },
+  "learner": {
+    "features": 25,
+    "trees": 208,
+    "fit_seconds": 8.3,
+    "leans_on": [
+      {
+        "feature": "win_before",
+        "share_of_gain": 0.7287
+      },
+      {
+        "feature": "opponent_elo",
+        "share_of_gain": 0.0513
+      },
+      {
+        "feature": "mover_elo",
+        "share_of_gain": 0.0494
+      },
+      {
+        "feature": "material_imbalance",
+        "share_of_gain": 0.0413
+      },
+      {
+        "feature": "log_opponent_clock",
+        "share_of_gain": 0.0301
+      },
+      {
+        "feature": "log_clock",
+        "share_of_gain": 0.0293
+      },
+      {
+        "feature": "material_count",
+        "share_of_gain": 0.0177
+      },
+      {
+        "feature": "increment",
+        "share_of_gain": 0.0089
+      },
+      {
+        "feature": "legal_moves",
+        "share_of_gain": 0.0075
+      },
+      {
+        "feature": "phase_piece_count",
+        "share_of_gain": 0.0058
+      }
+    ]
+  },
+  "calibration": null,
+  "machine": {
+    "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "threads": 12,
+    "system": "Linux"
+  },
+  "software": {
+    "python": "3.13.16",
+    "numpy": "2.4.6",
+    "polars": "2.1.0",
+    "lightgbm": "4.6.0",
+    "torch": "2.14.1+cu130"
+  },
+  "code": "36a0ad94d25b6b17bb33c15f065bfe68fa3faf15",
+  "trained": "2026-11-22T15:36:24Z",
+  "seconds": 10.7,
+  "train_rows": 594940,
+  "train_groups": 25573,
+  "valid": {
+    "rmse": 0.42306293324207506,
+    "mae": 0.3607235097667198,
+    "r2": 0.24929071463631514,
+    "spearman": 0.49418409143551867
+  },
+  "test": {
+    "rmse": {
+      "value": 0.42368638173955936,
+      "low": 0.41837895699155875,
+      "high": 0.4294455243907921
+    },
+    "mae": {
+      "value": 0.3618323612299848,
+      "low": 0.35639960562739825,
+      "high": 0.36756183919642077
+    },
+    "r2": {
+      "value": 0.2572114469586706,
+      "low": 0.23679150886861405,
+      "high": 0.2753315232162774
+    },
+    "spearman": {
+      "value": 0.5015805981421584,
+      "low": 0.48073794083523264,
+      "high": 0.5204619724725846
+    }
+  },
+  "test_rows": 68579,
+  "test_groups": 2944,
+  "test_by_band": {
+    "1100-1400": {
+      "rows": 16674,
+      "rmse": 0.4269005786406339,
+      "mae": 0.3670935920987463,
+      "r2": 0.2559354091681372,
+      "spearman": 0.5001944516225711
+    },
+    "1400-1700": {
+      "rows": 19614,
+      "rmse": 0.4259520122284293,
+      "mae": 0.3630478371549236,
+      "r2": 0.2520267914564811,
+      "spearman": 0.4968455635161207
+    },
+    "1700-2000": {
+      "rows": 14453,
+      "rmse": 0.4305836038142213,
+      "mae": 0.371963618425517,
+      "r2": 0.2329657585006235,
+      "spearman": 0.4768561612412344
+    },
+    "2000+": {
+      "rows": 7126,
+      "rmse": 0.38951439993702236,
+      "mae": 0.3239080451986751,
+      "r2": 0.34357610909771585,
+      "spearman": 0.5866964320036889
+    },
+    "<1100": {
+      "rows": 10712,
+      "rmse": 0.4269263179711057,
+      "mae": 0.36297645266898804,
+      "r2": 0.2462359878792324,
+      "spearman": 0.49206687313649766
+    }
+  },
+  "weights": [
+    {
+      "file": "model.txt",
+      "bytes": 2437650,
+      "sha256": "5b3526084ab51c61a60ab182996e0cebe2b9a707e92e3771684121f93ba03969"
+    }
+  ],
+  "gain": null
+}

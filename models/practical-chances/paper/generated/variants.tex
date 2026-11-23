@@ -1,0 +1,28 @@
+% Written by `lab paper practical-chances`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{groupplot}[
+  lab,
+  group style={group size=2 by 1, horizontal sep=0.5cm, ylabels at=edge left, yticklabels at=edge left},
+  width=0.49\textwidth,
+  height=5.4cm,
+  ymajorgrids,
+  ymin=0.422652, ymax=0.430331,
+  xlabel={Epoch},
+  ylabel={RMSE on the valid rows},
+]
+\nextgroupplot[xmin=0.5, xmax=8.5, xtick distance=1, legend columns=1]
+\draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:0.5,0.423063) -- (axis cs:8.5,0.423063);
+\addplot[color=labAqua, mark=triangle*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labAqua}] coordinates {(1,0.4255) (2,0.42656) (3,0.4243) (4,0.42349) (5,0.4234) (6,0.42403) (7,0.42384) (8,0.42353)};
+\addlegendentry{\texttt{transformer-medium}}
+\addplot[color=labAqua, dash pattern=on 1pt off 2pt, mark=triangle*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labAqua}] coordinates {(1,0.42769) (2,0.42812) (3,0.42592) (4,0.42616) (5,0.42685) (6,0.42992)};
+\addlegendentry{\texttt{transformer-medium-pretrained}}
+\nextgroupplot[xmin=0.5, xmax=8.5, xtick distance=1, legend columns=1]
+\draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:0.5,0.423063) -- (axis cs:8.5,0.423063) node[anchor=west, font=\sffamily\scriptsize, text=labSecondary, inner sep=2pt] {\run{gbm-hand}};
+\addplot[color=labBlue, mark=*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labBlue}] coordinates {(1,0.42738) (2,0.42807) (3,0.42498) (4,0.42444) (5,0.42432) (6,0.42444) (7,0.42464) (8,0.42439)};
+\addlegendentry{\texttt{transformer-medium-hand}}
+\addplot[color=labBlue, dash pattern=on 1pt off 2pt, mark=*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labBlue}] coordinates {(1,0.42688) (2,0.42828) (3,0.42545) (4,0.42503) (5,0.42616) (6,0.4278) (7,0.42992)};
+\addlegendentry{\texttt{transformer-medium-hand-pretrained}}
+\end{groupplot}
+\end{tikzpicture}%
+}

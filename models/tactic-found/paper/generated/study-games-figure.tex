@@ -1,0 +1,22 @@
+% Written by `lab paper tactic-found`; do not edit by hand.
+\fit{%
+\begin{tikzpicture}
+\begin{axis}[
+  lab,
+  width=0.5\textwidth,
+  height=5.2cm,
+  ymajorgrids,
+  xlabel={Training games, beside all the games of the dataset},
+  ylabel={Log loss on the test rows (lower is better)},
+  legend columns=-1,
+  xtick={0,1,2},
+  xticklabels={{a quarter},{half},{all}},
+  xmin=-0.5, xmax=2.5,
+]
+\addplot[color=labOrange, mark=square*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labOrange}] coordinates {(0,0.548451) (1,0.544383) (2,0.541367)};
+\addlegendentry{\texttt{gbm-hand}}
+\addplot[color=labBlue, mark=*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labBlue}] coordinates {(0,0.551821) (1,0.544011) (2,0.536924)};
+\addlegendentry{\texttt{transformer-medium-hand}}
+\end{axis}
+\end{tikzpicture}%
+}
