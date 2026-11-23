@@ -19,7 +19,7 @@ import numpy as np
 
 from ...encode import moves as move_code
 from ...encode.squares import SQUARE_HAND, SQUARE_PLAIN, plain_of, squares_of
-from .base import Fitted, Prepared, features
+from .base import Fitted, Prepared, features, seed_of
 
 
 # What a tree run uses unless its config says otherwise, and the three settings no config changes.
@@ -96,7 +96,7 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device=None) -> Fitt
     train = lgb.Dataset(x[prepared.train], prepared.y[prepared.train], feature_name=names)
     valid = lgb.Dataset(x[prepared.valid], prepared.y[prepared.valid], reference=train)
     started = time.time()
-    booster = _boost(_params(objective, metric, learner, int(config.get("seed", 0))), train, valid, learner)
+    booster = _boost(_params(objective, metric, learner, seed_of(config)), train, valid, learner)
     return Fitted(
         valid=booster.predict(x[prepared.valid], num_iteration=booster.best_iteration),
         test=booster.predict(x[prepared.test], num_iteration=booster.best_iteration),
@@ -120,7 +120,7 @@ def _fit_tags(prepared: Prepared, config: dict[str, Any], *, log) -> Fitted:
 
     learner, tags = config["learner"], prepared.task.candidates
     x, names = features(prepared, learner["features"], learner.get("without", ()))
-    params = _params("binary", "binary_logloss", learner, int(config.get("seed", 0)))
+    params = _params("binary", "binary_logloss", learner, seed_of(config))
     x_train, x_valid, x_test = x[prepared.train], x[prepared.valid], x[prepared.test]
     y_train, y_valid = prepared.y[prepared.train], prepared.y[prepared.valid]
     said_valid = np.zeros((len(prepared.valid), len(tags)))
@@ -193,7 +193,7 @@ def _fit_squares(prepared: Prepared, config: dict[str, Any], *, log) -> Fitted:
     log(f"gbm: {len(x_train):,} train and {len(x_valid):,} valid rows, one a square, of {len(names)} numbers")
     train = lgb.Dataset(x_train, prepared.y[prepared.train].reshape(-1), feature_name=names)
     valid = lgb.Dataset(x_valid, prepared.y[prepared.valid].reshape(-1), reference=train)
-    booster = _boost(_params("binary", "binary_logloss", learner, int(config.get("seed", 0))), train, valid, learner)
+    booster = _boost(_params("binary", "binary_logloss", learner, seed_of(config)), train, valid, learner)
 
     def predict(index: np.ndarray) -> np.ndarray:
         parts = []
@@ -278,7 +278,7 @@ def _fit_moves(prepared: Prepared, config: dict[str, Any], *, log) -> Fitted:
     log(f"gbm: {len(x_train):,} train and {len(x_valid):,} valid rows, one a legal move, of {len(names)} numbers")
     train = lgb.Dataset(x_train, wanted(prepared.train), feature_name=names)
     valid = lgb.Dataset(x_valid, wanted(prepared.valid), reference=train)
-    booster = _boost(_params("binary", "binary_logloss", learner, int(config.get("seed", 0))), train, valid, learner)
+    booster = _boost(_params("binary", "binary_logloss", learner, seed_of(config)), train, valid, learner)
 
     def chances(index: np.ndarray, x: np.ndarray) -> np.ndarray:
         """What the booster says of each move of the positions, scaled to add up to one a position."""

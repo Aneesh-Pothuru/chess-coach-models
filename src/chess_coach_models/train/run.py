@@ -62,6 +62,7 @@ from ..evals.metrics import (
     score,
 )
 from . import learners
+from .published import fetch_start, start_weights
 from .record import machine, saved_weights, software
 
 
@@ -210,7 +211,8 @@ def run(
     start = None
     init = config.get("learner", {}).get("init")
     if init is not None:
-        start = paths.run_files(init["model"], init["run"], smoke=smoke) / "model.pt"
+        fetch_start(config, smoke=smoke, log=log)
+        start = start_weights(init, smoke=smoke)
         if not start.exists():
             raise FileNotFoundError(
                 f"{model}/{name} starts from the weights of {init['model']}/{init['run']}, which are not on this "

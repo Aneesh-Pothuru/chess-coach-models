@@ -648,6 +648,10 @@ def changes_figure(lab: Lab, keys: tuple[str, ...] = CHANGES) -> str | None:
     )
 
 
+# The runs a change was made in that a table sets side by side: a pair of columns each, and a page holds three.
+ACROSS = 3
+
+
 def changes_table(lab: Lab, keys: tuple[str, ...] = CHANGES) -> str | None:
     """The same pairs as a table: a kind of change a block, a model a row, and a column for each run the
     change was made in. A cell is the changed run's paired gain over that run on the one scale with its
@@ -655,29 +659,33 @@ def changes_table(lab: Lab, keys: tuple[str, ...] = CHANGES) -> str | None:
     blocks = {key: bases for key, bases in by_base(lab).items() if key in keys}
     if not blocks:
         return None
-    widest = max(len(bases) for bases in blocks.values())
+    widest = min(ACROSS, max(len(bases) for bases in blocks.values()))
     rows: list[list[str]] = []
-    for key, bases in blocks.items():
+    for key, every in blocks.items():
         if rows:
             rows.append(["\\addlinespace"])
         rows.append([f"\\multicolumn{{{1 + 2 * widest}}}{{l}}{{\\textbf{{{TITLES[key]}}}}}"])
-        heads = [f"\\multicolumn{{2}}{{c}}{{over {run_tex(run)}}}" for run in bases]
-        rows.append(["", *heads, *["\\multicolumn{2}{c}{}"] * (widest - len(bases))])
-        for name in lab.models:
-            if not any(name in entries for entries in bases.values()):
-                continue
-            cells: list[str] = []
-            for entries in bases.values():
-                entry = entries.get(name)
-                amounts = on_step(lab.models[name], entry) if entry is not None else None
-                if amounts is None:
-                    cells += ["", ""]
+        made_in = list(every)
+        # A change made in more runs than a page holds side by side goes on under itself, a band of rows at a time.
+        for first in range(0, len(made_in), ACROSS):
+            bases = {run: every[run] for run in made_in[first : first + ACROSS]}
+            heads = [f"\\multicolumn{{2}}{{c}}{{over {run_tex(run)}}}" for run in bases]
+            rows.append(["", *heads, *["\\multicolumn{2}{c}{}"] * (widest - len(bases))])
+            for name in lab.models:
+                if not any(name in entries for entries in bases.values()):
                     continue
-                cells += [
-                    tex.bold(tex.fixed(amounts[0], 1, sign=True), entry["beyond_noise"]),
-                    f"{tex.fixed(amounts[1], 1, sign=True)} to {tex.fixed(amounts[2], 1, sign=True)}",
-                ]
-            rows.append([run_tex(name), *cells, *[""] * (2 * (widest - len(bases)))])
+                cells: list[str] = []
+                for entries in bases.values():
+                    entry = entries.get(name)
+                    amounts = on_step(lab.models[name], entry) if entry is not None else None
+                    if amounts is None:
+                        cells += ["", ""]
+                        continue
+                    cells += [
+                        tex.bold(tex.fixed(amounts[0], 1, sign=True), entry["beyond_noise"]),
+                        f"{tex.fixed(amounts[1], 1, sign=True)} to {tex.fixed(amounts[2], 1, sign=True)}",
+                    ]
+                rows.append([run_tex(name), *cells, *[""] * (2 * (widest - len(bases)))])
     head = ["Model", *["Gain", "95\\% interval"] * widest]
     table = tex.tabular(f">{{\\raggedright\\arraybackslash}}p{{3.4cm}}{'rr' * widest}", head, rows)
     return table.replace("\\addlinespace \\\\", "\\addlinespace")

@@ -90,23 +90,39 @@ MOST_DECIMALS = 4
 PGF_DIGITS = 7
 
 
+def _changed(run: str) -> tuple[str, str] | None:
+    """The run of another body or size (``CHANGED``) that a run is or that its name starts from, and what the
+    name adds to that run's: nothing for the run itself, ``pretrained`` for ``conv-medium-hand-pretrained``."""
+    for name in sorted(CHANGED, key=len, reverse=True):
+        if run == name or run.startswith(name + "-"):
+            return name, run[len(name) + 1 :]
+    return None
+
+
 def family(run: str) -> str:
     """The run a run's name starts from: itself, or the run it changed one thing in.
 
     ``transformer-medium-hand-long`` is ``transformer-medium-hand`` trained longer, and ``gbm-hand-no-line``
     is ``gbm-hand`` without a group of features. The longest known name a run's name starts with is its family.
-    A run of another body or size has the run it changes as its family (``CHANGED``).
+    A run of another body or size has the run it changes as its family (``CHANGED``), and so has a run that
+    changes one thing in such a run.
     """
-    if run in CHANGED:
-        return CHANGED[run][0]
+    changed = _changed(run)
+    if changed is not None:
+        return CHANGED[changed[0]][0]
     known = [name for name in RUN_COLOURS if run == name or run.startswith(name + "-")]
     return max(known, key=len) if known else run
 
 
 def variant(run: str) -> str:
     """What a run changes in its family: what its name adds (``long``, ``pretrained``, ``no-line``), the word
-    for another body or size (``tower``, ``hybrid``, ``large``), or nothing."""
-    return CHANGED[run][1] if run in CHANGED else run[len(family(run)) + 1 :]
+    for another body or size (``tower``, ``hybrid``, ``large``), that word and what the name adds to such a
+    run's (``tower-pretrained``), or nothing."""
+    changed = _changed(run)
+    if changed is None:
+        return run[len(family(run)) + 1 :]
+    word, added = CHANGED[changed[0]][1], changed[1]
+    return f"{word}-{added}" if added else word
 
 
 def run_colour(run: str) -> str:

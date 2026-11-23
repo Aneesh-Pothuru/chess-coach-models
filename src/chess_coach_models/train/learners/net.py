@@ -11,7 +11,7 @@ from typing import Any
 import numpy as np
 
 from ...evals.metrics import LOWER_IS_BETTER, METRICS, SETS
-from .base import Fitted, Prepared, features
+from .base import Fitted, Prepared, features, seed_of
 
 
 SAME_BODY = ("body", "dim", "depth", "heads")
@@ -92,7 +92,7 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
 
     learner, schedule = config["learner"], config["train"]
     task = prepared.task
-    seed = int(config.get("seed", 0))
+    seed = seed_of(config)
     torch.manual_seed(seed)
     device = device or ("cuda" if torch.cuda.is_available() else "cpu")
     on_gpu = device.startswith("cuda")

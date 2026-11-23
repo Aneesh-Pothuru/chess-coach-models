@@ -73,6 +73,17 @@ They are the `games` study below turned round, and
 they ran. Each is kept only if it beats the run it changes on valid and on test
 beyond the noise.
 
+Runs that are written and wait for their GPU
+([`docs/ideas.md`](../../docs/ideas.md) says what is expected of them, written
+before they run). Each changes one thing in a run above, and is kept only if it
+beats that run on valid and on test beyond the noise:
+
+| Run | Learner |
+|---|---|
+| `transformer-medium-attacks-pretrained` | `transformer-medium-pretrained` with its attention told what each piece attacks and what it stands behind |
+| `transformer-medium-hand-attacks-pretrained` | `transformer-medium-hand-pretrained` told the same |
+| `conv-medium-hand-pretrained` | `conv-medium-hand` started from the tower of [position evaluation](../position-evaluation/) (`conv-medium` there) |
+
 ### Studies
 
 Runs that change one thing in a run above, to say what that thing is worth
@@ -86,6 +97,7 @@ look's `pairs`), which says something only when its interval leaves zero out.
 | `games` | `gbm-hand-half`, `gbm-hand-quarter`, `transformer-medium-hand-half`, `transformer-medium-hand-quarter` | Half and a quarter of the training games, chosen by a hash of the game. The network goes through them often enough to take as many steps as the run it changes, so only the number of games differs. |
 | `features` | `gbm-hand-no-<group>` for each of material, mobility, hanging, pawns, kings | One group of hand features left out |
 | `geometry` | `transformer-medium-hand-no-geometry` | The learned bias for each offset between two squares left out of the transformer's attention: what telling it the board's geometry is worth |
+| `seed` | `transformer-medium-hand-seed1`, `transformer-medium-attacks-seed1`, `transformer-medium-hand-attacks-seed1` | The run each names trained a second time, with another seed and nothing else changed: how far two trainings of one config lie apart. Written, and wait for their GPU |
 
 ## Results
 

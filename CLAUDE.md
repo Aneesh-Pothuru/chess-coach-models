@@ -114,7 +114,13 @@ whenever such a model has a run that names a `base`. Its card says so.
   is not kept is filed under the `games` study.
 - A network that starts from another run's body (`learner.init`) is trained
   on the machine that trained that run, after it: the weights are read from
-  `artifacts/runs/`, and `lab all` skips the run until they are there.
+  `artifacts/runs/`, and `lab all` skips the run until they are there. On
+  another machine `lab all` fetches the body when
+  `models/<model>/published.yaml` says where it is published, and holds the
+  file to the hash written there.
+- A second training of a run with another seed (`train: {seed: 1}`, `study:
+  seed`) says how far two trainings of one config lie apart. A paired gain's
+  interval is over the test games alone and does not hold that distance.
 - Every model keeps its `constant` and `gbm-hand` runs, and every other run is
   compared with `gbm-hand` on the same test rows. The comparison is made when
   a run is trained and written into its record, so `gbm-hand` is trained

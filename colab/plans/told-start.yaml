@@ -1,0 +1,11 @@
+# The architecture test's first follow-up: the attention that is told what each piece attacks, started
+# from the body that learned an engine's evaluations. Puzzle difficulty and think time get it on the
+# board alone and with the hand features, each set against that model's run from the same body, and
+# human-move gets the body under its move head first and then the same change. The body is not
+# trained here: it is fetched from where the lab published it (models/position-evaluation/published.yaml)
+# and held to its hash, so every run starts from the weights the earlier runs started from. Each
+# model's gbm-hand is trained again first, since every run is compared with the one trained on its
+# own machine. About an hour and three quarters on an A100.
+puzzle-difficulty: gbm-hand,transformer-medium-attacks-pretrained,transformer-medium-hand-attacks-pretrained
+think-time: gbm-hand,transformer-medium-attacks-pretrained,transformer-medium-hand-attacks-pretrained
+human-move: gbm-hand,transformer-medium-pretrained,transformer-medium-attacks-pretrained

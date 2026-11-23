@@ -715,6 +715,39 @@ def test_the_closer_look_measures_what_being_shown_more_is_worth(lab, temp_lab):
         analysis.analyse(model, smoke=True)
 
 
+def test_a_network_starts_from_a_body_fetched_from_where_it_is_published(lab, temp_lab):
+    import yaml
+
+    small = CONFIGS["transformer-small"]
+    init = {"model": "puzzle-difficulty", "run": "transformer-small"}
+    temp_lab.model(
+        "puzzle-difficulty-unsolved",
+        {
+            "gbm-hand": CONFIGS["gbm-hand"],
+            "transformer-small": small,
+            "transformer-small-pretrained": {"base": "transformer-small", "learner": {"init": init}},
+        },
+    )
+    model = "puzzle-difficulty-unsolved"
+    runs.run("puzzle-difficulty", "transformer-small", smoke=True, log=lambda _: None)
+    own = paths.run_files("puzzle-difficulty", "transformer-small", smoke=True) / "model.pt"
+    elsewhere = temp_lab.root / "elsewhere" / "body.pt"
+    elsewhere.parent.mkdir()
+    own.rename(elsewhere)
+    weights = elsewhere.read_bytes()
+    assert cli.waits_for(model, "transformer-small-pretrained", smoke=True).startswith("starts from puzzle-difficulty/transformer-small")
+
+    # Once the lab says where the body is published, a machine that never trained it fetches it and the run
+    # trains: a check on a small sample reads the trained body where it has none of its own.
+    entry = {"url": elsewhere.as_uri(), "bytes": len(weights), "sha256": hashlib.sha256(weights).hexdigest()}
+    (paths.model("puzzle-difficulty") / "published.yaml").write_text(yaml.safe_dump({"transformer-small": entry}), encoding="utf-8")
+    assert cli.waits_for(model, "transformer-small-pretrained", smoke=True) is None
+    fetched = paths.run_files("puzzle-difficulty", "transformer-small") / "model.pt"
+    assert fetched.read_bytes() == weights and not own.exists()
+    record = runs.run(model, "transformer-small-pretrained", smoke=True, log=lambda _: None)
+    assert record["learner"]["started_from"]["sha256"] == entry["sha256"]
+
+
 def test_a_network_starts_from_the_body_another_run_trained(lab, temp_lab):
     import torch
 

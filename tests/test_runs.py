@@ -1,5 +1,6 @@
 """A run's config and its record: a run that changes another, a study on its leaderboard, and its pair in the closer look."""
 
+import hashlib
 import json
 
 import numpy as np
@@ -247,3 +248,62 @@ def test_a_record_is_filed_only_as_what_it_was_trained_with(lab):
     with pytest.raises(ValueError, match="kept no weights"):
         filing.file_run("tiny", "constant-half")
     assert before == {name: (paths.results("tiny") / f"{name}.json").read_text() for name in before}
+
+
+def test_a_body_is_fetched_from_where_it_is_published_and_held_to_its_hash(lab):
+    from chess_coach_models.train import published
+
+    assert published.published("tiny") == {} and published.fetch("tiny", "net", log=lambda _: None) is None
+    weights = b"the weights of a trained body" * 1000
+    source = lab.root / "elsewhere" / "net.pt"
+    source.parent.mkdir()
+    source.write_bytes(weights)
+    entry = {"url": source.as_uri(), "bytes": len(weights), "sha256": hashlib.sha256(weights).hexdigest()}
+    (lab.root / "models" / "tiny" / "published.yaml").write_text(yaml.safe_dump({"net": entry}), encoding="utf-8")
+
+    said: list[str] = []
+    target = published.fetch("tiny", "net", log=said.append)
+    assert target == paths.run_files("tiny", "net") / "model.pt" and target.read_bytes() == weights
+    assert "published weights fetched" in said[0] and entry["sha256"] in said[0]
+    assert published.fetch("tiny", "net-half", log=said.append) is None
+
+    # A file that is not the one the lab published is refused, and nothing of it is left behind.
+    target.unlink()
+    source.write_bytes(weights + b"!")
+    with pytest.raises(ValueError, match="is not the weights the lab published"):
+        published.fetch("tiny", "net", log=said.append)
+    assert list(target.parent.iterdir()) == []
+
+    # A file that cannot be reached is no error: the run that asked for it waits, as it would have.
+    source.unlink()
+    assert published.fetch("tiny", "net", log=said.append) is None
+    assert "could not be fetched" in said[-1] and list(target.parent.iterdir()) == []
+
+
+def test_a_check_on_a_small_sample_starts_from_the_trained_body_only_where_it_has_none_of_its_own(lab):
+    from chess_coach_models.train import published
+
+    init = {"model": "tiny", "run": "net"}
+    own = paths.run_files("tiny", "net", smoke=True) / "model.pt"
+    trained = paths.run_files("tiny", "net") / "model.pt"
+    assert published.start_weights(init, smoke=True) == own and published.start_weights(init, smoke=False) == trained
+    trained.parent.mkdir(parents=True)
+    trained.write_bytes(b"trained")
+    assert published.start_weights(init, smoke=True) == trained
+    own.parent.mkdir(parents=True)
+    own.write_bytes(b"the check's own")
+    assert published.start_weights(init, smoke=True) == own and published.start_weights(init, smoke=False) == trained
+
+
+def test_a_second_training_names_its_seed_as_a_setting_of_its_training():
+    from chess_coach_models.train.learners.base import seed_of
+
+    assert seed_of({"learner": {"kind": "net"}}) == 0 and seed_of({"seed": 2}) == 2
+    assert seed_of({"seed": 2, "train": {"epochs": 12, "seed": 1}}) == 1
+    settings = {"learner": {"kind": "net", "body": "transformer", "dim": 16, "depth": 2}, "train": {"epochs": 12}}
+    first = {"run": "net", "config": settings}
+    second = {"run": "net-seed1", "config": {**settings, "base": "net", "study": "seed", "train": {"epochs": 12, "seed": 1}}}
+    assert changes.changed(second, first) == [("train", "seed")]
+    assert changes.differs(second, first) == "is trained a second time, with another seed"
+    # A second training is no kind of change the lab's paper counts: it measures the luck of a training.
+    assert changes.kind(second, first) is None

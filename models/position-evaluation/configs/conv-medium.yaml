@@ -1,0 +1,12 @@
+# The body changed: the convolutional tower the other models train as conv-medium-hand (ten residual
+# blocks of width 192, each weighing its channels by the whole board, at the tower's learning rate), on
+# the board alone. A tower elsewhere starts from it (`learner.init`) as a transformer starts from
+# transformer-medium, so its size is theirs.
+base: transformer-medium
+learner:
+  body: conv
+  dim: 192
+  depth: 10
+  squeeze: 4
+train:
+  lr: 0.002

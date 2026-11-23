@@ -202,9 +202,15 @@ layers that read the numbers beside the board carry over only when both tasks re
 numbers; the head never does (`start_from` in `train/learners/net.py`). What a transformer's
 attention is told is no part of its size: one told what each piece attacks takes the body of one
 told nothing and begins as that body does, since its weights on what it is told start at nothing.
-The weights are read from this machine's `artifacts/runs/`, so the run they come from is trained
-first, and `lab all` skips a run whose start is not there yet. The record names the file it
-started from by its hash and says what was taken.
+The weights are read from this machine's `artifacts/runs/`. On the machine that trained the run
+they come from they are there, so that run is trained first. On any other they are fetched when the
+lab has published them: `models/<model>/published.yaml` says where a run's weights are, how many
+bytes they are and what their hash is, and a file that is not that one is refused
+(`train/published.py`), so a run started from a fetched body starts from the very weights the
+earlier runs started from. A test holds each entry to the run's committed record and to a release
+of this repository. `lab all` skips a run whose start is neither there nor published. A check on a
+small sample reads the body its own sample trained, and the trained body where it has none. The
+record names the file it started from by its hash and says what was taken.
 [`position-evaluation`](../models/position-evaluation/) exists to be started from: its label is an
 engine's evaluation, which says nothing about people, and its body is the one every other model's
 `transformer-medium` has. Its task says so with `purpose: body`. Such a model is built, trained,
@@ -216,9 +222,12 @@ by side.
 (`run_config` in `train/run.py`). Two changes need no code: `data: {train_share: 0.5}` trains on
 half of the training games, chosen by a hash of the game so a quarter is inside a half and the
 valid and test rows are never touched, and `learner: {without: [kings]}` leaves a group of hand
-features out. A run that also names a `study` is there to say what one thing is worth, not to be
-a candidate. `lab all <model>` trains a model's own runs, and `--runs study:games` asks for a
-study by name.
+features out. A third is `train: {seed: 1}`, which trains the same config a second time: every
+run is trained with seed 0 unless it names another, and the study `seed` holds the second
+trainings, whose pairs say how far two trainings of one config lie apart. The interval of a paired
+gain is over the test games alone and does not hold that distance. A run that also names a `study`
+is there to say what one thing is worth, not to be a candidate. `lab all <model>` trains a model's
+own runs, and `--runs study:games` asks for a study by name.
 
 **A run on more games.** A run can take its training rows from a larger build of its task's
 dataset: `data: {train_on: puzzles-all}`. Its valid and test rows are still the task's own, read

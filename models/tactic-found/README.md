@@ -94,6 +94,15 @@ are scored on the valid and test rows every run here is scored on
 says what was expected of them before they ran. Each is kept only if it beats
 the run it changes on valid and on test beyond the noise.
 
+Runs that are written and wait for their GPU
+([`docs/ideas.md`](../../docs/ideas.md) says what is expected of them, written
+before they run). Each changes one thing in a run above, and is kept only if it
+beats that run on valid and on test beyond the noise:
+
+| Run | Learner |
+|---|---|
+| `conv-medium-hand-pretrained` | `conv-medium-hand` started from the tower of [position evaluation](../position-evaluation/) (`conv-medium` there) |
+
 ### Studies
 
 Runs that change one thing in a run above, to say what that thing is worth

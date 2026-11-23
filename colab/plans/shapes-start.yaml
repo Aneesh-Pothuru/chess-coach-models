@@ -1,0 +1,13 @@
+# The architecture test's follow-up in one pass, three questions. The plan `told-start`: the attention
+# that is told what each piece attacks, started from the body that learned an engine's evaluations
+# (fetched from where the lab published it, not trained here). A tower with a body of its own:
+# position-evaluation trains the tower on the same evaluations first, and the three models that kept
+# the tower start theirs from it. And a second training with another seed (the study `seed`) of the
+# runs whose result was small or odd, and of the transformer they are set against, which says how far
+# two trainings of one config lie apart. position-evaluation comes first: the towers read its weights
+# from this runtime. About three and a half hours on an A100.
+position-evaluation: gbm-hand,conv-medium
+puzzle-difficulty: gbm-hand,transformer-medium-attacks-pretrained,transformer-medium-hand-attacks-pretrained,conv-medium-hand-pretrained,study:seed
+think-time: gbm-hand,transformer-medium-attacks-pretrained,transformer-medium-hand-attacks-pretrained,conv-medium-hand-pretrained,study:seed
+tactic-found: gbm-hand,conv-medium-hand-pretrained
+human-move: gbm-hand,transformer-medium-pretrained,transformer-medium-attacks-pretrained

@@ -43,6 +43,7 @@ Written before the first full run.
 | `constant` | The mean for every position |
 | `gbm-hand` | LightGBM on the position's hand features (the reference) |
 | `transformer-medium` | The square-token transformer the other models train, on the board alone |
+| `conv-medium` | The convolutional tower the other models train as `conv-medium-hand`, on the board alone: a body for a tower to start from. Written, and waits for its GPU |
 
 ## Results
 

@@ -217,6 +217,12 @@ def prepare(task: Task, dataset: Dataset, *, train_share: float = 1.0, scored: D
     )
 
 
+def seed_of(config: dict[str, Any]) -> int:
+    """The seed a run is trained with: ``train.seed`` in its config, and 0 where it names none. A run that
+    names another trains the same config a second time."""
+    return int((config.get("train") or {}).get("seed", config.get("seed", 0)))
+
+
 def features(prepared: Prepared, which: str, without: Sequence[str] = ()) -> tuple[np.ndarray, list[str]]:
     """The numbers a learner reads beside the board: the task's ``context``, or with ``hand`` the hand features too.
 

@@ -194,6 +194,8 @@ def _change(block: str, key: str, new: Any, old: Any) -> str:
         return f"trains on {games_words(float(new))}" if new is not None else "trains on all the training games"
     if (block, key) == ("data", "train_on"):
         return "trains on the dataset's own rows" if new is None else f"trains on the larger build \\texttt{{{tex.esc(new)}}}"
+    if (block, key) == ("train", "seed"):
+        return "is trained a second time, with another seed"
     name = {"epochs": "epochs", "patience": "epochs of patience", "lr": "peak learning rate", "batch": "rows a batch"}.get(key)
     if block == "train" and name is not None and new is not None:
         number = tex.plain(new) if isinstance(new, (int, float)) else tex.esc(new)

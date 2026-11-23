@@ -1,5 +1,7 @@
 """A model's task and its analysis plan, read from its folder."""
 
+import json
+
 import pytest
 import yaml
 
@@ -8,6 +10,8 @@ from chess_coach_models.encode.hand import GROUPS
 from chess_coach_models.evals import analysis
 from chess_coach_models.evals.metrics import METRICS
 
+
+RELEASES = "https://github.com/Aneesh-Pothuru/chess-coach-models/releases/download"
 
 TASK = {
     "dataset": "puzzles",
@@ -179,6 +183,19 @@ def test_every_colab_plan_names_models_and_runs_the_lab_has():
                 assert known, (plan.name, name, run)
             # Every other run is compared with the reference trained on the same machine, so it comes first.
             assert runs[0] == tasks.get(name).reference and len(set(runs)) == len(runs), (plan.name, name)
+
+
+def test_what_the_lab_says_it_has_published_is_what_the_run_s_record_names():
+    for name in tasks.names():
+        listed = paths.model(name) / "published.yaml"
+        if not listed.exists():
+            continue
+        for run, entry in yaml.safe_load(listed.read_text(encoding="utf-8")).items():
+            record = json.loads((paths.results(name) / f"{run}.json").read_text(encoding="utf-8"))
+            (weights,) = [file for file in record["weights"] if file["file"] == "model.pt"]
+            assert (entry["bytes"], entry["sha256"]) == (weights["bytes"], weights["sha256"]), (name, run)
+            # A release of the lab's own repository, by a tag: what is there does not change under a run.
+            assert entry["url"].startswith(f"{RELEASES}/"), (name, run)
 
 
 def test_a_larger_build_of_a_dataset_changes_only_how_much_of_the_source_it_keeps():

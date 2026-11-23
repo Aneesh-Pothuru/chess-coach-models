@@ -101,6 +101,16 @@ The last four change only the body of the run they name
 they ran. Each is kept only if it beats the run it changes on valid and on
 test beyond the noise.
 
+Runs that are written and wait for their GPU
+([`docs/ideas.md`](../../docs/ideas.md) says what is expected of them, written
+before they run). Each changes one thing in a run above, and is kept only if it
+beats that run on valid and on test beyond the noise:
+
+| Run | Learner |
+|---|---|
+| `transformer-medium-pretrained` | `transformer-medium` started from the body of [position evaluation](../position-evaluation/), under the move head |
+| `transformer-medium-attacks-pretrained` | `transformer-medium-pretrained` with its attention told what each piece attacks and what it stands behind |
+
 ### Studies
 
 Runs that change one thing in a run above, to say what that thing is worth

@@ -144,19 +144,46 @@ for the run that starts from it.
 
 The architecture test adds two runs to that list, ahead of the rest. The first is the attention
 that is told what each piece attacks, started from that body. On puzzle difficulty and on think
-time the two are the largest gains measured, each made alone, and they can be made together
-without a new body: what the attention is told enters with weights that start at nothing
-([`design.md`](design.md), "Bodies and a head"), so such a network takes the body as it is and
-begins as that body does. On think time it is made on the board alone as well as with the hand
-features, since there the network that was told the attacks did better without them. On human-move
-the same network is the first to put under the move head from the body. The second is a tower
-that learns the same evaluations and is then a body to start from: the tower is kept in three
-models and is the best run from nothing in two of them, and it cannot start from a transformer's
-body.
+time the two are the changes the transformer that reads the board alone gained most from, each made
+alone, and they can be made together without a new body: what the attention is told enters with
+weights that start at nothing ([`design.md`](design.md), "Bodies and a head"), so such a network
+takes the body as it is and begins as that body does. On think time it is made on the board alone
+as well as with the hand features, since there the network that was told the attacks did better
+without them. On human-move the same network is the first to put under the move head from the body.
+The second is a tower that learns the same evaluations and is then a body to start from: the tower
+is kept in three models and is the best run from nothing in two of them, and it cannot start from a
+transformer's body.
 
 Every run was trained once. A second training matters most for the small gains (the tower's in
 puzzle difficulty) and for the one odd result: on think time the transformer that is told the
 attacks is better without the hand features than with them.
+
+These runs are written and wait for their GPU (the plans `told-start` and `shapes-start` in
+[`colab/plans/`](../colab/plans/)):
+
+- **The attention that is told the attacks, from the body.** Puzzle difficulty and think time get
+  it on the board alone and with the hand features (`transformer-medium-attacks-pretrained`,
+  `transformer-medium-hand-attacks-pretrained`), each set against that model's run from the same
+  body. Human-move gets the body under its move head first (`transformer-medium-pretrained`) and
+  then the same change. The body is the one the earlier runs started from, fetched from where it
+  is published and held to its hash ([`design.md`](design.md), "Starting from another run").
+- **A tower with a body of its own.** position-evaluation trains the tower on the same evaluations
+  (`conv-medium`), and puzzle difficulty, think time and tactic found, the three models that kept
+  the tower, start theirs from it (`conv-medium-hand-pretrained`).
+- **A second training** (the study `seed`): on puzzle difficulty the transformer with the hand
+  features and the tower, and on think time that transformer and the two runs that are told the
+  attacks. Each pair of trainings says how far two trainings of one config lie apart.
+
+What is expected, written before any of them ran. The telling adds to the start on the board
+alone in both models, by less than it added from nothing, since a body that has learned an
+engine's evaluations has some of it already. With the hand features it adds a little in puzzle
+difficulty and nothing in think time, as from nothing. On human-move the start is kept and the
+telling is kept on top of it, since that network is short of games and had not finished learning.
+The tower gains from a body of its own in all three models. Whether it then passes the
+transformer that starts from its body is open: it is likeliest in think time and tactic found,
+where the tower leads from nothing. Two trainings of one config lie one or two hundredths of the
+reference's step apart, which is about the tower's lead in puzzle difficulty, and think time's
+odd result is there the second time.
 
 ### More published models on the human-move rows
 

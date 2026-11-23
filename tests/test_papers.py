@@ -126,6 +126,10 @@ def test_a_run_of_another_body_or_size_is_drawn_as_the_run_its_config_changes():
     assert charts.family("hybrid-medium-hand") == "transformer-medium-hand" and charts.variant("hybrid-medium-hand") == "hybrid"
     assert charts.run_colour("conv-medium") == charts.run_colour("transformer-medium")
     assert charts.family("conv-small") == "conv-small" and charts.variant("conv-small") == ""
+    # A run that changes one thing in such a run is drawn with it: the same family, and both words for its change.
+    assert charts.family("conv-medium-hand-pretrained") == "transformer-medium-hand"
+    assert charts.variant("conv-medium-hand-pretrained") == "tower-pretrained" and charts.variant("conv-medium-hand-seed1") == "tower-seed1"
+    assert charts.family("conv-medium-pretrained") == "transformer-medium" and charts.variant("transformer-large-hand") == "large"
     seen = set()
     for model in MODELS:
         for config in paths.configs(model).glob("*.yaml"):
@@ -567,6 +571,39 @@ def test_one_change_is_read_model_by_model_by_the_run_it_was_made_in():
         "better beyond the noise in one of the two models (puzzle difficulty) and inside the noise in one of the two models (blunder hazard)"
     )
     assert overview._tally([], ["think-time"], []) == "inside the noise in the one model (think time)"
+
+
+def test_a_change_made_in_more_runs_than_a_table_sets_side_by_side_goes_on_under_itself(monkeypatch):
+    primary = tasks.get("puzzle-difficulty").primary
+    board = {"kind": "net", "body": "transformer", "dim": 256, "depth": 8}
+    hand = {**board, "features": "hand"}
+    runs = [
+        _record("transformer-medium-hand-long", hand, 6.0, primary, train={"epochs": 24}),
+        _record("transformer-medium-hand", hand, 7.0, primary, train={"epochs": 12}),
+        _record("transformer-medium-long", board, 7.5, primary, train={"epochs": 24}),
+        _record("transformer-medium", board, 8.0, primary, train={"epochs": 12}),
+        _record("gbm-hand", {"kind": "gbm", "features": "hand"}, 9.0, primary),
+        _record("constant", {"kind": "constant"}, 10.0, primary),
+    ]
+    pairs = [
+        {"run": "transformer-medium-long", "over": "transformer-medium", "gain": 0.3, "low": 0.1, "high": 0.5, "beyond_noise": True},
+        {"run": "transformer-medium-hand-long", "over": "transformer-medium-hand", "gain": 0.1, "low": -0.2, "high": 0.4, "beyond_noise": False},
+    ]
+    lab = overview.Lab({"puzzle-difficulty": _sources("puzzle-difficulty", runs, look={"pairs": pairs})}, {}, {})
+    assert list(overview.by_base(lab)["epochs"]) == ["transformer-medium", "transformer-medium-hand"]
+    # Both runs the epochs were changed in fit side by side: one row of the model under one line of heads.
+    wide = overview.changes_table(lab).splitlines()
+    assert "Model & Gain & 95\\% interval & Gain & 95\\% interval \\\\" in wide
+    assert " & \\multicolumn{2}{c}{over \\run{transformer-medium}} & \\multicolumn{2}{c}{over \\run{transformer-medium-hand}} \\\\" in wide
+    assert "\\run{puzzle-difficulty} & \\textbf{+30.0} & +10.0 to +50.0 & +10.0 & $-$20.0 to +40.0 \\\\" in wide
+    # A table that holds one run across names the second under the first, each with the model's row of its own.
+    monkeypatch.setattr(overview, "ACROSS", 1)
+    narrow = overview.changes_table(lab).splitlines()
+    assert "Model & Gain & 95\\% interval \\\\" in narrow and "\\multicolumn{3}{l}{\\textbf{More epochs}} \\\\" in narrow
+    first = narrow.index(" & \\multicolumn{2}{c}{over \\run{transformer-medium}} \\\\")
+    second = narrow.index(" & \\multicolumn{2}{c}{over \\run{transformer-medium-hand}} \\\\")
+    assert narrow[first + 1] == "\\run{puzzle-difficulty} & \\textbf{+30.0} & +10.0 to +50.0 \\\\" and second == first + 2
+    assert narrow[second + 1] == "\\run{puzzle-difficulty} & +10.0 & $-$20.0 to +40.0 \\\\"
 
 
 def _shaped(model, gains):
