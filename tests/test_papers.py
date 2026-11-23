@@ -916,6 +916,15 @@ def test_a_ranking_table_s_head_names_the_end_it_is_taken_from():
     assert "Bottom share of test set" in bottom and "Top share of test set" not in bottom
 
 
+def test_the_error_table_of_a_logarithmic_target_names_factors_in_its_head():
+    table = closer.closeness_table(sources.read("think-time"))
+    # Its cells are factors, so a head that said "abs. error" would name a unit the column does not hold.
+    assert "Median error factor" in table and "90th pct. error factor" in table and "abs. error" not in table
+    assert "Within $\\times$2" in table
+    plain = closer.closeness_table(sources.read("puzzle-difficulty"))
+    assert "Median abs. error" in plain and "error factor" not in plain
+
+
 def test_a_run_that_was_filed_keeps_its_pair_and_its_place_beside_the_run_it_changed():
     tried = _longer("puzzle-difficulty", (0.1, -0.2, 0.4))
     longer, base = tried.runs[0], tried.runs[1]

@@ -657,7 +657,11 @@ def closeness_table(src: Sources) -> str | None:
         for name in src.names
         if name in close
     ]
-    head = ["Model", "Median abs. error", "90th pct. abs. error", *(f"Within {tex.esc(name)}" for name in names)]
+    if log:
+        # On a logarithmic target an error is a factor, so the head names the factor that the cells print.
+        head = ["Model", "Median error factor", "90th pct. error factor", *(f"Within $\\times${tex.esc(name)}" for name in names)]
+    else:
+        head = ["Model", "Median abs. error", "90th pct. abs. error", *(f"Within {tex.esc(name)}" for name in names)]
     return tex.tabular("lrr" + "r" * len(names), head, rows)
 
 

@@ -1,1057 +1,1382 @@
-% Think time: the paper. What is typed here says what the numbers mean.
-% Every number, table, figure and board is written by `lab paper think-time`
-% into generated/, from the model's committed results, and read back with
-% \V{key} and \block{name}.
+% Think time: the paper. The prose follows docs/writing.md. Every number,
+% table, figure and board is written by `lab paper think-time` into
+% generated/, from the model's committed results, and read back with \V{key}
+% and \block{name}.
 \documentclass[11pt]{article}
 \input{../../../papers/preamble}
 \input{generated/values}
 
 \begin{document}
 
-\labtitle{Think time}
-  {How long do players at a level think in this position, on this clock?}
-  {Results of \V{results.date}\quad\textperiodcentered\quad dataset \V{data.name},
+\papertitle{Predicting Move Times in Human Chess Games}
+  {Results as of \V{results.date}\quad\textperiodcentered\quad dataset \V{data.name},
    build \V{data.fingerprint}\quad\textperiodcentered\quad code \V{code.commit}}
 
-\begin{summary}
-``You moved too fast here'' needs a yardstick: two seconds mean one thing
-where a player's peers also take two, and another where they take twenty.
-This paper trains models of the time players take over a move, from the
-position, both ratings and both clocks, with no engine. The data is
-\V{data.rows} positions from \V{recipe.games} rated rapid games on Lichess,
-split by game. The label is the logarithm of the seconds spent, and the score
-is the mean absolute error of that logarithm, so an error is a factor. The
-best of \V{runs.count} runs, a square-token transformer that also reads
-\V{task.hand.count} hand-made counts and starts from a body trained on
-engine evaluations first, is off by a factor of
-\V{best.mae.factor} on a typical move (MAE \V{best.score}, 95\% interval
-\V{best.score.low} to \V{best.score.high}), against \V{reference.mae.factor}
-for gradient-boosted trees on the counts and \V{floor.mae.factor} for one
-time said for every move. Beyond the noise, \V{networks.ahead.of} beat the
-trees. Most of what can be predicted is the clock: trees that never see the
-board make \V{context.lift.share}\% of the reference's step from the floor.
-And most of a move's time cannot be predicted from the position at all: the
-best run explains a share of \V{best.r2} of the variance. The model says what
-is usual. One move far from it is weak evidence, and a pattern over many
-moves is what to read.
-\end{summary}
+\begin{abstract}
+How long a chess player thinks about a move depends on the position, on the
+clock and on the player. We train models that predict the time spent on a
+move in a rated rapid game from the position, the opponent's preceding move,
+both players' ratings, both clocks and the time control, without an engine
+evaluation. The target is the logarithm of one plus the number of seconds,
+and the primary metric is the mean absolute error (MAE) of this logarithm, so
+that an error corresponds to a factor. The dataset contains \V{data.rows}
+positions from \V{recipe.games} rated rapid games played on Lichess, split by
+game. We compare a constant baseline, gradient-boosted decision trees (GBDT)
+on hand-crafted features, and convolutional and transformer networks that
+read the board as 64 square tokens. The best of \V{runs.count} models is a
+transformer that also receives the hand-crafted features and whose encoder is
+pretrained on engine evaluations. On \V{data.rows.test} test positions its
+MAE is \V{best.score} (95\% CI \V{best.score.low} to \V{best.score.high}), an
+error factor of \V{best.mae.factor}, compared with \V{reference.score}
+(\V{reference.mae.factor}) for the GBDT baseline and \V{floor.score}
+(\V{floor.mae.factor}) for the constant baseline. GBDT on the scalar context
+features alone, which are the ratings, the clocks, the time control, the ply
+and the castling rights, achieves \V{context.lift.share}\% of the baseline's
+improvement over the constant. Pretraining, an attack-aware attention bias, a
+residual convolutional encoder, a longer training schedule and more training
+data each improve a network significantly. The coefficient of determination
+of the best model is \V{best.r2}. Its predictions are accurate on average
+over their whole range, but they do not anticipate individual long thinks: a
+single position does not determine most of the variation in the time a move
+takes.
+\end{abstract}
 
-\section{The question}
+\section{Introduction}
+\label{sec:intro}
 
-An engine has no view of the clock, and a clock alone has no view of the
-board. A player's use of time sits between the two. The same eight seconds
-are a rush in a position with three captures to weigh, and a dawdle on a
-forced recapture.
+A chess engine evaluates a position without regard to the clock, and the
+clock shows the time that remains without regard to the position. The time a
+player spends on a move depends on both. Eight seconds are a short time in a
+position with three captures to consider, and a long time for a forced
+recapture.
 
-The coaching app this lab works for coaches thinking in rapid games, and the
-commonest thing it has to say is about pace: this move was played too fast,
-this one took longer than the position deserved. Said against a fixed number
-of seconds, that advice knows nothing of the position or the clock. Said
-against what players of the same rating take in the same position with the
-same time left, it is a comparison a player can use. A model of the typical think time is that
-yardstick.
+This work supports a chess coaching application that gives feedback on how a
+player uses the clock in rapid games: a move that was played too quickly, or
+one that took longer than the position required. Such feedback needs a
+reference. A fixed number of seconds cannot serve as one, because it ignores
+both the position and the clock. The time that players of the same rating
+usually take in the same position with the same time remaining can, and a
+model of this time provides the reference.
 
-The time a move takes has been modelled as part of playing like a person:
-Allie predicts how long a player ponders along with the move
-itself~\cite{allie}, reading the game as a sequence. This paper asks a
-narrower question with the lab's common tools: from one position and its
-clocks, with no history and no engine, how much of the time can be told?
-The answer sets what the yardstick is worth before anything is built on it.
+We study the following prediction task. Before a move is played, given the
+position, the opponent's preceding move, both players' ratings, both clock
+times and the time control, predict the time that the player will spend on
+the move. No model receives an engine evaluation. A player does not know the
+evaluation, and the reference is meant to describe what players do with the
+information that is available to them.
+
+We evaluate a fixed sequence of models on \V{data.rows} positions from rated
+rapid games on Lichess: a constant baseline, GBDT on scalar context features,
+GBDT with hand-crafted features of the position, and neural networks that
+read the board directly, with and without the hand-crafted features. Because
+the sequence is fixed, each step measures the contribution of one component.
+Our main findings are the following.
+\begin{itemize}
+\item \textbf{The context accounts for most of what is predicted.} GBDT on
+the scalar context features alone (the ratings, the clocks, the time control,
+the ply and the castling rights), without the board, has an MAE of
+\V{run.gbm-context.score}. It achieves \V{context.lift.share}\% of the
+improvement of the GBDT baseline (\V{reference.score}) over the constant
+baseline (\V{floor.score}).
+\item \textbf{A network that reads the board improves on GBDT by a small
+margin.} With the hand-crafted features, the medium transformer is
+significantly better than the GBDT baseline (gain
+\V{run.transformer-medium-hand.gain}; 95\% CI
+\V{run.transformer-medium-hand.gain.low} to
+\V{run.transformer-medium-hand.gain.high}). The best model's gain is
+\V{best.gain.percent}\% of the baseline's MAE (Section~\ref{sec:results}).
+\ifchanges
+\item \textbf{Several modifications of the network are
+accepted.}\ifchangestart{} Initialising the transformer's encoder from a
+model trained on engine evaluations gives the largest paired gain,
+\V{pair.transformer-medium-pretrained.transformer-medium.gain} without the
+hand-crafted features.\fi\ifchangeattacks{} An attention bias computed from
+the attacks between squares gives
+\V{pair.transformer-medium-attacks.transformer-medium.gain}, more than the
+hand-crafted features do
+(\V{pair.transformer-medium-hand.transformer-medium.gain}).\fi\ifchangeconv{}
+A residual convolutional encoder is significantly better than a transformer
+encoder of similar size.\fi\ifchangeepochs{} A schedule of twice the length
+is accepted for both medium transformers.\fi{}
+(Section~\ref{sec:ablations}.)
+\fi
+\ifmore
+\item \textbf{More training data helps both model classes.} With four times
+the training games, the gain is \V{pair.gbm-hand-quadruple.gbm-hand.gain} for
+GBDT and
+\V{pair.transformer-medium-hand-quadruple.transformer-medium-hand.gain} for
+the transformer (Section~\ref{sec:training-size}).
+\fi
+\item \textbf{Most of the variation is not predictable from one position.}
+The coefficient of determination (R\textsuperscript{2}) of the best model
+is \V{best.r2}\iflook, and \V{best.close.within.2}\% of its predictions are
+within a factor of two of the time spent\fi.
+\iflook
+\item \textbf{The predictions are accurate on average and do not anticipate
+long thinks.} When the test positions are divided into
+\V{best.reliability.groups} bins by the predicted time, the mean prediction
+and the typical time spent, both computed on the logarithmic scale
+(Section~\ref{sec:protocol}), differ by at most
+\V{best.reliability.widest-gap} seconds in any bin. The highest bin has a
+mean prediction of
+\V{best.reliability.highest.said} seconds, whereas one move in twenty takes
+more than \V{describe.spent.q95} seconds (Section~\ref{sec:error}).
+\fi
+\end{itemize}
+
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{Models of human play.}
+Maia~\cite{maia} and Maia-2~\cite{maia2} predict the move that a player of a
+given rating plays in a position. They model the choice of the move and not
+the time it takes. Allie~\cite{allie} is a transformer trained on sequences
+of moves from human games that predicts, in addition to the move, how long
+the player ponders and whether the player resigns. It reads the game as a
+sequence. We study a narrower setting: one position with its clocks, without
+the preceding moves and without an engine. We measure how much of the time
+spent can be predicted in this setting, and how much each input and each
+model component contributes relative to a feature-based baseline on the same
+test games.
+
+\paragraph{Time and errors.}
+Anderson et al.~\cite{humanerror} relate the errors of human players to the
+difficulty of the position, the player's skill and the time available, and
+find that the difficulty of the position predicts errors best. A model of
+blunder risk on the positions used here is described in a companion paper of
+this repository. Its error analysis shows that the blunder rate increases
+with the time spent on the move, which is one motivation for modelling that
+time directly.
+
+\paragraph{Pretraining on engine evaluations.}
+Ruoss et al.~\cite{searchless} show that a large transformer trained by
+supervised learning on engine evaluations plays strongly without search. We
+use a far smaller model of this kind only as a source of pretrained weights
+(Section~\ref{sec:ablations}).
+
+\section{Task and Data}
+\label{sec:data}
+
+\subsection{Task}
+
+An example is one position of a game, immediately before a move is played.
+The input is the position, the opponent's preceding move, both players'
+ratings, both clock times, the time control and the ply. The target is the
+time that the player spent on the move, on a logarithmic scale.
+Table~\ref{tab:brief} summarises the task.
 
 \begin{table}[htbp]\centering\small
 \begin{tabularx}{\textwidth}{lL}
 \toprule
-Reads & The position, the opponent's last move, both ratings, both clocks,
-the time control and the move number. No engine: the question is what the
-player can see. \\
-Predicts & The seconds spent on the move, as $\log(1 + \text{seconds})$. \\
-Data & Rated Lichess rapid games of \V{data.month} (\V{data.licence}) with
-clocks: up to \V{recipe.per-game} positions a game. \\
-Split & By game: \V{data.share.train}\% train, \V{data.share.valid}\% valid,
-\V{data.share.test}\% test. \\
-Score & Mean absolute error of the logarithm on the test positions. Lower is
-better, and an error of 0.69 is a factor of two. \\
+Input & The position before the move, the opponent's preceding move, both
+players' ratings, both clock times, the time control and the ply. No engine
+evaluation. \\
+Target & The time spent on the move, as $\log(1 + \text{seconds})$. \\
+Data & Rated rapid games from the Lichess database (\V{data.licence}) for
+\V{data.month} that carry clock times and engine evaluations:
+\V{recipe.games} games and up to \V{recipe.per-game} positions per game. \\
+Split & By game: \V{data.share.train}\% training, \V{data.share.valid}\%
+validation, \V{data.share.test}\% test. \\
+Primary metric & MAE of the target on the test set (lower is better). An
+error of 0.69 corresponds to a factor of two. \\
 \bottomrule
 \end{tabularx}
-\caption{The model in brief.}
+\caption{Summary of the task.}
 \label{tab:brief}
 \end{table}
 
-\section{The data}
+\paragraph{Definition of the time spent.}
+Lichess records the time remaining on a player's clock after each of the
+player's moves, in whole seconds. Let $t_{\mathrm{before}}$ be the time on
+the mover's clock after the mover's previous move, $t_{\mathrm{after}}$ the
+time on it after the move in question, and $i$ the increment that the time
+control adds after every move. The time spent on the move is
+\[
+s = \max(0,\; t_{\mathrm{before}} - t_{\mathrm{after}} + i),
+\]
+and the target is $y = \log(1 + s)$, with the natural logarithm. Because the
+clocks are recorded in whole seconds, $s$ is a whole number, and a move that
+is played immediately has $s = 0$ or $s = 1$.
 
-The positions are the ones the lab's blunder model reads. The source is the
-Lichess database of rated games for \V{data.month}~\cite{lichessdb}. The
-builder reads the month as a stream from its start and stops once
-\V{recipe.games} games have given rows, so the sample is the first games of
-the month and not a draw from all of it. A game gives rows when it is rated,
-played at rapid speed between two rated humans, ended over the board or on
-time, and carries Lichess's engine analysis and both clocks.
+\subsection{Dataset}
 
-From each such game up to \V{recipe.per-game} positions are kept, chosen by a
-hash of the game and the ply. None comes before ply \V{recipe.min-ply}, each
-side's sixth move, while players are still playing their openings from
-memory. That gives \V{data.rows} positions (Table~\ref{tab:data}). The split
-is a hash of the game, so no game has positions on both sides of it.
+The source is the Lichess database of rated games~\cite{lichessdb} for
+\V{data.month}. A game is included when it is rated, both players have a
+rating and neither is a bot, the time control is rapid by Lichess's
+definition (an estimated duration of 8 to 25 minutes, where the estimate is
+the initial time plus 40 times the increment), the game ended on the board
+or on time, and its record carries engine evaluations and clock times. The
+dataset is shared with the blunder-risk task, whose label is computed from
+the evaluations. This is why games without evaluations are excluded although
+no model in this paper receives an evaluation. Lichess computes evaluations
+for a game only when a user requests a computer analysis of it, so the
+analysed games are a self-selected subset of all games.
 
-\paragraph{The seconds a move took.}
-Lichess records each player's clock after every move. The time spent on a
-move is the mover's clock before it, less the clock after it, plus the
-increment the time control adds. Clocks are kept in whole seconds, so a move
-made at once reads as nought or one.
+The monthly file is read from its beginning until \V{recipe.games} games have
+contributed positions, and \V{manifest.games-read} games were read to find
+them. The dataset therefore consists of the first qualifying games of the
+month in file order. It is not a random sample of the month.
+
+From each game we take up to \V{recipe.per-game} positions, selected among
+the eligible plies by a hash of the game identifier and the ply. A ply is
+eligible from ply \V{recipe.min-ply} on, that is after each side's first five
+moves, the opening cut used by Maia~\cite{maia}, provided that the
+evaluations before and after the move and the clock times around the move are
+all available. The resulting dataset has \V{data.rows} positions
+(Table~\ref{tab:data}).
+
+The split is determined by a hash of the game identifier, so all positions
+of a game fall in the same set, and the test set contains positions from
+\V{data.games.test} games. The same grouping is used for the bootstrap
+(Section~\ref{sec:protocol}). The dataset is not stored in the repository.
+Its recipe is, and a build of the dataset is identified by a fingerprint, a
+hash of its contents. All models in this paper were trained and evaluated on
+build \V{data.fingerprint}\ifmore; the models of
+Section~\ref{sec:training-size} that use more training games were trained on
+a larger build and evaluated on the validation and test sets of this
+one\fi. The evaluation code refuses to rank models evaluated on different
+builds.
 
 \begin{table}[htbp]\centering\small
 \block{data}
-\caption{The dataset's rows by split.}
+\caption{Dataset statistics by split. The mean target is converted to
+seconds: it is the typical time defined in Section~\ref{sec:protocol}.}
 \label{tab:data}
 \end{table}
 
 \iflook
-The builder read \V{manifest.games-read} games of the month to find the
-\V{manifest.games-kept} that gave rows. Half of all moves take
-\V{describe.spent.q50} seconds or less and a quarter take
-\V{describe.spent.q25} or less, while one in twenty takes more than
-\V{describe.spent.q95} and one in a hundred more than \V{describe.spent.q99}
-(Figure~\ref{fig:label}, Table~\ref{tab:describe}). A long tail like that is
-why the label is a logarithm. On the plain scale a model would be scored
-mostly on a few very long thinks. On the logarithm, a second matters as much
-between two seconds and four as between twenty and forty, which is how a
-player feels it.
+\paragraph{Distribution of the target.}
+The time spent has a long right tail (Figure~\ref{fig:label},
+Table~\ref{tab:describe}). Half of all moves take \V{describe.spent.q50}
+seconds or less and a quarter take \V{describe.spent.q25} seconds or less,
+while one move in twenty takes more than \V{describe.spent.q95} seconds and
+one in a hundred more than \V{describe.spent.q99}. This is the reason for the
+logarithmic target. On a linear scale, the error of a model would be
+dominated by a small number of very long thinks. On the logarithmic scale,
+the difference between two and four seconds counts as much as the difference
+between twenty and forty.
 
 \begin{figure}[htbp]\centering
 \block{label}
-\caption{The seconds a move took over every row of the dataset, on the scale
-of the label.}
+\caption{Distribution of the time spent on a move over all positions of the
+dataset, on the scale of the target.}
 \label{fig:label}
 \end{figure}
 
 \begin{table}[htbp]\centering\small
 \block{describe}
-\caption{The spread of a few columns over every row of the dataset: the mean,
-five quantiles, and the least and the most. Clocks and times are in seconds.}
+\caption{Summary statistics of selected variables over the whole dataset:
+the mean, five quantiles, the minimum and the maximum. Clock times and the
+time spent are in seconds. The time spent is the target and is not an
+input.}
 \label{tab:describe}
 \end{table}
 \fi
 
-\section{What a model reads}
-\label{sec:reads}
+\section{Methods}
+\label{sec:methods}
 
-\input{../../../papers/reading}
+\subsection{Input representation}
+\label{sec:input}
 
-\paragraph{This model reads the position before the move, and no engine.}
-The marks carry only the squares of the opponent's last move. The context
-numbers are both ratings, both clocks and the time control's starting time as
-logarithms, the increment, and the ply. The engine's evaluation is left out
-on purpose, though the dataset has it. A player does not know the
-evaluation, and the yardstick is meant to say what players do with what they
-can see.
+\input{../../../papers/input-representation}
 
-\section{The learners}
-\label{sec:learners}
+\paragraph{Inputs of this task.}
+The auxiliary planes mark the en passant square and the origin and
+destination squares of the opponent's preceding move. Besides the castling
+rights, the scalar context features are the two ratings, the increment, the
+ply, and three times, each as the logarithm of one plus the number of
+seconds: the time remaining on the mover's clock, the time remaining on the
+opponent's clock and the initial time of the time control. No model receives
+an engine evaluation, although the dataset contains one for every position.
+No input describes the move that is played. The move, the time spent on it
+and the evaluations appear in the error analysis
+(Section~\ref{sec:error}).\iflook{} In Figure~\ref{fig:encoding} the move
+played is drawn on the left board for the reader, and it is not marked on the
+encoded board.\fi
 
-\input{../../../papers/learners}
+\subsection{Models and training}
+\label{sec:models}
 
-\section{How a result is scored}
-\label{sec:scoring}
+\input{../../../papers/models}
 
-The model's card named its score before the first full run: the mean
-absolute error of $\log(1 + \text{seconds})$ on the test positions, where
-lower is better. An error on a logarithm is a factor: an error of 0.69 means
-the stated time was half or twice the time taken. This paper gives the
-factor beside the score, and gives times in seconds. A time said or averaged
-here is turned back from the logarithm, so it is a typical time, the kind a
-median is, and sits below the plain average, which the long thinks pull up.
+\section{Evaluation Protocol}
+\label{sec:protocol}
 
-Three more scores are reported: the root mean squared error of the
-logarithm, R\textsuperscript{2}, the share of its variance a run explains,
-and Spearman's rank correlation, which asks only whether moves come out in
-the right order from fastest to slowest. A run beats the reference when its
-paired gain in MAE has a 95\% interval above zero. Results are also given by
-the mover's rating in \V{bands.count} bands.
+\paragraph{Metrics.}
+The primary metric, fixed before the first full training run, is the mean
+absolute error of the target on the test set, where lower is better. Because
+the target is a logarithm, an absolute error of $e$ means that one plus the
+predicted number of seconds and one plus the observed number differ by a
+factor of $\exp(e)$: an error of 0.69 is a factor of two. We report
+$\exp(\mathrm{MAE})$ alongside the MAE and call it the \emph{error factor}.
+It is the geometric mean of this factor over the test positions. We report
+three secondary metrics: the root mean squared error (RMSE) of the target,
+the coefficient of determination R\textsuperscript{2}, which is the share of
+the variance of the target that a model explains, and Spearman's rank
+correlation between the predicted and the observed time. We also report
+results separately for \V{bands.count} bands of the mover's rating.
 
-\input{../../../papers/scoring}
+\paragraph{Times in seconds.}
+For readability we give times in seconds. A mean of observed times or of
+predictions over a group of positions is computed on the logarithmic scale
+and converted back, as $\exp(\bar{y}) - 1$ for a mean $\bar{y}$ of the target
+or of the predictions. For observed times we call this value the
+\emph{typical time} of the group, and for predictions the \emph{mean
+prediction}. The typical time is the geometric mean of one plus the time,
+less one. For a distribution with a long right tail it lies close to the
+median and below the arithmetic mean, which the long thinks raise\iflook:
+over the whole dataset the typical time is \V{label.mean} seconds, the median
+is \V{describe.spent.q50} seconds and the arithmetic mean is
+\V{describe.spent.mean} seconds\fi.
+
+\input{../../../papers/evaluation}
 
 \section{Results}
 \label{sec:results}
 
-\subsection{The leaderboard}
+\subsection{Main results}
 
-Read from the bottom up, Table~\ref{tab:leaderboard} is a ladder. The floor
-says \V{floor.constant} seconds for every move, the median of the train
-rows, and is off by a factor of \V{floor.mae.factor}. Trees on the context
-numbers alone, \V{run.gbm-context.name}, bring that to
-\V{run.gbm-context.mae.factor} without ever seeing a board. That one step is
-\V{context.lift.share}\% of what the reference takes off the floor: most of
-what can be told about a move's time is the clock, the time control and the
-move number. The reference, which also reads the hand features of the
-position, reaches \V{reference.mae.factor}, and the best run
-\V{best.mae.factor} (Figure~\ref{fig:scores}).
+Table~\ref{tab:leaderboard} and Figure~\ref{fig:scores} give the main
+results. The constant baseline predicts the median of the training targets,
+which corresponds to \V{floor.constant} seconds, for every position, and has
+an MAE of \V{floor.score} (an error factor of \V{floor.mae.factor}). GBDT on
+the context features alone reaches \V{run.gbm-context.score} and thereby
+achieves \V{context.lift.share}\% of the improvement of the GBDT baseline
+over the constant baseline. The ratings, the clocks, the time control and the
+ply thus carry most of the signal that the models find, before anything is
+known about the pieces on the board. The GBDT baseline, with the hand-crafted
+features of
+the position, reaches \V{reference.score} (an error factor of
+\V{reference.mae.factor}).
 
 \begin{table}[htbp]\centering\small
 \block{leaderboard}
-\caption{The runs on the \V{data.rows.test} test positions, from
-\V{data.games.test} games, best first. The gain is paired with
-\V{task.reference} on the same resampled games, positive when the run is
-better, and bold when its interval leaves zero out.}
+\caption{Main results on the \V{data.rows.test} test positions, best first.
+The gain is the paired difference in MAE from \V{task.reference} on the same
+resampled games. It is positive when the model is better, and bold when
+statistically significant.}
 \label{tab:leaderboard}
 \end{table}
 
 \begin{figure}[htbp]\centering
 \block{scores}
-\caption{Every run's MAE with its 95\% interval. The vertical line is the
-reference's score.}
+\caption{Test MAE of every model with its 95\% CI. The vertical line marks
+the GBDT baseline.}
 \label{fig:scores}
 \end{figure}
 
-\subsection{What a network adds}
-
-Little. Beyond the noise, \V{ladder.ahead.of} beat the trees,
-\V{ladder.behind.of} fell short of them, and the other \V{ladder.level} are
-level with them (Figure~\ref{fig:gains}). The one ahead is the medium
-transformer that also reads the hand features, with a paired gain of
-\V{run.transformer-medium-hand.gain}
-(\V{run.transformer-medium-hand.gain.low} to
-\V{run.transformer-medium-hand.gain.high}). The same transformer on the
-board alone is the one behind, at \V{run.transformer-medium.gain}, and the
-two small networks sit between.
+Networks trained from random initialisation on the board and the context
+features are close to the GBDT baseline. Of the \V{ladder.count} networks of
+the fixed sequence, \V{ladder.level} are not significantly different from it,
+\V{ladder.behind} is significantly worse and \V{ladder.ahead} is
+significantly better (Figure~\ref{fig:gains}). The small ResNet (gain
+\V{run.conv-small.gain}; 95\% CI \V{run.conv-small.gain.low} to
+\V{run.conv-small.gain.high}) and the small transformer
+(\V{run.transformer-small.gain}; \V{run.transformer-small.gain.low} to
+\V{run.transformer-small.gain.high}) are the two that do not differ
+significantly from the baseline. The medium transformer is significantly
+worse (\V{run.transformer-medium.gain}; \V{run.transformer-medium.gain.low}
+to \V{run.transformer-medium.gain.high}), although it has
+\V{run.transformer-medium.parameters.millions} million parameters and the
+small models have \V{run.conv-small.parameters.millions} and
+\V{run.transformer-small.parameters.millions} million.\ifchangeepochs{}
+Section~\ref{sec:ablations} shows that the training schedule is responsible:
+with twice the number of epochs the same model is significantly better than
+the baseline.\fi
 
 \begin{figure}[htbp]\centering
 \block{gains}
-\caption{Each network's paired gain in MAE over the reference, with its 95\%
-interval. Right of the line a network is ahead of the trees, left of it
-behind.}
+\caption{Paired gain in MAE of each network over the GBDT baseline, with its
+95\% CI. A model whose interval lies entirely to the right of the line is
+significantly better than the baseline, and one whose interval lies entirely
+to the left is significantly worse.}
 \label{fig:gains}
 \end{figure}
 
-The whole spread of the networks is narrow. The best run's gain is
-\V{best.gain.percent}\% of the reference's error, and \V{best.gain.of-lift}\%
-as large as the step from the floor to the reference. Handed the counts, the
-medium transformer scores \V{run.transformer-medium-hand.over-twin} better
-than its twin without them.
+The hand-crafted features improve the medium transformer.
+\run{transformer-medium-hand}, the medium transformer with the hand-crafted
+features added to its context features, is significantly better than the
+GBDT baseline (gain \V{run.transformer-medium-hand.gain}; 95\% CI
+\V{run.transformer-medium-hand.gain.low} to
+\V{run.transformer-medium-hand.gain.high}).
 \ifpairs
-Set against each other on the same resampled games, the one that reads them
-is \V{pair.transformer-medium-hand.transformer-medium.verdict}
-(Table~\ref{tab:pairs}).
+Compared with \run{transformer-medium}, it is
+\V{pair.transformer-medium-hand.transformer-medium.verdict} on the test set
+(gain \V{pair.transformer-medium-hand.transformer-medium.gain}; 95\% CI
+\V{pair.transformer-medium-hand.transformer-medium.gain.low} to
+\V{pair.transformer-medium-hand.transformer-medium.gain.high}).
 \fi
-So for this question the squares hold little that the clocks and a few
-counts do not, or little that a network of this size found in
-\V{recipe.games} games.
-\ifvariants
-Section~\ref{sec:changes} says it is partly the second: a network that
-starts from a body trained on other positions first finds more.
-\fi
+A network that reads the board therefore adds information to the hand-crafted
+features.
 
-\subsection{Most of a move's time stays unexplained}
+The remaining models in Table~\ref{tab:leaderboard} are modifications that
+passed the acceptance criterion of Section~\ref{sec:protocol}, and
+Section~\ref{sec:ablations} describes them\ifchangestart: two transformers
+with a pretrained encoder, which are the two best models\fi\ifshapes, a
+ResNet and a transformer with an attack-aware attention
+bias\fi\ifchangeepochs, two transformers with a longer training
+schedule\fi\ifmore, and models trained on a larger training set\fi. Compared
+with the GBDT baseline, \V{networks.ahead.of} on the leaderboard are
+significantly better. The best model's gain is \V{best.gain.percent}\% of the
+GBDT baseline's MAE, and \V{best.gain.of-lift}\% of the improvement of the
+GBDT baseline over the constant baseline. In terms of the error factor, the
+best model reaches \V{best.mae.factor}, compared with
+\V{reference.mae.factor} for the GBDT baseline and \V{floor.mae.factor} for
+the constant baseline. GBDT on the context and the hand-crafted features
+therefore accounts for most of what is predicted, and the best network adds a
+smaller improvement.
 
-The best run explains a share of \V{best.r2} of the variance of the
-logarithm, and its rank correlation with the time taken is
-\V{best.spearman} (Table~\ref{tab:metrics}). Most of what makes one move
-slower than another is not in anything these learners read.
+\subsection{Explained variance and rank correlation}
+
+Table~\ref{tab:metrics} gives all metrics for every model. The
+R\textsuperscript{2} of the best model is \V{best.r2}, compared with
+\V{reference.r2} for the GBDT baseline and \V{run.gbm-context.r2} for GBDT on
+the context features alone. Its rank correlation with the observed time is
+\V{best.spearman}, compared with \V{reference.spearman} and
+\V{run.gbm-context.spearman}. The RMSE of the best model is \V{best.rmse},
+compared with \V{reference.rmse} for the GBDT baseline and \V{floor.rmse} for
+the constant baseline. The four metrics order the models in nearly the same
+way, and the same two pretrained models are the best by each of them.
 
 \begin{table}[htbp]\centering\small
 \block{metrics}
-\caption{Every score of every run on the test positions. MAE and RMSE are of
-the logarithm, and lower is better; for R\textsuperscript{2} and Spearman's
-rank correlation higher is better. The floor says one number, so it has no
-rank correlation.}
+\caption{All metrics for every model on the test set. MAE and RMSE are
+errors of the target and lower is better. For R\textsuperscript{2} and
+Spearman's rank correlation higher is better. The constant baseline predicts
+a single value and has no rank correlation.}
 \label{tab:metrics}
 \end{table}
 
-That is not a surprise, and it is the main thing this paper has to say. A
-move is quick because it was planned two moves ago, because it is a
-recapture, because the opponent took long and the player used that time. It
-is slow because the player's plan has just been refuted. None of that is on
-the board. What is left for a model of one position is the usual pace of a
-kind of position on a kind of clock, and Section~\ref{sec:closer} shows the
-model has that pace right.
+Most of the variance of the target is thus not explained by any model, and
+we consider this the main finding of the paper. A plausible explanation is
+that many reasons for a fast or a slow move lie outside the inputs. A move
+may be played at once because it was planned during the opponent's turn or
+entered in advance. It may take long because the opponent's move refuted the
+player's plan, or because the player was interrupted. The dataset records
+none of these circumstances, so we cannot separate them. What a model of a
+single position can estimate is the usual time for a kind of position at a
+given rating and clock, and Section~\ref{sec:error} shows that the best model
+estimates it accurately on average.
 
-\subsection{By the mover's rating}
+\subsection{Results by rating band}
 
-Every run's error rises with the mover's rating (Table~\ref{tab:bands}), and
-the floor's rises the same way, from \V{band.1.floor} for movers rated
-\V{band.1.name} to \V{band.5.floor} for those rated \V{band.5.name}. The
-floor's error in a band is the spread of that band's own times, so stronger
-players are not harder to model so much as more varied. A likely picture is
-a player who plays what is known at once and stops for a long time where it
-matters, though the table shows only the spread. A band's column is read
-from the top down, run against run, and never across.
+Table~\ref{tab:bands} gives the MAE by band of the mover's rating. The MAE of
+the constant baseline rises with the rating, from \V{band.1.floor} for movers
+rated \V{band.1.name} to \V{band.5.floor} for movers rated \V{band.5.name},
+and the MAE of every other model rises with it. The constant baseline
+predicts one value for all positions, so its MAE in a band measures how far
+the times of that band lie from this value.\iflook{} The typical time differs
+little between the bands, from \V{slice.band.-1100.happened} seconds for
+movers rated below 1100 to \V{slice.band.2000+.happened} seconds for movers
+rated 2000 and above, so the increase mainly reflects a wider spread: the
+times of stronger players vary more.\fi{} A higher MAE in a higher band
+therefore does not show that a model is less accurate there relative to what
+can be predicted, and scores should be compared between models within a band
+and not between bands.
 
 \begin{table}[htbp]\centering\small
 \block{bands-table}
-\caption{MAE by the mover's rating band. Read a column from the top down:
-the spread of the times differs from band to band, and every run's error
-with it.}
+\caption{Test MAE by band of the mover's rating. The spread of the times
+differs between bands, so values are comparable within a column and not
+between columns.}
 \label{tab:bands}
 \end{table}
 
-Read that way, the best run leads the reference in \V{bands.best-ahead.of},
-by a small margin in each: between \V{bands.lead.narrowest} and
-\V{bands.lead.widest} (Figure~\ref{fig:bands}).
-\iflook
-Paired inside each band, the lead is beyond the noise in
-\V{slice.band.ahead.of} (Table~\ref{tab:slice-band} in the appendix). The
-typical time itself falls a little as the rating rises, from
-\V{slice.band.-1100.happened} seconds for movers under 1100 to
-\V{slice.band.2000+.happened} for those at 2000 and over.
-\fi
+The best model has a lower MAE than the GBDT baseline in
+\V{bands.best-ahead.of}. The difference is largest for movers rated
+\V{bands.lead.widest.name} (\V{bands.lead.widest}) and smallest for movers
+rated \V{bands.lead.narrowest.name} (\V{bands.lead.narrowest};
+Figure~\ref{fig:bands}).\iflook{} With a paired comparison within each band,
+the gain is statistically significant in \V{slice.band.ahead.of}
+(Table~\ref{tab:slice-band} in the appendix).\fi
 
 \begin{figure}[htbp]\centering
 \block{bands}
-\caption{Each network's lead over the reference in MAE, band by band: the
-differences of the scores in Table~\ref{tab:bands}, without intervals. Above
-the dashed line a network is ahead of the trees.}
+\caption{Difference in MAE between each network and the GBDT baseline, by
+band of the mover's rating (the differences of the values in
+Table~\ref{tab:bands}, without intervals). Above the dashed line the network
+is better.}
 \label{fig:bands}
 \end{figure}
 
-\subsection{How the networks learned}
+\subsection{Training curves}
 
-Figure~\ref{fig:curves} follows each network of the ladder on the valid
-positions after every epoch. By that score, \V{ladder.at-last-epoch.of}
-peaked at the last epoch given, so training stopped while they were still
-improving.
-\ifvariants
-Section~\ref{sec:changes} gives the medium transformers twice the epochs and
-says what that bought.
-\else
-A run with twice the epochs says how much was left, and it is the cheapest
-run to add.
+Figure~\ref{fig:curves} shows the validation MAE of each network of the fixed
+sequence after every epoch, and \V{ladder.at-last-epoch.of} reached their
+best validation MAE in the final epoch: \run{conv-small} at
+\V{run.conv-small.best-epoch} of \V{run.conv-small.epochs},
+\run{transformer-small} at \V{run.transformer-small.best-epoch} of
+\V{run.transformer-small.epochs} and \run{transformer-medium} at
+\V{run.transformer-medium.best-epoch} of \V{run.transformer-medium.epochs}.
+The validation MAE of these models was still decreasing when training ended.
+\run{transformer-medium-hand} reached its best epoch at
+\V{run.transformer-medium-hand.best-epoch} of
+\V{run.transformer-medium-hand.epochs}.
+\ifchangeepochs
+Section~\ref{sec:ablations} shows that a longer schedule improves both medium
+transformers.
 \fi
 
 \begin{figure}[htbp]\centering
 \block{curves}
-\caption{Each ladder network's MAE on the valid positions after every epoch.
-The dashed line is the reference's score on the same rows.}
+\caption{Validation MAE of each network of the fixed sequence after every
+epoch. The dashed line is the GBDT baseline's validation MAE.}
 \label{fig:curves}
 \end{figure}
 
-\subsection{What the trees lean on}
+\subsection{Feature importance of the GBDT baseline}
 
-The reference grew \V{reference.trees} trees over \V{reference.features}
-features (Figure~\ref{fig:leans}). The three it leans on most are:
+The GBDT baseline consists of \V{reference.trees} trees over
+\V{reference.features} features. Figure~\ref{fig:leans} shows each feature's
+share of the total split gain. The three most important features are
 \V{reference.leans.1.feature} (\V{reference.leans.1.share}\% of the gain),
 \V{reference.leans.2.feature} (\V{reference.leans.2.share}\%) and
-\V{reference.leans.3.feature} (\V{reference.leans.3.share}\%). The clock
-comes first, and the first thing the board contributes is how many moves
-there are to choose from. A share of gain says what the trees used. It does
-not say what makes a player think.
+\V{reference.leans.3.feature} (\V{reference.leans.3.share}\%). The clock is
+the most important feature by a wide margin, and the most important feature
+of the position is the number of moves available to the player. Split gain
+shows which features the model used. It does not identify what makes a
+player think, because correlated features divide the credit between them
+arbitrarily.
 
 \begin{figure}[htbp]\centering
 \block{leans}
-\caption{The ten features the reference's trees gained most from: each
-feature's share of the total gain of the splits made on it.}
+\caption{The ten most important features of the GBDT baseline, by share of
+the total split gain.}
 \label{fig:leans}
 \end{figure}
 
 \ifchanges
-\section{One change at a time}
-\label{sec:changes}
+\section{Ablations}
+\label{sec:ablations}
 
-\input{../../../papers/changes}
+\input{../../../papers/ablations}
 
-\ifvariants
-\paragraph{What twice the epochs were worth here.}
-Each medium transformer was trained again on a schedule of
-\V{run.transformer-medium-long.epochs} epochs for the ladder's
-\V{run.transformer-medium.epochs}. On the board alone,
-\V{run.transformer-medium-long.name} is
-\V{pair.transformer-medium-long.transformer-medium.valid.verdict} than the
-run it changed on the valid positions and
-\V{pair.transformer-medium-long.transformer-medium.verdict} on the test
-positions, by \V{pair.transformer-medium-long.transformer-medium.gain}
-(\V{pair.transformer-medium-long.transformer-medium.gain.low} to
-\V{pair.transformer-medium-long.transformer-medium.gain.high}): it is
-\V{pair.transformer-medium-long.transformer-medium.kept}. With the hand
-features, \V{run.transformer-medium-hand-long.name} is
+\ifchangehand
+\subsection{Hand-crafted features}
+
+The hand-crafted features improve the medium transformer. Compared with
+\run{transformer-medium}, \run{transformer-medium-hand} is
+\V{pair.transformer-medium-hand.transformer-medium.valid.verdict} than its
+base on the validation set and
+\V{pair.transformer-medium-hand.transformer-medium.verdict} on the test set
+(gain \V{pair.transformer-medium-hand.transformer-medium.gain} MAE; 95\% CI
+\V{pair.transformer-medium-hand.transformer-medium.gain.low} to
+\V{pair.transformer-medium-hand.transformer-medium.gain.high}), so the
+modification is \V{pair.transformer-medium-hand.transformer-medium.kept}.
+\ifchangeepochs
+The result is the same under the longer schedule of the next subsection:
+compared with \run{transformer-medium-long},
+\run{transformer-medium-hand-long} is
+\V{pair.transformer-medium-hand-long.transformer-medium-long.verdict} on the
+test set (gain
+\V{pair.transformer-medium-hand-long.transformer-medium-long.gain}; 95\% CI
+\V{pair.transformer-medium-hand-long.transformer-medium-long.gain.low} to
+\V{pair.transformer-medium-hand-long.transformer-medium-long.gain.high}).
+\fi
+With the schedule of the fixed sequence, the features move the medium
+transformer from significantly below the GBDT baseline to significantly above
+it: its gains over the baseline are \V{run.transformer-medium.gain} without
+them and \V{run.transformer-medium-hand.gain} with them.
+\fi
+
+\ifchangeepochs
+\subsection{Training schedule}
+
+Doubling the number of epochs, from \V{run.transformer-medium.epochs} to
+\V{run.transformer-medium-long.epochs}, improves both medium transformers.
+Without hand-crafted features, \run{transformer-medium-long} is
+\V{pair.transformer-medium-long.transformer-medium.valid.verdict} than its
+base on the validation set and
+\V{pair.transformer-medium-long.transformer-medium.verdict} on the test set
+(gain \V{pair.transformer-medium-long.transformer-medium.gain}; 95\% CI
+\V{pair.transformer-medium-long.transformer-medium.gain.low} to
+\V{pair.transformer-medium-long.transformer-medium.gain.high}), so the
+modification is \V{pair.transformer-medium-long.transformer-medium.kept}.
+With hand-crafted features, \run{transformer-medium-hand-long} is
 \V{pair.transformer-medium-hand-long.transformer-medium-hand.valid.verdict}
-than the run it changed on the valid positions and
+than its base on the validation set and
 \V{pair.transformer-medium-hand-long.transformer-medium-hand.verdict} on the
-test positions, by
-\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain}
-(\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain.low} to
-\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain.high}): it
-is \V{pair.transformer-medium-hand-long.transformer-medium-hand.kept}.
+test set (gain
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain}; 95\% CI
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain.low} to
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain.high}),
+and the modification is
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.kept}.
 
-Both gains are small. Each is a fraction of what the hand features are worth
-to the same transformer
-(\V{pair.transformer-medium-hand.transformer-medium.gain}), and the smaller
-of the two belongs to the run that already reads them. One of them still
-moves a run across the reference: on the board alone the medium transformer
-was behind the trees on the ladder (\V{run.transformer-medium.gain}) and is
-ahead of them after the longer schedule
-(\V{run.transformer-medium-long.gain}), beyond the noise both times. So the
-finding of Section~\ref{sec:results} stands with a footnote. The squares
-hold little that the clocks and a few counts do not, and a network needs the
-longer schedule to find even that.
+The longer schedule matters more for the model without hand-crafted features:
+its paired gain is the larger of the two, and the two intervals do not
+overlap. With the longer schedule, the gain of that model over the GBDT
+baseline is \V{run.transformer-medium-long.gain} (95\% CI
+\V{run.transformer-medium-long.gain.low} to
+\V{run.transformer-medium-long.gain.high}), where it was
+\V{run.transformer-medium.gain} with the schedule of the fixed sequence. The
+result of the fixed sequence, in which the medium transformer without
+hand-crafted features is significantly worse than the GBDT baseline,
+therefore reflects its schedule: the model was undertrained. Both models with
+the longer schedule reached their best validation epoch near its end,
+\run{transformer-medium-long} at \V{run.transformer-medium-long.best-epoch}
+of \V{run.transformer-medium-long.epochs} and
+\run{transformer-medium-hand-long} at
+\V{run.transformer-medium-hand-long.best-epoch}
+(Figure~\ref{fig:variants}), so a still longer schedule may improve them
+further. We have not tried one.
+\fi
 
-Both runs used the whole schedule. Their best valid epochs were
-\V{run.transformer-medium-long.best-epoch} and
-\V{run.transformer-medium-hand-long.best-epoch} of
-\V{run.transformer-medium-long.epochs}, and their curves are flat over the
-last few (Figure~\ref{fig:variants}). A still longer schedule is not the
-next run.
+\ifchangestart
+\subsection{Pretraining}
 
-\paragraph{What a start from engine evaluations was worth here.}
-The lab's position-evaluation model trains the same medium transformer on
-positions from the open Lichess evaluations file, to say the mover's winning
-chances as an engine sees them. That label says nothing about people, and
-no learner of this model reads an evaluation. The model is there for its
-body: a run of this model can start from it. The embeddings and the blocks
-are copied in, the head starts new, and the run then trains on this model's
-games on the ladder's schedule, with nothing else changed. What comes with
-the body is how to read a board, not what an engine thinks of this one.
-
-On the board alone, \V{run.transformer-medium-pretrained.name} is
+A pretrained encoder improves both medium transformers, and by more than any
+other modification. Without hand-crafted features,
+\run{transformer-medium-pretrained} is
 \V{pair.transformer-medium-pretrained.transformer-medium.valid.verdict} than
-the run it changed on the valid positions and
+its base on the validation set and
 \V{pair.transformer-medium-pretrained.transformer-medium.verdict} on the
-test positions, by \V{pair.transformer-medium-pretrained.transformer-medium.gain}
-(\V{pair.transformer-medium-pretrained.transformer-medium.gain.low} to
-\V{pair.transformer-medium-pretrained.transformer-medium.gain.high}): it is
-\V{pair.transformer-medium-pretrained.transformer-medium.kept}. With the
-hand features, \V{run.transformer-medium-hand-pretrained.name} is
+test set (gain \V{pair.transformer-medium-pretrained.transformer-medium.gain}
+MAE; 95\% CI
+\V{pair.transformer-medium-pretrained.transformer-medium.gain.low} to
+\V{pair.transformer-medium-pretrained.transformer-medium.gain.high}), and
+the modification is
+\V{pair.transformer-medium-pretrained.transformer-medium.kept}. With
+hand-crafted features, \run{transformer-medium-hand-pretrained} is
 \V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.valid.verdict}
-than the run it changed on the valid positions and
+than its base on the validation set and
 \V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.verdict}
-on the test positions, by
-\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain}
-(\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.low}
+on the test set (gain
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain};
+95\% CI
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.low}
 to
-\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.high}):
-it is
+\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain.high}),
+and the modification is
 \V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.kept}.
-The model's best run is \V{best.name}.
+The best model of this task is \V{best.name}.
 
-Three things follow. The first is that the start was worth several times
-what twice the epochs were, on half the epochs: each run's gain from the
-body is far above the same run's gain from the longer schedule, and in
-Table~\ref{tab:pairs} the two intervals do not touch for either. Both runs
-that start from the body are ahead of the longer run that reads the
-features, and the intervals of their gains over the reference do not touch
-its own (Table~\ref{tab:leaderboard}).
+With a pretrained encoder the hand-crafted features contribute little. The
+pretrained model with hand-crafted features has a test MAE of
+\V{run.transformer-medium-hand-pretrained.score} and the pretrained model
+without them one of \V{run.transformer-medium-pretrained.score}, a
+difference of \V{run.transformer-medium-hand-pretrained.over-twin}, where
+the paired gain from the features is
+\V{pair.transformer-medium-hand.transformer-medium.gain} from random
+initialisation. The two pretrained models were not compared directly on
+resampled games, and their gains over the GBDT baseline lie within each
+other's intervals (Table~\ref{tab:leaderboard}). We hypothesise that an
+encoder pretrained to predict engine evaluations already represents most of
+what the hand-crafted features provide.
 
-The second is that from the body the board alone is enough.
-\V{run.transformer-medium-hand-pretrained.name} scores
-\V{run.transformer-medium-hand-pretrained.over-twin} better than
-\V{run.transformer-medium-pretrained.name}, where on the ladder the counts
-were worth \V{run.transformer-medium-hand.over-twin}, and the two runs'
-gains over the reference lie inside each other's intervals. The two were not
-set against each other on resampled games, so that difference is a reading
-of the leaderboard.
-
-The third is the second footnote to Section~\ref{sec:results}. From the
-body, the transformer on the board alone gains
-\V{run.transformer-medium-pretrained.gain} over the trees, where the
-ladder's transformer needed the counts to gain
-\V{run.transformer-medium-hand.gain}, and those two intervals do not touch
-either. So the squares hold more for this question than the ladder found. It
-is still little: the best run's gain is \V{best.gain.of-lift}\% as large as
-the step from the floor to the reference, most of which is the clock.
-Neither run was at its best in its last epoch
-(\V{run.transformer-medium-pretrained.best-epoch} and
-\V{run.transformer-medium-hand-pretrained.best-epoch} of
-\V{run.transformer-medium-hand-pretrained.epochs}).
+The pretrained model with hand-crafted features reached its best validation
+epoch at \V{run.transformer-medium-hand-pretrained.best-epoch} of
+\V{run.transformer-medium-hand-pretrained.epochs}, and the pretrained model
+without them at \V{run.transformer-medium-pretrained.best-epoch}
+(Figure~\ref{fig:variants}). The validation MAE of neither model was still
+decreasing when its schedule ended.
 \fi
 
 \ifshapes
-\paragraph{What another shape of network was worth here.}
-The architecture test keeps a medium transformer's rows, its head and its
-epochs, and changes its shape. Each run below started from nothing, as the
-network it changes did. Each is set against that network in
-Table~\ref{tab:pairs} and followed epoch by epoch in
-Figure~\ref{fig:shapes}.
+\subsection{Architecture}
+
+The architecture ablations keep the training data, the prediction head and
+the number of epochs of a medium transformer and change the encoder. All of
+these models are trained from random initialisation, as their bases are.
 \begin{itemize}
-\item \emph{A convolutional tower}, \V{run.conv-medium-hand.name}: residual
-blocks of convolutions, each also weighing its channels by a mean over the
-whole board, with \V{run.conv-medium-hand.parameters.millions} million
-parameters for the transformer's
-\V{run.transformer-medium-hand.parameters.millions} million. It is trained at a
-tower's peak learning rate, \V{run.conv-medium-hand.lr} for
-\V{run.transformer-medium-hand.lr}, and changes nothing else. It is
-\V{pair.conv-medium-hand.transformer-medium-hand.valid.verdict} than
-\V{run.transformer-medium-hand.name} on the valid positions and
-\V{pair.conv-medium-hand.transformer-medium-hand.verdict} on the test
-positions (\V{pair.conv-medium-hand.transformer-medium-hand.gain},
+\ifchangeconv
+\item \textbf{ResNet.} \run{conv-medium-hand} has
+\V{run.conv-medium-hand.parameters.millions} million parameters, compared
+with \V{run.transformer-medium-hand.parameters.millions} million for the
+transformer, and is trained with a peak learning rate of
+\V{run.conv-medium-hand.lr} instead of \V{run.transformer-medium-hand.lr}.
+Compared with \run{transformer-medium-hand} it is
+\V{pair.conv-medium-hand.transformer-medium-hand.valid.verdict} than its base
+on the validation set and
+\V{pair.conv-medium-hand.transformer-medium-hand.verdict} on the test set
+(gain \V{pair.conv-medium-hand.transformer-medium-hand.gain}; 95\% CI
 \V{pair.conv-medium-hand.transformer-medium-hand.gain.low} to
-\V{pair.conv-medium-hand.transformer-medium-hand.gain.high}): it is
-\V{pair.conv-medium-hand.transformer-medium-hand.kept}.
-\item \emph{A hybrid}, \V{run.hybrid-medium-hand.name}: a few residual blocks
-of convolutions first, then layers of the transformer over the squares
-they give, \V{run.hybrid-medium-hand.parameters.millions} million parameters
-in all. It is
-\V{pair.hybrid-medium-hand.transformer-medium-hand.valid.verdict} than
-\V{run.transformer-medium-hand.name} on the valid positions and
-\V{pair.hybrid-medium-hand.transformer-medium-hand.verdict} on the test
-positions (\V{pair.hybrid-medium-hand.transformer-medium-hand.gain},
+\V{pair.conv-medium-hand.transformer-medium-hand.gain.high}), and the
+modification is \V{pair.conv-medium-hand.transformer-medium-hand.kept}.
+\fi
+\ifchangehybrid
+\item \textbf{Hybrid.} \run{hybrid-medium-hand} has
+\V{run.hybrid-medium-hand.convs} residual convolutional blocks followed by
+\V{run.hybrid-medium-hand.depth} transformer layers, for a total of
+\V{run.hybrid-medium-hand.parameters.millions} million parameters. Compared
+with \run{transformer-medium-hand} it is
+\V{pair.hybrid-medium-hand.transformer-medium-hand.verdict} on the test set
+(gain \V{pair.hybrid-medium-hand.transformer-medium-hand.gain}; 95\% CI
 \V{pair.hybrid-medium-hand.transformer-medium-hand.gain.low} to
-\V{pair.hybrid-medium-hand.transformer-medium-hand.gain.high}): it is
-\V{pair.hybrid-medium-hand.transformer-medium-hand.kept}.
-\item \emph{Attention told what each piece attacks.} The offsets say that
-two squares share a diagonal, and not whether anything stands between
-them. Here each head also learns a bias for a pair of squares when the
-piece on one attacks the other on this board, worked out from the tokens
-with no search. With the hand features, \V{run.transformer-medium-hand-attacks.name} is
-\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.valid.verdict} than
-\V{run.transformer-medium-hand.name} on the valid positions and
-\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.verdict} on the test
-positions (\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.gain},
-\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.gain.low} to
-\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.gain.high}): it is
-\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.kept}. On the
-board alone, \V{run.transformer-medium-attacks.name} is
-\V{pair.transformer-medium-attacks.transformer-medium.valid.verdict} than
-\V{run.transformer-medium.name} on the valid positions and
+\V{pair.hybrid-medium-hand.transformer-medium-hand.gain.high}), and the
+modification is \V{pair.hybrid-medium-hand.transformer-medium-hand.kept}.
+\fi
+\ifchangeattacks
+\item \textbf{Attack-aware attention bias.} Compared with
+\run{transformer-medium}, which has no hand-crafted features,
+\run{transformer-medium-attacks} is
+\V{pair.transformer-medium-attacks.transformer-medium.valid.verdict} than its
+base on the validation set and
 \V{pair.transformer-medium-attacks.transformer-medium.verdict} on the test
-positions (\V{pair.transformer-medium-attacks.transformer-medium.gain},
+set (gain \V{pair.transformer-medium-attacks.transformer-medium.gain}; 95\% CI
 \V{pair.transformer-medium-attacks.transformer-medium.gain.low} to
-\V{pair.transformer-medium-attacks.transformer-medium.gain.high}): it is
-\V{pair.transformer-medium-attacks.transformer-medium.kept}.
-\item \emph{Attention without the offsets},
-\V{run.transformer-medium-hand-no-geometry.name}: a study, there to measure what
-the offsets are worth and never a candidate. Without them the transformer
-is \V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.valid.verdict}
-on the valid positions than with them, and
-\V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.verdict} on the
-test positions (\V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain},
-\V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain.low} to
+\V{pair.transformer-medium-attacks.transformer-medium.gain.high}), and the
+modification is
+\V{pair.transformer-medium-attacks.transformer-medium.kept}. Compared with
+\run{transformer-medium-hand}, \run{transformer-medium-hand-attacks} is
+\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.valid.verdict}
+than its base on the validation set and
+\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.verdict} on
+the test set (gain
+\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.gain}; 95\%
+CI \V{pair.transformer-medium-hand-attacks.transformer-medium-hand.gain.low}
+to
+\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.gain.high}),
+and the modification is
+\V{pair.transformer-medium-hand-attacks.transformer-medium-hand.kept},
+because the criterion requires an improvement on both sets.
+\fi
+\ifchangegeometry
+\item \textbf{No relative position bias.} Compared with
+\run{transformer-medium-hand},
+\run{transformer-medium-hand-no-geometry} is
+\V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.verdict}
+on the test set (gain
+\V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain};
+95\% CI
+\V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain.low}
+to
 \V{pair.transformer-medium-hand-no-geometry.transformer-medium-hand.gain.high}).
+Removing the bias has no measurable effect on this task.
+\fi
 \end{itemize}
 
-Four things follow. The first is that what each piece attacks was worth more
-to the transformer on the board alone than anything else tried from nothing.
-Told it, that transformer gains
-\V{pair.transformer-medium-attacks.transformer-medium.gain}, where the hand
-features gave it \V{pair.transformer-medium-hand.transformer-medium.gain}
-and twice the epochs
-\V{pair.transformer-medium-long.transformer-medium.gain}. Only the start
-from the body gave it more,
-\V{pair.transformer-medium-pretrained.transformer-medium.gain}, and in
-Table~\ref{tab:pairs} the four intervals stand apart. On the ladder this
-transformer was behind the trees. Told the attacks it is ahead of them by
-\V{run.transformer-medium-attacks.gain}
-(\V{run.transformer-medium-attacks.gain.low} to
-\V{run.transformer-medium-attacks.gain.high}), from nothing and on the
-ladder's schedule. That is the third footnote to
-Section~\ref{sec:results}: the squares hold more for this question than the
-ladder found, for a network that is told which piece attacks which.
-
-The second is that the counts did not add to that.
-\V{run.transformer-medium-hand-attacks.name}, which has both, is not kept.
-It scores \V{run.transformer-medium-hand-attacks.score}, where
-\V{run.transformer-medium-attacks.name}, which reads no count, scores
-\V{run.transformer-medium-attacks.score}. So the difference the counts make
-there is \V{run.transformer-medium-hand-attacks.over-twin}, below zero
-because the run that reads them is the worse, where on the ladder it was
-\V{run.transformer-medium-hand.over-twin}. The intervals of the two runs'
-gains over the reference do not touch (Table~\ref{tab:leaderboard}). The two
-were not set against each other on resampled games, so that is a reading of
-the leaderboard. Figure~\ref{fig:shapes} shows how it came about: from the
-second epoch on, the run that has both lies on the curve of the transformer
-that has the counts and is told nothing. A
-reading: with the counts at hand a network trained from nothing leans on
-them and learns little of what its attention is told, and without them it
-learns to read the attacks and ends ahead. Each run was trained once, and a
-second training is the first check of this.
-
-The third is the tower. \V{run.conv-medium-hand.name} gains
-\V{pair.conv-medium-hand.transformer-medium-hand.gain} over the transformer
-it changes, where twice the epochs gave that transformer
-\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain} and the
-start from the body
-\V{pair.transformer-medium-hand-pretrained.transformer-medium-hand.gain},
-and the three intervals stand apart. It took
-\V{run.conv-medium-hand.seconds} of the GPU for the transformer's
-\V{run.transformer-medium-hand.seconds}. It is the best run of this model
-that starts from nothing. It is ahead of
-\V{run.transformer-medium-hand-long.name}, the best before it, by the
-intervals of their gains over the reference
-(Table~\ref{tab:leaderboard}), and it is not to be told from
-\V{run.transformer-medium-attacks.name}, whose interval overlaps its own.
-It changes its learning rate with its body, so the gain is the tower's as
-trained and cannot be given to the convolutions alone. The hybrid is inside
-the noise of the transformer it changes, and so is the transformer without
-its offsets.
-
-The fourth is what stays. The model's best run is still \V{best.name}, at
-\V{best.score}. It starts from the body, and the interval of its gain over
-the reference stands clear of the tower's. What the test changes is what to
-start from that body. The attention that is told the attacks can start from
-it as it is, since the weights on what it is told start at nothing, and
-that run changes one thing in a kept run. It is worth making on the board
-alone as well as with the counts, since here the network that was told the
-attacks did better without them. A tower cannot start from a
-transformer's body: it needs a body of its own shape that has learned the
-same evaluations.
+\ifchangeattacks
+Among the modifications of the medium transformer that keep its random
+initialisation, the attack-aware bias gives the largest paired gain
+(\V{pair.transformer-medium-attacks.transformer-medium.gain}), more than the
+hand-crafted features do
+(\V{pair.transformer-medium-hand.transformer-medium.gain}). The test MAE of
+\run{transformer-medium-attacks} is \V{run.transformer-medium-attacks.score},
+compared with \V{run.transformer-medium-hand.score} for the transformer with
+the features. The two models were not compared directly on resampled games,
+but the intervals of their gains over the GBDT baseline do not overlap
+(Table~\ref{tab:leaderboard}; \V{run.transformer-medium-attacks.gain.low} to
+\V{run.transformer-medium-attacks.gain.high}, and
+\V{run.transformer-medium-hand.gain.low} to
+\V{run.transformer-medium-hand.gain.high}). The two additions do not
+combine. With both, the test MAE is
+\V{run.transformer-medium-hand-attacks.score}, which is higher than with the
+bias alone, and the interval of this model's gain over the GBDT baseline
+(\V{run.transformer-medium-hand-attacks.gain.low} to
+\V{run.transformer-medium-hand-attacks.gain.high}) lies below that of the
+model with the bias alone.
 \fi
 
-\input{../../../papers/studies}
+\ifchangeconv
+The ResNet is the best model trained from random initialisation on the
+standard training set (\V{run.conv-medium-hand.score}). Its comparison with
+the transformer is not a comparison of the encoders alone, because the two
+models are trained with different learning rates.
+\fi
+
+We do not know why these two encoders are better on this task. One possible
+explanation is that the time a player spends depends on local tactical
+content, such as the captures that are available, and that a convolution over
+neighbouring squares or a bias along the lines of attack makes this content
+easier to learn than unconstrained attention does. The error analysis is
+consistent with the first part of this explanation\iflook: the gain of the
+best network over the GBDT baseline increases with the number of legal
+captures (Section~\ref{sec:error})\fi. It does not test the second part. The
+same two modifications are accepted for the puzzle-difficulty task of this
+repository, and neither differs significantly from its base for the
+blunder-risk task, which uses the positions of this paper. The explanation is
+therefore incomplete at best. Each of these models was trained once.
+\fi
+
+\input{../../../papers/training-set-size}
 
 \ifgames
-\paragraph{What more games are worth here.}
-Both learners are worse on fewer games, and the network by more. Against the
-run trained on every training game, \V{run.transformer-medium-hand.name} has a paired gain of
-\V{pair.transformer-medium-hand-half.transformer-medium-hand.gain} on half of them and of \V{pair.transformer-medium-hand-quarter.transformer-medium-hand.gain} on a
-quarter. The trees' gains are \V{pair.gbm-hand-half.gbm-hand.gain} and
-\V{pair.gbm-hand-quarter.gbm-hand.gain}. From a quarter of the games to all
-of them the network's lead over the trees
-widens with every doubling (Table~\ref{tab:games}). Twice the epochs were
-worth \V{pair.transformer-medium-hand-long.transformer-medium-hand.gain} to the same network, so the last of
-those doublings was worth more than the longer schedule. A reading\ifmore,
-as it stood before the next runs\fi: like blunder
-hazard, this model is short of games before it is short of steps, and
-\V{recipe.games} games of one month leave many more to read.
+\paragraph{Smaller training sets.}
+Both model classes are less accurate with less data, and the transformer
+loses more. Relative to the same model trained on the full training set,
+\run{transformer-medium-hand} has a paired gain of
+\V{pair.transformer-medium-hand-half.transformer-medium-hand.gain} MAE on
+half of the training games and of
+\V{pair.transformer-medium-hand-quarter.transformer-medium-hand.gain} on a
+quarter, and it is significantly worse in
+\V{study.games.transformer-medium-hand.worse.of}. For GBDT the gains are
+\V{pair.gbm-hand-half.gbm-hand.gain}
+(\V{pair.gbm-hand-half.gbm-hand.verdict}) and
+\V{pair.gbm-hand-quarter.gbm-hand.gain}
+(\V{pair.gbm-hand-quarter.gbm-hand.verdict}). On a quarter of the games the
+transformer still has the lower MAE of the two
+(\V{run.transformer-medium-hand-quarter.score}, compared with
+\V{run.gbm-hand-quarter.score} for GBDT), and its advantage over GBDT grows
+with each doubling up to the full training set (Table~\ref{tab:games},
+Figure~\ref{fig:games}).
 \fi
 
 \ifmore
-\paragraph{What more games were worth.}
-That reading was then checked on a larger build of the dataset, which holds
-\V{more.gbm-hand.most} the training games and every row these runs are
-scored on. Against the run trained on today's games,
-\V{run.transformer-medium-hand.name} has a paired gain of
-\V{pair.transformer-medium-hand-double.transformer-medium-hand.gain} on twice the games and of
-\V{pair.transformer-medium-hand-quadruple.transformer-medium-hand.gain} on four times, which is
-\V{pair.transformer-medium-hand-quadruple.transformer-medium-hand.verdict}. The trees' gains are
-\V{pair.gbm-hand-double.gbm-hand.gain} and
-\V{pair.gbm-hand-quadruple.gbm-hand.gain}, the second
-\V{pair.gbm-hand-quadruple.gbm-hand.verdict}. By the lab's rule the
-network on four times the games is \V{more.transformer-medium-hand.most.kept} and the trees
-on four times the games are \V{more.gbm-hand.most.kept}. On twice the games
-the network is
-\V{pair.transformer-medium-hand-double.transformer-medium-hand.kept} and
-the trees are \V{pair.gbm-hand-double.gbm-hand.kept}.
+\paragraph{Larger training sets.}
+The larger sample contains up to \V{more.gbm-hand.most} the training games,
+with the validation and test sets unchanged. Relative to the same model on
+the standard training set, \run{transformer-medium-hand} has a paired gain of
+\V{pair.transformer-medium-hand-double.transformer-medium-hand.gain} MAE on
+twice the training games
+(\V{pair.transformer-medium-hand-double.transformer-medium-hand.verdict};
+\V{pair.transformer-medium-hand-double.transformer-medium-hand.kept}) and of
+\V{pair.transformer-medium-hand-quadruple.transformer-medium-hand.gain} on
+four times
+(\V{pair.transformer-medium-hand-quadruple.transformer-medium-hand.verdict};
+\V{pair.transformer-medium-hand-quadruple.transformer-medium-hand.kept}).
+For GBDT the gains are \V{pair.gbm-hand-double.gbm-hand.gain}
+(\V{pair.gbm-hand-double.gbm-hand.verdict};
+\V{pair.gbm-hand-double.gbm-hand.kept}) and
+\V{pair.gbm-hand-quadruple.gbm-hand.gain}
+(\V{pair.gbm-hand-quadruple.gbm-hand.verdict};
+\V{pair.gbm-hand-quadruple.gbm-hand.kept}).
 
-The check did not bear the reading out. More games pay both learners, and
-they paid the trees more: on four times the games the intervals of the two
-paired gains do not touch, and on twice they overlap
-(Table~\ref{tab:games}). For the network four times the games were worth
-about what twice the epochs were: the two gains lie inside each other's
-intervals, and the run on four times the games, the run on twice and the
-run with twice the epochs score \V{run.transformer-medium-hand-quadruple.score},
-\V{run.transformer-medium-hand-double.score} and
-\V{run.transformer-medium-hand-long.score}. Every one of these gains is
-small beside the start from the body, and the best run is still
-\V{best.name}.
-
-On twice and on four times the games the network had its best valid epoch
-at its last, \V{run.transformer-medium-hand-double.best-epoch} of
-\V{run.transformer-medium-hand-double.epochs} and
-\V{run.transformer-medium-hand-quadruple.best-epoch} of
-\V{run.transformer-medium-hand-quadruple.epochs}, and the runs take the
-same number of steps as the run on today's games. On half and on a quarter
-of the games, where it goes through each game two and four times as often,
-its best epoch was \V{run.transformer-medium-hand-half.best-epoch} of
-\V{run.transformer-medium-hand-half.epochs} and
-\V{run.transformer-medium-hand-quarter.best-epoch} of
-\V{run.transformer-medium-hand-quarter.epochs}. A reading: part of what the
-network lost on fewer games it lost to going through them too often, so the
-study overstated what more games would give it, and from today's games up
-it is held by its steps. Each run was trained once.
+More data helps both model classes, and it helps GBDT more: the gain of GBDT
+is the larger one at both sizes, and on four times the games the intervals of
+the two gains do not overlap (Table~\ref{tab:games}). The transformer's
+advantage over GBDT, which grows up to the standard training set, is
+therefore slightly smaller at both larger sizes. With four times the games,
+GBDT reaches an MAE of \V{run.gbm-hand-quadruple.score}, which is still
+higher than the \V{run.transformer-medium-hand.score} of the transformer on
+the standard training set. \run{transformer-medium-hand-quadruple} has an MAE
+of \V{run.transformer-medium-hand-quadruple.score}.
+\ifchangeconv
+On this task the choice of encoder matters more than this amount of data.
+Compared with \run{transformer-medium-hand}, the paired gain of the ResNet on
+the standard training set
+(\V{pair.conv-medium-hand.transformer-medium-hand.gain}) is larger than that
+of the transformer on four times the games, and the two intervals do not
+overlap (Table~\ref{tab:pairs}).
 \fi
+
+The three transformer models take the same number of optimisation steps. On
+the standard training set the transformer reached its best validation epoch
+at \V{run.transformer-medium-hand.best-epoch} of
+\V{run.transformer-medium-hand.epochs}. On the larger training sets it
+reached it in the final epoch, at
+\V{run.transformer-medium-hand-double.best-epoch} of
+\V{run.transformer-medium-hand-double.epochs} on twice the games and at
+\V{run.transformer-medium-hand-quadruple.best-epoch} of
+\V{run.transformer-medium-hand-quadruple.epochs} on four times, so its
+validation MAE was still decreasing when its schedule ended.
+\ifchangeepochs
+On the standard training set, doubling the number of epochs alone gained
+\V{pair.transformer-medium-hand-long.transformer-medium-hand.gain}, which is
+of the same order as the gains from the larger training sets.
+\fi
+We hypothesise that with more data the transformer is limited by its number
+of optimisation steps, in which case its gains from the larger training sets
+are lower bounds. GBDT was not limited in this way: on four times the games
+it used \V{run.gbm-hand-quadruple.trees} of the \V{method.gbm.rounds}
+boosting rounds it was allowed.
+\fi
+
+\input{../../../papers/feature-groups}
 
 \iffeatures
-\paragraph{Which counts the trees need here.}
-In \V{study.features.gbm-hand.worse.of} the trees are worse beyond the
-noise without the group. The group that costs most is
-\V{study.features.gbm-hand.most.group}, at
-\V{study.features.gbm-hand.most.gain}. Then come loose pieces
-(\V{pair.gbm-hand-no-hanging.gbm-hand.gain}), the moves on offer
-(\V{pair.gbm-hand-no-mobility.gbm-hand.gain}) and the attackers near the
-kings (\V{pair.gbm-hand-no-kings.gbm-hand.gain}). Without the passed pawns
-the trees are \V{pair.gbm-hand-no-pawns.gbm-hand.verdict}. A reading:
-beside the clocks, what moves a player's time is how far the game has gone,
-whether something can be taken, and how much there is to choose from.
+\paragraph{Material, hanging pieces and mobility matter most.}
+The ablation was run for the GBDT baseline. It is significantly worse in
+\V{study.features.gbm-hand.worse.of}. The largest loss follows the removal of
+the \V{study.features.gbm-hand.most.group} group, which consists of the total
+material, the material balance and the number of minor and major pieces
+(paired gain \V{study.features.gbm-hand.most.gain}). Without the
+hanging-piece features the paired gain is
+\V{pair.gbm-hand-no-hanging.gbm-hand.gain}, without the mobility features,
+which include the numbers of legal moves and of legal captures, it is
+\V{pair.gbm-hand-no-mobility.gbm-hand.gain}, and without the two features
+that count attacks near the kings it is
+\V{pair.gbm-hand-no-kings.gbm-hand.gain}. Without the passed-pawn features
+the paired gain is \V{pair.gbm-hand-no-pawns.gbm-hand.gain}
+(\V{pair.gbm-hand-no-pawns.gbm-hand.verdict}). No single group accounts for
+the contribution of the hand-crafted features. Removing all of them gives
+\run{gbm-context}, whose gain relative to the GBDT baseline is
+\V{run.gbm-context.gain} (Table~\ref{tab:leaderboard}), several times the
+largest loss from a single group.
 \fi
 \fi
 
-\section{A closer look}
-\label{sec:closer}
+\section{Error Analysis}
+\label{sec:error}
 
-\input{../../../papers/closer}
+\input{../../../papers/error-analysis}
 
 \iflook
-\subsection{How close a prediction lands}
+\subsection{Distribution of the errors}
 
-An average error hides how the misses are spread. The best run's median miss
-is a factor of \V{best.close.median}, and nine in ten of its predictions
-fall within a factor of \V{best.close.p90}. It is within a factor of one and
-a half of the time taken for \V{best.close.within.1.5}\% of the test
-positions, within a factor of two for \V{best.close.within.2}\%, and within
-a factor of three for \V{best.close.within.3}\%
-(Table~\ref{tab:closeness}).
+The median error factor of the best model is \V{best.close.median}, and 90\%
+of its predictions are within a factor of \V{best.close.p90} of the time
+spent. \V{best.close.within.1.5}\% of the predictions are within a factor of
+1.5, \V{best.close.within.2}\% within a factor of two and
+\V{best.close.within.3}\% within a factor of three
+(Table~\ref{tab:closeness}). As in the definition of the error factor, these
+factors relate one plus the predicted number of seconds to one plus the
+observed number. For the GBDT baseline the three shares are
+\V{reference.close.within.1.5}\%, \V{reference.close.within.2}\% and
+\V{reference.close.within.3}\%.
 
 \begin{table}[htbp]\centering\small
 \block{closeness}
-\caption{How close each run's predictions land on the test positions: the
-median miss and the miss nine in ten predictions fall within, as factors,
-and the share within a factor of one and a half, two and three of the time
-taken.}
+\caption{Distribution of the errors on the test set: the median error factor,
+the 90th percentile, and the share of predictions within a factor of 1.5, two
+and three of the time spent.}
 \label{tab:closeness}
 \end{table}
 
-The last of those shares sets what the yardstick may be used for. The moves
-outside it land more than a factor of three from the stated time, one way or
-the other, and there are too many of them to call each one a mistake of
-pace. Every run in the table is loose in the same way, because the looseness
-is in the moves and not in the model.
+The last share limits how a prediction can be used. The remaining moves
+differ from the prediction by more than a factor of three in one direction or
+the other, and they are too frequent for each of them to be regarded as a
+mistake in the use of the clock. All networks and the GBDT baseline have a
+similar distribution of errors, which indicates that the dispersion is a
+property of the moves and not of a particular model.
 
-\subsection{What a stated time is worth}
+\subsection{Calibration}
 
-Figure~\ref{fig:reliability} asks whether a stated time means what it says.
-The test positions are put in \V{best.reliability.groups} equal groups by
-what the best run said. For the group it calls fastest it says
-\V{best.reliability.lowest.said} seconds, and the typical time taken there
-was \V{best.reliability.lowest.happened}. For the group it calls slowest it
-says \V{best.reliability.highest.said}, against
-\V{best.reliability.highest.happened}. No group is further than
-\V{best.reliability.widest-gap} seconds from what it was called, and the
-widest gap is in the group called slowest. As a statement of the usual pace,
-the number holds across its whole range, a little long at the slow end and a
-little short at the fast one.
+The best model's predictions are accurate on average over their whole range.
+In Figure~\ref{fig:reliability} the test positions are divided into
+\V{best.reliability.groups} bins of equal size by the model's prediction. In
+the lowest bin the mean prediction is \V{best.reliability.lowest.said}
+seconds and the typical time spent is \V{best.reliability.lowest.happened}
+seconds. In the highest bin they are \V{best.reliability.highest.said} and
+\V{best.reliability.highest.happened} seconds. The largest difference in any
+bin is \V{best.reliability.widest-gap} seconds, and it occurs in the highest
+bin. The deviations have a consistent direction: in the lower bins the mean
+prediction is below the typical time and in the upper bins it is above it, so
+the predictions are somewhat more spread out than the typical times. The GBDT
+baseline has a narrower
+range of predictions, from \V{reference.reliability.lowest.said} to
+\V{reference.reliability.highest.said} seconds, and a smaller largest
+difference, \V{reference.reliability.widest-gap} seconds.
 
 \begin{figure}[htbp]\centering
 \block{reliability}
-\caption{What a run said against the time taken, in seconds. The test
-positions are put in equal groups by what the run said; each point is one
-group's stated time against its typical time taken. The wash is the middle
-four fifths of the times taken in each group of the first run. On the
-diagonal a run is right about the usual pace at that level.}
+\caption{Typical time spent against mean predicted time, in seconds. The test
+positions are divided into bins of equal size by the prediction, and each
+point is one bin. The shaded band is the central 80\% of the times spent in
+each bin of the first model. Points on the diagonal are unbiased.}
 \label{fig:reliability}
 \end{figure}
 
-The wash is the other half of the answer. In the middle group, the middle
-four fifths of the times taken span about \V{best.reliability.spread}
-seconds around one stated time. And the range of what the model says is
-short: its slowest twentieth is called \V{best.reliability.highest.said}
-seconds, while one move in twenty takes more than \V{describe.spent.q95}.
-The model never says a long think is coming.
+Predictions for individual moves are much less precise, and the range of the
+predictions is narrow. For a given prediction in the middle of the range, the
+central 80\% of the times spent span about \V{best.reliability.spread}
+seconds (shaded band in Figure~\ref{fig:reliability}). The highest bin, which
+contains the twentieth of the test positions with the longest predictions,
+has a mean prediction of \V{best.reliability.highest.said} seconds, whereas
+one move in twenty takes more than \V{describe.spent.q95} seconds and one in
+a hundred more than \V{describe.spent.q99}. The model does not predict that a
+long think is about to occur.
 
-Table~\ref{tab:seconds} shows the same thing from the other side, by
-grouping the moves by the time they took. This cut is by the truth, so it
-punishes any model for the times it could not foresee, and it is here to
-show how large that part is. Moves made in under two seconds are called
-\V{slice.seconds.-2.challenger.said} seconds by \V{challenger.name}. Moves
-that took eighty seconds or more, \V{slice.seconds.80+.happened} typically,
-are called \V{slice.seconds.80+.challenger.said}
-(Figure~\ref{fig:seconds-bias}).
+Over the whole test set, the mean prediction of the best model corresponds to
+\V{overall.transformer-medium-hand-pretrained.said} seconds and that of the
+GBDT baseline to \V{overall.gbm-hand.said} seconds, compared with a typical
+time of \V{overall.happened} seconds. Both model classes are trained with a
+loss that grows linearly with large errors, and such a loss draws a
+prediction towards the conditional median and away from the conditional mean.
+A plausible explanation of the difference is therefore that, for a given
+input, the distribution of the target is skewed towards long times. We have
+not tested this.
+
+Conditioning on the time spent instead of the prediction shows regression
+towards the mean (Table~\ref{tab:seconds}, Figure~\ref{fig:seconds-bias}).
+For moves that took less than two seconds, the mean prediction of
+\V{challenger.name} is \V{slice.seconds.-2.challenger.said} seconds. For
+moves that took 80 seconds or more, whose typical time is
+\V{slice.seconds.80+.happened} seconds, it is
+\V{slice.seconds.80+.challenger.said} seconds. The corresponding predictions
+of the GBDT baseline are \V{slice.seconds.-2.reference.said} and
+\V{slice.seconds.80+.reference.said} seconds. Every model with prediction
+error shows this effect, because moves that it cannot distinguish receive
+predictions near their common mean. The subgroups of this table are defined
+by the target itself, so the table measures the part of the time that could
+not be predicted. It does not measure a bias that could be corrected.
 
 \begin{table}[htbp]\centering\footnotesize
 \block{slice-seconds}
-\caption{The test positions by the seconds the move took. For each group:
-its test rows, the typical time taken, what each of the two runs said on
-average and its MAE there, and the first run's paired gain over the second.}
+\caption{Test-set results by the time spent on the move, in seconds. For each
+group: the number of test positions, the typical time spent, the mean
+prediction and MAE of each of the two models, and the paired gain of the
+first model over the second.}
 \label{tab:seconds}
 \end{table}
 
 \begin{figure}[htbp]\centering
 \block{slice-seconds-bias}
-\caption{What the two runs said on average, less the typical time taken, by
-the seconds the move took. Above the line a run calls a group's moves slower
-than they were, and below it faster.}
+\caption{Mean prediction minus typical time spent, in seconds, by the time
+spent on the move, for the two models compared. Above the line a model
+predicts a longer time than was spent, and below it a shorter one.}
 \label{fig:seconds-bias}
 \end{figure}
 
-The table also shows where the network differs from the trees. It is ahead
-beyond the noise at both ends (\V{slice.seconds.ahead.groups}) and behind in
-the middle (\V{slice.seconds.behind.groups}). It reaches a little further
-from the usual time than the trees do, is closer for the fastest and the
-slowest moves, and pays a little for it on the ordinary ones.
+The same table shows where the network and the GBDT baseline differ.
+\V{challenger.name} is significantly better in \V{slice.seconds.ahead.of}
+(\V{slice.seconds.ahead.groups}), which are the fastest and the slowest
+moves, and significantly worse in \V{slice.seconds.behind.of}
+(\V{slice.seconds.behind.groups}; gain \V{slice.seconds.5-10.gain}), in the
+middle of the distribution. This agrees with the wider range of its
+predictions: the network moves further from the usual time than the GBDT
+baseline does, which brings it closer to the fastest and the slowest moves
+and costs accuracy on ordinary ones.
 
-\subsection{By the clock}
+\subsection{Clock}
 
-The clock is what the trees lean on most, and Table~\ref{tab:clock} shows
-why. With eight minutes or more left, the typical move takes
-\V{slice.clock.480+.happened} seconds, and between five and eight minutes
-\V{slice.clock.300-480.happened}. From there it shortens with the clock:
-\V{slice.clock.60-120.happened} with one to two minutes left,
-\V{slice.clock.30-60.happened} with half a minute to a minute, and
-\V{slice.clock.-30.happened} in the last half minute. The first group is
-lower than the second most likely because it holds the moves just out of the
-opening, which are played quickly (Table~\ref{tab:slice-ply}).
+The time remaining on the mover's clock is the most important feature of the
+GBDT baseline, and Table~\ref{tab:clock} shows its relation to the time
+spent. With eight minutes or more remaining the typical time is
+\V{slice.clock.480+.happened} seconds, and with five to eight minutes it is
+\V{slice.clock.300-480.happened} seconds. Below five minutes it decreases
+with the clock: \V{slice.clock.60-120.happened} seconds with one to two
+minutes remaining, \V{slice.clock.30-60.happened} seconds with 30 to 60
+seconds, and \V{slice.clock.-30.happened} seconds with less than 30 seconds.
+The typical time in the first group is lower than in the second. A plausible
+explanation is that the first group contains the moves that directly follow
+the opening, which are played quickly (Table~\ref{tab:slice-ply}).
 
 \begin{table}[htbp]\centering\footnotesize
 \block{slice-clock}
-\caption{The test positions by the seconds on the mover's clock.}
+\caption{Test-set results by the time remaining on the mover's clock, in
+seconds.}
 \label{tab:clock}
 \end{table}
 
-\begin{sloppypar}
-Both runs follow that pace group by group (Figure~\ref{fig:clock}): at its
-furthest \V{challenger.name} is \V{slice.clock.challenger.widest-off}
-seconds from the typical time taken. The network's lead over the trees is
-beyond the noise in \V{slice.clock.ahead.of}
-(\V{slice.clock.ahead.groups}). From half a minute to two minutes the
-intervals hold zero, and there are few positions there to tell the two
-apart: a rapid game is mostly played with time in hand.
-\end{sloppypar}
+Both models follow the typical time from group to group
+(Figure~\ref{fig:clock}). The mean prediction of \V{challenger.name} differs
+from the typical time by at most \V{slice.clock.challenger.widest-off}
+seconds in any group, and that of the GBDT baseline by at most
+\V{slice.clock.reference.widest-off}. \V{challenger.name} is significantly
+better than the GBDT baseline in \V{slice.clock.ahead.of}
+(\V{slice.clock.ahead.groups}). In the two groups between 30 seconds and two
+minutes the intervals contain zero. These groups contain
+\V{slice.clock.30-60.rows} and \V{slice.clock.60-120.rows} of the
+\V{look.test-rows} test positions, because most of a rapid game is played
+with ample time.
 
 \begin{figure}[htbp]\centering
 \block{slice-clock-said}
-\caption{The typical time a move took by the seconds on the mover's clock,
-beside what the two runs said on average.}
+\caption{Typical time spent and mean predicted time of the two models
+compared, by the time remaining on the mover's clock.}
 \label{fig:clock}
 \end{figure}
 
-\subsection{By the stage of the game}
+\subsection{Phase of the game}
 
-A game has a pace of its own. The typical move takes
+The time spent follows the course of a game. The typical time is
 \V{slice.ply.-20.happened} seconds before ply 20, rises to
-\V{slice.ply.30-40.happened} between ply 30 and 40, and falls to
-\V{slice.ply.80+.happened} from ply 80 on (Table~\ref{tab:slice-ply}). The
-material tells the same story: \V{slice.pieces.9-12.happened} seconds with
-nine to twelve knights, bishops, rooks and queens on the board, and
-\V{slice.pieces.-3.happened} with fewer than three
-(Table~\ref{tab:slice-pieces}). Players spend their time in the middlegame.
-Late moves are fast for two reasons that the cut does not hold apart: there
-is less on the board to weigh, and less on the clock to weigh it with.
+\V{slice.ply.30-40.happened} seconds between plies 30 and 40, and falls to
+\V{slice.ply.80+.happened} seconds from ply 80 on
+(Table~\ref{tab:slice-ply} in the appendix). The number of minor and major
+pieces on the board shows the same pattern: the typical time is
+\V{slice.pieces.9-12.happened} seconds with nine to twelve such pieces and
+\V{slice.pieces.-3.happened} seconds with fewer than three
+(Table~\ref{tab:slice-pieces}). Players thus think longest per move in the
+middlegame. Two possible reasons for the fast late moves cannot be separated
+in these tables: fewer pieces remain to be considered, and less time remains
+on the clock.
 
-The network leads the trees beyond the noise in \V{slice.ply.ahead.of} by
-the ply and in \V{slice.pieces.ahead.of} by the material. Its lead is
-smallest where a game is nearly over: \V{slice.ply.80+.gain} from ply 80 on
-and \V{slice.pieces.-3.gain} with fewer than three pieces left.
+\V{challenger.name} is significantly better than the GBDT baseline in
+\V{slice.ply.ahead.of} by ply and in \V{slice.pieces.ahead.of} by material.
+Its gain is smallest late in the game: \V{slice.ply.80+.gain} from ply 80 on
+and \V{slice.pieces.-3.gain} with fewer than three minor and major pieces.
 
-\subsection{By how much there is to choose from}
+\subsection{Number of available moves and captures}
 
-What the board adds to the clock is mostly choice. The typical time is
-\V{slice.moves.-5.happened} seconds with fewer than five legal moves and
-\V{slice.moves.5-15.happened} with five to fifteen, and from there it rises
-at every step, to \V{slice.moves.45+.happened} with 45 or more
-(Table~\ref{tab:slice-moves}). By the captures on offer it rises at every
-step, from \V{slice.captures.0.happened} with none to
-\V{slice.captures.4+.happened} with four or more
+The time spent increases with the number of choices that the position
+offers. The typical time is \V{slice.moves.-5.happened}
+seconds with fewer than five legal moves and \V{slice.moves.5-15.happened}
+seconds with five to fifteen, and it increases with every further group, to
+\V{slice.moves.45+.happened} seconds with 45 or more
+(Table~\ref{tab:slice-moves}). By the number of legal captures it increases
+with every group, from \V{slice.captures.0.happened} seconds with none to
+\V{slice.captures.4+.happened} seconds with four or more
 (Table~\ref{tab:captures}). A mover in check takes
-\V{slice.check.yes.happened} seconds, against \V{slice.check.no.happened}
-for one who is not (Table~\ref{tab:slice-check}): a check leaves little to
-choose from.
+\V{slice.check.yes.happened} seconds, compared with
+\V{slice.check.no.happened} seconds for a mover who is not in check
+(Table~\ref{tab:slice-check}), and a check leaves few legal moves.
 
 \begin{table}[htbp]\centering\footnotesize
 \block{slice-captures}
-\caption{The test positions by how many of the mover's legal moves take
-something.}
+\caption{Test-set results by the number of legal captures.}
 \label{tab:captures}
 \end{table}
 
-The mover's own pieces that can be taken move the time much less, from
-\V{slice.hanging.0.happened} seconds with none to
-\V{slice.hanging.3+.happened} with three or more
-(Table~\ref{tab:slice-hanging}). On these tables a threat to answer costs a
-player less time than a choice to make. The network's lead grows with the
-captures on offer: its gain is \V{slice.captures.0.gain} with none and
-\V{slice.captures.4+.gain} with four or more, and it rises at every step
-between. By the legal moves it is smallest in the group of
-\V{slice.moves.gain.least.group}, at \V{slice.moves.gain.least}, and from
-fifteen moves up it is about the same in every group
-(Table~\ref{tab:slice-moves}). Where there is much to weigh, the squares add
-something to the counts.
+The number of the mover's hanging pieces, that is pieces attacked by a less
+valuable piece or attacked and not defended, is related to the time spent
+less strongly: the typical time is \V{slice.hanging.0.happened} seconds with
+none and \V{slice.hanging.3+.happened} seconds with three or more
+(Table~\ref{tab:slice-hanging}). In these tables a choice between several
+captures is associated with a larger increase in the time spent than a threat
+against the mover's own pieces is.
 
-\subsection{By how the mover stands}
+The network's advantage over the GBDT baseline depends on the number of
+captures. The gain of \V{challenger.name} is \V{slice.captures.0.gain} in
+positions without a legal capture and \V{slice.captures.4+.gain} in positions
+with four or more, and it increases with every group in between. By the
+number of legal moves the gain is smallest in the group
+\V{slice.moves.gain.least.group} (\V{slice.moves.gain.least}), where its
+interval contains zero, and it is significant in the other groups
+(\V{slice.moves.ahead.groups}). The GBDT baseline receives the numbers of
+legal moves and of legal captures as features. The network's additional gain
+in positions with many captures therefore indicates that the squares
+involved carry information beyond these counts.
 
-No learner here reads an evaluation, so this cut asks what a model that
-does not know the score still gets right about it
-(Table~\ref{tab:slice-win}). Players think longest when the game is
-tilting: the typical time is \V{slice.win.60-80.happened} seconds with
-winning chances of 60 to 80\% and \V{slice.win.20-40.happened} at 20 to
-40\%. It is shortest at the two ends, \V{slice.win.-10.happened} under 10\%
-and \V{slice.win.90+.happened} at 90\% and over, where the game is decided.
+\subsection{Win probability before the move}
 
-The model's own miss leans the way one would guess. In lost positions it
-says a time \V{slice.win.-10.challenger.off} seconds from the one taken, and
-in won ones \V{slice.win.90+.challenger.off}: players who are losing take a
-little longer than the board suggests, and players who are winning a little
-less. The miss is under a second either way. For a yardstick that is meant
-to know only what the player sees, that is the right size for it to be.
+No model in this paper receives an evaluation, so this analysis shows how a
+model that does not know the evaluation behaves across it
+(Table~\ref{tab:slice-win}). The typical time is longest in positions that
+are unbalanced and not yet decided: \V{slice.win.10-20.happened} and
+\V{slice.win.20-40.happened} seconds at win probabilities of 10\% to 20\% and
+20\% to 40\% for the mover, and \V{slice.win.60-80.happened} and
+\V{slice.win.80-90.happened} seconds at 60\% to 80\% and 80\% to 90\%. It is
+shortest at the extremes, \V{slice.win.-10.happened} seconds below 10\% and
+\V{slice.win.90+.happened} seconds at 90\% and above. In balanced positions,
+between 40\% and 60\%, it is \V{slice.win.40-60.happened} seconds. A
+plausible explanation of this lower value is that the balanced group contains
+most of the positions from the early part of the game, which are played
+quickly, so this table does not separate the evaluation from the phase of
+the game.
 
-\subsection{Two things at once}
+The mean prediction of \V{challenger.name} minus the typical time is between
+\V{slice.win.-10.challenger.off} and \V{slice.win.40-60.challenger.off}
+seconds in the four groups below 60\%, and it rises to
+\V{slice.win.90+.challenger.off} seconds at 90\% and above, compared with
+\V{overall.transformer-medium-hand-pretrained.off} seconds over the whole
+test set. For the GBDT baseline the difference is
+\V{slice.win.-10.reference.off} seconds below 10\% and
+\V{slice.win.90+.reference.off} seconds at 90\% and above. Relative to the
+prediction of a model that does not know the evaluation, players thus take
+slightly longer when they are worse or level, and slightly less when they are
+clearly better. All of these differences are below one second.
+\V{challenger.name} is significantly better than the GBDT baseline in
+\V{slice.win.ahead.of}.
 
-Figure~\ref{fig:grid} crosses the mover's rating with the clock. The upper
-grid is the typical time taken and the lower one what the run said. If the
-lower grid looks like the upper one, the run has the joint pattern and not
-only each margin.
+\subsection{Rating and clock}
+
+Figure~\ref{fig:grid} shows the typical time by the mover's rating and the
+time remaining on the mover's clock, together with the mean predictions of
+the best model. With five minutes or more remaining, the typical time is
+\V{grid.rating-clock.-1100.300+.happened} seconds for movers rated below 1100
+and \V{grid.rating-clock.2000+.300+.happened} seconds for movers rated 2000
+and above. With less than 30 seconds remaining it is
+\V{grid.rating-clock.-1100.-30.happened} and
+\V{grid.rating-clock.2000+.-30.happened} seconds. The strongest players thus
+speed up most when little time remains, but the two cells contain only
+\V{grid.rating-clock.-1100.-30.rows} and \V{grid.rating-clock.2000+.-30.rows}
+test positions, and the typical time does not decrease steadily with the
+rating in the cells between them. Both models reproduce the joint pattern:
+the largest deviation of the mean prediction from the typical time in any
+cell is \V{grid.rating-clock.transformer-medium-hand-pretrained.widest-off}
+seconds for the best model and \V{grid.rating-clock.gbm-hand.widest-off}
+seconds for the GBDT baseline.
 
 \begin{figure}[htbp]\centering
 \block{grid-rating-clock}
 
 \medskip
 \block{grid-rating-clock-said}
-\caption{The typical seconds a move took, by the mover's rating and the
-seconds on the mover's clock. Above: what happened. Below: what the best run
-that is not the reference said. Both grids share one scale of colour, and a
-cell with too few test positions is left empty.}
+\caption{Typical time spent in seconds by the mover's rating and the time
+remaining on the mover's clock. Top: observed times. Bottom: mean predictions
+of the best model other than the GBDT baseline. Both panels use the same
+colour scale, and cells with too few test positions are left empty.}
 \label{fig:grid}
 \end{figure}
 
-The two grids agree, and the joint pattern is worth saying: the stronger the
-player, the harder the squeeze when time is short. With five minutes or more
-left, movers under 1100 typically take
-\V{grid.rating-clock.-1100.300+.happened} seconds and movers at 2000 and
-over \V{grid.rating-clock.2000+.300+.happened}. In the last half minute the
-first take \V{grid.rating-clock.-1100.-30.happened} and the second
-\V{grid.rating-clock.2000+.-30.happened}. The short-clock cells hold few
-positions each (\V{grid.rating-clock.-1100.-30.rows} and
-\V{grid.rating-clock.2000+.-30.rows} in those two), so the last figures are
-rough.
+\subsection{Agreement with the GBDT baseline}
 
-\subsection{Beside the reference}
-
-Table~\ref{tab:beside} sets each run's predictions beside the reference's on
-the same test positions. The best run's correlation with the reference is
-\V{best.beside.correlation}, and it is the closer of the two to the time
-taken on \V{best.beside.closer}\% of the positions. The two say nearly the
-same thing, and the network's gain is a small edge on a small majority of
-moves.
+Table~\ref{tab:beside} gives, for each model, the correlation of its
+predictions with those of the GBDT baseline on the test set. For the best
+model the correlation is \V{best.beside.correlation}, and its prediction is
+closer to the time spent than the baseline's on \V{best.beside.closer}\% of
+the test positions. The two models therefore make similar predictions, and
+the network's gain is a small improvement on a small majority of the moves.
 
 \begin{table}[htbp]\centering\small
 \block{beside}
-\caption{Each run's predictions beside the reference's on the same test
-positions: their correlation, and how often the run is the closer of the two
-to the time taken.}
+\caption{Agreement with the GBDT baseline on the test set: the correlation
+between the two models' predictions, and the share of positions on which the
+model's prediction is closer to the time spent than the baseline's.}
 \label{tab:beside}
 \end{table}
 
-\section{Positions}
+\subsection{Example positions}
 \label{sec:positions}
 
-The positions below were chosen by rule from the test games. Each board is
-seen from the side to move. The grey arrow is the opponent's last move and
-the blue arrow is the move that was played. Beside each board are the move,
-the time it took, what the best run and the reference said, and what the
-position came with. The games are public Lichess games; no game is named.
+The following examples were selected from the test set by the fixed rules
+described above. Each board is shown from the mover's side. The grey arrow is
+the opponent's preceding move and the blue arrow is the move that was played.
+Next to each board we give the move, the time spent on it, the predictions of
+the best model and of the GBDT baseline, and the context of the position. The
+context includes the mover's win probability before the move, which no model
+receives. The games are public Lichess games.
 
-The misses are the instructive ones, because neither kind is a failure to
-read the board. The moves the model called far slower than they were
-(Figure~\ref{fig:over}) took no time at all: on Lichess a move can be
-entered while the opponent is still thinking, and it is then played at once.
-The moves it called far faster than they were (Figure~\ref{fig:under}) each
-took minutes over an early move with most of the clock still left, which is
-a player away from the board as likely as a player thinking. Nothing in a
-position says either is about to happen, and a yardstick of the usual pace
-is better for not chasing them. The positions the model calls slowest and
-fastest are in the appendix (Figures~\ref{fig:highest}
-and~\ref{fig:lowest}): the slowest are middlegames in the longer time
-controls with much of the clock left, and the fastest are the last seconds
-of a game and a recapture that nobody stops over.
+The largest errors show what the inputs do not contain. The three moves with
+the largest overestimates (Figure~\ref{fig:over}) took no measurable time: a
+time spent of zero seconds was recorded for each of them. On Lichess a player
+can enter a move during the opponent's turn, and such a move is played at
+once, which would explain these cases. The three moves with the largest
+underestimates (Figure~\ref{fig:under}) each took more than two minutes early
+in the game, and two of them are consecutive moves of one player in the same
+game. Nothing in the position indicates either kind of event, and a model of
+the usual time should not be expected to predict them. The positions with the
+highest and the lowest predictions are shown in the appendix
+(Figures~\ref{fig:highest} and~\ref{fig:lowest}).
 
-\examples{examples-typical}{Ordinary positions: the first \V{examples.count}
-test positions in the order of a hash of their key, so nothing about them
-picked them.}{fig:typical}
+\examples{examples-typical}{Typical positions: the first \V{examples.count}
+test positions in the order of a hash of their key.}{fig:typical}
 
-\examples{examples-over}{The best run's largest misses upward: the test
-positions where it said the longest time against the time
-taken.}{fig:over}
+\examples{examples-over}{The largest overestimates: the test positions for
+which the best model's prediction exceeds the time spent by the
+most.}{fig:over}
 
-\examples{examples-under}{The best run's largest misses downward: the test
-positions where it said the shortest time against the time
-taken.}{fig:under}
+\examples{examples-under}{The largest underestimates: the test positions for
+which the best model's prediction falls below the time spent by the
+most.}{fig:under}
 \fi
 
-\section{What the app can use today}
+\section{Practical Use}
 \label{sec:use}
 
 \begin{itemize}
-\item \textbf{The usual pace, stated in seconds.} What the model says for a
-position, a rating and a clock is right about the usual pace across its
-whole range. The app can show it beside the time the player took.
-\item \textbf{A pattern, never one move.} The typical miss is a factor of
-\V{best.mae.factor}. One move far from the yardstick is ordinary. What a
-review can stand on is a count over a game or a month: how often the player
-moved at less than a third of the usual time, and in what kind of position.
-\item \textbf{The clock first.} Trees that read only the ratings, the clocks
-and the move number make \V{context.lift.share}\% of the step from the floor
-to the reference. A yardstick from those numbers alone already says most of
-what any of these models says.
-\item \textbf{The trees are nearly all of it.} \V{task.reference} is off by a
-factor of \V{reference.mae.factor} against the best run's
-\V{best.mae.factor}, and it is a file of trees that needs no GPU.
-\item \textbf{Not a warning of a long think.} The model does not see the
-moves that take a minute coming, so it cannot tell a player where to slow
-down. That is the blunder model's job, from the same positions.
+\iflook
+\item \textbf{A reference time in seconds.} The prediction for a position, a
+rating and a clock is accurate on average over its whole range: within
+\V{best.reliability.widest-gap} seconds of the typical time in every bin. The
+application can show it next to the time that the player spent.
+\item \textbf{Statistics over many moves, not a judgement of one move.}
+\V{best.close.within.3}\% of the predictions are within a factor of three of
+the time spent, so a single move that differs widely from the reference is
+ordinary. A review can rely on counts over a game or a month, for example how
+often a player moved in less than a third of the reference time and in which
+kind of position.
+\else
+\item \textbf{Statistics over many moves, not a judgement of one move.} The
+error factor of the best model is \V{best.mae.factor}, so a single move that
+differs widely from the reference is ordinary. A review can rely on counts
+over a game or a month.
+\fi
+\item \textbf{The context provides most of the accuracy.} GBDT on the scalar
+context features alone achieves \V{context.lift.share}\% of the improvement
+of the GBDT baseline over the constant baseline. A reference computed from
+the ratings, the clocks, the time control and the ply already captures most
+of what any of the models predicts.
+\item \textbf{GBDT provides nearly all of the accuracy.} The GBDT baseline
+has an error factor of \V{reference.mae.factor}, compared with
+\V{best.mae.factor} for the best model, and needs no GPU. Where the
+application has to run the model itself, GBDT is the natural starting point.
+\item \textbf{Not a predictor of long thinks.} The model predicts the usual
+time for a position and does not identify the individual moves on which a
+player thinks for a minute or more\iflook: for the moves that took 80 seconds
+or more, its mean prediction is \V{slice.seconds.80+.challenger.said}
+seconds\fi. It describes what players do and not what they should do, so it
+cannot tell a player where to slow down.
 \end{itemize}
 
-\section{What the model does not say yet}
+\section{Limitations}
 \label{sec:limits}
 
 \begin{itemize}
-\item \textbf{Much of a move's time is not on the board.} A premove, a
-recapture, how long the opponent just thought, a plan made two moves ago.
-None of it is in one position and its clocks.
-\item \textbf{One number, no spread.} The model gives the usual time and not
-how far players stray from it. ``Faster than nine in ten players of your
-level here'' needs the spread, which a head that predicts quantiles would
-give.
+\item \textbf{Much of the variation lies outside the inputs.} A move entered
+in advance, the time the opponent has just spent and a plan made several
+moves earlier can all affect the time spent. None of them is contained in a
+single position with its clocks.
+\item \textbf{A point prediction without a distribution.} The model predicts
+one value and not how widely players vary around it. A statement such as
+``faster than nine in ten players of the same rating in this position''
+requires the distribution, for example from a model that predicts quantiles.
 \item \textbf{Whole seconds.} The clocks are recorded in whole seconds, so
-the fastest moves are known only roughly.
-\item \textbf{Short clocks are scarce.} A rapid game is mostly played with
-time in hand, and the groups under a minute are small.
-\item \textbf{Lichess rapid players.} The times are theirs. A player's own
-pace on another site is a separate fit, kept private.
-\item \textbf{No engine, on purpose.} The model does not know which
-positions are critical, so it measures the pace players keep, not the pace
-a position deserves.
+the fastest moves are known only coarsely.
+\item \textbf{Little data on time pressure.} Rapid games are played mostly
+with ample time, and the groups with less than a minute on the clock are
+small.
+\item \textbf{No engine evaluation, by design.} The model does not know which
+positions are critical. It measures how long players take, and not how long a
+position deserves.
+\item \textbf{Only analysed games.} The dataset is shared with a task that
+needs engine evaluations, and Lichess analyses a game only when a user
+requests it.
+\item \textbf{One site, one time control, one month.} The games are the
+first qualifying rapid games of one month on Lichess. A player's use of the
+clock on another site or at another time control requires a separate
+evaluation.
+\item \textbf{Single training runs.} Each network was trained with one
+random seed. The confidence intervals reflect the sampling of test games and
+not the variation between training runs.
 \end{itemize}
 
-\section{Cost and how to draw this again}
+\section{Reproducibility}
 \label{sec:cost}
 
-The \V{runs.count} runs took \V{cost.seconds} in all: \V{cost.seconds.networks}
-for the networks, each trained on a rented GPU, and
-\V{cost.seconds.others} for the floor and the trees. The best run has
-\V{best.parameters} parameters and trained for \V{best.epochs.run} epochs in
-\V{best.seconds} on an \V{best.device}, at about
-\V{best.rows-a-second} positions a second. Table~\ref{tab:runs} has every
-run's processor and time, and Table~\ref{tab:settings} the ladder networks'
-settings.
+Training the \V{runs.count} models on the leaderboard took \V{cost.seconds}
+in total: \V{cost.seconds.networks} for the networks, each trained on a
+single cloud GPU, and \V{cost.seconds.others} for the constant baseline and
+GBDT on a CPU. The ablation models that are not on the leaderboard are not
+included in this total. The best model has \V{best.parameters} parameters and
+was trained for \V{best.epochs.run} epochs in \V{best.seconds} on an
+\V{best.device}, at about \V{best.rows-a-second} positions per second, not
+counting the pretraining of its encoder. Table~\ref{tab:runs} lists
+the hardware and training time of every model, and
+Table~\ref{tab:settings} the hyperparameters of the networks of the fixed
+sequence.
 
-Everything is drawn from committed files. The dataset is built by
-\texttt{lab data game-positions} from the recipe, the runs are trained by
-\texttt{lab all think-time}, each run writes its record under the model's
-\texttt{results/} folder, and \texttt{lab paper think-time} writes every
-number, table and figure of this paper from those records and compiles it. A
-record names the build of the data it read (\V{data.fingerprint}) and the
-commit of the code that trained it (\V{code.commit}). Weights and test
-predictions are not committed. They are kept on the owner's machine, and the
-model's card says where and gives the hash of the best run's weights.
+All results are generated from committed files. The dataset is built from
+its recipe by \texttt{lab data game-positions}, the models are trained by
+\texttt{lab all think-time}, each training run writes a record to the model's
+\texttt{results/} directory, and \texttt{lab paper think-time} generates
+every number, table and figure of this paper from those records and compiles
+it. A record names the build of the dataset it used (\V{data.fingerprint})
+and the commit of the code that produced it (\V{code.commit}). Model weights
+and test predictions are not stored in the repository. The model's card
+states where they are kept and gives the hash of the best model's weights.
 
-\section{What comes next}
+\section{Conclusion and Future Work}
+\label{sec:conclusion}
 
+The time a player spends on a move in a rapid game can be predicted from the
+position, the ratings and the clocks with an error factor of
+\V{best.mae.factor}, compared with \V{floor.mae.factor} for a constant
+prediction. Most of this improvement comes from the context, in particular
+the time remaining on the mover's clock, and from a small number of
+hand-crafted features. A network that reads the board adds a further, smaller
+improvement, which is largest in positions with many captures. The
+predictions are accurate on average over their whole range, and they leave
+most of the variation between individual moves unexplained. The following
+experiments are the natural next steps.
 \begin{itemize}
-\item \textbf{The spread, not only the middle.} A head that predicts a low,
-a middle and a high quantile of the time, so the app can say how unusual a
-move's time was.
-\item \textbf{The game as a sequence.} The moves and the clock use that led
-to a position hold what one position cannot: whether the move was a
-recapture, how long the opponent just took. That is how Allie reads a
-game~\cite{allie}.
-\item \textbf{One body for the think and the blunder.} The lab's blunder
-model, on the same positions, understates the danger of the moves that took
-longest. A body trained on both labels asks whether a long think can be read
-off the board after all.
-\ifvariants\else
-\item \textbf{A longer schedule.} Most of the networks were still improving
-when training stopped.
-\fi
-\ifgames\else
-\item \textbf{More games, or fewer.} A run on half and on a quarter of the
-training games says what a larger build would buy.
-\fi
+\item \textbf{The distribution, not only its centre.} A model that predicts
+a low, a middle and a high quantile of the time would let the application say
+how unusual the time spent on a move was.
+\item \textbf{The game as a sequence.} The preceding moves and the players'
+use of their clocks contain what a single position does not: how long the
+opponent has just thought, and how the player has used the clock so far.
+Allie reads a game in this way~\cite{allie}.
+\item \textbf{A joint model of thinking time and blunders.} The blunder-risk
+model trained on the same positions underestimates the risk of the moves that
+take longest. A model trained on both targets tests whether a long think can
+be anticipated from the position.
 \ifmore
-\item \textbf{More games and more steps together.} On more games the
-network was still improving when its schedule ended. The run on four times
-the games with twice the steps is the one case the games study does not
-have, and the best run on four times the games is the other run to make
-there.
+\item \textbf{More data together with more optimisation steps.} On the
+larger training sets the transformer reached its best validation MAE in the
+final epoch of its schedule. Training on four times the games with a longer
+schedule, and training the pretrained model on four times the games, are the
+two missing cases.
 \fi
 \ifshapes
-\item \textbf{The attention that is told the attacks, from the body.}
-\V{run.transformer-medium-pretrained.name} with its attention told what
-each piece attacks, and the same with the hand features: one change in a
-kept run, and the two changes the transformer that reads the board alone
-has gained most from here, in one network.
-\item \textbf{A tower that has learned the evaluations.} The tower is the
-best run here that starts from nothing, and it cannot start from a
-transformer's body.
+\ifchangestart
+\item \textbf{The accepted modifications in combination.} The attack-aware
+attention bias and the ResNet encoder were evaluated from random
+initialisation only. A pretrained transformer with the attack-aware bias, and
+a pretrained ResNet, have not been trained.
 \fi
-\item \textbf{A stronger body to start from.} The body was trained once, at
-one size, on a part of the evaluations file. One trained for longer, on more
-of the file or at a larger size has not been tried.
-\item \textbf{The player's own pace.} A fit of the player's times against
-the yardstick, kept private, before the app states either.
+\fi
+\ifchangestart
+\item \textbf{A stronger pretrained encoder.} The encoder was pretrained
+once, at one size, on part of the evaluation database. Longer pretraining,
+more positions and a larger encoder have not been tried.
+\fi
+\item \textbf{A player's own use of the clock.} Before the application
+displays a reference time to a player, the predictions should be compared
+with the times in that player's own games.
 \end{itemize}
 
 \bibliographystyle{unsrt}
@@ -1060,39 +1385,49 @@ the yardstick, kept private, before the app states either.
 \clearpage
 \appendix
 
-\section{Sizes, schedules and features}
+\section{Hyperparameters and Features}
 
 \begin{table}[htbp]\centering\footnotesize
 \block{settings}
-\caption{The ladder networks' sizes and schedules, from their run configs.
-\emph{Rate} is the peak learning rate. A setting they all share is in the
-line under the table.}
+\caption{Hyperparameters of the networks of the fixed sequence, from their
+configuration files. \emph{LR} is the peak learning rate. Values shared by
+all of them are given below the table.}
 \label{tab:settings}
 \end{table}
 
 \begin{table}[htbp]\centering\footnotesize
 \block{hand}
-\caption{The hand features: what \V{task.reference} reads beside the context
-numbers, and a network when its run asks for them.}
+\caption{Hand-crafted features: the inputs of \V{task.reference} in addition
+to the scalar context features, and of a network whose configuration includes
+them.}
 \label{tab:hand}
 \end{table}
 
 \iflook
-\section{The extremes of what the model says}
+\section{Examples with Extreme Predictions}
 
-\examples{examples-highest}{The test positions for which the best run said
-the longest time.}{fig:highest}
+The three positions with the highest predictions were all played with an
+initial time of 15 minutes and an increment of 10 seconds, with both queens
+and most of the pieces on the board, and in each of them the time spent was
+longer than the prediction (Figure~\ref{fig:highest}). Two of the three
+positions with the lowest predictions are endgames in which the mover has
+less than ten seconds left, and in the third the move played is a recapture.
+All three of these moves were played within one second
+(Figure~\ref{fig:lowest}).
 
-\examples{examples-lowest}{The test positions for which the best run said
-the shortest time.}{fig:lowest}
+\examples{examples-highest}{The test positions with the longest predicted
+times of the best model.}{fig:highest}
 
-\section{Every cut of the test positions}
+\examples{examples-lowest}{The test positions with the shortest predicted
+times of the best model.}{fig:lowest}
 
-Each table below groups the test positions by one column. The columns are the
-group, its test rows, the typical time taken in seconds, then for each of the
-two runs the time it said on average and its MAE, and the paired gain of the
-first run over the second with its 95\% interval, bold when the interval
-leaves zero out.
+\section{Subgroup Tables}
+
+Each table below partitions the test positions by one variable. The columns
+are the group, the number of test positions, the typical time spent in
+seconds (\emph{Observed}), the mean prediction in seconds and the MAE of each
+of the two models compared, and the paired gain of the first model over the
+second with its 95\% CI, in bold when statistically significant.
 
 \block{slices}
 \fi
