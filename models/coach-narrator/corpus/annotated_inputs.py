@@ -36,6 +36,8 @@ def main() -> None:
         )
     if (annotated / "games.parquet").exists():
         parts.append(pl.read_parquet(annotated / "games.parquet").select("key", pl.col("fen_before").alias("fen"), "move", pl.lit("games").alias("corpus")))
+    for book in sorted(annotated.glob("book-games-*.parquet")):
+        parts.append(pl.read_parquet(book).select("key", pl.col("fen_before").alias("fen"), "move", pl.lit("books").alias("corpus")))
     if (annotated / "stackexchange.parquet").exists():
         parts.append(pl.read_parquet(annotated / "stackexchange.parquet").select("key", "fen", pl.lit(None, dtype=pl.String).alias("move"), pl.lit("stackexchange").alias("corpus")))
     table = pl.concat(parts, how="vertical_relaxed").filter(pl.col("fen").is_not_null()).unique(subset="key", keep="first", maintain_order=True)

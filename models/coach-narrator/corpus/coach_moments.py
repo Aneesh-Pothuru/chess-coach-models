@@ -107,12 +107,13 @@ def moments(corpus: Path) -> list[dict]:
     annotated = corpus / "annotated"
     engine = _by_key(corpus / "engine")
     maia = _by_key(corpus / "maia")
-    for name in ("openings", "diagrams", "games", "stackexchange"):
-        path = annotated / f"{name}.parquet"
+    sources = [(name, annotated / f"{name}.parquet") for name in ("openings", "diagrams", "games", "stackexchange")]
+    sources += [("books", path) for path in sorted(annotated.glob("book-games-*.parquet"))]
+    for name, path in sources:
         if not path.exists():
             continue
         for row in pl.read_parquet(path).to_dicts():
-            fen = row.get("fen_before") if name == "games" else row.get("fen")
+            fen = row.get("fen_before") if name in ("games", "books") else row.get("fen")
             if not fen:
                 continue
             if name == "openings":
@@ -122,10 +123,11 @@ def moments(corpus: Path) -> list[dict]:
                 move = row["line"][0] if row["line"] else None
                 history = ""
                 text = "\n\n".join(part for part in (row["caption"], row["context"]) if part)
-            elif name == "games":
+            elif name in ("games", "books"):
                 move = row["move"]
                 history = " ".join(row["moves"].split()[:-1])
-                text = row["comment"]
+                # A book's note keeps the book's own notation, which the moment says.
+                text = row["comment"] if name == "games" else f"[{row['notation']} notation] {row['comment']}"
             else:
                 move = None
                 board = row["boards"][0]

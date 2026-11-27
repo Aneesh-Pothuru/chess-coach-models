@@ -20,6 +20,7 @@ the code and [`results/corpora.json`](results/corpora.json), the counts `corpus_
 | `annotated/openings.parquet` | a section of Wikibooks' *Chess Opening Theory* about the position its page is named for, with the reply the section discusses when it names one | en.wikibooks.org | CC BY-SA 4.0 | `wiki_fetch.py`, `openings_corpus.py` |
 | `annotated/diagrams.parquet` | a chess diagram of a Wikipedia article on tactics, strategy, endgames, openings, traps, checkmates, famous games and world championship matches: the position, the line its caption gives, the caption and the paragraph after it | en.wikipedia.org | CC BY-SA 4.0 | `wiki_fetch.py`, `diagrams_corpus.py` |
 | `annotated/games.parquet` | a move of a game Wikipedia annotates (famous games, world championship matches), with the commentary written after it: the position before and after it, the game's moves so far, the glyph | en.wikipedia.org | CC BY-SA 4.0 | `wiki_fetch.py`, `games_corpus.py` |
+| `annotated/book-games-<id>.parquet` | a move of a game annotated in a public-domain book, with the author's note after it as printed (in the book's descriptive notation), the position before and after it and the game's moves so far as SAN: Capablanca's *Chess Fundamentals* (1921, his own games and examples) and Edward Lasker's *Chess Strategy* (1915) | Project Gutenberg (#33870, #5614) | public domain in the USA | `book_games_corpus.py`, `descriptive.py` |
 | `annotated/stackexchange.parquet` | a Chess Stack Exchange question that shows a board, with its answers that scored a vote or were accepted | the site's data dump of 2024-04 (Internet Archive) | CC BY-SA 3.0 and 4.0 | `stackexchange_corpus.py` |
 | `engine/<corpus>.parquet` | Stockfish's best lines for a corpus's positions, where the move discussed stands among them and what it gives away, and the lines of the other moves asked about | computed | — | `engine_lines.py` |
 | `maia/<corpus>.parquet` | the published Maia-2's three likeliest moves at ratings 1100, 1350, 1700 and 2100, and its chance that the mover wins | computed | — | `maia_moves.py` |
@@ -63,7 +64,7 @@ code and keeps the columns a position row of `game-positions` has.
 | GameKnot's annotated games (the source of the published move-commentary datasets) | Collected from the site with no licence. |
 | Paid course platforms (Chessable) | Their terms forbid copying or exporting course content and using it in any computer program. |
 | chess.com | Its user agreement bars using its content to develop or train AI models or datasets. |
-| Public-domain books (Project Gutenberg) | Usable, and some are annotated games by world champions, but not read yet: they are written in descriptive notation, which needs a converter, and the site was down for maintenance when this was built. |
+| Other public-domain books on Project Gutenberg | Usable but not read: Staunton's *Blue Book* writes moves in a notation older still ("Q. B. to K. R.'s 6th"), and the Morphy books and Edward Lasker's *Chess and Checkers* do not print games in rows. |
 
 ## Rebuilding
 
@@ -80,6 +81,8 @@ python wiki_fetch.py --site en.wikipedia.org --depth 1 --category "Chess tactics
 python openings_corpus.py ../../../data/raw/wikimedia/wikibooks-opening-theory.jsonl ../../../data/corpus/annotated/openings.parquet
 python diagrams_corpus.py ../../../data/raw/wikimedia/wikipedia-chess.jsonl ../../../data/corpus/annotated/diagrams.parquet
 python stackexchange_corpus.py ../../../data/raw/stackexchange/chess ../../../data/corpus/annotated/stackexchange.parquet
+python book_games_corpus.py ../../../data/raw/gutenberg/33870-chess-fundamentals.txt ../../../data/corpus/annotated/book-games-33870.parquet --book-name "Chess Fundamentals (Capablanca, 1921)" --source https://www.gutenberg.org/ebooks/33870 --licence "Public domain in the USA (Project Gutenberg)"
+python annotated_inputs.py ../../../data/corpus/inputs/annotated.parquet
 python engine_lines.py <corpus>.parquet ../../../data/corpus/engine/<name>.parquet --nodes 400000 --multipv 4
 python maia_moves.py <corpus>.parquet ../../../data/corpus/maia/<name>.parquet
 python coach_moments.py

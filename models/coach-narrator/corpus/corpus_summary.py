@@ -44,7 +44,9 @@ def main() -> None:
             if path.exists():
                 summary["masters"][name.removesuffix(".parquet")] = {"rows": _rows(path)}
     annotated = {}
-    for name in ("openings", "diagrams", "stackexchange", "games"):
+    names = ["openings", "diagrams", "stackexchange", "games"]
+    names += sorted(path.stem for path in (corpus / "annotated").glob("book-games-*.parquet"))
+    for name in names:
         path = corpus / "annotated" / f"{name}.parquet"
         if not path.exists():
             continue
