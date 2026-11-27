@@ -30,6 +30,7 @@ BUILDERS = {
     "game_sides": "sides",
     "tactics": "tactics",
     "evaluations": "evaluations",
+    "master_positions": "masters",
 }
 
 

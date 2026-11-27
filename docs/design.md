@@ -73,7 +73,11 @@ are parsed, and the build stops downloading at its count (`data/evaluations.py`)
 joined to their games, fourteen Parquet files) is fetched one file at a time, and each file is let
 go once its rows are read (`data/tactics.py`). A download that stops early is an error, never the
 end of the data, and so is anything that stops the rows on their way to the worker pool
-(`fed` in `data/store.py`): a build fails rather than keep a part or wait for ever.
+(`fed` in `data/store.py`): a build fails rather than keep a part or wait for ever. The broadcast
+database, Lichess's relays of over-the-board events (CC BY-SA 4.0), is small enough to keep: its
+monthly files come to under a gigabyte, a build reads the copy in `data/raw/lichess-broadcasts/` when
+there is one (`data/broadcasts.py`), and a game two broadcasts relayed is read once
+(`data/masters.py`).
 
 **A sample is a hash.** Whether a puzzle or a game is in the sample is decided by a hash of its
 id (`data/splits.py`), so the same recipe builds the same rows on any machine, and a bigger sample

@@ -1,0 +1,22 @@
+# Moves strong players made in classical over-the-board games with time on their clock, from the Lichess
+# broadcast database (data/masters.py; CC BY-SA 4.0): a row a move. Strong is a title of GM, IM, FM, CM,
+# NM or WGM, or a rating of 2200 and up (data/broadcasts.py).
+name: masters-classical-v1
+builder: master_positions
+first_month: "2020-01"
+last_month: "2026-10"
+# The Maia protocol's opening cut, as game-positions has it: nothing before each side's sixth move.
+min_ply: 11
+# The mover had at least ten minutes left before the move.
+ample_clock: 600
+per_game: 24
+# A hash of the game keeps this share of the games with a strong player, so the sample is spread over
+# every month, and the build stops at this many games.
+sample: 0.15
+games: 60000
+split:
+  salt: masters-classical-v1
+  valid: 0.05
+  test: 0.10
+smoke:
+  games: 300

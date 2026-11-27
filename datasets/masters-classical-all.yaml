@@ -1,0 +1,17 @@
+# Every game masters-classical could keep, for training only: a larger build of it (data/__init__.py).
+name: masters-classical-all-v1
+of: masters-classical
+builder: master_positions
+first_month: "2020-01"
+last_month: "2026-10"
+min_ply: 11
+ample_clock: 600
+per_game: 24
+sample: 1.0
+games: 400000
+split:
+  salt: masters-classical-v1
+  valid: 0.05
+  test: 0.10
+smoke:
+  games: 300

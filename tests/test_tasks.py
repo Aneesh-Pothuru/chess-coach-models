@@ -204,6 +204,7 @@ def test_a_larger_build_of_a_dataset_changes_only_how_much_of_the_source_it_keep
         "puzzles-all": "puzzles",
         "game-positions-120k": "game-positions",
         "tactics-all": "tactics",
+        "masters-classical-all": "masters-classical",
     }
     for name, other in larger.items():
         if other is None:
