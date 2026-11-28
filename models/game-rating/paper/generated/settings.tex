@@ -1,14 +1,17 @@
 % Written by `lab paper game-rating`; do not edit by hand.
 {\setlength{\tabcolsep}{4.5pt}%
-\begin{tabular}{llrrrrrrr}
+\begin{tabular}{llrrrrrrrrrrr}
 \toprule
-Model & Encoder & Width & Layers & Heads & Seq. heads & Batch & LR & Parameters \\
+Model & Encoder & Width & Layers & Heads & Seq. layers & Seq. heads & Epochs & Batch & LR & Weight decay & Patience & Parameters \\
 \midrule
-\run{conv-small} & ResNet & 96 & 6 &  & 4 & 64 & 0.001 & 1{,}730{,}209 \\
-\run{transformer-small} & Transformer & 128 & 4 & 8 & 4 & 64 & 0.0006 & 2{,}094{,}753 \\
-\run{transformer-medium} & Transformer & 256 & 8 & 8 & 8 & 32 & 0.0003 & 11{,}444{,}545 \\
+\run{steps-board} & Step sequence & 128 & 1 & 4 &  &  & 10 & 256 & 0.002 & 0.03 & 4 & 524{,}421 \\
+\run{conv-small} & ResNet & 96 & 6 &  & 2 & 4 & 8 & 64 & 0.001 & 0.05 & 3 & 1{,}730{,}209 \\
+\run{transformer-small} & Transformer & 128 & 4 & 8 & 2 & 4 & 8 & 64 & 0.0006 & 0.05 & 3 & 2{,}094{,}753 \\
+\run{transformer-medium} & Transformer & 256 & 8 & 8 & 2 & 8 & 8 & 32 & 0.0003 & 0.05 & 3 & 11{,}444{,}545 \\
+\run{steps-temporal} & Step sequence & 96 & 1 & 4 &  &  & 8 & 256 & 0.002 & 0.03 & 4 & 293{,}573 \\
+\run{steps-raw} & Step sequence & 96 & 1 & 4 &  &  & 8 & 256 & 0.002 & 0.03 & 4 & 290{,}981 \\
 \bottomrule
 \end{tabular}}
 
 \smallskip
-{\footnotesize Shared by all of them: dropout 0.1, seq. layers 2, epochs 8, weight decay 0.05, patience 3.}
+{\footnotesize Shared by all of them: dropout 0.1.}

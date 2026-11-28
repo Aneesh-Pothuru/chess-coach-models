@@ -12,4 +12,8 @@ Model & Baseline & Change & Validation & Test & 95\% CI \\
 \lablongcaption
 \endlastfoot
 \run{transformer-medium-hand} & \run{transformer-medium} & with hand-crafted features & $-$14.1 & \textbf{$-$14.35} & $-$16.72 to $-$11.82 \\
+\run{steps-board-aux} & \run{steps-board} & with auxiliary \code{opponent\_elo} supervision; \texttt{train.aux\_weight} 0.3; 8 epochs in place of 10 & $-$0.747 & +0.193 & $-$1.286 to +1.656 \\
+\run{steps-own-only} & \run{steps-board} & without opponent clock or implied-loss features; 8 epochs in place of 10 & $-$9.57 & \textbf{$-$7.497} & $-$9.440 to $-$5.548 \\
+\run{steps-temporal} & \run{steps-raw} & with derived temporal step features & +5.94 & \textbf{+5.376} & +3.376 to +7.213 \\
+\run{steps-board} & \run{steps-temporal} & 1 layers of width 128 in place of 1 of width 96; with per-move board-geometry features; 10 epochs in place of 8 & +19.0 & \textbf{+21.91} & +19.21 to +24.55 \\
 \end{xltabular}

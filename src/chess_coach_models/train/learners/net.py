@@ -26,6 +26,9 @@ def start_from(model, saved: dict[str, Any], *, learner: dict[str, Any], marks: 
     beside the board carry over only when both tasks read the same numbers. The head never does: it is the
     task's own.
 
+    For a sequence network (``GameBody``), the pretrained single-board encoder is loaded into
+    ``body.board.*`` while the sequence layers over it start fresh.
+
     What a transformer's attention is told is no part of its size. One told what each piece attacks takes
     the body of one told nothing, and since its weights on what it is told start at nothing it begins as
     that body does. What started new is named by its part of the network (``body.context``, ``head``), and
@@ -41,26 +44,41 @@ def start_from(model, saved: dict[str, Any], *, learner: dict[str, Any], marks: 
             + ", ".join(f"{key} ({learner.get(key)} here, {theirs.get(key)} there)" for key in differs)
         )
     own, state = model.state_dict(), saved["state"]
+    is_sequence = hasattr(model.body, "board")
+    prefix = "body.board." if is_sequence else "body."
     same_numbers = list(saved["context"]) == list(numbers)
     shared = [(marks.index(name), saved["marks"].index(name)) for name in marks if name in saved["marks"]]
     # The two tensors that read the marks, and where their mark channels start.
-    mark_tensors = {"body.mark.weight": 0, "body.stem.weight": TOKENS}
+    mark_tensors = {f"{prefix}mark.weight": 0, f"{prefix}stem.weight": TOKENS}
     taken, fresh = [], []
     for name, tensor in own.items():
-        source = state.get(name)
-        if source is None or not name.startswith("body.") or (name.startswith("body.context.") and not same_numbers):
+        if not name.startswith(prefix):
+            fresh.append(name)
+            continue
+        saved_name = "body." + name[len(prefix) :]
+        source = state.get(saved_name)
+        if source is None or (name.startswith(f"{prefix}context.") and not same_numbers):
             fresh.append(name)
         elif name in mark_tensors:
             first = mark_tensors[name]
-            tensor[:, :first] = source[:, :first]
-            for ours, their in shared:
-                tensor[:, first + ours] = source[:, first + their]
-            taken.append(name)
+            if source.shape[1] >= first and tensor.shape[0] == source.shape[0] and tensor.shape[2:] == source.shape[2:]:
+                tensor[:, :first] = source[:, :first]
+                for ours, their in shared:
+                    if first + ours < tensor.shape[1] and first + their < source.shape[1]:
+                        tensor[:, first + ours] = source[:, first + their]
+                taken.append(name)
+            else:
+                fresh.append(name)
         elif source.shape == tensor.shape:
             own[name] = source.clone()
             taken.append(name)
         else:
             fresh.append(name)
+    # Zero-initialise extra_piece embeddings when starting from a single-board pretrained model so the
+    # network starts from the pretrained representation cleanly.
+    for name in list(fresh):
+        if name.startswith(f"{prefix}extra_piece.") and name.endswith(".weight"):
+            own[name].zero_()
     model.load_state_dict(own)
     carried = {".".join(name.split(".")[:2]) for name in taken}
     new = set()
@@ -74,16 +92,36 @@ def start_from(model, saved: dict[str, Any], *, learner: dict[str, Any], marks: 
     }
 
 
+def _asymmetric_loss(logits, targets, *, gamma_neg: float = 2.0, gamma_pos: float = 0.0, clip: float = 0.05):
+    """Asymmetric multi-label focal loss (Ridnik et al., ICCV 2021) for imbalanced tag prediction."""
+    import torch
+
+    xs_pos = torch.sigmoid(logits)
+    xs_neg = 1.0 - xs_pos
+    if clip > 0.0:
+        xs_neg = (xs_neg + clip).clamp(max=1.0)
+    los_pos = targets * torch.log(xs_pos.clamp(min=1e-8))
+    los_neg = (1.0 - targets) * torch.log(xs_neg.clamp(min=1e-8))
+    if gamma_neg > 0.0 or gamma_pos > 0.0:
+        pt = xs_pos * targets + xs_neg * (1.0 - targets)
+        gamma = gamma_pos * targets + gamma_neg * (1.0 - targets)
+        weight = torch.pow((1.0 - pt).clamp(min=0.0), gamma)
+        loss = -(los_pos + los_neg) * weight
+    else:
+        loss = -(los_pos + los_neg)
+    return loss.mean()
+
+
 def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None = None, start: Path | None = None) -> Fitted:
     """A board network trained with AdamW on a warm-up then cosine schedule, keeping the epoch that scores best on valid.
 
     With ``start`` the network begins from the body of the network saved there (``start_from``), and its
     record says what it took. For a task whose answer is a set the head gives a logit a candidate (a square,
     a tag), each trained as a yes or no of its own. Where a row is a sequence of positions the body reads
-    every one of them with its own numbers and then the positions in order (``GameBody``): a batch is filled
-    out to its longest row, and the row's own numbers are what a row of one position has as context. For a
-    task that predicts the move played the head gives a logit to every pair of squares (``MoveNet``), and
-    the loss is the cross-entropy of the move played among the moves the position allows.
+    every one of them with its own numbers and then the positions in order (``GameBody`` or ``StepBody``):
+    a batch is filled out to its longest row, and the row's own numbers are what a row of one position has
+    as context. For a task that predicts the move played the head gives a logit to every pair of squares
+    (``MoveNet``), and the loss is the cross-entropy of the move played among the moves the position allows.
     """
     import torch
     import torch.nn.functional as F
@@ -109,10 +147,23 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
     y_spread = float(prepared.y[prepared.train].std()) if regression else 1.0
 
     sequence = prepared.dataset.steps
-    if sequence is not None and start is not None:
-        raise ValueError(f"{task.name}: a network that reads a row's positions in order does not start from another run yet")
-    tokens = torch.from_numpy(prepared.dataset.tokens if sequence is None else sequence.tokens).to(device)
-    marks = torch.from_numpy((prepared.dataset.marks if sequence is None else sequence.marks).astype(np.int16)).to(device)
+    is_steps_body = learner["body"] == "steps"
+    if is_steps_body and start is not None:
+        raise ValueError(f"{task.name}: body 'steps' cannot start from a pretrained board encoder")
+    extra_boards = 0
+    if is_steps_body:
+        tokens = marks = None
+    elif sequence is None and learner.get("solution_boards"):
+        from ...encode.solution import solution_boards
+
+        extra = solution_boards(prepared.dataset)
+        stacked = np.concatenate([prepared.dataset.tokens[:, None, :], extra], axis=1)
+        tokens = torch.from_numpy(stacked).to(device)
+        extra_boards = extra.shape[1]
+        marks = torch.from_numpy(prepared.dataset.marks.astype(np.int16)).to(device)
+    else:
+        tokens = torch.from_numpy(prepared.dataset.tokens if sequence is None else sequence.tokens).to(device)
+        marks = torch.from_numpy((prepared.dataset.marks if sequence is None else sequence.marks).astype(np.int16)).to(device)
     context = torch.from_numpy((numbers - mean) / spread).to(device)
     if sets:
         # One byte a candidate until a batch asks for it: a set over every row is large as fractions.
@@ -123,6 +174,18 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
         target = torch.from_numpy(prepared.moves[np.arange(len(prepared.y)), prepared.y].astype(np.int64)).to(device)
     else:
         target = torch.from_numpy(((prepared.y - y_mean) / y_spread).astype(np.float32)).to(device)
+
+    aux_col = schedule.get("aux_target")
+    aux_weight = float(schedule.get("aux_weight", 0.3))
+    aux_target = None
+    aux_outputs = 0
+    if aux_col is not None:
+        if not regression:
+            raise ValueError("aux_target is only supported for regression tasks")
+        aux_values = prepared.dataset.rows[aux_col].to_numpy().astype(np.float64)
+        aux_target = torch.from_numpy(((aux_values - y_mean) / y_spread).astype(np.float32)).to(device)
+        aux_outputs = 1
+
     shifts = torch.tensor(prepared.mark_channels, device=device)
 
     def batch_of(rows: torch.Tensor) -> tuple[torch.Tensor, ...]:
@@ -130,20 +193,83 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
         return tokens[rows].long(), planes, context[rows]
 
     step_mean = step_spread = None
+    step_names = list(prepared.step_names)
     longest = 0
     if sequence is not None:
         frame = prepared.dataset.rows
         first, count = frame["first_step"].to_numpy().astype(np.int64), frame["steps"].to_numpy().astype(np.int64)
         longest = int(count.max())
-        # Each position's numbers, scaled by what the training rows' positions hold.
-        of_step = sequence.numbers[:, prepared.step_columns].astype(np.float32)
+        base_step = sequence.numbers[:, prepared.step_columns].astype(np.float32)
+        without_opp = bool(learner.get("without_opponent", False))
+        opp_base_cols = {"log_opponent_clock", "win_before", "castle_opp_king", "castle_opp_queen"}
+        if without_opp:
+            keep_idx = [i for i, name in enumerate(step_names) if name not in opp_base_cols]
+            parts_step = [base_step[:, keep_idx]]
+            step_names = [step_names[i] for i in keep_idx]
+        else:
+            parts_step = [base_step]
+        if learner.get("temporal"):
+            from ...encode.steps import temporal_features
+
+            t_arr, t_names = temporal_features(
+                base_step,
+                prepared.step_names,
+                first,
+                count,
+                frame["base"].to_numpy(),
+                frame["increment"].to_numpy(),
+                without_opponent=without_opp,
+            )
+            parts_step.append(t_arr)
+            step_names += t_names
+        if learner.get("board_features"):
+            from ...data.store import dataset_dir
+            from ...encode.steps import BOARD_STEP_NAMES, board_step_features
+
+            fp = prepared.dataset.manifest.get("fingerprint")
+            cache = dataset_dir(prepared.dataset.name) / f"board_step_features.{fp[:16]}.npy" if fp else None
+            b_arr = None
+            if cache is not None and cache.exists():
+                loaded = np.load(cache)
+                if loaded.shape == (len(sequence.tokens), len(BOARD_STEP_NAMES)):
+                    b_arr, b_names = loaded, list(BOARD_STEP_NAMES)
+            if b_arr is None:
+                b_arr, b_names = board_step_features(sequence.tokens, sequence.marks, prepared.dataset.manifest["marks"])
+                if cache is not None and cache.parent.exists():
+                    tmp = cache.with_suffix(".tmp.npy")
+                    np.save(tmp, b_arr)
+                    tmp.replace(cache)
+            if without_opp:
+                opp_board_cols = {"is_recapture", "opp_moved_val", "opp_move_dist", "own_atk_last_to", "opp_def_last_to"}
+                keep_b = [i for i, name in enumerate(b_names) if name not in opp_board_cols]
+                b_arr = b_arr[:, keep_b]
+                b_names = [b_names[i] for i in keep_b]
+            parts_step.append(b_arr)
+            step_names += b_names
+        of_step = np.concatenate(parts_step, axis=1) if len(parts_step) > 1 else parts_step[0].copy()
+        del parts_step, base_step
+        if "t_arr" in locals():
+            del t_arr
+        if "b_arr" in locals():
+            del b_arr
+        # Compute training mean/std column-wise and normalize in-place to avoid gigabyte temporaries.
         in_train = np.zeros(len(count), dtype=bool)
         in_train[prepared.train] = True
-        step_mean = of_step[np.repeat(in_train, count)].mean(axis=0)
-        step_spread = of_step[np.repeat(in_train, count)].std(axis=0)
-        step_spread[step_spread == 0] = 1.0
-        step_numbers = torch.from_numpy((of_step - step_mean) / step_spread).to(device)
+        step_mask = np.repeat(in_train, count)
+        n_cols = of_step.shape[1]
+        step_mean = np.empty(n_cols, dtype=np.float32)
+        step_spread = np.empty(n_cols, dtype=np.float32)
+        for col in range(n_cols):
+            vals = of_step[step_mask, col]
+            m = float(vals.mean())
+            s = float(vals.std())
+            step_mean[col] = m
+            step_spread[col] = s if s != 0.0 else 1.0
+        of_step -= step_mean
+        of_step /= step_spread
+        step_numbers = torch.from_numpy(of_step).to(device)
         first_step, step_count = torch.from_numpy(first).to(device), torch.from_numpy(count).to(device)
+        empty_tensor = torch.empty(0, device=device)
 
         def batch_of(rows: torch.Tensor) -> tuple[torch.Tensor, ...]:  # noqa: F811
             counts = step_count[rows]
@@ -152,6 +278,8 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
             # A row shorter than the batch's longest is filled out with its own first position, which the body
             # never reads.
             index = first_step[rows][:, None] + torch.where(held, reach[None, :], 0)
+            if is_steps_body:
+                return empty_tensor, empty_tensor, step_numbers[index], held, context[rows]
             planes = ((marks[index].long()[..., None] >> shifts) & 1).float()
             return tokens[index].long(), planes, step_numbers[index], held, context[rows]
 
@@ -161,9 +289,11 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
         context=context.shape[1],
         outputs=len(task.candidates) if task.kind == "tags" else 1,
         squares=task.kind == "squares",
-        steps=None if sequence is None else len(prepared.step_names),
+        steps=None if sequence is None else len(step_names),
         most=longest,
         moves=moves,
+        extra_boards=extra_boards,
+        aux_outputs=aux_outputs,
     )
     started = None
     if start is not None:
@@ -171,7 +301,13 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
         started = {
             **learner["init"],
             "sha256": hashlib.sha256(start.read_bytes()).hexdigest(),
-            **start_from(model, saved, learner=learner, marks=mark_names, numbers=number_names),
+            **start_from(
+                model,
+                saved,
+                learner=learner,
+                marks=mark_names,
+                numbers=step_names if sequence is not None else number_names,
+            ),
         }
         log(f"net: started from {learner['init']['model']}/{learner['init']['run']}, {started['tensors_taken']} tensors taken")
     model = model.to(device)
@@ -191,8 +327,17 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
         else 0.5 * (1.0 + math.cos(math.pi * (step - warmup) / max(1, steps - warmup))),
     )
     scaler = torch.amp.GradScaler(enabled=on_gpu)
+    loss_kind = schedule.get("loss")
     if not regression:
-        loss_of = F.binary_cross_entropy_with_logits
+        if loss_kind == "asl":
+            gamma_neg = float(schedule.get("gamma_neg", 2.0))
+            gamma_pos = float(schedule.get("gamma_pos", 0.0))
+            clip = float(schedule.get("clip", 0.05))
+            loss_of = lambda output, wanted: _asymmetric_loss(  # noqa: E731
+                output, wanted, gamma_neg=gamma_neg, gamma_pos=gamma_pos, clip=clip
+            )
+        else:
+            loss_of = F.binary_cross_entropy_with_logits
     elif task.primary == "mae":
         loss_of = lambda output, wanted: F.smooth_l1_loss(output, wanted, beta=0.1)  # noqa: E731
     else:
@@ -208,13 +353,18 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
         return output.masked_fill(~legal[:, :-1], float("-inf")), places
 
     def loss_on(rows: torch.Tensor) -> torch.Tensor:
+        if aux_target is not None:
+            output, aux_out = model.forward_with_aux(*batch_of(rows))
+            return loss_of(output.float(), target[rows].float()) + aux_weight * loss_of(
+                aux_out.float(), aux_target[rows].float()
+            )
         output = model(*batch_of(rows)).float()
         if moves:
             return F.cross_entropy(allowed(output, rows)[0], target[rows])
         return loss_of(output, target[rows].float())
 
     # Rows scored at a time: a row that is a sequence is as many boards as it has positions.
-    at_once = 2048 if sequence is None else max(1, 2048 // longest)
+    at_once = 2048 if sequence is None or is_steps_body else max(1, 2048 // longest)
 
     def predict(rows: np.ndarray) -> np.ndarray:
         model.eval()
@@ -296,7 +446,7 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
                 **(
                     {}
                     if sequence is None
-                    else {"steps": prepared.step_names, "step_mean": step_mean, "step_spread": step_spread, "most_steps": longest}
+                    else {"steps": step_names, "step_mean": step_mean, "step_spread": step_spread, "most_steps": longest}
                 ),
             },
             directory / "model.pt",
@@ -307,6 +457,7 @@ def fit(prepared: Prepared, config: dict[str, Any], *, log, device: str | None =
         test=predict(prepared.test),
         details={
             "features": len(number_names),
+            **({"step_features": len(step_names)} if sequence is not None else {}),
             "parameters": parameters,
             "device": torch.cuda.get_device_name(0) if on_gpu else "cpu",
             "best_epoch": best[2],

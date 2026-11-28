@@ -1,0 +1,13 @@
+# Replaces standard BCE with Asymmetric Loss (ASL, gamma_neg=2.0, clip=0.05) on top of
+# transformer-medium-hand-solution to down-weight easy negatives and lift rare-theme PR-AUC.
+base: transformer-medium-hand-solution
+needs: cuda
+train:
+  loss: asl
+  asl_gamma_neg: 2.0
+  asl_gamma_pos: 0.0
+  asl_clip: 0.05
+smoke:
+  data: {train_share: 0.05}
+  learner: {dim: 32, depth: 2, heads: 4}
+  train: {epochs: 1, batch: 64}

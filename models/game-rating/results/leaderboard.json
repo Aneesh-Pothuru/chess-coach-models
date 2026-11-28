@@ -38,14 +38,92 @@
       "valid": 5053
     },
     "fingerprint": "e08251266d6e000b045fb61541289218368848966797a0d9f5225bb7ee9ec58f",
-    "built": "2026-11-22T23:18:23Z",
-    "code": "8c771617309d36154b1c85abcbbff500fafea271",
+    "built": "2026-11-27T20:29:15Z",
+    "code": "9ca4bafd5b6bf655249ead38cc8204388b219225+changes",
     "positions": 2762344
   },
   "test_rows": 9974,
   "test_groups": 4999,
   "reference": "gbm-hand",
   "runs": [
+    {
+      "run": "steps-board",
+      "learner": "per-move sequence, 1 transformer layer of width 128, BiGRU, attention pooling, with temporal features and board-geometry features",
+      "test": {
+        "rmse": {
+          "value": 247.14874943536356,
+          "low": 242.52846485914466,
+          "high": 252.3431108584599
+        },
+        "mae": {
+          "value": 194.14494505783395,
+          "low": 190.41036682584428,
+          "high": 198.1022198065075
+        },
+        "r2": {
+          "value": 0.580939636657062,
+          "low": 0.561761828374111,
+          "high": 0.5984857907960078
+        },
+        "spearman": {
+          "value": 0.7585278000840293,
+          "low": 0.7452390538010738,
+          "high": 0.7701593695795285
+        }
+      },
+      "test_by_band": {
+        "1100-1400": {
+          "rows": 2411,
+          "rmse": 232.14887312878662,
+          "mae": 183.0394919232084,
+          "r2": -6.55895199466804,
+          "spearman": 0.2439862491341888
+        },
+        "1400-1700": {
+          "rows": 2827,
+          "rmse": 218.13771937878255,
+          "mae": 174.2110593328216,
+          "r2": -5.852271152891687,
+          "spearman": 0.22954585751647313
+        },
+        "1700-2000": {
+          "rows": 2140,
+          "rmse": 226.3030497246303,
+          "mae": 176.1660893805673,
+          "r2": -6.33341272026515,
+          "spearman": 0.23844721644717382
+        },
+        "2000+": {
+          "rows": 1027,
+          "rmse": 311.80129476181673,
+          "mae": 251.47829442456032,
+          "r2": -5.1399323957500975,
+          "spearman": 0.3752777652314483
+        },
+        "<1100": {
+          "rows": 1569,
+          "rmse": 293.69790860572317,
+          "mae": 234.1205625224068,
+          "r2": -3.393007105605796,
+          "spearman": 0.40905134950826333
+        }
+      },
+      "parameters": 524421,
+      "device": "cpu",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.30GHz",
+      "seconds": 2062.2,
+      "code": "9ca4bafd5b6bf655249ead38cc8204388b219225+changes",
+      "trained": "2026-11-27T21:41:09Z",
+      "gain": {
+        "gain": 48.56249663616012,
+        "low": 44.82063461619323,
+        "high": 52.3279487101009,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-27T20:36:34Z",
+        "reference_value": 242.70744169399407
+      }
+    },
     {
       "run": "conv-small",
       "learner": "conv, 6 layers of width 96 for each position, then 2 transformer layers over the positions in order",
@@ -281,6 +359,162 @@
       }
     },
     {
+      "run": "steps-temporal",
+      "learner": "per-move sequence, 1 transformer layer of width 96, BiGRU, attention pooling, with temporal features",
+      "test": {
+        "rmse": {
+          "value": 273.5215606137547,
+          "low": 268.5294967758327,
+          "high": 278.4625761627921
+        },
+        "mae": {
+          "value": 216.05398110404434,
+          "low": 212.36389860482058,
+          "high": 220.16337833552177
+        },
+        "r2": {
+          "value": 0.48673354428978877,
+          "low": 0.4642212527907813,
+          "high": 0.5070655852029563
+        },
+        "spearman": {
+          "value": 0.6951067481773421,
+          "low": 0.680413277528769,
+          "high": 0.7085936429543906
+        }
+      },
+      "test_by_band": {
+        "1100-1400": {
+          "rows": 2411,
+          "rmse": 258.6491423231214,
+          "mae": 207.78323727532177,
+          "r2": -8.38319004887224,
+          "spearman": 0.2049581824865244
+        },
+        "1400-1700": {
+          "rows": 2827,
+          "rmse": 227.1187815376339,
+          "mae": 180.7385898154238,
+          "r2": -6.428123279303974,
+          "spearman": 0.20415287818345473
+        },
+        "1700-2000": {
+          "rows": 2140,
+          "rmse": 255.94331020039084,
+          "mae": 198.33401255384783,
+          "r2": -8.380216867415271,
+          "spearman": 0.21421753093456958
+        },
+        "2000+": {
+          "rows": 1027,
+          "rmse": 364.01985876433116,
+          "mae": 303.2386954808073,
+          "r2": -7.368698358734385,
+          "spearman": 0.350356507875978
+        },
+        "<1100": {
+          "rows": 1569,
+          "rmse": 322.1212424348436,
+          "mae": 259.4952848494015,
+          "r2": -4.284439483870629,
+          "spearman": 0.3388327697658887
+        }
+      },
+      "parameters": 293573,
+      "device": "cpu",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.30GHz",
+      "seconds": 1179.0,
+      "code": "9ca4bafd5b6bf655249ead38cc8204388b219225+changes",
+      "trained": "2026-11-27T22:02:09Z",
+      "gain": {
+        "gain": 26.65346058994973,
+        "low": 23.288001713548432,
+        "high": 29.762560753473714,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-27T20:36:34Z",
+        "reference_value": 242.70744169399407
+      }
+    },
+    {
+      "run": "steps-raw",
+      "learner": "per-move sequence, 1 transformer layer of width 96, BiGRU, attention pooling",
+      "test": {
+        "rmse": {
+          "value": 278.69731548273325,
+          "low": 273.6209292308109,
+          "high": 283.60474612269803
+        },
+        "mae": {
+          "value": 221.42950987141765,
+          "low": 217.17144727185723,
+          "high": 225.63610207099853
+        },
+        "r2": {
+          "value": 0.46712502960735247,
+          "low": 0.4449378545722053,
+          "high": 0.4869057031246728
+        },
+        "spearman": {
+          "value": 0.6758516649144318,
+          "low": 0.6605971823944141,
+          "high": 0.6900129447162751
+        }
+      },
+      "test_by_band": {
+        "1100-1400": {
+          "rows": 2411,
+          "rmse": 259.28296270839644,
+          "mae": 209.87687092626408,
+          "r2": -8.42923345704143,
+          "spearman": 0.1873959072502229
+        },
+        "1400-1700": {
+          "rows": 2827,
+          "rmse": 221.12032198608543,
+          "mae": 176.3949094434319,
+          "r2": -6.0409347530324915,
+          "spearman": 0.1951372501473665
+        },
+        "1700-2000": {
+          "rows": 2140,
+          "rmse": 260.8251592626619,
+          "mae": 204.61278027686004,
+          "r2": -8.741465048689626,
+          "spearman": 0.2040739570620732
+        },
+        "2000+": {
+          "rows": 1027,
+          "rmse": 386.3337182204637,
+          "mae": 330.2288524178242,
+          "r2": -8.426120528007841,
+          "spearman": 0.342651497339005
+        },
+        "<1100": {
+          "rows": 1569,
+          "rmse": 334.4710371598204,
+          "mae": 272.04589256349834,
+          "r2": -4.6974068260146655,
+          "spearman": 0.34824671835372994
+        }
+      },
+      "parameters": 290981,
+      "device": "cpu",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.30GHz",
+      "seconds": 1184.6,
+      "code": "9ca4bafd5b6bf655249ead38cc8204388b219225+changes",
+      "trained": "2026-11-27T22:21:59Z",
+      "gain": {
+        "gain": 21.27793182257642,
+        "low": 18.11253684138912,
+        "high": 24.25242697119444,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-27T20:36:34Z",
+        "reference_value": 242.70744169399407
+      }
+    },
+    {
       "run": "gbm-hand",
       "learner": "LightGBM, context and hand features",
       "test": {
@@ -344,10 +578,10 @@
       },
       "parameters": null,
       "device": "cpu",
-      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
-      "seconds": 7.6,
-      "code": "8c771617309d36154b1c85abcbbff500fafea271",
-      "trained": "2026-11-23T00:39:34Z",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.30GHz",
+      "seconds": 10.1,
+      "code": "9ca4bafd5b6bf655249ead38cc8204388b219225+changes",
+      "trained": "2026-11-27T20:36:34Z",
       "gain": null
     },
     {
@@ -508,6 +742,98 @@
     }
   ],
   "studies": {
+    "aux": [
+      {
+        "run": "steps-board-aux",
+        "learner": "per-move sequence, 1 transformer layer of width 128, BiGRU, attention pooling, with temporal features and board-geometry features, auxiliary `opponent_elo` head",
+        "test": {
+          "rmse": {
+            "value": 247.86474299035106,
+            "low": 243.10279889837884,
+            "high": 253.02117912088147
+          },
+          "mae": {
+            "value": 193.95201051787382,
+            "low": 190.2910146112076,
+            "high": 197.93063479049692
+          },
+          "r2": {
+            "value": 0.5785080715637396,
+            "low": 0.5587732677641476,
+            "high": 0.5972192760191777
+          },
+          "spearman": {
+            "value": 0.7609206469190865,
+            "low": 0.7482137863005431,
+            "high": 0.7724423090263023
+          }
+        },
+        "test_by_band": {
+          "1100-1400": {
+            "rows": 2411,
+            "rmse": 239.271113552282,
+            "mae": 189.15282704413852,
+            "r2": -7.02987840668464,
+            "spearman": 0.256049298384103
+          },
+          "1400-1700": {
+            "rows": 2827,
+            "rmse": 227.16956558329943,
+            "mae": 181.0531040403503,
+            "r2": -6.431445526137457,
+            "spearman": 0.2405787250853318
+          },
+          "1700-2000": {
+            "rows": 2140,
+            "rmse": 229.5698224040967,
+            "mae": 178.10696105957032,
+            "r2": -6.546662198983359,
+            "spearman": 0.24797932946238002
+          },
+          "2000+": {
+            "rows": 1027,
+            "rmse": 312.92876953520687,
+            "mae": 251.63247766838333,
+            "r2": -5.184416720301163,
+            "spearman": 0.3754125942023654
+          },
+          "<1100": {
+            "rows": 1569,
+            "rmse": 271.3175076003146,
+            "mae": 208.42403476537604,
+            "r2": -2.749003410617545,
+            "spearman": 0.4159018740265278
+          }
+        },
+        "parameters": 557446,
+        "device": "cpu",
+        "processor": "Intel(R) Xeon(R) CPU @ 2.30GHz",
+        "seconds": 1641.2,
+        "code": "9ca4bafd5b6bf655249ead38cc8204388b219225+changes",
+        "trained": "2026-11-27T23:20:58Z",
+        "gain": {
+          "gain": 48.755431176120254,
+          "low": 44.38649973781162,
+          "high": 52.935805403841755,
+          "beyond_noise": true,
+          "reference": "gbm-hand",
+          "reference_trained": "2026-11-27T20:36:34Z",
+          "reference_value": 242.70744169399407
+        },
+        "base": "steps-board",
+        "base_test": {
+          "value": 194.14494505783395,
+          "low": 190.41036682584428,
+          "high": 198.1022198065075
+        },
+        "changes": [
+          "`train.aux_target` opponent_elo",
+          "`train.aux_weight` 0.3",
+          "`train.epochs` 8 (the base has 10)"
+        ],
+        "train_rows": 84672
+      }
+    ],
     "features": [
       {
         "run": "gbm-hand-no-tempo",
@@ -1038,6 +1364,97 @@
         },
         "changes": [
           "`learner.features` hand"
+        ],
+        "train_rows": 84672
+      }
+    ],
+    "opponent": [
+      {
+        "run": "steps-own-only",
+        "learner": "per-move sequence, 1 transformer layer of width 128, BiGRU, attention pooling, with temporal features and board-geometry features, without opponent signals",
+        "test": {
+          "rmse": {
+            "value": 256.2819869488722,
+            "low": 251.53201822943737,
+            "high": 261.49397315192425
+          },
+          "mae": {
+            "value": 201.6423524650419,
+            "low": 198.1261941084991,
+            "high": 205.6401319251098
+          },
+          "r2": {
+            "value": 0.5493950943954307,
+            "low": 0.5284918854145829,
+            "high": 0.5672970058413965
+          },
+          "spearman": {
+            "value": 0.7391629228223304,
+            "low": 0.7260727142520548,
+            "high": 0.7512215085374143
+          }
+        },
+        "test_by_band": {
+          "1100-1400": {
+            "rows": 2411,
+            "rmse": 240.28344395083715,
+            "mae": 191.05334703025358,
+            "r2": -7.097969252398453,
+            "spearman": 0.22360216763957524
+          },
+          "1400-1700": {
+            "rows": 2827,
+            "rmse": 225.25400322979908,
+            "mae": 180.5020865516946,
+            "r2": -6.306645545453659,
+            "spearman": 0.20264512825406042
+          },
+          "1700-2000": {
+            "rows": 2140,
+            "rmse": 237.99715962553225,
+            "mae": 186.0137123179213,
+            "r2": -7.110896548982739,
+            "spearman": 0.24282603618801024
+          },
+          "2000+": {
+            "rows": 1027,
+            "rmse": 342.5533468937868,
+            "mae": 282.55660282718173,
+            "r2": -6.410784611389126,
+            "spearman": 0.3410874125906411
+          },
+          "<1100": {
+            "rows": 1569,
+            "rmse": 288.6514584062716,
+            "mae": 224.35744400948306,
+            "r2": -3.243338815400617,
+            "spearman": 0.39571384740009236
+          }
+        },
+        "parameters": 521733,
+        "device": "cpu",
+        "processor": "Intel(R) Xeon(R) CPU @ 2.30GHz",
+        "seconds": 1635.4,
+        "code": "9ca4bafd5b6bf655249ead38cc8204388b219225+changes",
+        "trained": "2026-11-27T22:49:18Z",
+        "gain": {
+          "gain": 41.06508922895216,
+          "low": 37.095458653609995,
+          "high": 44.74392463254123,
+          "beyond_noise": true,
+          "reference": "gbm-hand",
+          "reference_trained": "2026-11-27T20:36:34Z",
+          "reference_value": 242.70744169399407
+        },
+        "base": "steps-board",
+        "base_test": {
+          "value": 194.14494505783395,
+          "low": 190.41036682584428,
+          "high": 198.1022198065075
+        },
+        "changes": [
+          "`learner.without_opponent` True",
+          "`train.epochs` 8 (the base has 10)"
         ],
         "train_rows": 84672
       }

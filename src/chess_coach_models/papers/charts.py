@@ -32,6 +32,9 @@ RUN_COLOURS = {
     "transformer-medium": "labAqua",
     "transformer-small": "labYellow",
     "conv-small": "labMagenta",
+    "steps-board": "labBlue",
+    "steps-temporal": "labAqua",
+    "steps-raw": "labGreen",
     "gbm-context": "labGreen",
     "puzzle-rating": "labViolet",
     "elo-gap": "labViolet",
@@ -46,6 +49,9 @@ RUN_MARKS = {
     "transformer-medium": "triangle*",
     "transformer-small": "diamond*",
     "conv-small": "pentagon*",
+    "steps-board": "*",
+    "steps-temporal": "triangle*",
+    "steps-raw": "diamond*",
     "gbm-context": "square*",
     "puzzle-rating": "triangle*",
     "elo-gap": "triangle*",
@@ -67,6 +73,7 @@ VARIANT_DASHES = {
     "large": "on 2.5pt off 2.5pt",
     "double": "on 7pt off 2pt on 3pt off 2pt",
     "quadruple": "on 3pt off 1.5pt",
+    "own-only": "on 4pt off 2pt on 2pt off 2pt",
 }
 # A run that changes the body of another, or its size, is named for what it is and not for the run it
 # changes. It is drawn as that run all the same: the run it changes, and the word for its change.
@@ -77,6 +84,7 @@ CHANGED = {
     "conv-medium": ("transformer-medium", "tower"),
     "hybrid-medium": ("transformer-medium", "hybrid"),
     "transformer-large": ("transformer-medium", "large"),
+    "steps-own-only": ("steps-board", "own-only"),
 }
 OTHER_DASH = "on 5pt off 2pt on 1pt off 2pt"
 ACCENT = "labBlue"

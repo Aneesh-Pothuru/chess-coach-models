@@ -1,0 +1,23 @@
+# Per-move sequence model (BiGRU + transformer + attention pooling) over the 13 stored
+# per-move scalars only, with no 8x8 boards. Measures how much of the neural gain over gbm-hand
+# comes from sequence dynamics of accuracy, clock, and legal moves alone.
+learner:
+  kind: net
+  body: steps
+  dim: 96
+  depth: 1
+  heads: 4
+  dropout: 0.1
+  recurrent: true
+  pool: attention
+  temporal: false
+  board_features: false
+train:
+  epochs: 8
+  batch: 256
+  lr: 0.002
+  weight_decay: 0.03
+  warmup: 0.05
+  patience: 4
+smoke:
+  train: {epochs: 2, batch: 32}

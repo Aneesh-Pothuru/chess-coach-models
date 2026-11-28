@@ -3,15 +3,23 @@
 \begin{tikzpicture}
 \begin{groupplot}[
   lab,
-  group style={group size=1 by 1, horizontal sep=0.5cm, ylabels at=edge left, yticklabels at=edge left},
-  width=0.52\textwidth,
+  group style={group size=2 by 1, horizontal sep=0.5cm, ylabels at=edge left, yticklabels at=edge left},
+  width=0.49\textwidth,
   height=5.4cm,
   ymajorgrids,
-  ymin=207.135, ymax=257.049,
+  ymin=190.169, ymax=258.009,
   xlabel={Epoch},
   ylabel={MAE on the validation set},
   yticklabel style={/pgf/number format/precision=1},
 ]
+\nextgroupplot[xmin=0.5, xmax=10.5, xtick distance=2, legend columns=1]
+\draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:0.5,242.404) -- (axis cs:10.5,242.404);
+\addplot[color=labBlue, mark=*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labBlue}] coordinates {(1,217.792) (2,204.316) (3,202.419) (4,201.401) (5,198.213) (6,198.092) (7,193.804) (8,194.218) (9,194.84) (10,195.143)};
+\addlegendentry{\texttt{steps-board}}
+\addplot[color=labBlue, dash pattern=on 5pt off 2pt on 1pt off 2pt, mark=*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labBlue}] coordinates {(1,214.727) (2,203.035) (3,205.214) (4,200.251) (5,195.545) (6,195.049) (7,195.134) (8,194.551)};
+\addlegendentry{\texttt{steps-board-aux}}
+\addplot[color=labBlue, dash pattern=on 4pt off 2pt on 2pt off 2pt, mark=*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labBlue}] coordinates {(1,226.872) (2,216.966) (3,210.699) (4,211.008) (5,205.278) (6,204.102) (7,203.378) (8,204.09)};
+\addlegendentry{\texttt{steps-own-only}}
 \nextgroupplot[xmin=0.5, xmax=8.5, xtick distance=1, legend columns=1]
 \draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:0.5,242.404) -- (axis cs:8.5,242.404) node[anchor=west, font=\sffamily\scriptsize, text=labSecondary, inner sep=2pt] {\run{gbm-hand}};
 \addplot[color=labAqua, mark=triangle*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labAqua}] coordinates {(1,245.028) (2,228.796) (3,234.14) (4,228.466) (5,215.794) (6,212.082) (7,210.765) (8,209.809)};

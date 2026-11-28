@@ -1,0 +1,8 @@
+# Adds a training-only auxiliary regression head predicting opponent_elo (weight 0.3) to
+# steps-board, encouraging the sequence encoder to disentangle player and opponent play.
+base: steps-board
+study: aux
+train:
+  epochs: 8
+  aux_target: opponent_elo
+  aux_weight: 0.3

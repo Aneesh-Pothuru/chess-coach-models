@@ -1,0 +1,9 @@
+# steps-board trained on four times the games (games-200k), scored on the standard games-2026-10 test set.
+base: steps-board
+data:
+  train_on: games-200k
+train:
+  epochs: 16
+  patience: 4
+smoke:
+  train: {epochs: 2, batch: 32}

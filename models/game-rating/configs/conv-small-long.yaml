@@ -1,0 +1,8 @@
+# First-pass conv-small hit its best validation MAE on its final epoch (8 of 8). Train for 24 epochs.
+base: conv-small
+needs: cuda
+train:
+  epochs: 24
+  patience: 6
+smoke:
+  train: {epochs: 1}

@@ -1,0 +1,26 @@
+# Wider ResNet over each 8x8 board paired with the upgraded sequence head: explicit temporal
+# step features via a direct skip connection into the sequence tokens, BiGRU, and attention pooling.
+needs: cuda
+learner:
+  kind: net
+  body: conv
+  dim: 128
+  depth: 8
+  dropout: 0.1
+  temporal: true
+  over:
+    depth: 3
+    heads: 4
+    step_skip: true
+    recurrent: true
+    pool: attention
+train:
+  epochs: 16
+  batch: 64
+  lr: 0.001
+  weight_decay: 0.05
+  warmup: 0.05
+  patience: 4
+smoke:
+  learner: {dim: 32, depth: 2}
+  train: {epochs: 1, batch: 32}

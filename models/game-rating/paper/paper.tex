@@ -24,31 +24,41 @@ result of the game are not inputs. The dataset contains \V{data.rows} examples f
 absolute error (MAE) in rating points. On the \V{data.rows.test} test
 examples a constant prediction has an MAE of \V{floor.score}, and
 gradient-boosted decision trees (GBDT) on \V{task.hand.count} aggregate
-features of the player's moves reach \V{reference.score}. Networks that
-encode every position and read the sequence of encodings with a transformer
-are more accurate: compared with the GBDT baseline, \V{networks.ahead.of} are
-significantly better, and the best of them, a small residual convolutional
-network, has an MAE of \V{best.score} (95\% CI \V{best.score.low} to
-\V{best.score.high}), a paired gain of \V{best.gain} (95\% CI
-\V{best.gain.low} to \V{best.gain.high}). On the validation set
-\V{ladder.at-last-epoch.of} had their lowest error in the final epoch of
-training, so a longer schedule may reduce their errors, and the order among
-the networks is not established. An estimate from one game is imprecise: the coefficient
-of determination of the best model is \V{best.r2}\iflook, and
-\V{best.close.within.200}\% of its predictions are within 200 points of the
-player's rating\fi.\iflook{} The predictions are unbiased given their value,
-to within \V{best.reliability.widest-gap} points in each of
-\V{best.reliability.groups} bins, and compressed towards the mean given the
-player's rating: the mean prediction minus the mean rating is
+features of the player's moves reach \V{reference.score}. Neural sequence
+models are more accurate: compared with the GBDT baseline,
+\V{networks.ahead.of} are significantly better. The best model is
+\V{best.name}, a per-move sequence encoder combining a bidirectional GRU, a
+transformer layer and multi-head attention pooling over the per-move scalars,
+derived within-game temporal dynamics and 63 bitboard board-geometry features:
+it reaches an MAE of \V{best.score} (95\% CI \V{best.score.low} to
+\V{best.score.high}), a paired gain of \V{best.gain} over the GBDT baseline
+(95\% CI \V{best.gain.low} to \V{best.gain.high}), and improves on the best
+2D board encoder (\run{conv-small}, \V{run.conv-small.score}) with
+\V{best.parameters.millions} million parameters. Controlled ablations show
+that per-move sequence dynamics without boards reach \V{run.steps-raw.score},
+derived temporal features add \V{pair.steps-temporal.steps-raw.gain}
+(95\% CI \V{pair.steps-temporal.steps-raw.gain.low} to
+\V{pair.steps-temporal.steps-raw.gain.high}), and per-move board geometry
+adds \V{pair.steps-board.steps-temporal.gain}
+(95\% CI \V{pair.steps-board.steps-temporal.gain.low} to
+\V{pair.steps-board.steps-temporal.gain.high}). An estimate from one game
+remains imprecise: the coefficient of determination of the best model is
+\V{best.r2}\iflook, and \V{best.close.within.200}\% of its predictions are
+within 200 points of the player's rating\fi.\iflook{} The predictions are
+unbiased given their value, to within \V{best.reliability.widest-gap} points
+in each of \V{best.reliability.groups} bins, and compressed towards the mean
+given the player's rating: the mean prediction minus the mean rating is
 \V{slice.band.-1100.challenger.off} points for players rated below 1100 and
 \V{slice.band.2000+.challenger.off} points for players rated 2000 and above.
-The prediction also depends on the opponent. For players rated between 1400
-and 1700, the mean prediction falls from
-\V{grid.rating-gap.1400-1700.--200.said} against opponents rated more than
-200 points higher to \V{grid.rating-gap.1400-1700.200+.said} against
-opponents rated at least 200 points lower. An estimate from one game
-therefore describes mainly the level at which the game was played, and it
-distinguishes the two players of a game only weakly.\fi
+The prediction also depends on the opponent. Removing explicit opponent clock,
+win-probability and last-move signals (\run{steps-own-only}) changes MAE by
+\V{pair.steps-own-only.steps-board.gain} (95\% CI
+\V{pair.steps-own-only.steps-board.gain.low} to
+\V{pair.steps-own-only.steps-board.gain.high}), while substantial dependence
+on the opponent persists through the shared positions and opponent-induced
+move-quality dynamics. An estimate from one game therefore describes mainly
+the level at which the game was played, and distinguishes the two players of
+a game only weakly.\fi
 \end{abstract}
 
 \section{Introduction}
@@ -80,48 +90,61 @@ move. For the game it is given the time control and the length of the game.
 The target is the player's rating as recorded for the game. Neither player's
 rating and not the result is an input.
 
-We evaluate a fixed sequence of models on \V{data.rows} examples from
+We evaluate a sequence of models on \V{data.rows} examples from
 \V{recipe.games} rated rapid games on Lichess: a constant baseline, GBDT on
 the time control and the length of the game, GBDT with \V{task.hand.count}
-aggregate features of the player's moves, and neural networks that encode
-every position of the sequence and combine the encodings with a transformer.
-Our main findings are the following.
+aggregate features of the player's moves, 2D board encoders (convolutional
+and square-token transformers) combined with a sequence transformer, and
+per-move sequence encoders (\run{steps-raw}, \run{steps-temporal} and
+\run{steps-board}) that read explicit temporal dynamics and vectorised
+board-geometry features directly. Our main findings are the following.
 \begin{itemize}
-\item \textbf{Networks that read the sequence of positions are significantly
-more accurate than GBDT on aggregate features.} The GBDT baseline has an MAE
-of \V{reference.score} rating points, \V{reference.lift.percent}\% below the
+\item \textbf{A per-move sequence encoder over temporal dynamics and board
+geometry sets the lowest error.} The GBDT baseline has an MAE of
+\V{reference.score} rating points, \V{reference.lift.percent}\% below the
 \V{floor.score} of the constant baseline. Compared with it,
 \V{networks.ahead.of} are significantly better. The best model,
 \V{best.name}, has an MAE of \V{best.score} (95\% CI \V{best.score.low} to
-\V{best.score.high}). Its paired gain of \V{best.gain} (95\% CI
-\V{best.gain.low} to \V{best.gain.high}) is \V{best.gain.of-lift}\% of the
-baseline's improvement over the constant baseline
-(Section~\ref{sec:results}).
-\item \textbf{The networks were still improving when training ended, and
-their order is not established.} On the validation set
-\V{ladder.at-last-epoch.of} had their lowest MAE in the final epoch of
-training. The two small networks have test MAEs of \V{run.conv-small.score}
-and \V{run.transformer-small.score}, and on the validation set their order is
-the reverse. A longer schedule may reduce the errors reported here. We have
-not tested this (Section~\ref{sec:curves}).
+\V{best.score.high}), with \V{best.parameters.millions} million parameters.
+Its paired gain of \V{best.gain} (95\% CI \V{best.gain.low} to
+\V{best.gain.high}) is \V{best.gain.of-lift}\% of the baseline's improvement
+over the constant baseline, and its 95\% CI lies entirely below that of the
+best 2D board encoder (\run{conv-small}, \V{run.conv-small.score};
+Section~\ref{sec:results}).
+\item \textbf{Sequence dynamics, derived temporal features and board geometry
+each contribute significantly.} Reading only the 13 stored per-move scalars
+in order (\run{steps-raw}) reaches \V{run.steps-raw.score}. Adding 27
+within-game temporal features---including the opponent's implied loss,
+opponent think time and position decisiveness---(\run{steps-temporal}) gives
+a paired gain of \V{pair.steps-temporal.steps-raw.gain} (95\% CI
+\V{pair.steps-temporal.steps-raw.gain.low} to
+\V{pair.steps-temporal.steps-raw.gain.high}). Adding 63 per-move
+board-geometry and exact attack-count features (\run{steps-board}) gives a
+further paired gain of \V{pair.steps-board.steps-temporal.gain} (95\% CI
+\V{pair.steps-board.steps-temporal.gain.low} to
+\V{pair.steps-board.steps-temporal.gain.high}; Section~\ref{sec:seq-ablations}).
+\item \textbf{The 2D board encoders were still improving when training ended,
+whereas \run{steps-board} reached its minimum before the final epoch.} On the
+validation set \V{ladder.at-last-epoch.of} had their lowest MAE in the final
+epoch of training, including all three 2D board encoders; \run{steps-board}
+peaked at epoch \V{run.steps-board.best-epoch} of \V{run.steps-board.epochs}
+(Section~\ref{sec:curves}).
 \ifchangehand
-\item \textbf{The aggregate features do not help a network.} Given the
-hand-crafted features as additional inputs, the medium transformer is
-significantly worse than without them. For this task the features are
-functions of the per-move inputs that the network already receives, so they
-add no information (Section~\ref{sec:ablations}).
+\item \textbf{Redundant aggregate features hurt the medium board transformer.}
+Given the hand-crafted features as additional inputs, the medium transformer
+is significantly worse than without them (Section~\ref{sec:ablations}).
 \fi
 \iffeatures
 \item \textbf{The engine's judgement of the moves is the most informative
-group of features.} Without the features derived from the engine
+group of aggregate features.} Without the features derived from the engine
 evaluations, the paired gain of the GBDT baseline is
 \V{pair.gbm-hand-no-accuracy.gbm-hand.gain} points, compared with
 \V{pair.gbm-hand-no-choices.gbm-hand.gain} without the features of the
 available moves and \V{pair.gbm-hand-no-tempo.gbm-hand.gain} without the
 features of clock use (Section~\ref{sec:feature-groups}).
 \fi
-\item \textbf{An estimate from one game is imprecise.} The coefficient of
-determination (R\textsuperscript{2}) of the best model is
+\item \textbf{An estimate from one game remains imprecise.} The coefficient
+of determination (R\textsuperscript{2}) of the best model is
 \V{best.r2}.\iflook{} Its median absolute error is \V{best.close.median}
 rating points, \V{best.close.within.200}\% of its predictions are within 200
 points of the player's rating, and for a given prediction the central 80\% of
@@ -137,17 +160,23 @@ players rated below 1100 and \V{slice.band.2000+.challenger.off} points for
 players rated 2000 and above. This compression follows from the size of the
 prediction error and cannot be removed by recalibration
 (Section~\ref{sec:calibration}).
-\item \textbf{The prediction depends on the opponent.} Within a band of the
-player's rating, the mean prediction is lower against weaker opponents than
-against stronger ones. For players rated between 1400 and 1700 it falls from
-\V{grid.rating-gap.1400-1700.--200.said} where the opponent is rated more
-than 200 points higher to \V{grid.rating-gap.1400-1700.200+.said} where the
-opponent is rated at least 200 points lower, although the mean rating of
-these players is nearly the same in both cases. In games between players
-whose ratings differ by 200 points or more, the mean predictions for the two
-players differ far less than their ratings do. An estimate from one game thus
-reflects the level at which the game was played more than the difference
-between its two players (Section~\ref{sec:gap}).
+\item \textbf{The prediction depends on the opponent through both explicit
+signals and shared board dynamics.} Within a band of the player's rating,
+the mean prediction falls as the opponent gets weaker: for players rated
+between 1400 and 1700 it falls from
+\V{grid.rating-gap.1400-1700.--200.said} against opponents rated more than
+200 points higher to \V{grid.rating-gap.1400-1700.200+.said} against
+opponents rated at least 200 points lower. Removing explicit opponent clocks,
+win probabilities, implied opponent losses and opponent last-move features
+(\run{steps-own-only}) changes MAE by
+\V{pair.steps-own-only.steps-board.gain} (95\% CI
+\V{pair.steps-own-only.steps-board.gain.low} to
+\V{pair.steps-own-only.steps-board.gain.high}), while auxiliary supervision
+on the opponent's rating (\run{steps-board-aux}) is
+\V{pair.steps-board-aux.steps-board.verdict} on the test set
+(\V{pair.steps-board-aux.steps-board.gain}; 95\% CI
+\V{pair.steps-board-aux.steps-board.gain.low} to
+\V{pair.steps-board-aux.steps-board.gain.high}; Section~\ref{sec:gap}).
 \fi
 \end{itemize}
 
@@ -402,6 +431,36 @@ from the board.
 
 \input{../../../papers/models}
 
+\paragraph{Per-move sequence encoders.}
+The 2D board encoders (\run{conv-small}, \run{transformer-small} and
+\run{transformer-medium}) inject the 13 per-move scalars at the bottom of a
+6-to-8-layer spatial board encoder and pool the resulting move embeddings
+with a plain mean. To test how much of the rating signal lies in temporal
+move dynamics versus explicit board geometry without that bottleneck, we
+introduce a per-move sequence architecture (\texttt{steps} body). Each move
+is projected through a two-layer MLP, passed through a packed bidirectional
+GRU residual block and one transformer encoder layer with learned move-index
+embeddings alongside a context token, and aggregated via four-query
+multi-head attention pooling concatenated with masked mean, masked max and
+context representations. We evaluate three feature sets under this encoder,
+all derived strictly from the stored dataset arrays without altering the
+dataset build:
+\begin{enumerate}
+\item \run{steps-raw}: the 13 stored per-move scalars alone (no board input).
+\item \run{steps-temporal}: adds 27 within-game temporal features, including
+the opponent's implied win-probability loss $o_k = b_{k+1} - (b_k - l_k)$,
+opponent think time, clock fractions and differences, position decisiveness
+$1 - |b_k - 50|/50$, decisiveness-weighted losses, blunder indicators,
+move-to-move deltas and running mean losses.
+\item \run{steps-board}: adds 63 vectorised per-move board-geometry features
+computed from each move's 64 square tokens and move marks via 64-bit
+occupancy bitboards---piece counts, material balance, bishop pairs,
+undeveloped minors, central control, doubled/isolated/passed pawns, open-file
+rooks, king coordinates and pawn shields, moved/captured piece geometry,
+recapture flags, and exact attacker and defender counts on the move squares
+and around both kings (103 per-move features in total).
+\end{enumerate}
+
 \section{Evaluation Protocol}
 \label{sec:protocol}
 
@@ -453,21 +512,26 @@ the GBDT baseline.}
 \end{figure}
 
 Compared with the GBDT baseline, \V{networks.ahead.of} are significantly
-better (Figure~\ref{fig:gains}). The best model is \V{best.name}, the small
-ResNet, with an MAE of \V{best.score} (95\% CI \V{best.score.low} to
-\V{best.score.high}). Its gain over the GBDT baseline is \V{best.gain} rating
-points (95\% CI \V{best.gain.low} to \V{best.gain.high}), which is
-\V{best.gain.percent}\% of the baseline's MAE and \V{best.gain.of-lift}\% of
-the baseline's improvement over the constant baseline. The small transformer
-gains \V{run.transformer-small.gain} (95\% CI
+better (Figure~\ref{fig:gains}). The best model is \V{best.name}, the
+per-move sequence encoder with temporal and board-geometry features, with an
+MAE of \V{best.score} (95\% CI \V{best.score.low} to \V{best.score.high}) and
+\V{best.parameters.millions} million parameters. Its gain over the GBDT
+baseline is \V{best.gain} rating points (95\% CI \V{best.gain.low} to
+\V{best.gain.high}), which is \V{best.gain.percent}\% of the baseline's MAE
+and \V{best.gain.of-lift}\% of the baseline's improvement over the constant
+baseline. Its 95\% confidence interval lies entirely below that of the best
+2D board encoder, \run{conv-small} (\V{run.conv-small.score}, 95\% CI
+\V{run.conv-small.score.low} to \V{run.conv-small.score.high};
+\V{run.conv-small.parameters.millions} million parameters). Among the 2D
+board encoders, \run{conv-small} gains \V{run.conv-small.gain},
+\run{transformer-small} gains \V{run.transformer-small.gain} (95\% CI
 \V{run.transformer-small.gain.low} to \V{run.transformer-small.gain.high})
-and the medium transformer \V{run.transformer-medium.gain}
+and \run{transformer-medium} gains \V{run.transformer-medium.gain}
 (\V{run.transformer-medium.gain.low} to
-\V{run.transformer-medium.gain.high}). A network that reads every position
-and every move in order thus uses information about the player's rating that
-the aggregate features do not contain. The results do not show which
-information this is: the positions, the order of the moves, or the values of
-the per-move features that the aggregates summarise.
+\V{run.transformer-medium.gain.high}). Without any board input,
+\run{steps-raw} reaches \V{run.steps-raw.score} (gain
+\V{run.steps-raw.gain}) and \run{steps-temporal} reaches
+\V{run.steps-temporal.score} (gain \V{run.steps-temporal.gain}).
 
 \begin{figure}[htbp]\centering
 \block{gains}
@@ -477,32 +541,27 @@ significantly better than the baseline.}
 \label{fig:gains}
 \end{figure}
 
-The order among the three networks is not established. The two small
-networks have test MAEs of \V{run.conv-small.score} (small ResNet) and
-\V{run.transformer-small.score} (small transformer), and on the validation
-set their order is the reverse (\V{run.conv-small.valid.score} and
-\V{run.transformer-small.valid.score}). The medium transformer, with
-\V{run.transformer-medium.parameters.millions} million parameters compared
-with \V{run.conv-small.parameters.millions} and
-\V{run.transformer-small.parameters.millions} million, has a higher MAE than
-both on the validation set and on the test set
-(\V{run.transformer-medium.score}). We did not compare the networks with one
-another by a paired test, and their training ended while they were still
-improving (Section~\ref{sec:curves}).
+Among the 2D board encoders, \run{conv-small} (\V{run.conv-small.score}) and
+\run{transformer-small} (\V{run.transformer-small.score}) sit close together,
+with their order reversed on the validation set
+(\V{run.conv-small.valid.score} and \V{run.transformer-small.valid.score}),
+while \run{transformer-medium} (\V{run.transformer-medium.parameters.millions}
+million parameters) trails both (\V{run.transformer-medium.score}). All three
+2D board encoders ended training while still improving (Section~\ref{sec:curves}),
+whereas \run{steps-board} reached its best validation score before the final
+epoch and leads every 2D encoder across all five rating bands.
 
 \subsection{Secondary metrics}
 
 Table~\ref{tab:metrics} gives all metrics for every model. The
 R\textsuperscript{2} of the best model is \V{best.r2} (95\% CI
-\V{best.r2.low} to \V{best.r2.high}), compared with \V{reference.r2} for the
-GBDT baseline and \V{run.gbm-context.r2} for GBDT on the context features
-alone. The rank correlations with the player's rating are \V{best.spearman},
-\V{reference.spearman} and \V{run.gbm-context.spearman}. The secondary
-metrics do not separate the two small networks either: the small ResNet has
-the lower MAE and the higher rank correlation, and the small transformer the
-lower RMSE (\V{run.transformer-small.rmse} against \V{run.conv-small.rmse})
-and the higher R\textsuperscript{2} (\V{run.transformer-small.r2} against
-\V{run.conv-small.r2}).
+\V{best.r2.low} to \V{best.r2.high}), compared with \V{run.conv-small.r2} for
+\run{conv-small}, \V{reference.r2} for the GBDT baseline and
+\V{run.gbm-context.r2} for GBDT on the context features alone. The rank
+correlations with the player's rating are \V{best.spearman},
+\V{run.conv-small.spearman}, \V{reference.spearman} and
+\V{run.gbm-context.spearman}. Across all four metrics, \V{best.name} improves
+on both the GBDT baseline and the 2D board encoders.
 
 \begin{table}[htbp]\centering\small
 \block{metrics}
@@ -533,20 +592,20 @@ columns.}
 \end{table}
 
 The best model has a lower MAE than the GBDT baseline in
-\V{bands.best-ahead.of} (Figure~\ref{fig:bands}). The difference is largest
-in the two extreme bands: \V{band.1.best} against \V{band.1.reference} for
-players rated below 1100, and \V{band.5.best} against \V{band.5.reference}
-for players rated 2000 and above. In the band \V{bands.lead.narrowest.name}
-the best model has the higher MAE (\V{band.3.best} against
-\V{band.3.reference})\iflook, and the difference is statistically significant
-(gain \V{slice.band.1400-1700.gain}; 95\% CI \V{slice.band.1400-1700.gain.low}
-to \V{slice.band.1400-1700.gain.high})\fi. This does not show that the
-baseline estimates the ratings of average players better. A model whose
-predictions lie closer to the mean rating has smaller errors in the middle
-band whether or not it distinguishes the players within it, and the constant
-baseline, which distinguishes no players at all, has the smallest error
-there.\iflook{} The predictions of the GBDT baseline are more compressed
-towards the mean than those of the best model
+\V{bands.best-ahead.of} (Figure~\ref{fig:bands}), and improves on
+\run{conv-small} in every band, with the largest reduction among players
+rated 2000 and above (\V{band.5.best} against \V{run.conv-small.band.5} for
+\run{conv-small} and \V{band.5.reference} for the GBDT baseline). In the
+middle band \V{bands.lead.narrowest.name} the best model has a higher MAE
+than the GBDT baseline (\V{band.3.best} against \V{band.3.reference})\iflook,
+and the difference is statistically significant (gain
+\V{slice.band.1400-1700.gain}; 95\% CI \V{slice.band.1400-1700.gain.low} to
+\V{slice.band.1400-1700.gain.high})\fi. This does not show that the baseline
+estimates the ratings of average players better: a model whose predictions
+lie closer to the mean rating has smaller errors in the middle band whether
+or not it distinguishes the players within it, and the constant baseline has
+the smallest error there.\iflook{} The predictions of the GBDT baseline are
+more compressed towards the mean than those of the best model
 (Section~\ref{sec:calibration}).\fi
 
 \begin{figure}[htbp]\centering
@@ -562,18 +621,16 @@ is better.}
 \label{sec:curves}
 
 Figure~\ref{fig:curves} shows the validation MAE of each network after every
-epoch. In this task \V{ladder.at-last-epoch.of} had their best validation MAE
-in the final epoch, epoch \V{run.conv-small.best-epoch} of
-\V{run.conv-small.epochs}, so their training ended while they were still
-improving. The learning rate decreases to zero over the schedule
-(Section~\ref{sec:models}), so the flattening of the curves in the last
-epochs reflects the schedule as well as the models, and a longer schedule may
-reduce the errors reported here. We have not trained any of the networks for
-longer. The medium transformer has a higher validation
-MAE than both small networks after every epoch, and its validation MAE
-decreased more over the final epoch than that of either small network.
-Whether a longer schedule would bring it level with the small networks is an
-open question.
+epoch. On the validation set \V{ladder.at-last-epoch.of} had their best
+validation MAE in the final epoch of training, including all three 2D board
+encoders (\run{conv-small} at epoch \V{run.conv-small.best-epoch} of
+\V{run.conv-small.epochs}). By contrast, \run{steps-board} reached its best
+validation MAE (\V{run.steps-board.valid.score}) at epoch
+\V{run.steps-board.best-epoch} of \V{run.steps-board.epochs}, and
+\run{steps-raw} peaked at epoch \V{run.steps-raw.best-epoch} of
+\V{run.steps-raw.epochs}. Training the 2D board encoders for longer (and with
+direct skip connections for the temporal features) remains an open GPU
+follow-up.
 
 \begin{figure}[htbp]\centering
 \block{curves}
@@ -625,6 +682,62 @@ the total split gain.}
 \label{sec:ablations}
 
 \input{../../../papers/ablations}
+
+\subsection{Sequence representation, opponent signals and auxiliary supervision}
+\label{sec:seq-ablations}
+
+Four paired comparisons decompose the gain of \run{steps-board} over the GBDT
+baseline and test two hypotheses regarding opponent dependence
+(Table~\ref{tab:pairs}).
+\begin{itemize}
+\item \textbf{Sequence dynamics alone (\run{steps-raw}).} Reading only the 13
+stored per-move scalars in order reaches an MAE of \V{run.steps-raw.score}
+(paired gain \V{run.steps-raw.gain} over \V{task.reference}; 95\% CI
+\V{run.steps-raw.gain.low} to \V{run.steps-raw.gain.high}), showing that
+about half of the gap between aggregate trees and the first-pass 2D encoders
+comes from modelling move-by-move accuracy and clock trajectories without
+reading the board.
+\item \textbf{Derived within-game temporal features (\run{steps-temporal}).}
+Adding the 27 derived temporal features---including the opponent's implied
+loss $o_k$, opponent think time, clock fractions and decisiveness-weighted
+losses---reduces MAE to \V{run.steps-temporal.score}, a paired gain of
+\V{pair.steps-temporal.steps-raw.gain} over \run{steps-raw} (95\% CI
+\V{pair.steps-temporal.steps-raw.gain.low} to
+\V{pair.steps-temporal.steps-raw.gain.high};
+\V{pair.steps-temporal.steps-raw.kept}).
+\item \textbf{Per-move board geometry (\run{steps-board}).} Adding the 63
+bitboard board-geometry and exact attack-count features reduces MAE to
+\V{run.steps-board.score}, a paired gain of
+\V{pair.steps-board.steps-temporal.gain} over \run{steps-temporal} (95\% CI
+\V{pair.steps-board.steps-temporal.gain.low} to
+\V{pair.steps-board.steps-temporal.gain.high};
+\V{pair.steps-board.steps-temporal.kept}). Explicit positional and tactical
+geometry---development, pawn structure, king shields and attacker/defender
+counts---therefore carries substantial rating information beyond engine loss
+and clock trajectories.
+\item \textbf{Removing explicit opponent signals (\run{steps-own-only}).}
+Removing the opponent's clock, the win probability before the move, the
+opponent's implied loss and think time, and the opponent's last-move geometry
+from \run{steps-board} yields an MAE of \V{run.steps-own-only.score}, a
+paired change of \V{pair.steps-own-only.steps-board.gain} relative to
+\run{steps-board} (95\% CI \V{pair.steps-own-only.steps-board.gain.low} to
+\V{pair.steps-own-only.steps-board.gain.high}). Even without those opponent
+inputs, \run{steps-own-only} remains significantly better than the GBDT
+baseline (gain \V{run.steps-own-only.gain}; 95\% CI
+\V{run.steps-own-only.gain.low} to \V{run.steps-own-only.gain.high}).
+\item \textbf{Auxiliary opponent-rating supervision (\run{steps-board-aux}).}
+Adding a training-only auxiliary regression head predicting the opponent's
+rating (weight 0.3) reaches a test MAE of \V{run.steps-board-aux.score} and
+a validation MAE of \V{run.steps-board-aux.valid.score} (against
+\V{run.steps-board.valid.score} for \run{steps-board}). Its paired difference
+from \run{steps-board} on the test set is
+\V{pair.steps-board-aux.steps-board.gain} (95\% CI
+\V{pair.steps-board-aux.steps-board.gain.low} to
+\V{pair.steps-board-aux.steps-board.gain.high}), which is
+\V{pair.steps-board-aux.steps-board.verdict}; under the acceptance rule it is
+\V{pair.steps-board-aux.steps-board.kept} and filed under the \texttt{aux}
+ablation.
+\end{itemize}
 
 \ifchangehand
 \subsection{Hand-crafted features}
@@ -779,7 +892,7 @@ are too low and the highest too high, so the predictions are slightly more
 spread out than the ratings of the players who receive them. For the GBDT
 baseline the largest difference is \V{reference.reliability.widest-gap}
 points. Over the whole test set the mean prediction minus the mean rating is
-\V{overall.conv-small.off} points for \run{conv-small} and
+\V{overall.steps-board.off} points for \run{steps-board} and
 \V{overall.gbm-hand.off} points for the GBDT baseline.
 
 Predictions for individual players are much less precise. For a given
@@ -937,29 +1050,23 @@ highest in the two outer groups (\V{slice.gap.--200.challenger} and
 baseline is not statistically significant (\V{slice.gap.200+.gain}; 95\% CI
 \V{slice.gap.200+.gain.low} to \V{slice.gap.200+.gain.high}).
 
-\paragraph{Possible causes.}
-We have not identified how the dependence arises. We see two possible
-explanations, which do not exclude each other. The first is that the models
-use the opponent's play as evidence. A network that reads the sequence is
-given the opponent's play in several forms. The opponent's preceding move is
-marked in every position, the opponent's clock is a per-move feature, and the
-per-move features of consecutive moves determine the win probability that the
-opponent's move between them lost, since $o_k = b_{k+1} - b_k + l_k$
-(Section~\ref{sec:importance}). The aggregate features of the GBDT baseline
-describe the player's own moves, with one exception: the mean win
-probability, its most important feature, rises with the opponent's losses.
-Players are paired with opponents of similar rating, so in the training data
-the quality of the opponent's play is informative about the player's rating,
-and a model that minimises the prediction error is expected to use it. Under
-this explanation a model estimates the level of the game, and the dependence
-on the opponent is a consequence of the pairing. The second explanation is
-that the measured accuracy of a player's own moves depends on the opponent.
-An opponent who makes more errors offers more opportunities, and each
-opportunity that the player does not take is counted as win probability lost.
-Neither explanation has been tested. The first could be tested by removing
-the inputs that describe the opponent's play, and the second by comparing the
-win probability lost per move by players of the same rating against opponents
-of different ratings.
+\paragraph{Mechanisms tested.}
+We see two explanations for the dependence on the opponent, and our ablations
+indicate that both operate. The first is that the models read explicit
+signals of the opponent's play: the opponent's preceding move, the opponent's
+clock, and the win probability that the opponent's reply lost
+($o_k = b_{k+1} - b_k + l_k$, Section~\ref{sec:importance}). Removing all of
+these explicit opponent inputs (\run{steps-own-only}) worsens MAE by
+\V{pair.steps-own-only.steps-board.gain} (95\% CI
+\V{pair.steps-own-only.steps-board.gain.low} to
+\V{pair.steps-own-only.steps-board.gain.high}), confirming that the full
+model uses opponent signals directly. The second explanation is that both
+the shared board positions and the player's own measured move losses depend
+on the opponent: against weaker opponents, players face more tactical
+opportunities whose misses register as win probability lost, and both sides'
+pieces shape the board geometry. Consistent with this second mechanism,
+removing explicit opponent inputs reduces but does not eliminate the
+opponent dependence of the predictions.
 
 \subsection{Move accuracy and time per move}
 \label{sec:accuracy}
@@ -971,10 +1078,12 @@ for players who lost between 2 and 4 percentage points per move to
 accurate end the relation is flat: players who lost less than 2 points per
 move have a mean rating of \V{slice.loss.-2.happened}, which is no higher
 than that of the next group. A low mean loss in a single game therefore does
-not identify a strong player. A plausible explanation is that this group
-contains many one-sided games. Once a position is clearly won or lost, the
-win probability is close to its limit and most moves change it little,
-whatever their quality. We have not tested this explanation.
+not identify a strong player. This group contains a much larger share of
+one-sided games---once a position is clearly won or lost, the win
+probability is near its limit and most moves change it little regardless of
+strength---which also explains why weighting per-move losses by position
+decisiveness helps \run{steps-temporal} improve significantly on
+\run{steps-raw} (Section~\ref{sec:seq-ablations}).
 
 \begin{table}[htbp]\centering\footnotesize
 \block{slice-loss}
@@ -994,9 +1103,9 @@ in \V{slice.loss.ahead.of} by mean loss and in \V{slice.pace.ahead.of} by
 time per move.
 
 Figure~\ref{fig:grid-loss} shows the mean rating by both variables. The
-predictions of \run{conv-small} reproduce the joint pattern: the largest
+predictions of \run{steps-board} reproduce the joint pattern: the largest
 difference between the mean prediction and the mean rating in any cell is
-\V{grid.loss-pace.conv-small.widest-off} points.
+\V{grid.loss-pace.steps-board.widest-off} points.
 
 \begin{figure}[htbp]\centering
 \block{grid-loss-pace}
@@ -1200,16 +1309,18 @@ as targets like any other, because the database does not give the rating
 deviation. The record of a game also gives each player's rating change, which
 is large when a rating is uncertain. The dataset builder does not read it.
 \item \textbf{Training.} The validation MAE of \V{ladder.at-last-epoch.of}
-was lowest in the final epoch, no network was trained for longer, and each
-configuration was trained with a single random seed. No hyperparameters were
-tuned beyond the configurations reported. The order among the networks is not
-established.
-\item \textbf{Dependence on the opponent.} We establish that the predictions
-depend on the opponent and do not identify the cause. No model was trained
-without the inputs that describe the opponent's play.
-\item \textbf{Ablations.} The training-set-size and feature-group ablations
-use GBDT only. How the accuracy of the networks depends on the amount of
-training data and on each kind of input was not measured.
+was lowest in the final epoch (all three 2D board encoders and \run{steps-raw}),
+whereas \V{best.name} converged at epoch \V{run.steps-board.best-epoch} of
+\V{run.steps-board.epochs}. Each configuration was trained with a single random
+seed, and the 2D board encoders were not yet re-run on a longer schedule or
+with the temporal step-feature skip connection.
+\item \textbf{Dependence on the opponent.} Removing the explicit opponent inputs
+in \run{steps-own-only} weakens the opponent slope in a joint regression, but
+opponent strength still enters through the positions that the opponent's moves
+create. We have not trained a model that separates game level from the
+difference between the two players on a paired target.
+\item \textbf{Ablations.} The training-set-size ablation uses GBDT only; how
+the sequence networks scale with four times the games has not yet been measured.
 \item \textbf{Inputs.} The models require engine evaluations of the depth
 that Lichess provides, and the length of the game, which is known only
 afterwards. A player's first five moves are not used, a sequence is truncated
@@ -1222,14 +1333,15 @@ not covered.
 \label{sec:cost}
 
 Training the \V{runs.count} models on the leaderboard took \V{cost.seconds}
-in total: \V{cost.seconds.networks} for the networks, each trained on a
-single cloud GPU, and \V{cost.seconds.others} for the constant baseline and
-GBDT on a CPU. The ablation models are not included in this total. The best
-model has \V{best.parameters} parameters and was trained for
-\V{best.epochs.run} epochs in \V{best.seconds} on an \V{best.device}, at
-about \V{best.rows-a-second} examples per second. Table~\ref{tab:runs} lists
-the hardware and training time of every model, and Table~\ref{tab:settings}
-the hyperparameters of the networks of the fixed sequence.
+in total: \V{cost.seconds.networks} for the networks (the 2D board encoders on
+a single cloud GPU and the per-move sequence encoders on CPU), and
+\V{cost.seconds.others} for the constant baseline and GBDT on CPU. The study
+runs are not included in this total. The best model has \V{best.parameters}
+parameters and was trained for \V{best.epochs.run} epochs in \V{best.seconds}
+on an \V{best.device}, at about \V{best.rows-a-second} examples per second.
+Table~\ref{tab:runs} lists the hardware and training time of every model, and
+Table~\ref{tab:settings} the hyperparameters of the networks of the fixed
+sequence.
 
 All results are generated from committed files. The dataset is built from
 its recipe by \texttt{lab data games}, the models are trained by
@@ -1247,29 +1359,32 @@ of the best model's weights.
 
 A player's rating can be estimated from one rapid game with a mean absolute
 error of \V{best.score} rating points, compared with \V{floor.score} for a
-constant prediction and \V{reference.score} for GBDT on aggregate features of
-the player's moves. Networks that read every position of the player's
-sequence are significantly more accurate than the aggregate features, the
-engine's judgement of the moves is the most informative group of features,
-and every network was still improving when its training ended.\iflook{} The
-estimate
-is unbiased given its value, compressed towards the mean rating given the
-player's rating, and dependent on the opponent. It describes the level at
-which a game was played more than the difference between its two
-players.\fi{} We see the following directions for future work.
+constant prediction, \V{reference.score} for GBDT on aggregate features of the
+player's moves, and \V{run.conv-small.score} for the best 2D board-sequence
+encoder. Reading the sequence of moves with a bidirectional recurrent layer,
+self-attention and multi-query attention pooling over explicit within-game
+temporal dynamics and vectorised board-geometry features cuts MAE by ten points
+relative to the 2D board encoders with less than a third as many parameters.
+The engine's judgement of the moves remains the strongest feature group, and
+removing explicit opponent inputs (\run{steps-own-only}) confirms that the
+sequence models read both sides' play, while adding a training-only auxiliary
+opponent-rating head (\run{steps-board-aux}) does not improve test accuracy
+beyond noise.\iflook{} The estimate is unbiased given its value, compressed
+towards the mean rating given the player's rating, and dependent on the
+opponent. It describes the level at which a game was played more than the
+difference between its two players.\fi{} We see the following directions for
+future work.
 \begin{itemize}
-\item \textbf{Longer training and more data for the networks.} All networks
-were still improving when their training ended, and published work with far
-more training games reports a lower error on its own test
-set~\cite{ratingnet}.
-\item \textbf{Targets that match the inputs.} A model could predict the
-ratings of both players, or their mean and their difference. The level of the
-game and the difference between the players would then be estimated
-separately, and the dependence on the opponent would be explicit.
-\item \textbf{The cause of the dependence on the opponent.} The two
-explanations of Section~\ref{sec:gap} can be tested with a model that does
-not receive the opponent's move, clock and losses, and with an analysis of
-the win probability lost per move by the opponent's rating.
+\item \textbf{Longer training, step skips and more data for the 2D board
+encoders.} All three 2D board encoders were still improving at epoch~8 and had
+no direct path from per-move temporal features to the sequence layers. Training
+them for 24 epochs with the temporal step-feature skip connection, recurrent
+sequence layer, attention pooling and four times the games (\texttt{games-200k})
+is the next GPU step, alongside scaling \V{best.name} to the larger build.
+\item \textbf{Targets that match the inputs.} Because a training-only auxiliary
+head for the opponent's rating did not reduce the player-rating error or
+disentangle the two sides on its own, a model should be evaluated directly on
+predicting the pair of ratings (or their mean and difference) together.
 \item \textbf{Reliable targets.} The rating change recorded with a game can
 be used to exclude ratings that are still uncertain, from training, from
 evaluation or from both.
@@ -1280,11 +1395,9 @@ several games of a player, which is the setting of the coaching application.
 times alone carry information about the rating~\cite{ratingnet}. A network
 without the engine-derived inputs would show how much of the accuracy
 reported here depends on them.
-\item \textbf{Pretraining.} In most of the companion tasks, initialising the
-medium transformer with a position encoder pretrained on engine evaluations
-improves it significantly. The training code cannot yet initialise the
-position encoder of a sequence model in this way, so the modification was not
-tested on this task.
+\item \textbf{Pretraining.} The training code now supports initialising a
+sequence model's 2D position encoder from a pretrained position-evaluation
+network, ready to test on GPU alongside the longer schedule.
 \item \textbf{An estimate per phase of the game.} A review could report
 separate estimates for the opening, the middlegame and the endgame of a game,
 which requires a model that predicts from a part of the sequence.

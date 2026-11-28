@@ -1,0 +1,14 @@
+# Adds post-first-move and final solution boards ([start, after1, end]) plus start+final
+# attack/behind attention biases and per-tag Platt calibration. Directly exposes final checkmate
+# shapes (epauletteMate, operaMate, pillsburysMate), end-of-line traps, and interference.
+base: transformer-medium-hand-attacks
+needs: cuda
+learner:
+  solution_boards: true
+train:
+  epochs: 16
+  patience: 4
+smoke:
+  data: {train_share: 0.05}
+  learner: {dim: 32, depth: 2, heads: 4}
+  train: {epochs: 1, batch: 64}

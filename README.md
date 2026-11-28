@@ -49,7 +49,7 @@ The best run of each model on the harness, beside the tree baseline it is compar
 | Model | Predicts | Best run | Score | Reference | Its score | Gain | Test rows |
 |---|---|---|---|---|---|---|---|
 | [`blunder-hazard`](models/blunder-hazard/) | chance the mover loses more than 20 points of win probability | `transformer-medium-hand-pretrained` | PR-AUC 0.2776 (0.2643 to 0.2921) | `gbm-hand` | 0.2533 | +0.02429 | 68,579 |
-| [`game-rating`](models/game-rating/) | Lichess rapid rating points | `conv-small` | MAE 204.1 (200.2 to 208.2) | `gbm-hand` | 242.7 | +38.56 | 9,974 |
+| [`game-rating`](models/game-rating/) | Lichess rapid rating points | `steps-board` | MAE 194.1 (190.4 to 198.1) | `gbm-hand` | 242.7 | +48.56 | 9,974 |
 | [`human-move`](models/human-move/) | the chance that each legal move is the one the player makes | `maia2` | First right 0.5172 (0.5133 to 0.5212) | `gbm-hand` | 0.3980 | +0.1192 | 68,579 |
 | [`position-evaluation`](models/position-evaluation/) | the mover's chance of winning by the engine's evaluation (percent) | `transformer-medium` | RMSE 12.963 (12.859 to 13.070) | `gbm-hand` | 16.449 | +3.486 | 120,035 |
 | [`practical-chances`](models/practical-chances/) | expected score of the mover in the game (a win 1, a draw 0.5, a loss 0) | `gbm-hand-quadruple` | RMSE 0.4223 (0.4169 to 0.4281) | `gbm-hand` | 0.4237 | +0.001353 | 68,579 |

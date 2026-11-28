@@ -106,20 +106,52 @@ def _learner_words(record: dict[str, Any]) -> str:
     reads = ", with hand features" if learner.get("features") == "hand" else ""
     start = f", started from `{learner['init']['model']}/{learner['init']['run']}`" if learner.get("init") else ""
     body = learner["body"]
-    shape = f"{body}, {learner['depth']} layers of width {learner['dim']}"
-    if body == "hybrid":
-        shape = f"hybrid, {learner['convs']} conv blocks then {learner['depth']} transformer layers of width {learner['dim']}"
-    elif body == "transformer":
-        # What a run changes in the transformer's attention: what it is told of this board, what it is not told of any.
-        shape += ", attention told what each piece attacks" if learner.get("attacks") else ""
-        shape += "" if learner.get("geometry", True) else ", without the offsets between squares"
-    elif learner.get("squeeze"):
-        shape += ", each block weighing its channels by the whole board"
-    over = learner.get("over")
-    if over:
-        # A row that is a sequence: the body reads each of its positions, and these layers the positions in order.
-        layers = "transformer layers" if "depth" not in over else f"{over['depth']} transformer layer{'' if int(over['depth']) == 1 else 's'}"
-        shape += f" for each position, then {layers} over the positions in order"
+    if body == "steps":
+        shape = f"per-move sequence, {learner['depth']} transformer layer{'' if int(learner['depth']) == 1 else 's'} of width {learner['dim']}"
+        if learner.get("recurrent", True):
+            shape += ", BiGRU"
+        if learner.get("pool", "attention") == "attention":
+            shape += ", attention pooling"
+        extras = []
+        if learner.get("temporal"):
+            extras.append("temporal features")
+        if learner.get("board_features"):
+            extras.append("board-geometry features")
+        if extras:
+            shape += ", with " + " and ".join(extras)
+        if learner.get("without_opponent"):
+            shape += ", without opponent signals"
+    else:
+        shape = f"{body}, {learner['depth']} layers of width {learner['dim']}"
+        if body == "hybrid":
+            shape = f"hybrid, {learner['convs']} conv blocks then {learner['depth']} transformer layers of width {learner['dim']}"
+        elif body == "transformer":
+            # What a run changes in the transformer's attention: what it is told of this board, what it is not told of any.
+            shape += ", attention told what each piece attacks" if learner.get("attacks") else ""
+            shape += "" if learner.get("geometry", True) else ", without the offsets between squares"
+        elif learner.get("squeeze"):
+            shape += ", each block weighing its channels by the whole board"
+        if learner.get("solution_boards"):
+            shape += ", with post-move and final solution boards"
+        over = learner.get("over")
+        if over:
+            # A row that is a sequence: the body reads each of its positions, and these layers the positions in order.
+            layers = "transformer layers" if "depth" not in over else f"{over['depth']} transformer layer{'' if int(over['depth']) == 1 else 's'}"
+            shape += f" for each position, then {layers} over the positions in order"
+            if over.get("recurrent"):
+                shape += " with BiGRU"
+            if over.get("step_skip"):
+                shape += " and step-feature skip"
+            if over.get("pool") == "attention":
+                shape += " and attention pooling"
+    train_cfg = record["config"].get("train") or {}
+    if train_cfg.get("aux_target"):
+        shape += f", auxiliary `{train_cfg['aux_target']}` head"
+    if train_cfg.get("loss") == "asl":
+        shape += ", asymmetric loss"
+    cal_mode = record["config"].get("calibrate", train_cfg.get("calibrate"))
+    if cal_mode == "per_candidate":
+        shape += ", per-tag Platt"
     return f"{shape}{reads}{without}{start}"
 
 
@@ -247,7 +279,11 @@ def build(model: str, *, smoke: bool = False) -> dict[str, Any]:
     if "test_calibration" in best:
         board["calibration"] = {"run": best["run"], "bins": best["test_calibration"]}
     if "test_by_candidate" in best:
-        board["candidates"] = {"run": best["run"], "each": best["test_by_candidate"]}
+        board["candidates"] = {
+            "run": best["run"],
+            "each": best["test_by_candidate"],
+            **({"summary": best["test_by_candidate_summary"]} if "test_by_candidate_summary" in best else {}),
+        }
     if studied:
         board["studies"] = {study: studied[study] for study in sorted(studied)}
     directory = paths.results(model, smoke=smoke)
@@ -360,6 +396,16 @@ def markdown(board: dict[str, Any]) -> str:
             lines.append(f"| {row['predicted']:.1%} | {row['observed']:.1%} | {row['n']:,} |")
     if "candidates" in board:
         kind = CANDIDATES[task["kind"]]
+        summary = board["candidates"].get("summary")
+        summary_line = (
+            [
+                f"Macro PR-AUC {_number(summary['macro_pr_auc'])}, macro ROC-AUC {_number(summary['macro_roc_auc'])}, "
+                f"rare-{kind} (<{summary['rare_below']:.0%}, {summary['rare_count']} {kind}s) PR-AUC {_number(summary['rare_pr_auc'])}.",
+                "",
+            ]
+            if summary
+            else []
+        )
         lines += [
             "",
             f"## Each {kind} by itself, for `{board['candidates']['run']}`",
@@ -367,6 +413,7 @@ def markdown(board: dict[str, Any]) -> str:
             f"A {kind} as one yes or no over the test rows: how many rows carry it, and how well its chance tells "
             "those rows from the rest. The most common first.",
             "",
+            *summary_line,
             f"| {kind.capitalize()} | Rows | Share | PR-AUC | ROC-AUC |",
             "|---|---|---|---|---|",
         ]

@@ -164,9 +164,29 @@ def prepare(task: Task, dataset: Dataset, *, train_share: float = 1.0, scored: D
     y = labels(task, dataset, moves)
     context = rows.select(list(task.context)).to_numpy().astype(np.float32)
     if scored is not None:
-        if dataset.steps is not None or scored.steps is not None:
-            raise ValueError(f"{task.name}: a larger build of a dataset whose rows are sequences is not read yet")
+        if (dataset.steps is None) != (scored.steps is None):
+            raise ValueError(f"{dataset.name} and {scored.name} must both hold sequences or both hold single positions")
         valid, test = rows_held(dataset, scored, "valid"), rows_held(dataset, scored, "test")
+        if dataset.steps is not None and scored.steps is not None:
+            for split_name, theirs_idx in (("valid", valid), ("test", test)):
+                own_idx = scored.split(split_name)
+                own_first = scored.rows["first_step"].to_numpy()[own_idx]
+                own_cnt = scored.rows["steps"].to_numpy()[own_idx]
+                theirs_first = rows["first_step"].to_numpy()[theirs_idx]
+                theirs_cnt = rows["steps"].to_numpy()[theirs_idx]
+                if not np.array_equal(own_cnt, theirs_cnt):
+                    raise ValueError(
+                        f"{dataset.name} is not a larger build of {scored.name}: its {split_name} rows have different step counts"
+                    )
+                own_steps = np.concatenate([np.arange(f, f + c) for f, c in zip(own_first, own_cnt, strict=True)])
+                theirs_steps = np.concatenate([np.arange(f, f + c) for f, c in zip(theirs_first, theirs_cnt, strict=True)])
+                if not (
+                    np.array_equal(dataset.steps.tokens[theirs_steps], scored.steps.tokens[own_steps])
+                    and np.array_equal(dataset.steps.marks[theirs_steps], scored.steps.marks[own_steps])
+                ):
+                    raise ValueError(
+                        f"{dataset.name} is not a larger build of {scored.name}: its {split_name} rows do not hold the same step boards and marks"
+                    )
         games = rows[manifest["group"]]
         if games[train].is_in(games[np.concatenate([valid, test])].unique().implode()).any():
             raise ValueError(f"{dataset.name} trains on a game that {scored.name} keeps for its valid or test rows")

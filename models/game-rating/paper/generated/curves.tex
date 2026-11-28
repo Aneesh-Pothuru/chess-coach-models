@@ -11,16 +11,22 @@
   legend columns=2,
   yticklabel style={/pgf/number format/precision=1},
   xtick distance=1,
-  xmin=0.5, xmax=8.5,
+  xmin=0.5, xmax=10.5,
 ]
 \addplot[draw=none, mark=none, forget plot] coordinates {(1,242.404)};
-\draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:1,242.404) -- (axis cs:8,242.404) node[anchor=west, font=\sffamily\scriptsize, text=labSecondary, inner sep=2pt] {\run{gbm-hand}};
+\draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:1,242.404) -- (axis cs:10,242.404) node[anchor=west, font=\sffamily\scriptsize, text=labSecondary, inner sep=2pt] {\run{gbm-hand}};
+\addplot[color=labBlue, mark=*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labBlue}] coordinates {(1,217.792) (2,204.316) (3,202.419) (4,201.401) (5,198.213) (6,198.092) (7,193.804) (8,194.218) (9,194.84) (10,195.143)};
+\addlegendentry{\texttt{steps-board}}
 \addplot[color=labMagenta, mark=pentagon*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labMagenta}] coordinates {(1,237.338) (2,219.007) (3,213.731) (4,212.22) (5,211.011) (6,207.14) (7,206.73) (8,206.47)};
 \addlegendentry{\texttt{conv-small}}
 \addplot[color=labYellow, mark=diamond*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labYellow}] coordinates {(1,234.642) (2,221.123) (3,223.824) (4,211.511) (5,208.287) (6,207.758) (7,204.093) (8,203.921)};
 \addlegendentry{\texttt{transformer-small}}
 \addplot[color=labAqua, mark=triangle*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labAqua}] coordinates {(1,245.028) (2,228.796) (3,234.14) (4,228.466) (5,215.794) (6,212.082) (7,210.765) (8,209.809)};
 \addlegendentry{\texttt{transformer-medium}}
+\addplot[color=labAqua, mark=triangle*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labAqua}] coordinates {(1,228.935) (2,221.54) (3,217.82) (4,216.925) (5,214.46) (6,213.222) (7,213.058) (8,212.845)};
+\addlegendentry{\texttt{steps-temporal}}
+\addplot[color=labGreen, mark=diamond*, mark size=1.9pt, mark options={solid, draw=white, line width=0.5pt, fill=labGreen}] coordinates {(1,233.02) (2,234.153) (3,224.557) (4,223.062) (5,225.035) (6,220.753) (7,218.785) (8,218.948)};
+\addlegendentry{\texttt{steps-raw}}
 \end{axis}
 \end{tikzpicture}%
 }

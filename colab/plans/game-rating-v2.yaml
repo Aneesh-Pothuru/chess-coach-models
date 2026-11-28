@@ -1,0 +1,6 @@
+# Second pass of game-rating on GPU: longer schedule for conv-small, upgraded 2D board encoders
+# with temporal step-feature skip + BiGRU + attention pooling, plus 4x data scaling on games-200k.
+# gbm-hand comes first so paired gains are measured on the same machine; steps-board, steps-board-aux,
+# and study:opponent already have full-dataset results on this frozen games-2026-10 build.
+# Estimated runtime: ~1h 50m on an A100 (~20 Colab compute units).
+game-rating: gbm-hand,conv-small-long,conv-medium-skip,transformer-medium-skip,steps-board-quadruple,conv-medium-skip-quadruple

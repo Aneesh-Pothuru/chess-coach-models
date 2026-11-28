@@ -1,0 +1,18 @@
+# Medium square-token transformer over each board with temporal step-feature skip, BiGRU,
+# attention pooling, and 16 epochs so the transformer converges cleanly.
+base: transformer-medium
+needs: cuda
+learner:
+  temporal: true
+  over:
+    depth: 3
+    heads: 4
+    step_skip: true
+    recurrent: true
+    pool: attention
+train:
+  epochs: 16
+  patience: 4
+smoke:
+  learner: {dim: 32, depth: 2, heads: 4}
+  train: {epochs: 1, batch: 32}

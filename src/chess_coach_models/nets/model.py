@@ -104,14 +104,22 @@ class SquareTransformer(nn.Module):
         dropout: float,
         geometry: bool = True,
         attacks: bool = False,
+        extra_boards: int = 0,
     ):
         super().__init__()
         self.piece = nn.Embedding(TOKENS, dim)
+        self.extra_boards = extra_boards
+        self.extra_piece = nn.ModuleList(nn.Embedding(TOKENS, dim) for _ in range(extra_boards))
+        for embedding in self.extra_piece:
+            nn.init.normal_(embedding.weight, std=0.02)
         self.place = nn.Parameter(torch.zeros(64, dim))
         self.mark = nn.Linear(marks, dim, bias=False)
         self.context = nn.Sequential(nn.Linear(context, dim), nn.GELU(), nn.Linear(dim, dim))
+        # When extra_boards > 0 and attacks is enabled, compute attack/behind relations on both the
+        # starting position and the final position of the line (2x RELATIONS).
+        told_count = (2 * len(RELATIONS) if extra_boards > 0 else len(RELATIONS)) if attacks else 0
         self.blocks = nn.ModuleList(
-            Block(dim, heads, dropout, geometry=geometry, told=len(RELATIONS) if attacks else 0) for _ in range(depth)
+            Block(dim, heads, dropout, geometry=geometry, told=told_count) for _ in range(depth)
         )
         self.norm = nn.LayerNorm(dim)
         self.out_dim = 2 * dim
@@ -126,22 +134,33 @@ class SquareTransformer(nn.Module):
             self.register_buffer("each", torch.arange(64), persistent=False)
         nn.init.normal_(self.place, std=0.02)
 
-    def told(self, tokens: torch.Tensor) -> torch.Tensor | None:
-        """What attention is told of each pair of squares of each board, ``[batch, things, 64, 64]`` in the
-        order of ``RELATIONS``, or nothing for a network that is told nothing: whether the piece on the
-        square that asks attacks the square it looks at, whether it is attacked from there, and the same two
-        for a piece that stands behind one man."""
-        if not self.attacks:
-            return None
+    def _board_told(self, tokens: torch.Tensor) -> torch.Tensor:
         men = (tokens > 0).to(self.between.dtype)
         between = (men @ self.between).view(-1, 64, 64)
         reach = self.reach[tokens, self.each]
         hits, behind = reach & (between == 0), reach & (between == 1)
         return torch.stack([hits, hits.transpose(1, 2), behind, behind.transpose(1, 2)], dim=1).to(self.place.dtype)
 
+    def told(self, tokens: torch.Tensor) -> torch.Tensor | None:
+        """What attention is told of each pair of squares of each board, ``[batch, things, 64, 64]`` in the
+        order of ``RELATIONS``, or nothing for a network that is told nothing: whether the piece on the
+        square that asks attacks the square it looks at, whether it is attacked from there, and the same two
+        for a piece that stands behind one man. When ``extra_boards > 0`` and ``tokens`` has shape
+        ``[batch, 1 + extra_boards, 64]``, relations are stacked for the starting and final boards."""
+        if not self.attacks:
+            return None
+        if tokens.ndim == 3:
+            return torch.cat([self._board_told(tokens[:, 0]), self._board_told(tokens[:, -1])], dim=1)
+        return self._board_told(tokens)
+
     def encode(self, tokens: torch.Tensor, marks: torch.Tensor, context: torch.Tensor) -> torch.Tensor:
         """The context token and the 64 squares after the last layer, ``[batch, 65, dim]``."""
-        squares = self.piece(tokens) + self.place + self.mark(marks)
+        if tokens.ndim == 3:
+            squares = self.piece(tokens[:, 0]) + self.place + self.mark(marks)
+            for idx, embedding in enumerate(self.extra_piece):
+                squares = squares + embedding(tokens[:, idx + 1])
+        else:
+            squares = self.piece(tokens) + self.place + self.mark(marks)
         x = torch.cat([self.context(context)[:, None, :], squares], dim=1)
         told = self.told(tokens)
         for block in self.blocks:
@@ -180,15 +199,30 @@ class Residual(nn.Module):
 
 
 def board_planes(tokens: torch.Tensor, marks: torch.Tensor) -> torch.Tensor:
-    """A board as planes for a convolution, ``[batch, tokens + marks, 8, 8]``: one plane a token, one a mark."""
-    planes = torch.cat([F.one_hot(tokens, TOKENS).to(marks.dtype), marks], dim=-1)
+    """A board as planes for a convolution, ``[batch, boards * tokens + marks, 8, 8]``: one plane a token, one a mark."""
+    if tokens.ndim == 3:
+        encoded = [F.one_hot(tokens[:, idx], TOKENS).to(marks.dtype) for idx in range(tokens.shape[1])]
+        planes = torch.cat([*encoded, marks], dim=-1)
+    else:
+        planes = torch.cat([F.one_hot(tokens, TOKENS).to(marks.dtype), marks], dim=-1)
     return planes.transpose(1, 2).reshape(len(tokens), -1, 8, 8)
 
 
 class SquareConv(nn.Module):
-    def __init__(self, *, marks: int, context: int, dim: int, depth: int, dropout: float, squeeze: int = 0):
+    def __init__(
+        self,
+        *,
+        marks: int,
+        context: int,
+        dim: int,
+        depth: int,
+        dropout: float,
+        squeeze: int = 0,
+        extra_boards: int = 0,
+    ):
         super().__init__()
-        self.stem = nn.Conv2d(TOKENS + marks, dim, 3, padding=1)
+        self.extra_boards = extra_boards
+        self.stem = nn.Conv2d((1 + extra_boards) * TOKENS + marks, dim, 3, padding=1)
         self.context = nn.Linear(context, dim)
         self.blocks = nn.ModuleList(Residual(dim, squeeze) for _ in range(depth))
         self.drop = nn.Dropout(dropout)
@@ -254,6 +288,40 @@ class SquareHybrid(nn.Module):
         return self.encode(tokens, marks, context)[:, 1:]
 
 
+class _AttentionPool(nn.Module):
+    """Multi-head attentive pooling combined with masked mean and max pooling over a variable-length sequence."""
+
+    def __init__(self, dim: int, queries: int = 4, dropout: float = 0.0):
+        super().__init__()
+        self.score = nn.Linear(dim, queries)
+        self.project = nn.Sequential(
+            nn.Linear((3 + queries) * dim, 2 * dim),
+            nn.LayerNorm(2 * dim),
+            nn.GELU(),
+            nn.Dropout(dropout),
+        )
+
+    def forward(self, cls: torch.Tensor, seq: torch.Tensor, held: torch.Tensor) -> torch.Tensor:
+        real = held[..., None].to(seq.dtype)
+        mean = (seq * real).sum(dim=1) / real.sum(dim=1).clamp(min=1.0)
+        masked_max = seq.masked_fill(~held[..., None], float("-inf")).amax(dim=1)
+        masked_max = torch.where(held.any(dim=1, keepdim=True), masked_max, torch.zeros_like(mean))
+        logits = self.score(seq).masked_fill(~held[..., None], float("-inf"))
+        weights = torch.softmax(logits, dim=1)
+        weights = torch.where(held[..., None], weights, torch.zeros_like(weights))
+        attended = torch.einsum("btq,btd->bqd", weights, seq).flatten(1)
+        return self.project(torch.cat([cls, mean, masked_max, attended], dim=-1))
+
+
+def _packed_gru(gru: nn.GRU, x: torch.Tensor, held: torch.Tensor) -> torch.Tensor:
+    """Runs a bidirectional GRU on real steps only via packed sequences, guaranteeing exact padding invariance."""
+    lengths = held.sum(dim=1).clamp(min=1).cpu()
+    packed = nn.utils.rnn.pack_padded_sequence(x, lengths, batch_first=True, enforce_sorted=False)
+    out, _ = gru(packed)
+    unpacked, _ = nn.utils.rnn.pad_packed_sequence(out, batch_first=True, total_length=x.shape[1])
+    return unpacked * held[..., None].to(unpacked.dtype)
+
+
 class GameBody(nn.Module):
     """A body for a row that is a sequence of positions.
 
@@ -263,12 +331,37 @@ class GameBody(nn.Module):
     its longest row, and ``held`` says which of a shorter row's places are positions: the board body reads
     those alone, so what fills a row out costs nothing and reaches no batch statistic, and nothing attends
     to it.
+
+    Optional extensions: ``step_skip`` projects each step's scalar features directly into the sequence
+    tokens alongside the board embedding; ``recurrent`` adds a packed bidirectional GRU residual before
+    the transformer layers; ``pool="attention"`` replaces plain mean pooling with multi-head attentive
+    plus mean and max pooling.
     """
 
-    def __init__(self, board: nn.Module, *, context: int, depth: int, heads: int, dropout: float, most: int):
+    def __init__(
+        self,
+        board: nn.Module,
+        *,
+        context: int,
+        depth: int,
+        heads: int,
+        dropout: float,
+        most: int,
+        step_dim: int = 0,
+        recurrent: bool = False,
+        pool: str = "mean",
+    ):
         super().__init__()
         self.board = board
         dim = board.out_dim
+        self.step_skip = (
+            nn.Sequential(nn.Linear(step_dim, dim), nn.LayerNorm(dim), nn.GELU(), nn.Linear(dim, dim))
+            if step_dim > 0
+            else None
+        )
+        self.gru = nn.GRU(dim, dim // 2, num_layers=1, batch_first=True, bidirectional=True) if recurrent else None
+        self.gru_norm = nn.LayerNorm(dim) if recurrent else None
+        self.gru_drop = nn.Dropout(dropout) if recurrent else None
         self.context = nn.Sequential(nn.Linear(context, dim), nn.GELU(), nn.Linear(dim, dim))
         self.place = nn.Parameter(torch.zeros(most, dim))
         layer = nn.TransformerEncoderLayer(
@@ -276,6 +369,7 @@ class GameBody(nn.Module):
         )
         self.over = nn.TransformerEncoder(layer, depth, enable_nested_tensor=False)
         self.norm = nn.LayerNorm(dim)
+        self.attn_pool = _AttentionPool(dim, queries=4, dropout=dropout) if pool == "attention" else None
         self.out_dim = 2 * dim
         nn.init.normal_(self.place, std=0.02)
 
@@ -288,13 +382,88 @@ class GameBody(nn.Module):
         context: torch.Tensor,
     ) -> torch.Tensor:
         rows, length = held.shape
-        boards = self.board(tokens[held], marks[held], numbers[held])
+        real_numbers = numbers[held]
+        boards = self.board(tokens[held], marks[held], real_numbers)
+        if self.step_skip is not None:
+            boards = boards + self.step_skip(real_numbers).to(boards.dtype)
         x = boards.new_zeros(rows, length, boards.shape[-1])
         x[held] = boards
+        if self.gru is not None:
+            x = x + self.gru_drop(_packed_gru(self.gru, self.gru_norm(x), held))
         x = x + self.place[:length].to(x.dtype)
         x = torch.cat([self.context(context)[:, None, :].to(x.dtype), x], dim=1)
         hidden = torch.cat([held.new_zeros(rows, 1), ~held], dim=1)
         x = self.norm(self.over(x, src_key_padding_mask=hidden))
+        if self.attn_pool is not None:
+            return self.attn_pool(x[:, 0], x[:, 1:], held)
+        real = held[..., None].to(x.dtype)
+        return torch.cat([x[:, 0], (x[:, 1:] * real).sum(dim=1) / real.sum(dim=1).clamp(min=1.0)], dim=-1)
+
+
+class StepBody(nn.Module):
+    """A sequence body that reads per-move feature vectors directly without a per-board 2D encoder.
+
+    Takes the same ``(tokens, marks, numbers, held, context)`` signature as ``GameBody`` so it runs
+    through the same training loop, ignoring ``tokens`` and ``marks`` (any board-derived per-move
+    features enter through ``numbers``). Combines an input projection, an optional packed bidirectional
+    GRU residual block, transformer layers over the moves in order, and mean or attentive pooling.
+    """
+
+    def __init__(
+        self,
+        *,
+        steps: int,
+        context: int,
+        dim: int,
+        depth: int,
+        heads: int,
+        dropout: float,
+        most: int,
+        recurrent: bool = True,
+        pool: str = "attention",
+    ):
+        super().__init__()
+        self.embed = nn.Sequential(
+            nn.Linear(steps, dim),
+            nn.LayerNorm(dim),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(dim, dim),
+        )
+        self.gru = nn.GRU(dim, dim // 2, num_layers=1, batch_first=True, bidirectional=True) if recurrent else None
+        self.gru_norm = nn.LayerNorm(dim) if recurrent else None
+        self.gru_drop = nn.Dropout(dropout) if recurrent else None
+        self.context = nn.Sequential(nn.Linear(context, dim), nn.GELU(), nn.Linear(dim, dim))
+        self.place = nn.Parameter(torch.zeros(most, dim))
+        layer = nn.TransformerEncoderLayer(
+            dim, heads, 2 * dim, dropout, activation="gelu", batch_first=True, norm_first=True
+        )
+        self.over = nn.TransformerEncoder(layer, depth, enable_nested_tensor=False)
+        self.norm = nn.LayerNorm(dim)
+        self.attn_pool = _AttentionPool(dim, queries=4, dropout=dropout) if pool == "attention" else None
+        self.out_dim = 2 * dim
+        nn.init.normal_(self.place, std=0.02)
+
+    def forward(
+        self,
+        tokens: torch.Tensor,
+        marks: torch.Tensor,
+        numbers: torch.Tensor,
+        held: torch.Tensor,
+        context: torch.Tensor,
+    ) -> torch.Tensor:
+        rows, length = held.shape
+        embedded = self.embed(numbers[held])
+        x = embedded.new_zeros(rows, length, embedded.shape[-1])
+        x[held] = embedded
+        if self.gru is not None:
+            x = x + self.gru_drop(_packed_gru(self.gru, self.gru_norm(x), held))
+        x = x + self.place[:length].to(x.dtype)
+        x = torch.cat([self.context(context)[:, None, :].to(x.dtype), x], dim=1)
+        hidden = torch.cat([held.new_zeros(rows, 1), ~held], dim=1)
+        x = self.norm(self.over(x, src_key_padding_mask=hidden))
+        if self.attn_pool is not None:
+            return self.attn_pool(x[:, 0], x[:, 1:], held)
         real = held[..., None].to(x.dtype)
         return torch.cat([x[:, 0], (x[:, 1:] * real).sum(dim=1) / real.sum(dim=1).clamp(min=1.0)], dim=-1)
 
@@ -304,16 +473,20 @@ class BoardNet(nn.Module):
 
     The head reads the board's vector and gives ``outputs`` numbers: one, a number or the logit of a
     chance, or one logit for each of a task's tags. With ``squares`` it reads each square's vector
-    instead and gives every square its logit.
+    instead and gives every square its logit. With ``aux_outputs > 0`` a second head is trained
+    alongside the primary head (``forward_with_aux``), while ``forward`` still returns the primary
+    prediction alone.
     """
 
-    def __init__(self, body: nn.Module, *, outputs: int = 1, squares: bool = False):
+    def __init__(self, body: nn.Module, *, outputs: int = 1, squares: bool = False, aux_outputs: int = 0):
         super().__init__()
         self.body = body
         self.per_square = squares
         width = body.square_dim if squares else body.out_dim // 2
-        self.head = nn.Sequential(
-            nn.Linear(body.square_dim if squares else body.out_dim, width), nn.GELU(), nn.Linear(width, outputs)
+        in_dim = body.square_dim if squares else body.out_dim
+        self.head = nn.Sequential(nn.Linear(in_dim, width), nn.GELU(), nn.Linear(width, outputs))
+        self.aux_head = (
+            nn.Sequential(nn.Linear(in_dim, width), nn.GELU(), nn.Linear(width, aux_outputs)) if aux_outputs > 0 else None
         )
         self.single = outputs == 1
 
@@ -323,6 +496,16 @@ class BoardNet(nn.Module):
         read = self.body.squares if self.per_square else self.body
         output = self.head(read(*inputs))
         return output.squeeze(-1) if self.single else output
+
+    def forward_with_aux(self, *inputs: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor | None]:
+        read = self.body.squares if self.per_square else self.body
+        features = read(*inputs)
+        output = self.head(features)
+        primary = output.squeeze(-1) if self.single else output
+        if self.aux_head is None:
+            return primary, None
+        aux = self.aux_head(features)
+        return primary, aux.squeeze(-1) if aux.shape[-1] == 1 else aux
 
 
 class MoveNet(nn.Module):
@@ -362,13 +545,33 @@ def build_net(
     steps: int | None = None,
     most: int = 0,
     moves: bool = False,
+    extra_boards: int = 0,
+    aux_outputs: int = 0,
 ) -> BoardNet | MoveNet:
     """The network a run's ``learner`` block describes, under the head its task asks for.
 
     With ``steps`` a row is a sequence of up to ``most`` positions, each with that many numbers of its own:
-    the body named reads each position with them, under a ``GameBody`` that reads the row's ``context``.
-    With ``moves`` the head gives every pair of squares a logit (``MoveNet``).
+    the body named reads each position with them, under a ``GameBody`` that reads the row's ``context``
+    (or directly with ``StepBody`` when ``body: steps``). With ``moves`` the head gives every pair of
+    squares a logit (``MoveNet``).
     """
+    if config["body"] == "steps":
+        if steps is None:
+            raise ValueError("body 'steps' requires a sequence dataset")
+        if squares or moves:
+            raise ValueError(f"a row that is a sequence of positions has no head a {'move' if moves else 'square'}")
+        body: nn.Module = StepBody(
+            steps=steps,
+            context=context,
+            dim=int(config["dim"]),
+            depth=int(config["depth"]),
+            heads=int(config["heads"]),
+            dropout=float(config.get("dropout", 0.0)),
+            most=most,
+            recurrent=bool(config.get("recurrent", True)),
+            pool=str(config.get("pool", "attention")),
+        )
+        return BoardNet(body, outputs=outputs, squares=False, aux_outputs=aux_outputs)
     shared = {
         "marks": marks,
         "context": context if steps is None else steps,
@@ -381,24 +584,33 @@ def build_net(
             heads=int(config["heads"]),
             geometry=bool(config.get("geometry", True)),
             attacks=bool(config.get("attacks", False)),
+            extra_boards=extra_boards,
             **shared,
         )
     elif config["body"] == "conv":
-        body = SquareConv(squeeze=int(config.get("squeeze", 0)), **shared)
+        body = SquareConv(squeeze=int(config.get("squeeze", 0)), extra_boards=extra_boards, **shared)
     elif config["body"] == "hybrid":
         body = SquareHybrid(heads=int(config["heads"]), convs=int(config["convs"]), **shared)
     else:
-        raise ValueError(f"no body named {config['body']!r}: the lab has transformer, conv and hybrid")
+        raise ValueError(f"no body named {config['body']!r}: the lab has transformer, conv, hybrid and steps")
     if steps is not None:
         if squares or moves:
             raise ValueError(f"a row that is a sequence of positions has no head a {'move' if moves else 'square'}")
         over = {**OVER, **config.get("over", {})}
         body = GameBody(
-            body, context=context, depth=int(over["depth"]), heads=int(over["heads"]), dropout=shared["dropout"], most=most
+            body,
+            context=context,
+            depth=int(over["depth"]),
+            heads=int(over["heads"]),
+            dropout=shared["dropout"],
+            most=most,
+            step_dim=steps if config.get("step_skip") else 0,
+            recurrent=bool(over.get("recurrent", False)),
+            pool=str(over.get("pool", "mean")),
         )
     if moves:
         return MoveNet(body)
-    return BoardNet(body, outputs=outputs, squares=squares)
+    return BoardNet(body, outputs=outputs, squares=squares, aux_outputs=aux_outputs)
 
 
 def parameter_count(model: nn.Module) -> int:

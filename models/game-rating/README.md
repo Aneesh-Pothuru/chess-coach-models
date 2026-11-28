@@ -50,6 +50,15 @@ Written before the first full run.
 | `transformer-small` | A small square-token transformer reads each position, under the same two layers; for a GPU |
 | `transformer-medium` | A larger square-token transformer under two wider layers, for a GPU |
 | `transformer-medium-hand` | The same, reading the counts over the player's moves beside the game |
+| `steps-raw` | Per-move sequence model (BiGRU + transformer + attention pooling) over the 13 stored per-move scalars only, with no 8×8 boards |
+| `steps-temporal` | The same with 27 derived within-game temporal features (opponent implied win-probability loss and think time, clock fractions, position decisiveness, move-to-move deltas) |
+| `steps-board` | The same with 63 vectorised per-move board-geometry and exact attack-count features |
+| `steps-board-aux` | `steps-board` with a training-only auxiliary regression head predicting `opponent_elo` |
+| `conv-small-long` | `conv-small` trained for 24 epochs instead of 8 (GPU) |
+| `conv-medium-skip` | Wider ResNet (`dim: 128`, `depth: 8`) with temporal step-feature skip, BiGRU, and attention pooling (GPU) |
+| `transformer-medium-skip` | `transformer-medium` with temporal step-feature skip, BiGRU, and attention pooling (GPU) |
+| `steps-board-quadruple` | `steps-board` trained on four times the games (`games-200k`) |
+| `conv-medium-skip-quadruple` | `conv-medium-skip` trained on four times the games (`games-200k`, GPU) |
 
 ### Studies
 
@@ -62,53 +71,76 @@ changes.
 |---|---|---|
 | `features` | `gbm-hand-no-<group>` for each of accuracy, tempo, choices | One group of the counts left out: what the moves lost, how the clock was used, what there was to choose from |
 | `games` | `gbm-hand-half`, `gbm-hand-quarter` | Half and a quarter of the training games, chosen by a hash of the game |
+| `opponent` | `steps-own-only` | Drops opponent clocks, `win_before`, implied opponent loss, and opponent last-move features from `steps-board` to separate the player's own signal from opponent play |
+| `aux` | `steps-board-aux` | Adds a training-only auxiliary regression head predicting `opponent_elo` (`aux_weight: 0.3`) to `steps-board`; filed because validation MAE worsened and test gain did not clear noise |
+
+### Second-pass experiment rules (written before full runs)
+
+1. **Sequence dynamics vs raw 8×8 boards (`steps-raw` → `steps-temporal` → `steps-board`).**
+   First-pass networks trained only 8 epochs, buried per-move scalars below 6–8 2D board layers with no skip connection to the sequence layers, and pooled with a plain mean. We test whether a dedicated BiGRU + transformer + attention-pooling encoder over per-move scalars, explicit temporal dynamics (especially opponent implied loss $b_{t+1} - (b_t - l_t)$, opponent think time, and decisiveness-weighted loss), and exact bitboard board-geometry features beats `conv-small` (MAE 204.1) on the identical `games-2026-10` test set.
+   *Win rule:* a run is kept on the leaderboard only if it improves validation MAE over its base AND achieves a paired test MAE gain with a 95% bootstrap interval strictly above zero (and beats `gbm-hand` beyond the noise).
+2. **Auxiliary opponent supervision (`steps-board-aux`).**
+   Adds a training-only auxiliary head predicting `opponent_elo` (`aux_weight: 0.3`). Expects lower test MAE and/or less bias along the `rating-gap` slice by forcing the sequence encoder to represent the two sides separately. Same win rule over `steps-board`.
+3. **Opponent-dependence ablation (`steps-own-only`, study `opponent`).**
+   Removes opponent clock, `win_before`, opponent implied loss, and opponent last-move geometry from `steps-board`. Filed under `study: opponent` to measure directly how much accuracy comes from reading the opponent's play vs the player's own moves and clock.
 
 ## Results
 
 [`results/leaderboard.md`](results/leaderboard.md), written by
 `lab eval game-rating`, the closer look in
 [`results/analysis.json`](results/analysis.json), and the paper,
-[`paper/paper.pdf`](paper/paper.pdf). What the first full runs say (commits
-`269bfb6` and `f56cc16`; the numbers are in those files):
+[`paper/paper.tex`](paper/paper.tex) ([`paper/paper.pdf`](paper/paper.pdf)).
 
-- **A network that reads the moves beats the counts.** All four networks are
-  ahead of the reference beyond the noise. The best takes about a sixth off
-  the trees' error, and it is the smallest of the four.
-- **The small networks lead.** The convolutional tower and the small
-  transformer lie inside each other's intervals, and the larger transformer
-  is behind both. On the valid rows it is behind them after every epoch and
-  still gaining at the last, so on this schedule it learns more slowly and
-  nothing shows a ceiling. Three of the four networks were at their best in
-  the last epoch they were given. A longer schedule is the first run to add.
-- **Handed the counts, the larger transformer is worse.** It is the one pair
-  among the `pairs` of the closer look: `transformer-medium-hand` is worse
-  than `transformer-medium` on the valid rows and on the test rows beyond
-  the noise, so it is not kept and will be filed as a measurement. Its loss
-  on its own training rows is the higher of the two after every epoch but
-  the first, so the counts do not help it fit even the rows it has seen.
-- **One reading is loose.** The best run lands within two hundred points of
-  the player's rating for a little over half of the test rows, and one
-  reading in ten misses by more than four hundred. It pulls toward the
-  middle: the weakest band is read more than two hundred points too high on
-  average and the strongest more than that too low.
-- **It reads the game more than the player.** With the player's rating band
-  held fixed, a reading falls as the opponent gets weaker, in every band
-  (the `rating-gap` grid). In the games whose players are two hundred points
-  or more apart, the two sides are more than four hundred points apart on
-  average and are read about fifty apart. The trees lean nearly as far, and
-  they read only counts over the player's own moves, so the lean does not
-  take a network that sees the opponent's moves. A reading of why: a weaker
-  opponent leaves more chances on the board, and a chance that is missed
-  counts as a loss.
-- **The largest misses are games the pairing would seldom make.** In each of
-  them the two players are several hundred points apart and the reading lies
-  nearer the opponent's rating. A reading: some of those ratings had not
-  settled, and the dataset cannot yet tell a new account from a settled one.
+### First pass (commits `269bfb6` and `f56cc16`)
+
+- **A network that reads the moves beats the counts.** All four 2D-board
+  networks beat the GBDT reference (`242.7`) beyond the noise, led by
+  `conv-small` (`204.1`) and `transformer-small` (`204.9`). The larger
+  `transformer-medium` (`211.1`) learned more slowly and was still improving at
+  epoch 8; adding hand features (`transformer-medium-hand`) hurt it.
 - **What the trees lean on.** Without what the moves lost the trees lose
-  most, and the clock and the choices each add something beyond the noise.
-  On half and on a quarter of the training games the trees lose little, so
-  more games of the same kind would add little to them. No network is in
-  that study.
+  most, and the clock and choices each add signal beyond the noise. On half and
+  a quarter of the training games the trees lose little.
+
+### Second pass (`games-2026-10`, identical dataset build)
+
+- **Per-move sequence modelling + temporal dynamics + board geometry sets a new
+  best.** `steps-board` (BiGRU + 1-layer transformer + 4-query attention
+  pooling, 524k parameters, trained on CPU) reaches test MAE **194.1**
+  (95% CI 190.4–198.1; RMSE 247.1; R² 0.5809; Spearman 0.7585), a paired gain
+  of **+48.56** (+44.82 to +52.33) over `gbm-hand` and **10.0 points** better
+  than `conv-small` with less than a third as many parameters. It improves on
+  `conv-small` in every rating band, most strongly at `2000+` (251.5 vs 277.1).
+- **Each input addition clears the noise on paired test games.**
+  - `steps-raw` (13 stored per-move scalars only): **221.4** (+21.28 vs `gbm-hand`).
+  - `steps-temporal` (+27 within-game temporal features, including opponent
+    implied loss and think time, clock fractions, and position decisiveness):
+    **216.1** (paired gain **+5.38**, 95% CI +3.38 to +7.21, over `steps-raw`).
+  - `steps-board` (+63 vectorised bitboard geometry and exact attack-count
+    features): **194.1** (paired gain **+21.91**, 95% CI +19.21 to +24.55, over
+    `steps-temporal`).
+- **Opponent-dependence ablation (`steps-own-only`, study `opponent`).**
+  Dropping opponent clocks, `win_before`, implied opponent loss and opponent
+  last-move geometry raises MAE from `194.1` to **201.6** (paired difference
+  −7.50, 95% CI −9.44 to −5.55), while still beating `conv-small` (204.1). In a
+  joint OLS fit $\hat{y} = \alpha + \beta_{\text{own}} r_{\text{own}} + \beta_{\text{opp}} r_{\text{opp}}$,
+  the opponent share drops from 46.2% (`steps-board`) to 42.6% (`steps-own-only`).
+  Even without explicit opponent inputs, the opponent's play still shows through
+  the positions it creates — and on `1400–1700` players, own mean loss itself
+  rises from 3.48 against >200-point stronger opponents to 4.82 against
+  100–200-point weaker ones.
+- **Auxiliary opponent-rating head (`steps-board-aux`, study `aux`, not
+  accepted).** Adding a training-only `opponent_elo` head worsened validation
+  MAE (`194.6` vs `193.8`) and gave a non-significant test gain of `+0.19`
+  (95% CI −1.29 to +1.66; opponent OLS share 47.6%), so it is filed under
+  `study: aux` per the acceptance rule.
+- **One reading is still loose and opponent-coupled.** `steps-board` lands
+  within 200 points on 59.4% of test rows (up from 57.2% for `conv-small`) and
+  within 300 on 78.5%, with p90 error 403.5. It remains compressed at the
+  extremes and dependent on opponent strength.
+- **GPU follow-ups ready.** `colab/plans/game-rating-v2.yaml` queues longer
+  24-epoch 2D-board runs with temporal skip connections, BiGRU, attention
+  pooling, and 4× data (`games-200k`), including `steps-board-quadruple`.
 
 What a review can take from this today: what a game looked like, in rating
 points, for an ordinary game between players of like rating, said as a wide
@@ -116,11 +148,12 @@ band. It cannot yet say that a player played above or below their rating,
 because against a much stronger or weaker opponent a reading says mostly who
 the opponent was.
 
-**Weights.** Every run's weights and test predictions are on the owner's
-machine, under `artifacts/runs/game-rating/<run>/`, as the GPU session
-packed them; none is published. The best run's `model.pt` is
-6,959,863 bytes, sha256
-`4ee7e217b9179e513b28e9bd4912a5ec59ea47a0bf1b3733c090c2c993fcebbb`.
+**Weights.** Every run's weights and test predictions are kept under
+`artifacts/runs/game-rating/<run>/` (git-ignored; none is published). The
+current best run (`steps-board`) has `model.pt` of 2,113,334 bytes, sha256
+`e6fd841d71b28456b86de6d7613cd6c55d1e7c1c16149181b3f69ffb85df1251` (previous
+GPU best `conv-small`: 6,959,863 bytes, sha256
+`4ee7e217b9179e513b28e9bd4912a5ec59ea47a0bf1b3733c090c2c993fcebbb`).
 
 ## What it does not say yet
 
@@ -129,11 +162,11 @@ packed them; none is published. The best run's `model.pt` is
   is partly the model's and partly the game's, and nothing here separates the
   two yet. Several games of one player would.
 - **The pairing shows through.** Lichess pairs players of like rating, and a
-  position is made by both of them. The closer look shows that a reading
-  moves with the opponent's rating while the player's stays where it was. It
-  does not say by how much for each point of the opponent's rating: a fit of
-  the readings on both ratings would, and so would the same model asked for
-  the opponent's rating. Neither is made yet.
+  position is made by both of them. Even after removing explicit opponent
+  inputs (`steps-own-only`), the opponent accounts for over 40% of the joint
+  regression slope because the opponent's moves shape the board and the player's
+  own loss opportunities. Predicting both ratings jointly (or their mean and
+  difference) remains future work.
 - **Every rating counts alike.** A new account's rating has not settled, and
   the model is trained on it and scored against it as on any other. The
   record of a game says by how many points it moved each rating, which the

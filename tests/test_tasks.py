@@ -203,6 +203,7 @@ def test_a_larger_build_of_a_dataset_changes_only_how_much_of_the_source_it_keep
     assert {name: other for name, other in larger.items() if other} == {
         "puzzles-all": "puzzles",
         "game-positions-120k": "game-positions",
+        "games-200k": "games",
         "tactics-all": "tactics",
         "masters-classical-all": "masters-classical",
     }

@@ -715,7 +715,81 @@ def analyse(model: str, *, smoke: bool = False) -> dict[str, Any]:
         result["ranking"] = {run: ranking(look.truth, p) for run, p in predictions.items()}
     else:
         result["closeness"] = {run: closeness(look.truth, p, asked.get("within", {})) for run, p in predictions.items()}
+    ordered_names = [run["run"] for run in ranked(task, runs)]
+    existing_path = paths.results(model, smoke=smoke) / "analysis.json"
+    if existing_path.exists():
+        existing = json.loads(existing_path.read_text(encoding="utf-8"))
+        result = _merge_existing(result, existing, ordered_names, task, local_runs=set(predictions))
     return _written(model, result, smoke=smoke)
+
+
+def _merge_existing(
+    result: dict[str, Any],
+    existing: dict[str, Any],
+    ordered_names: list[str],
+    task: tasks.Task,
+    *,
+    local_runs: set[str],
+) -> dict[str, Any]:
+    """Merge per-run tables from an existing analysis.json of the same dataset fingerprint for runs whose
+    predictions live on another machine, keeping best-first ordering intact."""
+    if existing.get("dataset", {}).get("fingerprint") != result["dataset"].get("fingerprint"):
+        return result
+    valid_set = set(ordered_names)
+    keep_old = [name for name in existing.get("runs", []) if name in valid_set and name not in local_runs]
+    if not keep_old:
+        return result
+    merged_runs = [name for name in ordered_names if name in local_runs or name in keep_old]
+    result["runs"] = merged_runs
+    for name in keep_old:
+        result["skipped"].pop(name, None)
+
+    for key in ("reliability", "against_reference", "closeness", "ranking"):
+        if key in result and key in existing:
+            combined = {**{n: existing[key][n] for n in keep_old if n in existing[key]}, **result[key]}
+            result[key] = {n: combined[n] for n in merged_runs if n in combined}
+
+    old_slices = {s["key"]: s for s in existing.get("slices", [])}
+    old_challenger = existing.get("challenger")
+    new_challenger = challenger_of(task, {n: True for n in merged_runs})
+    keep_old_gains = new_challenger in keep_old and new_challenger == old_challenger
+    for sl in result.get("slices", []):
+        osl = old_slices.get(sl["key"])
+        if not osl:
+            continue
+        old_groups = {g["group"]: g for g in osl.get("groups", [])}
+        for grp in sl.get("groups", []):
+            og = old_groups.get(grp["group"])
+            if not og:
+                continue
+            combined = {**{n: og["runs"][n] for n in keep_old if n in og.get("runs", {})}, **grp["runs"]}
+            grp["runs"] = {n: combined[n] for n in merged_runs if n in combined}
+            if keep_old_gains and og.get("gain") is not None:
+                grp["gain"] = og["gain"]
+
+    old_grids = {g["key"]: g for g in existing.get("grids", [])}
+    for gr in result.get("grids", []):
+        ogr = old_grids.get(gr["key"])
+        if not ogr or len(ogr.get("cells", [])) != len(gr.get("cells", [])):
+            continue
+        for r_idx, row in enumerate(gr["cells"]):
+            if len(ogr["cells"][r_idx]) != len(row):
+                continue
+            for c_idx, cell in enumerate(row):
+                oc = ogr["cells"][r_idx][c_idx]
+                combined = {**{n: oc["runs"][n] for n in keep_old if n in oc.get("runs", {})}, **cell["runs"]}
+                cell["runs"] = {n: combined[n] for n in merged_runs if n in combined}
+
+    old_pairs = {(p["run"], p["over"]): p for p in existing.get("pairs", []) if p.get("gain") is not None}
+    for entry in result.get("pairs", []):
+        if entry.get("gain") is None and (entry["run"], entry["over"]) in old_pairs:
+            entry.update(old_pairs[(entry["run"], entry["over"])])
+
+    if merged_runs[0] in keep_old and existing.get("best") == merged_runs[0] and "examples" in existing:
+        result["examples"] = existing["examples"]
+    result["best"] = merged_runs[0]
+    result["challenger"] = new_challenger
+    return result
 
 
 def _written(model: str, result: dict[str, Any], *, smoke: bool) -> dict[str, Any]:

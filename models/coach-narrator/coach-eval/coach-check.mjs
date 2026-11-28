@@ -34,6 +34,7 @@ export const COACH_TACTICS = {
   backRank: /\bback[- ]rank\b/i,
   promotion: /\bpromot(?:e|es|ed|ing|ion)\b/i,
   removingTheDefender: /\bremov(?:e|es|ed|ing) the defender\b/i,
+  intermezzo: /\b(?:intermezzo|zwischenzug)\b/i,
 }
 
 const flip = (fen) => {
@@ -145,7 +146,40 @@ export function coachVocabularyOf(s, given = coachSheetOf(s)) {
   }
   visit(given, null)
   const narration = !!(given.the_better_line || given.the_line_your_move_allowed)
-  return { moves, squares, numbers, positions, stated, mate: MATE.test(joined), mover: s.you_play === 'White' ? 'w' : 'b', near: positions, starts, tactics, owned, places, replies, mates, narration }
+  const exchangeCosts = []
+  for (const story of [given.the_better_line, given.the_line_your_move_allowed, given.story_of_the_better_line, given.story_of_the_line_your_move_allowed]) {
+    if (!story) continue
+    for (const text of [story.how_it_ends, ...(story.the_point ?? [])]) {
+      if (typeof text !== 'string') continue
+      for (const m of text.matchAll(/\b(?:wins?|winning|gains?)\s+([^.,;]+?)\s+for\s+([^.,;]+)/gi)) {
+        exchangeCosts.push({ gained: m[1].toLowerCase(), cost: m[2].toLowerCase() })
+      }
+    }
+  }
+  return { moves, squares, numbers, positions, stated, mate: MATE.test(joined), mover: s.you_play === 'White' ? 'w' : 'b', near: positions, starts, tactics, owned, places, replies, mates, narration, exchangeCosts }
+}
+
+const EXCHANGE_COST_WORDS = /\b(?:for|cost(?:s|ing)?|gives? up|giving up|sacrific(?:e|es|ed|ing)|trad(?:e|es|ed|ing)|exchang(?:e|es|ed|ing)|in return for)\b/i
+const EXCHANGE_PIECES = ['queen', 'rook', 'bishop', 'knight', 'pawn', 'exchange']
+
+/**
+ * Flags a narration that claims to win a piece from an exchange ("wins two rooks")
+ * while omitting what the facts say was given up for it ("for the queen").
+ */
+function omittedExchangeCosts(text, v) {
+  if (!v.exchangeCosts?.length) return []
+  const low = text.toLowerCase()
+  const out = []
+  for (const { gained, cost } of v.exchangeCosts) {
+    const gainedPieces = EXCHANGE_PIECES.filter((p) => gained.includes(p))
+    const costPieces = EXCHANGE_PIECES.filter((p) => cost.includes(p))
+    if (!gainedPieces.length || !costPieces.length) continue
+    const claimed = gainedPieces.some((p) => new RegExp(`\\b(?:wins?|winning|gains?)\\b[^.!?]{0,35}\\b${p}s?\\b`, 'i').test(low))
+    if (claimed && !EXCHANGE_COST_WORDS.test(low) && !costPieces.some((p) => new RegExp(`\\b${p}s?\\b`, 'i').test(low))) {
+      out.push(`claims winning ${gained.trim()} while omitting the exchange cost (${cost.trim()})`)
+    }
+  }
+  return out
 }
 
 // A clause that says a reply had to be played.
@@ -218,7 +252,8 @@ export function coachVerdictOf(text, v) {
   const tactics = verdictOf(claims.join(' '), v, COACH_TACTICS).filter((m) => m.startsWith('a ') && m.endsWith('the facts do not name') && !m.startsWith('a mate'))
   const placed = claims.flatMap((x, i) => misplacedTactics(x, v, sentences[i - 1] ?? ''))
   const unforced = v.narration ? sentences.flatMap((x) => unforcedClaims(x, v)) : []
-  return [...plain, ...tactics, ...placed, ...unforced]
+  const costs = omittedExchangeCosts(claims.join(' '), v)
+  return [...plain, ...tactics, ...placed, ...unforced, ...costs]
 }
 
 if (process.argv[1]?.endsWith('coach-check.mjs')) {

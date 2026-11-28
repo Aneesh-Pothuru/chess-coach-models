@@ -227,7 +227,22 @@ def describe(record: dict[str, Any]) -> str:
         reads = "context and hand-crafted features" if learner["features"] == "hand" else "context features"
         return f"GBDT{PER_EXAMPLE.get(kind, '')}, {reads}{removed}{larger}"
     body = learner["body"]
-    if body == "hybrid":
+    if body == "steps":
+        shape = f"Step sequence, {learner['depth']} transformer layer{'' if int(learner['depth']) == 1 else 's'}, width {learner['dim']}"
+        if learner.get("recurrent", True):
+            shape += ", BiGRU"
+        if learner.get("pool", "attention") == "attention":
+            shape += ", attention pooling"
+        extras = []
+        if learner.get("temporal"):
+            extras.append("temporal features")
+        if learner.get("board_features"):
+            extras.append("board-geometry features")
+        if extras:
+            shape += ", " + " and ".join(extras)
+        if learner.get("without_opponent"):
+            shape += ", no opponent signals"
+    elif body == "hybrid":
         shape = f"Hybrid, {learner['convs']} residual blocks and {learner['depth']} transformer layers, width {learner['dim']}"
     elif body == "conv":
         shape = f"ResNet, {learner['depth']} blocks, width {learner['dim']}" + (", squeeze-and-excitation" if learner.get("squeeze") else "")

@@ -1,0 +1,11 @@
+# conv-medium-skip trained on four times the games (games-200k), scored on the standard games-2026-10 test set.
+base: conv-medium-skip
+needs: cuda
+data:
+  train_on: games-200k
+train:
+  epochs: 10
+  patience: 3
+smoke:
+  learner: {dim: 32, depth: 2}
+  train: {epochs: 1, batch: 32}

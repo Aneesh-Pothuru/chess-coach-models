@@ -54,6 +54,7 @@ from ..evals.metrics import (
     LOWER_IS_BETTER,
     METRICS,
     SETS,
+    calibration_error,
     calibration_table,
     mean_of_rows,
     pr_auc,
@@ -163,16 +164,34 @@ def gain_over_reference(
 
 
 def by_candidate(candidates: tuple[str, ...], y: np.ndarray, p: np.ndarray) -> dict[str, dict[str, float]]:
-    """Each candidate of a set by itself, as a yes or no over the rows: how many rows it is right in, and how
-    well its chance tells those rows from the rest."""
+    """Each candidate of a set by itself, as a yes or no over the rows: how many rows it is right in, how
+    well its chance tells those rows from the rest, and its own calibration error."""
     return {
         name: {
             "rows": int(y[:, column].sum()),
             "share": float(y[:, column].mean()),
             "pr_auc": pr_auc(y[:, column].astype(np.float64), p[:, column]),
             "roc_auc": roc_auc(y[:, column].astype(np.float64), p[:, column]),
+            "ece": calibration_error(y[:, column].astype(np.float64), p[:, column]),
         }
         for column, name in enumerate(candidates)
+    }
+
+
+def by_candidate_summary(each: dict[str, dict[str, float]], *, rare_below: float = 0.02) -> dict[str, float | int]:
+    """Macro and rare-tag summaries over ``by_candidate``, so improvements on rare themes are visible
+    alongside the micro-dominated per-row headline."""
+    pr = [row["pr_auc"] for row in each.values() if row["pr_auc"] == row["pr_auc"]]
+    roc = [row["roc_auc"] for row in each.values() if row["roc_auc"] == row["roc_auc"]]
+    ece = [row["ece"] for row in each.values() if "ece" in row and row["ece"] == row["ece"]]
+    rare = [row["pr_auc"] for row in each.values() if row["share"] < rare_below and row["pr_auc"] == row["pr_auc"]]
+    return {
+        "macro_pr_auc": float(np.mean(pr)) if pr else float("nan"),
+        "macro_roc_auc": float(np.mean(roc)) if roc else float("nan"),
+        "macro_ece": float(np.mean(ece)) if ece else float("nan"),
+        "rare_below": rare_below,
+        "rare_count": len(rare),
+        "rare_pr_auc": float(np.mean(rare)) if rare else float("nan"),
     }
 
 
@@ -226,7 +245,24 @@ def run(
     moves = task.kind == "moves"
     by_row = task.kind in BY_ROW
     calibration = None
-    if task.kind == "binary" or sets:
+    cal_mode = config.get("calibrate", config.get("train", {}).get("calibrate", "shared"))
+    if task.kind == "tags" and cal_mode == "per_candidate":
+        # One Platt line per candidate tag, fitted on valid: fixes per-theme base-rate and sharpness mismatch.
+        valid_cal = np.empty_like(valid_p)
+        test_cal = np.empty_like(test_p)
+        per_tag = {}
+        for col, cname in enumerate(task.candidates):
+            yc = y_valid[:, col]
+            if yc.sum() > 0 and yc.sum() < len(yc):
+                slope, intercept = platt(valid_p[:, col], yc)
+            else:
+                slope, intercept = 1.0, 0.0
+            valid_cal[:, col] = apply_platt(valid_p[:, col], slope, intercept)
+            test_cal[:, col] = apply_platt(test_p[:, col], slope, intercept)
+            per_tag[cname] = {"platt_slope": slope, "platt_intercept": intercept}
+        valid_p, test_p = valid_cal, test_cal
+        calibration = {"kind": "per_candidate", "fitted_on": "valid", "candidates": per_tag}
+    elif task.kind == "binary" or sets:
         # For a set, one line through every candidate's chance: it moves no candidate past another in a row.
         slope, intercept = platt(valid_p.reshape(-1), y_valid.reshape(-1))
         valid_p, test_p = apply_platt(valid_p, slope, intercept), apply_platt(test_p, slope, intercept)
@@ -311,7 +347,12 @@ def run(
     }
     if task.kind == "binary" or sets:
         # For a set, every candidate of every row as one yes or no.
-        record["test_calibration"] = calibration_table(y_test.reshape(-1).astype(np.float64), test_p.reshape(-1))
+        y_flat, p_flat = y_test.reshape(-1).astype(np.float64), test_p.reshape(-1)
+        record["test_calibration"] = calibration_table(y_flat, p_flat)
+        if sets:
+            active = p_flat >= 0.01
+            if int(active.sum()) >= 20:
+                record["test_active_calibration"] = calibration_table(y_flat[active], p_flat[active])
     if moves:
         # Every legal move of every row as one yes or no: was it the move played.
         held = ~np.isnan(test_p)
@@ -320,7 +361,9 @@ def run(
         record["test_calibration"] = calibration_table(right[held], test_p[held])
         record["test_candidates"] = {"mean": float(held.sum(axis=1).mean()), "most": int(held.sum(axis=1).max())}
     if task.kind == "tags":
-        record["test_by_candidate"] = by_candidate(task.candidates, y_test, test_p)
+        each = by_candidate(task.candidates, y_test, test_p)
+        record["test_by_candidate"] = each
+        record["test_by_candidate_summary"] = by_candidate_summary(each)
 
     predictions = paths.predictions(model, name, smoke=smoke)
     predictions.parent.mkdir(parents=True, exist_ok=True)

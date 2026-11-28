@@ -1,0 +1,18 @@
+# Four times the games of games.yaml (200,000 rapid games from October 2026, ~400k rows).
+# A larger build of games.yaml (data/__init__.py) for training only: a run names it with
+# `data: {train_on: games-200k}` and is still scored on the valid and test rows of games.yaml.
+name: games-200k-2026-10
+of: games
+builder: game_sides
+month: "2026-10"
+speeds: [rapid]
+min_ply: 11
+least_moves: 10
+most_moves: 48
+games: 200000
+split:
+  salt: game-positions-v1
+  valid: 0.05
+  test: 0.10
+smoke:
+  games: 1200

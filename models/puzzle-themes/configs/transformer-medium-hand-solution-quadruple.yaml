@@ -1,0 +1,13 @@
+# transformer-medium-hand-solution trained on all eligible Lichess puzzles (puzzles-all, ~4x rows),
+# scored on the standard puzzles-v1 valid and test sets.
+base: transformer-medium-hand-solution
+needs: cuda
+data:
+  train_on: puzzles-all
+train:
+  epochs: 5
+  patience: 2
+smoke:
+  data: {train_share: 0.05}
+  learner: {dim: 32, depth: 2, heads: 4}
+  train: {epochs: 1, batch: 64}

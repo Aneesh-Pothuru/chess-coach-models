@@ -190,6 +190,20 @@ def _change(block: str, key: str, new: Any, old: Any) -> str:
         return "with attack-aware attention bias" if new else "without attack-aware attention bias"
     if (block, key) == ("learner", "geometry"):
         return "without relative position bias" if new is False else "with relative position bias"
+    if (block, key) == ("learner", "temporal"):
+        return "with derived temporal step features" if new else "without derived temporal step features"
+    if (block, key) == ("learner", "board_features"):
+        return "with per-move board-geometry features" if new else "without per-move board-geometry features"
+    if (block, key) == ("learner", "without_opponent"):
+        return "without opponent clock or implied-loss features" if new else "with opponent signals"
+    if (block, key) == ("learner", "solution_boards"):
+        return "with post-move and final solution boards" if new else "without solution boards"
+    if (block, key) == ("train", "aux_target"):
+        return "without auxiliary head" if new is None else f"with auxiliary \\code{{{tex.esc(new)}}} supervision"
+    if (block, key) == ("train", "loss"):
+        return "asymmetric loss" if new == "asl" else f"\\code{{{tex.esc(new)}}} loss"
+    if (block, key) == ("train", "calibrate"):
+        return "per-tag Platt calibration" if new == "per_candidate" else "shared Platt calibration"
     if (block, key) == ("data", "train_share"):
         return f"trained on {games_words(float(new))}" if new is not None else "trained on all the training games"
     if (block, key) == ("data", "train_on"):
@@ -290,7 +304,7 @@ def kinds(src: Sources) -> set[str]:
 KINDS = (*KIND_OF.values(), *(shape for shape in SHAPES if shape not in KIND_OF.values()))
 
 # A network's body as a table says it.
-BODIES = {"transformer": "transformer", "conv": "ResNet", "hybrid": "CNN-transformer hybrid"}
+BODIES = {"transformer": "transformer", "conv": "ResNet", "hybrid": "CNN-transformer hybrid", "steps": "per-move sequence"}
 
 
 def differs(run: dict[str, Any], other: dict[str, Any]) -> str:

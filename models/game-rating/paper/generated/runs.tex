@@ -4,10 +4,13 @@
 \toprule
 Model & Description & Selected & Hardware & Time \\
 \midrule
+\run{steps-board} & Step sequence, 1 transformer layer, width 128, BiGRU, attention pooling, temporal features and board-geometry features & epoch 7 of 10 & Intel Xeon CPU @ 2.30GHz & 34 min \\
 \run{conv-small} & ResNet, 6 blocks, width 96 per position, then 2 transformer layers over the sequence & epoch 8 of 8 & NVIDIA A100-SXM4-80GB & 5 min \\
 \run{transformer-small} & Transformer, 4 layers, width 128 per position, then 2 transformer layers over the sequence & epoch 8 of 8 & NVIDIA A100-SXM4-80GB & 10 min \\
 \run{transformer-medium} & Transformer, 8 layers, width 256 per position, then 2 transformer layers over the sequence & epoch 8 of 8 & NVIDIA A100-SXM4-80GB & 28 min \\
-\run{gbm-hand} & GBDT, context and hand-crafted features & 315 trees & Intel Xeon CPU @ 2.20GHz & 8 s \\
+\run{steps-temporal} & Step sequence, 1 transformer layer, width 96, BiGRU, attention pooling, temporal features & epoch 8 of 8 & Intel Xeon CPU @ 2.30GHz & 20 min \\
+\run{steps-raw} & Step sequence, 1 transformer layer, width 96, BiGRU, attention pooling & epoch 7 of 8 & Intel Xeon CPU @ 2.30GHz & 20 min \\
+\run{gbm-hand} & GBDT, context and hand-crafted features & 315 trees & Intel Xeon CPU @ 2.30GHz & 10 s \\
 \run{gbm-context} & GBDT, context features & 65 trees & Intel Xeon CPU @ 2.20GHz & 3 s \\
 \run{constant} & Constant prediction &  & Intel Xeon CPU @ 2.20GHz & 2 s \\
 \bottomrule

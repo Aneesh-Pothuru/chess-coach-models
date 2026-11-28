@@ -1,0 +1,9 @@
+# Study: drops opponent clocks, win_before, opponent implied loss, and opponent last-move
+# features from steps-board to measure how much of the rating signal comes from reading the
+# player's own moves and clock versus reading the opponent.
+base: steps-board
+study: opponent
+learner:
+  without_opponent: true
+train:
+  epochs: 8

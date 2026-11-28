@@ -1283,14 +1283,15 @@ def test_a_network_over_a_game_scores_a_row_the_same_whatever_it_is_scored_with(
     assert np.allclose(said["p"].to_numpy(), np.array(alone), rtol=1e-4, atol=1e-2)
 
 
-def test_a_network_over_a_game_does_not_start_from_another_run_yet(players_lab):
+def test_a_network_over_a_game_starts_from_another_run(players_lab):
     model = "game-rating"
     init = {"model": model, "run": "conv-small"}
     players_lab.model(model, {**GAME_CONFIGS, "conv-small-started": {"base": "conv-small", "learner": {"init": init}}})
     runs.run(model, "gbm-hand", smoke=True, log=lambda _: None)
     runs.run(model, "conv-small", smoke=True, log=lambda _: None)
-    with pytest.raises(ValueError, match="does not start from another run yet"):
-        runs.run(model, "conv-small-started", smoke=True, log=lambda _: None)
+    record = runs.run(model, "conv-small-started", smoke=True, log=lambda _: None)
+    assert record["learner"]["started_from"]["run"] == "conv-small"
+    assert record["test"]["mae"]["value"] > 0
 
 
 MOVE_CONFIGS = {

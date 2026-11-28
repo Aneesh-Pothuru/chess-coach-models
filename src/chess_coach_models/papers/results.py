@@ -250,6 +250,9 @@ def values(src: Sources, out: tex.Generated) -> None:
         if len(asked) == 1 and None not in asked:
             (value,) = asked
             out.set(shown, tex.plain(round(100.0 * value, 6)) if name == "warmup" else tex.word(int(value)))
+        elif len(asked) > 1 and None not in asked and name == "patience":
+            low, high = min(int(v) for v in asked), max(int(v) for v in asked)
+            out.set(shown, f"{tex.word(low)} to {tex.word(high)}")
     out.set("cost.seconds", tex.duration(sum(run["seconds"] for run in src.runs)))
     out.set("cost.seconds.networks", tex.duration(sum(run["seconds"] for run in networks)))
     out.set("cost.seconds.others", tex.duration(sum(run["seconds"] for run in src.runs if run not in networks)))
@@ -466,7 +469,7 @@ def _over(run: dict[str, Any], setting: str) -> str:
 
 
 # An encoder as the settings table names it.
-ENCODERS = {"transformer": "Transformer", "conv": "ResNet", "hybrid": "Hybrid"}
+ENCODERS = {"transformer": "Transformer", "conv": "ResNet", "hybrid": "Hybrid", "steps": "Step sequence"}
 
 # A network's settings as the settings table heads them, and how each is read from a run's config.
 SETTINGS = (

@@ -1,0 +1,12 @@
+# Medium transformer with attack-aware attention bias and per-tag Platt calibration,
+# targeting geometry-dependent weak themes (interference, pin, discoveredCheck, capturingDefender).
+base: transformer-medium-hand
+needs: cuda
+learner:
+  attacks: true
+train:
+  calibrate: per_candidate
+smoke:
+  data: {train_share: 0.05}
+  learner: {dim: 32, depth: 2, heads: 4}
+  train: {epochs: 1, batch: 64}

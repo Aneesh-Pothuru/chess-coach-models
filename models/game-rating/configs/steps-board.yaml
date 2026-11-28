@@ -1,0 +1,23 @@
+# Per-move sequence model with both derived temporal dynamics (27 features) and vectorised
+# bitboard board-geometry features (63 features: material, development, centre, pawn structure,
+# king shields, moved/captured piece geometry, recapture, and exact attacker/defender counts).
+learner:
+  kind: net
+  body: steps
+  dim: 128
+  depth: 1
+  heads: 4
+  dropout: 0.1
+  recurrent: true
+  pool: attention
+  temporal: true
+  board_features: true
+train:
+  epochs: 10
+  batch: 256
+  lr: 0.002
+  weight_decay: 0.03
+  warmup: 0.05
+  patience: 4
+smoke:
+  train: {epochs: 2, batch: 32}
