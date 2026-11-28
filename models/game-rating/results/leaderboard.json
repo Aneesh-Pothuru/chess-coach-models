@@ -38,14 +38,248 @@
       "valid": 5053
     },
     "fingerprint": "e08251266d6e000b045fb61541289218368848966797a0d9f5225bb7ee9ec58f",
-    "built": "2026-11-27T20:29:15Z",
-    "code": "9ca4bafd5b6bf655249ead38cc8204388b219225+changes",
+    "built": "2026-11-28T00:35:21Z",
+    "code": "a677087d8ff8f66faea0f0944bd7800565881087",
     "positions": 2762344
   },
   "test_rows": 9974,
   "test_groups": 4999,
   "reference": "gbm-hand",
   "runs": [
+    {
+      "run": "conv-medium-skip-quadruple",
+      "learner": "conv, 8 layers of width 128 for each position, then 3 transformer layers over the positions in order with BiGRU and step-feature skip and attention pooling; trained on 338,809 rows of the larger build `games-200k-2026-10`",
+      "test": {
+        "rmse": {
+          "value": 231.66933966434527,
+          "low": 226.9211020711816,
+          "high": 236.8031831714673
+        },
+        "mae": {
+          "value": 180.78638501240923,
+          "low": 177.29492335592997,
+          "high": 184.80987044382573
+        },
+        "r2": {
+          "value": 0.631788903644566,
+          "low": 0.6137008817121606,
+          "high": 0.6488529494456186
+        },
+        "spearman": {
+          "value": 0.7908355143164315,
+          "low": 0.7789751099818808,
+          "high": 0.8019350024709422
+        }
+      },
+      "test_by_band": {
+        "1100-1400": {
+          "rows": 2411,
+          "rmse": 224.88458603469493,
+          "mae": 178.6709697000321,
+          "r2": -6.0932914703136145,
+          "spearman": 0.27677717844737026
+        },
+        "1400-1700": {
+          "rows": 2827,
+          "rmse": 205.80916469820912,
+          "mae": 163.06375360640698,
+          "r2": -5.099614998809819,
+          "spearman": 0.25147794807538393
+        },
+        "1700-2000": {
+          "rows": 2140,
+          "rmse": 207.81959233164116,
+          "mae": 158.82031569436333,
+          "r2": -5.1844102500656435,
+          "spearman": 0.28284763790118567
+        },
+        "2000+": {
+          "rows": 1027,
+          "rmse": 282.3324513546537,
+          "mae": 226.9186305684031,
+          "r2": -4.034187171562947,
+          "spearman": 0.399591507923156
+        },
+        "<1100": {
+          "rows": 1569,
+          "rmse": 275.8000682733539,
+          "mae": 215.73330499808299,
+          "r2": -2.8739047342761217,
+          "spearman": 0.4135771394814599
+        }
+      },
+      "parameters": 5399045,
+      "device": "NVIDIA A100-SXM4-40GB",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 2472.1,
+      "code": "a677087d8ff8f66faea0f0944bd7800565881087",
+      "trained": "2026-11-28T03:16:15Z",
+      "gain": {
+        "gain": 61.921056681584844,
+        "low": 57.81021333604951,
+        "high": 65.83689558603076,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-28T00:45:16Z",
+        "reference_value": 242.70744169399407
+      }
+    },
+    {
+      "run": "steps-board-quadruple",
+      "learner": "per-move sequence, 1 transformer layer of width 128, BiGRU, attention pooling, with temporal features and board-geometry features; trained on 338,809 rows of the larger build `games-200k-2026-10`",
+      "test": {
+        "rmse": {
+          "value": 237.0053781274884,
+          "low": 232.48582632113215,
+          "high": 242.30269490357048
+        },
+        "mae": {
+          "value": 185.7218580748912,
+          "low": 181.94491337876815,
+          "high": 189.7678336270036
+        },
+        "r2": {
+          "value": 0.6146315529386788,
+          "low": 0.5958489339016663,
+          "high": 0.6314878451076712
+        },
+        "spearman": {
+          "value": 0.7794493340160316,
+          "low": 0.7673031313371109,
+          "high": 0.7896697664163689
+        }
+      },
+      "test_by_band": {
+        "1100-1400": {
+          "rows": 2411,
+          "rmse": 225.03035076876589,
+          "mae": 177.38710807379425,
+          "r2": -6.102489849396115,
+          "spearman": 0.27407794228544324
+        },
+        "1400-1700": {
+          "rows": 2827,
+          "rmse": 214.25460773229952,
+          "mae": 170.90766797168624,
+          "r2": -5.610485314753023,
+          "spearman": 0.23812270845286834
+        },
+        "1700-2000": {
+          "rows": 2140,
+          "rmse": 218.36751247182238,
+          "mae": 168.78680032034902,
+          "r2": -5.828123505521256,
+          "spearman": 0.27566962586150157
+        },
+        "2000+": {
+          "rows": 1027,
+          "rmse": 307.3339924666265,
+          "mae": 250.6373928110927,
+          "r2": -4.965254215334736,
+          "spearman": 0.39664630514677857
+        },
+        "<1100": {
+          "rows": 1569,
+          "rmse": 263.9875229903209,
+          "mae": 205.82865673330195,
+          "r2": -2.5491716175200874,
+          "spearman": 0.4248106131808767
+        }
+      },
+      "parameters": 524421,
+      "device": "NVIDIA A100-SXM4-40GB",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 769.2,
+      "code": "a677087d8ff8f66faea0f0944bd7800565881087",
+      "trained": "2026-11-28T02:35:01Z",
+      "gain": {
+        "gain": 56.98558361910287,
+        "low": 52.90222426611105,
+        "high": 60.822473602909234,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-28T00:45:16Z",
+        "reference_value": 242.70744169399407
+      }
+    },
+    {
+      "run": "conv-medium-skip",
+      "learner": "conv, 8 layers of width 128 for each position, then 3 transformer layers over the positions in order with BiGRU and step-feature skip and attention pooling",
+      "test": {
+        "rmse": {
+          "value": 245.0505360203897,
+          "low": 240.3724626717836,
+          "high": 250.0489117446598
+        },
+        "mae": {
+          "value": 192.33712362836735,
+          "low": 188.64899615175787,
+          "high": 196.39937088454124
+        },
+        "r2": {
+          "value": 0.5880248085139141,
+          "low": 0.5686888827563109,
+          "high": 0.6060988768867677
+        },
+        "spearman": {
+          "value": 0.7630349061242129,
+          "low": 0.7498063566550133,
+          "high": 0.7748281358177612
+        }
+      },
+      "test_by_band": {
+        "1100-1400": {
+          "rows": 2411,
+          "rmse": 235.35507434212616,
+          "mae": 188.12611455612785,
+          "r2": -6.769186735503667,
+          "spearman": 0.24741342777063222
+        },
+        "1400-1700": {
+          "rows": 2827,
+          "rmse": 212.533197163973,
+          "mae": 169.0444370481628,
+          "r2": -5.504689260688912,
+          "spearman": 0.22696224972150397
+        },
+        "1700-2000": {
+          "rows": 2140,
+          "rmse": 220.28159572802443,
+          "mae": 167.13818034234447,
+          "r2": -5.94835088720774,
+          "spearman": 0.252724941769066
+        },
+        "2000+": {
+          "rows": 1027,
+          "rmse": 306.38069025336495,
+          "mae": 251.78530732241205,
+          "r2": -4.928305029292322,
+          "spearman": 0.37150022147974404
+        },
+        "<1100": {
+          "rows": 1569,
+          "rmse": 295.97329272425554,
+          "mae": 236.2336321138439,
+          "r2": -3.4613392167039816,
+          "spearman": 0.38039290190736275
+        }
+      },
+      "parameters": 5399045,
+      "device": "NVIDIA A100-SXM4-40GB",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 992.0,
+      "code": "a677087d8ff8f66faea0f0944bd7800565881087",
+      "trained": "2026-11-28T01:12:57Z",
+      "gain": {
+        "gain": 50.37031806562672,
+        "low": 46.58623857332062,
+        "high": 54.21489540106754,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-28T00:45:16Z",
+        "reference_value": 242.70744169399407
+      }
+    },
     {
       "run": "steps-board",
       "learner": "per-move sequence, 1 transformer layer of width 128, BiGRU, attention pooling, with temporal features and board-geometry features",
@@ -121,6 +355,84 @@
         "beyond_noise": true,
         "reference": "gbm-hand",
         "reference_trained": "2026-11-27T20:36:34Z",
+        "reference_value": 242.70744169399407
+      }
+    },
+    {
+      "run": "conv-small-long",
+      "learner": "conv, 6 layers of width 96 for each position, then 2 transformer layers over the positions in order",
+      "test": {
+        "rmse": {
+          "value": 253.81499937160837,
+          "low": 249.0978303695199,
+          "high": 258.9206070788197
+        },
+        "mae": {
+          "value": 199.18771293155172,
+          "low": 195.68017237485356,
+          "high": 203.32768554180066
+        },
+        "r2": {
+          "value": 0.5580284468432819,
+          "low": 0.5372160541002021,
+          "high": 0.5770333616670724
+        },
+        "spearman": {
+          "value": 0.7485382115915575,
+          "low": 0.7355500777182616,
+          "high": 0.7603142006378415
+        }
+      },
+      "test_by_band": {
+        "1100-1400": {
+          "rows": 2411,
+          "rmse": 244.8477751444686,
+          "mae": 195.34845560549306,
+          "r2": -7.408543041380932,
+          "spearman": 0.22741329627848647
+        },
+        "1400-1700": {
+          "rows": 2827,
+          "rmse": 223.56019196157007,
+          "mae": 179.00279209391996,
+          "r2": -6.197173153923709,
+          "spearman": 0.21108977015051347
+        },
+        "1700-2000": {
+          "rows": 2140,
+          "rmse": 229.08819948010955,
+          "mae": 177.20755558192172,
+          "r2": -6.5150305772942625,
+          "spearman": 0.2362304634731293
+        },
+        "2000+": {
+          "rows": 1027,
+          "rmse": 312.7764587632894,
+          "mae": 250.17096743634752,
+          "r2": -5.178397944532839,
+          "spearman": 0.33048855151677015
+        },
+        "<1100": {
+          "rows": 1569,
+          "rmse": 302.87899010173754,
+          "mae": 238.0640385994264,
+          "r2": -3.67195332027541,
+          "spearman": 0.3731104400595371
+        }
+      },
+      "parameters": 1730209,
+      "device": "NVIDIA A100-SXM4-40GB",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 668.1,
+      "code": "a677087d8ff8f66faea0f0944bd7800565881087",
+      "trained": "2026-11-28T00:56:24Z",
+      "gain": {
+        "gain": 43.519728762442355,
+        "low": 39.63790767050972,
+        "high": 47.53062614960778,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-28T00:45:16Z",
         "reference_value": 242.70744169399407
       }
     },
@@ -277,6 +589,84 @@
         "beyond_noise": true,
         "reference": "gbm-hand",
         "reference_trained": "2026-11-23T00:39:34Z",
+        "reference_value": 242.70744169399407
+      }
+    },
+    {
+      "run": "transformer-medium-skip",
+      "learner": "transformer, 8 layers of width 256 for each position, then 3 transformer layers over the positions in order with BiGRU and step-feature skip and attention pooling",
+      "test": {
+        "rmse": {
+          "value": 258.72307948263057,
+          "low": 253.80060811885033,
+          "high": 263.5115757922005
+        },
+        "mae": {
+          "value": 205.36542960917134,
+          "low": 201.5225198845236,
+          "high": 209.29121460768542
+        },
+        "r2": {
+          "value": 0.5407701660735107,
+          "low": 0.5195897325981874,
+          "high": 0.5600427882396378
+        },
+        "spearman": {
+          "value": 0.7314605032450993,
+          "low": 0.7174446909217437,
+          "high": 0.744544018952624
+        }
+      },
+      "test_by_band": {
+        "1100-1400": {
+          "rows": 2411,
+          "rmse": 237.09249732795843,
+          "mae": 190.2438778016934,
+          "r2": -6.884316498702133,
+          "spearman": 0.21483737997880561
+        },
+        "1400-1700": {
+          "rows": 2827,
+          "rmse": 226.24243047385383,
+          "mae": 181.75969647197365,
+          "r2": -6.370910178971856,
+          "spearman": 0.2043061876564585
+        },
+        "1700-2000": {
+          "rows": 2140,
+          "rmse": 243.4677492805074,
+          "mae": 188.66276510363429,
+          "r2": -7.48805521722011,
+          "spearman": 0.23788402473022308
+        },
+        "2000+": {
+          "rows": 1027,
+          "rmse": 331.81742082586544,
+          "mae": 280.77616773863497,
+          "r2": -5.953542723385872,
+          "spearman": 0.3593306011418285
+        },
+        "<1100": {
+          "rows": 1569,
+          "rmse": 306.5854361525674,
+          "mae": 244.55494074338253,
+          "r2": -3.7869979213133984,
+          "spearman": 0.3641319292593062
+        }
+      },
+      "parameters": 18413125,
+      "device": "NVIDIA A100-SXM4-40GB",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 4152.4,
+      "code": "a677087d8ff8f66faea0f0944bd7800565881087",
+      "trained": "2026-11-28T02:22:10Z",
+      "gain": {
+        "gain": 37.34201208482273,
+        "low": 33.64981473255861,
+        "high": 40.800332675523364,
+        "beyond_noise": true,
+        "reference": "gbm-hand",
+        "reference_trained": "2026-11-28T00:45:16Z",
         "reference_value": 242.70744169399407
       }
     },
@@ -578,10 +968,10 @@
       },
       "parameters": null,
       "device": "cpu",
-      "processor": "Intel(R) Xeon(R) CPU @ 2.30GHz",
-      "seconds": 10.1,
-      "code": "9ca4bafd5b6bf655249ead38cc8204388b219225+changes",
-      "trained": "2026-11-27T20:36:34Z",
+      "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+      "seconds": 7.3,
+      "code": "a677087d8ff8f66faea0f0944bd7800565881087",
+      "trained": "2026-11-28T00:45:16Z",
       "gain": null
     },
     {

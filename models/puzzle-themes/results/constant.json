@@ -4,7 +4,7 @@
   "task": {
     "label": "themes",
     "kind": "tags",
-    "unit": "the chance that a puzzle carries a theme",
+    "unit": "probability that the puzzle carries each theme",
     "primary": "ap",
     "lower_is_better": false,
     "context": [
@@ -58,8 +58,8 @@
       "valid": 56524
     },
     "fingerprint": "d14731fa4425fc6efdadb45c94ee53e07f5afe9151992b690b81edc71064cd5d",
-    "built": "2026-11-22T20:55:15Z",
-    "code": "8c771617309d36154b1c85abcbbff500fafea271"
+    "built": "2026-11-28T06:10:15Z",
+    "code": "a677087d8ff8f66faea0f0944bd7800565881087"
   },
   "config": {
     "learner": {
@@ -113,13 +113,13 @@
   "software": {
     "python": "3.13.16",
     "numpy": "2.4.6",
-    "polars": "2.1.0",
+    "polars": "2.2.0",
     "lightgbm": "4.6.0",
     "torch": "2.14.1+cu130"
   },
-  "code": "8c771617309d36154b1c85abcbbff500fafea271",
-  "trained": "2026-11-23T00:01:27Z",
-  "seconds": 14.9,
+  "code": "a677087d8ff8f66faea0f0944bd7800565881087",
+  "trained": "2026-11-28T06:34:47Z",
+  "seconds": 12.0,
   "train_rows": 958941,
   "train_groups": 958941,
   "valid": {
@@ -230,187 +230,277 @@
       "observed": 0.10014821402104639
     }
   ],
+  "test_active_calibration": [
+    {
+      "n": 236145,
+      "predicted": 0.011337936160256242,
+      "observed": 0.011162633127951047
+    },
+    {
+      "n": 236145,
+      "predicted": 0.013123482731994181,
+      "observed": 0.013152935696288297
+    },
+    {
+      "n": 236145,
+      "predicted": 0.01832266483628919,
+      "observed": 0.018577568866586208
+    },
+    {
+      "n": 236145,
+      "predicted": 0.024382007070956172,
+      "observed": 0.025120159224205466
+    },
+    {
+      "n": 236145,
+      "predicted": 0.03054659627343023,
+      "observed": 0.03152300493340956
+    },
+    {
+      "n": 236145,
+      "predicted": 0.03709686228011161,
+      "observed": 0.03702809714370408
+    },
+    {
+      "n": 236145,
+      "predicted": 0.04805449994326297,
+      "observed": 0.04849139300006352
+    },
+    {
+      "n": 236145,
+      "predicted": 0.05783279383616567,
+      "observed": 0.05833703868385949
+    },
+    {
+      "n": 236145,
+      "predicted": 0.07013053356104847,
+      "observed": 0.07003747697389316
+    },
+    {
+      "n": 236145,
+      "predicted": 0.10800690885869121,
+      "observed": 0.10957250841643905
+    }
+  ],
   "test_by_candidate": {
     "fork": {
       "rows": 15186,
       "share": 0.13504668741662962,
       "pr_auc": 0.1350466874166296,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.003395374308369001
     },
     "kingsideAttack": {
       "rows": 9742,
       "share": 0.08663405958203646,
       "pr_auc": 0.08663405958203646,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.0013694975544686517
     },
     "sacrifice": {
       "rows": 8857,
       "share": 0.0787638950644731,
       "pr_auc": 0.0787638950644731,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.0037261004891062694
     },
     "pin": {
       "rows": 7235,
       "share": 0.06433970653623833,
       "pr_auc": 0.06433970653623833,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.002408227865677677
     },
     "advancedPawn": {
       "rows": 7237,
       "share": 0.0643574922187639,
       "pr_auc": 0.0643574922187639,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.0022956583965760544
     },
     "defensiveMove": {
       "rows": 6116,
       "share": 0.05438861716318364,
       "pr_auc": 0.05438861716318364,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.0008627396044755778
     },
     "discoveredAttack": {
       "rows": 6150,
       "share": 0.05469097376611828,
       "pr_auc": 0.05469097376611828,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.0015829257447754557
     },
     "deflection": {
       "rows": 5294,
       "share": 0.047078701645175636,
       "pr_auc": 0.047078701645175636,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.0018593099046245864
     },
     "attraction": {
       "rows": 4573,
       "share": 0.04066696309470876,
       "pr_auc": 0.04066696309470876,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.0014171772778598505
     },
     "hangingPiece": {
       "rows": 4040,
       "share": 0.035927078701645174,
       "pr_auc": 0.035927078701645174,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.0014343229379581016
     },
     "quietMove": {
       "rows": 3992,
       "share": 0.03550022232103157,
       "pr_auc": 0.03550022232103157,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.0018746285688339222
     },
     "exposedKing": {
       "rows": 3645,
       "share": 0.03241440640284571,
       "pr_auc": 0.03241440640284571,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.0017248679390165036
     },
     "backRankMate": {
       "rows": 2952,
       "share": 0.02625166740773677,
       "pr_auc": 0.02625166740773677,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.0007114273010226764
     },
     "promotion": {
       "rows": 2901,
       "share": 0.025798132503334816,
       "pr_auc": 0.025798132503334816,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.0017816837047070302
     },
     "skewer": {
       "rows": 2624,
       "share": 0.023334815473543796,
       "pr_auc": 0.0233348154735438,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.0006164473545324615
     },
     "discoveredCheck": {
       "rows": 2186,
       "share": 0.019439751000444642,
       "pr_auc": 0.019439751000444642,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.0010487537699276485
     },
     "queensideAttack": {
       "rows": 1776,
       "share": 0.015793686082703425,
       "pr_auc": 0.015793686082703425,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.001049355269008448
     },
     "clearance": {
       "rows": 1428,
       "share": 0.01269897732325478,
       "pr_auc": 0.012698977323254779,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.0008130536266149009
     },
     "intermezzo": {
       "rows": 1457,
       "share": 0.0129568697198755,
       "pr_auc": 0.012956869719875499,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.0008177237787518816
     },
     "trappedPiece": {
       "rows": 1331,
       "share": 0.011836371720764785,
       "pr_auc": 0.011836371720764785,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.0008025922987472427
     },
     "zugzwang": {
       "rows": 1168,
       "share": 0.01038683859493108,
       "pr_auc": 0.01038683859493108,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.000729212983548244
     },
     "operaMate": {
       "rows": 1112,
       "share": 0.009888839484215206,
       "pr_auc": 0.009888839484215206,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.0008722259508771931
     },
     "pillsburysMate": {
       "rows": 1075,
       "share": 0.009559804357492218,
       "pr_auc": 0.00955980435749222,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.0008803912850155627
     },
     "capturingDefender": {
       "rows": 853,
       "share": 0.007585593597154291,
       "pr_auc": 0.007585593597154291,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.0005068919519786573
     },
     "attackingF2F7": {
       "rows": 857,
       "share": 0.007621164962205424,
       "pr_auc": 0.007621164962205425,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.0004891062694530902
     },
     "doubleCheck": {
       "rows": 647,
       "share": 0.005753668297020898,
       "pr_auc": 0.005753668297020898,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.0005657418278337595
     },
     "xRayAttack": {
       "rows": 475,
       "share": 0.004224099599822144,
       "pr_auc": 0.004224099599822144,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.00040017785682525554
     },
     "epauletteMate": {
       "rows": 423,
       "share": 0.003761671854157403,
       "pr_auc": 0.003761671854157403,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.00042884303777551236
     },
     "smotheredMate": {
       "rows": 456,
       "share": 0.004055135615829257,
       "pr_auc": 0.004055135615829258,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.0004476672721703263
     },
     "interference": {
       "rows": 428,
       "share": 0.0038061360604713206,
       "pr_auc": 0.0038061360604713206,
-      "roc_auc": 0.5
+      "roc_auc": 0.5,
+      "ece": 0.0003781834374793306
     }
+  },
+  "test_by_candidate_summary": {
+    "macro_pr_auc": 0.03148540091892693,
+    "macro_roc_auc": 0.5,
+    "macro_ece": 0.0012430103189336958,
+    "rare_below": 0.02,
+    "rare_count": 15,
+    "rare_pr_auc": 0.009291240551356158
   },
   "weights": [],
   "gain": {
@@ -419,7 +509,7 @@
     "high": -0.5129577931895253,
     "beyond_noise": true,
     "reference": "gbm-hand",
-    "reference_trained": "2026-11-23T00:01:07Z",
+    "reference_trained": "2026-11-28T06:34:29Z",
     "reference_value": 0.8701690892824203
   }
 }

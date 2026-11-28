@@ -3,11 +3,11 @@
 \begin{tikzpicture}
 \begin{groupplot}[
   lab,
-  group style={group size=2 by 1, horizontal sep=0.5cm, ylabels at=edge left, yticklabels at=edge left},
-  width=0.49\textwidth,
+  group style={group size=3 by 1, horizontal sep=0.5cm, ylabels at=edge left, yticklabels at=edge left},
+  width=0.33\textwidth,
   height=5.4cm,
   ymajorgrids,
-  ymin=190.169, ymax=258.009,
+  ymin=189.058, ymax=259.332,
   xlabel={Epoch},
   ylabel={MAE on the validation set},
   yticklabel style={/pgf/number format/precision=1},
@@ -20,10 +20,20 @@
 \addlegendentry{\texttt{steps-board-aux}}
 \addplot[color=labBlue, dash pattern=on 4pt off 2pt on 2pt off 2pt, mark=*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labBlue}] coordinates {(1,226.872) (2,216.966) (3,210.699) (4,211.008) (5,205.278) (6,204.102) (7,203.378) (8,204.09)};
 \addlegendentry{\texttt{steps-own-only}}
-\nextgroupplot[xmin=0.5, xmax=8.5, xtick distance=1, legend columns=1]
-\draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:0.5,242.404) -- (axis cs:8.5,242.404) node[anchor=west, font=\sffamily\scriptsize, text=labSecondary, inner sep=2pt] {\run{gbm-hand}};
+\nextgroupplot[xmin=0.5, xmax=20.5, xtick distance=3, legend columns=1]
+\draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:0.5,242.404) -- (axis cs:20.5,242.404);
+\addplot[color=labMagenta, mark=pentagon*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labMagenta}] coordinates {(1,237.338) (2,219.007) (3,213.731) (4,212.22) (5,211.011) (6,207.14) (7,206.73) (8,206.47)};
+\addlegendentry{\texttt{conv-small}}
+\addplot[color=labMagenta, dash pattern=on 5pt off 2pt, mark=pentagon*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labMagenta}] coordinates {(1,255.567) (2,222.79) (3,218.468) (4,212.705) (5,213.17) (6,210.049) (7,206.295) (8,203.613) (9,205.884) (10,212.571) (11,205.791) (12,215.555) (13,204.1) (14,201.348) (15,204.566) (16,203.457) (17,203.925) (18,203.181) (19,203.405) (20,204.466)};
+\addlegendentry{\texttt{conv-small-long}}
+\nextgroupplot[xmin=0.5, xmax=16.5, xtick distance=3, legend columns=1]
+\draw[labOrange, line width=0.9pt, dash pattern=on 3pt off 2pt] (axis cs:0.5,242.404) -- (axis cs:16.5,242.404) node[anchor=west, font=\sffamily\scriptsize, text=labSecondary, inner sep=2pt] {\run{gbm-hand}};
 \addplot[color=labAqua, mark=triangle*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labAqua}] coordinates {(1,245.028) (2,228.796) (3,234.14) (4,228.466) (5,215.794) (6,212.082) (7,210.765) (8,209.809)};
 \addlegendentry{\texttt{transformer-medium}}
+\addplot[color=labAqua, dash pattern=on 5pt off 2pt on 1pt off 2pt, mark=triangle*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labAqua}] coordinates {(1,234.621) (2,215.307) (3,206.326) (4,203.694) (5,204.455) (6,205.988) (7,198.263) (8,201.943) (9,216.18) (10,195.374) (11,196.784) (12,194.174) (13,194.349) (14,192.823) (15,193.036) (16,193.68)};
+\addlegendentry{\texttt{conv-medium-skip}}
+\addplot[color=labAqua, dash pattern=on 5pt off 2pt on 1pt off 2pt, mark=triangle*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labAqua}] coordinates {(1,242.718) (2,229.69) (3,228.206) (4,230.269) (5,219.336) (6,214.568) (7,213.485) (8,209.794) (9,209.893) (10,207.124) (11,209.852) (12,205.031) (13,204.843) (14,206.024) (15,204.188) (16,204.34)};
+\addlegendentry{\texttt{transformer-medium-skip}}
 \addplot[color=labBlue, mark=*, mark size=1.5pt, mark options={solid, draw=white, line width=0.4pt, fill=labBlue}] coordinates {(1,254.375) (2,246.655) (3,244.242) (4,235.952) (5,231.953) (6,227.848) (7,223.901) (8,223.978)};
 \addlegendentry{\texttt{transformer-medium-hand}}
 \end{groupplot}

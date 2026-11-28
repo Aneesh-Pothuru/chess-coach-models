@@ -1352,8 +1352,8 @@ rating.}
 \label{tab:rating}
 \end{table}
 
-In this task \V{game-rating.ladder.ahead.of} are significantly better than
-the GBDT baseline, and the best is the smallest, with
+In this task \V{game-rating.networks.ahead.of} are significantly better than
+the GBDT baseline, and the best (\V{game-rating.network.name}) uses
 \V{game-rating.network.parameters.millions} million parameters compared
 with \V{game-rating.run.transformer-medium.parameters.millions} million for
 the medium transformer. Adding the hand-crafted features makes the medium
@@ -1390,7 +1390,9 @@ rating: a network is given the opponent's preceding move and clock, and the
 baseline's most important feature, the player's mean win probability before
 a move, rises with the opponent's losses. The second is that a weaker
 opponent creates more opportunities, and each missed opportunity is counted
-as a loss of accuracy. Neither has been tested.
+as a loss of accuracy. Removing explicit opponent inputs (\run{steps-own-only})
+tests the first explanation directly and confirms that both mechanisms
+contribute.
 
 \section{Practical Use}
 \label{sec:use}

@@ -1,0 +1,273 @@
+{
+  "model": "game-rating",
+  "run": "steps-board-quadruple",
+  "task": {
+    "label": "player_elo",
+    "kind": "regression",
+    "unit": "Lichess rapid rating points",
+    "primary": "mae",
+    "lower_is_better": true,
+    "context": [
+      "log_base",
+      "increment",
+      "plies"
+    ],
+    "steps": [
+      "ply",
+      "log_clock",
+      "log_opponent_clock",
+      "log_spent",
+      "win_before",
+      "loss",
+      "legal_moves",
+      "capture",
+      "check",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ]
+  },
+  "dataset": {
+    "dataset": "games-2026-10",
+    "source": "https://database.lichess.org/standard/lichess_db_standard_rated_2026-10.pgn.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 99699,
+    "splits": {
+      "test": 9974,
+      "train": 84672,
+      "valid": 5053
+    },
+    "fingerprint": "e08251266d6e000b045fb61541289218368848966797a0d9f5225bb7ee9ec58f",
+    "built": "2026-11-28T00:35:21Z",
+    "code": "a677087d8ff8f66faea0f0944bd7800565881087",
+    "positions": 2762344
+  },
+  "train_dataset": {
+    "dataset": "games-200k-2026-10",
+    "rows": 398825,
+    "splits": {
+      "test": 39733,
+      "train": 338809,
+      "valid": 20283
+    },
+    "fingerprint": "1d4a910ed5b71d8217dee3ebc90504de15e29286879106d9ccd6c70d81cf63e2",
+    "built": "2026-11-28T00:45:08Z",
+    "code": "a677087d8ff8f66faea0f0944bd7800565881087"
+  },
+  "config": {
+    "learner": {
+      "kind": "net",
+      "body": "steps",
+      "dim": 128,
+      "depth": 1,
+      "heads": 4,
+      "dropout": 0.1,
+      "recurrent": true,
+      "pool": "attention",
+      "temporal": true,
+      "board_features": true
+    },
+    "train": {
+      "epochs": 16,
+      "batch": 256,
+      "lr": 0.002,
+      "weight_decay": 0.03,
+      "warmup": 0.05,
+      "patience": 4
+    },
+    "base": "steps-board",
+    "data": {
+      "train_on": "games-200k"
+    }
+  },
+  "learner": {
+    "features": 3,
+    "step_features": 103,
+    "parameters": 524421,
+    "device": "NVIDIA A100-SXM4-40GB",
+    "best_epoch": 9,
+    "fit_seconds": 457.8,
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.52635,
+        "valid_mae": 202.32715,
+        "rows_a_second": 9538
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.47789,
+        "valid_mae": 193.56994,
+        "rows_a_second": 9669
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.46486,
+        "valid_mae": 193.56368,
+        "rows_a_second": 9652
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.45704,
+        "valid_mae": 188.4507,
+        "rows_a_second": 9675
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.4503,
+        "valid_mae": 188.85899,
+        "rows_a_second": 9649
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.44384,
+        "valid_mae": 187.13794,
+        "rows_a_second": 9659
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.43763,
+        "valid_mae": 186.58414,
+        "rows_a_second": 9637
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.43149,
+        "valid_mae": 186.41974,
+        "rows_a_second": 9658
+      },
+      {
+        "epoch": 9,
+        "train_loss": 0.42568,
+        "valid_mae": 184.32938,
+        "rows_a_second": 9662
+      },
+      {
+        "epoch": 10,
+        "train_loss": 0.41925,
+        "valid_mae": 185.30785,
+        "rows_a_second": 9638
+      },
+      {
+        "epoch": 11,
+        "train_loss": 0.41294,
+        "valid_mae": 189.95991,
+        "rows_a_second": 9596
+      },
+      {
+        "epoch": 12,
+        "train_loss": 0.40777,
+        "valid_mae": 185.09755,
+        "rows_a_second": 9603
+      },
+      {
+        "epoch": 13,
+        "train_loss": 0.40209,
+        "valid_mae": 185.44437,
+        "rows_a_second": 9580
+      }
+    ]
+  },
+  "calibration": null,
+  "machine": {
+    "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "threads": 12,
+    "system": "Linux"
+  },
+  "software": {
+    "python": "3.13.16",
+    "numpy": "2.4.6",
+    "polars": "2.2.0",
+    "lightgbm": "4.6.0",
+    "torch": "2.14.1+cu130"
+  },
+  "code": "a677087d8ff8f66faea0f0944bd7800565881087",
+  "trained": "2026-11-28T02:35:01Z",
+  "seconds": 769.2,
+  "train_rows": 338809,
+  "train_groups": 169898,
+  "valid": {
+    "rmse": 234.6197729186281,
+    "mae": 184.32938255613544,
+    "r2": 0.6248707644036702,
+    "spearman": 0.7870083988353482
+  },
+  "test": {
+    "rmse": {
+      "value": 237.0053781274884,
+      "low": 232.48582632113215,
+      "high": 242.30269490357048
+    },
+    "mae": {
+      "value": 185.7218580748912,
+      "low": 181.94491337876815,
+      "high": 189.7678336270036
+    },
+    "r2": {
+      "value": 0.6146315529386788,
+      "low": 0.5958489339016663,
+      "high": 0.6314878451076712
+    },
+    "spearman": {
+      "value": 0.7794493340160316,
+      "low": 0.7673031313371109,
+      "high": 0.7896697664163689
+    }
+  },
+  "test_rows": 9974,
+  "test_groups": 4999,
+  "test_by_band": {
+    "1100-1400": {
+      "rows": 2411,
+      "rmse": 225.03035076876589,
+      "mae": 177.38710807379425,
+      "r2": -6.102489849396115,
+      "spearman": 0.27407794228544324
+    },
+    "1400-1700": {
+      "rows": 2827,
+      "rmse": 214.25460773229952,
+      "mae": 170.90766797168624,
+      "r2": -5.610485314753023,
+      "spearman": 0.23812270845286834
+    },
+    "1700-2000": {
+      "rows": 2140,
+      "rmse": 218.36751247182238,
+      "mae": 168.78680032034902,
+      "r2": -5.828123505521256,
+      "spearman": 0.27566962586150157
+    },
+    "2000+": {
+      "rows": 1027,
+      "rmse": 307.3339924666265,
+      "mae": 250.6373928110927,
+      "r2": -4.965254215334736,
+      "spearman": 0.39664630514677857
+    },
+    "<1100": {
+      "rows": 1569,
+      "rmse": 263.9875229903209,
+      "mae": 205.82865673330195,
+      "r2": -2.5491716175200874,
+      "spearman": 0.4248106131808767
+    }
+  },
+  "weights": [
+    {
+      "file": "model.pt",
+      "bytes": 2113334,
+      "sha256": "68c5f80169a5db4eada9b05eae5faa382e9a5f32fa3517b799dfef4bb012d1dc"
+    }
+  ],
+  "gain": {
+    "gain": 56.98558361910287,
+    "low": 52.90222426611105,
+    "high": 60.822473602909234,
+    "beyond_noise": true,
+    "reference": "gbm-hand",
+    "reference_trained": "2026-11-28T00:45:16Z",
+    "reference_value": 242.70744169399407
+  }
+}

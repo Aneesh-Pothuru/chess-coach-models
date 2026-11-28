@@ -1,0 +1,696 @@
+{
+  "model": "puzzle-themes",
+  "run": "gbm-hand-per-tag",
+  "task": {
+    "label": "themes",
+    "kind": "tags",
+    "unit": "probability that the puzzle carries each theme",
+    "primary": "ap",
+    "lower_is_better": false,
+    "context": [
+      "solver_moves",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ],
+    "candidates": [
+      "fork",
+      "kingsideAttack",
+      "sacrifice",
+      "pin",
+      "advancedPawn",
+      "defensiveMove",
+      "discoveredAttack",
+      "deflection",
+      "attraction",
+      "hangingPiece",
+      "quietMove",
+      "exposedKing",
+      "backRankMate",
+      "promotion",
+      "skewer",
+      "discoveredCheck",
+      "queensideAttack",
+      "clearance",
+      "intermezzo",
+      "trappedPiece",
+      "zugzwang",
+      "operaMate",
+      "pillsburysMate",
+      "capturingDefender",
+      "attackingF2F7",
+      "doubleCheck",
+      "xRayAttack",
+      "epauletteMate",
+      "smotheredMate",
+      "interference"
+    ]
+  },
+  "dataset": {
+    "dataset": "puzzles-v1",
+    "source": "https://database.lichess.org/lichess_db_puzzle.csv.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 1127915,
+    "splits": {
+      "test": 112450,
+      "train": 958941,
+      "valid": 56524
+    },
+    "fingerprint": "d14731fa4425fc6efdadb45c94ee53e07f5afe9151992b690b81edc71064cd5d",
+    "built": "2026-11-28T06:10:15Z",
+    "code": "a677087d8ff8f66faea0f0944bd7800565881087"
+  },
+  "config": {
+    "learner": {
+      "kind": "gbm",
+      "features": "hand",
+      "learning_rate": 0.1,
+      "rounds": 600
+    },
+    "train": {
+      "calibrate": "per_candidate"
+    },
+    "base": "gbm-hand",
+    "study": "calibrate"
+  },
+  "learner": {
+    "features": 38,
+    "trees": 10021,
+    "trees_by_tag": {
+      "fork": 597,
+      "kingsideAttack": 600,
+      "sacrifice": 474,
+      "pin": 578,
+      "advancedPawn": 558,
+      "defensiveMove": 381,
+      "discoveredAttack": 600,
+      "deflection": 600,
+      "attraction": 547,
+      "hangingPiece": 183,
+      "quietMove": 434,
+      "exposedKing": 233,
+      "backRankMate": 298,
+      "promotion": 65,
+      "skewer": 352,
+      "discoveredCheck": 348,
+      "queensideAttack": 333,
+      "clearance": 322,
+      "intermezzo": 184,
+      "trappedPiece": 359,
+      "zugzwang": 228,
+      "operaMate": 404,
+      "pillsburysMate": 317,
+      "capturingDefender": 167,
+      "attackingF2F7": 150,
+      "doubleCheck": 143,
+      "xRayAttack": 129,
+      "epauletteMate": 189,
+      "smotheredMate": 100,
+      "interference": 148
+    },
+    "fit_seconds": 488.7,
+    "leans_on": [
+      {
+        "feature": "final_material_gain",
+        "share_of_gain": 0.1194
+      },
+      {
+        "feature": "line_checks",
+        "share_of_gain": 0.0801
+      },
+      {
+        "feature": "line_promotions",
+        "share_of_gain": 0.0656
+      },
+      {
+        "feature": "first_piece",
+        "share_of_gain": 0.0611
+      },
+      {
+        "feature": "material_count",
+        "share_of_gain": 0.0596
+      },
+      {
+        "feature": "line_quiet",
+        "share_of_gain": 0.0466
+      },
+      {
+        "feature": "attackers_near_opponent_king",
+        "share_of_gain": 0.0424
+      },
+      {
+        "feature": "ends_in_mate",
+        "share_of_gain": 0.0407
+      },
+      {
+        "feature": "first_to_attacked",
+        "share_of_gain": 0.0377
+      },
+      {
+        "feature": "first_captured_value",
+        "share_of_gain": 0.0368
+      }
+    ]
+  },
+  "calibration": {
+    "kind": "per_candidate",
+    "fitted_on": "valid",
+    "candidates": {
+      "fork": {
+        "platt_slope": 1.0519974470879323,
+        "platt_intercept": 0.06990427806580228
+      },
+      "kingsideAttack": {
+        "platt_slope": 1.0061346533116224,
+        "platt_intercept": 0.007617442251554573
+      },
+      "sacrifice": {
+        "platt_slope": 0.9472010299066091,
+        "platt_intercept": 0.03632370656711215
+      },
+      "pin": {
+        "platt_slope": 1.0530597577916105,
+        "platt_intercept": 0.117915935518032
+      },
+      "advancedPawn": {
+        "platt_slope": 0.9835443724667357,
+        "platt_intercept": 0.0077343321634571974
+      },
+      "defensiveMove": {
+        "platt_slope": 0.9951934086053796,
+        "platt_intercept": 0.05373694045650231
+      },
+      "discoveredAttack": {
+        "platt_slope": 1.0524018995393174,
+        "platt_intercept": 0.12509290290882608
+      },
+      "deflection": {
+        "platt_slope": 1.048658735523557,
+        "platt_intercept": 0.1564451494870364
+      },
+      "attraction": {
+        "platt_slope": 0.9773420512277787,
+        "platt_intercept": 0.04334560474944088
+      },
+      "hangingPiece": {
+        "platt_slope": 0.958694540175372,
+        "platt_intercept": 0.1451500126112309
+      },
+      "quietMove": {
+        "platt_slope": 0.9936118960430614,
+        "platt_intercept": 0.041795068588985074
+      },
+      "exposedKing": {
+        "platt_slope": 0.9783013907362402,
+        "platt_intercept": -0.023226005527479048
+      },
+      "backRankMate": {
+        "platt_slope": 0.9963913153910597,
+        "platt_intercept": 0.14174391953866047
+      },
+      "promotion": {
+        "platt_slope": 1.093278764857067,
+        "platt_intercept": -0.5944064964712831
+      },
+      "skewer": {
+        "platt_slope": 0.9937019791019444,
+        "platt_intercept": 0.14545141738881748
+      },
+      "discoveredCheck": {
+        "platt_slope": 0.9838532247093107,
+        "platt_intercept": 0.08043257822543523
+      },
+      "queensideAttack": {
+        "platt_slope": 0.955814943065482,
+        "platt_intercept": 0.01446857402952356
+      },
+      "clearance": {
+        "platt_slope": 0.9348068620488693,
+        "platt_intercept": 0.06594618560176807
+      },
+      "intermezzo": {
+        "platt_slope": 1.001644613914207,
+        "platt_intercept": 0.10920547658935484
+      },
+      "trappedPiece": {
+        "platt_slope": 0.9234211965727278,
+        "platt_intercept": -0.05349041796505942
+      },
+      "zugzwang": {
+        "platt_slope": 0.8653883325742904,
+        "platt_intercept": -0.07657439579778941
+      },
+      "operaMate": {
+        "platt_slope": 0.908229401297455,
+        "platt_intercept": 0.10969238803519679
+      },
+      "pillsburysMate": {
+        "platt_slope": 0.9899788447349217,
+        "platt_intercept": 0.12633656108411268
+      },
+      "capturingDefender": {
+        "platt_slope": 0.9507096164931177,
+        "platt_intercept": 0.06541782575389864
+      },
+      "attackingF2F7": {
+        "platt_slope": 0.8782921026021163,
+        "platt_intercept": -0.24740316038858462
+      },
+      "doubleCheck": {
+        "platt_slope": 0.920969362071988,
+        "platt_intercept": 0.010106302269128892
+      },
+      "xRayAttack": {
+        "platt_slope": 0.9920733946930828,
+        "platt_intercept": 0.20920328651733008
+      },
+      "epauletteMate": {
+        "platt_slope": 0.8665802929129649,
+        "platt_intercept": -0.3140452847493109
+      },
+      "smotheredMate": {
+        "platt_slope": 0.8237762775694107,
+        "platt_intercept": -0.27647220053562604
+      },
+      "interference": {
+        "platt_slope": 1.003611339165965,
+        "platt_intercept": 0.03307918708898148
+      }
+    }
+  },
+  "machine": {
+    "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "threads": 12,
+    "system": "Linux"
+  },
+  "software": {
+    "python": "3.13.16",
+    "numpy": "2.4.6",
+    "polars": "2.2.0",
+    "lightgbm": "4.6.0",
+    "torch": "2.14.1+cu130"
+  },
+  "code": "a677087d8ff8f66faea0f0944bd7800565881087",
+  "trained": "2026-11-28T06:48:38Z",
+  "seconds": 501.5,
+  "train_rows": 958941,
+  "train_groups": 958941,
+  "valid": {
+    "ap": 0.867384969228139,
+    "top1": 0.815570076611086,
+    "log_loss": 0.0444968571211222
+  },
+  "test": {
+    "ap": {
+      "value": 0.8701752636536323,
+      "low": 0.8684313073440094,
+      "high": 0.8718962979512133
+    },
+    "top1": {
+      "value": 0.8199438558873732,
+      "low": 0.8170992883904424,
+      "high": 0.82283836085733
+    },
+    "log_loss": {
+      "value": 0.044258692516513876,
+      "low": 0.04389446106871785,
+      "high": 0.044617690722568465
+    }
+  },
+  "test_rows": 112450,
+  "test_groups": 112450,
+  "test_by_band": {
+    "1000-1399": {
+      "rows": 31846,
+      "ap": 0.9064523644560585,
+      "top1": 0.8641709624142936,
+      "log_loss": 0.035026555983986386
+    },
+    "1400-1799": {
+      "rows": 28501,
+      "ap": 0.858050779223946,
+      "top1": 0.8034126278345931,
+      "log_loss": 0.04873789056403534
+    },
+    "1800-2199": {
+      "rows": 19518,
+      "ap": 0.8060483182091241,
+      "top1": 0.7445908183632735,
+      "log_loss": 0.06297197698379439
+    },
+    "2200+": {
+      "rows": 9834,
+      "ap": 0.761199316655033,
+      "top1": 0.6867451915908752,
+      "log_loss": 0.07795739325127818
+    },
+    "<1000": {
+      "rows": 22751,
+      "ap": 0.9452543809393102,
+      "top1": 0.9113563285589009,
+      "log_loss": 0.02095009452980653
+    }
+  },
+  "test_calibration": [
+    {
+      "n": 337350,
+      "predicted": 1.4370725221720826e-06,
+      "observed": 5.92856084185564e-06
+    },
+    {
+      "n": 337350,
+      "predicted": 3.3977459012092426e-06,
+      "observed": 2.96428042092782e-06
+    },
+    {
+      "n": 337350,
+      "predicted": 6.025699897690772e-06,
+      "observed": 0.0
+    },
+    {
+      "n": 337350,
+      "predicted": 9.985174947993257e-06,
+      "observed": 2.96428042092782e-06
+    },
+    {
+      "n": 337350,
+      "predicted": 1.8799728705338493e-05,
+      "observed": 1.4821402104639098e-05
+    },
+    {
+      "n": 337350,
+      "predicted": 6.204785590740734e-05,
+      "observed": 3.2607084630206016e-05
+    },
+    {
+      "n": 337350,
+      "predicted": 0.00028618919049798236,
+      "observed": 0.0001511783014673188
+    },
+    {
+      "n": 337350,
+      "predicted": 0.0016317656211212055,
+      "observed": 0.0012716763005780347
+    },
+    {
+      "n": 337350,
+      "predicted": 0.013159062805467414,
+      "observed": 0.013371868978805395
+    },
+    {
+      "n": 337350,
+      "predicted": 0.2996482050958243,
+      "observed": 0.3
+    }
+  ],
+  "test_active_calibration": [
+    {
+      "n": 51523,
+      "predicted": 0.011911958460606494,
+      "observed": 0.01244104574655979
+    },
+    {
+      "n": 51523,
+      "predicted": 0.016814685342127902,
+      "observed": 0.01721561244492751
+    },
+    {
+      "n": 51523,
+      "predicted": 0.023950953345487653,
+      "observed": 0.0253090852628923
+    },
+    {
+      "n": 51523,
+      "predicted": 0.03453278333469658,
+      "observed": 0.03637210566154921
+    },
+    {
+      "n": 51523,
+      "predicted": 0.050836351872651245,
+      "observed": 0.052559051297478794
+    },
+    {
+      "n": 51523,
+      "predicted": 0.07807825862035381,
+      "observed": 0.08043009917900744
+    },
+    {
+      "n": 51523,
+      "predicted": 0.1290977201292607,
+      "observed": 0.12753527550802554
+    },
+    {
+      "n": 51523,
+      "predicted": 0.2403291064783812,
+      "observed": 0.2373114919550492
+    },
+    {
+      "n": 51523,
+      "predicted": 0.516200793978147,
+      "observed": 0.5139064107291889
+    },
+    {
+      "n": 51522,
+      "predicted": 0.9269454067691759,
+      "observed": 0.9308062575210589
+    }
+  ],
+  "test_by_candidate": {
+    "fork": {
+      "rows": 15186,
+      "share": 0.13504668741662962,
+      "pr_auc": 0.8439558947031401,
+      "roc_auc": 0.9594426466777144,
+      "ece": 0.0022100210039575074
+    },
+    "kingsideAttack": {
+      "rows": 9742,
+      "share": 0.08663405958203646,
+      "pr_auc": 0.78777060017403,
+      "roc_auc": 0.9752656439715961,
+      "ece": 0.0013102228594348555
+    },
+    "sacrifice": {
+      "rows": 8857,
+      "share": 0.0787638950644731,
+      "pr_auc": 0.9801507935282112,
+      "roc_auc": 0.9981253291490337,
+      "ece": 0.0008801789448435555
+    },
+    "pin": {
+      "rows": 7235,
+      "share": 0.06433970653623833,
+      "pr_auc": 0.5539256589003101,
+      "roc_auc": 0.9034206398909187,
+      "ece": 0.0013150220765130178
+    },
+    "advancedPawn": {
+      "rows": 7237,
+      "share": 0.0643574922187639,
+      "pr_auc": 0.8900241880259528,
+      "roc_auc": 0.987755835615599,
+      "ece": 0.0005599872142188159
+    },
+    "defensiveMove": {
+      "rows": 6116,
+      "share": 0.05438861716318364,
+      "pr_auc": 0.7180290615713849,
+      "roc_auc": 0.9741183380887423,
+      "ece": 0.0017901687534308064
+    },
+    "discoveredAttack": {
+      "rows": 6150,
+      "share": 0.05469097376611828,
+      "pr_auc": 0.7731522076289568,
+      "roc_auc": 0.9695650643599568,
+      "ece": 0.001422212921006579
+    },
+    "deflection": {
+      "rows": 5294,
+      "share": 0.047078701645175636,
+      "pr_auc": 0.6923825552293906,
+      "roc_auc": 0.9680172288489418,
+      "ece": 0.0007225103201959274
+    },
+    "attraction": {
+      "rows": 4573,
+      "share": 0.04066696309470876,
+      "pr_auc": 0.8485530773458714,
+      "roc_auc": 0.9916195131896547,
+      "ece": 0.0009000406947944197
+    },
+    "hangingPiece": {
+      "rows": 4040,
+      "share": 0.035927078701645174,
+      "pr_auc": 0.9514611048740687,
+      "roc_auc": 0.9981488717200288,
+      "ece": 0.0010140800436921635
+    },
+    "quietMove": {
+      "rows": 3992,
+      "share": 0.03550022232103157,
+      "pr_auc": 0.6843365556583195,
+      "roc_auc": 0.9773835898576182,
+      "ece": 0.0002791067789861636
+    },
+    "exposedKing": {
+      "rows": 3645,
+      "share": 0.03241440640284571,
+      "pr_auc": 0.5243221878461252,
+      "roc_auc": 0.9700212868707304,
+      "ece": 0.001529118951406806
+    },
+    "backRankMate": {
+      "rows": 2952,
+      "share": 0.02625166740773677,
+      "pr_auc": 0.9338054002793608,
+      "roc_auc": 0.9971710543673046,
+      "ece": 0.000487756826183831
+    },
+    "promotion": {
+      "rows": 2901,
+      "share": 0.025798132503334816,
+      "pr_auc": 0.9902063387691611,
+      "roc_auc": 0.9998391669767579,
+      "ece": 5.5127506582856503e-05
+    },
+    "skewer": {
+      "rows": 2624,
+      "share": 0.023334815473543796,
+      "pr_auc": 0.8459113116524745,
+      "roc_auc": 0.9917755002452883,
+      "ece": 0.0006146558998608693
+    },
+    "discoveredCheck": {
+      "rows": 2186,
+      "share": 0.019439751000444642,
+      "pr_auc": 0.6700682322287835,
+      "roc_auc": 0.9798199907015146,
+      "ece": 0.0006913347146303367
+    },
+    "queensideAttack": {
+      "rows": 1776,
+      "share": 0.015793686082703425,
+      "pr_auc": 0.20812014769801487,
+      "roc_auc": 0.9213394683875555,
+      "ece": 0.0013832403183728587
+    },
+    "clearance": {
+      "rows": 1428,
+      "share": 0.01269897732325478,
+      "pr_auc": 0.4251727527615953,
+      "roc_auc": 0.9712771743778846,
+      "ece": 0.0011374911183654913
+    },
+    "intermezzo": {
+      "rows": 1457,
+      "share": 0.0129568697198755,
+      "pr_auc": 0.6157534152824051,
+      "roc_auc": 0.9841260834735409,
+      "ece": 0.00040716080112455027
+    },
+    "trappedPiece": {
+      "rows": 1331,
+      "share": 0.011836371720764785,
+      "pr_auc": 0.5262953244888793,
+      "roc_auc": 0.9773093585937668,
+      "ece": 0.0002497787728755104
+    },
+    "zugzwang": {
+      "rows": 1168,
+      "share": 0.01038683859493108,
+      "pr_auc": 0.6461937675645124,
+      "roc_auc": 0.9927768929571251,
+      "ece": 1.5461606575985922e-05
+    },
+    "operaMate": {
+      "rows": 1112,
+      "share": 0.009888839484215206,
+      "pr_auc": 0.6753696518490832,
+      "roc_auc": 0.9950627365681868,
+      "ece": 0.0004401102338646429
+    },
+    "pillsburysMate": {
+      "rows": 1075,
+      "share": 0.009559804357492218,
+      "pr_auc": 0.4937633314279186,
+      "roc_auc": 0.9886373648631013,
+      "ece": 0.0003140015129698489
+    },
+    "capturingDefender": {
+      "rows": 853,
+      "share": 0.007585593597154291,
+      "pr_auc": 0.42822710198161845,
+      "roc_auc": 0.9820024407241342,
+      "ece": 0.00039783010221778757
+    },
+    "attackingF2F7": {
+      "rows": 857,
+      "share": 0.007621164962205424,
+      "pr_auc": 0.9042755911752142,
+      "roc_auc": 0.9869576057042009,
+      "ece": 0.00040791365936559975
+    },
+    "doubleCheck": {
+      "rows": 647,
+      "share": 0.005753668297020898,
+      "pr_auc": 0.6999902730639743,
+      "roc_auc": 0.9868844848414856,
+      "ece": 0.0005650422263424283
+    },
+    "xRayAttack": {
+      "rows": 475,
+      "share": 0.004224099599822144,
+      "pr_auc": 0.5837820274467344,
+      "roc_auc": 0.9826154804291372,
+      "ece": 0.00024814841199479365
+    },
+    "epauletteMate": {
+      "rows": 423,
+      "share": 0.003761671854157403,
+      "pr_auc": 0.1598897927666859,
+      "roc_auc": 0.9611733248787689,
+      "ece": 0.00019329207889952186
+    },
+    "smotheredMate": {
+      "rows": 456,
+      "share": 0.004055135615829257,
+      "pr_auc": 0.9186700364181936,
+      "roc_auc": 0.9994660780699718,
+      "ece": 0.00034459220390935236
+    },
+    "interference": {
+      "rows": 428,
+      "share": 0.0038061360604713206,
+      "pr_auc": 0.23375467924610777,
+      "roc_auc": 0.9556172794496142,
+      "ece": 0.00042681904452117277
+    }
+  },
+  "test_by_candidate_summary": {
+    "macro_pr_auc": 0.6735771020528828,
+    "macro_roc_auc": 0.9775578491283292,
+    "macro_ece": 0.000743747586704602,
+    "rare_below": 0.02,
+    "rare_count": 15,
+    "rare_pr_auc": 0.545955075026648
+  },
+  "weights": [
+    {
+      "file": "model.txt",
+      "bytes": 138187284,
+      "sha256": "90a72707467d2cb3604bdc637e117d87111cedd58993ed1f19585b39e6df69b3"
+    }
+  ],
+  "gain": {
+    "gain": 6.174371197431583e-06,
+    "low": -0.0002736555016323361,
+    "high": 0.00030759742504405643,
+    "beyond_noise": false,
+    "reference": "gbm-hand",
+    "reference_trained": "2026-11-28T06:34:29Z",
+    "reference_value": 0.8701690892824203
+  },
+  "filed": "2026-11-28T14:55:02Z"
+}

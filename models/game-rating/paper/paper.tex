@@ -24,27 +24,37 @@ result of the game are not inputs. The dataset contains \V{data.rows} examples f
 absolute error (MAE) in rating points. On the \V{data.rows.test} test
 examples a constant prediction has an MAE of \V{floor.score}, and
 gradient-boosted decision trees (GBDT) on \V{task.hand.count} aggregate
-features of the player's moves reach \V{reference.score}. Neural sequence
-models are more accurate: compared with the GBDT baseline,
+features of the player's moves reach \V{reference.score}. Neural sequence models are more accurate: compared with the GBDT baseline,
 \V{networks.ahead.of} are significantly better. The best model is
-\V{best.name}, a per-move sequence encoder combining a bidirectional GRU, a
-transformer layer and multi-head attention pooling over the per-move scalars,
-derived within-game temporal dynamics and 63 bitboard board-geometry features:
-it reaches an MAE of \V{best.score} (95\% CI \V{best.score.low} to
-\V{best.score.high}), a paired gain of \V{best.gain} over the GBDT baseline
-(95\% CI \V{best.gain.low} to \V{best.gain.high}), and improves on the best
-2D board encoder (\run{conv-small}, \V{run.conv-small.score}) with
-\V{best.parameters.millions} million parameters. Controlled ablations show
-that per-move sequence dynamics without boards reach \V{run.steps-raw.score},
-derived temporal features add \V{pair.steps-temporal.steps-raw.gain}
-(95\% CI \V{pair.steps-temporal.steps-raw.gain.low} to
-\V{pair.steps-temporal.steps-raw.gain.high}), and per-move board geometry
-adds \V{pair.steps-board.steps-temporal.gain}
-(95\% CI \V{pair.steps-board.steps-temporal.gain.low} to
-\V{pair.steps-board.steps-temporal.gain.high}). An estimate from one game
-remains imprecise: the coefficient of determination of the best model is
-\V{best.r2}\iflook, and \V{best.close.within.200}\% of its predictions are
-within 200 points of the player's rating\fi.\iflook{} The predictions are
+\V{best.name}, an eight-block residual convolutional board encoder coupled with
+a direct temporal step-feature skip connection, a bidirectional GRU, three
+sequence transformer layers and multi-query attention pooling, trained on four
+times the training games (\texttt{games-200k-2026-10}) and evaluated on the
+same test set: it reaches an MAE of \V{best.score} (95\% CI \V{best.score.low}
+to \V{best.score.high}), a paired gain of \V{best.gain} over the GBDT baseline
+(95\% CI \V{best.gain.low} to \V{best.gain.high}), with
+\V{best.parameters.millions} million parameters. On the standard training set,
+adding temporal step-feature skips and recurrent attention pooling lifts the
+residual convolutional encoder (\run{conv-medium-skip},
+\V{run.conv-medium-skip.score}) past both the longer-trained baseline tower
+(\run{conv-small-long}, \V{run.conv-small-long.score}; paired gain
+\V{pair.conv-medium-skip.conv-small-long.gain}, 95\% CI
+\V{pair.conv-medium-skip.conv-small-long.gain.low} to
+\V{pair.conv-medium-skip.conv-small-long.gain.high}) and the 524k-parameter
+per-move sequence encoder over bitboard features (\run{steps-board},
+\V{run.steps-board.score}). Scaling to four times the training games adds a
+paired gain of \V{pair.conv-medium-skip-quadruple.conv-medium-skip.gain}
+(95\% CI \V{pair.conv-medium-skip-quadruple.conv-medium-skip.gain.low} to
+\V{pair.conv-medium-skip-quadruple.conv-medium-skip.gain.high}) for
+\V{best.name} over \run{conv-medium-skip}, and lowers
+\run{steps-board-quadruple} to \V{run.steps-board-quadruple.score} (paired gain
+\V{pair.conv-medium-skip-quadruple.steps-board-quadruple.gain} for \V{best.name}
+over \run{steps-board-quadruple}, 95\% CI
+\V{pair.conv-medium-skip-quadruple.steps-board-quadruple.gain.low} to
+\V{pair.conv-medium-skip-quadruple.steps-board-quadruple.gain.high}). An estimate
+from one game remains imprecise: the coefficient of determination of the best
+model is \V{best.r2}\iflook, and \V{best.close.within.200}\% of its predictions
+are within 200 points of the player's rating\fi.\iflook{} The predictions are
 unbiased given their value, to within \V{best.reliability.widest-gap} points
 in each of \V{best.reliability.groups} bins, and compressed towards the mean
 given the player's rating: the mean prediction minus the mean rating is
@@ -91,44 +101,70 @@ The target is the player's rating as recorded for the game. Neither player's
 rating and not the result is an input.
 
 We evaluate a sequence of models on \V{data.rows} examples from
-\V{recipe.games} rated rapid games on Lichess: a constant baseline, GBDT on
-the time control and the length of the game, GBDT with \V{task.hand.count}
-aggregate features of the player's moves, 2D board encoders (convolutional
-and square-token transformers) combined with a sequence transformer, and
-per-move sequence encoders (\run{steps-raw}, \run{steps-temporal} and
-\run{steps-board}) that read explicit temporal dynamics and vectorised
-board-geometry features directly. Our main findings are the following.
+\V{recipe.games} rated rapid games on Lichess (with larger-data runs trained on
+four times as many games and scored on the identical validation and test sets):
+a constant baseline, GBDT on the time control and the length of the game, GBDT
+with \V{task.hand.count} aggregate features of the player's moves, first-pass
+2D board encoders (\run{conv-small}, \run{transformer-small},
+\run{transformer-medium} and the 24-epoch \run{conv-small-long}), per-move
+sequence encoders (\run{steps-raw}, \run{steps-temporal}, \run{steps-board} and
+\run{steps-board-quadruple}), and upgraded 2D board encoders with temporal
+step-feature skip connections, a bidirectional GRU and attention pooling
+(\run{conv-medium-skip}, \run{transformer-medium-skip} and
+\run{conv-medium-skip-quadruple}). Our main findings are the following.
 \begin{itemize}
-\item \textbf{A per-move sequence encoder over temporal dynamics and board
-geometry sets the lowest error.} The GBDT baseline has an MAE of
-\V{reference.score} rating points, \V{reference.lift.percent}\% below the
-\V{floor.score} of the constant baseline. Compared with it,
-\V{networks.ahead.of} are significantly better. The best model,
-\V{best.name}, has an MAE of \V{best.score} (95\% CI \V{best.score.low} to
-\V{best.score.high}), with \V{best.parameters.millions} million parameters.
-Its paired gain of \V{best.gain} (95\% CI \V{best.gain.low} to
-\V{best.gain.high}) is \V{best.gain.of-lift}\% of the baseline's improvement
-over the constant baseline, and its 95\% CI lies entirely below that of the
-best 2D board encoder (\run{conv-small}, \V{run.conv-small.score};
+\item \textbf{A residual convolutional board encoder with temporal step-feature
+skips and four times the training games sets the lowest error.} The GBDT
+baseline has an MAE of \V{reference.score} rating points,
+\V{reference.lift.percent}\% below the \V{floor.score} of the constant
+baseline. Compared with it, \V{networks.ahead.of} are significantly better. The
+best model, \V{best.name}, has an MAE of \V{best.score} (95\% CI
+\V{best.score.low} to \V{best.score.high}), with \V{best.parameters.millions}
+million parameters. Its paired gain of \V{best.gain} (95\% CI \V{best.gain.low}
+to \V{best.gain.high}) is \V{best.gain.of-lift}\% of the baseline's improvement
+over the constant baseline, and it beats the four-times-data per-move sequence
+model (\run{steps-board-quadruple}, \V{run.steps-board-quadruple.score}) by
+\V{pair.conv-medium-skip-quadruple.steps-board-quadruple.gain} (95\% CI
+\V{pair.conv-medium-skip-quadruple.steps-board-quadruple.gain.low} to
+\V{pair.conv-medium-skip-quadruple.steps-board-quadruple.gain.high};
 Section~\ref{sec:results}).
-\item \textbf{Sequence dynamics, derived temporal features and board geometry
-each contribute significantly.} Reading only the 13 stored per-move scalars
-in order (\run{steps-raw}) reaches \V{run.steps-raw.score}. Adding 27
-within-game temporal features---including the opponent's implied loss,
-opponent think time and position decisiveness---(\run{steps-temporal}) gives
-a paired gain of \V{pair.steps-temporal.steps-raw.gain} (95\% CI
+\item \textbf{Temporal step-feature skips, explicit board geometry and four
+times the training data each yield substantial gains.} On the standard split,
+reading only the 13 stored per-move scalars (\run{steps-raw}) reaches
+\V{run.steps-raw.score}; adding 27 derived temporal features
+(\run{steps-temporal}) adds \V{pair.steps-temporal.steps-raw.gain} (95\% CI
 \V{pair.steps-temporal.steps-raw.gain.low} to
-\V{pair.steps-temporal.steps-raw.gain.high}). Adding 63 per-move
-board-geometry and exact attack-count features (\run{steps-board}) gives a
-further paired gain of \V{pair.steps-board.steps-temporal.gain} (95\% CI
-\V{pair.steps-board.steps-temporal.gain.low} to
-\V{pair.steps-board.steps-temporal.gain.high}; Section~\ref{sec:seq-ablations}).
-\item \textbf{The 2D board encoders were still improving when training ended,
-whereas \run{steps-board} reached its minimum before the final epoch.} On the
-validation set \V{ladder.at-last-epoch.of} had their lowest MAE in the final
-epoch of training, including all three 2D board encoders; \run{steps-board}
+\V{pair.steps-temporal.steps-raw.gain.high}); adding 63 bitboard geometry
+features (\run{steps-board}) adds \V{pair.steps-board.steps-temporal.gain}
+(95\% CI \V{pair.steps-board.steps-temporal.gain.low} to
+\V{pair.steps-board.steps-temporal.gain.high}). Giving the 2D convolutional
+encoder the same temporal skip connection, BiGRU and attention pooling
+(\run{conv-medium-skip}, \V{run.conv-medium-skip.score}) beats the 24-epoch
+baseline tower (\run{conv-small-long}, \V{run.conv-small-long.score}) by
+\V{pair.conv-medium-skip.conv-small-long.gain} (95\% CI
+\V{pair.conv-medium-skip.conv-small-long.gain.low} to
+\V{pair.conv-medium-skip.conv-small-long.gain.high}). Training on four times
+the games adds a further
+\V{pair.conv-medium-skip-quadruple.conv-medium-skip.gain} (95\% CI
+\V{pair.conv-medium-skip-quadruple.conv-medium-skip.gain.low} to
+\V{pair.conv-medium-skip-quadruple.conv-medium-skip.gain.high}) to
+\run{conv-medium-skip} and lowers \run{steps-board} from
+\V{run.steps-board.score} to \V{run.steps-board-quadruple.score}
+(Section~\ref{sec:seq-ablations}).
+\item \textbf{Longer schedules resolved under-training on the 50{,}000-game
+split, while the 4$\times$ convolutional encoder was still improving at its
+final epoch.} Extending \run{conv-small} from 8 to 24 epochs
+(\run{conv-small-long}) lowered test MAE from \V{run.conv-small.score} to
+\V{run.conv-small-long.score} with best validation MAE at epoch
+\V{run.conv-small-long.best-epoch}. On the standard split \run{steps-board}
 peaked at epoch \V{run.steps-board.best-epoch} of \V{run.steps-board.epochs}
-(Section~\ref{sec:curves}).
+and \run{conv-medium-skip} at epoch \V{run.conv-medium-skip.best-epoch} of
+\V{run.conv-medium-skip.epochs}; on four times the games
+\run{steps-board-quadruple} peaked at epoch
+\V{run.steps-board-quadruple.best-epoch} of
+\V{run.steps-board-quadruple.epochs.run}, whereas \V{best.name} reached its
+lowest validation MAE at its final epoch \V{best.best-epoch} of
+\V{best.epochs} (Section~\ref{sec:curves}).
 \ifchangehand
 \item \textbf{Redundant aggregate features hurt the medium board transformer.}
 Given the hand-crafted features as additional inputs, the medium transformer
@@ -461,6 +497,23 @@ recapture flags, and exact attacker and defender counts on the move squares
 and around both kings (103 per-move features in total).
 \end{enumerate}
 
+\paragraph{Upgraded 2D board encoders and larger training set.}
+To combine spatial 2D board representations with the temporal sequence head
+without burying the per-move scalars beneath the board encoder, we add a direct
+temporal step-feature skip connection (the 40 per-move scalar and derived
+temporal features projected and concatenated onto each move's board embedding),
+a packed bidirectional GRU residual block, three sequence transformer layers
+and four-query multi-head attention pooling. We evaluate this head with an
+eight-block width-128 residual convolutional board encoder
+(\run{conv-medium-skip}, 16 epochs) and with the medium square-token board
+transformer (\run{transformer-medium-skip}, 16 epochs), alongside a 24-epoch
+schedule for the first-pass convolutional baseline (\run{conv-small-long}).
+Finally, to test data scaling for both model families, we train
+\run{steps-board-quadruple} and \run{conv-medium-skip-quadruple} on
+\texttt{games-200k-2026-10}, which keeps four times as many games from the same
+October 2026 source file under the same split hash so that validation and test
+examples are identical to \V{data.name}.
+
 \section{Evaluation Protocol}
 \label{sec:protocol}
 
@@ -513,22 +566,35 @@ the GBDT baseline.}
 
 Compared with the GBDT baseline, \V{networks.ahead.of} are significantly
 better (Figure~\ref{fig:gains}). The best model is \V{best.name}, the
-per-move sequence encoder with temporal and board-geometry features, with an
-MAE of \V{best.score} (95\% CI \V{best.score.low} to \V{best.score.high}) and
-\V{best.parameters.millions} million parameters. Its gain over the GBDT
-baseline is \V{best.gain} rating points (95\% CI \V{best.gain.low} to
-\V{best.gain.high}), which is \V{best.gain.percent}\% of the baseline's MAE
-and \V{best.gain.of-lift}\% of the baseline's improvement over the constant
-baseline. Its 95\% confidence interval lies entirely below that of the best
-2D board encoder, \run{conv-small} (\V{run.conv-small.score}, 95\% CI
-\V{run.conv-small.score.low} to \V{run.conv-small.score.high};
-\V{run.conv-small.parameters.millions} million parameters). Among the 2D
-board encoders, \run{conv-small} gains \V{run.conv-small.gain},
-\run{transformer-small} gains \V{run.transformer-small.gain} (95\% CI
-\V{run.transformer-small.gain.low} to \V{run.transformer-small.gain.high})
-and \run{transformer-medium} gains \V{run.transformer-medium.gain}
-(\V{run.transformer-medium.gain.low} to
-\V{run.transformer-medium.gain.high}). Without any board input,
+eight-block residual convolutional board encoder with temporal step-feature
+skip, bidirectional GRU and attention pooling trained on four times the games,
+with an MAE of \V{best.score} (95\% CI \V{best.score.low} to
+\V{best.score.high}) and \V{best.parameters.millions} million parameters. Its
+gain over the GBDT baseline is \V{best.gain} rating points (95\% CI
+\V{best.gain.low} to \V{best.gain.high}), which is \V{best.gain.percent}\% of
+the baseline's MAE and \V{best.gain.of-lift}\% of the baseline's improvement
+over the constant baseline. Second overall is \run{steps-board-quadruple}
+(\V{run.steps-board-quadruple.score}, 95\% CI
+\V{run.steps-board-quadruple.score.low} to
+\V{run.steps-board-quadruple.score.high}; gain
+\V{run.steps-board-quadruple.gain}; \V{run.steps-board-quadruple.parameters.millions}
+million parameters), which trails \V{best.name} by a paired difference of
+\V{pair.conv-medium-skip-quadruple.steps-board-quadruple.gain} (95\% CI
+\V{pair.conv-medium-skip-quadruple.steps-board-quadruple.gain.low} to
+\V{pair.conv-medium-skip-quadruple.steps-board-quadruple.gain.high}). On the
+standard 50{,}000-game split, \run{conv-medium-skip} reaches
+\V{run.conv-medium-skip.score} (gain \V{run.conv-medium-skip.gain}), ahead of
+\run{steps-board} (\V{run.steps-board.score}, gain \V{run.steps-board.gain})
+and \run{conv-small-long} (\V{run.conv-small-long.score}, gain
+\V{run.conv-small-long.gain}). Among the first-pass 2D board encoders,
+\run{conv-small} reaches \V{run.conv-small.score} (gain
+\V{run.conv-small.gain}), \run{transformer-small} reaches
+\V{run.transformer-small.score} (gain \V{run.transformer-small.gain}), and
+\run{transformer-medium} reaches \V{run.transformer-medium.score} (gain
+\V{run.transformer-medium.gain}); adding the temporal skip and longer schedule
+to the medium board transformer (\run{transformer-medium-skip}) lowers its MAE
+to \V{run.transformer-medium-skip.score} (gain
+\V{run.transformer-medium-skip.gain}). Without any board input,
 \run{steps-raw} reaches \V{run.steps-raw.score} (gain
 \V{run.steps-raw.gain}) and \run{steps-temporal} reaches
 \V{run.steps-temporal.score} (gain \V{run.steps-temporal.gain}).
@@ -541,15 +607,18 @@ significantly better than the baseline.}
 \label{fig:gains}
 \end{figure}
 
-Among the 2D board encoders, \run{conv-small} (\V{run.conv-small.score}) and
-\run{transformer-small} (\V{run.transformer-small.score}) sit close together,
-with their order reversed on the validation set
-(\V{run.conv-small.valid.score} and \V{run.transformer-small.valid.score}),
-while \run{transformer-medium} (\V{run.transformer-medium.parameters.millions}
-million parameters) trails both (\V{run.transformer-medium.score}). All three
-2D board encoders ended training while still improving (Section~\ref{sec:curves}),
-whereas \run{steps-board} reached its best validation score before the final
-epoch and leads every 2D encoder across all five rating bands.
+Within the 2D board encoders, convolutional networks outperform square-token
+transformers at every budget on this task: \run{conv-small-long}
+(\V{run.conv-small-long.score}) and \run{conv-medium-skip}
+(\V{run.conv-medium-skip.score}) both sit well ahead of
+\run{transformer-medium-skip} (\V{run.transformer-medium-skip.score}) despite
+having far fewer parameters (\V{run.conv-small-long.parameters.millions} and
+\V{run.conv-medium-skip.parameters.millions} million against
+\V{run.transformer-medium-skip.parameters.millions} million). Meanwhile, the
+compact \run{steps-board} architecture achieves strong accuracy on both
+training-set sizes with \V{run.steps-board.parameters.millions} million
+parameters, showing that explicit bitboard geometry captures most---though not
+all---of the spatial rating signal that the eight-block ResNet extracts.
 
 \subsection{Secondary metrics}
 
@@ -593,12 +662,13 @@ columns.}
 
 The best model has a lower MAE than the GBDT baseline in
 \V{bands.best-ahead.of} (Figure~\ref{fig:bands}), and improves on
-\run{conv-small} in every band, with the largest reduction among players
-rated 2000 and above (\V{band.5.best} against \V{run.conv-small.band.5} for
+\run{steps-board} and \run{conv-small} in every band, with the largest
+reduction among players rated 2000 and above (\V{band.5.best} against
+\V{run.steps-board.band.5} for \run{steps-board}, \V{run.conv-small.band.5} for
 \run{conv-small} and \V{band.5.reference} for the GBDT baseline). In the
-middle band \V{bands.lead.narrowest.name} the best model has a higher MAE
-than the GBDT baseline (\V{band.3.best} against \V{band.3.reference})\iflook,
-and the difference is statistically significant (gain
+middle band \V{bands.lead.narrowest.name} the best model has a slightly higher
+MAE than the GBDT baseline (\V{band.3.best} against \V{band.3.reference})\iflook,
+and the difference is not statistically significant (gain
 \V{slice.band.1400-1700.gain}; 95\% CI \V{slice.band.1400-1700.gain.low} to
 \V{slice.band.1400-1700.gain.high})\fi. This does not show that the baseline
 estimates the ratings of average players better: a model whose predictions
@@ -621,16 +691,27 @@ is better.}
 \label{sec:curves}
 
 Figure~\ref{fig:curves} shows the validation MAE of each network after every
-epoch. On the validation set \V{ladder.at-last-epoch.of} had their best
-validation MAE in the final epoch of training, including all three 2D board
-encoders (\run{conv-small} at epoch \V{run.conv-small.best-epoch} of
-\V{run.conv-small.epochs}). By contrast, \run{steps-board} reached its best
-validation MAE (\V{run.steps-board.valid.score}) at epoch
-\V{run.steps-board.best-epoch} of \V{run.steps-board.epochs}, and
-\run{steps-raw} peaked at epoch \V{run.steps-raw.best-epoch} of
-\V{run.steps-raw.epochs}. Training the 2D board encoders for longer (and with
-direct skip connections for the temporal features) remains an open GPU
-follow-up.
+epoch. On the standard 50{,}000-game split, all three first-pass 2D board
+encoders had their lowest validation MAE at epoch~8 of~8; extending
+\run{conv-small} to 24 epochs (\run{conv-small-long}) moved the minimum to
+epoch \V{run.conv-small-long.best-epoch} of \V{run.conv-small-long.epochs.run}
+(\V{run.conv-small-long.valid.score} vs \V{run.conv-small.valid.score}). The
+upgraded 50{,}000-game runs also reached their validation minima before the
+final epoch: \run{steps-board} at epoch \V{run.steps-board.best-epoch} of
+\V{run.steps-board.epochs} (\V{run.steps-board.valid.score}),
+\run{conv-medium-skip} at epoch \V{run.conv-medium-skip.best-epoch} of
+\V{run.conv-medium-skip.epochs} (\V{run.conv-medium-skip.valid.score}) and
+\run{transformer-medium-skip} at epoch
+\V{run.transformer-medium-skip.best-epoch} of
+\V{run.transformer-medium-skip.epochs}
+(\V{run.transformer-medium-skip.valid.score}). On four times the training
+games, \run{steps-board-quadruple} peaked at epoch
+\V{run.steps-board-quadruple.best-epoch} of
+\V{run.steps-board-quadruple.epochs.run}
+(\V{run.steps-board-quadruple.valid.score}), whereas \V{best.name} reached its
+lowest validation MAE (\V{best.valid.score}) in its final epoch
+(\V{best.best-epoch} of \V{best.epochs}), indicating that the 4$\times$
+convolutional model was still improving when training ended.
 
 \begin{figure}[htbp]\centering
 \block{curves}
@@ -725,6 +806,37 @@ paired change of \V{pair.steps-own-only.steps-board.gain} relative to
 inputs, \run{steps-own-only} remains significantly better than the GBDT
 baseline (gain \V{run.steps-own-only.gain}; 95\% CI
 \V{run.steps-own-only.gain.low} to \V{run.steps-own-only.gain.high}).
+\item \textbf{Temporal step-feature skip on 2D encoders (\run{conv-medium-skip},
+\run{transformer-medium-skip}).} Replacing the plain sequence head with the
+wider 8-block ResNet, temporal step-feature skip connection, BiGRU and
+attention pooling (\run{conv-medium-skip}) yields a paired gain of
+\V{pair.conv-medium-skip.conv-small-long.gain} over \run{conv-small-long}
+(95\% CI \V{pair.conv-medium-skip.conv-small-long.gain.low} to
+\V{pair.conv-medium-skip.conv-small-long.gain.high};
+\V{pair.conv-medium-skip.conv-small-long.kept}), reaching
+\V{run.conv-medium-skip.score} on the standard 50{,}000-game split. Adding the
+same skip head and 16-epoch schedule to the medium board transformer
+(\run{transformer-medium-skip}) lowers test MAE from
+\V{run.transformer-medium.score} to \V{run.transformer-medium-skip.score}
+(validation MAE \V{run.transformer-medium-skip.valid.score} against
+\V{run.transformer-medium.valid.score}).
+\item \textbf{Scaling neural sequence models to four times the training games
+(\run{steps-board-quadruple}, \run{conv-medium-skip-quadruple}).} Training
+\run{conv-medium-skip} on four times as many games (\texttt{games-200k-2026-10})
+produces a paired gain of
+\V{pair.conv-medium-skip-quadruple.conv-medium-skip.gain} (95\% CI
+\V{pair.conv-medium-skip-quadruple.conv-medium-skip.gain.low} to
+\V{pair.conv-medium-skip-quadruple.conv-medium-skip.gain.high};
+\V{pair.conv-medium-skip-quadruple.conv-medium-skip.kept}), reducing MAE from
+\V{run.conv-medium-skip.score} to \V{best.score}. Training \run{steps-board} on
+the same 4$\times$ build (\run{steps-board-quadruple}) lowers MAE from
+\V{run.steps-board.score} to \V{run.steps-board-quadruple.score} (validation
+MAE \V{run.steps-board-quadruple.valid.score} against
+\V{run.steps-board.valid.score}). Comparing the two 4$\times$ models directly,
+\V{best.name} is significantly better than \run{steps-board-quadruple} on test
+by \V{pair.conv-medium-skip-quadruple.steps-board-quadruple.gain} (95\% CI
+\V{pair.conv-medium-skip-quadruple.steps-board-quadruple.gain.low} to
+\V{pair.conv-medium-skip-quadruple.steps-board-quadruple.gain.high}).
 \item \textbf{Auxiliary opponent-rating supervision (\run{steps-board-aux}).}
 Adding a training-only auxiliary regression head predicting the opponent's
 rating (weight 0.3) reaches a test MAE of \V{run.steps-board-aux.score} and
@@ -802,14 +914,17 @@ are \V{pair.gbm-hand-half.gbm-hand.gain.percent}\% and
 larger sample of the same kind would therefore improve GBDT on these
 \V{reference.features} features only slightly.
 
-The ablation contains no network, and its result does not extend to the
-networks. A network has \V{data.positions.a-row} positions per example to
-learn from, and the networks were still improving when their training ended
-(Section~\ref{sec:curves}). Omori and Tadepalli~\cite{ratingnet} report a
-lower MAE on rapid games for a sequence model trained on far more games
-(Section~\ref{sec:related}), which is consistent with the networks of this
-paper being limited by the amount of training data. The two studies differ in
-other respects as well, and we have not tested this explanation.
+The sub-sampling ablation above uses GBDT only, and its flat curve does not
+extend to the neural sequence models. Scaling training data by four times on
+\texttt{games-200k-2026-10} lowers \run{steps-board} from
+\V{run.steps-board.score} to \V{run.steps-board-quadruple.score} and gives
+\run{conv-medium-skip-quadruple} a paired gain of
+\V{pair.conv-medium-skip-quadruple.conv-medium-skip.gain} (95\% CI
+\V{pair.conv-medium-skip-quadruple.conv-medium-skip.gain.low} to
+\V{pair.conv-medium-skip-quadruple.conv-medium-skip.gain.high}) over
+\run{conv-medium-skip} (Section~\ref{sec:seq-ablations}). Unlike GBDT on
+\V{reference.features} aggregates, the sequence networks benefit substantially
+from more games.
 \fi
 
 \input{../../../papers/feature-groups}
@@ -892,7 +1007,7 @@ are too low and the highest too high, so the predictions are slightly more
 spread out than the ratings of the players who receive them. For the GBDT
 baseline the largest difference is \V{reference.reliability.widest-gap}
 points. Over the whole test set the mean prediction minus the mean rating is
-\V{overall.steps-board.off} points for \run{steps-board} and
+\V{overall.conv-medium-skip-quadruple.off} points for \V{best.name} and
 \V{overall.gbm-hand.off} points for the GBDT baseline.
 
 Predictions for individual players are much less precise. For a given
@@ -1046,8 +1161,8 @@ The errors are affected accordingly. The MAE of \V{challenger.name} is lowest
 where the two ratings are within 50 points of each other
 (\V{slice.gap.-50-to-0.challenger} and \V{slice.gap.0-50.challenger}) and
 highest in the two outer groups (\V{slice.gap.--200.challenger} and
-\V{slice.gap.200+.challenger}). In the last group its gain over the GBDT
-baseline is not statistically significant (\V{slice.gap.200+.gain}; 95\% CI
+\V{slice.gap.200+.challenger}). Even in the last group, \V{challenger.name}
+beats the GBDT baseline significantly (\V{slice.gap.200+.gain}; 95\% CI
 \V{slice.gap.200+.gain.low} to \V{slice.gap.200+.gain.high}).
 
 \paragraph{Mechanisms tested.}
@@ -1103,9 +1218,9 @@ in \V{slice.loss.ahead.of} by mean loss and in \V{slice.pace.ahead.of} by
 time per move.
 
 Figure~\ref{fig:grid-loss} shows the mean rating by both variables. The
-predictions of \run{steps-board} reproduce the joint pattern: the largest
+predictions of \V{best.name} reproduce the joint pattern: the largest
 difference between the mean prediction and the mean rating in any cell is
-\V{grid.loss-pace.steps-board.widest-off} points.
+\V{grid.loss-pace.conv-medium-skip-quadruple.widest-off} points.
 
 \begin{figure}[htbp]\centering
 \block{grid-loss-pace}
@@ -1152,13 +1267,14 @@ of the two models, and the paired gain of the first model over the second.}
 The appendix gives the results for the remaining subgroups. Of the
 \V{slices.compared} subgroups in which the two models are compared,
 \V{challenger.name} is significantly better than the GBDT baseline in
-\V{slices.ahead} and significantly worse in \V{slices.behind}, the band
-\V{bands.lead.narrowest.name} discussed in Section~\ref{sec:bands}. The
-subgroups without a significant difference are the players rated at least
-200 points above their opponents (Section~\ref{sec:gap}) and the games with
-an initial time below 600 seconds, a group of \V{slice.start.-600.rows} test
-examples (gain \V{slice.start.-600.gain}; 95\% CI
-\V{slice.start.-600.gain.low} to \V{slice.start.-600.gain.high}).
+\V{slices.ahead} and significantly worse in \V{slices.behind}. The two
+subgroups without a significant difference are the middle rating band
+\V{bands.lead.narrowest.name} discussed in Section~\ref{sec:bands} (gain
+\V{slice.band.1400-1700.gain}; 95\% CI \V{slice.band.1400-1700.gain.low} to
+\V{slice.band.1400-1700.gain.high}) and the games with an initial time below
+600 seconds, a group of \V{slice.start.-600.rows} test examples (gain
+\V{slice.start.-600.gain}; 95\% CI \V{slice.start.-600.gain.low} to
+\V{slice.start.-600.gain.high}).
 
 By the result of the game, the mean prediction of \V{challenger.name} minus
 the mean rating is \V{slice.result.won.challenger.off} points for players who
@@ -1308,19 +1424,20 @@ never seen may be lower than reported.
 as targets like any other, because the database does not give the rating
 deviation. The record of a game also gives each player's rating change, which
 is large when a rating is uncertain. The dataset builder does not read it.
-\item \textbf{Training.} The validation MAE of \V{ladder.at-last-epoch.of}
-was lowest in the final epoch (all three 2D board encoders and \run{steps-raw}),
-whereas \V{best.name} converged at epoch \V{run.steps-board.best-epoch} of
-\V{run.steps-board.epochs}. Each configuration was trained with a single random
-seed, and the 2D board encoders were not yet re-run on a longer schedule or
-with the temporal step-feature skip connection.
+\item \textbf{Training.} On the 50{,}000-game split, the upgraded networks
+(\run{steps-board}, \run{conv-medium-skip} and \run{conv-small-long}) all
+peaked before their final epoch, whereas \V{best.name} reached its lowest
+validation MAE in its final epoch (\V{best.best-epoch} of \V{best.epochs}) on
+\texttt{games-200k-2026-10}. Each configuration was trained with a single
+random seed.
 \item \textbf{Dependence on the opponent.} Removing the explicit opponent inputs
 in \run{steps-own-only} weakens the opponent slope in a joint regression, but
 opponent strength still enters through the positions that the opponent's moves
 create. We have not trained a model that separates game level from the
 difference between the two players on a paired target.
-\item \textbf{Ablations.} The training-set-size ablation uses GBDT only; how
-the sequence networks scale with four times the games has not yet been measured.
+\item \textbf{Data scaling.} Scaling from 50{,}000 to 200{,}000 games yielded
+large gains for both \run{steps-board-quadruple} and \V{best.name}; how far
+accuracy continues to improve beyond 200{,}000 games has not been measured.
 \item \textbf{Inputs.} The models require engine evaluations of the depth
 that Lichess provides, and the length of the game, which is known only
 afterwards. A player's first five moves are not used, a sequence is truncated
@@ -1360,11 +1477,14 @@ of the best model's weights.
 A player's rating can be estimated from one rapid game with a mean absolute
 error of \V{best.score} rating points, compared with \V{floor.score} for a
 constant prediction, \V{reference.score} for GBDT on aggregate features of the
-player's moves, and \V{run.conv-small.score} for the best 2D board-sequence
-encoder. Reading the sequence of moves with a bidirectional recurrent layer,
-self-attention and multi-query attention pooling over explicit within-game
-temporal dynamics and vectorised board-geometry features cuts MAE by ten points
-relative to the 2D board encoders with less than a third as many parameters.
+player's moves, and \V{run.conv-small.score} for the first-pass 2D convolutional
+baseline. Combining an eight-block residual convolutional board encoder with
+explicit within-game temporal step-feature skips, a bidirectional GRU,
+self-attention, multi-query attention pooling and four times the training games
+cuts MAE by \V{best.gain} points relative to GBDT and beats the 4$\times$
+bitboard-sequence encoder (\run{steps-board-quadruple},
+\V{run.steps-board-quadruple.score}) by
+\V{pair.conv-medium-skip-quadruple.steps-board-quadruple.gain} points.
 The engine's judgement of the moves remains the strongest feature group, and
 removing explicit opponent inputs (\run{steps-own-only}) confirms that the
 sequence models read both sides' play, while adding a training-only auxiliary
@@ -1375,12 +1495,12 @@ opponent. It describes the level at which a game was played more than the
 difference between its two players.\fi{} We see the following directions for
 future work.
 \begin{itemize}
-\item \textbf{Longer training, step skips and more data for the 2D board
-encoders.} All three 2D board encoders were still improving at epoch~8 and had
-no direct path from per-move temporal features to the sequence layers. Training
-them for 24 epochs with the temporal step-feature skip connection, recurrent
-sequence layer, attention pooling and four times the games (\texttt{games-200k})
-is the next GPU step, alongside scaling \V{best.name} to the larger build.
+\item \textbf{More games and longer 4$\times$ training.} Because
+\V{best.name} gained \V{pair.conv-medium-skip-quadruple.conv-medium-skip.gain}
+points from four times the training games and still reached its lowest
+validation MAE in its final epoch (\V{best.best-epoch} of \V{best.epochs}),
+training it for more epochs and scaling beyond 200{,}000 games are direct next
+steps.
 \item \textbf{Targets that match the inputs.} Because a training-only auxiliary
 head for the opponent's rating did not reduce the player-rating error or
 disentangle the two sides on its own, a model should be evaluated directly on

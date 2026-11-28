@@ -67,10 +67,10 @@ Written before the first full run.
 | `transformer-small` | A square-token transformer, CPU-sized, with a logit a theme |
 | `transformer-medium` | A larger square-token transformer, for a GPU |
 | `transformer-medium-hand` | The same, reading the hand features beside the board |
-| `gbm-hand-per-tag` | `gbm-hand` with per-tag Platt calibration instead of one shared Platt line |
+| `gbm-hand-per-tag` | `gbm-hand` with per-tag Platt calibration instead of one shared Platt line (filed under `study: calibrate`) |
 | `transformer-medium-hand-attacks` | `transformer-medium-hand` with attack-aware attention bias and per-tag Platt calibration (GPU) |
 | `transformer-medium-hand-solution` | Adds post-first-move and final solution boards (`[start, after1, end]`) plus start+final attack biases (GPU) |
-| `transformer-medium-hand-solution-asl` | Same with Asymmetric Loss (`asl`, $\gamma_-=2.0$, clip $0.05$) for rare-theme recall (GPU) |
+| `transformer-medium-hand-solution-asl` | Same with Asymmetric Loss (`asl`, $\gamma_-=2.0$, clip $0.05$) for rare-theme recall (GPU; filed under `study: loss`) |
 | `transformer-medium-hand-solution-quadruple` | `transformer-medium-hand-solution` trained on all eligible Lichess puzzles (`puzzles-all`, 4× rows, GPU) |
 
 ### Second-pass experiment rules (written before full runs)
@@ -138,33 +138,32 @@ the numbers are in the leaderboard):
   second-pass harness adds `test_active_calibration` (`p >= 0.01`) and per-tag
   `ece` / macro / rare-tag (`<2%`) summaries to expose calibration where the
   app actually fires.
-- **Second-pass smoke & real-game transfer findings (`eval_game_tactics.py`).**
-  - On `puzzles-v1-smoke` (38,029 train / 4,277 test), per-tag Platt calibration
-    (`gbm-hand-per-tag`) lowered log loss (`0.05671 → 0.05650`), lowered macro
-    ECE (`0.00471 → 0.00463`), and edged AP up (`0.8143 → 0.8157`).
-  - On leak-free real-game tactics from `tactics-v1-smoke` (1,649 test tactics
-    after excluding overlapping `game_id`s), tactics **missed in the game**
-    (`found=0`, n=515) were substantially harder to name than found tactics
-    (`found=1`, n=1,134): AP `0.7992` vs `0.8153`, macro PR-AUC `0.5239` vs
-    `0.5775` (−0.0536), and rare-tag PR-AUC `0.3713` vs `0.4276` (−0.0563).
-  - On non-tactical quiet rapid moves from `games-2026-10-smoke` (`|loss| ≤ 1.5`),
-    the false-positive firing rate (`any theme ≥ 0.5`) was `1.52%` (mostly
-    `defensiveMove`), confirming that an upstream engine-swing gate should
-    remain in front of the theme tagger in the app.
-  - Full GPU runs are queued in `colab/plans/puzzle-themes-v2.yaml` so all
-    models share one consistent build of the rolling Lichess puzzle dump.
+- **Second-pass full GPU results (`puzzle-themes-v2`, consistent `puzzles-v1` build `d14731fa4425`, 1,127,915 rows; 112,450 test puzzles; all pairs in [`results/analysis.json`](results/analysis.json)).**
+  - **Every architectural and data step clears the noise by a wide margin:**
+    - `transformer-medium-hand` (first-pass best on this build): AP **0.9814** (`[0.9807, 0.9821]`), first-right **0.9749**, log loss **0.01464**, macro PR-AUC **0.9222**, rare-tag (`<2%`, 15 tags) PR-AUC **0.8785**, macro ECE **0.00067**, active ECE (`p >= 0.01`) **0.00469**.
+    - `transformer-medium-hand-attacks` (+attack-aware attention bias + per-tag Platt): AP **0.9865** (paired **+0.00506**, 95% CI `+0.00449` to `+0.00564`), log loss **0.01229** (−16%), macro PR-AUC **0.9386** (+0.0164), rare-tag PR-AUC **0.9062** (+0.0277), macro ECE **0.00028** (−58%), active ECE **0.00402**. Largest single-step gains: `interference` (`0.6782 → 0.8064`), `capturingDefender` (`0.8614 → 0.9619`), `doubleCheck` (`0.9113 → 0.9581`), `pin` (`0.8714 → 0.9175`).
+    - `transformer-medium-hand-solution` (+`[start, after1, end]` solution boards + start/final attack biases): AP **0.9932** (paired **+0.00673**, 95% CI `+0.00622` to `+0.00723`), first-right **0.9916**, log loss **0.00874** (−29%), macro PR-AUC **0.9579** (+0.0193), rare-tag PR-AUC **0.9322** (+0.0260), macro ECE **0.00026**, active ECE **0.00823**. Largest gains from seeing the post-move and final boards: `epauletteMate` (`0.7439 → 0.8782`), `interference` (`0.8064 → 0.8996`), `defensiveMove` (`0.9055 → 0.9631`), `trappedPiece` (`0.7997 → 0.8572`), `pin` (`0.9175 → 0.9675`), `quietMove` (`0.9095 → 0.9589`).
+    - **`transformer-medium-hand-solution-quadruple`** (new best, trained on 3,837,994 rows of `puzzles-all-v1`): AP **0.9970** (`[0.9967, 0.9972]`, paired **+0.00375**, 95% CI `+0.00341` to `+0.00412` over `solution`, cutting `1 - AP` by **84%** relative to `transformer-medium-hand`), first-right **0.9964**, log loss **0.00594** (−59% vs first pass), macro PR-AUC **0.9686** (+0.0464), rare-tag PR-AUC **0.9483** (+0.0698), macro ECE **0.00016** (lowest overall), active ECE **0.00295**. Every previously weak rare theme jumped sharply: `interference` **0.6782 → 0.9381** (+0.2599), `epauletteMate` **0.7480 → 0.9106** (+0.1626), `trappedPiece` **0.7639 → 0.9063** (+0.1424), `capturingDefender` **0.8614 → 0.9826** (+0.1212), `pin` **0.8714 → 0.9854** (+0.1140), `doubleCheck` **0.9113 → 0.9962**, `smotheredMate` **1.0000**, `discoveredCheck` **0.8673 → 0.9190**, `zugzwang` **0.8110 → 0.8649**.
+  - **Filed studies (did not meet the acceptance rule):**
+    - `transformer-medium-hand-solution-asl` (`study: loss`): tied validation AP (`0.9934`), non-significant test AP gain (`+0.00019`, 95% CI `−0.00017` to `+0.00055`), flat rare-tag PR-AUC (`0.9323` vs `0.9322`), while worsening log loss (`0.01019` vs `0.00874`), macro ECE (`0.00121` vs `0.00026`), and active ECE (`0.02455` vs `0.00823`). Standard BCE + per-tag Platt calibration is strictly preferable.
+    - `gbm-hand-per-tag` (`study: calibrate`): on full `puzzles-v1`, per-tag Platt calibration on the 30 independent GBDT boosters yielded a non-significant AP difference (`+6.17e-6`, 95% CI `−0.00027` to `+0.00031`), unchanged rare-tag PR-AUC (`0.5460`), tiny log-loss move (`0.04426` vs `0.04432`), and slightly higher active ECE (`0.00189` vs `0.00164`).
+- **Full real-game transfer & non-tactical false-positive findings (`eval_game_tactics.py`):**
+  - **Leak-free real-game tactics (`tactics-v1`, 65,264 test tactics after excluding 15,871 games overlapping `puzzles-v1` train/valid):**
+    - `transformer-medium-hand`: overall AP **0.9784**, macro PR-AUC **0.9370**, rare-tag PR-AUC **0.8940**, log loss **0.01621** (missed `found=0`, n=20,207: AP `0.9748`, macro PR-AUC `0.9296`; found `found=1`, n=45,057: AP `0.9801`, macro PR-AUC `0.9402`).
+    - `transformer-medium-hand-attacks`: overall AP **0.9833**, macro PR-AUC **0.9550**, rare-tag PR-AUC **0.9292**, log loss **0.01417** (missed AP `0.9805` vs found `0.9845`).
+    - `transformer-medium-hand-solution` (strictly zero game overlap with `puzzles-v1` train/valid): overall AP **0.9912**, macro PR-AUC **0.9746**, rare-tag PR-AUC **0.9543**, log loss **0.01045** (missed AP **0.9892**, macro PR-AUC **0.9681**, rare **0.9491** vs found AP **0.9922**, macro **0.9773**, rare **0.9596**).
+    - `transformer-medium-hand-solution-quadruple`: overall AP **0.9965**, macro PR-AUC **0.9874**, rare-tag PR-AUC **0.9761**, log loss **0.00715** (missed AP **0.9955** vs found **0.9969**; caveat: `eval_game_tactics.py` excludes `puzzles-v1` train/valid `game_id`s, whereas `quadruple` also trained on `puzzles-all-v1`, so `solution` above is the strictly leak-free lower bound).
+  - **Non-tactical quiet moves (`games-2026-10` test split, n=1,000 quiet equal-game 2-ply lines with `|loss| <= 1.5`, non-capture, non-check):**
+    - False-positive firing rate (`any tag >= 0.5`) rises sharply with multi-board solution models: `gbm-hand` **3.5%** (`defensiveMove` 3.4%), `transformer-medium-hand` **19.7%** (`quietMove` 15.1%, `defensiveMove` 3.0%), `transformer-medium-hand-attacks` **14.5%** (`quietMove` 11.0%, `defensiveMove` 3.2%), `transformer-medium-hand-solution` **45.6%** (`quietMove` **41.8%**, `defensiveMove` **13.7%**, `pin` 0.5%), and `transformer-medium-hand-solution-quadruple` **46.9%** (`defensiveMove` **45.5%**, `quietMove` **24.9%**, `pin` 0.6%).
+    - Every training example in `puzzles-v1`/`puzzles-all-v1` is a working tactic, so when fed a quiet non-capture 2-ply line the multi-board models infer the only puzzle themes consistent with no immediate capture (`defensiveMove` / `quietMove`) while keeping tactical motifs (`pin`, `fork`, etc.) at `<= 0.6%`. In the app, `puzzle-themes` **must remain gated behind an upstream engine-swing / tactic detector** and never run on ordinary quiet moves.
 
-What the app can take from this today: a name, in a coach's words, for a
-tactic an engine's line shows, for the themes this model tells apart well.
-The weakest themes in the table should not be named from it alone, and a
-line from a game is not a puzzle's line: every line here is a tactic that
-works.
+What the app can take from this today: a highly accurate theme tagger (`0.9970` AP, `0.9483` rare-tag PR-AUC, `0.9912+` real-game transfer AP) for any verified tactical engine line — gated behind an engine-swing check so quiet non-tactical moves are never fed to it.
 
 **Weights.** Every run's weights and test predictions are on the owner's
 machine, under `artifacts/runs/puzzle-themes/<run>/`, as the GPU session
-packed them; none is published. The best run's `model.pt` is
-26,315,743 bytes, sha256
-`d75f42f15d0de7d620be8188be09808955a0631c0ecd980034b536313339d1bb`.
+packed them; none is published. The best run's
+(`transformer-medium-hand-solution-quadruple`) `model.pt` is 26,346,743 bytes,
+sha256 `579a2d9c3af5d59b9046d0d28cb45b125b0c028b2543457b4ac5122027ba5224`.
 
 ## What it does not say yet
 

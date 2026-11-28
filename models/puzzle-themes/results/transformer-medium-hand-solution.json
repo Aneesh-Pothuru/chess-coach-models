@@ -1,0 +1,732 @@
+{
+  "model": "puzzle-themes",
+  "run": "transformer-medium-hand-solution",
+  "task": {
+    "label": "themes",
+    "kind": "tags",
+    "unit": "probability that the puzzle carries each theme",
+    "primary": "ap",
+    "lower_is_better": false,
+    "context": [
+      "solver_moves",
+      "castle_own_king",
+      "castle_own_queen",
+      "castle_opp_king",
+      "castle_opp_queen"
+    ],
+    "candidates": [
+      "fork",
+      "kingsideAttack",
+      "sacrifice",
+      "pin",
+      "advancedPawn",
+      "defensiveMove",
+      "discoveredAttack",
+      "deflection",
+      "attraction",
+      "hangingPiece",
+      "quietMove",
+      "exposedKing",
+      "backRankMate",
+      "promotion",
+      "skewer",
+      "discoveredCheck",
+      "queensideAttack",
+      "clearance",
+      "intermezzo",
+      "trappedPiece",
+      "zugzwang",
+      "operaMate",
+      "pillsburysMate",
+      "capturingDefender",
+      "attackingF2F7",
+      "doubleCheck",
+      "xRayAttack",
+      "epauletteMate",
+      "smotheredMate",
+      "interference"
+    ]
+  },
+  "dataset": {
+    "dataset": "puzzles-v1",
+    "source": "https://database.lichess.org/lichess_db_puzzle.csv.zst",
+    "licence": "CC0 1.0, database.lichess.org",
+    "rows": 1127915,
+    "splits": {
+      "test": 112450,
+      "train": 958941,
+      "valid": 56524
+    },
+    "fingerprint": "d14731fa4425fc6efdadb45c94ee53e07f5afe9151992b690b81edc71064cd5d",
+    "built": "2026-11-28T06:10:15Z",
+    "code": "a677087d8ff8f66faea0f0944bd7800565881087"
+  },
+  "config": {
+    "needs": "cuda",
+    "learner": {
+      "kind": "net",
+      "body": "transformer",
+      "features": "hand",
+      "dim": 256,
+      "depth": 8,
+      "heads": 8,
+      "dropout": 0.1,
+      "attacks": true,
+      "solution_boards": true
+    },
+    "train": {
+      "epochs": 16,
+      "batch": 1024,
+      "lr": 0.0006,
+      "weight_decay": 0.05,
+      "warmup": 0.05,
+      "patience": 4,
+      "calibrate": "per_candidate"
+    },
+    "base": "transformer-medium-hand-attacks"
+  },
+  "learner": {
+    "features": 38,
+    "parameters": 6578270,
+    "device": "NVIDIA L4",
+    "best_epoch": 16,
+    "fit_seconds": 5175.5,
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.09966,
+        "valid_ap": 0.87177,
+        "rows_a_second": 3038
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.03715,
+        "valid_ap": 0.94454,
+        "rows_a_second": 3039
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.0257,
+        "valid_ap": 0.96651,
+        "rows_a_second": 3039
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.02005,
+        "valid_ap": 0.97271,
+        "rows_a_second": 3039
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.01639,
+        "valid_ap": 0.9828,
+        "rows_a_second": 3039
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.01396,
+        "valid_ap": 0.98543,
+        "rows_a_second": 3038
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.01222,
+        "valid_ap": 0.98829,
+        "rows_a_second": 3037
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.01085,
+        "valid_ap": 0.99012,
+        "rows_a_second": 3037
+      },
+      {
+        "epoch": 9,
+        "train_loss": 0.00965,
+        "valid_ap": 0.99112,
+        "rows_a_second": 3037
+      },
+      {
+        "epoch": 10,
+        "train_loss": 0.00855,
+        "valid_ap": 0.99237,
+        "rows_a_second": 3035
+      },
+      {
+        "epoch": 11,
+        "train_loss": 0.00755,
+        "valid_ap": 0.99216,
+        "rows_a_second": 3035
+      },
+      {
+        "epoch": 12,
+        "train_loss": 0.00669,
+        "valid_ap": 0.99261,
+        "rows_a_second": 3035
+      },
+      {
+        "epoch": 13,
+        "train_loss": 0.00593,
+        "valid_ap": 0.99282,
+        "rows_a_second": 3034
+      },
+      {
+        "epoch": 14,
+        "train_loss": 0.00536,
+        "valid_ap": 0.99329,
+        "rows_a_second": 3033
+      },
+      {
+        "epoch": 15,
+        "train_loss": 0.00499,
+        "valid_ap": 0.99331,
+        "rows_a_second": 3033
+      },
+      {
+        "epoch": 16,
+        "train_loss": 0.0048,
+        "valid_ap": 0.99335,
+        "rows_a_second": 3035
+      }
+    ]
+  },
+  "calibration": {
+    "kind": "per_candidate",
+    "fitted_on": "valid",
+    "candidates": {
+      "fork": {
+        "platt_slope": 0.7368992177499823,
+        "platt_intercept": -0.1258029279328183
+      },
+      "kingsideAttack": {
+        "platt_slope": 0.7461132526833316,
+        "platt_intercept": 0.15935027575709954
+      },
+      "sacrifice": {
+        "platt_slope": 0.7376075043658357,
+        "platt_intercept": 0.2888095644815828
+      },
+      "pin": {
+        "platt_slope": 0.6998215595387827,
+        "platt_intercept": -0.3363346232123458
+      },
+      "advancedPawn": {
+        "platt_slope": 0.8401758013506413,
+        "platt_intercept": 0.28544660793059634
+      },
+      "defensiveMove": {
+        "platt_slope": 0.7393258584124045,
+        "platt_intercept": 0.09285199983222282
+      },
+      "discoveredAttack": {
+        "platt_slope": 0.7560505724268476,
+        "platt_intercept": 0.23686480527287257
+      },
+      "deflection": {
+        "platt_slope": 0.6949361303068886,
+        "platt_intercept": 0.02134406830612875
+      },
+      "attraction": {
+        "platt_slope": 0.7607313980640248,
+        "platt_intercept": -0.06943909202988613
+      },
+      "hangingPiece": {
+        "platt_slope": 0.7668599747803241,
+        "platt_intercept": 0.17620386035746355
+      },
+      "quietMove": {
+        "platt_slope": 0.680253096067092,
+        "platt_intercept": 0.07883121783404523
+      },
+      "exposedKing": {
+        "platt_slope": 0.8005117073799803,
+        "platt_intercept": 0.25264139008401876
+      },
+      "backRankMate": {
+        "platt_slope": 57.68282854362548,
+        "platt_intercept": 56.02846801337631
+      },
+      "promotion": {
+        "platt_slope": 0.8387939755781086,
+        "platt_intercept": 0.16293130475948994
+      },
+      "skewer": {
+        "platt_slope": 0.7761014348406675,
+        "platt_intercept": 0.23510227568847872
+      },
+      "discoveredCheck": {
+        "platt_slope": 0.7116833568233188,
+        "platt_intercept": 0.38463925330454424
+      },
+      "queensideAttack": {
+        "platt_slope": 0.8027629049835602,
+        "platt_intercept": -0.23474814287607826
+      },
+      "clearance": {
+        "platt_slope": 0.6512118960989082,
+        "platt_intercept": -0.3762854929317793
+      },
+      "intermezzo": {
+        "platt_slope": 0.8177413869953165,
+        "platt_intercept": -0.026549956980755025
+      },
+      "trappedPiece": {
+        "platt_slope": 0.759379108974506,
+        "platt_intercept": -0.41088599127444425
+      },
+      "zugzwang": {
+        "platt_slope": 0.7800751841092596,
+        "platt_intercept": -0.11638918014790375
+      },
+      "operaMate": {
+        "platt_slope": 0.9315641676330083,
+        "platt_intercept": -0.05549193588994748
+      },
+      "pillsburysMate": {
+        "platt_slope": 0.8813375439592352,
+        "platt_intercept": -0.07860833477076097
+      },
+      "capturingDefender": {
+        "platt_slope": 0.6945865540379165,
+        "platt_intercept": -0.5179192032280922
+      },
+      "attackingF2F7": {
+        "platt_slope": 0.7707471030399256,
+        "platt_intercept": -1.2742241689617246
+      },
+      "doubleCheck": {
+        "platt_slope": 0.6894137151010178,
+        "platt_intercept": -0.5047865950556485
+      },
+      "xRayAttack": {
+        "platt_slope": 0.8521509563446902,
+        "platt_intercept": 0.27968969731947846
+      },
+      "epauletteMate": {
+        "platt_slope": 0.7330477963734034,
+        "platt_intercept": -0.5368790149856312
+      },
+      "smotheredMate": {
+        "platt_slope": 0.9637157562149318,
+        "platt_intercept": -0.5921656494481291
+      },
+      "interference": {
+        "platt_slope": 0.7230531204320191,
+        "platt_intercept": -0.4266066285094111
+      }
+    }
+  },
+  "machine": {
+    "processor": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "threads": 12,
+    "system": "Linux"
+  },
+  "software": {
+    "python": "3.13.16",
+    "numpy": "2.4.6",
+    "polars": "2.2.0",
+    "lightgbm": "4.6.0",
+    "torch": "2.14.1+cu130"
+  },
+  "code": "a677087d8ff8f66faea0f0944bd7800565881087",
+  "trained": "2026-11-28T11:03:40Z",
+  "seconds": 5237.2,
+  "train_rows": 958941,
+  "train_groups": 958941,
+  "valid": {
+    "ap": 0.9934283969608556,
+    "top1": 0.9920572329878323,
+    "log_loss": 0.008669843019194299
+  },
+  "test": {
+    "ap": {
+      "value": 0.9932133338988771,
+      "low": 0.9927930624812817,
+      "high": 0.9936214976144321
+    },
+    "top1": {
+      "value": 0.9915501699840595,
+      "low": 0.990859779317391,
+      "high": 0.9922315772121719
+    },
+    "log_loss": {
+      "value": 0.008740019855414817,
+      "low": 0.008553983729422914,
+      "high": 0.0089392692428644
+    }
+  },
+  "test_rows": 112450,
+  "test_groups": 112450,
+  "test_by_band": {
+    "1000-1399": {
+      "rows": 31846,
+      "ap": 0.9973139432094195,
+      "top1": 0.9959961963865672,
+      "log_loss": 0.005330414346229005
+    },
+    "1400-1799": {
+      "rows": 28501,
+      "ap": 0.9947897533330683,
+      "top1": 0.9932192085371276,
+      "log_loss": 0.008503389262213203
+    },
+    "1800-2199": {
+      "rows": 19518,
+      "ap": 0.9869721729611958,
+      "top1": 0.9839520958083833,
+      "log_loss": 0.01449172590185141
+    },
+    "2200+": {
+      "rows": 9834,
+      "ap": 0.9758142864444098,
+      "top1": 0.9727150738034889,
+      "log_loss": 0.02307019888455574
+    },
+    "<1000": {
+      "rows": 22751,
+      "ap": 0.9993934522069571,
+      "top1": 0.9990499853843905,
+      "log_loss": 0.002680581870074123
+    }
+  },
+  "test_calibration": [
+    {
+      "n": 337350,
+      "predicted": 1.31809668864898e-06,
+      "observed": 2.074996294649474e-05
+    },
+    {
+      "n": 337350,
+      "predicted": 8.114712973650012e-06,
+      "observed": 8.892841262783459e-06
+    },
+    {
+      "n": 337350,
+      "predicted": 1.2744850120519287e-05,
+      "observed": 1.4821402104639098e-05
+    },
+    {
+      "n": 337350,
+      "predicted": 2.1249236803988835e-05,
+      "observed": 5.92856084185564e-06
+    },
+    {
+      "n": 337350,
+      "predicted": 2.911708227304944e-05,
+      "observed": 1.7785682525566917e-05
+    },
+    {
+      "n": 337350,
+      "predicted": 3.904138319162928e-05,
+      "observed": 1.185712168371128e-05
+    },
+    {
+      "n": 337350,
+      "predicted": 4.933644914165454e-05,
+      "observed": 1.4821402104639098e-05
+    },
+    {
+      "n": 337350,
+      "predicted": 7.853960161326085e-05,
+      "observed": 8.892841262783459e-06
+    },
+    {
+      "n": 337350,
+      "predicted": 0.00016914882678879323,
+      "observed": 4.742848673484512e-05
+    },
+    {
+      "n": 337350,
+      "predicted": 0.3146443797442157,
+      "observed": 0.314702830887802
+    }
+  ],
+  "test_active_calibration": [
+    {
+      "n": 14700,
+      "predicted": 0.01594031867164599,
+      "observed": 0.020884353741496598
+    },
+    {
+      "n": 14700,
+      "predicted": 0.056983943510117985,
+      "observed": 0.06884353741496599
+    },
+    {
+      "n": 14700,
+      "predicted": 0.36341445811968565,
+      "observed": 0.3353061224489796
+    },
+    {
+      "n": 14700,
+      "predicted": 0.857467579750395,
+      "observed": 0.85578231292517
+    },
+    {
+      "n": 14699,
+      "predicted": 0.9556911793920508,
+      "observed": 0.9699299272059324
+    },
+    {
+      "n": 14699,
+      "predicted": 0.9760536015841323,
+      "observed": 0.983944486019457
+    },
+    {
+      "n": 14699,
+      "predicted": 0.9859228983570623,
+      "observed": 0.9873460779644874
+    },
+    {
+      "n": 14699,
+      "predicted": 0.9918025003871446,
+      "observed": 0.9890468739370025
+    },
+    {
+      "n": 14699,
+      "predicted": 0.9955089672659636,
+      "observed": 0.9914960201374243
+    },
+    {
+      "n": 14699,
+      "predicted": 0.9987333722402514,
+      "observed": 0.9933328797877407
+    }
+  ],
+  "test_by_candidate": {
+    "fork": {
+      "rows": 15186,
+      "share": 0.13504668741662962,
+      "pr_auc": 0.9770218404055941,
+      "roc_auc": 0.9965808945361988,
+      "ece": 0.0026026420430732247
+    },
+    "kingsideAttack": {
+      "rows": 9742,
+      "share": 0.08663405958203646,
+      "pr_auc": 0.9936791763053829,
+      "roc_auc": 0.9995550636575136,
+      "ece": 0.00019113388096247814
+    },
+    "sacrifice": {
+      "rows": 8857,
+      "share": 0.0787638950644731,
+      "pr_auc": 0.9924146927477296,
+      "roc_auc": 0.999542546172628,
+      "ece": 9.060061035993922e-05
+    },
+    "pin": {
+      "rows": 7235,
+      "share": 0.06433970653623833,
+      "pr_auc": 0.9675204788139103,
+      "roc_auc": 0.9972441120907494,
+      "ece": 0.0004668954653505411
+    },
+    "advancedPawn": {
+      "rows": 7237,
+      "share": 0.0643574922187639,
+      "pr_auc": 0.9917139409906431,
+      "roc_auc": 0.9996056185232676,
+      "ece": 0.00011054993105591128
+    },
+    "defensiveMove": {
+      "rows": 6116,
+      "share": 0.05438861716318364,
+      "pr_auc": 0.9631479362011047,
+      "roc_auc": 0.998210226576936,
+      "ece": 0.000280663452927249
+    },
+    "discoveredAttack": {
+      "rows": 6150,
+      "share": 0.05469097376611828,
+      "pr_auc": 0.991336287241874,
+      "roc_auc": 0.999504484929139,
+      "ece": 0.0001058484539745459
+    },
+    "deflection": {
+      "rows": 5294,
+      "share": 0.047078701645175636,
+      "pr_auc": 0.9862532152753808,
+      "roc_auc": 0.9994869940457182,
+      "ece": 0.00016461501266675809
+    },
+    "attraction": {
+      "rows": 4573,
+      "share": 0.04066696309470876,
+      "pr_auc": 0.9881997326039446,
+      "roc_auc": 0.9995447786272433,
+      "ece": 8.447239075652901e-05
+    },
+    "hangingPiece": {
+      "rows": 4040,
+      "share": 0.035927078701645174,
+      "pr_auc": 0.9891372408201138,
+      "roc_auc": 0.9992674890701874,
+      "ece": 0.00020583400687949216
+    },
+    "quietMove": {
+      "rows": 3992,
+      "share": 0.03550022232103157,
+      "pr_auc": 0.9589172546409725,
+      "roc_auc": 0.9979181010419297,
+      "ece": 0.000503417529686135
+    },
+    "exposedKing": {
+      "rows": 3645,
+      "share": 0.03241440640284571,
+      "pr_auc": 0.9847300127756636,
+      "roc_auc": 0.9995409716316469,
+      "ece": 0.00020616867427335526
+    },
+    "backRankMate": {
+      "rows": 2952,
+      "share": 0.02625166740773677,
+      "pr_auc": 0.9957094483501613,
+      "roc_auc": 0.9999100554657394,
+      "ece": 3.6246355397512314e-05
+    },
+    "promotion": {
+      "rows": 2901,
+      "share": 0.025798132503334816,
+      "pr_auc": 0.9909014501594136,
+      "roc_auc": 0.9996897671855692,
+      "ece": 6.854131535253061e-05
+    },
+    "skewer": {
+      "rows": 2624,
+      "share": 0.023334815473543796,
+      "pr_auc": 0.9814055101428898,
+      "roc_auc": 0.999472561614092,
+      "ece": 0.00040916388253441587
+    },
+    "discoveredCheck": {
+      "rows": 2186,
+      "share": 0.019439751000444642,
+      "pr_auc": 0.9024032222576803,
+      "roc_auc": 0.9988021885626372,
+      "ece": 0.00038662442945439036
+    },
+    "queensideAttack": {
+      "rows": 1776,
+      "share": 0.015793686082703425,
+      "pr_auc": 0.9811759783729842,
+      "roc_auc": 0.9996929466127855,
+      "ece": 0.00012003593797252017
+    },
+    "clearance": {
+      "rows": 1428,
+      "share": 0.01269897732325478,
+      "pr_auc": 0.9674528327633708,
+      "roc_auc": 0.999564502621859,
+      "ece": 0.00016626347100040956
+    },
+    "intermezzo": {
+      "rows": 1457,
+      "share": 0.0129568697198755,
+      "pr_auc": 0.9797613318302666,
+      "roc_auc": 0.9983986635995848,
+      "ece": 0.000145212558130737
+    },
+    "trappedPiece": {
+      "rows": 1331,
+      "share": 0.011836371720764785,
+      "pr_auc": 0.8572436382004489,
+      "roc_auc": 0.996754347646426,
+      "ece": 0.0004423552647140505
+    },
+    "zugzwang": {
+      "rows": 1168,
+      "share": 0.01038683859493108,
+      "pr_auc": 0.8307535963281008,
+      "roc_auc": 0.996747891725403,
+      "ece": 0.00027527931822071884
+    },
+    "operaMate": {
+      "rows": 1112,
+      "share": 0.009888839484215206,
+      "pr_auc": 0.8761985818339334,
+      "roc_auc": 0.9992973588041134,
+      "ece": 1.3598742429356727e-05
+    },
+    "pillsburysMate": {
+      "rows": 1075,
+      "share": 0.009559804357492218,
+      "pr_auc": 0.8788275072347004,
+      "roc_auc": 0.9992996841803043,
+      "ece": 3.948282685848976e-05
+    },
+    "capturingDefender": {
+      "rows": 853,
+      "share": 0.007585593597154291,
+      "pr_auc": 0.973109686364308,
+      "roc_auc": 0.9989239564178345,
+      "ece": 9.463246483548637e-05
+    },
+    "attackingF2F7": {
+      "rows": 857,
+      "share": 0.007621164962205424,
+      "pr_auc": 0.9932776676479168,
+      "roc_auc": 0.9985881976658365,
+      "ece": 0.0001680440260877767
+    },
+    "doubleCheck": {
+      "rows": 647,
+      "share": 0.005753668297020898,
+      "pr_auc": 0.9846621480151249,
+      "roc_auc": 0.9998706601135379,
+      "ece": 7.913371189967634e-05
+    },
+    "xRayAttack": {
+      "rows": 475,
+      "share": 0.004224099599822144,
+      "pr_auc": 0.9810897638299283,
+      "roc_auc": 0.9993635139422569,
+      "ece": 6.34578623148061e-05
+    },
+    "epauletteMate": {
+      "rows": 423,
+      "share": 0.003761671854157403,
+      "pr_auc": 0.8781735255772493,
+      "roc_auc": 0.9990604257615117,
+      "ece": 0.00022749265797138558
+    },
+    "smotheredMate": {
+      "rows": 456,
+      "share": 0.004055135615829257,
+      "pr_auc": 1.0,
+      "roc_auc": 1.0,
+      "ece": 1.2761675314470257e-05
+    },
+    "interference": {
+      "rows": 428,
+      "share": 0.0038061360604713206,
+      "pr_auc": 0.8995952648864701,
+      "roc_auc": 0.9976852114496201,
+      "ece": 0.00014908194795365266
+    }
+  },
+  "test_by_candidate_summary": {
+    "macro_pr_auc": 0.9578604320872421,
+    "macro_roc_auc": 0.998904107142409,
+    "macro_ece": 0.0002636749966802848,
+    "rare_below": 0.02,
+    "rare_count": 15,
+    "rare_pr_auc": 0.9322483163428322
+  },
+  "weights": [
+    {
+      "file": "model.pt",
+      "bytes": 26346743,
+      "sha256": "0a89685d0c0e1bcc9dfd05f2b2042feb00fd1758d31ca2336893c40c965713f0"
+    }
+  ],
+  "gain": {
+    "gain": 0.12304424461645802,
+    "low": 0.12136344864281905,
+    "high": 0.12480002180376545,
+    "beyond_noise": true,
+    "reference": "gbm-hand",
+    "reference_trained": "2026-11-28T06:34:29Z",
+    "reference_value": 0.8701690892824203
+  }
+}

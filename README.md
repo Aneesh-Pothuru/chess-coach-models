@@ -49,13 +49,13 @@ The best run of each model on the harness, beside the tree baseline it is compar
 | Model | Predicts | Best run | Score | Reference | Its score | Gain | Test rows |
 |---|---|---|---|---|---|---|---|
 | [`blunder-hazard`](models/blunder-hazard/) | chance the mover loses more than 20 points of win probability | `transformer-medium-hand-pretrained` | PR-AUC 0.2776 (0.2643 to 0.2921) | `gbm-hand` | 0.2533 | +0.02429 | 68,579 |
-| [`game-rating`](models/game-rating/) | Lichess rapid rating points | `steps-board` | MAE 194.1 (190.4 to 198.1) | `gbm-hand` | 242.7 | +48.56 | 9,974 |
+| [`game-rating`](models/game-rating/) | Lichess rapid rating points | `conv-medium-skip-quadruple` | MAE 180.8 (177.3 to 184.8) | `gbm-hand` | 242.7 | +61.92 | 9,974 |
 | [`human-move`](models/human-move/) | the chance that each legal move is the one the player makes | `maia2` | First right 0.5172 (0.5133 to 0.5212) | `gbm-hand` | 0.3980 | +0.1192 | 68,579 |
 | [`position-evaluation`](models/position-evaluation/) | the mover's chance of winning by the engine's evaluation (percent) | `transformer-medium` | RMSE 12.963 (12.859 to 13.070) | `gbm-hand` | 16.449 | +3.486 | 120,035 |
 | [`practical-chances`](models/practical-chances/) | expected score of the mover in the game (a win 1, a draw 0.5, a loss 0) | `gbm-hand-quadruple` | RMSE 0.4223 (0.4169 to 0.4281) | `gbm-hand` | 0.4237 | +0.001353 | 68,579 |
 | [`puzzle-difficulty`](models/puzzle-difficulty/) | Lichess puzzle rating points | `transformer-medium-hand-pretrained` | RMSE 251.7 (250.3 to 253.1) | `gbm-hand` | 294.9 | +43.22 | 112,450 |
 | [`puzzle-difficulty-unsolved`](models/puzzle-difficulty-unsolved/) | Lichess puzzle rating points | `transformer-medium-hand-pretrained` | RMSE 373.8 (371.9 to 375.5) | `gbm-hand` | 456.8 | +83.03 | 112,450 |
-| [`puzzle-themes`](models/puzzle-themes/) | the chance that a puzzle carries a theme | `transformer-medium-hand` | Average precision 0.9828 (0.9821 to 0.9834) | `gbm-hand` | 0.8702 | +0.1126 | 112,450 |
+| [`puzzle-themes`](models/puzzle-themes/) | probability that the puzzle carries each theme | `transformer-medium-hand-solution-quadruple` | Average precision 0.9970 (0.9967 to 0.9972) | `gbm-hand` | 0.8702 | +0.1268 | 112,450 |
 | [`tactic-found`](models/tactic-found/) | chance the move played is the first move of the tactic | `transformer-medium-hand-pretrained` | Log loss 0.5287 (0.5254 to 0.5321) | `gbm-hand` | 0.5414 | +0.01263 | 81,135 |
 | [`think-time`](models/think-time/) | log(1 + seconds spent on the move) | `transformer-medium-hand-pretrained` | MAE 0.6089 (0.6042 to 0.6138) | `gbm-hand` | 0.6306 | +0.02164 | 68,579 |
 | [`where-to-look`](models/where-to-look/) | the chance that a square is one the tactic's line leaves or lands on | `transformer-medium` | Average precision 0.9022 (0.9014 to 0.9031) | `gbm-hand` | 0.7475 | +0.1548 | 112,450 |

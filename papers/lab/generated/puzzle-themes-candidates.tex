@@ -2,40 +2,40 @@
 \fit{%
 \begin{tabular}{lrrrrrr}
 \toprule
- &  &  & \multicolumn{2}{c}{\parbox[b]{2.9cm}{\centering \run{transformer-medium-hand}}} & \multicolumn{2}{c}{\parbox[b]{2.9cm}{\centering \run{gbm-hand}}} \\
+ &  &  & \multicolumn{2}{c}{\parbox[b]{2.9cm}{\centering \run{transformer-medium-hand-solution-quadruple}}} & \multicolumn{2}{c}{\parbox[b]{2.9cm}{\centering \run{gbm-hand}}} \\
 \cmidrule(lr){4-5} \cmidrule(lr){6-7}
 Tag & Test examples & Share & PR-AUC & ROC-AUC & PR-AUC & ROC-AUC \\
 \midrule
-\texttt{fork} & 15{,}186 & 13.5\% & 0.959 & 0.992 & 0.844 & 0.959 \\
-\texttt{kingsideAttack} & 9{,}742 & 8.7\% & 0.991 & 0.999 & 0.788 & 0.975 \\
-\texttt{sacrifice} & 8{,}857 & 7.9\% & 0.992 & 1.000 & 0.980 & 0.998 \\
-\texttt{advancedPawn} & 7{,}237 & 6.4\% & 0.989 & 1.000 & 0.890 & 0.988 \\
-\texttt{pin} & 7{,}235 & 6.4\% & 0.873 & 0.982 & 0.554 & 0.903 \\
-\texttt{discoveredAttack} & 6{,}150 & 5.5\% & 0.985 & 0.999 & 0.773 & 0.970 \\
-\texttt{defensiveMove} & 6{,}116 & 5.4\% & 0.910 & 0.994 & 0.718 & 0.974 \\
-\texttt{deflection} & 5{,}294 & 4.7\% & 0.976 & 0.999 & 0.692 & 0.968 \\
-\texttt{attraction} & 4{,}573 & 4.1\% & 0.986 & 0.999 & 0.849 & 0.992 \\
-\texttt{hangingPiece} & 4{,}040 & 3.6\% & 0.986 & 0.999 & 0.951 & 0.998 \\
-\texttt{quietMove} & 3{,}992 & 3.6\% & 0.914 & 0.996 & 0.684 & 0.977 \\
-\texttt{exposedKing} & 3{,}645 & 3.2\% & 0.980 & 0.999 & 0.524 & 0.970 \\
+\texttt{fork} & 15{,}186 & 13.5\% & 0.987 & 0.999 & 0.844 & 0.959 \\
+\texttt{kingsideAttack} & 9{,}742 & 8.7\% & 0.995 & 1.000 & 0.788 & 0.975 \\
+\texttt{sacrifice} & 8{,}857 & 7.9\% & 0.995 & 1.000 & 0.980 & 0.998 \\
+\texttt{advancedPawn} & 7{,}237 & 6.4\% & 0.992 & 1.000 & 0.890 & 0.988 \\
+\texttt{pin} & 7{,}235 & 6.4\% & 0.985 & 0.999 & 0.554 & 0.903 \\
+\texttt{discoveredAttack} & 6{,}150 & 5.5\% & 0.995 & 1.000 & 0.773 & 0.970 \\
+\texttt{defensiveMove} & 6{,}116 & 5.4\% & 0.975 & 0.999 & 0.718 & 0.974 \\
+\texttt{deflection} & 5{,}294 & 4.7\% & 0.991 & 1.000 & 0.692 & 0.968 \\
+\texttt{attraction} & 4{,}573 & 4.1\% & 0.990 & 1.000 & 0.849 & 0.992 \\
+\texttt{hangingPiece} & 4{,}040 & 3.6\% & 0.991 & 1.000 & 0.951 & 0.998 \\
+\texttt{quietMove} & 3{,}992 & 3.6\% & 0.976 & 0.999 & 0.684 & 0.977 \\
+\texttt{exposedKing} & 3{,}645 & 3.2\% & 0.988 & 1.000 & 0.524 & 0.970 \\
 \texttt{backRankMate} & 2{,}952 & 2.6\% & 0.997 & 1.000 & 0.934 & 0.997 \\
 \texttt{promotion} & 2{,}901 & 2.6\% & 0.991 & 1.000 & 0.990 & 1.000 \\
-\texttt{skewer} & 2{,}624 & 2.3\% & 0.975 & 0.999 & 0.846 & 0.992 \\
-\texttt{discoveredCheck} & 2{,}186 & 1.9\% & 0.877 & 0.997 & 0.670 & 0.980 \\
-\texttt{queensideAttack} & 1{,}776 & 1.6\% & 0.982 & 1.000 & 0.208 & 0.921 \\
-\texttt{intermezzo} & 1{,}457 & 1.3\% & 0.970 & 0.999 & 0.616 & 0.984 \\
-\texttt{clearance} & 1{,}428 & 1.3\% & 0.944 & 0.999 & 0.425 & 0.971 \\
-\texttt{trappedPiece} & 1{,}331 & 1.2\% & 0.762 & 0.992 & 0.526 & 0.977 \\
-\texttt{zugzwang} & 1{,}168 & 1.0\% & 0.806 & 0.996 & 0.646 & 0.993 \\
-\texttt{operaMate} & 1{,}112 & 1.0\% & 0.868 & 0.999 & 0.675 & 0.995 \\
-\texttt{pillsburysMate} & 1{,}075 & 1.0\% & 0.850 & 0.999 & 0.494 & 0.989 \\
-\texttt{attackingF2F7} & 857 & 0.8\% & 0.994 & 0.998 & 0.904 & 0.987 \\
-\texttt{capturingDefender} & 853 & 0.8\% & 0.859 & 0.997 & 0.428 & 0.982 \\
-\texttt{doubleCheck} & 647 & 0.6\% & 0.905 & 0.999 & 0.700 & 0.987 \\
-\texttt{xRayAttack} & 475 & 0.4\% & 0.952 & 0.998 & 0.584 & 0.983 \\
+\texttt{skewer} & 2{,}624 & 2.3\% & 0.988 & 1.000 & 0.846 & 0.992 \\
+\texttt{discoveredCheck} & 2{,}186 & 1.9\% & 0.919 & 0.999 & 0.670 & 0.980 \\
+\texttt{queensideAttack} & 1{,}776 & 1.6\% & 0.991 & 1.000 & 0.208 & 0.921 \\
+\texttt{intermezzo} & 1{,}457 & 1.3\% & 0.983 & 1.000 & 0.616 & 0.984 \\
+\texttt{clearance} & 1{,}428 & 1.3\% & 0.985 & 1.000 & 0.425 & 0.971 \\
+\texttt{trappedPiece} & 1{,}331 & 1.2\% & 0.906 & 0.998 & 0.526 & 0.977 \\
+\texttt{zugzwang} & 1{,}168 & 1.0\% & 0.865 & 0.998 & 0.646 & 0.993 \\
+\texttt{operaMate} & 1{,}112 & 1.0\% & 0.883 & 0.999 & 0.675 & 0.995 \\
+\texttt{pillsburysMate} & 1{,}075 & 1.0\% & 0.885 & 0.999 & 0.494 & 0.989 \\
+\texttt{attackingF2F7} & 857 & 0.8\% & 0.992 & 0.999 & 0.904 & 0.987 \\
+\texttt{capturingDefender} & 853 & 0.8\% & 0.983 & 1.000 & 0.428 & 0.982 \\
+\texttt{doubleCheck} & 647 & 0.6\% & 0.996 & 1.000 & 0.700 & 0.987 \\
+\texttt{xRayAttack} & 475 & 0.4\% & 0.989 & 0.999 & 0.584 & 0.983 \\
 \texttt{smotheredMate} & 456 & 0.4\% & 1.000 & 1.000 & 0.919 & 0.999 \\
-\texttt{interference} & 428 & 0.4\% & 0.665 & 0.991 & 0.234 & 0.956 \\
-\texttt{epauletteMate} & 423 & 0.4\% & 0.824 & 0.999 & 0.160 & 0.961 \\
+\texttt{interference} & 428 & 0.4\% & 0.938 & 0.999 & 0.234 & 0.956 \\
+\texttt{epauletteMate} & 423 & 0.4\% & 0.911 & 1.000 & 0.160 & 0.961 \\
 \bottomrule
 \end{tabular}%
 }

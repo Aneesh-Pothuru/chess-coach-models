@@ -1,0 +1,159 @@
+{
+ "model": "puzzle-themes",
+ "written_by": "lab analyse puzzle-themes",
+ "written": "2026-11-28T14:55:02Z",
+ "code": "a677087d8ff8f66faea0f0944bd7800565881087+changes",
+ "dataset": {
+  "dataset": "puzzles-v1",
+  "builder": "puzzles",
+  "source": "https://database.lichess.org/lichess_db_puzzle.csv.zst",
+  "licence": "CC0 1.0, database.lichess.org",
+  "recipe": {
+   "filters": {
+    "max_rating_deviation": 100,
+    "min_plays": 100
+   },
+   "sample": 0.25,
+   "split": {
+    "salt": "puzzles-v1",
+    "valid": 0.05,
+    "test": 0.1
+   }
+  },
+  "source_rows_read": 6193530,
+  "marks": [
+   "en_passant",
+   "setup_from",
+   "setup_to",
+   "solver1_from",
+   "solver1_to",
+   "reply1_from",
+   "reply1_to",
+   "solver2_from",
+   "solver2_to",
+   "reply2_from",
+   "reply2_to",
+   "solver3_from",
+   "solver3_to",
+   "later"
+  ],
+  "hand": [
+   "material_count",
+   "material_imbalance",
+   "phase_piece_count",
+   "in_check",
+   "legal_moves",
+   "legal_captures",
+   "legal_checks",
+   "hanging_own",
+   "hanging_opponent",
+   "passed_pawns_own",
+   "passed_pawns_opponent",
+   "attackers_near_own_king",
+   "attackers_near_opponent_king",
+   "solver_moves",
+   "first_piece",
+   "first_capture",
+   "first_captured_value",
+   "first_check",
+   "first_promotion",
+   "first_distance",
+   "first_backward",
+   "first_to_attacked",
+   "first_sacrifice",
+   "line_checks",
+   "line_captures",
+   "line_quiet",
+   "line_promotions",
+   "line_pieces_moved",
+   "line_sacrifices",
+   "line_max_distance",
+   "ends_in_mate",
+   "reply_captures",
+   "setup_capture",
+   "final_material_gain"
+  ],
+  "group": "game_id",
+  "build_seconds": 88.1,
+  "rows": 1127915,
+  "splits": {
+   "test": 112450,
+   "train": 958941,
+   "valid": 56524
+  },
+  "fingerprint": "d14731fa4425fc6efdadb45c94ee53e07f5afe9151992b690b81edc71064cd5d",
+  "built": "2026-11-28T00:46:20Z",
+  "code": "a677087d8ff8f66faea0f0944bd7800565881087"
+ },
+ "task": {
+  "label": "themes",
+  "kind": "tags",
+  "primary": "ap",
+  "band": "band"
+ },
+ "runs": [
+  "transformer-medium-hand-solution-quadruple",
+  "transformer-medium-hand-solution",
+  "transformer-medium-hand-attacks",
+  "transformer-medium-hand",
+  "transformer-medium",
+  "conv-small",
+  "transformer-small",
+  "gbm-hand",
+  "gbm-context",
+  "constant"
+ ],
+ "skipped": {},
+ "best": "transformer-medium-hand-solution-quadruple",
+ "reference": "gbm-hand",
+ "challenger": "transformer-medium-hand-solution-quadruple",
+ "test_rows": 112450,
+ "pairs": [
+  {
+   "run": "gbm-hand-per-tag",
+   "over": "gbm-hand",
+   "gain": 6.17437e-06,
+   "study": "calibrate",
+   "low": -0.000273656,
+   "high": 0.000307597,
+   "beyond_noise": false
+  },
+  {
+   "run": "transformer-medium-hand-attacks",
+   "over": "transformer-medium-hand",
+   "gain": 0.00505573,
+   "low": 0.0044882,
+   "high": 0.00564423,
+   "beyond_noise": true
+  },
+  {
+   "run": "transformer-medium-hand-solution",
+   "over": "transformer-medium-hand-attacks",
+   "gain": 0.00673138,
+   "low": 0.0062189,
+   "high": 0.00722522,
+   "beyond_noise": true
+  },
+  {
+   "run": "transformer-medium-hand-solution-asl",
+   "over": "transformer-medium-hand-solution",
+   "gain": 0.000188208,
+   "study": "loss",
+   "low": -0.000168736,
+   "high": 0.000552948,
+   "beyond_noise": false
+  },
+  {
+   "run": "transformer-medium-hand-solution-quadruple",
+   "over": "transformer-medium-hand-solution",
+   "gain": 0.00375439,
+   "low": 0.00340996,
+   "high": 0.00411528,
+   "beyond_noise": true
+  }
+ ],
+ "studies": [
+  "gbm-hand-per-tag",
+  "transformer-medium-hand-solution-asl"
+ ]
+}
